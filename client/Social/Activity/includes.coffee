@@ -31,8 +31,6 @@ module.exports = [
   "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
-  "views/privatemessagemodal.coffee"
-  "views/privatemessagerecipientmodal.coffee"
   "views/alltopicsmodal.coffee"
   "views/yourtopicsmodal.coffee"
   "views/conversationsmodal.coffee"
@@ -95,7 +93,14 @@ module.exports = [
 
   # Activity List Items
   "views/activitylistitem.coffee"
-  "views/privatemessagelistitem.coffee"
+
+  "views/privatemessage/listitem.coffee"
+  "views/privatemessage/modal.coffee"
+  "views/privatemessage/pane.coffee"
+  "views/privatemessage/recipientmodal.coffee"
+  "views/privatemessage/replypreviouslink.coffee"
+  "views/privatemessage/replyinputview.coffee"
+  "views/privatemessage/replyinputwidget.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

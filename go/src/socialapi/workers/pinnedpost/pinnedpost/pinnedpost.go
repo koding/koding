@@ -69,7 +69,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 }
 
 func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
-	// fetch the parent channel for gorup name
+	// fetch the parent channel for group name
 	// get it from cache
 	channel, err := models.ChannelById(channelId)
 	if err != nil {
@@ -83,7 +83,8 @@ func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	}
 
 	// add parent message into pinning channel
-	_, err = pinningChannel.AddMessage(messageId)
+	_, err = pinningChannel.EnsureMessage(messageId, false)
+
 	// if message is already in the channel ignore the error, and mark process as successful
 	if err == models.ErrAlreadyInTheChannel {
 		return nil

@@ -4,10 +4,19 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     options.cssClass           = KD.utils.curry 'privatemessage ', options.cssClass
     options.commentViewClass or= ReplyView
+    options.commentSettings    = {}
+    {commentSettings}          = options
+    commentSettings.channelId  = options.channelId
+    options.activitySettings   = {}
+    {activitySettings}         = options
+    activitySettings.disableFollow ?= yes
 
     super options, data
 
+    {createdAt, deletedAt, updatedAt} = data
+
     @likeView = new ReplyLikeView {}, data
+    @timeView = new CommentTimeView {}, createdAt
 
     @decorate()
 
@@ -39,13 +48,13 @@ class PrivateMessageListItemView extends ActivityListItemView
   pistachio: ->
     """
     <div class="activity-content-wrapper clearfix">
+      {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta clearfix'>
-        {{> @author}}{{> @timeAgoView}}{{> @likeView}}
+        {{> @author}} {{> @timeView }} {{> @timeAgoView}} {{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
       {{> @embedBox}}
     </div>
-    {{> @commentBox}}
     """

@@ -52,8 +52,8 @@ func Ami() (string, error) {
 
 // Checksum returns an hexadecimal checksum. We use this to ensure idempotence and that an image is only created once
 func Checksum() (string, error) {
-	// Get json representation of packer conf
-	// (we could use "gob" encoding any other, json specifically doesn't matter)
+	// Get json representation of packer conf (we could use "gob" encoding any
+	// other, json specifically doesn't matter)
 	data, err := json.Marshal(RawData)
 	if err != nil {
 		// this should never happen

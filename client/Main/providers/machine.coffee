@@ -37,6 +37,14 @@ class Machine extends KDObject
         options.machine = this
         FSItem.create options, callback
 
+    KD.singletons.computeController.on "public-#{machine._id}", (event)=>
+
+      unless event.status is @jMachine.status.state
+
+        @jMachine.setAt? "status.state", event.status
+        @updateLocalData()
+
+
   updateLocalData:->
     { @label, @ipAddress, @_id, @provisioners, @provider
       @status, @uid, @domain, @queryString } = @jMachine
@@ -52,7 +60,7 @@ class Machine extends KDObject
     klient = kontrol.kites?.klient?[@uid]
     return klient  if klient
 
-    if @queryString? and createIfNotExists
+    if createIfNotExists and KD.utils.doesQueryStringValid @queryString
 
       kontrol.getKite { name: "klient", @queryString, correlationName: @uid }
 

@@ -73,6 +73,8 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         listLikers:
           (signature Object, Function)
+        initPrivateMessage:
+          (signature Object, Function)
         sendPrivateMessage:
           (signature Object, Function)
         fetchPrivateMessages:
@@ -171,13 +173,23 @@ module.exports = class SocialMessage extends Base
     fnName        : 'fetchMessage'
     validate      : ['id']
 
-  @sendPrivateMessage = permit 'send private message',
+  @initPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
       unless data.body
         return callback message: "Message body should be set"
 
       if not data.recipients or data.recipients.length < 1
         return callback message: "You should have at least one recipient"
+      doRequest 'initPrivateMessage', client, data, callback
+
+  @sendPrivateMessage = permit 'send private message',
+    success: (client, data, callback)->
+      unless data.body
+        return callback message: "Message body should be set"
+
+      unless data.channelId
+        return callback message: "Conversation is not defined"
+
       doRequest 'sendPrivateMessage', client, data, callback
 
   # todo-- ask Chris about using validators.own

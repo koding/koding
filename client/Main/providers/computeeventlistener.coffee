@@ -63,6 +63,14 @@ class ComputeEventListener extends KDObject
     delete @machineStatuses[machine.uid]
 
 
+  TypeStateMap =
+
+    stop    : public : "MachineStopped",   private : Machine.State.Stopped
+    start   : public : "MachineStarted",   private : Machine.State.Running
+    build   : public : "MachineBuilt",     private : Machine.State.Running
+    destroy : public : "MachineDestroyed", private : Machine.State.Terminated
+
+
   tick:->
 
     return  unless @listeners.length
@@ -70,6 +78,7 @@ class ComputeEventListener extends KDObject
     @tickInProgress = yes
 
     {computeController} = KD.singletons
+
     @kloud.event @listeners
 
     .then (responses)=>
@@ -86,11 +95,9 @@ class ComputeEventListener extends KDObject
 
         log "#{res.event.eventId}", res.event
 
-        if res.event.percentage is 100
-          if type is "build"
-            computeController.emit "MachineBuilt", machineId: eventId
-          else if type is "destroy"
-            computeController.emit "MachineDestroy", machineId: eventId
+        if res.event.percentage is 100 and ev = TypeStateMap[type]
+          computeController.emit ev.public, machineId: eventId
+          computeController.emit "stateChanged-#{eventId}", ev.private
 
         unless res.event.status is 'Unknown'
           computeController.emit "public-#{eventId}",    res.event

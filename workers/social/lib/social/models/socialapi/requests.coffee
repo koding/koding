@@ -197,8 +197,15 @@ fetchFollowedChannels = (data, callback)->
   url = "/account/#{data.accountId}/channels"
   get url, data, callback
 
-sendPrivateMessage = (data, callback)->
+initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
+    return callback { message: "Request is not valid"}
+
+  url = "/privatemessage/init"
+  post url, data, callback
+
+sendPrivateMessage = (data, callback)->
+  if not data.body or not data.channelId
     return callback { message: "Request is not valid"}
 
   url = "/privatemessage/send"
@@ -347,6 +354,7 @@ module.exports = {
   fetchProfileFeed
   searchTopics
   fetchPrivateMessages
+  initPrivateMessage
   sendPrivateMessage
   fetchFollowedChannels
   listParticipants

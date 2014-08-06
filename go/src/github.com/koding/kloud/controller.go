@@ -199,11 +199,20 @@ func methodHas(method string, methods ...string) bool {
 	return false
 }
 
-func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
+func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
 	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
 
+	defer func() {
+		if err == nil {
+			k.Log.Info("[info] returning response %+v", resp)
+		}
+	}()
+
 	if c.CurrenState == machinestate.NotInitialized {
-		return nil, NewError(ErrMachineNotInitialized)
+		return &protocol.InfoArtifact{
+			State: machinestate.NotInitialized,
+			Name:  "not-initialized-instance",
+		}, nil
 	}
 
 	machOptions := c.GetMachine()
@@ -228,7 +237,6 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (interface{}, error) {
 		},
 	})
 
-	k.Log.Info("[info] returning response %+v", response)
 	return response, nil
 }
 
@@ -250,7 +258,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 		}
 
 		err = k.Storage.Update(c.MachineId, &StorageData{
-			Type: "build",
+			Type: "start",
 			Data: map[string]interface{}{
 				"ipAddress":    resp.IpAddress,
 				"instanceId":   resp.InstanceId,
@@ -334,7 +342,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 
 		machOptions := c.GetMachine()
 
-		k.Log.Info("[controller]: running method %s with mach options %v", r.Method, machOptions)
+		k.Log.Info("[controller] running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[controller] %s failed: %s. Machine state did't change and is set to '%s' now.",

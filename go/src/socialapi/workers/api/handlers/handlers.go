@@ -134,6 +134,8 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// TODO add caching
 	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(popular.ListPosts, "list-popular-posts"))
 
+	mux.Handle("POST", "/privatemessage/init", handler.Wrapper(privatemessage.Init, "privatemessage-init"))
+
 	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(privatemessage.Send, "privatemessage-send"))
 
 	// exempt contents are filtered

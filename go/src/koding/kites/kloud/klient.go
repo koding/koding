@@ -23,23 +23,13 @@ func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
 		return nil, err
 	}
 
-	kontrolQuery := protocol.KontrolQuery{
-		Username:    query.Username,
-		ID:          query.ID,
-		Hostname:    query.Hostname,
-		Name:        query.Name,
-		Environment: query.Environment,
-		Region:      query.Region,
-		Version:     query.Version,
-	}
-
 	timeout := time.After(time.Minute)
 
 	k.Log.Info("Querying for Klient: %s", queryString)
 	for {
 		select {
 		case <-time.Tick(time.Second * 2):
-			kites, err := k.Kite.GetKites(kontrolQuery)
+			kites, err := k.Kite.GetKites(query.Query())
 			if err != nil {
 				// still not up, try again until the kite is ready
 				continue

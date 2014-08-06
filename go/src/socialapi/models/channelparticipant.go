@@ -103,18 +103,32 @@ func (c *ChannelParticipant) CreateRaw() error {
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
+
+	selector := map[string]interface{}{
+		"channel_id": c.ChannelId,
+		"account_id": c.AccountId,
+	}
+
+	return c.fetchParticipant(selector)
+}
+
+func (c *ChannelParticipant) FetchActiveParticipant() error {
+	selector := map[string]interface{}{
+		"channel_id":      c.ChannelId,
+		"account_id":      c.AccountId,
+		"status_constant": ChannelParticipant_STATUS_ACTIVE,
+	}
+
+	return c.fetchParticipant(selector)
+}
+
+func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) error {
 	if c.ChannelId == 0 {
 		return errors.New("channelId is not set")
 	}
 
 	if c.AccountId == 0 {
 		return errors.New("accountId is not set")
-	}
-
-	selector := map[string]interface{}{
-		"channel_id": c.ChannelId,
-		"account_id": c.AccountId,
-		// "status_constant":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
 	// TODO do we need to add isExempt scope here?

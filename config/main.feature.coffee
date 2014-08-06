@@ -471,10 +471,10 @@ Configuration = (options={}) ->
         touch /root/run.services.start
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
-        docker run -d --net=host                --name=mongo    mongo
-        docker run -d --net=host                --name=redis    redis
-        docker run -d --net=host                --name=postgres koding/postgres
-        docker run -d --net=host                --name=rabbitmq koding/rabbitmq
+        docker run -d -p 27017:27017            --name=mongo    mongo --dbpath /root/data/db --smallfiles --nojournal
+        docker run -d -p 6379:6379              --name=redis    redis
+        docker run -d -p 5432:5432              --name=postgres koding/postgres
+        docker run -d -p 5672:5672              --name=rabbitmq koding/rabbitmq
         docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{prod_simulation_server}:7001 -addr #{prod_simulation_server}:4001
 
 

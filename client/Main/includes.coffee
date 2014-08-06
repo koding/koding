@@ -141,12 +141,13 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "providers/machine.coffee",
+
   "providers/config.coffee",
   "providers/computecontroller.coffee",
   "providers/computecontroller.ui.coffee",
   "providers/computeeventlistener.coffee",
 
-  "providers/machine.coffee",
   "providers/dummymachine.coffee",
   "providers/machineitem.coffee",
   "providers/machinelist.coffee",

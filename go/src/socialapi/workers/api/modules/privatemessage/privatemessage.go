@@ -45,9 +45,9 @@ func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []
 	return append(participants, authorId)
 }
 
-func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+func Init(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
 	if req.AccountId == 0 {
-		return response.NewBadRequest(errors.New("acccountId is not defined"))
+		return response.NewBadRequest(models.ErrAccountIdIsNotSet)
 	}
 
 	cm := models.NewChannelMessage()
@@ -112,6 +112,52 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	cmc.ParticipantsPreview = participantOldIds
+
+	return response.NewOK(cmc)
+}
+
+func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+	if req.AccountId == 0 {
+		return response.NewBadRequest(models.ErrAccountIdIsNotSet)
+	}
+
+	// check channel existence
+	c := models.NewChannel()
+	if err := c.ById(req.ChannelId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// check if sender is whether a participant of conversation
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	cp.AccountId = req.AccountId
+	if err := cp.FetchActiveParticipant(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// add private message
+	cm := models.NewChannelMessage()
+	cm.Body = req.Body
+	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	cm.AccountId = req.AccountId
+	cm.InitialChannelId = c.Id
+	if err := cm.Create(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if _, err := c.AddMessage(cm.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	messageContainer, err := cm.BuildEmptyMessageContainer()
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cmc := models.NewChannelContainer()
+	cmc.Channel = c
+	cmc.IsParticipant = true
+	cmc.LastMessage = messageContainer
 
 	return response.NewOK(cmc)
 }

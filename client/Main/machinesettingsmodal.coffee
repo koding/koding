@@ -177,10 +177,6 @@ class MachineSettingsModal extends KDModalViewWithForms
 
     currentStatus.updatePartial status
 
-    @machine.jMachine.setAt "status.state", status
-    @machine.updateLocalData()
-
-
   _setDomainField: ->
 
     domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"

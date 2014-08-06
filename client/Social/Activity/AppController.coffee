@@ -60,12 +60,23 @@ class ActivityAppController extends AppController
     socialapi.message.listReplies {messageId, from, limit}, callback
 
 
-  fetch: ({channelId, from}, callback = noop) ->
+  sendPrivateMessage: (options = {}, callback = noop) ->
+
+    {socialapi} = KD.singletons
+    socialapi.message.sendPrivateMessage options, callback
+
+
+  fetch: ({channelId, from, limit}, callback = noop) ->
 
     id = channelId
     {socialapi} = KD.singletons
 
-    socialapi.channel.fetchActivities {id, from}, callback
+    if socialApiChannelId is channelId and socialapi.getPrefetchedData('publicFeed').length > 0
+      messages = socialapi.getPrefetchedData 'publicFeed'
+      KD.utils.defer ->  callback null, messages
+      KD.socialApiData.publicFeed = null
+    else
+      socialapi.channel.fetchActivities {id, from, limit}, callback
 
 
   #

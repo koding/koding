@@ -4,6 +4,7 @@
 *.sublime-*
 *.swo
 *.swp
+*.etcd
 *conflicted\ copy\ 201*
 .cake_task_cache
 .DS_Store
