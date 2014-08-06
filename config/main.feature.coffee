@@ -18,9 +18,10 @@ Configuration = (options={}) ->
 
   # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
   mongo               = "#{prod_simulation_server}:27017/koding"
-  redis               = {host     : "prod0.1ia3pb.0001.use1.cache.amazonaws.com"   , port : "6379" }
-  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
+  redis               = {host     : "#{prod_simulation_server}:27017/koding"   , port : "6379" }
+  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/feature.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
+  etcd                = "#{prod_simulation_server}:4001"
 
   customDomain        =
     public            : "http://#{hostname}"
@@ -134,7 +135,7 @@ Configuration = (options={}) ->
     algolia: #TODO change these credentials
       appId: '8KD9RHY1OA'
       apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
-      indexSuffix: ''
+      indexSuffix: '.feature'
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
@@ -468,8 +469,15 @@ Configuration = (options={}) ->
 
       function services() {
         touch /root/run.services.start
-        docker run -d --net=host                  --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
-        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
+        docker stop mongo redis postgres rabbitmq etcd
+        docker rm   mongo redis postgres rabbitmq etcd
+        docker run -d --net=host                --name=mongo    mongo
+        docker run -d --net=host                --name=redis    redis
+        docker run -d --net=host                --name=postgres koding/postgres
+        docker run -d --net=host                --name=rabbitmq koding/rabbitmq
+        docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{prod_simulation_server}:7001 -addr #{prod_simulation_server}:4001
+
+
         node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
         service nginx restart
@@ -533,21 +541,6 @@ Configuration = (options={}) ->
 
       runcmd:
         - echo '#{b64z runContents}' | base64 --decode | gunzip > /root/run && bash /root/run
-        - touch /root/1
-        - touch /root/2
-        - touch /root/3
-        - touch /root/4
-        - touch /root/5
-        - touch /root/6
-        - touch /root/7
-        - touch /root/8
-        - touch /root/9
-        - touch /root/10
-        - touch /root/11
-        - touch /root/12
-        - touch /root/13
-        - touch /root/14
-        - touch /root/15
 
 
     """

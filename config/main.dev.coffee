@@ -18,6 +18,7 @@ Configuration = (options={}) ->
   redis               = {host     : "#{boot2dockerbox}"     , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000" , port : 7000 , clusterSize : 5     , configFilePath : "#{projectRoot}/go/src/socialapi/config/dev.toml" }
   rabbitmq            = {host     : "#{boot2dockerbox}"     , port : 5672 , apiPort     : 15672 , login          : "guest", password : "guest", vhost:"/"}
+  etcd                = "#{boot2dockerbox}:4001"
 
   customDomain        =
     public            : "http://#{hostname}"
@@ -175,7 +176,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region}"
+    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
     kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
@@ -194,7 +195,7 @@ Configuration = (options={}) ->
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps"
 
-    ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
+    ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
 
 
 
@@ -362,11 +363,11 @@ Configuration = (options={}) ->
         boot2docker up
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
-        docker run -d --net=host   --name=mongo    mongo
-        docker run -d --net=host   --name=redis    redis
-        docker run -d --net=host   --name=postgres koding/postgres
-        docker run -d --net=host   --name=rabbitmq koding/rabbitmq
-        docker run -d -p 4001:4001 --name=etcd     coreos/etcd
+        docker run -d --net=host                --name=mongo    mongo
+        docker run -d --net=host                --name=redis    redis
+        docker run -d --net=host                --name=postgres koding/postgres
+        docker run -d --net=host                --name=rabbitmq koding/rabbitmq
+        docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
         echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
         sleep 5

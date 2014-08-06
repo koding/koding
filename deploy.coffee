@@ -16,8 +16,7 @@ semver     = require 'semver'
 request    = require 'request'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
-runAfter   = (time,fn) ->
-  setTimeout fn,time
+runAfter   = (time,fn) -> setTimeout(fn,time)
 
 
 class Release
@@ -264,10 +263,10 @@ if argv.deploy
 
 
     options =
-      boxes       : argv.boxes          or 2
-      boxtype     : argv.boxtype        or "t2.micro"
+      boxes       : argv.boxes          or 1
+      boxtype     : argv.boxtype        or "t2.medium"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
-      config      : argv.config         or "prod" # prod | staging | sandbox
+      config      : argv.config         or "feature" # prod | staging | sandbox
       version     : argv.version        or version
 
     options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
@@ -301,7 +300,7 @@ if argv.deploy
 
       Deploy.createInstances deployOptions,(err,res)->
 
-      runAfter 5,Release.registerInstancesWithPrefix options.hostname,(err,res)->
+        Release.registerInstancesWithPrefix options.hostname,(err,res)->
           log "------------------------------------------------------------------"
           log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
           log "------------------------------------------------------------------"
