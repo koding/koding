@@ -35,9 +35,9 @@ class NavigationActivityLink extends KDCustomHTMLView
 
         activityController.on "NewItemsCounterCleared", @bound "setActivityLinkToDefaultState"
 
-    mainController.on "NavigationLinkTitleClick", (options) =>
-      if options.appPath is "Activity"
-        KD.getSingleton("activityController").clearNewItemsCount()
+    # mainController.on "NavigationLinkTitleClick", (options) =>
+    #   if options.appPath is "Activity"
+    #     KD.getSingleton("activityController").clearNewItemsCount()
 
   updateNewItemsCount: (itemCount) ->
     return if itemCount is 0

@@ -23,10 +23,8 @@ putSplash = (name, section, model)->
 generateShareUrl = (model, uri)->
   slug = if model?.bongo_?.constructorName and model?.slug
     switch model.bongo_.constructorName
-      when "JNewStatusUpdate", "JCodeSnip", "JDiscussion", "JBlogPost", "JTutorial"
+      when "SocialMessage"
         "/Activity/" + model.slug
-      when "JTag"
-        "/Topics/" + model.slug
       when "JNewApp"
         "/Apps/" + model.slug
       else ""
@@ -44,6 +42,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   getGraphMeta = require './../graphmeta'
   fetchScripts = require './../scriptblock'
+  getTitle     = require './../title'
   model        = models.first if models and Array.isArray models
 
   title = if model?.title then model.title else section
@@ -51,16 +50,12 @@ module.exports = (options, callback)->
 
   shareUrl = generateShareUrl model, uri
 
-  # JNewStatusUpdate doesn't have title; we're using body instead.
-  if model?.bongo_?.constructorName is "JNewStatusUpdate"
-    title = if model?.body then model.body
-
   prepareHTML  = (scripts, title, shareUrl)->
     """
     <!doctype html>
     <html lang="en">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
       #{getGraphMeta title: title, shareUrl: shareUrl, body: body}
     </head>

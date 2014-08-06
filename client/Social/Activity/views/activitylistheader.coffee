@@ -96,9 +96,10 @@ class ActivityListHeader extends JView
         KD.logToExternal 'realtime failure detected'
         alreadyWarned = yes
     ->
-      KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
-        itFailed()  if ts? and lastTs isnt ts and lastCount is __count
-        lastTs = ts; lastCount = __count
+      return console.error "unimplemented fature"
+      # KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
+      #   itFailed()  if ts? and lastTs isnt ts and lastCount is __count
+      #   lastTs = ts; lastCount = __count
 
   _togglePollForUpdates: do (i = null) -> (state) ->
     if state then i = setInterval (@bound '_checkForUpdates'), 60 * 1000 # 1 minute

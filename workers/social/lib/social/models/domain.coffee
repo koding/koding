@@ -331,12 +331,12 @@ module.exports = class JDomain extends jraphical.Module
   bindVM: (client, params, callback)->
     domainName = @domain
     operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
+    JDomain.update {domain:domainName}, operation, (err) -> callback err
 
   unbindVM: (client, params, callback)->
     domainName = @domain
     operation  = {'$pull': hostnameAlias: params.hostnameAlias}
-    JDomain.update {domain:domainName}, operation, callback
+    JDomain.update {domain:domainName}, operation, (err) -> callback err
 
   bindVM$: permit
     advanced: [

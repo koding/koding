@@ -1,151 +1,186 @@
-class ActivityAppView extends KDScrollView
+class ActivityAppView extends KDView
 
-  JView.mixin @prototype
+  {isKoding, isGroup, isMember} = KD
+  {permissions}                 = KD.config
 
-  headerHeight = 0
-
-  {entryPoint, permissions, roles} = KD.config
-
-  isGroup        = -> entryPoint?.type is 'group'
-  isKoding       = -> entryPoint?.slug is 'koding'
-  isMember       = -> 'member' in roles
   canListMembers = -> 'list members' in permissions
   isPrivateGroup = -> not isKoding() and isGroup()
 
-
   constructor:(options = {}, data)->
 
-    options.cssClass   = 'content-page activity'
+    options.cssClass   = 'content-page activity clearfix'
+    # options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
     super options, data
 
-    {entryPoint}      = KD.config
     {
-      windowController
-      mainController
       appStorageController
-    } = KD.singletons
+      windowController
+    }             = KD.singletons
+    {entryPoint}  = KD.config
+    @_lastMessage = null
 
-    @appStorage = appStorageController.storage 'Activity', '1.0.1'
+    @appStorage  = appStorageController.storage 'Activity', '2.0'
+    # @groupHeader = new FeedCoverPhotoView
+    @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
+    @tabs        = new KDTabView
+      tagName             : 'main'
+      cssClass            : 'app-content'
+      hideHandleContainer : yes
+
     @appStorage.setValue 'liveUpdates', off
 
-    # main components
-    @feedWrapper       = new ActivityListContainer
-    @inputWidget       = new ActivityInputWidget
-    @referalBox        = new ReferalBox
-    @topWidgetWrapper  = new KDCustomHTMLView
-    @leftWidgetWrapper = new KDCustomHTMLView
-    @groupListBox      = new UserGroupList
-    @topicsBox         = new ActiveTopics
-    @usersBox          = new ActiveUsers
+    # windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
 
-    # TODO : if not on private group DO NOT create those ~EA
-    # group components
-    @groupCoverView   = new FeedCoverPhotoView
-    @groupDescription = new GroupDescription
-    @groupMembers     = new GroupMembers
 
-    mainController.ready =>
-      {widgetController} = KD.singletons
-      widgetController.showWidgets [
-        { view: @topWidgetWrapper,  key: 'ActivityTop'  }
-        { view: @leftWidgetWrapper, key: 'ActivityLeft' }
-      ]
 
-    @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
-    mainController.on 'AccountChanged', @bound "decorate"
-    mainController.on 'JoinedGroup', => @inputWidget.show()
-    @feedWrapper.ready =>
-      @activityHeader  = @feedWrapper.controller.activityHeader
-      {@filterWarning} = @feedWrapper
-      {feedFilterNav}  = @activityHeader
-      feedFilterNav.unsetClass 'multiple-choice on-off'
+  lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
 
 
   viewAppended: ->
 
-    appendAside = (view)=> @addSubView view, 'aside'
-
-    JView::viewAppended.call this
-
-    @decorate()
-    @setLazyLoader 200
-
-    appendAside @referalBox       if KD.isLoggedIn() and not isPrivateGroup()
-    appendAside @groupDescription if isPrivateGroup()
-    appendAside @groupMembers     if isPrivateGroup() and canListMembers()
-    appendAside @groupListBox     if isKoding()
-    appendAside @topicsBox
-    appendAside @usersBox         if canListMembers()
+    # @addSubView @groupHeader  unless isKoding()
+    @addSubView @sidebar
+    @addSubView @tabs
 
 
-  pistachio:->
-    """
-    {{> @groupCoverView}}
-    <main>
-      {{> @inputWidget}}
-      {{> @feedWrapper}}
-      {{> @topWidgetWrapper}}
-    </main>
-    <aside>
-      {{> @leftWidgetWrapper}}
-    </aside>
-    """
+  scroll: ->
+
+    if window.scrollY > 316
+    then @setClass 'fixed'
+    else @unsetClass 'fixed'
 
 
-  activitySubmitted:->
+  # type: [public|topic|post|message|chat|null]
+  # slug: [slug|id|name]
+  open: (type, slug) ->
 
-    appTop   = @getElement().offsetTop
-    listTop  = @feedWrapper.listWrapper.getElement().offsetTop
-    duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
-    $('html, body').animate {scrollTop: appTop + listTop + 10}, {duration}
-
-
-  decorate:->
-
-    {entryPoint, roles} = KD.config
-
-    @unsetClass 'guest'
-    @setClass 'guest'     unless isMember()
-    @setClass 'loggedin'  if KD.isLoggedIn()
-
-    unless isMember()
-    then @inputWidget.hide()
-    else @inputWidget.show()
-
-    @_windowDidResize()
+    {socialapi, router, notificationController} = KD.singletons
 
 
-  setTopicTag: (slug) ->
+    kallback = (data) =>
+      name = if slug then "#{type}-#{slug}" else type
+      pane = @tabs.getPaneByName name
 
-    return  unless slug
+      unless @sidebar.selectedItem
+        @sidebar.selectItemByRouteOptions type, slug
 
-    KD.remote.api.JTag.one {slug}, null, (err, tag) =>
-      @inputWidget.input.setDefaultTokens tags: [tag]
+      if pane
+      then @tabs.showPane pane
+      else @createTab name, data
+
+    @sidebar.selectItemByRouteOptions type, slug
+    item = @sidebar.selectedItem
+
+    if type is 'public'
+      item = @sidebar.public
+      kallback item.getData()
+
+    else if not item
+      type_ = switch type
+        when 'message' then 'privatemessage'
+        when 'post'    then 'activity'
+        else type
+
+      socialapi.cacheable type_, slug, (err, data) =>
+        if err then router.handleNotFound router.getCurrentPath()
+        else
+          @sidebar.addItem data
+          kallback data
+
+    else
+      kallback item.getData()
 
 
-  unsetTopicTag: -> @inputWidget.input.setDefaultTokens tags: []
+  openNext: ->
+
+    items    = @sidebar.getItems()
+    selected = @sidebar.selectedItem
+
+    index = items.indexOf selected
+    next  = index + 1
+    next  = Math.min next, items.length - 1
+    item  = items[next]
+
+    {route, href} = item.getOptions()
+
+    KD.singletons.router.handleRoute route or href
 
 
-  # ticker: if we ever need to put it back it's here. at least for a while.- SY
-    # @tickerBox        = new ActivityTicker
+  openPrev: ->
 
-    # calculateTopOffset = =>
-    #   KD.utils.wait 3000, =>
-    #     @topOffset = @tickerBox.$().position().top
+    items    = @sidebar.getItems()
+    selected = @sidebar.selectedItem
 
+    index = items.indexOf selected
+    prev  = Math.min Math.max(0, index - 1), items.length - 1
+    item  = items[prev]
 
-    # @tickerBox.once 'viewAppended', =>
-    #   calculateTopOffset()
-    #   windowController.on 'ScrollHappened', =>
-    #     # sanity check
-    #     calculateTopOffset()  if @topOffset < 200
-    #     if document.documentElement.scrollTop > @topOffset
-    #     then @tickerBox.setClass 'fixed'
-    #     else @tickerBox.unsetClass 'fixed'
+    {route, href} = item.getOptions()
 
-    # @groupListBox.on 'TopOffsetShouldBeFixed', calculateTopOffset
+    KD.singletons.router.handleRoute route or href
 
 
-    # @sideBlock.addSubView @tickerBox
+  createTab: (name, data) ->
+
+    channelId = data.id
+    type      = data.typeConstant
+
+    paneClass = switch type
+      when 'topic'          then TopicMessagePane
+      when 'privatemessage' then PrivateMessagePane
+      else MessagePane
+
+    itemClass = switch type
+      when 'privatemessage' then PrivateMessageListItemView
+      else ActivityListItemView
+
+    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
+
+    return pane
+
+
+  refreshTab: (name) ->
+
+    pane = @tabs.getPaneByName name
+
+    pane?.refresh()
+
+    return pane
+
+
+  showNewMessageModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    bounds = @sidebar.sections.messages.options.headerLink.getBounds()
+
+    top      = bounds.y - 310
+    left     = bounds.x + bounds.w + 40
+    arrowTop = 310 + (bounds.h / 2) - 10 #10 = arrow height
+    arrowTop = arrowTop + top  if top < 0
+
+    modal = new PrivateMessageModal
+      delegate     : this
+      _lastMessage : @_lastMessage
+      position     :
+        top        : Math.max top, 0
+        left       : left
+      arrowTop     : arrowTop
+
+    return modal
+
+
+  showAllTopicsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new YourTopicsModal delegate : this
+
+
+  showAllConversationsModal: ->
+
+    @open 'public'  unless @tabs.getActivePane()
+
+    return new ConversationsModal delegate : this

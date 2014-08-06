@@ -41,22 +41,10 @@ class AccountPaymentHistoryListController extends AccountListViewController
       @instantiateListItems items
       @hideLazyLoader()
 
-  loadView:->
-    super
-
-    @getView().parent.addSubView reloadButton = new KDButtonView
-      style     : 'solid green account-header-button'
-      title     : ''
-      icon      : yes
-      iconOnly  : yes
-      iconClass : 'refresh'
-      callback  : @getListView().emit.bind @getListView(), 'Reload'
-
 
 class AccountPaymentHistoryList extends KDListView
 
   constructor:(options={},data)->
-    options.tagName   or= 'table'
     options.itemClass or= AccountPaymentHistoryListItem
 
     super options, data
@@ -65,17 +53,16 @@ class AccountPaymentHistoryList extends KDListView
 class AccountPaymentHistoryListItem extends KDListItemView
 
   constructor:(options={},data)->
-    options.tagName or= 'tr'
-
+    options.cssClass = KD.utils.curry 'clearfix', options.cssClass
     super options, data
 
   viewAppended:->
     super
 
-    @addSubView editLink = new KDCustomHTMLView
-      tagName      : 'a'
-      partial      : 'View invoice'
-      cssClass     : 'action-link'
+    @addSubView new KDButtonView
+      title        : 'invoice'
+      style        : 'solid green medium'
+      cssClass     : 'invoice-btn'
 
   click:(event)->
     event.stopPropagation()
@@ -86,16 +73,10 @@ class AccountPaymentHistoryListItem extends KDListItemView
   partial:(data)->
     cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ''
     """
-    <td>
-      <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
-    </td>
-    <td>
-      <strong>#{data.amount}</strong>
-    </td>
-    <td>
-      <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
-    </td>
-    <td class='ccard'>
-      <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber}
-    </td>
+      <div class='#{data.status} status-icon'><span></span></div>
+      <div class='billing-info'>
+        <strong>#{data.amount}</strong>
+        <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
+        <span class='card-number'>**** #{data.cardNumber}</span>
+      </div>
     """

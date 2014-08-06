@@ -25,6 +25,8 @@ func (o *Oskite) loadBalancer(correlationName, username, deadService string) str
 	blog := func(v interface{}) {
 		log.Info("oskite loadbalancer for [correlationName: '%s' user: '%s' deadService: '%s'] results in --> %v.", correlationName, username, deadService, v)
 	}
+	// Ensure we are using a mongo master so that we can avoid db induced races
+	mongodbConn.Session.SetSafe(&mgo.Safe{W: 3, WTimeout: 2, FSync: true})
 
 	resultOskite := o.ServiceUniquename
 	lowestOskite := lowestOskiteLoad()
@@ -104,7 +106,7 @@ func (o *Oskite) setupRedis() {
 		return
 	}
 
-	session, err := redis.NewRedisSession(conf.Redis)
+	session, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
 		log.Error("redis SADD kontainers. err: %v", err.Error())
 	}

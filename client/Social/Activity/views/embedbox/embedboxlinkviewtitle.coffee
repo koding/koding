@@ -3,8 +3,6 @@ class EmbedBoxLinkViewTitle extends JView
   constructor:(options={},data)->
     super options, data
 
-
-
     oembed         = data.link_embed
     @originalTitle = oembed?.title
 
@@ -57,8 +55,5 @@ class EmbedBoxLinkViewTitle extends JView
             @getData().link_url
     """
     {{> @titleInput}}
-    <div class="preview-title">
-      #{title}
-      {{> @editIndicator}}
-    </div>
+    <h4>#{title} {{> @editIndicator}}</h4>
     """

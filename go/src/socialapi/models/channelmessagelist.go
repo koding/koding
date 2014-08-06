@@ -2,68 +2,35 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"socialapi/request"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
 type ChannelMessageList struct {
 	// unique identifier of the channel message list
-	Id int64 `json:"id"`
+	Id int64 `json:"id,string"`
 
 	// Id of the channel
-	ChannelId int64 `json:"channelId"     sql:"NOT NULL"`
+	ChannelId int64 `json:"channelId,string"     sql:"NOT NULL"`
 
 	// Id of the message
-	MessageId int64 `json:"messageId"     sql:"NOT NULL"`
+	MessageId int64 `json:"messageId,string"     sql:"NOT NULL"`
+
+	// holds troll, unsafe, etc
+	MetaBits MetaBits `json:"metaBits"`
 
 	// Addition date of the message to the channel
-	AddedAt time.Time `json:"addedAt"     sql:"NOT NULL"`
-}
+	// this date will be update whever message added/removed/re-added to the channel
+	AddedAt time.Time `json:"addedAt"            sql:"NOT NULL"`
 
-func (c *ChannelMessageList) BeforeCreate() {
-	c.AddedAt = time.Now()
-}
+	// Update time of the message/list
+	RevisedAt time.Time `json:"revisedAt"        sql:"NOT NULL"`
 
-func (c *ChannelMessageList) BeforeUpdate() {
-	c.AddedAt = time.Now()
-}
-
-func (c *ChannelMessageList) AfterCreate() {
-	bongo.B.AfterCreate(c)
-}
-
-func (c *ChannelMessageList) AfterUpdate() {
-	bongo.B.AfterUpdate(c)
-}
-
-func (c *ChannelMessageList) AfterDelete() {
-	bongo.B.AfterDelete(c)
-}
-
-func (c *ChannelMessageList) GetId() int64 {
-	return c.Id
-}
-
-func (c ChannelMessageList) TableName() string {
-	return "api.channel_message_list"
-}
-
-func NewChannelMessageList() *ChannelMessageList {
-	return &ChannelMessageList{}
-}
-
-func (c *ChannelMessageList) ById(id int64) error {
-	return bongo.B.ById(c, id)
-}
-
-func (c *ChannelMessageList) One(q *bongo.Query) error {
-	return bongo.B.One(c, c, q)
-}
-
-func (c *ChannelMessageList) Some(data interface{}, q *bongo.Query) error {
-	return bongo.B.Some(c, data, q)
+	// Deletion date of the channel
+	DeletedAt time.Time `json:"deletedAt"`
 }
 
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
@@ -79,77 +46,109 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		return 0, errors.New("Last seen at date is not valid - it is zero")
 	}
 
+	// checks if channel participant is a troll, if so we show all messages
+	isExempt, err := cp.isExempt()
+	if err != nil {
+		return 0, errors.New(fmt.Sprintf("isExempt return error: %v", err))
+	}
+
+	query := "channel_id = ? and added_at > ?"
+
+	var metaBits MetaBits
+	if isExempt {
+		query += " and meta_bits >= ?"
+	} else {
+		query += " and meta_bits = ?"
+	}
+
 	return bongo.B.Count(c,
-		"channel_id = ? and added_at > ?",
+		query,
 		cp.ChannelId,
 		// todo change this format to get from a specific place
-		cp.LastSeenAt.UTC().Format(time.RFC822Z),
+		cp.LastSeenAt.UTC().Format(time.RFC3339),
+		metaBits,
 	)
 }
 
-func (c *ChannelMessageList) Create() error {
-	return bongo.B.Create(c)
+func (c *ChannelMessageList) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("channel_id","message_id","added_at","revised_at") VALUES ($1,$2,$3,$4) ` +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt, c.RevisedAt).
+		Scan(&c.Id)
 }
 
-func (c *ChannelMessageList) Delete() error {
-	return bongo.B.Delete(c)
-}
-
-func (c *ChannelMessageList) List(q *Query) (*HistoryResponse, error) {
+func (c *ChannelMessageList) List(q *request.Query, populateUnreadCount bool) (*HistoryResponse, error) {
 	messageList, err := c.getMessages(q)
 	if err != nil {
 		return nil, err
 	}
 
+	if populateUnreadCount {
+		messageList = c.populateUnreadCount(messageList)
+	}
+
 	hr := NewHistoryResponse()
 	hr.MessageList = messageList
-
-	unreadCount := 0
-	cp := NewChannelParticipant()
-	cp.ChannelId = c.ChannelId
-	cp.AccountId = q.AccountId
-	err = cp.FetchParticipant()
-	// we are forcing unread count to 0 if user is not a participant
-	// of the channel
-	if err != nil && err != gorm.RecordNotFound {
-		return nil, err
-	}
-
-	if err == nil {
-		unreadCount, err = c.UnreadCount(cp)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	hr.UnreadCount = unreadCount
 	return hr, nil
 }
 
-func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, error) {
+// populateUnreadCount adds unread count into message containers
+func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageContainer) []*ChannelMessageContainer {
+	channel := NewChannel()
+	channel.Id = c.ChannelId
+
+	for i, message := range messageList {
+		cml, err := channel.FetchMessageList(message.Message.Id)
+		if err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, cml.MetaBits.Is(Troll))
+		if err != nil {
+			// helper.MustGetLogger().Error(err.Error())
+			continue
+		}
+		messageList[i].UnreadRepliesCount = count
+	}
+
+	return messageList
+}
+
+func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageContainer, error) {
 	var messages []int64
 
 	if c.ChannelId == 0 {
 		return nil, errors.New("ChannelId is not set")
 	}
 
-	if err := bongo.B.DB.Table(c.TableName()).
-		Order("added_at desc").
-		Where("channel_id = ?", c.ChannelId).
-		Offset(q.Skip).
-		Limit(q.Limit).
-		Pluck("message_id", &messages).
-		Error; err != nil {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": c.ChannelId,
+		},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
+
+	query.AddScope(SortedByAddedAt)
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
+	bongoQuery := bongo.B.BuildQuery(c, query)
+	if !q.From.IsZero() {
+		bongoQuery = bongoQuery.Where("added_at < ?", q.From)
+	}
+
+	if err := bongo.CheckErr(
+		bongoQuery.Pluck(query.Pluck, &messages),
+	); err != nil {
 		return nil, err
 	}
 
-	parent := NewChannelMessage()
-	channelMessages, err := parent.FetchByIds(messages)
-	if err != nil {
-		return nil, err
-	}
-
-	populatedChannelMessages, err := c.populateChannelMessages(channelMessages, q)
+	populatedChannelMessages, err := c.populateChannelMessages(messages, q)
 	if err != nil {
 		return nil, err
 	}
@@ -157,8 +156,32 @@ func (c *ChannelMessageList) getMessages(q *Query) ([]*ChannelMessageContainer, 
 	return populatedChannelMessages, nil
 }
 
-func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMessage, query *Query) ([]*ChannelMessageContainer, error) {
-	channelMessageCount := len(channelMessages)
+func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, error) {
+	if messageId == 0 || channelId == 0 {
+		return false, errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err == nil {
+		return true, nil
+	}
+
+	if err == bongo.RecordNotFound {
+		return false, nil
+	}
+
+	return false, err
+}
+
+func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, query *request.Query) ([]*ChannelMessageContainer, error) {
+	channelMessageCount := len(channelMessageIds)
 
 	populatedChannelMessages := make([]*ChannelMessageContainer, channelMessageCount)
 
@@ -167,7 +190,8 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 	}
 
 	for i := 0; i < channelMessageCount; i++ {
-		cm := channelMessages[i]
+		cm := NewChannelMessage()
+		cm.Id = channelMessageIds[i]
 		cmc, err := cm.BuildMessage(query)
 		if err != nil {
 			return nil, err
@@ -175,11 +199,11 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessages []ChannelMe
 
 		populatedChannelMessages[i] = cmc
 	}
-	return populatedChannelMessages, nil
 
+	return populatedChannelMessages, nil
 }
 
-func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
 	var channelIds []int64
 
 	q := &bongo.Query{
@@ -194,7 +218,43 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 		return nil, err
 	}
 
+	return channelIds, nil
+}
+
+func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
+	channelIds, err := c.FetchMessageChannelIds(messageId)
+	if err != nil {
+		return nil, err
+	}
+
 	return NewChannel().FetchByIds(channelIds)
+}
+
+func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+		Pluck:      "message_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort: map[string]string{
+			"added_at": "DESC",
+		},
+	}
+
+	// remove troll content
+	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
+
+	var messageIds []int64
+	if err := c.Some(&messageIds, query); err != nil {
+		return nil, err
+	}
+
+	if messageIds == nil {
+		return make([]int64, 0), nil
+	}
+
+	return messageIds, nil
 }
 
 // seperate this fucntion into modelhelper
@@ -212,5 +272,87 @@ func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interf
 			return err
 		}
 	}
+	return nil
+}
+
+func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
+	if messageId == 0 || channelId == 0 {
+		return errors.New("channelId/messageId is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+			"message_id": messageId,
+		},
+	}
+
+	err := c.One(query)
+	if err != nil {
+		return err
+	}
+
+	c.AddedAt = time.Now().UTC()
+	return c.Update()
+}
+
+func (c *ChannelMessageList) MarkIfExempt() error {
+	isExempt, err := c.isExempt()
+	if err != nil {
+		return err
+	}
+
+	if isExempt {
+		c.MetaBits.Mark(Troll)
+	}
+
+	return nil
+}
+
+func (c *ChannelMessageList) isExempt() (bool, error) {
+	// return early if channel is already exempt
+	if c.MetaBits.Is(Troll) {
+		return true, nil
+	}
+
+	if c.MessageId == 0 {
+		return false, errors.New("message id is not set for exempt check")
+	}
+
+	cm := NewChannelMessage()
+	cm.Id = c.MessageId
+
+	return cm.isExempt()
+
+}
+
+func (c *ChannelMessageList) Count(channelId int64) (int, error) {
+	if channelId == 0 {
+		return 0, errors.New("channel id is not set")
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"channel_id": channelId,
+		},
+	}
+
+	query.AddScope(RemoveTrollContent(
+		// dont show trolls
+		c, false,
+	))
+
+	return c.CountWithQuery(query)
+}
+
+// this glance can cause problems..
+func (c *ChannelMessageList) Glance() error {
+	// why we are aggin one second?
+	c.RevisedAt = time.Now().Add((time.Second * 1)).UTC()
+
+	if err := c.Update(); err != nil {
+		return err
+	}
+
 	return nil
 }

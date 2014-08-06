@@ -59,14 +59,16 @@ class EmbedBoxWidget extends KDView
   watchInput: ->
     input = @getDelegate()
 
-    input.on 'keydown', (event) =>
-      @checkInputForUrls()  if event.which in [9, 13, 32]
+    fn = @bound 'checkInputForUrls'
 
-    input.on 'paste',   @bound 'checkInputForUrls'
-    input.on 'change',  @bound 'checkInputForUrls'
+    input.on 'keydown', (event) ->
+      fn()  if event.which in [9, 13, 32]
+
+    input.on 'paste', fn
+    input.on 'change', fn
 
   checkInputForUrls: ->
-    @utils.defer =>
+    KD.utils.defer =>
       input = @getDelegate()
       text = input.getValue()
 
@@ -255,8 +257,10 @@ class EmbedBoxWidget extends KDView
       wmode     : 'transparent'
     }, options
 
+    { fetchDataFromEmbedly } = KD.singletons.socialapi.message
+
     # fetch embed.ly data from the server api
-    KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
 
   pistachio:->

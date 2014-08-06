@@ -115,7 +115,11 @@ serveHome = (req, res, next)->
       {loggedIn, loggedOut} = JGroup.render
       {params}              = req
       fn                    = if state then loggedIn else loggedOut
-      fn.kodingHome {client, account, bongoModels, params, isCustomPreview}, (err, subPage)->
+      options = { client, account,
+                  bongoModels, params,
+                  isCustomPreview }
+
+      fn.kodingHome options, (err, subPage)->
         return next()  if err
         serve subPage, res
 

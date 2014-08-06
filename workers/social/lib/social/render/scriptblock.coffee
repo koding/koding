@@ -11,7 +11,9 @@ module.exports = (options = {}, callback)->
   prefetchedFeeds  = null
   customPartial    = null
   campaignData     = null
+  socialapidata    = null
   currentGroup     = null
+  userVMs          = null
   usePremiumBroker = no
 
   {bongoModels, client, slug} = options
@@ -22,11 +24,12 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedFeed          = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
+    encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
+    userVMs              = JSON.stringify userVMs
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
@@ -48,6 +51,8 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
+    <script>KD.socialApiData=#{encodedSocialApiData}</script>
+    <script>KD.userVMs=#{userVMs}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
@@ -57,7 +62,6 @@ module.exports = (options = {}, callback)->
       KD.userAccount = KD.remote.revive(#{userAccount});
     });
     </script>
-    <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
     <!-- Google Analytics -->
     <script>
@@ -133,19 +137,14 @@ module.exports = (options = {}, callback)->
             campaignData = campaignData_.data
           if group
             currentGroup = group
-          kallback()
+          bongoModels.JVM.fetchVmsByContext client, {}, (err, vms) ->
+            console.log err  if err
+            userVMs = vms or []
+            kallback()
 
 
 
-  {delegate} = options.client.connection
-  # if user is exempt or super-admin do not cache his/her result set
-  return generateScript()  if delegate and delegate.checkFlag ['super-admin', 'exempt']
-
-  Cache  = require '../cache/main'
-  feedFn = require '../cache/feed'
-
-  getCacheKey =-> return "scriptblock#{options.client.context.group}"
-
-  Cache.fetch getCacheKey(), feedFn, options, (err, data)->
-    prefetchedFeeds = data    # this is updating the prefetchedFeeds property
+  socialApiCacheFn = require '../cache/socialapi'
+  socialApiCacheFn options, (err, data)->
+    socialapidata = data
     return generateScript()   # we can generate html here

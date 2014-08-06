@@ -54,7 +54,6 @@
     "underscore": "1.5.2",
     "url": "0.4.9",
     "validator": "0.2.0",
-    "neo4j-koding": "0.2.20",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
     "nesh": "1.2.0",
@@ -78,7 +77,8 @@
     "node-sockjs-client": "1.0.7",
     "cli-table": "^0.3.0",
     "read": "^1.0.5",
-    "simple-recaptcha" : "0.0.3"
+    "simple-recaptcha" : "0.0.3",
+    "node-syntaxhighlighter" : "0.8.1"
   },
   "devDependencies": {},
   "optionalDependencies": {},

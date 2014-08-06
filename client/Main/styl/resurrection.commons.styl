@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
-@import "../styl/app.fonts"
 
 @css {
 /*
@@ -9,13 +8,10 @@ resurrection.commons.styl
 */
 }
 
-body.activity
 body.dashboard
-body.account
 body.apps
 body.environments
-body.profile
-  bg                    color, #e4e4e4
+  bg                    color #e4e4e4
 
 html.app
 body.activity
@@ -37,59 +33,34 @@ body.environments
   vertical-align            top
   rounded                   50%
   img
-    // to avoid chrome's weird rendering bug
-    // where it first shows the image as a square
-    // then hides the corners to make them rounded - SY
-    // - fixed the line below.
     rounded                 50%
-    vendor                  transition, opacity .3s ease
+    // vendor                  transition, opacity .3s ease
 
 .content-page
-  max-width                 1146px
   margin                    0 auto
-  padding                   55px 20px 0
   size                      auto auto
 
-  > aside.kdview
-
-    width                 190px
-    height                auto
-    padding               3px
-    fl()
-    borderBox()
-
-    nav
-      width               190px
-      border-right        1px solid #D6D6D6
-      fix()
-
-  .kdlistview-inner-nav
-
-    hr
-      margin              10px 20px 10px 0
-      height              1px
-      bg                  color #E0E0E0
-      border              none
-
-    a
-      display             block
-      color               #828B8B
-      line-height         40px
-      noTextDeco()
-      &.selected
-        color             #65AE62
-
   > .kdtabview
-    margin-left         64px
     height              100%
-    kalc                width, 100% \- 254px
     font-size           14px
     fl()
 
+aside.app-sidebar
+  left            258px
+  top             0
+  top             0
+  size            258px 100%
+  z-index         10
+  borderBox()
+  fix()
+  styleScrollBars()
+
+.content-page .app-sidebar ~ .app-content
+  kalc                  width, 100% \- 292px
+  margin-left           292px
+  borderBox()
 
 .application-page
-  margin                    0
-  padding                   55px 0 0
   width                     100%
   z-index                   10
   borderBox()
@@ -127,7 +98,7 @@ a.custom-link-view.border-only-green
 
 .kdcontextmenu.resurrection
   width                 130px
-  margin                4px 0 0 14px
+  margin                7px 0 0 18px
   rounded               6px
   border                1px solid #e4e4e4
   shadow                0 8px 35px rgba(0, 0, 0, .22)
@@ -370,6 +341,47 @@ button.app-settings-menu
   &:focus
     shadow             0 0 10px -2px logoBg
 
+  // Sizes
+  &.medium
+    height             42px
+    line-height        38px
+    rounded            21px
+
+  &.small
+    height             26px
+    line-height        24px
+    rounded            13px
+
+    span.button-title
+      font-size        14px
+
+  // Color variatons
+
+  &.red
+    border-color       #E94835
+
+    span.button-title
+      color            #E94835
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
+  &.gray
+    border-color       #929292
+
+    span.button-title
+      color            #666666
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
+
 //
 // SOLID BUTTON STYLES
 //
@@ -530,6 +542,7 @@ button.app-settings-menu
     opacity            0
 
   .kdloader
+    size               auto, auto
     vendor             transform, translateX(-50%) translateY(-50%)
 
 
@@ -687,7 +700,7 @@ button.app-settings-menu
 .koding-on-off
   size                  66px 34px
   rounded               18px
-  bg                    color, #989F9C
+  bg                    color, #D4D4D4
   vendor                transition, background-color .3s ease
   cursor                pointer
   padding               2px
@@ -695,7 +708,7 @@ button.app-settings-menu
   borderBox()
   rel()
   &.on
-    bg                  color, #6bb198
+    bg                  color, #22BD52
     a.knob
       vendor            transform, translateX(32px)
   a.knob
@@ -1112,7 +1125,7 @@ a.action-link.verify-email
   .avatarview
     display         block
     left            -41px
-    top             15px !important
+    top             15px
     abs()
 
   .follow-btn
@@ -1166,11 +1179,14 @@ a.action-link.verify-email
     white-space     nowrap
     overflow        hidden
     text-overflow   ellipsis
-    color           #3c4752
-    opacity         .8
+    color           #9a9a9a
     letter-spacing  0
     line-height     15px
     fl()
+
+  .profile
+    color           #3c4752
+
   .user-numbers
     height          18px
     margin          3px 0 0
@@ -1512,7 +1528,7 @@ Markdown widget
 @css {
 /*
 resurrection.commons.styl
-Testimonials view that used on landing pages
+Testimonials view that is used on landing pages
 */
 }
 section.testimonials
@@ -1539,7 +1555,7 @@ section.testimonials
     &:before
       content           ""
       display           block
-      r-sprite          "business", "quote"
+      r-sprite          app quote
       opacity           .4
       abs               0px 0 0 0px
 

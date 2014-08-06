@@ -6,11 +6,9 @@ import (
 	"socialapi/models"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
-	"github.com/jinzhu/gorm"
 )
 
 // s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
@@ -27,61 +25,32 @@ var topicRegex = verbalexpressions.New().
 // extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
 // to support all languages
 
-type Action func(*TopicFeedController, *models.ChannelMessage) error
-
-type TopicFeedController struct {
-	routes map[string]Action
-	log    logging.Logger
+type Controller struct {
+	log logging.Logger
 }
 
-func (t *TopicFeedController) DefaultErrHandler(delivery amqp.Delivery, err error) {
-	t.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
-	delivery.Nack(false, true)
-}
-
-func NewTopicFeedController(log logging.Logger) *TopicFeedController {
-	ffc := &TopicFeedController{
+func New(log logging.Logger) *Controller {
+	return &Controller{
 		log: log,
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_created": (*TopicFeedController).MessageSaved,
-		"api.channel_message_update":  (*TopicFeedController).MessageUpdated,
-		"api.channel_message_deleted": (*TopicFeedController).MessageDeleted,
-	}
-
-	ffc.routes = routes
-
-	return ffc
 }
 
-func (f *TopicFeedController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
 	}
 
-	cm, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
+	t.log.Error("an error occured putting message back to queue", err)
+	delivery.Nack(false, true)
+	return false
+}
 
-	res, err := isEligible(cm)
-	if err != nil {
-		return err
-	}
-
-	if !res {
+func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
 		return nil
 	}
-
-	return handler(f, cm)
-}
-
-func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 
 	topics := extractTopics(data.Body)
 	if len(topics) == 0 {
@@ -100,11 +69,11 @@ func (f *TopicFeedController) MessageSaved(data *models.ChannelMessage) error {
 func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
 		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
-		if err != nil && err != gorm.RecordNotFound {
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
-		if err == gorm.RecordNotFound {
+		if err == bongo.RecordNotFound {
 			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
@@ -112,6 +81,11 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 		}
 
 		_, err = tc.AddMessage(data.Id)
+		// safely skip
+		if err == models.ErrAlreadyInTheChannel {
+			continue
+		}
+
 		if err != nil {
 			return err
 		}
@@ -141,7 +115,11 @@ func extractTopics(body string) []string {
 	return flattened
 }
 
-func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error {
+func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	f.log.Debug("udpate message %s", data.Id)
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
@@ -160,7 +138,9 @@ func (f *TopicFeedController) MessageUpdated(data *models.ChannelMessage) error 
 		return nil
 	}
 
-	res := getTopicDiff(channels, topics)
+	excludedChannelId := data.InitialChannelId
+
+	res := getTopicDiff(channels, topics, excludedChannelId)
 
 	// add messages
 	if len(res["added"]) > 0 {
@@ -210,13 +190,15 @@ func fetchMessageChannels(messageId int64) ([]models.Channel, error) {
 	return cml.FetchMessageChannels(messageId)
 }
 
-func getTopicDiff(channels []models.Channel, topics []string) map[string][]string {
+func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId int64) map[string][]string {
 	res := make(map[string][]string)
 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		channelNames[channel.Name] = struct{}{}
+		if excludedChannelId != channel.GetId() {
+			channelNames[channel.Name] = struct{}{}
+		}
 	}
 
 	// range over new topics, bacause we are gonna remove
@@ -245,7 +227,11 @@ func getTopicDiff(channels []models.Channel, topics []string) map[string][]strin
 	return res
 }
 
-func (f *TopicFeedController) MessageDeleted(data *models.ChannelMessage) error {
+func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
+	if res, _ := isEligible(data); !res {
+		return nil
+	}
+
 	cml := models.NewChannelMessageList()
 	selector := map[string]interface{}{
 		"message_id": data.Id,

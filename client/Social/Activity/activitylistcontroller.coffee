@@ -4,34 +4,42 @@ class ActivityListController extends KDListViewController
 
   constructor:(options={}, data)->
 
-    viewOptions = options.viewOptions or {}
-    viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
-    viewOptions.comments         ?= yes
-    viewOptions.itemClass       or= options.itemClass
-    options.view                or= new KDListView viewOptions, data
     options.startWithLazyLoader  ?= yes
-    options.lazyLoaderOptions     = partial : ''
+    options.lazyLoaderOptions    ?=
+      spinnerOptions              : size : width : 24
+      partial                     : ''
     options.showHeader           ?= yes
-    options.noItemFoundWidget    ?= new KDCustomHTMLView
-      cssClass : "lazy-loader hidden"
-      partial  : "There is no activity."
+    options.scrollView           ?= yes
+    options.wrapper              ?= no
+    options.boxed                ?= yes
+    options.itemClass           or= ActivityListItemView
 
-    # this is regressed until i touch this again. - SY
-    # options.noMoreItemFoundWidget or= new KDCustomHTMLView
-    #   cssClass : "lazy-loader"
-    #   partial  : "There is no more activity."
+    options.viewOptions         or= {}
+    {viewOptions}                 = options
+    viewOptions.cssClass          = KD.utils.curry 'activity-related', viewOptions.cssClass
+    viewOptions.type              = options.type
+    viewOptions.comments         ?= yes
+    viewOptions.dataPath          = 'id'
+
+    options.noItemFoundWidget    ?= new KDCustomHTMLView
+      cssClass : 'no-item-found hidden'
+      partial  : 'There is no activity.'
 
     super options, data
 
-    @resetList()
     @hiddenItems = []
-    @_state      = 'public'
 
-    groupController = KD.getSingleton("groupsController")
-    groupController.on "PostIsCreated", @bound "postIsCreated"
+
+  getIndex: (index) ->
+    return if @getOptions().lastToFirst
+    then index
+    else @getItemCount() - index - 1
+
+
+  # LEGACY
 
   postIsCreated: (post) =>
-    bugTag   = tag for tag in post.subject.tags when tag.slug is "bug"
+    bugTag   = tag for tag in post.subject.tags when tag.slug is 'bug'
     subject  = @prepareSubject post
     instance = @addItem subject, 0
 
@@ -53,68 +61,9 @@ class ActivityListController extends KDListViewController
     @bindItemEvents subject
     return subject
 
-  resetList:-> @lastItemTimeStamp = null
-
-  loadView:(mainView)->
-
-    data = @getData()
-    mainView.addSubView @activityHeader = new ActivityListHeader
-      cssClass : 'feeder-header clearfix'
-
-    @activityHeader.hide()  unless @getOptions().showHeader
-
-    @activityHeader.on "UnhideHiddenNewItems", =>
-      @unhideNewHiddenItems()
-
-    @emit "ready"
-    KD.getSingleton("activityController").clearNewItemsCount()
-
-    super
-
   isMine:(activity)->
     id = KD.whoami().getId()
-    id? and id in [activity.originId, activity.anchor?.id]
-
-  listActivities:(activities)->
-    @hideLazyLoader()
-    return  unless activities.length > 0
-    activityIds = []
-    queue = []
-
-    activities.forEach (activity)=>
-      queue.push =>
-        @addItem activity
-        activityIds.push activity._id
-        queue.fin()
-
-    dash queue, =>
-
-      @checkIfLikedBefore activityIds
-
-      @lastItemTimeStamp or= Date.now()
-
-      for obj in activities
-        @bindItemEvents obj
-        objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-        if objectTimestamp < @lastItemTimeStamp
-          @lastItemTimeStamp = objectTimestamp
-
-  checkIfLikedBefore:(activityIds)->
-    KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data.getId().toString() in likedIds
-        likeView = activity.subViews.first.actionLinks?.likeView
-        if likeView
-          likeView.setClass "liked"
-          likeView._currentState = yes
-
-  addItem:(activity, index, animation) ->
-    dataId = activity.getId?() or activity._id or activity.id
-    if dataId?
-      if @itemsIndexed[dataId]
-        log "duplicate entry", activity.bongo_?.constructorName, dataId
-      else
-        @itemsIndexed[dataId] = activity
-        super activity, index, animation
+    id? and id in [activity.account._id, activity.anchor?.id]
 
   unhideNewHiddenItems: ->
 
@@ -124,12 +73,3 @@ class ActivityListController extends KDListViewController
 
     unless KD.getSingleton("router").getCurrentPath() is "/Activity"
       KD.getSingleton("activityController").clearNewItemsCount()
-
-  instantiateListItems:(items)->
-    newItems = super
-    @checkIfLikedBefore (item.getId()  for item in items)
-    return newItems
-
-  bindItemEvents: (item) ->
-    item.on "TagsUpdated", (tags) ->
-      item.tags = KD.remote.revive tags
