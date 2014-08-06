@@ -1123,40 +1123,117 @@ span.collapsedtext
 
 .activity-input-widget
   .link-embed-box
-    margin                  18px 0 0
-    rounded                 5px
+    width                   auto
+    padding                 14px
+    border-left             1px solid #d6d6d6
+    border-right            1px solid #d6d6d6
     position                relative
-    borderBox()
 
   .embed-link-view
     margin                  0
     border                  none
+    width                   auto
+    height                  100px
 
-  .embed-image-view
-    margin                  0 0 -18px
+  .preview-image
     border                  none
+    margin-right            10px
+    fl()
 
-    &:after
-      content               ""
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  96px
+    margin-top              4px
+    overflow                hidden
+    fl()
+
+    a
+      text-decoration       none
+
+    h4
+      display               inline-block
+      font-size             14px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
+
+    .description
       display               block
-      size                  38px 38px
-      rounded               0 0 0 60%
-      bg                    color rgba(255, 255, 255, .6)
-      top                   0
-      right                 0
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
+
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
       abs()
+      bottom                0
+      left                  0
+
+
+  .preview-link-pager
+    width                   auto
+    height                  16px
+    bottom                  5px
+    left                    5px
+    abs()
+    borderBox()
+
+    .thumb-count
+      hidden()
+
+    .preview-link-switch
+
+      cursor                pointer
+      display               inline-block
+      font-size             10px
+      height                16px
+      width                 16px
+      border                1px solid #727272
+      bg                    color, #fff
+      borderBox()
+      -webkit-user-select none
+      -moz-user-select    none
+      user-select         none
+
+
+      &.disabled
+        &:before
+          border-left-color  #ddd !important
+          border-right-color #ddd !important
+
+      &:before
+        content             " "
+        display             block
+        margin-top          3px
+        size                0 0
+        border-top          4px solid transparent
+        border-bottom       4px solid transparent
+
+      &.next
+        &:before
+          margin-left       4px
+          border-left       7px solid #727272
+
+      &.previous
+        &:before
+          margin-left       3px
+          border-right      7px solid #727272
+
 
   .embed-link-view
     padding                 0
 
-  .preview-image
-    rounded                 5px 0 0 5px
-  .preview-text
-    rounded                 0 5px 5px 0
-
   .hide-embed
     right                   7px
     top                     7px
+
     border                  none
     outline                 none
     shadow                  none
