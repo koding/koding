@@ -1445,7 +1445,7 @@ span.collapsedtext
     top                     0
     height                  58px
     line-height             58px
-    kalc                    width (100% \- 584px)
+    kalc                    width (100% \- 500px)
     margin                  0 0 24px
     z-index                 1
     background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
@@ -2188,16 +2188,22 @@ body.group.members
   .chat-heads
     display       inline-block
     width         auto
-    padding       9px
+    padding       9px 0
     z-index       10
     borderBox()
     abs()
 
   .chat-head
-    display       inline-block
-    size          30px 30px
-    margin-right  5px
+    display         inline-block
+    height          30px
+    margin-right    7px
     rel()
+
+    &:first-of-type
+      margin-left   9px
+
+    &:last-of-type
+      margin-right  0
 
     &:hover
     &.selected
@@ -2206,16 +2212,29 @@ body.group.members
         shadow    0 0 0 5px rgba(255,255,255,.9)
         visible()
 
-
     .close-icon
-      top         5px
-      right       5px
-      rounded     10px
-      size        20px 20px
+      top             5px
+      left            5px
+      rounded         10px
+      size            20px 20px
       hidden()
 
     .avatarview
-      size        30px 30px
+      size            30px 30px
+      fl()
+
+    .first-name
+      display         inline-block
+      height          30px
+      font-size       12px
+      background      #ececec
+      font-weight     600
+      margin-left     -15px
+      padding         3px 7px 3px 22px
+      z-index         -1
+      border-radius   0 3px 3px 0
+      borderBox()
+      rel()
 
   .formline.button-field
 
