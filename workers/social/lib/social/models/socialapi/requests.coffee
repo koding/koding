@@ -166,34 +166,35 @@ addParticipants = (data, callback)->
 
 removeParticipants = (data, callback)->
   url = "/channel/#{data.channelId}/participants/remove"
-  doChannelParticipantOperation data, url, (err, response) ->
+  doChannelParticipantOperation data, url, (err, response)->
     return callback err if err
-    cycleChannelHelper data, response
-    callback null, response
+    cycleChannelHelper data, response, callback
 
-cycleChannelHelper = (data, removeResult)->
-  return unless removeResult?.length
+# TODO we can move this to realtime worker later on
+cycleChannelHelper = (data, removeResult, callback)->
+  return callback { message: "user(s) could not leave the channel" } unless removeResult?.length
 
-  isUserRemoved = (removeResult) ->
+  isUserRemoved = (removeResult)->
     for accountResult in removeResult
       return yes  if accountResult.statusConstant is 'left'
 
     return no
 
-  return unless isUserRemoved removeResult
+  return callback { message: "user(s) could not leave the channel" } unless isUserRemoved removeResult
 
   {channelId, accountId} = data
-  channelById {id: channelId, accountId}, (err, channel) ->
-    return console.error err if err
-    return console.error 'Channel not found' unless channel?.channel
+  channelById {id: channelId, accountId}, (err, channel)->
+    return callback err if err
+    return callback { message: 'Channel not found' } unless channel?.channel
     {channel} = channel
     options =
       groupSlug     : channel.groupName
       apiChannelType: channel.typeConstant
       apiChannelName: channel.name
     SocialChannel = require './channel'
-    SocialChannel.cycleChannel options, (err) ->
-      return console.error err if err
+    SocialChannel.cycleChannel options, (err)->
+      return callback err if err
+      callback null, removeResult
 
 
 doChannelParticipantOperation = (data, url, callback)->
