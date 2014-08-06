@@ -379,7 +379,7 @@ func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error)
 	return cml, cml.One(bongo.NewQS(selector))
 }
 
-// FetchChannelIdByNameAndGroupName fetchs the ID of the channel via channel name & group name
+// FetchChannelIdByNameAndGroupName fetchs the first ID of the channel via channel name & group name
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
 	if name == "" {
 		return 0, ErrNameIsNotSet
@@ -504,6 +504,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// FetchLastMessage fetch the last message of the channel from DB
+// sorts the messages, then fetch the message which added last
 func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -539,6 +541,7 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	return cm, nil
 }
 
+// FetchPinnedActivityChannel fetch the channel within required fields
 func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
