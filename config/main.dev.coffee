@@ -248,6 +248,7 @@ Configuration = (options={}) ->
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
+
       """
       env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
