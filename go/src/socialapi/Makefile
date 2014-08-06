@@ -48,7 +48,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev topicindexdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev
 default: configure
 
 apidev:
@@ -72,9 +72,9 @@ pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
 
-topicindexdev:
+algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/topicindex -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/rerun socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
