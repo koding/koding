@@ -45,18 +45,18 @@ processMonitor = (require 'processes-monitor').start
     middleware        : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
 
-_          = require 'underscore'
-async      = require 'async'
-{extend}   = require 'underscore'
-express    = require 'express'
-Broker     = require 'broker'
-fs         = require 'fs'
-hat        = require 'hat'
-nodePath   = require 'path'
-http       = require "https"
-helmet     = require 'helmet'
-{JSession} = koding.models
-app        = express()
+_             = require 'underscore'
+async         = require 'async'
+{extend}      = require 'underscore'
+express       = require 'express'
+Broker        = require 'broker'
+fs            = require 'fs'
+hat           = require 'hat'
+nodePath      = require 'path'
+http          = require "https"
+helmet        = require 'helmet'
+{JSession}    = koding.models
+app           = express()
 
 {
   error_
@@ -94,7 +94,7 @@ app.configure ->
   app.use express.bodyParser()
   app.use express.compress()
   # helmet:
-  app.use helmet.xframe()
+  app.use helmet.xframe('sameorigin')
   app.use helmet.iexss()
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()

@@ -29,6 +29,13 @@ class AccountAppController extends AppController
         { slug: 'Delete', title : "Delete account", listType: "deleteAccount" }
       ]
 
+    tosAndPrivacyPolicy  :
+      title : "Koding"
+      items : [
+        { slug: 'Terms-of-service', title : "Terms of service", listType: "termsOfService" }
+        { slug: 'Privacy-policy', title : "Privacy policy", listType: "privacyPolicy" }
+      ]
+
   if KD.utils.oauthEnabled() is yes
     items.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
 
@@ -67,22 +74,19 @@ class AccountAppController extends AppController
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView aside = new KDView tagName : 'aside'
-
+    mainView.addSubView aside = new KDView
+      tagName   : 'aside'
+      cssClass  : 'app-sidebar'
 
     aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
+      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items
-      navView.addSubView new KDCustomHTMLView tagName : "hr"
-
-    navView.setPartial """
-      <a href="/tos.html" target="_blank">Terms of service <span class="icon new-page"></span></a>
-      <a href="/privacy.html" target="_blank">Privacy policy <span class="icon new-page"></span></a>
-      """
+      navView.addSubView new KDCustomHTMLView cssClass : "divider"
 
   showReferrerModal:(options={})->
     return  if @referrerModal and not @referrerModal.isDestroyed

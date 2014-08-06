@@ -98,13 +98,6 @@ styleScrollBars()
           &:nth-of-type(4n)
             margin-right   0
 
-  &.fixed > main
-  > main
-    size                100% auto
-    margin              0
-    margin-left         292px
-    borderBox()
-
   &.fixed > aside
     margin-top         24px
     top                55px
@@ -262,57 +255,48 @@ styleScrollBars()
         &.active
           color         logoBg
 
-aside.activity-sidebar
-  left                0
-  top                 0
-  size                258px 100%
-  z-index             10
-  bg                  color #424242
-  borderBox()
-  fix()
+  aside.app-sidebar
+    bg                  color #424242
+    > main
+      font-family         openSansFamily
+      padding             1px 16px 16px
+      borderBox()
 
-  styleScrollBars()
-
-  > main
-    font-family         openSansFamily
-    padding             1px 16px 16px
-    borderBox()
-
-    > section
-      size              auto auto
-      overflow          visible
-      margin            0 0 3px 0
+      > section
+        size              auto auto
+        overflow          visible
+        margin            0 0 3px 0
 
 
-      .lazy-loader
-        margin            0
-        top               -28px
-        right             36px
-        abs()
+        .lazy-loader
+          margin            0
+          top               -28px
+          right             36px
+          abs()
 
-      .kdlistview
-        overflow        visible
+        .kdlistview
+          overflow        visible
 
-        .nothing
-          background    #3B3B3B
-          width         auto
-          font-size     14px
-          margin        0 6px
-          padding       16px 18px
-          rounded       3px
-          line-height   19px
-          text-align    center
-          font-weight   400
-          color         #787878
-          margin-bottom 16px
-          borderBox()
+          .nothing
+            background    #3B3B3B
+            width         auto
+            font-size     14px
+            margin        0 6px
+            padding       16px 18px
+            rounded       3px
+            line-height   19px
+            text-align    center
+            font-weight   400
+            color         #787878
+            margin-bottom 16px
+            borderBox()
 
-          a
-            color             #929292
-            text-decoration   underline
+            a
+              color             #929292
+              text-decoration   underline
 
-    a.public-feed-link.selected
-      color               #fff
+      a.public-feed-link.selected
+        color               #fff
 
 .activity
 
@@ -333,7 +317,6 @@ aside.activity-sidebar
       .ttag
         text-decoration underline
 
-
     cite.count
       size            auto 20px
       line-height     20px
@@ -351,12 +334,6 @@ aside.activity-sidebar
       font-weight   500
       color         #B8B8B8
       line-height   18px
-
-    .tag-info
-      display       block
-      font-weight   300
-      color         #949494
-      font-size     12px
 
     .profile
       ellipsis()

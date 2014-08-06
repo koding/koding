@@ -11,9 +11,14 @@ resurrection.profile.styl
 
 
 body.profile
-  .activity-sidebar
+  .app-sidebar
     bg                    color, #EFEFEF
     text-align            center
+
+    > main
+      font-family         openSansFamily
+      padding             1px 16px 16px
+      borderBox()
 
     .avatarview
       size                143px, 143px
@@ -99,10 +104,6 @@ body.profile
         letter-spacing    0.02em
 
   .kdtabpaneview.statuses
-    kalc                  width, 100% \- 292px
-    margin                0 0 0 292px
-    padding               0
-    borderBox()
 
     .feeder-header
       display             none

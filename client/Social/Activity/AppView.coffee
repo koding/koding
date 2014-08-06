@@ -26,6 +26,7 @@ class ActivityAppView extends KDView
     @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
     @tabs        = new KDTabView
       tagName             : 'main'
+      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
