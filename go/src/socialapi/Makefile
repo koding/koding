@@ -43,11 +43,12 @@ PACKAGES = \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer
+	socialapi/workers/sitemap/sitemapinitializer \
+	socialapi/workers/algoliaconnector
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev
+develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev topicindexdev
 default: configure
 
 apidev:
@@ -70,6 +71,10 @@ populartopicdev:
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+
+topicindexdev:
+	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/topicindex -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
@@ -155,6 +160,11 @@ testapi:
 	@go test -c models/*.go
 	@./models.test $(DBG) $(METRICS) -c ./config/vagrant.toml
 	@rm ./models.test
+
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@go test -c workers/algoliaconnector/algoliaconnector/*.go
+	@./algoliaconnector.test -c ./config/test.toml
+	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"

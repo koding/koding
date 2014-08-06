@@ -41,3 +41,9 @@ FromMail = "hello@koding.com"
 
 [sitemap]
 RedisDB = 1
+
+[algolia]
+AppId          = "8KD9RHY1OA"
+ApiKey         = "1ceb41897600d8df196eb22a3528eb5f"
+ReadOnlyApiKey = "e4a8ebe91bf848b67c9ac31a6178c64b"
+IndexSuffix    = ".staging"

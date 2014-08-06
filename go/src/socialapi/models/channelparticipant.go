@@ -202,8 +202,11 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 			"channel_id":      c.ChannelId,
 			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
-		Pluck:      "account_id",
-		Pagination: *bongo.NewPagination(limit, 0),
+		Pluck: "account_id",
+	}
+
+	if limit != 0 {
+		query.Pagination = *bongo.NewPagination(limit, 0)
 	}
 
 	// do not include troll content
