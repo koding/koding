@@ -64,7 +64,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		query,
 		cp.ChannelId,
 		// todo change this format to get from a specific place
-		cp.LastSeenAt.UTC().Format(time.RFC3339),
+		cp.LastSeenAt.UTC().Format(time.RFC3339Nano),
 		metaBits,
 	)
 }

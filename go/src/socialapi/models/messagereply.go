@@ -174,7 +174,7 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExemp
 		m,
 		query,
 		messageId,
-		addedAt.UTC().Format(time.RFC3339),
+		addedAt.UTC().Format(time.RFC3339Nano),
 		metaBits,
 	)
 }
