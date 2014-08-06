@@ -48,13 +48,14 @@ doRequest = (funcName, client, options, callback)->
   fetchGroup client, (err, group)->
     return callback err if err
 
-    {connection:{delegate}} = client
+    {connection:{delegate}, nickname} = client
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
 
       options.groupChannelId = group.socialApiChannelId
       options.groupName      = group.slug
       options.accountId      = socialApiId
+      options.accountName    = nickname
       options.showExempt   or= delegate.isExempt
 
       bareRequest funcName, options, callback
