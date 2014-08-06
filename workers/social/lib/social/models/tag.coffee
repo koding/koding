@@ -28,24 +28,6 @@ module.exports = class JTag extends jraphical.Module
       """
       #{if @group is 'koding' then '' else "#{@group}/"}Topics/\#{slug}
       """
-    permissions     :
-      'read tags'             :
-        public                : ['guest', 'member', 'moderator']
-        private               : ['member', 'moderator']
-      'create tags'           : ['member', 'moderator']
-      'freetag content'       : ['member', 'moderator']
-      'browse content by tag' : ['member', 'moderator']
-      'edit tags'             : ['moderator']
-      'delete tags'           : ['moderator']
-      'edit own tags'         : ['moderator']
-      'delete own tags'       : ['moderator']
-      'assign system tag'     : ['moderator']
-      'fetch system tag'      : ['moderator']
-      'create system tag'     : ['moderator']
-      'remove system tag'     : ['moderator']
-      'create synonym tags'    : ['moderator']
-      # 'delete system tag'     : ['moderator']
-
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       # slug          : 'unique'
