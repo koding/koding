@@ -6,11 +6,11 @@ We have several parts for new environments infrastructure. You can find the
 explanation of each part below:
 
   - Kontrol Kite
-    
+
     TODO: arslan, fill it
 
   - Kloud Kite
-    
+
     TODO: arslan, fill it
 
     Kloud, which is responsible to manage machines on several providers.
@@ -207,6 +207,103 @@ explanation of each part below:
         does not exposed to `KD.remote.api`
 
 
-  - Koding Front-end
+  - **Koding Front-end**
 
-    (WIP)
+    ComputeController
+    -----------------
+
+    Front-end (client) structure is also similar with backend. There is a main
+    controller singleton for managing machines called `ComputeController`, it's
+    responsible to fetch stacks/machines form `Social worker` and it's a
+    wrapper in client-side for `Kloud kite` at the same time. Which makes it
+    the center of following operations related with machines:
+
+      - **build**
+      - **destroy**
+      - **start**
+      - **stop**
+      - **info**
+
+    All of these methods requires a `Machine` instance. `Machine` instance is
+    a client-side implementation of `JMachine` which gets data from `Social`
+    and interacts with the physicall machine by `Klient kite` on the machine.
+
+    To get a `Machine` instance one can pass `JMachine` instance to its
+    constructor like `new Machine { machine: aJMachineInstance }` or can use
+    one of the following methods from `ComputeController`:
+
+      - **fetchMachine**   : by `JMachine`'s `ObjectId` or `uid`
+      - **queryMachines**  : by passing a valid `JMachine` mongo query like:
+
+        ` { provider: "digitalocean" } ` to get a list of `Machine` instances
+        from *DigitalOcean* provider.
+
+      - **requireMachine** : this also supports queries but this is designed
+        to ask user which `JMachine` wants to use. This is using by
+        `kodingAppsController` which prompts a machine list dialog provided by
+        `ComputeController.UI.askMachineForApp` for given application. User
+        can select and mark selected machine as default which provides to
+        bypass this dialog for the next time. This information is kept under
+        appStorage of `ComputeController` and its strcitly defined by
+        application name and the version.
+
+    To run the `initScript` (`JProvisioner`) of machine one can use the
+    `runInitScript` method of `ComputeController` which runs the init script in
+    a `TerminalModal` by default. Can be run as background process too by
+    passing `false` as second parameter.
+
+    `ComputeController` itself does not include any UI code, for these kind of
+    requirements we are using `ComputeController.UI`
+
+
+    ComputeEventListener
+    --------------------
+
+    There is a pull based event information mechanism provided by `Kloud kite`
+    to be able to use it efficiently we have a central event listener called
+    `ComputeEventListener` which is intialized in `ComputeController` singleton
+
+    It has a internal ticker mechanism which happens only there is something to
+    listen left in the listeners queue. It sends corresponding events over
+    `ComputeController` singleton for followings when percentage hits `100`:
+
+      - "MachineStopped" when a machine stops
+      - "MachineStarted" when a machine starts
+      - "MachineBuild" when a `NotInitialized` or `Terminated` machined built
+      - "MachineDestroyed" when a machine destroyed
+
+      all of these events are emitting with a `machineId` (`JMachine._id`)
+      beside these separate events it also emits `stateChanged-#{machine._id}`
+      with the state of machine.
+
+    And for all other individual state changes it emits
+
+      - `public-#{machine._id}` with whole `event` object which consists of
+
+        - `EventId`    : eventType-jmachineId
+        - `Message`    : event message
+        - `Status`     : machine status
+                         (same as defined in `JMachine.Status.State`)
+        - `Percentage` : percentage of the event between `0-100`
+        - `TimeStamp`  : last updated event time
+
+      - `eventId` with same `event` object
+
+    Anytime a listener can be added by `addListener` method with `type` of the
+    event and the `_id` of `JMachine` which is also same in `Machine`.
+
+    A machine state can be triggered manually by calling `triggerState` with
+    target `Machine` instance and an `event` object.
+
+    When `ComputeController.info` method called on a machine which has any of
+    the following states:
+
+      - `Stopping`    : "stop"
+      - `Building`    : "build"
+      - `Starting`    : "start"
+      - `Rebooting`   : "restart"
+      - `Terminating` : "destroy"
+
+    described event types are starting to listening by `ComputeEventListener`
+    which provides continuity when user refresh pages, progress of machines
+    starts where its left.

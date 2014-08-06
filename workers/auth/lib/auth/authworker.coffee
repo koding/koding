@@ -91,10 +91,6 @@ module.exports = class AuthWorker extends EventEmitter
     @counts[serviceType] += 1
     return serviceInfo
 
-  addService: ({serviceGenericName, serviceUniqueName, loadBalancing}) ->
-    servicesOfType = @services[serviceGenericName] ?= []
-    servicesOfType.push {serviceUniqueName, serviceGenericName, loadBalancing}
-
   removeService: ({serviceGenericName, serviceUniqueName}) ->
     servicesOfType = @services[serviceGenericName]
     [index] = (i for s, i in servicesOfType \
@@ -154,35 +150,9 @@ module.exports = class AuthWorker extends EventEmitter
         exchange.close() # don't leak a channel
         callback? null
 
-  sendAuthMessage: (options) ->
-    { serviceUniqueName, serviceGenericName, routingKey, method, callback
-    username, correlationName, socketId, deadService } = options
-
-    params = {
-      routingKey, username, correlationName
-      serviceGenericName, deadService
-      replyExchange: @authExchange
-    }
-
-    @publishToService serviceUniqueName, method, params, callback
-
-  sendAuthJoin: (options) ->
-    { socketId, serviceUniqueName, routingKey } = options
-    options.callback = =>
-      key = getWaitingAuthWhoKey options
-      socketId ?= @waitingAuthWhos[key]
-      delete @waitingAuthWhos[key]
-      @addClient socketId, serviceUniqueName, routingKey
-    options.method = 'auth.join'
-    @sendAuthMessage options
 
   getWaitingAuthWhoKey = (o) ->
     "#{o.username}!#{o.correlationName}!#{o.serviceGenericName}"
-
-  sendAuthWho: (options) ->
-    options.method = 'auth.who'
-    @waitingAuthWhos[getWaitingAuthWhoKey options] = options.socketId
-    @sendAuthMessage options
 
   makeExchangeFetcher =(exchangeName, exchangeOptions)->
     exKey   = "#{exchangeName}_"
@@ -232,37 +202,6 @@ module.exports = class AuthWorker extends EventEmitter
       callbacks : {}
 
   join: do ->
-
-    joinHelper = (messageData, routingKey, socketId) ->
-      @authenticate messageData, routingKey, socketId, (session) =>
-
-        serviceInfo = @getNextServiceInfo messageData.name
-
-        unless serviceInfo?
-          {name} = messageData
-          @respondServiceUnavailable routingKey, name
-          return console.error "No service info! #{name}"
-
-        { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
-
-        if messageData.serviceType is 'kite' and not messageData.correlationName
-          console.warn "No correlation name!", messageData, routingKey
-
-        params = {
-          serviceGenericName
-          serviceUniqueName
-          routingKey
-          username        : session.username ? 'guest'
-          correlationName : messageData.correlationName
-          # maybe the callback wants this:
-          socketId
-        }
-        if loadBalancing
-        then @sendAuthWho params
-        else if serviceUniqueName?
-        then @sendAuthJoin params
-        else @respondServiceUnavailable routingKey, serviceGenericName
-
 
     ensureGroupPermission = ({group, account}, callback) ->
       {JGroup} = @bongo.models
@@ -413,8 +352,7 @@ module.exports = class AuthWorker extends EventEmitter
       { routingKey, brokerExchange, serviceType, wrapperRoutingKeyPrefix } = messageData
 
       switch serviceType
-        when 'bongo', 'kite'
-          joinHelper.call this, messageData, routingKey, socketId
+        when 'bongo' then # ignore
 
         when 'group'
           unless ///^group\.#{messageData.group}\.///.test routingKey
@@ -453,94 +391,10 @@ module.exports = class AuthWorker extends EventEmitter
     clientServices = @clients.bySocketId[socketId]
     clientServices?.forEach @bound 'cleanUpClient'
 
-  parseServiceKey = (serviceKey) ->
-    last = null
-    serviceInfo = serviceKey.split('.').reduce (acc, edge, i)->
-      unless i % 2 then last = edge
-      else acc[last] = edge
-      return acc
-    , {}
-    serviceInfo.loadBalancing = /\.loadBalancing$/.test serviceKey
-    isValidKey  = serviceInfo.serviceGenericName? and
-                  serviceInfo.serviceUniqueName?
-    throw {
-      message: 'Bad service key!'
-      serviceKey
-      serviceInfo
-    }  unless isValidKey
-
-    return serviceInfo
-
-  monitorPresence: (connection) ->
-    Presence = require 'koding-rabbit-presence'
-    @presence = new Presence {
-      connection
-      exchange  : @servicesPresenceExchange
-      member    : @resourceName
-    }
-    @presence.on 'join', (serviceKey) =>
-      try @addService parseServiceKey serviceKey
-      catch e then console.error e
-    @presence.on 'leave', (serviceKey) =>
-      try @removeService parseServiceKey serviceKey
-      catch e then console.error e
-    @presence.listen()
-
-  backOffTimes = {}
-  handleKiteWho: (messageData, socketId) ->
-    { serviceGenericName, serviceUniqueName, routingKey
-      correlationName, username } = messageData
-
-    # apparently auth worker can spam the terminal
-    # kite with requests for kite.who for guest accounts.
-    # this short-cicuiting is meant to prevent against that,
-    # but since I couldn't reproduce this problem locally,
-    # it is possible that this is not a sufficient fix. C.T.
-    return  if /^guest-\d+/.test username
-
-    servicesOfType = @services[serviceGenericName]
-
-    [matchingService] = (service for service in servicesOfType \
-                                 when service.serviceUniqueName \
-                                   is serviceUniqueName)
-
-    backOffTimes[socketId] or= {}
-
-    kallback = (messageData, socketId) =>
-      { serviceGenericName, serviceUniqueName, routingKey
-      correlationName, username } = messageData
-
-      params = {
-        serviceGenericName
-        serviceUniqueName
-        routingKey
-        correlationName
-        username
-      }
-
-      params.deadService = serviceUniqueName
-      serviceInfo = @getNextServiceInfo serviceGenericName
-      params.serviceUniqueName = serviceInfo.serviceUniqueName
-      @sendAuthWho params
-      delete backOffTimes[socketId]
-
-    if backOffTimes[socketId].inProgress
-      return
-    else if matchingService?
-      @sendAuthJoin messageData
-    else if serviceUniqueName is "(error)"
-      backOffTimes[socketId].inProgress = yes
-      backOffTimes[socketId].timer = setTimeout ->
-        backOffTimes[socketId].inProgress = no
-        kallback messageData, socketId
-      , 1000
-    else kallback messageData, socketId
-
   connect: ->
     {bongo} = this
     bongo.on 'connected', =>
       {connection} = bongo.mq
-      @monitorPresence connection
 
       # FIXME: this is a hack to hold the chat exchange open for the meantime
       connection.exchange 'chat', NOTIFICATION_EXCHANGE_OPTIONS, (chatExchange) ->
@@ -568,12 +422,6 @@ module.exports = class AuthWorker extends EventEmitter
               messageStr = "#{message.data}"
               messageData = (try JSON.parse messageStr) or message
               switch routingKey
-                when 'kite.join'
-                  @addService messageData
-                when 'kite.leave'
-                  @removeService messageData
-                when 'kite.who'
-                  @handleKiteWho messageData
                 when "client.#{@authExchange}"
                   @join messageData, socketId
                 else
