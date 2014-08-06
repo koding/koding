@@ -2,9 +2,16 @@ Environments
 ============
 
 
-We now have four main parts for new environments infrastructure:
+We have several parts for new environments infrastructure. You can find the
+explanation of each part below:
+
+  - Kontrol Kite
+    
+    TODO: arslan, fill it
 
   - Kloud Kite
+    
+    TODO: arslan, fill it
 
     Kloud, which is responsible to manage machines on several providers.
     via their APIs. It also responsible to deploy Klient kite to target
@@ -20,6 +27,8 @@ We now have four main parts for new environments infrastructure:
 
   - Klient Kite
 
+    TODO: arslan, fill it
+
     Klient, which is responsible to provide following operations on target
     machine:
 
@@ -28,9 +37,9 @@ We now have four main parts for new environments infrastructure:
     - Exec (direct command run on target)
 
 
-  - Koding Backend (in social worker/kite)
+  - Social Worker Backend
 
-    Koding backend is responsible to manage credentials, stacks and machine
+    Social worker backend is responsible to manage credentials, stacks and machine
     data which `Kloud kite` needs. Also it provides API for koding/client side.
 
     ComputeProvider is responsible to create machines, it can also provide an
