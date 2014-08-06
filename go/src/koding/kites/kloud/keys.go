@@ -2,7 +2,7 @@ package main
 
 const (
 	// name of the key saved on remote provider
-	deployKeyName = "koding-deployment"
+	deployKeyName = "kloud-deployment"
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
