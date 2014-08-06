@@ -32,7 +32,6 @@ PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
 	socialapi/workers/dailyemailnotifier \
-	socialapi/workers/followingfeed \
 	socialapi/workers/notification \
 	socialapi/workers/pinnedpost \
 	socialapi/workers/popularpost \
@@ -61,9 +60,6 @@ topicfeeddev:
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
-followingfeeddev:
-	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) $(DBG) $(METRICS)
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
@@ -189,7 +185,6 @@ vet:
 	@`which go` tool vet -all=true .
 
 pkgs = \
-	followingfeed \
 	realtime \
 	rerun \
 	topicfeed \
