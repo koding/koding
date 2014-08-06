@@ -22,6 +22,7 @@
     "bluebird": "~1.0.8",
     "checksum": "0.1.*",
     "cli-table": "^0.3.0",
+    "cloudflare": "0.0.6",
     "coffee-script": "1.7.1",
     "colors": "0.6.0-1",
     "commander": "1.0.4",

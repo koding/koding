@@ -1,9 +1,13 @@
 #!/usr/bin/env coffee
 
 AWS        = require 'aws-sdk'
+cloudflare = require 'cloudflare'
 AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/install/keys/aws/koding-prod-deployment.pem")
 AWS.config.region = 'us-east-1'
 AWS.config.update accessKeyId: 'AKIAI7RHT42HWAA652LA', secretAccessKey: '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'
+cf = cloudflare.createClient
+  email: "devrim@kodingen.com"
+  token: "2add2eaa830113aa9047ce0e90ea40bb95105"
 
 argv       = require('minimist')(process.argv.slice(2))
 eden       = require 'node-eden'
@@ -16,7 +20,11 @@ semver     = require 'semver'
 request    = require 'request'
 ec2        = new AWS.EC2()
 elb        = new AWS.ELB()
+
 runAfter   = (time,fn) -> setTimeout(fn,time)
+runEvery   = (time,fn) ->
+  a = setInterval(fn,time);
+  return a;
 
 
 class Release
@@ -264,7 +272,7 @@ if argv.deploy
 
     options =
       boxes       : argv.boxes          or 1
-      boxtype     : argv.boxtype        or "t2.medium"
+      boxtype     : argv.boxtype        or "t2.micro"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       config      : argv.config         or "feature" # prod | staging | sandbox
       version     : argv.version        or version
@@ -300,14 +308,59 @@ if argv.deploy
 
       Deploy.createInstances deployOptions,(err,res)->
 
-        Release.registerInstancesWithPrefix options.hostname,(err,res)->
-          log "------------------------------------------------------------------"
-          log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-          log "------------------------------------------------------------------"
-          log "ELB: koding-prod-deployment-109498171.us-east-1.elb.amazonaws.com "
-          log "------------------------------------------------------------------"
-          log "URL: https://koding.io "
-          log "------------------------------------------------------------------"
+        if options.config is "feature"
+          # log JSON.stringify res,null,2
+
+          InstanceId = res.Instances[0].InstanceId
+          log InstanceId
+          t = setInterval ->
+            ec2.describeInstances {InstanceIds:[InstanceId]},(err,inst)->
+              # log JSON.stringify inst,null,2
+              IP = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
+              a = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
+
+              if a
+                clearTimeout t
+                subdomain = eden.eve().toLowerCase()
+                cf.addDomainRecord "koding.io",
+                  type : "A"
+                  name : subdomain
+                  content : IP
+                ,(err,res)->
+
+                  # log arguments
+
+                  log "------------------------------------------------------------------"
+                  log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+                  log "------------------------------------------------------------------"
+                  log "URL: #{inst.Reservations[0].Instances?[0]?.PublicDnsName} "
+                  log "------------------------------------------------------------------"
+                  log "URL: #{subdomain}.koding.io "
+                  log "------------------------------------------------------------------"
+          ,5000
+
+
+        else if configName is "prod"
+          Release.registerInstancesWithPrefix options.hostname,(err,res)->
+            log "------------------------------------------------------------------"
+            log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+            log "------------------------------------------------------------------"
+            log "ELB: koding-prod-deployment-109498171.us-east-1.elb.amazonaws.com "
+            log "------------------------------------------------------------------"
+            log "URL: https://koding.io "
+            log "------------------------------------------------------------------"
+
+
+
+
+
+
+
+
+
+
+
+
 
         # log JSON.stringify res,null,2
 
