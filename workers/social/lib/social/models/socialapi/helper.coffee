@@ -48,7 +48,9 @@ doRequest = (funcName, client, options, callback)->
   fetchGroup client, (err, group)->
     return callback err if err
 
-    {connection:{delegate}, nickname} = client
+    {connection:{delegate}} = client
+    {profile:{nickname}}    = delegate
+
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
 

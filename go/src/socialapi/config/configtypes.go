@@ -23,6 +23,7 @@ type (
 		FlagDebugMode     bool
 		DisableCaching    bool
 		Algolia           Algolia
+		Analytics         Analytics
 	}
 	// Redis holds Redis related config
 	Redis struct {
@@ -68,5 +69,9 @@ type (
 		ApiKey         string
 		ReadOnlyApiKey string
 		IndexSuffix    string
+	}
+	Analytics struct {
+		MixpanelToken string
+		Enabled       bool
 	}
 )
