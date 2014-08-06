@@ -281,7 +281,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
         cd #{projectRoot}/go/src/socialapi
         make configure
-        make install
+        # make install
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
@@ -296,7 +296,7 @@ Configuration = (options={}) ->
 
         echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
         echo adding you to docker-hub..
-        if [ -f $HOME/.dockercfg]; then
+        if [ -f $HOME/.dockercfg ]; then
           echo 'you seem to have correct docker config file - dont forget to install docker.'
         else
           echo 'added ~/.dockercfg - dont forget to install docker.'
