@@ -224,7 +224,7 @@ class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location"> from San Francisco</span>
+        {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
