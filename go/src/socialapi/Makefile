@@ -49,6 +49,7 @@ PACKAGES = \
 all: testapi
 
 develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev
+minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
 apidev:
