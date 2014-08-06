@@ -12,7 +12,9 @@ import (
 
 var (
 	// TODO allowed origins must be configurable
-	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
+	cors     = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
+	conf     *config.Config
+	trackers *metrics.Trackers
 )
 
 func Wrapper(handler interface{}, logName string, collectMetrics bool) http.Handler {
@@ -50,15 +52,26 @@ func (c *CounterByStatus) ServeHTTP(w0 http.ResponseWriter, r *http.Request) {
 	c.handler.ServeHTTP(w, r)
 
 	if w.StatusCode <= 300 {
-		conf := config.MustGet()
-		trackers := metrics.InitTrackers(
+		c.track()
+	}
+}
+
+func (c *CounterByStatus) track() {
+	// don't log if analytics are disabled globally or for that endpoint
+	if !c.collectMetrics && !conf.Analytics.Enabled {
+		return
+	}
+
+	// set `conf` and `trackers` if either is not set
+	if conf == nil || trackers == nil {
+		conf = config.MustGet()
+
+		trackers = metrics.InitTrackers(
 			metrics.NewMixpanelTracker(conf.Analytics.MixpanelToken),
 		)
-
-		if c.collectMetrics && conf.Analytics.Enabled {
-			trackers.Track(c.name)
-		}
 	}
+
+	trackers.Track(c.name)
 }
 
 func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *CounterByStatus {
