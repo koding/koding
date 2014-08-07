@@ -282,7 +282,7 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 // so that it listens on the port of our choice and serves /var/www
 // rather than /var/www/html (/var/www is symlinked to user's ~/Web)
 func changeApacheConf(client *sshutil.SSHClient, port int) error {
-	apacheFile, err := client.Create("/etc/apache2/sites-enabled/000-default")
+	apacheFile, err := client.Create("/etc/apache2/sites-available/000-default.conf")
 	if err != nil {
 		return err
 	}
