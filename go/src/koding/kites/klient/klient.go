@@ -57,6 +57,7 @@ func main() {
 
 	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
+	k.HandleFunc("klient.update", updater)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
