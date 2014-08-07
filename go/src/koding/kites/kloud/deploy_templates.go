@@ -27,11 +27,11 @@ ff02::2 ip6-allrouters`
 
   DocumentRoot /var/www
   <Directory />
-    Options FollowSymLinks
+    Options +FollowSymLinks
     AllowOverride None
   </Directory>
   <Directory /var/www/>
-    Options Indexes FollowSymLinks MultiViews +ExecCGI
+    Options +Indexes +FollowSymLinks +MultiViews +ExecCGI
     AddHandler cgi-script .cgi .pl .rb .py
     AllowOverride All
     Order allow,deny
