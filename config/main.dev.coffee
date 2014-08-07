@@ -193,7 +193,7 @@ Configuration = (options={}) ->
     webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
     socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
 
-    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps"
+    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
 
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
 
@@ -248,6 +248,7 @@ Configuration = (options={}) ->
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
+
       """
       env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
@@ -281,7 +282,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
         cd #{projectRoot}/go/src/socialapi
         make configure
-        make install
+        # make install
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
@@ -296,7 +297,7 @@ Configuration = (options={}) ->
 
         echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
         echo adding you to docker-hub..
-        if [ -f $HOME/.dockercfg]; then
+        if [ -f $HOME/.dockercfg ]; then
           echo 'you seem to have correct docker config file - dont forget to install docker.'
         else
           echo 'added ~/.dockercfg - dont forget to install docker.'
@@ -321,7 +322,8 @@ Configuration = (options={}) ->
     """
 
     run = """
-      #/bin/bash
+      #!/bin/bash
+
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
@@ -373,7 +375,7 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
         sleep 2
         tar jxvf ./install/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox}:27017} -dkoding #{projectRoot}/dump/koding
+        mongorestore -h#{boot2dockerbox}:27017 -dkoding #{projectRoot}/dump/koding
         rm -rf ./dump
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
