@@ -330,7 +330,7 @@ func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageLis
 	}
 
 	_, err = c.AddMessage(messageId)
-	if err == ErrAlreadyInTheChannel {
+	if err == ErrMessageAlreadyInTheChannel {
 		return cml, nil
 	}
 
