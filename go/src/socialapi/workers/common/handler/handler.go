@@ -67,14 +67,19 @@ func (c *CounterByStatus) ServeHTTP(w0 http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CounterByStatus) track() {
-	// don't log if analytics are disabled globally or for that endpoint
-	if !c.collectMetrics && !conf.Analytics.Enabled {
+	// don't log if analytics are disabled for that endpoint
+	if !c.collectMetrics {
 		return
 	}
 
 	// set `conf` and `trackers` if either is not set
 	if conf == nil || trackers == nil {
 		conf = config.MustGet()
+
+		// don't log if analytics are disabled globally
+		if !conf.Analytics.Enabled {
+			return
+		}
 
 		trackers = metrics.InitTrackers(
 			metrics.NewMixpanelTracker(conf.Analytics.MixpanelToken),
