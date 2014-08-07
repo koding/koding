@@ -1,11 +1,8 @@
 package models
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"time"
-
-	"github.com/koding/bongo"
 )
 
 type PrivateMessageRequest struct {
@@ -46,13 +43,9 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 		}
 
 		// do not show unread count to the creator of the private message
-		err = bongo.B.DB.Exec(
-			fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?",
-				cp.TableName(),
-			),
-			time.Now().UTC().Add(time.Second*1),
-			cp.Id,
-		).Error
+		oneSecondLater := time.Now().UTC().Add(time.Second * 1)
+		// do not show unread count as 1 to user
+		err = cp.RawUpdateLastSeenAt(oneSecondLater)
 		if err != nil {
 			return nil, err
 		}
@@ -104,14 +97,9 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
+	oneSecondLater := time.Now().UTC().Add(time.Second * 1)
 	// do not show unread count as 1 to user
-	err = bongo.B.DB.Exec(
-		fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?",
-			cp.TableName(),
-		),
-		time.Now().UTC().Add(time.Second*1),
-		cp.Id,
-	).Error
+	err = cp.RawUpdateLastSeenAt(oneSecondLater)
 	if err != nil {
 		return nil, err
 	}

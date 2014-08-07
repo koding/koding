@@ -362,3 +362,12 @@ func (c *ChannelParticipant) getAccountId() (int64, error) {
 
 	return cp.AccountId, nil
 }
+
+func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
+	if c.Id == 0 {
+		return ErrIdIsNotSet
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", cp.TableName())
+	return bongo.B.DB.Exec(query, t, c.Id).Error
+}
