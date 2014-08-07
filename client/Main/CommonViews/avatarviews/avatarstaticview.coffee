@@ -4,6 +4,6 @@ class AvatarStaticView extends AvatarView
 
     options.tagName or= 'span'
 
-    super
+    super options, data
 
   click:-> yes
