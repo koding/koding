@@ -375,9 +375,7 @@ Configuration = (options={}) ->
 
         echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
         sleep 5
-        tar jxvf ./install/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox}:27017 -dkoding #{projectRoot}/dump/koding
-        rm -rf ./dump
+        ./importDB #{boot2dockerbox}:27017
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
