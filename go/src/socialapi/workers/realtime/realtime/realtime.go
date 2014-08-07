@@ -627,7 +627,7 @@ func (f *Controller) sendNotification(
 
 	return channel.Publish(
 		"notification",
-		oldAccount.Profile.Nickname, // this is routing key
+		account.Nick, // this is routing key
 		false,
 		false,
 		amqp.Publishing{Body: byteNotification},
