@@ -54,11 +54,11 @@ doRequest = (funcName, client, options, callback)->
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
 
-      options.groupChannelId = group.socialApiChannelId
-      options.groupName      = group.slug
-      options.accountId      = socialApiId
-      options.accountName    = nickname
-      options.showExempt   or= delegate.isExempt
+      options.groupChannelId  = group.socialApiChannelId
+      options.groupName       = group.slug
+      options.accountId       = socialApiId
+      options.accountNickname = nickname
+      options.showExempt    or= delegate.isExempt
 
       bareRequest funcName, options, callback
 
