@@ -177,6 +177,12 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Restarting apache2 with new config")
+	out, err = client.StartCommand("service apache2 restart")
+	if err != nil {
+		return nil, err
+	}
+
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	// TODO: enable this later in production, currently it's just slowing down
