@@ -142,7 +142,7 @@ getSchemaOpeningTags = (contentType) ->
       """
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name" class="invisible">Latest #{title}</h2><br>
+            <h2 itemprop="name" class="hidden">Latest #{title}</h2>
             <meta itemprop="itemListOrder" content="Descending" />
       """
 
@@ -174,43 +174,35 @@ createTagNode = (tag)->
   </div>
   """
 
-getDock = ->
+getSidebar = ->
   """
-  <header id="main-header" class="kdview">
-      <div class="inner-container">
-          <a id="koding-logo" href="/">
-              <cite></cite>
-          </a>
-          <div id="dock" class="">
-              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
-                      <span class="icon"></span>
-                      <cite>Activity</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
-                      <span class="icon"></span>
-                      <cite>Teamwork</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
-                      <span class="icon"></span>
-                      <cite>Terminal</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
-                      <span class="icon"></span>
-                      <cite>Editor</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
-                      <span class="icon"></span>
-                      <cite>Apps</cite>
-                  </a>
-              </div>
-          </div>
-          <div class="account-area">
-            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
-            <a class="custom-link-view header-sign-in" href="/Login">login</a>
-          </div>
+  <aside id="main-sidebar">
+    <div id="dock">
+      <h3 class="sidebar-title">MY APPS</h3>
+      <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim activity running selected" href="/Activity">
+          <figure></figure>
+          <cite>Activity</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim ide" href="/IDE">
+          <figure></figure>
+          <cite>IDE</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim teamwork" href="/Teamwork">
+          <figure></figure>
+          <cite>Teamwork</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim apps" href="/Apps">
+          <figure></figure>
+          <cite>Apps</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim devtools" href="/DevTools">
+          <figure></figure>
+          <cite>DevTools</cite>
+        </a>
       </div>
-  </header>
+    </div>
+  </aside>
   """
 
 getEmptyPage = ->
@@ -230,26 +222,28 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
     #{graphMeta}
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
-    <div id="kdmaincontainer" class="kdview">
-      #{getDock()}
-        <section id="content-page-activity" class="kdview kdscrollview content-page activity">
-          <main class="kdview kdscrollview static-feed kdtabview">
-            #{content}
-            <nav class="crawler-pagination clearfix">
-              #{pagination}
-            </nav>
-          </main>
-        </section>
+    <div id="kdmaincontainer" class="kdview with-sidebar">
+      #{getSidebar()}
+      <section id="main-panel-wrapper" class="kdview">
+        <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+          <div id="content-page-activity" class="kdview content-page activity clearfix">
+            <main class="kdview kdscrollview kdtabview app-content">
+              #{content}
+            </main>
+          </div>
+        </div>
+      </section>
     </div>
     #{analytics()}
   </body>
   </html>
   """
 
+
 module.exports = {
   buildContent
   createFeed
   putContentIntoFullPage
-  getDock
+  getSidebar
   getEmptyPage
 }

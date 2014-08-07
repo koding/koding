@@ -3,22 +3,20 @@
 
 
 getAvatarImageUrl = (hash, avatar)->
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=90&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=37&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=90&height=90&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=37&height=37&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
   return imgURL
 
 createAvatarImage = (hash, avatar)=>
   imgURL = getAvatarImageUrl hash, avatar
   """
-  <img width="42" height="42" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
+  <img width="37" height="37" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
 
 createCreationDate = (createdAt, slug)->
   """
-    <a href="#{uri.address}/Activity/Post/#{slug}" style="text-decoration:none">
-      <time class="kdview"><span itemprop=\"dateCreated\">#{createdAt}</span></time>
-    </a>
+  <time class="kdview">#{createdAt}</time>
   """
 
 createAuthor = (accountName, nickname)->
@@ -35,37 +33,21 @@ prepareComments = (activityContent)->
     avatarImage = createAvatarImage hash, avatar
     commentsList +=
       """
-        <div class="kdview kdlistitemview kdlistitemview-comment">
-          <a class="avatarview" href="/#{comment.authorNickname}" style="background-image: none; background-size: 42px;">
-            #{avatarImage}
-          </a>
-          <div class="comment-contents clearfix">
-            <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
-            <div class="comment-body-container">
-              <p itemprop="commentText">#{message.body}</p>
-            </div>
+      <div class="kdview kdlistitemview kdlistitemview-comment">
+        <a class="avatarview" href="/#{comment.authorNickname}" style="background-image: none; background-size: 38px 38px;">
+          #{avatarImage}
+        </a>
+        <div class="comment-contents clearfix">
+          <a href="#{uri.address}/#{nickname}" class="profile">Sinan Yasar</a>
+          <div class="comment-body-container">
+            <p data-paths="body" id="el-56">#{message.body}</p>
           </div>
         </div>
+      </div>
+
       """
 
   return commentsList
-
-prepareLikes = (activityContent)->
-  return ""  unless activityContent?.likers?.length
-  likeList = """<div class="kdview like-summary">"""
-
-  likerCount = activityContent.likers.length
-  for i in [0...likerCount]
-    {nickname, fullName} = activityContent.likers[i]
-    likeList += """<a href="#{uri.address}/#{nickname}" class="profile"><span>#{fullName}</span></a>"""
-    likeList += addLikeSeperator i, likerCount
-
-  likeList += "<span> liked this.</span></div>"
-
-addLikeSeperator = (index, count) ->
-  return ", "    if index < count - 2
-  return " and " if index < count - 1
-  return ""      if index == count - 1
 
 getActivityContent = (activityContent)->
   slugWithDomain = "#{uri.address}/Activity/Public/#{activityContent.slug}"
@@ -78,41 +60,46 @@ getActivityContent = (activityContent)->
   body = formatBody body
   commentsList = prepareComments activityContent
 
-  likeList = prepareLikes activityContent
-
   content  =
     """
-    <div class="kdview kdlistitemview kdlistitemview-activity activity-item status">
-      <div class="activity-content-wrapper static-feed">
-        <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="background-image: none; background-size: 42px;">
-            #{avatarImage}
+    <div class="kdview kdlistitemview kdlistitemview-activity static activity-item status">
+      <div class="activity-content-wrapper">
+        <a class="avatarview author-avatar" href="#{uri.address}/#{nickname}" style="background-image: none; background-size: 37px 37px;">
+          #{avatarImage}
         </a>
-
         <div class="meta">
-          <a href="#{uri.address}/#{nickname}" class="profile">
-            <span>#{fullName}</span>
-          </a>
-          <footer>
-            #{createdAt}
-            <span class="location">San Francisco</span>
-          </footer>
-
+          <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
+          #{createdAt}
         </div>
-
-        <article data-paths="body">
-          <p>
-            #{body}
-          </p>
+        <article data-paths="body" id="el-26">
+          #{body}
         </article>
-        #{likeList}
-
-        <div class="kdview comment-container fixed-height active-comment commented">
-          <div class="kdview kdlistview kdlistview-comments">
-            #{commentsList}
+        <div class="kdview activity-actions comment-header">
+          <span class="logged-in action-container">
+            <a class="custom-link-view" href="#">
+              <span class="title" data-paths="title" id="el-41">Comment</span>
+            </a>
+            <a class="custom-link-view count" href="#">
+              <span data-paths="repliesCount" id="el-42">#{commentCount}</span>
+            </a>
+          </span>
+          <span class="optional action-container">
+            <a class="custom-link-view" href="#">
+              <span class="title" data-paths="title" id="el-43">Share</span>
+            </a>
+          </span>
+        </div>
+      </div>
+      <div class="kdview comment-container fixed-height">
+        <div class="kdview listview-wrapper">
+          <div class="kdview kdscrollview">
+            <div class="kdview kdlistview kdlistview-comments">
+              #{commentsList}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      </div>
     """
   return content
 
