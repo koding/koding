@@ -1,18 +1,80 @@
-// rewrite this part with cache/memory
 package models
 
 import "fmt"
 
 var (
-	accountCache    map[int64]*Account
-	oldAccountCache map[string]int64
+	channelCache        map[int64]*Channel
+	channelMessageCache map[int64]*ChannelMessage
+	accountCache        map[int64]*Account
+	oldAccountCache     map[string]int64
 )
 
 func init() {
 	// those are not thread safe!!!!
+	channelCache = make(map[int64]*Channel)
+	channelMessageCache = make(map[int64]*ChannelMessage)
 	accountCache = make(map[int64]*Account)
 	oldAccountCache = make(map[string]int64)
 }
+
+/////////// ChannelMessage
+
+func ChannelMessageById(id int64) (*ChannelMessage, error) {
+	if channelMessage, ok := channelMessageCache[id]; ok {
+		return channelMessage, nil
+	}
+
+	// todo add caching here
+	c := NewChannelMessage()
+	if err := c.ById(id); err != nil {
+		return nil, err
+	}
+
+	// add channel to cache
+	channelMessageCache[c.Id] = c
+
+	return c, nil
+}
+
+/////////// Channel
+
+// todo fix!!
+// this will fail when a channel marked as troll
+func ChannelById(id int64) (*Channel, error) {
+	if channel, ok := channelCache[id]; ok {
+		return channel, nil
+	}
+
+	// todo add caching here
+	c := NewChannel()
+	if err := c.ById(id); err != nil {
+		return nil, err
+	}
+
+	// add channel to cache
+	channelCache[c.Id] = c
+
+	return c, nil
+}
+
+func ChannelsByIds(ids []int64) ([]*Channel, error) {
+	channels := make([]*Channel, len(ids))
+	if len(channels) == 0 {
+		return channels, nil
+	}
+
+	for i, id := range ids {
+		channel, err := ChannelById(id)
+		if err != nil {
+			return channels, err
+		}
+		channels[i] = channel
+	}
+
+	return channels, nil
+}
+
+///// Account
 
 func FetchAccountOldIdByIdFromCache(id int64) (string, error) {
 	if a, ok := accountCache[id]; ok && a != nil {
