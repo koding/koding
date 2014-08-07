@@ -1,16 +1,18 @@
 FROM mongo
 MAINTAINER Christopher Thorn <chris@koding.com>
 
-ADD dump/ /dump
-RUN mkdir -p /root/data/db
 
-# INSERTING DEFAULT DATASET TO MONGODB
+ADD . /mongo-dump
 
-RUN mongorestore --dbpath /root/data/db --drop --quiet --db koding /dump/koding
+WORKDIR /mongo-dump
+
+RUN tar jxvf /mongo-dump/default-db-dump.tar.bz2
+RUN ls -lha /mongo-dump
 
 # UPDATING MONGO AS PER SOCIAL API REQUIREMENTS (@cihangir)
+RUN /usr/local/bin/mongod --fork --logpath /var/log/mongodb.log --dbpath /data/db --smallfiles --nojournal && mongorestore -hlocalhost -dkoding /mongo-dump/dump/koding
 
-# RUN mongod --fork --logpath /var/log/mongodb.log --dbpath /root/data/db --smallfiles --nojournal && mongo localhost/koding --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+RUN rm -rf /mongo-dump/dump
 
 EXPOSE 27017
 ENTRYPOINT ["mongod"]

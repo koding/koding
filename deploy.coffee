@@ -368,26 +368,26 @@ if argv.deploy
 
         # log JSON.stringify res,null,2
 
-        res.Instances.forEach (instance)->
-          IP = instance.PublicIpAddress
-          log "testing instance..."
-          _t = setInterval ->
-            Deploy.deployTest [
-                {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
-                {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
-                {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
-                {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
-                {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
-                {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
-                {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
-                {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
-              ]
-            ,(err,test_res)->
-              log val for val in test_res
+        # res.Instances.forEach (instance)->
+        #   IP = instance.PublicIpAddress
+        #   log "testing instance..."
+        #   _t = setInterval ->
+        #     Deploy.deployTest [
+        #         {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+        #         {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+        #       ]
+        #     ,(err,test_res)->
+        #       log val for val in test_res
 
-              if OK then runTests()
+        #       if OK then runTests()
 
-          ,10000
+        #   ,10000
 
         # log "#{res.instanceName} is ready."
         # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
