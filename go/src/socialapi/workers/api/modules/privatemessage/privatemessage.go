@@ -122,8 +122,8 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 	}
 
 	// check channel existence
-	c := models.NewChannel()
-	if err := c.ById(req.ChannelId); err != nil {
+	c, err := models.ChannelById(req.ChannelId)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
