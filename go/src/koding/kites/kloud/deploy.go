@@ -30,6 +30,11 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
+const (
+	// Port to bind apache to by default
+	apachePort = 7000
+)
+
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	data, err := r.Context.Get("buildArtifact")
 	if err != nil {
@@ -154,6 +159,11 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Tweaking apache config")
+	if err := changeApacheConf(client, apachePort); err != nil {
+		return nil, err
+	}
+
 	log("Setting up users' Web/ directory to be served by apache")
 	out, err = client.StartCommand(webSetupCommand(username))
 	if err != nil {
@@ -242,4 +252,16 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 	}
 
 	return nil
+}
+
+// changeApacheConf is used to change apache's default configuration
+// so that it listens on the port of our choice and serves /var/www
+// rather than /var/www/html (/var/www is symlinked to user's ~/Web)
+func changeApacheConf(client *sshutil.SSHClient, port int) error {
+	apacheFile, err := client.Create("/etc/apache2/sites-enabled/000-default")
+	if err != nil {
+		return err
+	}
+
+	return apacheTemplate.Execute(apacheFile, port)
 }

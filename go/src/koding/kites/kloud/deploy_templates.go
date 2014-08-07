@@ -18,4 +18,42 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters`
+
+	apacheTemplate = template.Must(template.New("apache").Parse(apache))
+
+	apache = `
+<VirtualHost *:{{.}}>
+  ServerAdmin webmaster@localhost
+
+  DocumentRoot /var/www
+  <Directory />
+    Options FollowSymLinks
+    AllowOverride None
+  </Directory>
+  <Directory /var/www/>
+    Options Indexes FollowSymLinks MultiViews +ExecCGI
+    AddHandler cgi-script .cgi .pl .rb .py
+    AllowOverride All
+    Order allow,deny
+    Allow from all
+  </Directory>
+
+  ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+  <Directory "/usr/lib/cgi-bin">
+    AllowOverride None
+    Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+    Order allow,deny
+    Allow from all
+  </Directory>
+
+  ErrorLog ${APACHE_LOG_DIR}/error.log
+
+  # Possible values include: debug, info, notice, warn, error, crit,
+  # alert, emerg.
+  LogLevel warn
+
+  CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+`
+
 )
