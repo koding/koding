@@ -94,6 +94,11 @@ class AccountEditUsername extends JView
     @uploadAvatarBtn.showLoader()
 
     file          = @uploadAvatarInput.getElement().files[0]
+
+    unless file
+      @uploadAvatarBtn.hideLoader()
+      return
+
     reader        = new FileReader
 
     reader.onload = (event) =>
