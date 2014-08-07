@@ -365,6 +365,10 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
     @notifyGroupWhen 'FollowHappened'
 
+  @sendUpdateInstanceEvent = (obj, op) =>
+    JAccount.bongos.forEach (bongo) =>
+      bongo.handleEvent "instance", obj, "updateInstance", [op]
+
   canEditPost: permit 'edit posts'
 
   canDeletePost: permit 'delete posts'
@@ -772,7 +776,8 @@ module.exports = class JAccount extends jraphical.Module
           console.error 'Could not update user exempt information'
           return callback err
         @isExempt = exempt
-        JAccount.bongos.forEach (bongo) => bongo.handleEvent "instance", @, "updateInstance", [op]
+
+        JAccount.sendUpdateInstanceEvent this, op
         callback null, result
 
   markUserAsExemptInSocialAPI: (client, exempt, callback)->
@@ -941,7 +946,11 @@ module.exports = class JAccount extends jraphical.Module
         return callback new KodingError "Modify fields is not valid"
 
     if @equals(client.connection.delegate)
-      @update $set: fields, callback
+      op = $set: fields
+      @update op, (err) =>
+        JAccount.sendUpdateInstanceEvent this, op  unless err
+
+        return callback err
 
   setClientId:(@clientId)->
 
