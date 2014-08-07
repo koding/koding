@@ -359,7 +359,6 @@ Configuration = (options={}) ->
 
         ./cleanup @$
 
-
       elif [ "$1" == "services" ]; then
         boot2docker up
         docker stop mongo redis postgres rabbitmq etcd
@@ -372,7 +371,7 @@ Configuration = (options={}) ->
         docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
         echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
-        sleep 5
+        sleep 2
         tar jxvf ./install/default-db-dump.tar.bz2
         mongorestore -h#{boot2dockerbox}:27017} -dkoding #{projectRoot}/dump/koding
         rm -rf ./dump

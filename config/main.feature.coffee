@@ -471,7 +471,7 @@ Configuration = (options={}) ->
         touch /root/run.services.start
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
-        docker run -d -p 27017:27017            --name=mongo    mongo --dbpath /root/data/db --smallfiles --nojournal
+        docker run -d -p 27017:27017            --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
         docker run -d -p 6379:6379              --name=redis    redis
         docker run -d -p 5432:5432              --name=postgres koding/postgres
         docker run -d -p 5672:5672              --name=rabbitmq koding/rabbitmq
