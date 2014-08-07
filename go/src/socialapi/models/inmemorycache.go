@@ -1,12 +1,20 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"strconv"
+	"time"
+
+	"github.com/koding/cache"
+)
 
 var (
 	channelCache        map[int64]*Channel
 	channelMessageCache map[int64]*ChannelMessage
 	accountCache        map[int64]*Account
 	oldAccountCache     map[string]int64
+	secretNamesCache    cache.Cache
 )
 
 func init() {
@@ -15,6 +23,7 @@ func init() {
 	channelMessageCache = make(map[int64]*ChannelMessage)
 	accountCache = make(map[int64]*Account)
 	oldAccountCache = make(map[string]int64)
+	secretNamesCache = cache.NewMemoryWithTTL(time.Second * 10)
 }
 
 /////////// ChannelMessage
@@ -153,4 +162,37 @@ func AccountIdByOldId(oldId, nick string) (int64, error) {
 	oldAccountCache[oldId] = a.Id
 
 	return a.Id, nil
+}
+
+////// SecretNames /////
+
+func SecretNamesByChannelId(channelId int64) ([]string, error) {
+	key := strconv.FormatInt(channelId, 10)
+	data, err := secretNamesCache.Get(key)
+	if err == nil {
+		if d, ok := data.([]string); ok {
+			return d, nil
+		}
+	}
+
+	c, err := ChannelById(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	name := fmt.Sprintf(
+		"socialapi-group-%s-type-%s-name-%s",
+		c.GroupName,
+		c.TypeConstant,
+		c.Name,
+	)
+
+	names, err := modelhelper.FetchFlattenedSecretName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// set obtained data to cache
+	secretNamesCache.Set(key, names)
+	return names, nil
 }

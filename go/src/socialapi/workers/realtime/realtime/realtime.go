@@ -594,7 +594,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
 	// fetch secret names of the channel
-	secretNames, err := fetchSecretNames(channelId)
+	secretNames, err := models.SecretNamesByChannelId(channelId)
 	if err != nil {
 		return err
 	}
@@ -634,24 +634,6 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 	}
 	return nil
 
-}
-
-func fetchSecretNames(channelId int64) ([]string, error) {
-	names := make([]string, 0)
-	c, err := models.ChannelById(channelId)
-	if err != nil {
-		return names, err
-	}
-
-	name := fmt.Sprintf(
-		"socialapi-group-%s-type-%s-name-%s",
-		c.GroupName,
-		c.TypeConstant,
-		c.Name,
-	)
-
-	names, err = modelhelper.FetchFlattenedSecretName(name)
-	return names, nil
 }
 
 func (f *Controller) sendNotification(
