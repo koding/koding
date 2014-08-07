@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 PATCHES=$(ls patches)
 PATCHED=$(less node_modules/.patched 2>/dev/null)
 
