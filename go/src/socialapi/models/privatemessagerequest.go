@@ -84,8 +84,8 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 	}
 
 	// check channel existence
-	c := NewChannel()
-	if err := c.ById(p.ChannelId); err != nil {
+	c, err := ChannelById(p.ChannelId)
+	if err != nil {
 		return nil, err
 	}
 

@@ -58,9 +58,9 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	c, err := fetchChannel(data.InitialChannelId)
+	c, err := models.ChannelById(data.InitialChannelId)
 	if err != nil {
-		f.log.Error("Error on fetchChannel", data.InitialChannelId, err)
+		f.log.Error("Error on models.ChannelById", data.InitialChannelId, err)
 		return err
 	}
 
@@ -81,7 +81,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 			}
 		}
 
-		_, err = tc.AddMessage(data.Id)
+		_, err = tc.EnsureMessage(data.Id, true)
 		// safely skip
 		if err == models.ErrMessageAlreadyInTheChannel {
 			continue
@@ -145,7 +145,7 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 
 	// add messages
 	if len(res["added"]) > 0 {
-		initialChannel, err := fetchChannel(data.InitialChannelId)
+		initialChannel, err := models.ChannelById(data.InitialChannelId)
 		if err != nil {
 			return err
 		}
@@ -263,17 +263,6 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// todo add caching here
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	// todo - fetch only name here
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }
 
 // todo add caching here
