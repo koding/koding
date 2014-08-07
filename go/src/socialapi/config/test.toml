@@ -44,7 +44,7 @@ ForcedRecipient = "canthefason@gmail.com"
 RedisDB = 2
 
 [algolia]
-AppId          = "8KD9RHY1OA"
-ApiKey         = "1ceb41897600d8df196eb22a3528eb5f"
-ReadOnlyApiKey = "e4a8ebe91bf848b67c9ac31a6178c64b"
+ppId          = "DYVV81J2S1"
+ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
+ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
 IndexSuffix    = ".test"
