@@ -17,7 +17,17 @@ var (
 	trackers *metrics.Trackers
 )
 
-func Wrapper(handler interface{}, logName string, collectMetrics bool) http.Handler {
+type Request struct {
+	Handler        interface{}
+	Name           string
+	CollectMetrics bool
+}
+
+func Wrapper(r Request) http.Handler {
+	handler := r.Handler
+	logName := r.Name
+	collectMetrics := r.CollectMetrics
+
 	return cors.Build(
 		tigertonic.Timed(
 			tigertonic.If(
