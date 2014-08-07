@@ -42,7 +42,7 @@ ForcedRecipient = "canthefason@gmail.com"
 RedisDB = 1
 
 [algolia]
-ppId          = "DYVV81J2S1"
+AppId          = "DYVV81J2S1"
 ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
 ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
 IndexSuffix    = ".kodingme"
