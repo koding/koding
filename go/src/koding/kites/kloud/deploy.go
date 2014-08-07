@@ -32,7 +32,7 @@ type KodingDeploy struct {
 
 const (
 	// Port to bind apache to by default
-	apachePort = 7000
+	apachePort = 80
 )
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
