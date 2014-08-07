@@ -322,7 +322,8 @@ Configuration = (options={}) ->
     """
 
     run = """
-      #/bin/bash
+      #!/bin/bash
+
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
