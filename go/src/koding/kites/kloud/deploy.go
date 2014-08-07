@@ -171,6 +171,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Setting up users' Web/ directory to be served by apache")
+	out, err = client.StartCommand(webSetupCommand(username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	// TODO: enable this later in production, currently it's just slowing down
@@ -203,6 +210,14 @@ gpasswd -a %s sudo  && \
 echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
  `, username, username, username, username, username, username)
 
+}
+
+// webSetupCommand generates a bash command configuring apache for a given user
+func webSetupCommand(username string) string {
+	return fmt.Sprintf(`
+rm -rf /var/www; \
+ln -s /home/%s/Web /var/www
+`, username)
 }
 
 // Build the klient.conf patching command
