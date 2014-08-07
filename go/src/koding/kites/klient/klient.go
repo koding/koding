@@ -32,7 +32,8 @@ var (
 	NAME    = protocol.Name
 
 	// this is our main reference to count and measure metrics for the klient
-	usg = usage.NewUsage()
+	usg  = usage.NewUsage()
+	klog kite.Logger
 )
 
 func main() {
@@ -48,6 +49,8 @@ func main() {
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
+
+	klog = k.Log
 
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id

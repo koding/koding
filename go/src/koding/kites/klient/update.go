@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/inconshreveable/go-update"
 	"github.com/koding/kite"
@@ -13,6 +18,9 @@ import (
 
 var (
 	AuthenticatedUser = "koding"
+
+	// EndpointURL returns the latest stable klient version
+	EndpointUrl = ""
 )
 
 type UpdateData struct {
@@ -55,7 +63,12 @@ func updateBinary(url string) error {
 		return err
 	}
 
-	err, errRecover := u.FromUrl(url)
+	bin, err := fetchBinGz(url)
+	if err != nil {
+		return err
+	}
+
+	err, errRecover := u.FromStream(bytes.NewBuffer(bin))
 	if err != nil {
 		if errRecover != nil {
 			return errRecover
@@ -72,4 +85,47 @@ func updateBinary(url string) error {
 	}
 
 	return nil
+}
+
+func fetchBinGz(url string) ([]byte, error) {
+	r, err := fetch(url)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	buf := new(bytes.Buffer)
+	gz, err := gzip.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(buf, gz); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func fetch(url string) (io.ReadCloser, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	switch resp.StatusCode {
+	case 200:
+		return resp.Body, nil
+	default:
+		return nil, fmt.Errorf("bad http status from %s: %v", url, resp.Status)
+	}
+}
+
+func backgroundUpdater() {
+	for _ = range time.Tick(time.Minute * 5) {
+		// check from an endpoint
+		if err := updateBinary(EndpointUrl); err != nil {
+			klog.Warning("Self-update report: %s", err)
+		}
+	}
 }
