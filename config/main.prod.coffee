@@ -21,6 +21,7 @@ Configuration = (options={}) ->
   redis               = {host     : "prod0.1ia3pb.0001.use1.cache.amazonaws.com"   , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/prod.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
+  etcd                = "10.0.0.126:4001, 10.0.0.127:4001, 10.0.0.128:4001"
 
   customDomain        =
     public            : "http://#{hostname}"
@@ -278,9 +279,7 @@ Configuration = (options={}) ->
     upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
     upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
     upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-
-    # TBD @arslan -> make kontrol kite horizontally scalable then enable;
-    # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
+    upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
 
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
@@ -330,6 +329,15 @@ Configuration = (options={}) ->
         proxy_next_upstream   error timeout invalid_header http_500;
         proxy_connect_timeout 1;
       }
+
+      location /kontrol {
+        proxy_pass            http://kontrol;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
 
       # TBD. ADD WEBSOCKET SUPPORT HERE
 

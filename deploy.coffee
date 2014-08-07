@@ -272,12 +272,16 @@ if argv.deploy
 
     options =
       boxes       : argv.boxes          or 1
-      boxtype     : argv.boxtype        or "t2.micro"
+      boxtype     : argv.boxtype        or "t2.medium"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       config      : argv.config         or "feature" # prod | staging | sandbox
       version     : argv.version        or version
 
     options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
+
+    if options.config is "feature"
+      subdomain = eden.eve().toLowerCase()
+      options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
 
     KONFIG = require("./config/main.#{options.config}.coffee")
       hostname : options.hostname
@@ -316,12 +320,12 @@ if argv.deploy
           t = setInterval ->
             ec2.describeInstances {InstanceIds:[InstanceId]},(err,inst)->
               # log JSON.stringify inst,null,2
-              IP = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
-              a = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
+              IP            = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
+              PublicDnsName = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
 
-              if a
+              if PublicDnsName
                 clearTimeout t
-                subdomain = eden.eve().toLowerCase()
+
                 cf.addDomainRecord "koding.io",
                   type : "A"
                   name : subdomain
@@ -333,14 +337,14 @@ if argv.deploy
                   log "------------------------------------------------------------------"
                   log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
                   log "------------------------------------------------------------------"
-                  log "URL: #{inst.Reservations[0].Instances?[0]?.PublicDnsName} "
+                  log "URL: #{PublicDnsName} "
                   log "------------------------------------------------------------------"
                   log "URL: #{subdomain}.koding.io "
                   log "------------------------------------------------------------------"
           ,5000
 
 
-        else if configName is "prod"
+        if options.config is "prod"
           Release.registerInstancesWithPrefix options.hostname,(err,res)->
             log "------------------------------------------------------------------"
             log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
@@ -364,23 +368,26 @@ if argv.deploy
 
         # log JSON.stringify res,null,2
 
-        # res.Instances.forEach (instance)->
-        #   IP = instance.PublicIpAddress
-        #   log "testing instance..."
-        #   _t = setInterval ->
-        #     Deploy.deployTest [
-        #         {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
-        #         {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
-        #         {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
-        #         {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
-        #         {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
-        #         {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
-        #         {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
-        #         {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
-        #       ]
-        #     ,(err,test_res)->
-        #       log val for val in test_res
-        #   ,10000
+        res.Instances.forEach (instance)->
+          IP = instance.PublicIpAddress
+          log "testing instance..."
+          _t = setInterval ->
+            Deploy.deployTest [
+                {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+                {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+                {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+                {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+                {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+                {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+                {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+                {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+              ]
+            ,(err,test_res)->
+              log val for val in test_res
+
+              if OK then runTests()
+
+          ,10000
 
         # log "#{res.instanceName} is ready."
         # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"

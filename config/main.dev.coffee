@@ -361,7 +361,6 @@ Configuration = (options={}) ->
 
         ./cleanup @$
 
-
       elif [ "$1" == "services" ]; then
         boot2docker up
         docker stop mongo redis postgres rabbitmq etcd
