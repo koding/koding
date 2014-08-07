@@ -19,8 +19,9 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// glance notifications
 	mux.Handle("POST", "/notification/glance", handler.Wrapper(
 		handler.Request{
-			Handler: Glance,
-			Name:    "notification-glance",
+			Handler:        Glance,
+			Name:           "notification-glance",
+			CollectMetrics: true,
 		},
 	))
 

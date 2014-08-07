@@ -23,15 +23,17 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	mux.Handle("POST", "/message/{id}", handler.Wrapper(
 		handler.Request{
-			Handler: message.Update,
-			Name:    "message-update",
+			Handler:        message.Update,
+			Name:           "message-update",
+			CollectMetrics: true,
 		},
 	))
 
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(
 		handler.Request{
-			Handler: message.Delete,
-			Name:    "message-delete",
+			Handler:        message.Delete,
+			Name:           "message-delete",
+			CollectMetrics: true,
 		},
 	))
 
@@ -67,8 +69,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	mux.Handle("POST", "/message/{id}/reply", handler.Wrapper(
 		handler.Request{
-			Handler: reply.Create,
-			Name:    "reply-create",
+			Handler:        reply.Create,
+			Name:           "reply-create",
+			CollectMetrics: true,
 		},
 	))
 	// exempt contents are filtered
@@ -84,16 +87,20 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handler.Wrapper(
 		handler.Request{
-			Handler: interaction.Add,
-			Name:    "interactions-add",
+			Handler:        interaction.Add,
+			Name:           "interactions-add",
+			CollectMetrics: true,
 		},
 	))
+
 	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handler.Wrapper(
 		handler.Request{
-			Handler: interaction.Delete,
-			Name:    "interactions-delete",
+			Handler:        interaction.Delete,
+			Name:           "interactions-delete",
+			CollectMetrics: true,
 		},
 	))
+
 	// get all the interactions for message
 	// exempt contents are filtered
 	mux.Handle("GET", "/message/{id}/interaction/{type}", handler.Wrapper(
@@ -107,8 +114,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	mux.Handle("POST", "/channel", handler.Wrapper(
 		handler.Request{
-			Handler: channel.Create,
-			Name:    "channel-create",
+			Handler:        channel.Create,
+			Name:           "channel-create",
+			CollectMetrics: true,
 		},
 	))
 
@@ -148,20 +156,25 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// deprecated, here for socialworker
 	mux.Handle("POST", "/channel/{id}", handler.Wrapper(
 		handler.Request{
-			Handler: channel.Update,
-			Name:    "channel-update-old",
+			Handler:        channel.Update,
+			Name:           "channel-update-old",
+			CollectMetrics: true,
 		},
 	))
+
 	mux.Handle("POST", "/channel/{id}/update", handler.Wrapper(
 		handler.Request{
-			Handler: channel.Update,
-			Name:    "channel-update",
+			Handler:        channel.Update,
+			Name:           "channel-update",
+			CollectMetrics: true,
 		},
 	))
+
 	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(
 		handler.Request{
-			Handler: channel.Delete,
-			Name:    "channel-delete",
+			Handler:        channel.Delete,
+			Name:           "channel-delete",
+			CollectMetrics: true,
 		},
 	))
 
@@ -177,8 +190,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// add a new messages to the channel
 	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(
 		handler.Request{
-			Handler: message.Create,
-			Name:    "channel-message-create",
+			Handler:        message.Create,
+			Name:           "channel-message-create",
+			CollectMetrics: true,
 		},
 	))
 
@@ -192,22 +206,25 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	mux.Handle("POST", "/channel/{id}/participants/add", handler.Wrapper(
 		handler.Request{
-			Handler: participant.AddMulti,
-			Name:    "participant-multi-add",
+			Handler:        participant.AddMulti,
+			Name:           "participant-multi-add",
+			CollectMetrics: true,
 		},
 	))
 
 	mux.Handle("POST", "/channel/{id}/participants/remove", handler.Wrapper(
 		handler.Request{
-			Handler: participant.RemoveMulti,
-			Name:    "participant-multi-remove",
+			Handler:        participant.RemoveMulti,
+			Name:           "participant-multi-remove",
+			CollectMetrics: true,
 		},
 	))
 
 	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(
 		handler.Request{
-			Handler: participant.UpdatePresence,
-			Name:    "participant-presence-update",
+			Handler:        participant.UpdatePresence,
+			Name:           "participant-presence-update",
+			CollectMetrics: true,
 		},
 	))
 
@@ -232,8 +249,9 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// register an account
 	mux.Handle("POST", "/account", handler.Wrapper(
 		handler.Request{
-			Handler: account.Register,
-			Name:    "account-create",
+			Handler:        account.Register,
+			Name:           "account-create",
+			CollectMetrics: true,
 		},
 	))
 
@@ -257,16 +275,18 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// follow the account
 	mux.Handle("POST", "/account/{id}/follow", handler.Wrapper(
 		handler.Request{
-			Handler: account.Follow,
-			Name:    "account-follow",
+			Handler:        account.Follow,
+			Name:           "account-follow",
+			CollectMetrics: true,
 		},
 	))
 
 	// un-follow the account
 	mux.Handle("POST", "/account/{id}/unfollow", handler.Wrapper(
 		handler.Request{
-			Handler: account.Unfollow,
-			Name:    "account-unfollow",
+			Handler:        account.Unfollow,
+			Name:           "account-unfollow",
+			CollectMetrics: true,
 		},
 	))
 
@@ -298,23 +318,26 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 	// pin a new status update
 	mux.Handle("POST", "/activity/pin/add", handler.Wrapper(
 		handler.Request{
-			Handler: activity.PinMessage,
-			Name:    "activity-add-pinned-message",
+			Handler:        activity.PinMessage,
+			Name:           "activity-add-pinned-message",
+			CollectMetrics: true,
 		},
 	))
 	// unpin a status update
 	mux.Handle("POST", "/activity/pin/remove", handler.Wrapper(
 		handler.Request{
-			Handler: activity.UnpinMessage,
-			Name:    "activity-remove-pinned-message",
+			Handler:        activity.UnpinMessage,
+			Name:           "activity-remove-pinned-message",
+			CollectMetrics: true,
 		},
 	))
 
 	// @todo add tests
 	mux.Handle("POST", "/activity/pin/glance", handler.Wrapper(
 		handler.Request{
-			Handler: activity.Glance,
-			Name:    "activity-pinned-message-glance",
+			Handler:        activity.Glance,
+			Name:           "activity-pinned-message-glance",
+			CollectMetrics: true,
 		},
 	))
 
@@ -339,15 +362,17 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	mux.Handle("POST", "/privatemessage/init", handler.Wrapper(
 		handler.Request{
-			Handler: privatemessage.Init,
-			Name:    "privatemessage-init",
+			Handler:        privatemessage.Init,
+			Name:           "privatemessage-init",
+			CollectMetrics: true,
 		},
 	))
 
 	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(
 		handler.Request{
-			Handler: privatemessage.Send,
-			Name:    "privatemessage-send",
+			Handler:        privatemessage.Send,
+			Name:           "privatemessage-send",
+			CollectMetrics: true,
 		},
 	))
 
