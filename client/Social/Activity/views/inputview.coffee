@@ -90,15 +90,17 @@ class ActivityInputView extends KDTokenizedInput
 
     for part, index in value.split '```'
       blockquote = index %% 2 is 1
-      read += part.length + (if blockquote then 0 else 3)
+      read += part.length + (if blockquote then 0 else 6)
       break  if read > position
 
     if blockquote
     then @insertNewline()
     else @emit 'Enter'
 
+
   insertNewline: ->
     document.execCommand 'insertText', no, "\n"
+
 
   getPosition: ->
     {startContainer, startOffset} = KD.utils.getSelectionRange()
@@ -106,8 +108,13 @@ class ActivityInputView extends KDTokenizedInput
 
     position = 0
     for node in @getEditableElement().childNodes
+      text = node.innerText or node.textContent
+
       break  if node is startContainer or node is parentNode
-      position += node.textContent.length
+      position += text.length
+
+      # take newline at the end of line into account if line if necessary
+      position += 1  if text isnt "\n" and node.nextSibling?.nodeName is 'DIV'
 
     return position + startOffset
 
