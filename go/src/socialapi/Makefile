@@ -166,6 +166,11 @@ testapi:
 	@./algoliaconnector.test -c ./config/test.toml
 	@rm ./algoliaconnector.test
 
+	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
+	@go test -c workers/common/metrics/*.go
+	@./metrics.test
+	@rm ./metrics.test
+
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
