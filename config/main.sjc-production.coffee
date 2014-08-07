@@ -143,8 +143,8 @@ module.exports =
     runtimeOptions:
       kites: require './kites.coffee'
       algolia: #TODO change these credentials
-        appId: '8KD9RHY1OA'
-        apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+        appId: 'DYVV81J2S1'
+        apiKey: '303eb858050b1067bcd704d6cbfb977c'
         indexSuffix: ''
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
