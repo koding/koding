@@ -88,7 +88,8 @@
     "zlib": "^1.0.5"
   },
   "devDependencies": {
-    "loadfire": "3.0.1"
+    "loadfire": "3.0.1",
+    "which": "^1.0.5"
   },
   "optionalDependencies": {},
   "engines": {
