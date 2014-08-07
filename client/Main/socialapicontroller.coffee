@@ -200,9 +200,9 @@ class SocialApiController extends KDController
     {socialapi} = KD.singletons
 
     getCurrentGroup (group)->
-      for socialApiChannel in socialApiChannels
+      socialApiChannels.forEach (socialApiChannel) ->
         channelName = generateChannelName socialApiChannel
-        continue  if socialapi.openedChannels[channelName]
+        return  if socialapi.openedChannels[channelName]
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
