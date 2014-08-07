@@ -56,7 +56,7 @@ class ActivitySidebar extends KDCustomScrollView
   messageAddedToChannel: (update) ->
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
-      when 'topic'          then @handleFollowedFeedUpdate update
+      else  @handleFollowedFeedUpdate update
 
 
   messageRemovedFromChannel: (update) ->
