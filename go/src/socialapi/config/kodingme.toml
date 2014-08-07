@@ -46,3 +46,7 @@ AppId          = "8KD9RHY1OA"
 ApiKey         = "1ceb41897600d8df196eb22a3528eb5f"
 ReadOnlyApiKey = "e4a8ebe91bf848b67c9ac31a6178c64b"
 IndexSuffix    = ".kodingme"
+
+[analytics]
+Enabled       = false
+MixpanelToken = "113c2731b47a5151f4be44ddd5af0e7a"

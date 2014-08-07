@@ -29,6 +29,7 @@ type Query struct {
 	Type            string    `url:"type"`
 	Privacy         string    `url:"privacy"`
 	AccountId       int64     `url:"accountId"`
+	AccountName     string    `url:"accountName"`
 	Name            string    `url:"name"`
 	Slug            string    `url:"slug"`
 	ShowExempt      bool      `url:"showExempt"`
@@ -74,6 +75,12 @@ func (q *Query) MapURL(u *url.URL) *Query {
 
 	q.Id, _ = GetURIInt64(u, "id")
 	q.AccountId, _ = GetURIInt64(u, "accountId")
+
+	q.AccountName = urlQuery.Get("accountName")
+	if q.AccountName != "" {
+		q.AccountName = sanitize.Name(q.AccountName)
+	}
+
 	q.GroupChannelId, _ = GetURIInt64(u, "groupChannelId")
 
 	if to := urlQuery.Get("to"); to != "" {
