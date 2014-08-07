@@ -23,7 +23,7 @@ func prepareInteraction(u *url.URL, req *models.Interaction) (*models.Interactio
 	interactionType := u.Query().Get("type")
 	//if interaction is not in the allowed interations
 	if _, ok := models.AllowedInteractions[interactionType]; !ok {
-		return nil, errors.New(fmt.Sprintf("interaction not allowed - %s", interactionType))
+		return nil, fmt.Errorf("interaction not allowed - %s", interactionType)
 	}
 
 	req.MessageId = messageId
