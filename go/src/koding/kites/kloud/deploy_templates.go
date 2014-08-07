@@ -5,7 +5,9 @@ import (
 )
 
 var (
-	hostsTemplate = template.Must(template.New("hosts").Parse(hosts))
+	hostsTemplate       = template.Must(template.New("hosts").Parse(hosts))
+	apacheTemplate      = template.Must(template.New("apache").Parse(apache))
+	apachePortsTemplate = template.Must(template.New("apachePorts").Parse(apachePorts))
 
 	// default ubuntu /etc/hosts file which is used to replace with our custom
 	// hostname later
@@ -18,8 +20,6 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters`
-
-	apacheTemplate = template.Must(template.New("apache").Parse(apache))
 
 	apache = `
 <VirtualHost *:{{.}}>
@@ -54,5 +54,9 @@ ff02::2 ip6-allrouters`
 
   CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
+`
+
+	apachePorts = `
+Listen {{.}}
 `
 )

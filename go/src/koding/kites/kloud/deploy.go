@@ -287,5 +287,16 @@ func changeApacheConf(client *sshutil.SSHClient, port int) error {
 		return err
 	}
 
-	return apacheTemplate.Execute(apacheFile, port)
+	// Write conf file
+	if err := apacheTemplate.Execute(apacheFile, port); err != nil {
+		return err
+	}
+
+	apachePortsFile, err := client.Create("/etc/apache2/ports.conf")
+	if err != nil {
+		return err
+	}
+
+	// Write /etc/apache2/ports.conf file
+	return apachePortsTemplate.Execute(apachePortsFile, port)
 }
