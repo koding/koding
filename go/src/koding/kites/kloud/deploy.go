@@ -159,6 +159,12 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Making user's default directories")
+	out, err = client.StartCommand(makeDirectoriesCommand(username))
+	if err != nil {
+		return nil, err
+	}
+
 	log("Tweaking apache config")
 	if err := changeApacheConf(client, apachePort); err != nil {
 		return nil, err
@@ -221,6 +227,17 @@ func patchConfCommand(username string) string {
 		"sed -i 's/\\.\\/klient/sudo -E -u %s \\.\\/klient/g' /etc/init/klient.conf",
 		username,
 	)
+}
+
+// makeDirectoriesCommand ensures that all the user's default folders exist
+// and creates them if they don't
+func makeDirectoriesCommand(username string) string {
+	return fmt.Sprintf(`
+mkdir -p /home/%s/Applications && \
+mkdir -p /home/%s/Backup && \
+mkdir -p /home/%s/Documents && \
+mkdir -p /home/%s/Web
+`, username, username, username, username)
 }
 
 // changeHostname is used to change the remote machines hostname by modifying
