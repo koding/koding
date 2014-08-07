@@ -62,6 +62,9 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 		// we can ignore the error, wont cause trouble for the user
 	}
 
+	// set participant count
+	cmc.ParticipantCount = len(participantIds)
+	// set preview
 	cmc.ParticipantsPreview = participantOldIds
 
 	return cmc, nil
