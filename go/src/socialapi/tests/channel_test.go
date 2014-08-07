@@ -24,7 +24,7 @@ func TestChannelCreation(t *testing.T) {
 			So(nonOwnerAccount, ShouldNotBeNil)
 
 			Convey("we should be able to create it", func() {
-				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_CHAT)
+				channel1, err := rest.CreateChannelByGroupNameAndType(account1.Id, "testgroup", models.Channel_TYPE_PRIVATE_MESSAGE)
 				So(err, ShouldBeNil)
 				So(channel1, ShouldNotBeNil)
 
