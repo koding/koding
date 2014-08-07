@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
@@ -82,7 +83,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 
 		_, err = tc.AddMessage(data.Id)
 		// safely skip
-		if err == models.ErrAlreadyInTheChannel {
+		if err == models.ErrMessageAlreadyInTheChannel {
 			continue
 		}
 

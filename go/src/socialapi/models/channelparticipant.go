@@ -124,11 +124,11 @@ func (c *ChannelParticipant) FetchActiveParticipant() error {
 
 func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) error {
 	if c.ChannelId == 0 {
-		return errors.New("channelId is not set")
+		return ErrChannelIdIsNotSet
 	}
 
 	if c.AccountId == 0 {
-		return errors.New("accountId is not set")
+		return ErrAccountIdIsNotSet
 	}
 
 	// TODO do we need to add isExempt scope here?
@@ -283,7 +283,7 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
-		return false, errors.New("channel Id is not set")
+		return false, ErrChannelIdIsNotSet
 	}
 
 	selector := map[string]interface{}{

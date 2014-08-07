@@ -295,7 +295,7 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 		cue.Channel = &channel
 		// send this event to all channels
 		// that have this message
-		err := cue.send()
+		err := cue.notifyAllParticipants()
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
@@ -337,7 +337,7 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		EventType:            channelUpdatedEventMessageAddedToChannel,
 	}
 
-	if err := cue.send(); err != nil {
+	if err := cue.notifyAllParticipants(); err != nil {
 		return err
 	}
 
@@ -490,7 +490,7 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 		EventType:            channelUpdatedEventMessageRemovedFromChannel,
 	}
 
-	if err := cue.send(); err != nil {
+	if err := cue.notifyAllParticipants(); err != nil {
 		return err
 	}
 

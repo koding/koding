@@ -559,7 +559,7 @@ func TestChannelAddMessage(t *testing.T) {
 			// try to add the same message again
 			ch, err = c.AddMessage(cm.Id)
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAlreadyInTheChannel)
+			So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
 		})
 	})
 }

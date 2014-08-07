@@ -55,7 +55,6 @@ const (
 	Channel_TYPE_TOPIC           = "topic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
-	Channel_TYPE_CHAT            = "chat"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_DEFAULT         = "default"
@@ -287,7 +286,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
-		return nil, ErrAlreadyInTheChannel
+		return nil, ErrMessageAlreadyInTheChannel
 	}
 
 	// silence record not found err
@@ -696,4 +695,29 @@ func (c *Channel) getAccountId() (int64, error) {
 
 	return cn.CreatorId, nil
 
+}
+
+func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error) {
+	if c.Id == 0 {
+		return nil, ErrIdIsNotSet
+	}
+
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	cp := NewChannelParticipant()
+	cp.AccountId = accountId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
+func (c *Channel) IsParticipant(accountId int64) (bool, error) {
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	return cp.IsParticipant(accountId)
 }
