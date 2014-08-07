@@ -368,6 +368,6 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 		return ErrIdIsNotSet
 	}
 
-	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", cp.TableName())
+	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", c.TableName())
 	return bongo.B.DB.Exec(query, t, c.Id).Error
 }
