@@ -1,7 +1,7 @@
 package main
 
 import (
-	"html/template"
+	"text/template"
 )
 
 var (
