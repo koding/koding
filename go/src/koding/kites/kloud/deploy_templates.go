@@ -55,5 +55,4 @@ ff02::2 ip6-allrouters`
   CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
 `
-
 )

@@ -239,11 +239,12 @@ func patchConfCommand(username string) string {
 // and creates them if they don't
 func makeDirectoriesCommand(username string) string {
 	return fmt.Sprintf(`
-mkdir -p /home/%s/Applications && \
-mkdir -p /home/%s/Backup && \
-mkdir -p /home/%s/Documents && \
-mkdir -p /home/%s/Web
-`, username, username, username, username)
+sudo -u %s mkdir -p /home/%s/Applications && \
+sudo -u %s mkdir -p /home/%s/Backup && \
+sudo -u %s mkdir -p /home/%s/Documents && \
+sudo -u %s mkdir -p /home/%s/Web
+`, username, username, username, username,
+		username, username, username, username)
 }
 
 // changeHostname is used to change the remote machines hostname by modifying
