@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jUsers", "name" : "_id_" }, { "v" : 1, "key" : { "username" : 1 }, "unique" : true, "ns" : "koding.jUsers", "name" : "username_1" }, { "v" : 1, "key" : { "email" : 1 }, "unique" : true, "ns" : "koding.jUsers", "name" : "email_1" } ] }

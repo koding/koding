@@ -1,1 +1,0 @@
-{ "options" : { "create" : "jDomains" }, "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jDomains", "name" : "_id_" }, { "v" : 1, "key" : { "domain" : 1 }, "unique" : true, "ns" : "koding.jDomains", "name" : "domain_1", "sparse" : true }, { "v" : 1, "key" : { "proposedDomain" : 1 }, "ns" : "koding.jDomains", "name" : "proposedDomain_1", "sparse" : true } ] }

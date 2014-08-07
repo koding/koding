@@ -50,32 +50,51 @@ class Release
     ,(err,res)->
       log err,res
 
+  domainCleanup : ->
+    # keep it manual for now.
+    cf.listDomainRecords "koding.io",(err,res)->
+      for i in res
+        unless i.name is "cammy.koding.io" or i.name is "koding.io"
+          log i.name, i.rec_id
+          cf.deleteDomainRecord "koding.io",i.rec_id,->
+
+
   @fetchLoadBalancerInstances = (LoadBalancerName,callback)->
     elb.describeLoadBalancers LoadBalancerNames : [LoadBalancerName],(err,res)->
-      log res.LoadBalancerDescriptions[0].Instances
+      throw err if err
+      instances = (x for x in res.LoadBalancerDescriptions[0].Instances)
+      callback null,instances
 
-    ec2.describeInstances {},(err,res)->
 
   fetchInstancesWithPrefix = (prefix,callback)->
 
     pickValueOf= (key,array) -> return val.Value if val.Key is key for val in array
     instances = []
     ec2.describeInstances {},(err,res)->
-      # log err,res
       for r in res.Reservations
-        a = InstanceId: r.Instances[0].InstanceId, Name: pickValueOf "Name",r.Instances[0].Tags
-        b = InstanceId: r.Instances[0].InstanceId
-        instances.push b if a.Name.indexOf(prefix) > -1
-      # log instances
+        instances = ( rr.InstanceId for rr in r.Instances when (pickValueOf "Name",rr.Tags).indexOf(prefix) > -1)
       callback null,instances
 
   @registerInstancesWithPrefix = (prefix, callback)->
     fetchInstancesWithPrefix prefix, (err,instances)->
-      log instances
-      elb.registerInstancesWithLoadBalancer
-        Instances        : instances
-        LoadBalancerName : "koding-prod-deployment"
-      ,callback
+      log "will register -->", instances
+      Release.fetchLoadBalancerInstances "koding-prod-deployment",(err,instancesToDeregister)->
+
+        # log "current items -->",res
+
+        elb.registerInstancesWithLoadBalancer
+          Instances        : instances
+          LoadBalancerName : "koding-prod-deployment"
+        ,(err,res)->
+          unless err
+            elb.deregisterInstancesFromLoadBalancer
+              Instances        : instancesToDeregister
+              LoadBalancerName : "koding-prod-deployment"
+              , callback
+          else
+            log "error registering instances to ELB, nothing changed. Check koding-prod-deployment ELB to make sure."
+            log err
+            callback err
 
   @deregisterInstancesWithPrefix = (prefix, callback)->
     fetchInstancesWithPrefix prefix, (err,instances)->
@@ -142,6 +161,18 @@ class Deploy
         log "not retrying anymore.", options.retries
         callback "error connecting."
 
+  @remoteTail = (IP, username, path)->
+    Deploy.connect
+      username  : username
+      IP        : IP
+      retries   : 30
+      timeout   : 5000
+    , (err,conn)->
+      conn.exec "tail -fq #{path}",(err,stream)->
+        conn.listen "[tailing #{IP}]",stream,->
+          conn.end()
+
+
   @createLoadBalancer = (options,callback)->
     elb.createLoadBalancer
       LoadBalancerName : options.name
@@ -157,20 +188,15 @@ class Deploy
 
   @tagInstances = (options,callback)->
 
-    options.Instances.forEach (key,instance)->
-      instanceId = instance.InstanceId
-      log "Created instance", instanceId
+    instanceIds = (instanceId for instance in options.Instances)
 
-      # Add tags to the instance
-      params =
-
-      ec2.createTags
-        Resources : [instanceId]
-        Tags      : [{Key: "Name", Value: options.instanceName+"-#{key}"}]
-      ,(err) ->
-        log "Box tagged with #{instanceName}", (if err then "failure" else "success")
-        if key is options.instances.length-1
-          callback null
+    ec2.createTags
+      Resources : [instanceIds]
+      Tags      : [{Key: "Name", Value: options.instanceName+"-#{key}"}]
+    ,(err) ->
+      log "Box tagged with #{instanceName}", (if err then "failure" else "success")
+      if key is options.instances.length-1
+        callback null
 
   @createInstances = (options={}, callback) ->
     params = options.params
@@ -272,7 +298,7 @@ if argv.deploy
 
     options =
       boxes       : argv.boxes          or 1
-      boxtype     : argv.boxtype        or "t2.medium"
+      boxtype     : argv.boxtype        or "m3.xlarge"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       config      : argv.config         or "feature" # prod | staging | sandbox
       version     : argv.version        or version
@@ -326,10 +352,13 @@ if argv.deploy
               if PublicDnsName
                 clearTimeout t
 
+                Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
+
                 cf.addDomainRecord "koding.io",
                   type : "A"
                   name : subdomain
                   content : IP
+                  service_mode : 1 #cloudflare enabled.
                 ,(err,res)->
 
                   # log arguments
@@ -339,7 +368,7 @@ if argv.deploy
                   log "------------------------------------------------------------------"
                   log "URL: #{PublicDnsName} "
                   log "------------------------------------------------------------------"
-                  log "URL: #{subdomain}.koding.io "
+                  log "URL: #{subdomain}.koding.io     IP: #{IP}"
                   log "------------------------------------------------------------------"
           ,5000
 
@@ -357,9 +386,20 @@ if argv.deploy
 
 
 
+# cf.listDomainRecords "koding.io",(err,res)->
+#   for i in res
+#     if i.name is "letty.koding.io"
+#       log "--->",i # i.name,i.service_mode
+
+# # Release.registerInstancesWithPrefix "prod--v1-5-100",log
 
 
-
+# cf.addDomainRecord "koding.io",
+#   type : "A"
+#   name : "test-"+eden.word().toLowerCase()
+#   content : "54.210.232.5"
+#   service_mode : 1 #cloudflare enabled.
+# ,log
 
 
 
@@ -368,26 +408,26 @@ if argv.deploy
 
         # log JSON.stringify res,null,2
 
-        res.Instances.forEach (instance)->
-          IP = instance.PublicIpAddress
-          log "testing instance..."
-          _t = setInterval ->
-            Deploy.deployTest [
-                {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
-                {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
-                {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
-                {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
-                {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
-                {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
-                {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
-                {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
-              ]
-            ,(err,test_res)->
-              log val for val in test_res
+        # res.Instances.forEach (instance)->
+        #   IP = instance.PublicIpAddress
+        #   log "testing instance..."
+        #   _t = setInterval ->
+        #     Deploy.deployTest [
+        #         {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+        #         {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+        #       ]
+        #     ,(err,test_res)->
+        #       log val for val in test_res
 
-              if OK then runTests()
+        #       if OK then runTests()
 
-          ,10000
+        #   ,10000
 
         # log "#{res.instanceName} is ready."
         # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"

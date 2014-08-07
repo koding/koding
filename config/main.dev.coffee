@@ -365,16 +365,13 @@ Configuration = (options={}) ->
         boot2docker up
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
-
-        docker run -d --net=host                --name=mongo    koding/mongo --dbpath /root/data/db --smallfiles --nojournal
-        docker run -d --net=host                --name=redis    redis
-        docker run -d --net=host                --name=postgres koding/postgres
-        docker run -d --net=host                --name=rabbitmq koding/rabbitmq
-        docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
-
-        echo '#---> UPDATING MONGO DB TO REFLECT LATEST CHANGES ON ENVIRONMENTS @gokmen <---#'
-        sleep 5
-        ./importDB #{boot2dockerbox}:27017
+        cd #{projectRoot}/install/docker-mongo
+        docker build -t koding_localbuild/mongo .
+        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
+        docker run -d -p 6379:6379                --name=redis    redis
+        docker run -d -p 5432:5432                --name=postgres koding/postgres
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
+        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
@@ -382,8 +379,6 @@ Configuration = (options={}) ->
 
 
 
-        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
       else
 

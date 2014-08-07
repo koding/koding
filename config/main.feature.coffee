@@ -290,6 +290,7 @@ Configuration = (options={}) ->
     server {
       listen 80 default_server;
       listen [::]:80 default_server ipv6only=on;
+      listen 443;
 
       root /usr/share/nginx/html;
       index index.html index.htm;

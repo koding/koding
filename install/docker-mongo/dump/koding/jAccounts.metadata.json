@@ -1,1 +1,0 @@
-{ "indexes" : [ { "v" : 1, "key" : { "_id" : 1 }, "ns" : "koding.jAccounts", "name" : "_id_" }, { "v" : 1, "key" : { "profile.nickname" : 1 }, "unique" : true, "ns" : "koding.jAccounts", "name" : "profile.nickname_1" }, { "v" : 1, "key" : { "isExempt" : 1 }, "ns" : "koding.jAccounts", "name" : "isExempt_1" } ] }
