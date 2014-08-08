@@ -26,6 +26,7 @@ import (
 	"github.com/koding/redis"
 
 	"github.com/streadway/amqp"
+	set "gopkg.in/fatih/set.v0"
 )
 
 const BROKER_NAME = "broker"
