@@ -1,4 +1,6 @@
 box: koding/base@0.0.6
+services:
+  - wercker/postgresql@0.0.4
 
 build:
   steps:
