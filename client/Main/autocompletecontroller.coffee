@@ -19,5 +19,8 @@ class AutoCompleteController extends KDObject
       .map ({ objectID }) -> KD.remote.cacheableAsync 'JAccount', objectID
       .filter Boolean
 
+  searchTopics: (seed) ->
+    @search 'topics', seed
+
   getIndex: (indexName) ->
     @indexes[indexName] ?= @algolia.initIndex indexName

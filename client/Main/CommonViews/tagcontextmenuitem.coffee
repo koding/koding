@@ -3,6 +3,10 @@ class TagContextMenuItem extends JContextMenuItem
     options.cssClass = KD.utils.curry "tag-context-menu-item", options.cssClass
     super options, data
 
+  viewAppended: JView::viewAppended
+
+  setTemplate: JView::setTemplate
+
   pistachio: ->
     {$suggest, $deleted} = @getData()
 
@@ -11,4 +15,4 @@ class TagContextMenuItem extends JContextMenuItem
     else if $deleted
       """You can not tag your post with <span class="ttag">#{Encoder.XSSEncode $deleted}</span>"""
     else
-      "{{#(title)}}"
+      "{{#(name)}}"

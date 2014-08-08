@@ -243,14 +243,14 @@ utils.extend utils,
 
     viewParams = []
     for tokenString in tokenMatches
-      [prefix, constructorName, id, title] = match[1].split /:/  if match = tokenString.match /^\|(.+)\|$/
+      [prefix, constructorName, id, name] = match[1].split /:/  if match = tokenString.match /^\|(.+)\|$/
 
       switch prefix
         when "#" then token = tagMap?[id]
         else continue
 
       unless token
-        str = str.replace tokenString, "#{prefix}#{title}"
+        str = str.replace tokenString, "#{prefix}#{name}"
         continue
 
       domId     = utils.getUniqueId()
@@ -278,12 +278,12 @@ utils.extend utils,
     activity.tags?.forEach (tag) -> tagMap[tag.getId()] = tag
 
     return body.replace /\|(.+?)\|/g, (match, tokenString) ->
-      [prefix, constructorName, id, title] = tokenString.split /:/
+      [prefix, constructorName, id, name] = tokenString.split /:/
 
       switch prefix
         when "#" then token = tagMap?[id]
 
-      return "#{prefix}#{if token then token.title else title or ''}"
+      return "#{prefix}#{if token then token.name else name or ''}"
 
   getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])

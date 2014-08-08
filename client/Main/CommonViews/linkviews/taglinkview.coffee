@@ -20,7 +20,7 @@ class TagLinkView extends LinkView
     @on "viewAppended", => @tooltip?.setPosition()
 
   pistachio:->
-    JView::pistachio.call this, "{{#(title)}}"
+    "{{#(name)}}"
 
 #  click:(event)->
 #    event?.stopPropagation()
