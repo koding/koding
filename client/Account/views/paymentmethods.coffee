@@ -103,6 +103,9 @@ class AccountPaymentMethodsListItem extends KDListItemView
     @paymentMethod.on 'PaymentMethodEditRequested', =>
       @emit 'PaymentMethodEditRequested', data
 
+    @paymentMethod.on 'PaymentMethodRemoveRequested', =>
+      @emit 'PaymentMethodRemoveRequested', data
+
   pistachio:->
     """
     {{> @paymentMethod}}
