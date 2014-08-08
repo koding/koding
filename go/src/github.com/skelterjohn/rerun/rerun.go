@@ -9,19 +9,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/howeyc/fsnotify"
 	"go/build"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
-
-	"github.com/howeyc/fsnotify"
 )
 
 var (
-	do_tests      = flag.Bool("test", false, "Run tests before running program.")
-	test_only     = flag.Bool("test-only", false, "Only run tests.")
+	do_tests      = flag.Bool("test", false, "Run tests (before running program)")
+	do_build      = flag.Bool("build", false, "Build program")
+	never_run     = flag.Bool("no-run", false, "Do not run")
 	race_detector = flag.Bool("race", false, "Run program and tests with the race detector")
 )
 
@@ -77,6 +77,32 @@ func test(buildpath string) (passed bool, err error) {
 		fmt.Println(buf)
 	} else {
 		log.Println("tests passed")
+	}
+
+	return
+}
+
+func gobuild(buildpath string) (passed bool, err error) {
+	cmdline := []string{"go", "build"}
+
+	if *race_detector {
+		cmdline = append(cmdline, "-race")
+	}
+	cmdline = append(cmdline, "-v", buildpath)
+
+	// setup the build command, use a shared buffer for both stdOut and stdErr
+	cmd := exec.Command("go", cmdline[1:]...)
+	buf := bytes.NewBuffer([]byte{})
+	cmd.Stdout = buf
+	cmd.Stderr = buf
+
+	err = cmd.Run()
+	passed = err == nil
+
+	if !passed {
+		fmt.Println(buf)
+	} else {
+		log.Println("build passed")
 	}
 
 	return
@@ -158,7 +184,7 @@ func rerun(buildpath string, args []string) (err error) {
 	}
 
 	var runch chan bool
-	if !(*test_only) {
+	if !(*never_run) {
 		runch = run(binName, binPath, args)
 	}
 
@@ -170,9 +196,13 @@ func rerun(buildpath string, args []string) (err error) {
 		}
 	}
 
+	if *do_build && !no_run {
+		gobuild(buildpath)
+	}
+
 	var errorOutput string
 	_, errorOutput, ierr := install(buildpath, errorOutput)
-	if !no_run && !(*test_only) && ierr == nil {
+	if !no_run && !(*never_run) && ierr == nil {
 		runch <- true
 	}
 
@@ -229,8 +259,12 @@ func rerun(buildpath string, args []string) (err error) {
 			}
 		}
 
+		if *do_build {
+			gobuild(buildpath)
+		}
+
 		// rerun. if we're only testing, sending
-		if !(*test_only) {
+		if !(*never_run) {
 			runch <- true
 		}
 	}
@@ -239,12 +273,9 @@ func rerun(buildpath string, args []string) (err error) {
 
 func main() {
 	flag.Parse()
-	if *test_only {
-		*do_tests = true
-	}
 
 	if len(flag.Args()) < 1 {
-		log.Fatal("Usage: rerun [--test] [--test-only] [--race] <import path> [arg]*")
+		log.Fatal("Usage: rerun [--test] [--no-run] [--build] [--race] <import path> [arg]*")
 	}
 
 	buildpath := flag.Args()[0]
