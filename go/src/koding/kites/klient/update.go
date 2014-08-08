@@ -91,6 +91,7 @@ func (u *Updater) checkAndUpdate() error {
 
 func updateBinary(url string) error {
 	u := update.New()
+	klog.Info("Checking if I can update myself and have the necessary permissions")
 	err := u.CanUpdate()
 	if err != nil {
 		return err

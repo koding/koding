@@ -165,6 +165,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Chowning /opt/kite/klient to user's permisison")
+	out, err = client.StartCommand(fmt.Sprintf("chown %s:%s -R /opt/kite/klient", username, username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	log("Restarting klient with kite.key")
 	out, err = client.StartCommand("service klient restart")
 	if err != nil {
