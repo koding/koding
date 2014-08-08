@@ -287,6 +287,7 @@ Configuration = (options={}) ->
         cd #{projectRoot}/go/src/socialapi
         make configure
         # make install
+        cd #{projectRoot}
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
@@ -297,6 +298,7 @@ Configuration = (options={}) ->
         echo "building koding-broker-client."
         cd #{projectRoot}/node_modules_koding/koding-broker-client
         cake build
+        cd #{projectRoot}
 
 
         echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
@@ -397,6 +399,7 @@ Configuration = (options={}) ->
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
+        cd #{projectRoot}
         #{workersRunList()}
         tail -fq ./.logs/*.log
 
