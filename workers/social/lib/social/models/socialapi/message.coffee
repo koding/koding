@@ -4,17 +4,13 @@ request        = require 'request'
 ApiError       = require './error'
 
 {secure, daisy, dash, signature, Base} = Bongo
-{uniq} = require 'underscore'
+{uniq, extend} = require 'underscore'
 
 
 module.exports = class SocialMessage extends Base
   @share()
 
   @set
-    # move permission from jpost to here
-    # permissions :
-    #   'send private message' : ['member', 'moderator']
-    #   'list private messages' : ['member', 'moderator']
     sharedMethods :
       static   :
         byId   :
@@ -37,12 +33,18 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         listLikers:
           (signature Object, Function)
+        initPrivateMessage:
+          (signature Object, Function)
         sendPrivateMessage:
           (signature Object, Function)
         fetchPrivateMessages:
           (signature Object, Function)
         fetch  :
           (signature Object, Function)
+        fetchDataFromEmbedly: [
+          (signature String, Object, Function)
+          (signature [String], Object, Function)
+        ]
 
     schema          :
       id               : Number
@@ -135,13 +137,23 @@ module.exports = class SocialMessage extends Base
     fnName        : 'fetchMessage'
     validate      : ['id']
 
-  @sendPrivateMessage = permit 'send private message',
+  @initPrivateMessage = permit 'send private message',
     success:  (client, data, callback)->
       unless data.body
         return callback message: "Message body should be set"
 
       if not data.recipients or data.recipients.length < 1
         return callback message: "You should have at least one recipient"
+      doRequest 'initPrivateMessage', client, data, callback
+
+  @sendPrivateMessage = permit 'send private message',
+    success: (client, data, callback)->
+      unless data.body
+        return callback message: "Message body should be set"
+
+      unless data.channelId
+        return callback message: "Conversation is not defined"
+
       doRequest 'sendPrivateMessage', client, data, callback
 
   # todo-- ask Chris about using validators.own
@@ -171,4 +183,32 @@ module.exports = class SocialMessage extends Base
         if accountId is socialApiId
           return callback null, yes
         fn client, callback
+
+
+  cachedEmbedlyResult = {}
+
+  @fetchDataFromEmbedly = (urls, options, callback) ->
+
+    if result = cachedEmbedlyResult[urls]
+      return callback null, result
+
+    urls = [urls]  unless Array.isArray urls
+
+    Embedly    = require "embedly"
+    { apiKey } = KONFIG.embedly
+
+    new Embedly key: apiKey, (err, api) ->
+
+      return callback err  if err
+
+      options    = extend options,
+        urls     : urls
+        maxWidth : 150
+
+      api.extract options, (err, result) ->
+        return callback err, result  if err
+
+        cachedEmbedlyResult[urls] = result
+        callback err, result
+
 

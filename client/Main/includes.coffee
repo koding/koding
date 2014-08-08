@@ -7,6 +7,7 @@ module.exports = [
   "libs/bluebird.js",
   "libs/kite.js",
   "libs/kontrol.js",
+  "libs/algoliasearch.min.js",
 
 
   # --- Application ---
@@ -100,8 +101,6 @@ module.exports = [
   "CommonViews/SkillTagFormView.coffee",
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
-  "CommonViews/messagesList.coffee",
-  "CommonViews/notificationlistitemview.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
@@ -140,6 +139,9 @@ module.exports = [
   "CommonViews/clonerepomodal.coffee",
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
+
+  # Algolia-based autocomplete:
+  "autocompletecontroller.coffee",
 
   "navigation/topnavigation.coffee",
 
@@ -210,11 +212,6 @@ module.exports = [
   "avatararea/avatarareapopuplist.coffee",
   "avatararea/avatarareagroupswitcherpopup.coffee",
   "avatararea/avatarareaiconlink.coffee",
-  "avatararea/avatarareaiconmenu.coffee",
-  "avatararea/avatarareamessagespopup.coffee",
-  "avatararea/avatarareanotificationspopup.coffee",
-  "avatararea/avatarareapopupmessageslistitem.coffee",
-  "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
 
   "maincontroller/groupdata.coffee",

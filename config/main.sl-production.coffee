@@ -53,21 +53,15 @@ module.exports =
   sourceServer  :
     enabled     : no
     port        : 1337
-  neo4j         :
-    read        : "http://68.68.97.139"
-    write       : "http://68.68.97.139"
-    port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet
   mongoMinWrites: 3
-  runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite : no
   runPremiumBrokerKite : no
   runKontrol    : yes
   runRerouting  : yes
-  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -116,10 +110,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : no
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
-  graphFeederWorker:
-    numberOfWorkers: 4
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -148,6 +138,10 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia: #TODO change these credentials
+        appId: 'DYVV81J2S1'
+        apiKey: '303eb858050b1067bcd704d6cbfb977c'
+        indexSuffix: ''
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -161,7 +155,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
-      useNeo4j: yes
       logToExternal : yes
       logToInternal : yes
       resourceName: socialQueueName
@@ -371,15 +364,12 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "info"
     oskite        : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
-    userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"
     sync          : "info"
-    topicModifier : "info"
     postModifier  : "info"
     router        : "info"
     rerouting     : "info"

@@ -176,7 +176,5 @@ class VMSettingsModal extends KDModalViewWithForms
   refreshSidebarVMs: ->
 
     {dock} = KD.singletons
-    dock.fetchVMs (vms) ->
-      dock.vmsList.removeAllItems()
-      dock.listVMs vms
+    dock.refreshSidebarVMs()
 

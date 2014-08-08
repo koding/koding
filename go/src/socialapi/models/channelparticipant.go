@@ -103,20 +103,35 @@ func (c *ChannelParticipant) CreateRaw() error {
 }
 
 func (c *ChannelParticipant) FetchParticipant() error {
-	if c.ChannelId == 0 {
-		return errors.New("channelId is not set")
-	}
-
-	if c.AccountId == 0 {
-		return errors.New("accountId is not set")
-	}
 
 	selector := map[string]interface{}{
 		"channel_id": c.ChannelId,
 		"account_id": c.AccountId,
-		// "status_constant":     ChannelParticipant_STATUS_ACTIVE,
 	}
 
+	return c.fetchParticipant(selector)
+}
+
+func (c *ChannelParticipant) FetchActiveParticipant() error {
+	selector := map[string]interface{}{
+		"channel_id":      c.ChannelId,
+		"account_id":      c.AccountId,
+		"status_constant": ChannelParticipant_STATUS_ACTIVE,
+	}
+
+	return c.fetchParticipant(selector)
+}
+
+func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) error {
+	if c.ChannelId == 0 {
+		return ErrChannelIdIsNotSet
+	}
+
+	if c.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
+
+	// TODO do we need to add isExempt scope here?
 	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return err
@@ -187,9 +202,15 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 			"channel_id":      c.ChannelId,
 			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
-		Pluck:      "account_id",
-		Pagination: *bongo.NewPagination(limit, 0),
+		Pluck: "account_id",
 	}
+
+	if limit != 0 {
+		query.Pagination = *bongo.NewPagination(limit, 0)
+	}
+
+	// do not include troll content
+	query.AddScope(RemoveTrollContent(c, false))
 
 	err := bongo.B.Some(c, &participants, query)
 	if err != nil {
@@ -262,7 +283,7 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
-		return false, errors.New("channel Id is not set")
+		return false, ErrChannelIdIsNotSet
 	}
 
 	selector := map[string]interface{}{
@@ -340,4 +361,13 @@ func (c *ChannelParticipant) getAccountId() (int64, error) {
 	}
 
 	return cp.AccountId, nil
+}
+
+func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
+	if c.Id == 0 {
+		return ErrIdIsNotSet
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", c.TableName())
+	return bongo.B.DB.Exec(query, t, c.Id).Error
 }

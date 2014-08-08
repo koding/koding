@@ -5,15 +5,6 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super options, data
 
   putDefaultValues: (stringTags) ->
-    KD.remote.api.JTag.fetchSkillTags
-      title     :
-        $in     : stringTags
-    ,
-      sort      :
-        title   : 1
-    , (err, tags) =>
-        unless err and not tags
-        then @setDefaultValue tags
-        else warn "There was a problem fetching default tags!", err, tags
+    return console.error "not implemented feature"
 
   getCollectionPath: -> 'skillTags'

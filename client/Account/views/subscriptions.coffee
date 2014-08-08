@@ -88,6 +88,7 @@ class AccountSubscriptionsListItem extends KDListItemView
   constructor:(options={}, data)->
     options.tagName or= 'li'
     options.type    or= 'subscription'
+    options.cssClass  = KD.utils.curry 'clearfix', options.cssClass
 
     super options, data
 
@@ -95,7 +96,7 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     subscription = @getData()
 
-    @subscription = new SubscriptionView {}, subscription
+    @subscription = new SubscriptionView cssClass : 'subscription-info', subscription
 
     @controls = new SubscriptionControls {}, subscription
 
@@ -111,7 +112,7 @@ class AccountSubscriptionsListItem extends KDListItemView
       {{> @controls}}
     """
 
-class SubscriptionControls extends JView
+class SubscriptionControls extends KDCustomHTMLView
 
   getStatusInfo: (subscription = @getData()) ->
     switch subscription.status
@@ -135,19 +136,19 @@ class SubscriptionControls extends JView
     nosync = "nosync" in @getData().plan.tags
 
     unless nosync
-      @statusLink = new CustomLinkView
+      @statusLink = new KDButtonView
+        style     : 'solid medium'
         cssClass  : cssClass
         title     : text
-        click     : (e) =>
-          e.preventDefault()
+        callback  : =>
           @emit event
       @addSubView @statusLink
 
     if showChange and not nosync
-      @changeLink = new CustomLinkView
+      @changeLink = new KDButtonView
+        style     : 'solid medium'
         cssClass  : 'green'
         title     : 'change plan'
-        click     : (e) =>
-          e.preventDefault()
+        callback  :  =>
           @emit 'PlanChangeRequested'
       @addSubView @changeLink

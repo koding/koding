@@ -84,20 +84,6 @@ func TestChannelMessageCreate(t *testing.T) {
 			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_LEAVE)
 		})
 
-		Convey("type constant can be chat", func() {
-			cm := createMessageWithTest()
-			// remove type Constant
-			cm.TypeConstant = ChannelMessage_TYPE_CHAT
-
-			So(cm.Create(), ShouldBeNil)
-
-			icm := NewChannelMessage()
-			err := icm.ById(cm.Id)
-			So(err, ShouldBeNil)
-			So(icm.Id, ShouldEqual, cm.Id)
-			So(icm.TypeConstant, ShouldEqual, ChannelMessage_TYPE_CHAT)
-		})
-
 		Convey("type constant can be privatemessage", func() {
 			cm := createMessageWithTest()
 			// remove type Constant
@@ -248,7 +234,7 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 			So(cm.TypeConstant, ShouldNotEqual, "")
 
-			cm.TypeConstant = ChannelMessage_TYPE_CHAT
+			cm.TypeConstant = ChannelMessage_TYPE_JOIN
 
 			// update the message
 			// updating channel message will assign defaults
@@ -258,7 +244,7 @@ func TestChannelMessageUpdate(t *testing.T) {
 			icm := NewChannelMessage()
 			err = icm.ById(cm.Id)
 			So(err, ShouldBeNil)
-			So(icm.TypeConstant, ShouldNotEqual, ChannelMessage_TYPE_CHAT)
+			So(icm.TypeConstant, ShouldNotEqual, ChannelMessage_TYPE_JOIN)
 		})
 
 		Convey("AccountId can not be updated", func() {

@@ -35,8 +35,11 @@ class ActivityInputWidget extends KDView
     super options, data
 
     options.destroyOnSubmit ?= no
+    {defaultValue, placeholder} = options
 
-    @input = new ActivityInputView defaultValue: options.defaultValue
+    inputViewClass = options.inputViewClass ? ActivityInputView
+
+    @input = new inputViewClass {defaultValue, placeholder}
     @input.on "Escape", @bound "reset"
     @input.on "Enter", @bound "submit"
 
@@ -204,9 +207,10 @@ class ActivityInputWidget extends KDView
 
   submissionCallback: (err, activity) ->
 
+    @reset yes
+
     return @showError err  if err
 
-    @reset yes
     @emit "Submit", activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
@@ -337,7 +341,6 @@ class ActivityInputWidget extends KDView
   focus: ->
 
     @input.focus()
-    @input.setPlaceholder()
 
 
   viewAppended: ->
@@ -345,8 +348,8 @@ class ActivityInputWidget extends KDView
     @addSubView @icon
     # @addSubView @avatar
     @addSubView @input
+    @addSubView @embedBox
     @addSubView @buttonBar
-    # @addSubView @embedBox
     @addSubView @bugNotification
     @addSubView @helpContainer
     @buttonBar.addSubView @submitButton

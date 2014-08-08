@@ -9,7 +9,6 @@ resurrection.commons.styl
 }
 
 body.dashboard
-body.account
 body.apps
 body.environments
   bg                    color #e4e4e4
@@ -38,46 +37,31 @@ body.environments
     // vendor                  transition, opacity .3s ease
 
 .content-page
-  max-width                 1146px
   margin                    0 auto
   size                      auto auto
 
-  > aside.kdview
-
-    width                 190px
-    height                auto
-    padding               3px
-    fl()
-    borderBox()
-
-    nav
-      width               190px
-      border-right        1px solid #D6D6D6
-      fix()
-
-  .kdlistview-inner-nav
-
-    hr
-      margin              10px 20px 10px 0
-      height              1px
-      bg                  color #E0E0E0
-      border              none
-
-    a
-      display             block
-      color               #828B8B
-      line-height         40px
-      noTextDeco()
-      &.selected
-        color             #65AE62
-
   > .kdtabview
-    margin-left         64px
     height              100%
-    kalc                width, 100% \- 254px
     font-size           14px
     fl()
 
+aside.app-sidebar
+  left            258px
+  top             0
+  top             0
+  size            258px 100%
+  z-index         10
+  borderBox()
+  fix()
+  styleScrollBars()
+
+.app-content
+  margin-left     34px
+
+.content-page .app-sidebar ~ .app-content
+  kalc                  width, 100% \- 292px
+  margin-left           292px
+  borderBox()
 
 .application-page
   width                     100%
@@ -719,7 +703,7 @@ button.app-settings-menu
 .koding-on-off
   size                  66px 34px
   rounded               18px
-  bg                    color, #989F9C
+  bg                    color, #D4D4D4
   vendor                transition, background-color .3s ease
   cursor                pointer
   padding               2px
@@ -727,7 +711,7 @@ button.app-settings-menu
   borderBox()
   rel()
   &.on
-    bg                  color, #6bb198
+    bg                  color, #22BD52
     a.knob
       vendor            transform, translateX(32px)
   a.knob

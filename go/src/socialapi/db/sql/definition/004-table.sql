@@ -8,7 +8,6 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'topic',
     'followingfeed',
     'followers',
-    'chat',
     'pinnedactivity',
     'privatemessage',
     'default'
@@ -65,7 +64,6 @@ CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
     'reply',
     'join',
     'leave',
-    'chat',
     'privatemessage'
 );
 
@@ -102,7 +100,8 @@ CREATE TABLE "api"."channel_message_list" (
     "message_id" BIGINT NOT NULL DEFAULT 0,
     "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
     "added_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "revised_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now()
+    "revised_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."channel_message_list" OWNER TO "social";

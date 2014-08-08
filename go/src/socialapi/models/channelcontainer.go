@@ -184,39 +184,20 @@ func getChannelParticipant(channelId, accountId int64) (*ChannelParticipant, err
 func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 
-		cml := NewChannelMessageList()
-
 		// if the user is not a participant of the channel, do not add unread
 		// count
 		if !cc.IsParticipant {
 			return nil
 		}
 
-		// for private messages calculate the unread reply count
-		if cc.Channel.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
-			// validate that last message is set
-			if cc.LastMessage == nil || cc.LastMessage.Message == nil || cc.LastMessage.Message.Id == 0 {
-				return nil
-			}
+		if cc.Channel.TypeConstant != Channel_TYPE_PINNED_ACTIVITY &&
+			cc.Channel.TypeConstant != Channel_TYPE_PRIVATE_MESSAGE &&
+			cc.Channel.TypeConstant != Channel_TYPE_TOPIC {
+			// do not calculate for other channels
+			return nil
+		}
 
-			cp, err := getChannelParticipant(cc.Channel.Id, accountId)
-			if err != nil {
-				return err
-			}
-
-			isExempt := cp.MetaBits.Is(Troll)
-
-			count, err := NewMessageReply().UnreadCount(
-				cc.LastMessage.Message.Id,
-				cp.LastSeenAt,
-				isExempt,
-			)
-
-			if err != nil {
-				return err
-			}
-
-			cc.UnreadCount = count
+		if cc.LastMessage == nil || cc.LastMessage.Message == nil || cc.LastMessage.Message.Id == 0 {
 			return nil
 		}
 
@@ -225,15 +206,36 @@ func (cr *ChannelContainer) AddUnreadCount(accountId int64) *ChannelContainer {
 			return err
 		}
 
-		count, err := cml.UnreadCount(cp)
+		if cc.Channel.TypeConstant != Channel_TYPE_PINNED_ACTIVITY {
+			count, err := NewChannelMessageList().UnreadCount(cp)
+			if err != nil {
+				return err
+			}
+
+			cc.UnreadCount = count
+			return nil
+		}
+
+		cml, err := cc.Channel.FetchMessageList(cc.LastMessage.Message.Id)
+		if err != nil {
+			return err
+		}
+
+		isRecieverTroll := cp.MetaBits.Is(Troll)
+		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, isRecieverTroll)
+		// count, err := NewMessageReply().UnreadCount(
+		// 	cc.LastMessage.Message.Id,
+		// 	cp.LastSeenAt,
+		// 	isRecieverTroll,
+		// )
+		// }
+
 		if err != nil {
 			return err
 		}
 
 		cc.UnreadCount = count
-
 		return nil
-
 	})
 }
 

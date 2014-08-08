@@ -22,7 +22,7 @@ class ActivitySidebar extends KDCustomScrollView
 
 
   constructor: (options = {}) ->
-    options.cssClass  = 'activity-sidebar'
+    options.cssClass  = 'app-sidebar'
 
     super options
 
@@ -56,11 +56,11 @@ class ActivitySidebar extends KDCustomScrollView
   messageAddedToChannel: (update) ->
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
-      when 'topic'          then @handleFollowedFeedUpdate update
+      else  @handleFollowedFeedUpdate update
 
 
   messageRemovedFromChannel: (update) ->
-    log 'messageRemovedFromChannel', update
+
     {id} = update.channelMessage
 
     @removeItem id
@@ -144,14 +144,22 @@ class ActivitySidebar extends KDCustomScrollView
   channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
 
 
-  setPostUnreadCount: ({unreadCount, channelMessage}) ->
-
+  setPostUnreadCount: (data) ->
+    {unreadCount, channelMessage} = data
     return  unless channelMessage
 
     {typeConstant, id} = channelMessage
 
     listController = @getListController typeConstant
     item = listController.itemForId id
+
+    # if we are getting updates about a message it means we are following it
+    item.isFollowed = yes if item
+
+    # if we are getting updates about a message that is not in the channel it
+    # should be added into list
+    @replyAdded data  unless item
+
     item.setUnreadCount unreadCount  if item?.unreadCount
 
 

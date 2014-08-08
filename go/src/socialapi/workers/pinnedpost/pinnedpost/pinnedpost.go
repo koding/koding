@@ -28,7 +28,7 @@ func New(log logging.Logger) *Controller {
 
 // MessageReplyCreated handles the created replies
 func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) error {
-	parent, err := messageReply.FetchParent()
+	parent, err := models.ChannelMessageById(messageReply.MessageId)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 		return nil
 	}
 
-	reply, err := messageReply.FetchReply()
+	reply, err := models.ChannelMessageById(messageReply.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 
 	// add parent message to the author's pinned message list
 	err = c.addMessage(parent.AccountId, parent.Id, parent.InitialChannelId)
-	if err != nil && err != models.ErrAlreadyInTheChannel {
+	if err != nil && err != models.ErrMessageAlreadyInTheChannel {
 		return err
 	}
 
@@ -61,7 +61,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 
 	// add parent message to the replier's pinned message list
 	err = c.addMessage(reply.AccountId, parent.Id, parent.InitialChannelId)
-	if err != nil && err != models.ErrAlreadyInTheChannel {
+	if err != nil && err != models.ErrMessageAlreadyInTheChannel {
 		return err
 	}
 
@@ -69,7 +69,7 @@ func (c *Controller) MessageReplyCreated(messageReply *models.MessageReply) erro
 }
 
 func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
-	// fetch the parent channel for gorup name
+	// fetch the parent channel for group name
 	// get it from cache
 	channel, err := models.ChannelById(channelId)
 	if err != nil {
@@ -83,9 +83,12 @@ func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	}
 
 	// add parent message into pinning channel
-	_, err = pinningChannel.AddMessage(messageId)
+	// but do not force message to be put into the channel, because
+	// if the user removed the message from channel, we should not add the same message again
+	_, err = pinningChannel.EnsureMessage(messageId, false)
+
 	// if message is already in the channel ignore the error, and mark process as successful
-	if err == models.ErrAlreadyInTheChannel {
+	if err == models.ErrMessageAlreadyInTheChannel {
 		return nil
 	}
 

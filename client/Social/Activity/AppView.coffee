@@ -26,6 +26,7 @@ class ActivityAppView extends KDView
     @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
     @tabs        = new KDTabView
       tagName             : 'main'
+      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
@@ -127,7 +128,8 @@ class ActivityAppView extends KDView
     type      = data.typeConstant
 
     paneClass = switch type
-      when 'topic' then TopicMessagePane
+      when 'topic'          then TopicMessagePane
+      when 'privatemessage' then PrivateMessagePane
       else MessagePane
 
     itemClass = switch type

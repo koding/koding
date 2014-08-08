@@ -559,7 +559,7 @@ func TestChannelAddMessage(t *testing.T) {
 			// try to add the same message again
 			ch, err = c.AddMessage(cm.Id)
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAlreadyInTheChannel)
+			So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
 		})
 	})
 }
@@ -685,5 +685,46 @@ func TestChannelFetchMessageList(t *testing.T) {
 			So(cml2, ShouldNotBeNil)
 			So(cml2.MessageId, ShouldEqual, cm.Id)
 		})
+	})
+}
+
+func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching channel id by name & group name", t, func() {
+
+		Convey("it should have a name", func() {
+			c := NewChannel()
+			fcid, err := c.FetchChannelIdByNameAndGroupName("", "groupName")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrNameIsNotSet)
+			So(fcid, ShouldEqual, 0)
+		})
+
+		Convey("it should have a group name", func() {
+			c := NewChannel()
+			fcid, err := c.FetchChannelIdByNameAndGroupName("name", "")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrGroupNameIsNotSet)
+			So(fcid, ShouldEqual, 0)
+		})
+
+		/*
+			Convey("non-existing name & groupName should give error", func() {
+				// create channel in db
+				c := createNewChannelWithTest()
+				So(c.Create(), ShouldBeNil)
+
+				// nameTest & groupNameTest are an arbitrary strings
+				_, err := c.FetchChannelIdByNameAndGroupName("nameTest", "groupNameTest")
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+			})
+
+		*/
 	})
 }

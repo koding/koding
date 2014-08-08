@@ -43,3 +43,13 @@ FromMail = "hello@koding.com"
 
 [sitemap]
 RedisDB= 1
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
+ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
+IndexSuffix    = ""
+
+[analytics]
+Enabled       = true
+MixpanelToken = "d35a8d0b14e284f32ab5380590c6848a"
