@@ -47,12 +47,11 @@ build:
         cwd: go/src/socialapi/db/sql
         code: definition/create-wercker.sh .
     - script:
-        name: run social api
-        code: sudo scripts/wercker/init-socialapi.sh
-    - script:
         name: test social api
-        cwd: go/src/socialapi
-        code: make testapi
+        code: |
+          sudo -E scripts/wercker/init-socialapi.sh
+          cd go/src/socialapi
+          make testapi
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
