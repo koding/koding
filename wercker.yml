@@ -35,7 +35,14 @@ build:
     - script:
         name: build social api
         cwd: go/src/socialapi
-        code: make configure
+        code: |
+          make configure
+          make install
+          make build
+    - script:
+        name: test social api
+        cwd: go/src/socialapi
+        code: make testapi
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
