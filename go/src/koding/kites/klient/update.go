@@ -6,11 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/hashicorp/go-version"
 	"github.com/inconshreveable/go-update"
 	"github.com/koding/kite"
 	"github.com/mitchellh/osext"
@@ -20,7 +23,7 @@ var (
 	AuthenticatedUser = "koding"
 
 	// EndpointURL returns the latest stable klient version
-	EndpointUrl = ""
+	EndpointUrl = "https://s3.amazonaws.com/koding-kites/klient/latest.txt"
 )
 
 type UpdateData struct {
@@ -63,11 +66,13 @@ func updateBinary(url string) error {
 		return err
 	}
 
+	klog.Info("Going to update binary at %s.", self)
 	bin, err := fetchBinGz(url)
 	if err != nil {
 		return err
 	}
 
+	klog.Info("Everything is ready =====> UPDATING...")
 	err, errRecover := u.FromStream(bytes.NewBuffer(bin))
 	if err != nil {
 		if errRecover != nil {
@@ -85,6 +90,22 @@ func updateBinary(url string) error {
 	}
 
 	return nil
+}
+
+func getLatestVersion() (string, error) {
+	klog.Info("Getting latest version from %s", EndpointUrl)
+	resp, err := http.Get(EndpointUrl)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	latest, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(latest)), nil
 }
 
 func fetchBinGz(url string) ([]byte, error) {
@@ -108,6 +129,7 @@ func fetchBinGz(url string) ([]byte, error) {
 }
 
 func fetch(url string) (io.ReadCloser, error) {
+	klog.Info("Fetching binary %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -121,10 +143,43 @@ func fetch(url string) (io.ReadCloser, error) {
 	}
 }
 
+func checkAndUpdate() error {
+	l, err := getLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	latestVer := "0.1." + l
+	currentVer := VERSION
+
+	klog.Info("Latest version is %s", latestVer)
+
+	latest, err := version.NewVersion(latestVer)
+	if err != nil {
+		return err
+	}
+
+	current, err := version.NewVersion(currentVer)
+	if err != nil {
+		return err
+	}
+
+	klog.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
+	if !current.LessThan(latest) {
+		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)", currentVer, latestVer)
+	}
+
+	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
+
+	basePath := "https://s3.amazonaws.com/koding-kites/klient/development/latest"
+	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
+
+	return updateBinary(latestKlientURL)
+}
+
 func backgroundUpdater() {
-	for _ = range time.Tick(time.Minute * 5) {
-		// check from an endpoint
-		if err := updateBinary(EndpointUrl); err != nil {
+	for _ = range time.Tick(time.Second * 30) {
+		if err := checkAndUpdate(); err != nil {
 			klog.Warning("Self-update report: %s", err)
 		}
 	}

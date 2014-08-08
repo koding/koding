@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -111,18 +110,20 @@ func main() {
 		}
 	}
 
-	go func() {
-		kloud, err := NewKloud(k)
-		if err != nil {
-			k.Log.Warning(err.Error())
-		}
+	// go func() {
+	// 	kloud, err := NewKloud(k)
+	// 	if err != nil {
+	// 		k.Log.Warning(err.Error())
+	// 	}
+	//
+	// 	for _ = range time.Tick(time.Second * 5) {
+	// 		err := kloud.Report()
+	// 		fmt.Printf("err %+v\n", err)
+	// 	}
+	//
+	// }()
 
-		for _ = range time.Tick(time.Second * 5) {
-			err := kloud.Report()
-			fmt.Printf("err %+v\n", err)
-		}
-
-	}()
+	go backgroundUpdater()
 
 	k.Run()
 }
