@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/goamz/aws"
@@ -17,7 +19,7 @@ type Bucket struct {
 	Folder string
 }
 
-func (b *Bucket) Latest() (string, error) {
+func (b *Bucket) LatestDeb() (string, error) {
 	l, err := b.Bucket.List(b.Folder, "", "", 100)
 	if err != nil {
 		return "", err
@@ -27,7 +29,13 @@ func (b *Bucket) Latest() (string, error) {
 		return "", fmt.Errorf("No .deb binary available for %s", b.Folder)
 	}
 
-	return l.Contents[0].Key, nil
+	for _, content := range l.Contents {
+		if strings.HasSuffix(content.Key, "deb") {
+			return content.Key, nil
+		}
+	}
+
+	return "", errors.New("couldn't find any .deb file")
 }
 
 func (b *Bucket) SignedURL(path string, expires time.Time) string {

@@ -122,7 +122,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Fetching latest klient.deb binary")
-	latestDeb, err := k.Bucket.Latest()
+	latestDeb, err := k.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
 	}
