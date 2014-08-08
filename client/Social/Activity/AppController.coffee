@@ -70,6 +70,7 @@ class ActivityAppController extends AppController
 
     id = channelId
     {socialapi} = KD.singletons
+    {socialApiChannelId} = KD.getGroup()
 
     if socialApiChannelId is channelId and socialapi.getPrefetchedData('publicFeed').length > 0
       messages = socialapi.getPrefetchedData 'publicFeed'
