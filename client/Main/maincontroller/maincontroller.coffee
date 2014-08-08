@@ -88,10 +88,12 @@ class MainController extends KDController
       (KD.getSingleton 'kontrol').reauthenticate()
       # (KD.getSingleton 'kontrolProd').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
+    account.fetchMyPermissionsAndRoles (err, res)=>
+
       return warn err  if err
-      KD.config.roles       = roles
-      KD.config.permissions = permissions
+
+      KD.config.roles       = res.roles
+      KD.config.permissions = res.permissions
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
