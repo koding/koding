@@ -93,7 +93,7 @@ app.configure ->
   app.use express.bodyParser()
   app.use express.compress()
   # helmet:
-  app.use helmet.xframe()
+  app.use helmet.xframe('allow-from', 'https://plus.google.com')
   app.use helmet.iexss()
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()
