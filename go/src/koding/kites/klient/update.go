@@ -38,7 +38,7 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 	go func() {
 		r.LocalKite.Log.Info("klient.Update is called. Updating binary via latest version")
 		if err := u.checkAndUpdate(); err != nil {
-			klog.Warning("klient.update error report: %s", err)
+			klog.Warning("klient.update: %s", err)
 		}
 	}()
 
@@ -190,7 +190,7 @@ func (u *Updater) Run() {
 
 	for _ = range time.Tick(u.Interval) {
 		if err := u.checkAndUpdate(); err != nil {
-			klog.Warning("Self-update error report: %s", err)
+			klog.Warning("Self-update: %s", err)
 		}
 	}
 }
