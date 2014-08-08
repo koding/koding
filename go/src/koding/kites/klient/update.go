@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/kites/klient/protocol"
 	"net/http"
 	"os"
 	"strings"
@@ -18,18 +19,18 @@ import (
 	"github.com/mitchellh/osext"
 )
 
-var (
-	AuthenticatedUser = "koding"
-
-	// EndpointURL returns the latest stable klient version
-	EndpointUrl = "https://s3.amazonaws.com/koding-kites/klient/latest.txt"
-)
+type Updater struct {
+	Endpoint string
+	Interval time.Duration
+}
 
 type UpdateData struct {
 	KlientURL string
 }
 
-func updater(r *kite.Request) (interface{}, error) {
+var AuthenticatedUser = "koding"
+
+func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 	if r.Username != AuthenticatedUser {
 		return nil, fmt.Errorf("Not authenticated to make an update: %s", r.Username)
 	}
@@ -50,7 +51,7 @@ func updater(r *kite.Request) (interface{}, error) {
 
 	go func() {
 		r.LocalKite.Log.Info("Updating binary via latest version")
-		if err := checkAndUpdate(); err != nil {
+		if err := u.checkAndUpdate(); err != nil {
 			klog.Warning("Self-update error report: %s", err)
 		}
 	}()
@@ -58,18 +59,8 @@ func updater(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func checkAndUpdate() error {
-	updatingMu.Lock()
-	updating = true
-	updatingMu.Unlock()
-
-	defer func() {
-		updatingMu.Lock()
-		updating = false // we are finished
-		updatingMu.Unlock()
-	}()
-
-	l, err := getLatestVersion()
+func (u *Updater) checkAndUpdate() error {
+	l, err := u.latestVersion()
 	if err != nil {
 		return err
 	}
@@ -95,23 +86,13 @@ func checkAndUpdate() error {
 
 	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
 
-	basePath := "https://s3.amazonaws.com/koding-kites/klient/development/latest"
+	basePath := "https://s3.amazonaws.com/koding-kites/klient/" + protocol.Environment + "/latest"
 	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
 
 	return updateBinary(latestKlientURL)
 }
 
 func updateBinary(url string) error {
-	updatingMu.Lock()
-	updating = true
-	updatingMu.Unlock()
-
-	defer func() {
-		updatingMu.Lock()
-		updating = false // we are finished
-		updatingMu.Unlock()
-	}()
-
 	u := update.New()
 	err := u.CanUpdate()
 	if err != nil {
@@ -124,7 +105,7 @@ func updateBinary(url string) error {
 	}
 
 	klog.Info("Going to update binary at: %s", self)
-	bin, err := fetchBinGz(url)
+	bin, err := fetch(url)
 	if err != nil {
 		return err
 	}
@@ -141,16 +122,12 @@ func updateBinary(url string) error {
 
 	env := os.Environ()
 
+	// TODO: os.Args[1:] should come also from the endpoint if the new binary
+	// has a different flag!
 	args := []string{self}
 	args = append(args, os.Args[1:]...)
 
 	klog.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
-
-	// we need to call it here now too, because syscall.Exec will prevent to
-	// call the defer that we've defined in the beginning.
-	updatingMu.Lock()
-	updating = false // we are finished
-	updatingMu.Unlock()
 
 	execErr := syscall.Exec(self, args, env)
 	if execErr != nil {
@@ -160,9 +137,9 @@ func updateBinary(url string) error {
 	return nil
 }
 
-func getLatestVersion() (string, error) {
-	klog.Info("Getting latest version from %s", EndpointUrl)
-	resp, err := http.Get(EndpointUrl)
+func (u *Updater) latestVersion() (string, error) {
+	klog.Info("Getting latest version from %s", u.Endpoint)
+	resp, err := http.Get(u.Endpoint)
 	if err != nil {
 		return "", err
 	}
@@ -176,18 +153,24 @@ func getLatestVersion() (string, error) {
 	return strings.TrimSpace(string(latest)), nil
 }
 
-func fetchBinGz(url string) ([]byte, error) {
-	r, err := fetch(url)
+func fetch(url string) ([]byte, error) {
+	klog.Info("Fetching binary %s", url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("bad http status from %s: %v", url, resp.Status)
+	}
 
 	buf := new(bytes.Buffer)
-	gz, err := gzip.NewReader(r)
+	gz, err := gzip.NewReader(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+	defer gz.Close()
 
 	if _, err = io.Copy(buf, gz); err != nil {
 		return nil, err
@@ -196,24 +179,13 @@ func fetchBinGz(url string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func fetch(url string) (io.ReadCloser, error) {
-	klog.Info("Fetching binary %s", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
+// Run runs the updater in the background for the interval of updater interval.
+func (u *Updater) Run() {
+	klog.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
+		u.Interval, u.Endpoint)
 
-	switch resp.StatusCode {
-	case 200:
-		return resp.Body, nil
-	default:
-		return nil, fmt.Errorf("bad http status from %s: %v", url, resp.Status)
-	}
-}
-
-func backgroundUpdater(interval time.Duration) {
-	for _ = range time.Tick(interval) {
-		if err := checkAndUpdate(); err != nil {
+	for _ = range time.Tick(u.Interval) {
+		if err := u.checkAndUpdate(); err != nil {
 			klog.Warning("Self-update error report: %s", err)
 		}
 	}

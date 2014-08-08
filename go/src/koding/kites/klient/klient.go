@@ -30,9 +30,11 @@ var (
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 
+	// update paramters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
-	flagUpdateURL = flag.String("update-url", "https://s3.amazonaws.com/koding-kites/klient/latest.txt",
+	flagUpdateURL = flag.String("update-url",
+		"https://s3.amazonaws.com/koding-kites/klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
 
 	VERSION = protocol.Version
@@ -63,11 +65,6 @@ func main() {
 
 	klog = k.Log
 
-	if *flagUpdateInterval < time.Minute {
-		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		*flagUpdateInterval = time.Minute
-	}
-
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
 
@@ -88,8 +85,20 @@ func main() {
 	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
 
+	if *flagUpdateInterval < time.Minute {
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		*flagUpdateInterval = time.Minute
+	}
+
+	updater := &Updater{
+		Endpoint: *flagUpdateURL,
+		Interval: *flagUpdateInterval,
+	}
+
+	go updater.Run()
+
 	// also invoke updating
-	k.HandleFunc("klient.update", updater)
+	k.Handle("klient.update", updater)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -152,8 +161,6 @@ func main() {
 	// 	}
 	//
 	// }()
-
-	go backgroundUpdater(*flagUpdateInterval)
 
 	k.Run()
 }
