@@ -46,9 +46,10 @@ createRunFile = (KONFIG)->
 
   log "Configuration done"
   log "1) install Docker"
+  log "2) brew install mongodb"
   log "2) do './run install' "
   log "3) do './run services' for backend services after installing docker."
-  log "4) you can then type './run' to run Koding and see it on #{o.hostname}"
+  log "4) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
 
 
 

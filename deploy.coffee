@@ -298,7 +298,7 @@ if argv.deploy
 
     options =
       boxes       : argv.boxes          or 1
-      boxtype     : argv.boxtype        or "m3.xlarge"
+      boxtype     : argv.boxtype        or "t2.medium" #"m3.xlarge"
       versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
       config      : argv.config         or "feature" # prod | staging | sandbox
       version     : argv.version        or version

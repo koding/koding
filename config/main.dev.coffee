@@ -377,11 +377,16 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
 
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+
 
 
 
       else
-
+        #{projectRoot}/go/build.sh
+        cd #{projectRoot}/go/src/socialapi
+        make configure
         #{workersRunList()}
         tail -fq ./.logs/*.log
 
