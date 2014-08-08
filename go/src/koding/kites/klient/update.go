@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -40,21 +39,79 @@ func updater(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if params.KlientURL == "" {
-		return nil, errors.New("Can't update myself, incoming URL is empty")
+	if params.KlientURL != "" {
+		r.LocalKite.Log.Info("Updating binary directly with url: %s", params.KlientURL)
+		go func() {
+			if err := updateBinary(params.KlientURL); err != nil {
+				klog.Warning("Self-update error report: %s", err)
+			}
+		}()
 	}
 
-	// can't return the result during update
 	go func() {
-		if err := updateBinary(params.KlientURL); err != nil {
-			r.LocalKite.Log.Warning("Update fail: %v", err)
+		r.LocalKite.Log.Info("Updating binary via latest version")
+		if err := checkAndUpdate(); err != nil {
+			klog.Warning("Self-update error report: %s", err)
 		}
 	}()
 
 	return true, nil
 }
 
+func checkAndUpdate() error {
+	updatingMu.Lock()
+	updating = true
+	updatingMu.Unlock()
+
+	defer func() {
+		updatingMu.Lock()
+		updating = false // we are finished
+		updatingMu.Unlock()
+	}()
+
+	l, err := getLatestVersion()
+	if err != nil {
+		return err
+	}
+
+	latestVer := "0.1." + l
+	currentVer := VERSION
+
+	latest, err := version.NewVersion(latestVer)
+	if err != nil {
+		return err
+	}
+
+	current, err := version.NewVersion(currentVer)
+	if err != nil {
+		return err
+	}
+
+	klog.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
+	if !current.LessThan(latest) {
+		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)",
+			currentVer, latestVer)
+	}
+
+	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
+
+	basePath := "https://s3.amazonaws.com/koding-kites/klient/development/latest"
+	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
+
+	return updateBinary(latestKlientURL)
+}
+
 func updateBinary(url string) error {
+	updatingMu.Lock()
+	updating = true
+	updatingMu.Unlock()
+
+	defer func() {
+		updatingMu.Lock()
+		updating = false // we are finished
+		updatingMu.Unlock()
+	}()
+
 	u := update.New()
 	err := u.CanUpdate()
 	if err != nil {
@@ -88,6 +145,12 @@ func updateBinary(url string) error {
 	args = append(args, os.Args[1:]...)
 
 	klog.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
+
+	// we need to call it here now too, because syscall.Exec will prevent to
+	// call the defer that we've defined in the beginning.
+	updatingMu.Lock()
+	updating = false // we are finished
+	updatingMu.Unlock()
 
 	execErr := syscall.Exec(self, args, env)
 	if execErr != nil {
@@ -146,39 +209,6 @@ func fetch(url string) (io.ReadCloser, error) {
 	default:
 		return nil, fmt.Errorf("bad http status from %s: %v", url, resp.Status)
 	}
-}
-
-func checkAndUpdate() error {
-	l, err := getLatestVersion()
-	if err != nil {
-		return err
-	}
-
-	latestVer := "0.1." + l
-	currentVer := VERSION
-
-	latest, err := version.NewVersion(latestVer)
-	if err != nil {
-		return err
-	}
-
-	current, err := version.NewVersion(currentVer)
-	if err != nil {
-		return err
-	}
-
-	klog.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
-	if !current.LessThan(latest) {
-		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)",
-			currentVer, latestVer)
-	}
-
-	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
-
-	basePath := "https://s3.amazonaws.com/koding-kites/klient/development/latest"
-	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
-
-	return updateBinary(latestKlientURL)
 }
 
 func backgroundUpdater(interval time.Duration) {

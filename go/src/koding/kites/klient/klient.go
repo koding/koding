@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"koding/kite-handler/command"
@@ -11,6 +12,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/koding/kite"
@@ -39,6 +41,10 @@ var (
 	// this is our main reference to count and measure metrics for the klient
 	usg  = usage.NewUsage()
 	klog kite.Logger
+
+	// we also could use an atomic boolean this is simple for now.
+	updating   = false
+	updatingMu sync.Mutex // protects updating
 )
 
 func main() {
@@ -57,14 +63,32 @@ func main() {
 
 	klog = k.Log
 
+	if *flagUpdateInterval < time.Minute {
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		*flagUpdateInterval = time.Minute
+	}
+
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
+
+	// dont' allow anyone to call a method if we are during an update
+	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
+		updatingMu.Lock()
+		defer updatingMu.Unlock()
+		if updating {
+			return nil, errors.New("Updating klient. Can't accept any method.")
+		}
+
+		return true, nil
+	})
 
 	// we measure every incoming request
 	k.PreHandleFunc(usg.Counter)
 
 	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
+
+	// also invoke updating
 	k.HandleFunc("klient.update", updater)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
@@ -128,11 +152,6 @@ func main() {
 	// 	}
 	//
 	// }()
-
-	if *flagUpdateInterval < time.Minute {
-		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		*flagUpdateInterval = time.Minute
-	}
 
 	go backgroundUpdater(*flagUpdateInterval)
 
