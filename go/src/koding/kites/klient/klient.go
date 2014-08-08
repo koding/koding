@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -26,6 +27,11 @@ var (
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+
+	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
+		"Change interval for checking for new updates")
+	flagUpdateURL = flag.String("update-url", "https://s3.amazonaws.com/koding-kites/klient/latest.txt",
+		"Change update endpoint for latest version")
 
 	VERSION = protocol.Version
 	NAME    = protocol.Name
@@ -123,7 +129,12 @@ func main() {
 	//
 	// }()
 
-	go backgroundUpdater()
+	if *flagUpdateInterval < time.Minute {
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		*flagUpdateInterval = time.Minute
+	}
+
+	go backgroundUpdater(*flagUpdateInterval)
 
 	k.Run()
 }

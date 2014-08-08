@@ -66,13 +66,13 @@ func updateBinary(url string) error {
 		return err
 	}
 
-	klog.Info("Going to update binary at %s.", self)
+	klog.Info("Going to update binary at: %s", self)
 	bin, err := fetchBinGz(url)
 	if err != nil {
 		return err
 	}
 
-	klog.Info("Everything is ready =====> UPDATING...")
+	klog.Info("Replacing new binary with the old one.")
 	err, errRecover := u.FromStream(bytes.NewBuffer(bin))
 	if err != nil {
 		if errRecover != nil {
@@ -84,7 +84,12 @@ func updateBinary(url string) error {
 
 	env := os.Environ()
 
-	execErr := syscall.Exec(self, []string{self}, env)
+	args := []string{self}
+	args = append(args, os.Args[1:]...)
+
+	klog.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
+
+	execErr := syscall.Exec(self, args, env)
 	if execErr != nil {
 		return err
 	}
@@ -152,8 +157,6 @@ func checkAndUpdate() error {
 	latestVer := "0.1." + l
 	currentVer := VERSION
 
-	klog.Info("Latest version is %s", latestVer)
-
 	latest, err := version.NewVersion(latestVer)
 	if err != nil {
 		return err
@@ -166,7 +169,8 @@ func checkAndUpdate() error {
 
 	klog.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
 	if !current.LessThan(latest) {
-		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)", currentVer, latestVer)
+		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)",
+			currentVer, latestVer)
 	}
 
 	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
@@ -177,10 +181,10 @@ func checkAndUpdate() error {
 	return updateBinary(latestKlientURL)
 }
 
-func backgroundUpdater() {
-	for _ = range time.Tick(time.Second * 30) {
+func backgroundUpdater(interval time.Duration) {
+	for _ = range time.Tick(interval) {
 		if err := checkAndUpdate(); err != nil {
-			klog.Warning("Self-update report: %s", err)
+			klog.Warning("Self-update error report: %s", err)
 		}
 	}
 }
