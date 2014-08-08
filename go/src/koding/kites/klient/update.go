@@ -35,24 +35,10 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Not authenticated to make an update: %s", r.Username)
 	}
 
-	var params UpdateData
-	if err := r.Args.One().Unmarshal(&params); err != nil {
-		return nil, err
-	}
-
-	if params.KlientURL != "" {
-		r.LocalKite.Log.Info("Updating binary directly with url: %s", params.KlientURL)
-		go func() {
-			if err := updateBinary(params.KlientURL); err != nil {
-				klog.Warning("Self-update error report: %s", err)
-			}
-		}()
-	}
-
 	go func() {
-		r.LocalKite.Log.Info("Updating binary via latest version")
+		r.LocalKite.Log.Info("klient.Update is called. Updating binary via latest version")
 		if err := u.checkAndUpdate(); err != nil {
-			klog.Warning("Self-update error report: %s", err)
+			klog.Warning("klient.update error report: %s", err)
 		}
 	}()
 
@@ -60,6 +46,17 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 }
 
 func (u *Updater) checkAndUpdate() error {
+	updatingMu.Lock()
+	updating = true
+	updatingMu.Unlock()
+
+	// if something goes wrong
+	defer func() {
+		updatingMu.Lock()
+		updating = false
+		updatingMu.Unlock()
+	}()
+
 	l, err := u.latestVersion()
 	if err != nil {
 		return err
@@ -126,6 +123,13 @@ func updateBinary(url string) error {
 	// has a different flag!
 	args := []string{self}
 	args = append(args, os.Args[1:]...)
+
+	// we need to call it here now too, because syscall.Exec will prevent to
+	// call the defer that we've defined in the beginning.
+
+	updatingMu.Lock()
+	updating = false
+	updatingMu.Unlock()
 
 	klog.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
 

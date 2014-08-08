@@ -72,6 +72,7 @@ func main() {
 	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
 		updatingMu.Lock()
 		defer updatingMu.Unlock()
+
 		if updating {
 			return nil, errors.New("Updating klient. Can't accept any method.")
 		}
