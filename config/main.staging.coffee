@@ -21,6 +21,8 @@ regions         =
   premium       : "premium-sj"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
+
+# turn it off when you use non-https like: showcase.koding.com
 cookieSecure = yes
 
 module.exports =
@@ -43,26 +45,23 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://social-api-1a.sj.koding.com:7000"
   sourceServer  :
     enabled     : yes
     port        : 1337
-  neo4j         :
-    read        : "http://172.16.6.12"
-    write       : "http://172.16.6.12"
-    port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/koding'
   mongoKontrol  : 'dev:k9lc4G1k32nyD72@68.68.97.107:27017/kontrol'
   mongoReplSet  : null
   mongoMinWrites: 1
-  runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite: no
   runPremiumBrokerKite: no
   runPremiumBroker: no
   runKontrol    : yes
   runRerouting  : yes
-  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -112,10 +111,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : no
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
-  graphFeederWorker:
-    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -144,6 +139,10 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia: #TODO change these credentials
+        appId: 'DYVV81J2S1'
+        apiKey: '303eb858050b1067bcd704d6cbfb977c'
+        indexSuffix: '.staging'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -157,7 +156,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
-      useNeo4j: yes
       logToExternal : yes
       logToInternal : yes
       resourceName: socialQueueName
@@ -375,16 +373,13 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "info"
     oskite        : "info"
     terminal      : "info"
     kontrolproxy  : "debug"
     kontroldaemon : "info"
-    userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"
     sync          : "info"
-    topicModifier : "info"
     postModifier  : "info"
     router        : "info"
     rerouting     : "info"

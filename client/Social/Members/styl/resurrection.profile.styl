@@ -11,516 +11,145 @@ resurrection.profile.styl
 
 
 body.profile
+  .app-sidebar
+    bg                    color, #EFEFEF
+    text-align            center
 
-  #kdmaincontainer
-  .kdtabpaneview.content-display
-    overflow                  visible
-
-  .feeder-header
-    // øldur
-    hidden()
-
-  .header-facets
-    display                     none
-
-  .kdtabpaneview.content-display
-    max-width                 100%
-    padding                   55px 28px 0 0
-    borderBox()
-
-  .feeder-tabs
-    padding-left               386px
-    borderBox()
-
-  .member.content-display
-    overflow                  visible
-
-    .profilearea
-      width                   354px
-      bg                      color, #282a2b
-      left                    0
-      top                     0
-      z-index                 100
-      margin-top              55px
-      position                fixed
-
-      .users-profile
-        size                  100%, auto
-        text-align            center
-        position              relative
-        border-top            1px solid transparent
-        bg                    image, url("../images/default-cover.jpg")
-        bg                    repeat, no-repeat
-        padding-bottom        130px
-
-        .avatarview
-          display             block
-          margin              39px auto 20px
-          size                81px, 81px
-          z-index             1
-
-        .full-name
-          size                100%, auto
-          overflow            visible
-          padding             0 10px
-          font-weight         300
-          font-size           24px
-          color               #e9e7e1
-          borderBox()
-
-          span
-            display           inline
-
-        .bio
-          size                100%, auto
-          padding             0 10px
-          color               rgba(233, 231, 225, .8)
-          font-size           18px
-          font-weight         200
-          margin-top          9px
-          overflow            visible
-          borderBox()
-
-          a
-            color             inherit
-
-        .placeholder
-          opacity             .6
-
-        [contenteditable="true"]:focus
-          outline             none
-
-        .follow-btn
-          bg                  color, transparent
-          size                137px, 42px
-          line-height         38px
-          border              2px solid #1fce6e
-          margin              31px 0 0
-          rounded             21px
-
-          span
-            line-height       inherit
-            color             #1fce6e
-            text-transform    uppercase
-            font-size         16px
-            font-weight       500
-            font-family       'Proxima Nova'
-
-        .profilestats
-          size                100%, 87px
-          bg                  color, #363839
-          bottom              0
-          left                0
-          abs()
-
-          a
-            color             #e9e7e1
-            font-family       'Proxima Nova'
-            display           block
-            size              33%, 100%
-            padding           24px 0 0
-            border-left       1px solid #2a2826
-            font-size         14px
-            font-weight       200
-            borderBox()
-            noTextDeco()
-            fl()
-
-            span
-              display         block
-              text-transform  uppercase
-              font-size       18px
-              font-weight     600
-              padding         0 0 8px
-
-      .user-menu
-        padding               26px 52px 0 44px
-        a
-          display             block
-          size                100%, 51px
-          font-size           18px
-          line-height         51px
-          font-weight         300
-          color               #a3a3a3
-          noTextDeco()
-          borderBox()
-
-          &~a
-            border-top        1px solid #424445
-
-          &.active
-            color             #ffffff
-            font-weight       400
-
-          .count
-            font-weight       300
-            size              auto, 22px
-            line-height       22px
-            margin            14px 0 0
-            bg                color, #363839
-            rounded           11px
-            padding           0 10px
-            font-size         14px
-            color             #707879
-            fr()
-
-      .user-badges
-        padding               26px 52px 0 44px
-
-        h3
-          display             block
-          font-size           18px
-          color               #1aaf5d
-          font-weight         400
-          letter-spacing      0.2px
-          margin              0 0 36px
-
-        .kdlistitemview
-          width               74px
-          margin              0 0 18px 18px
-          text-align          center
-          color               rgba(233, 233, 233, .6)
-          font-size           14px
-          font-weight         100
-          letter-spacing      0.5px
-          fl()
-
-          &:nth-child(3n+1)
-            margin-left       0
-
-          img
-            size              74px, 74px
-            margin-bottom     14px
-
-      >.kdbutton.solid.green
-        margin                20px auto
-        display               block
-
-      .kdlistview-user-properties
-        padding               0 52px 0 44px
-        borderBox()
-        h3
-          display             block
-          font-size           18px
-          color               #1aaf5d
-          font-weight         400
-          letter-spacing      0.2px
-          margin              0 0 16px
-
-          span
-            opacity           .6
-            font-size         14px
-
-        p
-          line-height         24px
-          color               #a3a3a3
-          font-size           12px
-
-          &~p
-            border-top        1px solid #424445
-
-          .number
-            color             #f6f6f6
-            fr()
-
-  .activity-item
-    font-size             14px
-    max-width             728px
-
-    .kdview
-      overflow        visible
-
-  .member-related
-    max-width             728px
-    rounded               8px
-    margin                32px 0 0
-
-    .kdlistitemview-member
-      margin              0
-      padding             22px 22px 22px 82px
-      background          #fff
-
-      &~.kdlistitemview-member
-        border-top       1px solid #e4e4e4
-
-      .avatarview
-        left              22px
-
-      .profile
-        float             none
-
-      .follow-button
-        abs               18px 22px 0 0
-        &.light-gray:hover
-          bg                   color #E94835
-          span.button-title
-            color
-
-  .activity-related
-    margin-top            14px
-
-    .lazy-loader
-      padding             30px
-      rounded             8px
-      max-width           728px
-      margin              30px 0 0 !important
+    > main
+      font-family         openSansFamily
+      padding             1px 16px 16px
       borderBox()
 
-//
-// Profile avatar change styles
-// (Profile settings page uses this styles too)
-//
+    .avatarview
+      size                143px, 143px
+      margin              43px auto 18px
+      padding             0
+      border              3px solid #0EB463
 
-.avatar-container
-  .kdmodal-content
-    overflow              hidden!important
+      img
+        cursor            pointer
 
-.avatar-menu
-  max-width               312px !important
-  min-width               312px !important
-  overflow                visible
-  z-index                 10001
-  padding                 28px 0
+    h3.full-name
+      display             block
+      margin              0
+      padding             0
+      font-size           20px
+      font-weight         600
+      color               #474747
+      opacity             .99
+      line-height         27px
 
-  &.dark
-    color                 #bebebe
-    strong
-      color               #bebebe
-      text-shadow         0 1px 0 #000
-      font-weight         normal !important
-      font-size           11px !important
+      span
+        display           inline
 
-    .kdlistview-contextmenu
-      box-shadow          0px 5px 10px rgba(0,0,0,0.5)
-      border              1px solid #454545
-    .kdlistview
-      padding             5px 0
-      gradient            #676767, #5f5f5f
+    .location
+      font-size           14px
+      font-weight         200
+      color               #474747
+      margin              2px 0 0
+      line-height         19px
 
-    .kdbutton
-      height              24px
-      gradient            #464646, #1c1c1c
-      color               #9e9e9e
-      text-shadow         0 1px 0 #000
-      border-top-color    #292929
-      border-left-color   #313131
-      border-right-color  #313131
-      border-bottom-color #1f1f1e
+    .profilestats
+      display             none //TEMP
 
-      &.icon-only
-      &.cancel
-        text-shadow       none
-        border-radius     5px
-        width             60px!important
-        border            1px solid #4b4b4b
-        gradient          #757575, #585858
-        font-weight       normal
+    .follow-btn
+      size                100%, 38px
+      rounded             19px
+      margin              29px 0 0
 
-      &:active
-        vendor box-shadow, inset 0 0 5px 2px #000, 0 1px 0 0 #313131;
-
-      &:focus
-        border            none
-        outline           none
-
-  .kdlistview
-    background-color      #fff !important
-
-  .kdlistitemview
-    overflow              visible
-  .avatar-change-menu
-    overflow              visible
-
-    .arrow
-      abs                 5px 0 0 -5px
-      size                0px 0px
-      border-top          5px solid transparent
-      border-bottom       5px solid transparent
-      border-right        5px solid #454545
-      z-index             10
-
-    .wrapper
-      overflow            hidden
-      height              20px
-    .avatar-button
-      height              19px
-      box-shadow          0px 1px #7b7b7b
-      font-weight         normal
-      line-height         10px
-      border-radius       15px
-      min-width           97px
-      margin              0 3px
-
-      &.icon-only
-        width             20px !important
-        min-width         20px
-        gradient          #5e5e5e, #464646
-
-        .icon
-          kdfsprite()
-          size          15px, 15px
-          &.okay
-            bg            position,-84px -504px
-          &.cross
-            bg            position,-83px -483px
-
-      &.cancel
-        min-width         45px !important
-        float             right
-        padding           0
-        margin-right      5px
-        width             auto !important
-        color             #3f3f3f
-        box-shadow        none
-
-      &.confirm
-        float             right
-
-    .avatar-holder
-      box-shadow          inset 0px 25px 10px -20px rgba(0, 0, 0, 0.5),
-                          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-      vendor              transition-duration, 200ms
-      overflow            hidden
-      border-radius       0 0 5px 5px
-      background          #ededed
-      abs                 26px, 0, 0, 5px
-      size                300px, 0px
-      opacity             0.6
-      &.opened
-        opacity           1
-        height            300px
-        &.wide
-          height          225px
-          video
-          canvas
-            width         300px
-            abs           0px
-        .avatarview
-          display         block
-          bg              repeat, no-repeat
-          bg              position, center center
-          bg              size, cover
-          rounded         0
-          img
-            rounded       0
-
-      .webcam-tip
-        background        transparent url(/a/images/photo.png) center 40px no-repeat
-        text-align        center
-        color             #676767
-        cite
-          display         block
-          font-style      normal
-          font-size       14px
-          margin-top      150px
-          padding         0 50px
-
-      .take-photo
-        position          absolute
-        z-index           2
-        top               210px
-        left              50%
-        margin-left       -18px
-        margin-top        -35px
-        width             35px
-        height            35px
-        text-indent       -9999px
-        background        url(/a/images/take-photo.png)
-        vendor            transition-duration, 400ms
-
-        &:hover
-          vendor          transform, rotate(270deg) scale(1.2)
-
-      .avatarview
-        background-size   auto 300px
-        box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-
-      .file-droparea
-        borderBox()
-        noTextSelection()
-        margin          10px
-        size            auto, auto
-        border          5px dashed #afafaf
-        border-radius   5px
-        background      url(/a/images/drag.png) center 90px no-repeat
-        &.hover
-          border-color  #444
-          box-shadow    inset 10px 10px 0px #e4d4be, inset -10px -10px 0px #e4d4be
-        .file-drop
-          text-align    center
-          font-size     14px
-          color         #676767
-          font-weight   bold
-          position      absolute
-          top           160px
-          width         100%
-          z-index       0
-
-    .avatar-change-header
-      .kdloader
-        float             right
-        margin-right      10px
-        margin-top        2px
-      button
-        outline           0
-
-      strong
+      .button-title
         font-size         14px
-        font-weight       bold
-        margin-left       5px
-        line-height       20px
+        font-weight       600
+        opacity           .99
+        letter-spacing    0.02em
 
-        &.loading
-          padding-left    15px
-          background      url(/a/images/small-loader.gif) left center no-repeat
+    .conversation-btn
+      size                100%, 40px
+      rounded             19px
+      margin              14px 0 0
+      borderBox()
 
+      .button-title
+        color             #666666
+        font-size         14px
+        font-weight       600
+        opacity           .99
+        letter-spacing    0.02em
 
-.kdwebcamview
-  width             auto
-  height            auto
-  display           inline-block
-  background-color  #000
+    .kdlistview-user-properties
+      margin-top          29px
+      text-align          left
+      color               #575757
+      font-size           13px
 
-  video
-    abs             0px 0 0 0px
-    z-index         2
-    width           100%
-    vendor          transition-duration, 2s
-    &.invisible
-      opacity       0
+      h3
+        font-weight       600
+        padding           0 0 5px 0
+        border-bottom     1px solid #cacaca
+        margin            0 0 5px 0
 
-  .snap-button
-    abs             0 0px 0px 0
-    z-index         1
-    height          35px
-    background-color #444
-    color           #ff9200
-    rounded         5px
-    margin          10px
-    kalc            width, 100% \- 20px, !important
-    opacity         0.8
-    font-weight     bold
-    border          2px solid #333
-    &:hover
-      opacity       0.9
+      p
+        line-height       18px
 
-    &.save
-      kalc            width, 50% \- 15px, !important
-      background-color green
-      color           #fff
+        .number
+          color           #868686
+          font-weight     600
 
-    &.retake
-      kalc            width, 50% \- 15px, !important
-      abs             0 0 0px 0px
+    .kdbutton.repbutton
+      size                100%, 38px
+      rounded             19px
+      margin              29px 0 0
 
-.kdwebcamview-flash
-  abs               0px 0 0 0px
-  z-index           10002
-  background-color  #ffffff
-  opacity           0.95
-  &.flashed
-    vendor        transition-property, opacity
-    vendor        transition-duration, 500ms
-    opacity       0
+      .button-title
+        font-size         14px
+        font-weight       600
+        opacity           .99
+        letter-spacing    0.02em
+
+  .kdtabpaneview.statuses
+
+    .feeder-header
+      display             none
+
+  .header-facets
+    display               none
+
+  .member-tabs
+    kalc                  width, 100% \- 292px
+    margin                0 0 6px 292px
+    padding               0
+    height                62px
+    borderBox()
+    shadow                inset 0 -3px 0 #F2F2F2
+
+    a
+      height              62px
+      padding             22px 23px 0
+      text-align          center
+      font-size           14px
+      color               #969696
+      line-height         20px
+      font-weight         600
+      opacity             .99
+      borderBox()
+      noTextDeco()
+      fl()
+
+      // span.count
+      //   margin            2px 0 0
+      //   display           block
+      //   color             #575757
+
+      // &:hover
+      //   shadow            inset 0 -3px 0 #e2e2e2
+
+      &.active
+        shadow            inset 0 -3px 0 #01B05A
+        color             #575757
+
+  .content-page
+    max-width             100%
+    margin                0 auto 0
+    padding               0 34px 0 0
+    position              static
+    overflow              visible

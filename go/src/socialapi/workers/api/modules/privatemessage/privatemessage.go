@@ -2,176 +2,56 @@ package privatemessage
 
 import (
 	"errors"
-	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 	"socialapi/models"
-	"socialapi/workers/api/modules/helpers"
+	"socialapi/request"
+	"socialapi/workers/common/response"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 )
 
-var mentionRegex = verbalexpressions.New().
-	Find("@").
-	BeginCapture().
-	Word().
-	EndCapture().
-	Regex()
-
-func extractParticipants(body string) []string {
-	flattened := make([]string, 0)
-
-	res := mentionRegex.FindAllStringSubmatch(body, -1)
-	if len(res) == 0 {
-		return flattened
-	}
-
-	participants := map[string]struct{}{}
-	// remove duplicate mentions
-	for _, ele := range res {
-		participants[ele[1]] = struct{}{}
-	}
-
-	for participant := range participants {
-		flattened = append(flattened, participant)
-	}
-
-	return flattened
-}
-
-func fetchParticipantIds(participantNames []string) ([]int64, error) {
-	participantIds := make([]int64, len(participantNames))
-	for i, participantName := range participantNames {
-		account, err := modelhelper.GetAccount(participantName)
-		if err != nil {
-			return nil, err
-		}
-		a := models.NewAccount()
-		a.Id = account.SocialApiId
-		a.OldId = account.Id.Hex()
-		// fetch or create social api id
-		if a.Id == 0 {
-			if err := a.FetchOrCreate(); err != nil {
-				return nil, err
-			}
-		}
-		participantIds[i] = a.Id
-	}
-
-	return participantIds, nil
-}
-
-func appendCreatorIdIntoParticipantList(participants []int64, authorId int64) []int64 {
-	for _, participant := range participants {
-		if participant == authorId {
-			return participants
-		}
-	}
-
-	return append(participants, authorId)
+func Init(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndError(req.Create())
 }
 
 func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
-	if req.AccountId == 0 {
-		return helpers.NewBadRequestResponse(errors.New("AcccountId is not defined"))
-	}
-
-	// // req.Recipients = append(req.Recipients, req.AccountId)
-	participantNames := extractParticipants(req.Body)
-	participantIds, err := fetchParticipantIds(participantNames)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	// append creator to the recipients
-	participantIds = appendCreatorIdIntoParticipantList(participantIds, req.AccountId)
-
-	// author and atleast one recipient should be in the
-	// recipient list
-	if len(participantIds) < 2 {
-		return helpers.NewBadRequestResponse(errors.New("You should define your recipients"))
-	}
-
-	if req.GroupName == "" {
-		req.GroupName = models.Channel_KODING_NAME
-	}
-
-	//// first create the channel
-	c := models.NewPrivateMessageChannel(req.AccountId, req.GroupName)
-	if err := c.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	cm := models.NewChannelMessage()
-	cm.Body = req.Body
-	cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
-	cm.AccountId = req.AccountId
-	cm.InitialChannelId = c.Id
-	if err := cm.Create(); err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	_, err = c.AddMessage(cm.Id)
-	if err != nil {
-		return helpers.NewBadRequestResponse(err)
-	}
-
-	for _, participantId := range participantIds {
-		_, err := c.AddParticipant(participantId)
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-	}
-
-	cmc := models.NewChannelContainer()
-	cmc.Channel = *c
-	cmc.IsParticipant = true
-	cmc.LastMessage = cm
-	cmc.ParticipantCount = len(participantIds)
-	cmc.ParticipantsPreview = participantIds
-
-	return helpers.NewOKResponse(cmc)
+	return response.HandleResultAndError(req.Send())
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	q := helpers.GetQuery(u)
+	q := request.GetQuery(u)
 
-	channels, err := getPrivateMessageChannels(q)
+	if q.AccountId == 0 || q.GroupName == "" {
+		return response.NewBadRequest(errors.New("request is not valid"))
+	}
+
+	channelList, err := getPrivateMessageChannels(q)
 	if err != nil {
-		return helpers.NewBadRequestResponse(err)
+		return response.NewBadRequest(err)
 	}
 
-	populatedChannels := models.PopulateChannelContainers(channels, q.AccountId)
-
-	for i, populatedChannel := range populatedChannels {
-		cp := models.NewChannelParticipant()
-		cp.ChannelId = populatedChannel.Channel.Id
-
-		// add participant preview
-		cpList, err := cp.ListAccountIds(5)
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].ParticipantsPreview = cpList
-
-		// add last message of the channel
-		cm, err := populatedChannel.Channel.FetchLastMessage()
-		if err != nil {
-			return helpers.NewBadRequestResponse(err)
-		}
-		populatedChannels[i].LastMessage = cm
+	cc := models.NewChannelContainers()
+	if err := cc.Fetch(channelList, q); err != nil {
+		return response.NewBadRequest(err)
 	}
 
-	return helpers.NewOKResponse(populatedChannels)
+	cc.AddIsParticipant(q.AccountId)
 
+	// TODO this should be in the channel cache by default
+	cc.AddLastMessage()
+	cc.AddUnreadCount(q.AccountId)
+
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
-func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
+func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 	// build query for
 	c := models.NewChannel()
 	channelIds := make([]int64, 0)
-	rows, err := bongo.B.DB.Table(c.TableName()).
+	query := bongo.B.DB.
+		Model(c).
+		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
 		Where("api.channel_participant.account_id = ? and "+
@@ -181,19 +61,30 @@ func getPrivateMessageChannels(q *models.Query) ([]models.Channel, error) {
 		q.AccountId,
 		q.GroupName,
 		models.Channel_TYPE_PRIVATE_MESSAGE,
-		models.ChannelParticipant_STATUS_ACTIVE).
-		Limit(q.Limit).
+		models.ChannelParticipant_STATUS_ACTIVE)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+	}
+
+	query = query.Limit(q.Limit).
 		Offset(q.Skip).
-		Rows()
-	defer rows.Close()
+		Order("api.channel.updated_at DESC")
+
+	rows, err := query.Rows()
 	if err != nil {
 		return nil, err
 	}
 
-	var channelId int64
+	defer rows.Close()
+
 	for rows.Next() {
-		rows.Scan(&channelId)
-		channelIds = append(channelIds, channelId)
+		var channelId int64
+		err := rows.Scan(&channelId)
+		if err == nil {
+			channelIds = append(channelIds, channelId)
+		}
 	}
 
 	channels, err := c.FetchByIds(channelIds)

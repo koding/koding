@@ -1,26 +1,22 @@
 package bongo
 
 import (
+	"github.com/koding/broker"
 	"github.com/koding/logging"
 
 	"github.com/jinzhu/gorm"
 )
 
-type EventBus interface {
-	Connect() error
-	Close() error
-	Publish(messageType string, data []byte) error
-}
-
 var B *Bongo
 
 type Bongo struct {
-	Broker EventBus
+	Broker *broker.Broker
 	DB     *gorm.DB
 	log    logging.Logger
+	Cache  Cache
 }
 
-func New(b EventBus, db *gorm.DB, l logging.Logger) *Bongo {
+func New(b *broker.Broker, db *gorm.DB, l logging.Logger) *Bongo {
 	return &Bongo{
 		Broker: b,
 		DB:     db,

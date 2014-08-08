@@ -2,7 +2,7 @@ class AvatarView extends LinkView
 
   JView.mixin @prototype
 
-  constructor:(options = {},data)->
+  constructor: (options = {}, data) ->
 
     options.cssClass         = KD.utils.curry 'avatarview', options.cssClass
     options.size           or=
@@ -19,12 +19,15 @@ class AvatarView extends LinkView
       @detailedAvatar   =
         constructorName : AvatarTooltipView
         options         :
-          delegate      : @
+          delegate      : this
           origin        : options.origin
         data            : data
 
       options.tooltip or= {}
-      options.tooltip.view         or= if options.detailed then @detailedAvatar else null
+      options.tooltip.view         or= if options.detailed
+      then @detailedAvatar
+      else null
+
       options.tooltip.cssClass     or= 'avatar-tooltip'
       options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
@@ -45,15 +48,17 @@ class AvatarView extends LinkView
           data = @getData()
           @tooltip.getView().updateData data if data?.profile.nickname
 
-  getAvatar:->
+
+  getAvatar: ->
     @gravatar?.getAttribute 'src' or '/a/images/defaultavatar/avatar.svg'
 
-  setAvatar:(src)->
+
+  setAvatar: (src) ->
     if src and @gravatar.getAttribute('src') isnt src
       @gravatar.show()
       @gravatar.setAttribute 'src', src
 
-  getGravatarUri:->
+  getGravatarUri: ->
     {profile} = @getData()
     return no  unless profile?.hash?
 
@@ -73,7 +78,7 @@ class AvatarView extends LinkView
     defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/images/default.avatar.#{size}.png"
     return "//gravatar.com/avatar/#{profile.hash}?size=#{size}&d=#{defaultAvatarUri}&r=g"
 
-  render:->
+  render: ->
 
     return  unless account = @getData()
 
@@ -106,7 +111,8 @@ class AvatarView extends LinkView
 
     @showStatus()  if @getOptions().showStatus
 
-  showStatus:->
+
+  showStatus: ->
 
     account = @getData()
 
@@ -124,7 +130,8 @@ class AvatarView extends LinkView
       @unsetClass "online"
       @setClass   "offline"
 
-  viewAppended:->
+
+  viewAppended: ->
 
     JView::viewAppended.call this
 
@@ -141,7 +148,8 @@ class AvatarView extends LinkView
       @statusIndicator.setWidth statusDiameter
       @statusIndicator.setHeight statusDiameter
 
-  pistachio:->
+
+  pistachio: ->
     """
     {{> @gravatar}}
     <cite></cite>
@@ -150,17 +158,20 @@ class AvatarView extends LinkView
 class ErrorlessImageView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
-    super
-      tagName       : 'img'
-      cssClass      : 'hidden'
-      bind          : 'load error'
-      attributes    :
-        width       : options.width
-        height      : options.height
-    , data
 
-    @setCss 'opacity', '0.0001'
+    options.tagName    = 'img'
+    options.cssClass   = 'hidden'
+    options.bind       = 'load error'
+    options.attributes =
+        width          : options.width
+        height         : options.height
 
-  error:->
+    super options, data
+
+
+  error: ->
+
     @hide()
-    no
+
+    return no
+

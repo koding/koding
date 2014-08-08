@@ -305,7 +305,7 @@ class ProfileView extends JView
     @memberData    = @getData()
     mainController = KD.getSingleton "mainController"
 
-    if KD.checkFlag 'exempt', @memberData
+    if @memberData.isExempt
       if not KD.checkFlag 'super-admin'
         return KD.getSingleton('router').handleRoute "/Activity"
 
@@ -341,8 +341,8 @@ class ProfileView extends JView
     @bio            = new ProfileContentEditableView
       testPath      : "profile-bio"
       pistachio     : "{{#(profile.about) or ''}}"
-      cssClass      : "bio"
-      placeholder   : if KD.isMine @memberData then "You haven't entered anything in your bio yet. Why not add something now?" else ""
+      cssClass      : "location"
+      placeholder   : if KD.isMine @memberData then "Add your location" else ""
       delegate      : this
       tabNavigation : yes
     , @memberData
@@ -376,62 +376,27 @@ class ProfileView extends JView
       @bio.on "BlurHappened", save
 
     avatarOptions  =
-      showStatus      : yes
       size            :
-        width         : 81
-        height        : 81
+        width         : 143
+        height        : 143
       click        : =>
         pos        =
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
 
-        if KD.isMine @memberData
+        @modal = new KDModalView
+          cssClass : "avatar-container"
+          width    : 390
+          fx       : yes
+          overlay  : yes
+          draggable: yes
+          position : pos
 
-          @avatarMenu?.destroy()
-          @avatarMenu = new KDContextMenu
-            menuWidth: 312
-            cssClass : "avatar-menu dark"
-            delegate : @avatar
-            x        : @avatar.getX() + 96
-            y        : @avatar.getY() - 7
-          , customView: @avatarChange = new AvatarChangeView delegate: this, @memberData
-
-          @avatarChange.on "UseGravatar", =>
-            @avatarSetGravatar()
-
-          @avatarChange.on "UsePhoto", (dataURI)=>
-            [_, avatarBase64] = dataURI.split ","
-            @avatar.setAvatar "url(#{dataURI})"
-            # i don't know why this was here - SY
-            # @avatar.$().css
-            #   backgroundSize: "auto 90px"
-            @avatarChange.emit "LoadingStart"
-            @uploadAvatar avatarBase64, =>
-              @avatarChange.emit "LoadingEnd"
-
-
-        else
-          @modal = new KDModalView
-            cssClass : "avatar-container"
-            width    : 390
-            fx       : yes
-            overlay  : yes
-            draggable: yes
-            position : pos
-
-          @modal.addSubView @bigAvatar = new AvatarStaticView
-            size     :
-              width  : 300
-              height : 300
-          , @memberData
-
-    if KD.isMine @memberData
-      avatarOptions.tooltip =
-        # offset      : top: 0, left: -3
-        title       : "<p class='centertext'>Click avatar to edit</p>"
-        placement   : "below"
-        arrow       :
-          placement : "top"
+        @modal.addSubView @bigAvatar = new AvatarStaticView
+          size     :
+            width  : 300
+            height : 300
+        , @memberData
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
@@ -446,12 +411,9 @@ class ProfileView extends JView
       click       : (event) =>
         KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
-    if KD.whoami().getId() is @memberData.getId()
-      @followButton = new KDCustomHTMLView
-    else
-      @followButton = new MemberFollowToggleButton
-        style : "solid"
-      , @memberData
+    if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
+    then @trollButton = new TrollButtonView style : 'thin medium red', data
+    else @trollButton = new KDCustomHTMLView
 
     nickname = @memberData.profile.nickname
 
@@ -500,63 +462,14 @@ class ProfileView extends JView
     if KD.checkFlag 'super-admin' and not KD.isMine @memberData
       @trollSwitch   = new KDCustomHTMLView
         tagName      : "a"
-        partial      : if KD.checkFlag 'exempt', @memberData then 'Unmark Troll' else 'Mark as Troll'
+        partial      : if @memberData.isExempt then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
         click        : =>
-          if KD.checkFlag 'exempt', @memberData
+          if @memberData.isExempt
           then mainController.unmarkUserAsTroll @memberData
           else mainController.markUserAsTroll   @memberData
     else
       @trollSwitch = new KDCustomHTMLView
-
-    # badgeView
-    @userBadgesController    = new KDListViewController
-      startWithLazyLoader    : no
-      view                   : new KDListView
-        cssClass             : "badge-list"
-        itemClass            : UserBadgeView
-
-    @badgeHeader = new KDCustomHTMLView
-      tagName : "h3"
-
-    @memberData.fetchMyBadges (err, badges)=>
-      if badges.length > 0
-        @badgeHeader.setPartial "Badges"
-        @userBadgesController.instantiateListItems badges
-
-    @userBadgesView = @userBadgesController.getView()
-
-
-    # for admins and moderators, list user badge property counts
-    @badgeItemsList = new KDCustomHTMLView
-    @thankButton    = new KDCustomHTMLView
-    if KD.hasAccess "assign badge"
-      @badgeItemsList = new UserPropertyList {}, counts : @memberData.counts
-      # show "Thank You" button to admins
-      @thankButton = new KDButtonView
-        cssClass   : "solid green"
-        title      : "+1 rep"
-        type       : "submit"
-        callback   : =>
-          KD.whoami().likeMember @memberData.profile.nickname, (err)=>
-            if err
-              warn err
-            else
-              KD.getSingleton("badgeController").checkBadge
-                source : "JAccount" ,property : "staffLikes", relType : "like", targetSelf : 1
-              @thankButton.disable()
-              @utils.wait 3000, =>
-                @thankButton.enable()
-      @thankButton.hide()
-      @badgeItemsList.hide()
-
-      @on "mouseenter", =>
-        @thankButton.show()
-        @badgeItemsList.show()
-
-      @on "mouseleave", =>
-        @thankButton.hide()
-        @badgeItemsList.hide()
 
   viewAppended:->
     super
@@ -670,31 +583,16 @@ class ProfileView extends JView
     super
 
   pistachio: ->
-    account      = @getData()
-    amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
-    onlineStatus = if account.onlineStatus then 'online' else 'offline'
-    # <a href="#" class="active">Open Projects<span class="count">128</span></a>
-    # <div class="user-menu">
-    #   <a href="#">Discussions</a>
-    #   <a href="#">Tutorials</a>
-    #   <a href="#">Blog Posts</a>
-    # </div>
     """
-      <div class="users-profile clearfix">
+      <main>
         {{> @avatar}}
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
-        {{> @followButton}}
+        {{> @trollButton}}
         <div class="profilestats">
           {{> @followers}}
           {{> @following}}
           {{> @likes}}
         </div>
-      </div>
-      <div class="user-badges">
-        {{> @badgeHeader}}
-        {{> @userBadgesView}}
-      </div>
-      {{> @badgeItemsList}}
-      {{> @thankButton}}
+      </main>
     """

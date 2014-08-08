@@ -1,6 +1,5 @@
 jraphical = require 'jraphical'
 KodingError = require '../error.coffee'
-CBucket = require '../models/bucket'
 
 module.exports = class Followable
 
@@ -165,21 +164,14 @@ module.exports = class Followable
               actorType : 'follower'
               follower  : ObjectRef(follower).data
               group     : group
+            SocialChannel = require '../models/socialapi/channel'
+            SocialChannel.followUser client, {followee: this}, (err) -> console.warn err  if err
 
             follower.updateFollowingCount @, action
 
             follower.updateMetaModifiedAt ()->
 
             callback err, count
-
-            Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
-              if err
-                callback err
-              else
-                emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
-                if emitActivity
-                  CBucket.addActivities relationship, @, follower, null, (err)->
-                    console.log "An Error occured: #{err}" if err
 
   unfollow: secure (client,callback)->
     JAccount = require '../models/account'
@@ -206,6 +198,10 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           follower        : follower
           action          : action
+
+        SocialChannel = require '../models/socialapi/channel'
+        SocialChannel.followUser client, {followee: this, unfollow: yes}, (err) ->
+          console.warn err  if err
 
         follower.updateFollowingCount @, action
 

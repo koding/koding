@@ -44,10 +44,10 @@ class ContentDisplayController extends KDController
 
     return  unless model
 
-    {JAccount, JNewStatusUpdate, JGroup} = KD.remote.api
+    {JAccount, SocialMessage, JGroup} = KD.remote.api
     title = switch model.constructor
       when JAccount          then  KD.utils.getFullnameFromAccount model
-      when JNewStatusUpdate  then  @utils.getPlainActivityBody model
+      when SocialMessage     then  @utils.getPlainActivityBody model
       when JGroup            then  model.title
       else "#{model.title}#{getSectionName model}"
 

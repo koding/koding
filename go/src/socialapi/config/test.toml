@@ -1,0 +1,54 @@
+EventExchangeName = "BrokerMessageBus"
+Mongo             = "localhost:27017/koding"
+Environment       = "test"
+Region            = "aws"
+Uri               = "http://lvh.me:3020"
+DisableCaching    = false
+
+[postgres]
+Host       = "localhost"
+Port       = 5432
+# Username = "postgres"
+# Password = "123123123"
+Username   = "socialapplication"
+Password   = "socialapplication"
+DBName     = "social"
+
+[mq]
+Host     = "localhost"
+Port     = 5672
+Username = "PROD-k5it50s4676pO9O"
+Password = "djfjfhgh4455__5"
+Vhost    = "/"
+
+[redis]
+URL = "localhost:6379"
+DB  = 2
+
+[limits]
+MessageBodyMinLen    = 5
+PostThrottleDuration = "10s"
+PostThrottleCount    = 100
+
+[emailnotification]
+TemplateRoot = "workers/emailnotifier/templates/"
+
+[sendgrid]
+Username        = "koding"
+Password        = "DEQl7_Dr"
+FromName        = "Koding"
+FromMail        = "hello@koding.com"
+ForcedRecipient = "canthefason@gmail.com"
+
+[sitemap]
+RedisDB = 2
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
+ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
+IndexSuffix    = ".test"
+
+[analytics]
+Enabled       = false
+MixpanelToken = "113c2731b47a5151f4be44ddd5af0e7a"

@@ -15,7 +15,7 @@ module.exports = class Taggable
     taggedCount = 0
 
     {delegate} = client.connection
-    exempt = delegate.checkFlag('exempt')
+    exempt = delegate.isExempt
 
     @removeAllTags client, silent: tags.length > 0, (err)=>
       if err then callback err
@@ -29,18 +29,6 @@ module.exports = class Taggable
                 @addTag tag, (err)=>
                   if err then callback err
                   else do queue.next
-              =>
-                options = {
-                  as: taggedContentRole
-                  respondWithCount: yes
-                }
-                options.data = { flags: {isLowQuality: exempt}} if exempt
-
-                tag.addContent @, options, (err, docs, count)=>
-                  if err then callback err
-                  else
-                    taggedCount = count
-                    queue.next()
               =>
                 incCount = {}
                 incCount["counts.#{taggedContentRole}"] = taggedCount

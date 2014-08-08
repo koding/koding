@@ -5,8 +5,8 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
+  getTitle     = require './../title'
   getSidebar   = require './sidebar'
-  encoder      = require 'htmlencode'
 
   {
     account, slug, title, content, body,
@@ -24,7 +24,7 @@ module.exports = (options, callback)->
     <!DOCTYPE html>
     <html>
     <head>
-      <title>#{encoder.XSSEncode title}</title>
+      #{getTitle()}
       #{getStyles customize}
     </head>
     <body class="group">
@@ -32,6 +32,7 @@ module.exports = (options, callback)->
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:['guest'], permissions:[]}}
+    <script>KD.isLoggedInOnLoad=false;</script>
     #{scripts}
     </body>
     </html>

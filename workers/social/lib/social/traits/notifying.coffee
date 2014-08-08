@@ -18,17 +18,11 @@ module.exports = class Notifying
 
     JMailNotification  = require '../models/emailnotification'
     JAccount = require '../models/account'
-    CBucket  = require '../models/bucket'
     JUser    = require '../models/user'
 
     actor = contents[contents.actorType]
     {origin, recipient} = contents
     recipient or= null
-
-    createActivity = =>
-      if contents.relationship?
-        relationship = new Relationship contents.relationship
-        CBucket.addActivities relationship, receiver, actor, recipient, callback
 
     sendNotification = =>
       if receiver instanceof JAccount and receiver.type isnt 'unregistered'
@@ -45,7 +39,6 @@ module.exports = class Notifying
       return  if subject and subject.constructorName is 'JGroup' \
                          and subject.slug is "koding"
 
-      do createActivity
       do sendNotification
 
   notifyOriginWhen:(events...)->

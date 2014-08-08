@@ -61,7 +61,7 @@ class EmbedBoxLinkViewImageSwitch extends JView
     if imageIndex < oembed.images.length - 1
       imgSrc = oembed.images[imageIndex]?.url
       if imgSrc
-        proxiedImage = @utils.proxifyUrl imgSrc, width: 144, height: 100, crop: yes, grow: yes
+        proxiedImage = @utils.proxifyUrl imgSrc, width: 100, height: 100, crop: yes, grow: yes
         @getDelegate().embedImage.setSrc proxiedImage
       else
         # imgSrc is undefined - this would be the place for a default
@@ -72,13 +72,13 @@ class EmbedBoxLinkViewImageSwitch extends JView
       # TODO: this sucks:
       @getDelegate().getDelegate().setImageIndex imageIndex
 
-    else
-      # imageindex out of bounds - displaying default image
-      # (first in the images array) the pistachio will also take care
-      # of this
+    # else
+    #   # imageindex out of bounds - displaying default image
+    #   # (first in the images array) the pistachio will also take care
+    #   # of this
 
-      defaultImgSrc = oembed.images[0]?.url
-      @getDelegate().embedImage.setSrc defaultImgSrc
+    #   defaultImgSrc = oembed.images[0]?.url
+    #   @getDelegate().embedImage.setSrc defaultImgSrc
 
     # When we're at 0/x or x/x, disable the next/prev buttons
     if imageIndex is 0

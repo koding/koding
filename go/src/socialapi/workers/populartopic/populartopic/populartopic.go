@@ -1,7 +1,6 @@
 package populartopic
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
-	"github.com/koding/worker"
 	"github.com/streadway/amqp"
 )
 
@@ -17,58 +15,40 @@ var (
 	PopularTopicKey = "populartopic"
 )
 
-type Action func(*PopularTopicsController, *models.ChannelMessageList) error
-
-type PopularTopicsController struct {
-	routes map[string]Action
-	log    logging.Logger
-	redis  *redis.RedisSession
+type Controller struct {
+	log   logging.Logger
+	redis *redis.RedisSession
 }
 
-func (t *PopularTopicsController) DefaultErrHandler(delivery amqp.Delivery, err error) {
+func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		t.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+		return true
+	}
+
 	t.log.Error("an error occured putting message back to queue", err)
-	// multiple false
-	// reque true
 	delivery.Nack(false, true)
+	return false
 }
 
-func NewPopularTopicsController(log logging.Logger, redis *redis.RedisSession) *PopularTopicsController {
-	ffc := &PopularTopicsController{
+func New(log logging.Logger, redis *redis.RedisSession) *Controller {
+	return &Controller{
 		log:   log,
 		redis: redis,
 	}
-
-	routes := map[string]Action{
-		"api.channel_message_list_created": (*PopularTopicsController).MessageSaved,
-		"api.channel_message_list_deleted": (*PopularTopicsController).MessageDeleted,
-	}
-
-	ffc.routes = routes
-	return ffc
 }
 
-func (f *PopularTopicsController) HandleEvent(event string, data []byte) error {
-	f.log.Debug("New Event Recieved %s", event)
-	handler, ok := f.routes[event]
-	if !ok {
-		return worker.HandlerNotFoundErr
-	}
-
-	cml, err := mapMessage(data)
-	if err != nil {
-		return err
-	}
-
-	if cml.ChannelId == 0 {
-		f.log.Error(fmt.Sprintf("ChannelId is not set for Channel Message List id: %d Deleting from rabbitmq", cml.Id))
-		return nil
-	}
-
-	return handler(f, cml)
+func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {
+	return f.handleMessageEvents(data, 1)
 }
 
-func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
+func (f *Controller) MessageDeleted(data *models.ChannelMessageList) error {
+	return f.handleMessageEvents(data, -1)
+}
+
+func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increment int) error {
+	c, err := models.ChannelById(data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -78,36 +58,17 @@ func (f *PopularTopicsController) MessageSaved(data *models.ChannelMessageList) 
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), 1, data.ChannelId)
+	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), 1, data.ChannelId)
+	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList) error {
-	c, err := fetchChannel(data.ChannelId)
-	if err != nil {
-		return err
-	}
-
-	if !f.isEligible(c) {
-		f.log.Info("Not eligible Channel Id:%d", c.Id)
-		return nil
-	}
-
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, data), -1, data.MessageId)
-	if err != nil {
-		return err
-	}
-
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), -1, data.MessageId)
+	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, data), increment, data.ChannelId)
 	if err != nil {
 		return err
 	}
@@ -118,13 +79,29 @@ func (f *PopularTopicsController) MessageDeleted(data *models.ChannelMessageList
 func PreparePopularTopicKey(group, statisticName string, year, dateNumber int) string {
 	return fmt.Sprintf(
 		"%s:%s:%s:%d:%s:%d",
-		config.Get().Environment,
+		config.MustGet().Environment,
 		group,
 		PopularTopicKey,
 		year,
 		statisticName,
 		dateNumber,
 	)
+}
+
+func GetDailyKey(c *models.Channel, cml *models.ChannelMessageList) string {
+	day := 0
+	year := 2014
+
+	if !cml.AddedAt.IsZero() {
+		day = cml.AddedAt.UTC().YearDay()
+		year, _, _ = cml.AddedAt.UTC().Date()
+	} else {
+		now := time.Now().UTC()
+		day = now.YearDay()
+		year, _, _ = now.Date()
+	}
+
+	return PreparePopularTopicKey(c.GroupName, "daily", year, day)
 }
 
 func GetWeeklyKey(c *models.Channel, cml *models.ChannelMessageList) string {
@@ -157,29 +134,14 @@ func GetMonthlyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 	return PreparePopularTopicKey(c.GroupName, "monthly", year, int(month))
 }
 
-func mapMessage(data []byte) (*models.ChannelMessageList, error) {
-	cm := models.NewChannelMessageList()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
+func (f *Controller) isEligible(c *models.Channel) bool {
+	if c.MetaBits.Is(models.Troll) {
+		return false
 	}
 
-	return cm, nil
-}
-
-func (f *PopularTopicsController) isEligible(c *models.Channel) bool {
 	if c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return false
 	}
 
 	return true
-}
-
-// todo add caching here
-func fetchChannel(channelId int64) (*models.Channel, error) {
-	c := models.NewChannel()
-	if err := c.ById(channelId); err != nil {
-		return nil, err
-	}
-
-	return c, nil
 }

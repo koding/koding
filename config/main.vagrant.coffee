@@ -44,7 +44,10 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://localhost:7000"
   sourceServer  :
     enabled     : yes
     port        : 3526
@@ -52,18 +55,12 @@ module.exports =
   mongoKontrol  : mongoKontrol
   mongoReplSet  : null
   mongoMinWrites: 1
-  neo4j         :
-    read        : "http://localhost"
-    write       : "http://localhost"
-    port        : 7474
-  runNeo4jFeeder: yes
   runGoBroker   : yes
   runGoBrokerKite: yes
   runPremiumBroker: yes
   runPremiumBrokerKite: yes
   runKontrol    : yes
   runRerouting  : yes
-  runPersistence: no
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -113,8 +110,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
@@ -136,8 +131,6 @@ module.exports =
     componentUser: 'guest'
     password    : 'guest'
     vhost       : 'followfeed'
-  graphFeederWorker:
-    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -151,6 +144,10 @@ module.exports =
     staticFilesBaseUrl: 'http://lvh.me:3020'
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia:
+        appId: 'DYVV81J2S1'
+        apiKey: '303eb858050b1067bcd704d6cbfb977c'
+        indexSuffix: '.vagrant'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
@@ -164,7 +161,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'lvh.me'
-      useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       logToInternal: no  # log worker
       resourceName: socialQueueName
@@ -398,16 +394,13 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "notice"
     oskite        : "info"
     terminal      : "info"
     kontrolproxy  : "notice"
     kontroldaemon : "notice"
-    userpresence  : "notice"
     vmproxy       : "notice"
-    graphitefeeder: "notice"
+    graphitefeeder: "info"
     sync          : "notice"
-    topicModifier : "notice"
     postModifier  : "notice"
     router        : "notice"
     rerouting     : "notice"

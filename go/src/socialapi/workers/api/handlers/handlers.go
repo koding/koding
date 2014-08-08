@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"net/http"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -12,93 +11,378 @@ import (
 	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatemessage"
 	"socialapi/workers/api/modules/reply"
+	"socialapi/workers/common/handler"
 
 	"github.com/rcrowley/go-tigertonic"
 )
 
-var (
-	cors = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
-)
-
-func handlerWrapper(handler interface{}, logName string) http.Handler {
-	return cors.Build(
-		tigertonic.Timed(
-			tigertonic.Marshaled(handler),
-			logName,
-			nil,
-		))
-}
-
-// todo implement context support here for requests
 func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
-	////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// Message Operations /////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////
-	mux.Handle("POST", "/message/{id}", handlerWrapper(message.Update, "message-update"))
-	mux.Handle("DELETE", "/message/{id}", handlerWrapper(message.Delete, "message-delete"))
-	mux.Handle("GET", "/message/{id}", handlerWrapper(message.Get, "message-get"))
-	mux.Handle("GET", "/message/{id}/related", handlerWrapper(message.GetWithRelated, "message-get"))
+	//----------------------------------------------------------
+	// Message Operations
+	//----------------------------------------------------------
+	mux.Handle("POST", "/message/{id}", handler.Wrapper(
+		handler.Request{
+			Handler:        message.Update,
+			Name:           "message-update",
+			CollectMetrics: true,
+		},
+	))
 
-	////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////// Message Reply Operations /////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////
-	mux.Handle("POST", "/message/{id}/reply", handlerWrapper(reply.Create, "reply-create"))
-	mux.Handle("GET", "/message/{id}/reply", handlerWrapper(reply.List, "reply-list"))
+	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(
+		handler.Request{
+			Handler:        message.Delete,
+			Name:           "message-delete",
+			CollectMetrics: true,
+		},
+	))
 
-	////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////// Message Interaction Operations /////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////
-	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handlerWrapper(interaction.Add, "interactions-add"))
-	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handlerWrapper(interaction.Delete, "interactions-delete"))
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/message/{id}", handler.Wrapper(
+		handler.Request{
+			Handler: message.Get,
+			Name:    "message-get",
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/message/slug/{slug}", handler.Wrapper(
+		handler.Request{
+			Handler: message.GetBySlug,
+			Name:    "message-get-by-slug",
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/message/{id}/related", handler.Wrapper(
+		handler.Request{
+			Handler: message.GetWithRelated,
+			Name:    "message-get-with-related",
+		},
+	))
+
+	//----------------------------------------------------------
+	// Message Reply Operations
+	//----------------------------------------------------------
+	mux.Handle("POST", "/message/{id}/reply", handler.Wrapper(
+		handler.Request{
+			Handler:        reply.Create,
+			Name:           "reply-create",
+			CollectMetrics: true,
+		},
+	))
+	// exempt contents are filtered
+	mux.Handle("GET", "/message/{id}/reply", handler.Wrapper(
+		handler.Request{
+			Handler: reply.List,
+			Name:    "reply-list",
+		},
+	))
+
+	//----------------------------------------------------------
+	// Message Interaction
+	//----------------------------------------------------------
+	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handler.Wrapper(
+		handler.Request{
+			Handler:        interaction.Add,
+			Name:           "interactions-add",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handler.Wrapper(
+		handler.Request{
+			Handler:        interaction.Delete,
+			Name:           "interactions-delete",
+			CollectMetrics: true,
+		},
+	))
+
 	// get all the interactions for message
-	mux.Handle("GET", "/message/{id}/interaction/{type}", handlerWrapper(interaction.List, "interactions-list-typed"))
+	// exempt contents are filtered
+	mux.Handle("GET", "/message/{id}/interaction/{type}", handler.Wrapper(
+		handler.Request{
+			Handler: interaction.List,
+			Name:    "interactions-list-typed",
+		},
+	))
 
-	////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// Channel Operations /////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////
-	mux.Handle("POST", "/channel", handlerWrapper(channel.Create, "channel-create"))
-	mux.Handle("GET", "/channel", handlerWrapper(channel.List, "channel-list"))
+	// Channel Operations
+	//----------------------------------------------------------
+	mux.Handle("POST", "/channel", handler.Wrapper(
+		handler.Request{
+			Handler:        channel.Create,
+			Name:           "channel-create",
+			CollectMetrics: true,
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/channel", handler.Wrapper(
+		handler.Request{
+			Handler: channel.List,
+			Name:    "channel-list",
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/channel/search", handler.Wrapper(
+		handler.Request{
+			Handler: channel.Search,
+			Name:    "channel-search",
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/channel/name/{name}", handler.Wrapper(
+		handler.Request{
+			Handler: channel.ByName,
+			Name:    "channel-get-byname",
+		},
+	))
+	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(
+		handler.Request{
+			Handler: channel.CheckParticipation,
+			Name:    "channel-check-participation",
+		},
+	))
+
 	// deprecated, here for socialworker
-	mux.Handle("POST", "/channel/{id}", handlerWrapper(channel.Update, "channel-update"))
-	mux.Handle("POST", "/channel/{id}/update", handlerWrapper(channel.Update, "channel-update"))
-	mux.Handle("POST", "/channel/{id}/delete", handlerWrapper(channel.Delete, "channel-delete"))
-	mux.Handle("GET", "/channel/{id}", handlerWrapper(channel.Get, "channel-get"))
+	mux.Handle("POST", "/channel/{id}", handler.Wrapper(
+		handler.Request{
+			Handler:        channel.Update,
+			Name:           "channel-update-old",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/channel/{id}/update", handler.Wrapper(
+		handler.Request{
+			Handler:        channel.Update,
+			Name:           "channel-update",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(
+		handler.Request{
+			Handler:        channel.Delete,
+			Name:           "channel-delete",
+			CollectMetrics: true,
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/channel/{id}", handler.Wrapper(
+		handler.Request{
+			Handler: channel.Get,
+			Name:    "channel-get",
+		},
+	))
+
 	// add a new messages to the channel
-	mux.Handle("POST", "/channel/{id}/message", handlerWrapper(message.Create, "channel-message-create"))
-	// list participants of the channel
-	mux.Handle("GET", "/channel/{id}/participant", handlerWrapper(participant.List, "participant-list"))
-	// add participant to the channel
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/add", handlerWrapper(participant.Add, "participant-list"))
-	// remove participant from the channel
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/delete", handlerWrapper(participant.Delete, "participant-list"))
+	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(
+		handler.Request{
+			Handler:        message.Create,
+			Name:           "channel-message-create",
+			CollectMetrics: true,
+		},
+	))
+
+	// exempt contents are filtered
+	mux.Handle("GET", "/channel/{id}/participants", handler.Wrapper(
+		handler.Request{
+			Handler: participant.List,
+			Name:    "participant-list",
+		},
+	))
+
+	mux.Handle("POST", "/channel/{id}/participants/add", handler.Wrapper(
+		handler.Request{
+			Handler:        participant.AddMulti,
+			Name:           "participant-multi-add",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/channel/{id}/participants/remove", handler.Wrapper(
+		handler.Request{
+			Handler:        participant.RemoveMulti,
+			Name:           "participant-multi-remove",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(
+		handler.Request{
+			Handler:        participant.UpdatePresence,
+			Name:           "participant-presence-update",
+			CollectMetrics: true,
+		},
+	))
+
 	// list messages of the channel
-	mux.Handle("GET", "/channel/{id}/history", handlerWrapper(messagelist.List, "channel-history-list"))
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(
+		handler.Request{
+			Handler: messagelist.List,
+			Name:    "channel-history-list",
+		},
+	))
+
+	// message count of the channel
+	mux.Handle("GET", "/channel/{id}/history/count", handler.Wrapper(
+		handler.Request{
+			Handler: messagelist.Count,
+			Name:    "channel-history-count",
+		},
+	))
+
 	// register an account
-	mux.Handle("POST", "/account", handlerWrapper(account.Register, "account-create"))
+	mux.Handle("POST", "/account", handler.Wrapper(
+		handler.Request{
+			Handler:        account.Register,
+			Name:           "account-create",
+			CollectMetrics: true,
+		},
+	))
+
+	// added troll mode protection
 	// list channels of the account
-	mux.Handle("GET", "/account/{id}/channels", handlerWrapper(account.ListChannels, "account-channel-list"))
+	mux.Handle("GET", "/account/{id}/channels", handler.Wrapper(
+		handler.Request{
+			Handler: account.ListChannels,
+			Name:    "account-channel-list",
+		},
+	))
+
+	// list posts of the account
+	mux.Handle("GET", "/account/{id}/posts", handler.Wrapper(
+		handler.Request{
+			Handler: account.ListPosts,
+			Name:    "account-post-list",
+		},
+	))
+
 	// follow the account
-	mux.Handle("POST", "/account/{id}/follow", handlerWrapper(account.Follow, "account-follow"))
+	mux.Handle("POST", "/account/{id}/follow", handler.Wrapper(
+		handler.Request{
+			Handler:        account.Follow,
+			Name:           "account-follow",
+			CollectMetrics: true,
+		},
+	))
+
 	// un-follow the account
-	mux.Handle("POST", "/account/{id}/unfollow", handlerWrapper(account.Unfollow, "account-unfollow"))
-	// mark as troll
-	mux.Handle("POST", "/account/{id}/markastroll", handlerWrapper(account.MarkAsTroll, "account-mark-as-troll"))
+	mux.Handle("POST", "/account/{id}/unfollow", handler.Wrapper(
+		handler.Request{
+			Handler:        account.Unfollow,
+			Name:           "account-unfollow",
+			CollectMetrics: true,
+		},
+	))
 
 	// fetch profile feed
-	// mux.Handle("GET", "/account/{id}/profile/feed", handlerWrapper(account.ListProfileFeed, "list-profile-feed"))
+	// mux.Handle("GET", "/account/{id}/profile/feed", handler.Wrapper(
+	//   handler.Request{
+	//     Handler: account.ListProfileFeed,
+	//     Name:    "list-profile-feed",
+	//   },
+	// ))
+
 	// get pinning channel of the account
-	mux.Handle("GET", "/activity/pin/channel", handlerWrapper(activity.GetPinnedActivityChannel, "activity-pin-get-channel"))
-	// get pinning channel of the account
-	mux.Handle("GET", "/activity/pin/list", handlerWrapper(activity.List, "activity-pin-list-message"))
+	mux.Handle("GET", "/activity/pin/channel", handler.Wrapper(
+		handler.Request{
+			Handler: activity.GetPinnedActivityChannel,
+			Name:    "activity-pin-get-channel",
+		},
+	))
+
+	// exempt contents are filtered
+	// caching enabled
+	mux.Handle("GET", "/activity/pin/list", handler.Wrapper(
+		handler.Request{
+			Handler: activity.List,
+			Name:    "activity-pin-list-message",
+		},
+	))
+
 	// pin a new status update
-	mux.Handle("POST", "/activity/pin/add", handlerWrapper(activity.PinMessage, "activity-add-pinned-message"))
+	mux.Handle("POST", "/activity/pin/add", handler.Wrapper(
+		handler.Request{
+			Handler:        activity.PinMessage,
+			Name:           "activity-add-pinned-message",
+			CollectMetrics: true,
+		},
+	))
 	// unpin a status update
-	mux.Handle("POST", "/activity/pin/remove", handlerWrapper(activity.UnpinMessage, "activity-remove-pinned-message"))
+	mux.Handle("POST", "/activity/pin/remove", handler.Wrapper(
+		handler.Request{
+			Handler:        activity.UnpinMessage,
+			Name:           "activity-remove-pinned-message",
+			CollectMetrics: true,
+		},
+	))
+
+	// @todo add tests
+	mux.Handle("POST", "/activity/pin/glance", handler.Wrapper(
+		handler.Request{
+			Handler:        activity.Glance,
+			Name:           "activity-pinned-message-glance",
+			CollectMetrics: true,
+		},
+	))
+
 	// get popular topics
-	mux.Handle("GET", "/popular/topics/{statisticName}", handlerWrapper(popular.ListTopics, "list-popular-topics"))
-	mux.Handle("POST", "/privatemessage/send", handlerWrapper(privatemessage.Send, "privatemessage-send"))
-	mux.Handle("GET", "/privatemessage/list", handlerWrapper(privatemessage.List, "privatemessage-list"))
+	// exempt contents are filtered
+	// TODO add caching
+	mux.Handle("GET", "/popular/topics/{statisticName}", handler.Wrapper(
+		handler.Request{
+			Handler: popular.ListTopics,
+			Name:    "list-popular-topics",
+		},
+	))
+
+	// exempt contents are filtered
+	// TODO add caching
+	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(
+		handler.Request{
+			Handler: popular.ListPosts,
+			Name:    "list-popular-posts",
+		},
+	))
+
+	mux.Handle("POST", "/privatemessage/init", handler.Wrapper(
+		handler.Request{
+			Handler:        privatemessage.Init,
+			Name:           "privatemessage-init",
+			CollectMetrics: true,
+		},
+	))
+
+	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(
+		handler.Request{
+			Handler:        privatemessage.Send,
+			Name:           "privatemessage-send",
+			CollectMetrics: true,
+		},
+	))
+
+	// exempt contents are filtered
+	mux.Handle("GET", "/privatemessage/list", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.List,
+			Name:    "privatemessage-list",
+		},
+	))
 
 	return mux
 }

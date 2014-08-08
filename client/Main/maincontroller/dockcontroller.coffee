@@ -1,40 +1,66 @@
 class DockController extends KDViewController
 
+  isRunning = (item) -> item?.state is 'running'
+
   defaultItems = [
-    { title : "Activity",  path : "/Activity", order : 10, type :"persistent" }
-    # { title : "Topics",    path : "/Topics",   order : 20, type :"persistent" }
-    { title : "Teamwork",  path : "/Teamwork", order : 20, type :"persistent" }
-    { title : "Terminal",  path : "/Terminal", order : 30, type :"persistent" }
-    { title : "Editor",    path : "/Ace",      order : 40, type :"persistent" }
-    { title : "Apps",      path : "/Apps",     order : 50, type :"persistent" }
-    # { title : "About",     path : "/About",    order : 70, type :"persistent" }
-    { title : "DevTools",  path : "/DevTools", order : 60, type :"persistent" }
+    { title : 'Activity',  path : '/Activity', order : 10, type :'persistent' }
+    { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
+    { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
+    { title : 'Apps',      path : '/Apps',     order : 40, type :'persistent' }
+    { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
+
   constructor:(options = {}, data)->
+
     options.view or= new KDCustomHTMLView domId : 'dock'
 
     super options, data
 
     @storage = new AppStorage "Dock", "1.0.3"
 
+    loaderOptions =
+      spinnerOptions    :
+        size            :
+          width         : 16
+        loaderOptions   :
+          color         : '#B8B8B8'
+
     @navController = new MainNavController
-      view         : new NavigationList
-        domId      : 'main-nav'
-        testPath   : 'navigation-list'
-        type       : 'navigation'
-        itemClass  : NavigationLink
-        testPath   : 'navigation-list'
-      wrapper      : no
-      scrollView   : no
+      view                : new NavigationList
+        domId             : 'main-nav'
+        testPath          : 'navigation-list'
+        type              : 'navigation'
+        itemClass         : NavigationLink
+        testPath          : 'navigation-list'
+      wrapper             : no
+      scrollView          : no
+      startWithLazyLoader : yes
+      lazyLoaderOptions   : loaderOptions
     ,
       id           : 'navigation'
       title        : 'navigation'
       items        : []
 
-    mainController = KD.getSingleton 'mainController'
 
-    mainController.ready @bound 'accountChanged'
+    @vmsList = new KDListViewController
+      wrapper             : no
+      scrollView          : no
+      startWithLazyLoader : yes
+      itemClass           : NavigationVMItem
+      lazyLoaderOptions   : loaderOptions
+    ,
+      id           : 'vms'
+      title        : 'vms'
+      items        : []
+
+    @vmsList.getListView().on 'VMCogClicked', (vm, item)->
+      {mainView} = KD.singletons
+      mainView.openVMModal vm, item
+
+    # {mainController} = KD.singletons
+    # mainController.ready @bound 'accountChanged'
 
     @trackStateTransitions()
     @bindKeyCombos()
@@ -62,6 +88,7 @@ class DockController extends KDViewController
 
     return finalItems
 
+
   saveItemOrders:(items)->
 
     items or= @getItems()
@@ -75,6 +102,7 @@ class DockController extends KDViewController
     @storage.setValue 'navItems', navItems, (err)->
       warn "Failed to save navItems order", err  if err
 
+
   resetItemSettings:->
     item.order = index  for own index, item of defaultItems
 
@@ -85,9 +113,11 @@ class DockController extends KDViewController
       @navController.reset()
       "Navigation items has been reset."
 
+
   setNavItems:(items)->
     KD.setNavItems items
     @navController.reset()
+
 
   addItem:(item)->
 
@@ -95,6 +125,7 @@ class DockController extends KDViewController
       KD.registerNavItem item
       @navController.addItem item
       @saveItemOrders()
+
 
   removeItem:(item)->
 
@@ -111,10 +142,11 @@ class DockController extends KDViewController
     @navController.removeItem item
     @saveItemOrders()
 
+
   accountChanged:->
 
     @navController.reset()
-    @storage.fetchValue 'navItems', (usersNavItems)=>
+    @storage.fetchValue 'navItems', (usersNavItems) =>
 
       unless usersNavItems
         @setNavItems defaultItems
@@ -157,14 +189,51 @@ class DockController extends KDViewController
           @addItem { title : name, path, \
                      order : 60 + KD.utils.uniqueId(), type :"" }
 
-  loadView:(dock)->
+  listVMs: (vms) ->
+
+    @vmsList.hideLazyLoader()
+
+    @vmsList.addItem vm  for vm in vms
+
+
+  loadView: (dock) ->
+
+    dock.addSubView new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'MY APPS'
+
+    dock.addSubView @navController.getView()
+
+    dock.addSubView new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'MY VMs'
+
+    dock.addSubView @vmsList.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'add-vm'
+      title    : '+ Add another VM'
+      click    : ->
+        # fixme: this is a temp solution
+        # this should change with the new environments
+        KD.singletons.appManager.require 'Environments', ->
+          env = new EnvironmentMachineContainer
+          env.emit 'PlusButtonClicked'
+
+
+    # @navController.reset()
+    # @setNavItems defaultItems
+    @setNavItems defaultItems
+    @emit 'ready'
+
+    if KD.userVMs.length
+    then @listVMs KD.userVMs
+    else @fetchVMs @bound 'listVMs'
+
 
     @ready =>
-
-      @scrollView = new KDCustomScrollView
-
-      dock.addSubView @scrollView
-      @scrollView.wrapper.addSubView @navController.getView()
 
       # Listen appManager to update dock items states
       {appManager, kodingAppsController} = KD.singletons
@@ -172,20 +241,48 @@ class DockController extends KDViewController
       for name of appManager.appControllers
         @setNavItemState {name}, 'active'
 
+      @navController.hideLazyLoader()
+
       {appManager, kodingAppsController} = KD.singletons
 
-      appManager.on "AppRegistered", (name, options) =>
+      appManager.on 'AppRegistered', (name, options) =>
         @setNavItemState {name, options}, 'running'
 
-      appManager.on "AppUnregistered", (name, options) =>
+      appManager.on 'AppUnregistered', (name, options) =>
         @setNavItemState {name, options}, 'initial'
 
-      appManager.on "AppIsBeingShown", (instance, view, options) =>
+      appManager.on 'AppIsBeingShown', (instance, view, options) =>
         @setNavItemState {name:options.name, options}, 'active'
 
-  isRunning = (item) -> item?.state is 'running'
+
+  fetchVMs: (callback)->
+
+    {vmController} = KD.singletons
+
+    # force refetch from server everytime vms fetched.
+    vmController.fetchVMs force = yes, (err, vms) =>
+      if err
+        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+
+      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
+      # gets just the vm number
+      getVMNumber = ({hostnameAlias})->
+        +(hostnameAlias.match(/\d+/)[0])
+
+      # sort vms by vm number
+      vms.sort (a,b)->
+        getVMNumber(a) > getVMNumber(b)
+
+      callback vms
+
+  refreshSidebarVMs: ->
+    @fetchVMs (vms) =>
+      @vmsList.removeAllItems()
+      @listVMs vms
 
   getRelativeItem: (increment, predicate) ->
+
     i = @activeIndex
     len = @navController.itemsOrdered.length
     loop
@@ -197,20 +294,28 @@ class DockController extends KDViewController
       item = @itemStates[i]
       return item  if item is this or predicate item
 
+
   activatePreviousApp: (e) ->
+
     e.preventDefault()
     item = @getRelativeItem -1, isRunning
     @setActiveItem item.item
 
+
   activateNextApp: (e) ->
+
     e.preventDefault()
     item = @getRelativeItem 1, isRunning
     @setActiveItem item.item
 
+
   setActiveItem: (item) ->
+
     KD.singletons.router.handleRoute item.getData().path
 
+
   trackStateTransitions: ->
+
     @itemStates = []
     @activeIndex = null
     @on 'NavItemStateChanged', (info) ->
@@ -218,7 +323,9 @@ class DockController extends KDViewController
       @itemStates[index] = info
       @activeIndex = index  if state is 'running'
 
+
   openApp: (index) ->
+
     len = @navController.itemsOrdered.length
     index += len  if index < 0
     item = @navController.itemsOrdered[index]
@@ -226,7 +333,9 @@ class DockController extends KDViewController
     { path } = item.getData()
     KD.singletons.router.handleRoute path
 
+
   bindKeyCombos: ->
+
     { globalKeyCombos } = KD.singletons
 
     globalKeyCombos

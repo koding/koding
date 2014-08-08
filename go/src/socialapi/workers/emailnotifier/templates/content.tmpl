@@ -1,0 +1,19 @@
+{{define "content"}}
+<tr class="content">
+  <td class="time">
+    <a href='#'>{{.ActivityTime}}</a>
+  </td>
+  <td class="inner" colspan="2">
+      {{template "gravatar" . }}
+      <div class="action">
+        <a href="{{.Uri}}/{{.ActorContact.Username}}">
+          {{.ActorContact.FirstName}} {{.ActorContact.LastName}}
+        </a>
+        {{.Action}}
+        {{template "object" . }}
+        {{template "group" . }}
+      </div>
+      {{template "preview" . }}
+  </td>
+</tr>
+{{end}}

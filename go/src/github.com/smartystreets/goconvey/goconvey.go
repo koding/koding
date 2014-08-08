@@ -1,7 +1,7 @@
 // This executable provides an HTTP server that watches for file system changes
 // to .go files within the working directory (and all nested go packages).
-// Navigating to the configured host and port will show a web UI showing the
-// results of running `go test` in each go package.
+// Navigating to the configured host and port in a web browser will display the
+// latest results of running `go test` in each go package.
 
 package main
 
@@ -18,8 +18,8 @@ import (
 
 	"github.com/smartystreets/goconvey/web/server/api"
 	"github.com/smartystreets/goconvey/web/server/contract"
-	exec "github.com/smartystreets/goconvey/web/server/executor"
-	parse "github.com/smartystreets/goconvey/web/server/parser"
+	executor "github.com/smartystreets/goconvey/web/server/executor"
+	parser "github.com/smartystreets/goconvey/web/server/parser"
 	"github.com/smartystreets/goconvey/web/server/system"
 	watch "github.com/smartystreets/goconvey/web/server/watcher"
 )
@@ -36,7 +36,7 @@ func flags() {
 	flag.StringVar(&gobin, "gobin", "go", "The path to the 'go' binary (default: search on the PATH).")
 	flag.BoolVar(&cover, "cover", true, "Enable package-level coverage statistics. Requires Go 1.2+ and the go cover tool. (default: true)")
 	flag.IntVar(&depth, "depth", -1, "The directory scanning depth. If -1, scan infinitely deep directory structures. 0: scan working directory. 1+: Scan into nested directories, limited to value. (default: -1)")
-	flag.StringVar(&testflags, "testflags", "", `Any extra flags to be passed to go test tool (default: '') (example: '-testflags="-test.short=true")`)
+	flag.BoolVar(&short, "short", false, "Configures the `testing.Short()` function to return `true`, allowing you to call `t.Skip()` on long-running tests.")
 
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -50,24 +50,14 @@ func folders() {
 
 func main() {
 	flag.Parse()
-	ensureProperGoTestFlags()
 
-	log.Printf("Initial configuration: [host: %s] [port: %d] [poll: %v] [cover: %v] [testflags: %v]\n", host, port, nap, cover, testflags)
+	log.Printf(initialConfiguration, host, port, nap, cover, short)
 
 	monitor, server := wireup()
 
 	go monitor.ScanForever()
 
 	serveHTTP(server)
-}
-
-func ensureProperGoTestFlags() {
-	testflags = strings.TrimSpace(testflags)
-	for _, a := range strings.Fields(testflags) {
-		if a == "-test.parallel" || a == "-parallel" {
-			log.Fatal("GoConvey does not support the parallel test flag")
-		}
-	}
 }
 
 func serveHTTP(server contract.Server) {
@@ -106,18 +96,21 @@ func wireup() (*contract.Monitor, contract.Server) {
 		log.Fatal(err)
 	}
 
+	shellExecutor := system.NewCommandExecutor()
+	cover = coverageEnabled(cover, reports, shellExecutor)
+
 	depthLimit := system.NewDepthLimit(system.NewFileSystem(), depth)
-	shell := system.NewShell(gobin, testflags, cover, reports)
+	shell := system.NewShell(shellExecutor, gobin, short, cover, reports)
 
 	watcher := watch.NewWatcher(depthLimit, shell)
 	watcher.Adjust(working)
 
-	parser := parse.NewParser(parse.ParsePackageResults)
-	tester := exec.NewConcurrentTester(shell)
+	parser := parser.NewParser(parser.ParsePackageResults)
+	tester := executor.NewConcurrentTester(shell)
 	tester.SetBatchSize(packages)
 
 	longpollChan, pauseUpdate := make(chan chan string), make(chan bool, 1)
-	executor := exec.NewExecutor(tester, parser, longpollChan)
+	executor := executor.NewExecutor(tester, parser, longpollChan)
 	server := api.NewHTTPServer(watcher, executor, longpollChan, pauseUpdate)
 	scanner := watch.NewScanner(depthLimit, watcher)
 	monitor := contract.NewMonitor(scanner, watcher, executor, server, pauseUpdate, sleeper)
@@ -125,22 +118,81 @@ func wireup() (*contract.Monitor, contract.Server) {
 	return monitor, server
 }
 
+func coverageEnabled(cover bool, reports string, shell system.Executor) bool {
+	return (cover &&
+		goVersion_1_2_orGreater() &&
+		coverToolInstalled(shell) &&
+		ensureReportDirectoryExists(reports))
+}
+func goVersion_1_2_orGreater() bool {
+	version := runtime.Version() // 'go1.2....'
+	major, minor := version[2], version[4]
+	version_1_2 := major >= byte('1') && minor >= byte('2')
+	if !version_1_2 {
+		log.Printf(pleaseUpgradeGoVersion, version)
+		return false
+	}
+	return true
+}
+func coverToolInstalled(shell system.Executor) bool {
+	working, err := os.Getwd()
+	if err != nil {
+		working = "."
+	}
+	output, _ := shell.Execute(working, "go", "tool", "cover")
+	installed := strings.Contains(output, "Usage of 'go tool cover':")
+	if !installed {
+		log.Print(coverToolMissing)
+		return false
+	}
+	return true
+}
+func ensureReportDirectoryExists(reports string) bool {
+	if exists(reports) {
+		return true
+	}
+
+	if err := os.Mkdir(reports, 0755); err == nil {
+		return true
+	}
+
+	log.Printf(reportDirectoryUnavailable, reports)
+	return false
+}
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
 func sleeper() {
 	time.Sleep(nap)
 }
 
 var (
-	port      int
-	host      string
-	gobin     string
-	nap       time.Duration
-	packages  int
-	cover     bool
-	depth     int
-	testflags string
+	port     int
+	host     string
+	gobin    string
+	nap      time.Duration
+	packages int
+	cover    bool
+	depth    int
+	short    bool
 
 	static  string
 	reports string
 
 	quarterSecond = time.Millisecond * 250
+)
+
+const (
+	initialConfiguration       = "Initial configuration: [host: %s] [port: %d] [poll: %v] [cover: %v] [short: %v]\n"
+	pleaseUpgradeGoVersion     = "Go version is less that 1.2 (%s), please upgrade to the latest stable version to enable coverage reporting.\n"
+	coverToolMissing           = "Go cover tool is not installed or not accessible: `go get code.google.com/p/go.tools/cmd/cover`\n"
+	reportDirectoryUnavailable = "Could not find or create the coverage report directory (at: '%s'). You probably won't see any coverage statistics...\n"
 )

@@ -1,66 +1,81 @@
 {argv}                  = require 'optimist'
 {uri}                   = require('koding-config-manager').load("main.#{argv.c}")
 {daisy}                 = require "bongo"
-{Relationship}          = require 'jraphical'
 encoder                 = require 'htmlencode'
-{createActivityContent, decorateComment} = require '../helpers'
+{createActivityContent} = require '../helpers'
 
 ITEMSPERPAGE = 20
 
-module.exports = (bongo, page, contentType, callback)=>
-  {JName, JAccount, JNewStatusUpdate, JTag} = bongo.models
+createFeed = (models, options, callback)->
+  {JAccount, SocialChannel} = models
+  {page, channelId, client, route, contentType} = options
+
+  return callback "channelId not set"  unless channelId
+
   skip = 0
   if page > 0
     skip = (page - 1) * ITEMSPERPAGE
 
   options = {
+    id    : channelId
     limit : ITEMSPERPAGE
     skip  : skip
-    sort: 'meta.createdAt': -1
   }
 
-  if contentType is "Activity"
-    model = JNewStatusUpdate
-  else if contentType is "Topics"
-    model = JTag
-  else
-    return callback new Error "Unknown content type.", null
+  SocialChannel.fetchActivityCount {channelId}, (err, response)->
+    return callback err  if err
+    itemCount = response?.totalCount
+    return callback null, getEmptyPage()  unless itemCount
 
-  pageContent = ""
-  selector = group : "koding"
-  model.count selector, (error, count)=>
-    return callback error, null  if error
-    return callback null, getEmptyPage contentType  if count is 0
-    model.some selector, options, (err, contents)=>
-      return callback err, null  if err
-      return callback null, getEmptyPage contentType  if count is 0
-      queue = [0...contents.length].map (index)=>=>
-        queue.pageContent or= ""
+    options.replyLimit = 25
+    SocialChannel.fetchActivities client, options, (err, result) ->
+      return callback err  if err
 
-        content = contents[index]
+      {messageList} = result
+      return callback null, getEmptyPage() unless messageList?.length
 
-        if contentType is "Activity"
-          createFullHTML = no
-          putBody = yes
-          createActivityContent JAccount, content, {}, createFullHTML, putBody, (error, content)=>
-            return queue.next()  if error or not content
-            queue.pageContent = queue.pageContent + content
-            queue.next()
-        else if contentType is "Topics"
-          appendDecoratedTopic content, queue
-        else queue.next()
-      queue.push =>
+      options.page = page
+      buildContent models, result.messageList, options, (err, pageContent) ->
+        return callback err  if err
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
 
-        content = schemaorgTagsOpening + queue.pageContent + schemaorgTagsClosing
+        content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
 
-        pagination = getPagination page, count, contentType
-        fullPage = putContentIntoFullPage content, pagination, contentType
-        return callback null, fullPage
-      daisy queue
+        pagination = getPagination page, itemCount, "Activity/#{route}"
+        fullPage = putContentIntoFullPage content, pagination
 
-getPagination = (currentPage, numberOfItems, contentType)->
+        callback null, fullPage
+
+
+buildContent = (models, messageList, options, callback) ->
+  {SocialChannel} = models
+  {client, page} = options
+
+  pageContent = ""
+  queue = messageList.map (activity)->->
+    queue.pageContent or= ""
+
+    createActivityContent models, activity, (err, content)->
+      if err
+        console.error "activity not listed", err
+        return queue.next()
+
+      unless content
+        # TODO Activity id can be added to error message
+        console.error "content not found"
+        return queue.next()
+
+      pageContent = pageContent + content
+      queue.next()
+
+  queue.push ->
+    callback null, pageContent
+
+  daisy queue
+
+
+getPagination = (currentPage, numberOfItems, route="")->
   # This is the number of adjacent link around current page.
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
@@ -71,12 +86,12 @@ getPagination = (currentPage, numberOfItems, contentType)->
   firstLink = prevLink = nextLink = lastLink = ""
 
   if currentPage > 1
-    firstLink = getSinglePageLink 1, contentType, "First"
-    prevLink  = getSinglePageLink (currentPage - 1), contentType, "Prev"
+    firstLink = getSinglePageLink 1, "First", route
+    prevLink  = getSinglePageLink (currentPage - 1), "Prev", route
 
   if currentPage < numberOfPages
-    lastLink  = getSinglePageLink numberOfPages, contentType, "Last"
-    nextLink  = getSinglePageLink (currentPage + 1), contentType, "Next"
+    lastLink  = getSinglePageLink numberOfPages, "Last", route
+    nextLink  = getSinglePageLink (currentPage + 1), "Next", route
 
   pagination = firstLink + prevLink
 
@@ -91,8 +106,8 @@ getPagination = (currentPage, numberOfItems, contentType)->
   if start > 1
     pagination += getNoHrefLink " ... "
 
-  [start..end].map (pageNumber)=>
-    pagination += getSinglePageLink pageNumber, contentType
+  [start..end].map (pageNumber)->
+    pagination += getSinglePageLink pageNumber, null, route
 
   if end < numberOfPages
     pagination += getNoHrefLink " ... "
@@ -105,43 +120,39 @@ getPagination = (currentPage, numberOfItems, contentType)->
 getNoHrefLink = (linkText)->
   "<a href='#'>#{linkText}  </a>"
 
-getSinglePageLink = (pageNumber, contentType, linkText=pageNumber)->
-  link = "<a href='#{uri.address}/#{contentType}?page=#{pageNumber}'>#{linkText}  </a>"
+getSinglePageLink = (pageNumber, linkText=pageNumber, route)->
+  link = "<a href='#{uri.address}/#{route}?page=#{pageNumber}'>#{linkText}  </a>"
   return link
 
-appendDecoratedTopic = (tag, queue)=>
+appendDecoratedTopic = (tag, queue)->
   queue.pageContent += createTagNode tag
   queue.next()
 
-getSchemaOpeningTags = (contentType)=>
-  openingTags = ""
-  if contentType is "Activity"
-    openingTags =
+getSchemaOpeningTags = (contentType) ->
+  openingTag = ""
+  title = ""
+  switch contentType
+    when "post"
+      title = "activities"
+      openingTag += """<article itemscope itemtype="http://schema.org/BlogPosting">"""
+    when "topic"
+      title = "topics"
+
+  openingTag +=
       """
-        <article itemscope itemtype="http://schema.org/BlogPosting">
           <div itemscope itemtype="http://schema.org/ItemList">
             <meta itemprop="mainContentOfPage" content="true"/>
-            <h2 itemprop="name" class="invisible">Latest activities</h2><br>
+            <h2 itemprop="name" class="hidden">Latest #{title}</h2>
             <meta itemprop="itemListOrder" content="Descending" />
       """
-  else if contentType is "Topics"
-    openingTags =
-      """
-        <div itemscope itemtype="http://schema.org/ItemList">
-          <meta itemprop="mainContentOfPage" content="true"/>
-          <h2 itemprop="name" class='invisible'>Latest topics</h2><br>
-          <meta itemprop="itemListOrder" content="Descending" />
-          <div></div>
-      """
-  return openingTags
 
-getSchemaClosingTags = (contentType)=>
-  closingTags = ""
-  if contentType is "Activity"
-    closingTags = "</div></article>"
-  else if contentType is "Topics"
-    closingTags = "</div>"
-  return closingTags
+  return openingTag
+
+getSchemaClosingTags = (contentType) ->
+  closingTag = "</div>"
+  closingTag += "</article>"  if contentType is "post"
+
+  return closingTag
 
 createTagNode = (tag)->
   tagContent = ""
@@ -163,93 +174,76 @@ createTagNode = (tag)->
   </div>
   """
 
-createFollowersCount = (numberOfFollowers)->
-  return "<span>#{numberOfFollowers}</span> followers"
-
-createUserInteractionMeta = (numberOfFollowers)->
-  userInteractionMeta = "<meta itemprop=\"interactionCount\" content=\"UserComments:#{numberOfFollowers}\"/>"
-  return userInteractionMeta
-
-getDock = ->
+getSidebar = ->
   """
-  <header id="main-header" class="kdview">
-      <div class="inner-container">
-          <a id="koding-logo" href="/">
-              <cite></cite>
-          </a>
-          <div id="dock" class="">
-              <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav activity kddraggable running" href="/Activity" style="left: 0px;">
-                      <span class="icon"></span>
-                      <cite>Activity</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav teamwork kddraggable" href="/Teamwork" style="left: 55px;">
-                      <span class="icon"></span>
-                      <cite>Teamwork</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav terminal kddraggable" href="/Terminal" style="left: 110px;">
-                      <span class="icon"></span>
-                      <cite>Terminal</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav editor kddraggable" href="/Ace" style="left: 165px;">
-                      <span class="icon"></span>
-                      <cite>Editor</cite>
-                  </a>
-                  <a class="kdview kdlistitemview kdlistitemview-main-nav apps kddraggable" href="/Apps" style="left: 220px;">
-                      <span class="icon"></span>
-                      <cite>Apps</cite>
-                  </a>
-              </div>
-          </div>
-          <div class="account-area">
-            <a class="custom-link-view header-sign-in" href="/Register">create an account</a>
-            <a class="custom-link-view header-sign-in" href="/Login">login</a>
-          </div>
+  <aside id="main-sidebar">
+    <div id="dock">
+      <h3 class="sidebar-title">MY APPS</h3>
+      <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim activity running selected" href="/Activity">
+          <figure></figure>
+          <cite>Activity</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim ide" href="/IDE">
+          <figure></figure>
+          <cite>IDE</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim teamwork" href="/Teamwork">
+          <figure></figure>
+          <cite>Teamwork</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim apps" href="/Apps">
+          <figure></figure>
+          <cite>Apps</cite>
+        </a>
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim devtools" href="/DevTools">
+          <figure></figure>
+          <cite>DevTools</cite>
+        </a>
       </div>
-  </header>
+    </div>
+  </aside>
   """
-getEmptyPage = (contentType) ->
-  putContentIntoFullPage "There is no activity yet", "", contentType
 
-putContentIntoFullPage = (content, pagination, contentType)->
+getEmptyPage = ->
+  putContentIntoFullPage "There is no activity yet", ""
+
+putContentIntoFullPage = (content, pagination, graphMeta)->
   getGraphMeta  = require './graphmeta'
   analytics     = require './analytics'
 
-  """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <title>Koding | A New Way For Developers To Work</title>
-      #{getGraphMeta()}
-    </head>
-    <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
-      <div id="kdmaincontainer" class="kdview">
-        #{getDock()}
-        <section id="main-panel-wrapper" class="kdview">
-          <div id="main-tab-view" class="kdview kdscrollview kdtabview">
-            <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+  graphMeta = getGraphMeta graphMeta
 
-              <div id="content-page-#{contentType.toLowerCase()}" class="kdview kdscrollview content-page #{contentType.toLowerCase()} loggedin">
-                <main class="">
-                  <div class="kdview activity-content feeder-tabs">
-                    <div class="kdview listview-wrapper">
-                      <div class="kdview kdscrollview">
-                        <div class="kdview kdlistview kdlistview-default activity-related">
-                          #{content}
-                        </div>
-                      </div>
-                    </div>
-                    <nav class="crawler-pagination clearfix">
-                      #{pagination}
-                    </nav>
-                  </div>
-                </main>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-      #{analytics()}
-    </body>
-    </html>
   """
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <title>Koding | A New Way For Developers To Work</title>
+    #{graphMeta}
+  </head>
+  <body itemscope itemtype="http://schema.org/WebPage" class="super activity">
+    <div id="kdmaincontainer" class="kdview with-sidebar">
+      #{getSidebar()}
+      <section id="main-panel-wrapper" class="kdview">
+        <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
+          <div id="content-page-activity" class="kdview content-page activity clearfix">
+            <main class="kdview kdscrollview kdtabview app-content">
+              #{content}
+            </main>
+          </div>
+        </div>
+      </section>
+    </div>
+    #{analytics()}
+  </body>
+  </html>
+  """
+
+
+module.exports = {
+  buildContent
+  createFeed
+  putContentIntoFullPage
+  getSidebar
+  getEmptyPage
+}

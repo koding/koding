@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../../Main/styl/appfn"
-@import "../../Main/styl/app.fonts"
 
 
 
@@ -11,332 +10,333 @@ app.settings.styl
 */
 }
 
-.kdtabpaneview.account
-  color                   #828B8B
+body.account
 
-  .content-page
-    min-height            100%
-    max-width             850px
-    padding-top           150px
+  #main-tab-view
+    overflow                      visible
 
-  h2.kdheaderview
-    border                none
-    margin-bottom         60px
-    line-height           40px
-    color                 #828B8B
-    span
-      margin              0
-      font-weight         300
+  .app-sidebar
+    background                    #EFEFEF
+    padding                       21px 16px 16px 34px
 
-  .kdinput.text.medium
-    height                auto
-    padding               10px 14px
-    line-height           22px
+    nav
+      a
+        display                   block
+        line-height               24px
+        font-size                 14px
+        color                     #4C4C4C
+        font-weight               600
+        opacity                   .99
+        noTextDeco()
 
-    &.half
-      fl()
-      width               50%
-      &:first-child
-        kalc              width, 50% \- 1px
-        margin-right      1px
+        &.selected
+          text-decoration         underline
 
-  .avatarview
-    margin-top            11px
-    rounded               6px
-    fl()
+      .divider
+        height                    24px
 
-  section
-    overflow              hidden
-    width                 auto
-    padding               0 20px
-    borderBox()
+  .app-content
+    padding                       34px 34px 0 0
+    overflow                      visible
 
-  .kdformview
-    .formline
-      input.kdinput.text
-        min-width         0
+  .settings-list-wrapper
 
-    .profile-save-changes
-      width               100%
+    .kdbutton.solid // Move these to fw [BC]
+      rounded             3px
 
+      &.green
+        background        #61C17F
 
-  .email-notifications
-    line-height           55px
-    form.kdformview
-      rel()
-      border-bottom       1px solid #E1E1DF
+      &.red
+        background        #D75B5B
 
-    .koding-on-off
-      abs()
-      top                 10px
-      right               0
+      &.medium
+        height            40px
+        line-height       42px
 
-.linked-accounts
+    .lazy-loader
+      text-align          center
+      padding             40px 0
 
-  ul
-    margin                0
-    padding               0
-    li
-      list-style          none
-      padding             13px 0
-      borderBox()
-      .title
-        width             296px
-        line-height       22px
+    .no-item-found
+      color               #878787
+      font-size           14px
+      padding             24px 0
+      text-align          center
+
+    &.user-profile
+      .account-avatar-area
+        margin                    0 0 44px
+
+      .avatar-buttons
+        margin                    30px 0 0 24px
+        position                  relative
         fl()
-        cite
-          font-size       16px
-          font-weight     400
-          margin-left     16px
 
-      .kdinput.koding-on-off
-        margin-top        6px
+        .kdbutton
+          display                 block
+          float                   none
+          text-align              left
+          width                   205px
+          margin                  0 0 7px
+          padding                 0 0 0 15px
+
+          canvas
+            vertical-align        middle
+
+          .icon
+            padding               0
+            margin                12px 12px 0 0
+            fl()
+
+
+        .upload-avatar .icon
+          r-sprite                'account', 'photo-16'
+
+        .use-gravatar .icon
+          margin-left             1px
+          r-sprite                'account', 'import-16'
+
+        .upload-input
+          display                 block
+          size                    205px
+          height                  40px
+          abs                     0px 0 0 0px
+          opacity                 0
+          cursor                  pointer
+
+
+      .avatarview
+        display                   block
+        size                      150px, 150px
+        fl()
+
+        img
+          display                 block
+          margin                  0
+
+      form
+        .formline
+          width                   50%
+          padding                 0 17px 0 0
+          margin                  0 0 16px
+          borderBox()
+          fl()
+
+          .input-wrapper
+            margin                0
+
+          &.section-header
+            width                 100%
+            clear                 both
+            margin-bottom         21px
+
+          &.button-field
+            width                 100%
+            clear                 both
+            border                none
+            margin-top            6px
+
+
+        .kdheaderview
+          display                 block
+          font-size               14px
+          line-height             19px
+          size                    auto, auto
+          color                   #4C4C4C
+          margin                  0
+          padding                 0
+          border                  none
+          font-weight             600
+
+
+          span
+            margin                0
+            padding               0
+
+        .kdlabel
+          font-size               14px
+          color                   #8D8D8D
+          float                   none
+          line-height             19px
+          margin                  0 0 7px
+          font-weight             200
+
+        .kdinput
+          rounded                 3px
+          background              #fff
+          border                  1px solid #C9C9C9
+          padding                 8px 13px 10px
+          font-size               14px
+          line-height             19px
+          color                   #4C4C4C
+          font-weight             600
+          opacity                 .99
+          margin                  0
+
+
+    &.email-notifications
+    &.linked-accounts
+      li
+        size                      100%, 65px
+        line-height               65px
+        border-bottom             1px solid #DEDEDE
+        padding                   0 4px 0 4px
+        borderBox()
+
+        &:last-of-type
+          border-bottom           none
+
+        .title
+          fl()
+
+        .koding-on-off
+          margin-top              18px
+          fr()
+
+    &.payment-methods
+      .add-method-btn
+        size                      100%, 40px
+        border                    1px dashed #D0D0D0
+        background                #fff
+        rounded                   3px
+        margin                    0 0 16px 0
+        padding                   0
+        line-height               40px
+
+        .button-title
+          font-size               14px
+          line-height             inherit
+          font-weight             600
+          color                   #878787
+          opacity                 .99
+
+        .icon
+          padding                 0
+          margin                  0 12px 0 0
+          display                 inline-block
+          float                   none
+          r-sprite                'account', 'plus-10'
+
+
+      .payment-method
+        height                    62px
+        border-bottom             1px solid #DEDEDE
+        line-height               19px
+        font-size                 14px
+        padding                   13px 0 0
+        borderBox()
+
+        .billing-link
+          fl()
+
+        .card-type
+          color                   #7B7B7B
+          opacity                 .99
+
+        pre
+          color                   #4C4C4C
+          font-weight             600
+          opacity                 .99
+
+        .payment-method-controls
+          fr()
+
+          a
+            display               block
+            margin                10px 0 0 16px
+            fr()
+
+            &.edit
+              r-sprite            'app', 'edit-gray-16'
+
+            &.remove
+              r-sprite            'app', 'delete-gray-16'
+
+    &.your-subscriptions
+
+      .kdlistitemview-subscription
+        size                      100%, auto
+        padding                   23px 0
+        margin                    0
+        border-bottom             1px solid #DEDEDE
+
+        .kdview
+          height                  auto
+
+        .subscription-info
+          width                   auto
+          font-size               14px
+          line-height             19px
+          fl()
+
+          h4
+            color                 #7B7B7B
+            font-weight           400
+            margin                0 0 1px
+            padding               0
+
+            .price
+              font-weight         200
+
+          p
+            font-weight           600
+            color                 #4C4C4C
+
+        .controls
+          fr()
+
+          .kdbutton
+            margin-left           6px
+
+    &.billing-history
+      .kdlistitemview
+        padding                   21px 0
+        border-bottom             1px solid #DEDEDE
+
+      .status-icon
+        size                      38px, 38px
+        border                    1px solid #EAEAEA
+        rounded                   3px
+        margin                    0 18px 0 0
+        text-align                center
+        line-height               38px
+        fl()
+
+        span
+          display                 inline-block
+          r-sprite                'account', 'cross-8'
+
+        &.success span
+          r-sprite                'account', 'check-8'
+
+      .billing-info
+        line-height               19px
+        font-size                 14px
+        color                     #7B7B7B
+        fl()
+
+        strong
+          font-weight             600
+
+        .invoice-date
+          color                   #4C4C4C
+
+        .card-number
+          margin                  6px 0 0
+          display                 block
+          color                   #919191
+
+      .invoice-btn
         fr()
 
-      &.github .icon
-        r-sprite          account 'ext-github'
-      &.odesk .icon
-        r-sprite          account 'ext-odesk'
-      &.facebook .icon
-        r-sprite          account 'ext-facebook'
-      &.twitter .icon
-        r-sprite          account 'ext-twitter'
-      &.google .icon
-        r-sprite          account 'ext-google'
-      &.linkedin .icon
-        r-sprite          account 'ext-linkedin'
+    &.terms-of-service
+    &.privacy-policy
+      margin                      -38px 0 0 -34px
+      kalc                        width, 100% \+ 66px
 
-      span
-      cite
-      a
-        font-style        normal
-        blockMid()
-
-button.kdbutton.solid.green.account-header-button
-  abs()
-  top               6px
-  right             0
-  margin            0
-  color             #666
-  height            40px
-  &.with-icon
-    padding         0 6px
-  &.icon-only
-    padding         0 6px
-  span.icon
-    rel()
-    display         block
-    padding         0
-    margin          0
-    border          none
-    visibility      visible
-    r-sprite        app '30-refresh-icon-white'
-    &.plus
-      r-sprite      app '30-plus-icon-white'
-
-.delete-account-view
-  padding                 10px 0
-  color                   #888
-  borderBox()
-  button.delete-account
-    left                  0
-    vendor                transition, left .1s ease-in\, \
-                                      width .1s ease-in
-    &.escape
-      left                -160px
-
-// FIX THESE STYLES FOR
-// TOO MUCH REPITITION
-// for .settings-list-wrapper - SY
-
-.settings-list-wrapper
-  height              auto
-  min-height          50px
-
-  header
-    bg                color, rgba(0,0,0,.1)
-    border-bottom     1px solid rgba(0,0,0,0.3)
-    a.custom-link-view
-      margin-left     15px
-      text-decoration underline
-      fl()
-      span.title
-        line-height   24px
-        font-size     11px
-
-  .no-item-found
-    padding           10px 20px
-    color             #888
-    text-align        center
-    font-weight       400
-    borderBox()
-
-  &.payment-methods
-    .no-item-found
-      padding         10px 0
-      font-size       14px
-      line-height     1.5
-
-  &.ssh-keys
-  &.koding-keys
-  &.billing-history
-  &.your-subscriptions
-  &.referral-system
-    .no-item-found
-      font-size       14px
-      line-height     1.5
-      h2
-        font-weight   400
-        font-size     16px
-        margin-bottom 20px
-    a
-      font-weight         300
-      color               logoBg
-      &:hover
-        text-decoration   underline
-
-    ul
-      margin            0
-      padding           0
-      li
-        list-style      none
-        line-height     1.4
-        borderBox()
-        a
-          margin-left   10px
-          fr()
-        .lightText
-          color         rgba(255,255,255,.8)
-        .darkText
-          color         rgba(255,255,255,.5)
-
-  &.your-subscriptions
-    .kdlistitemview-subscription
-      size              100%, auto
-      padding           19px 22px
-      background        #fff
-      rounded           6px
-      font-weight       400
-      color             #6f6f6f
-      margin            0 0 2px 0
-
-      h4
-        font-size       14px
-        margin-bottom   4px
-
-      p
-        font-size       12px
-        color           #c6c6c6
-        min-height      20px
-
-      .price
-        display         block
-        abs             0px 0px 0 0
-        font-size       18px
-
-      .controls
-        abs             0 22px 19px 0
-
-        .custom-link-view
-          font-size     12px
-          noTextDeco()
-
-          &.red
-            color       #ed492c
-
-          &.green
-            color       #01b05a
-
-          &.yellow
-            color       #eeb844
-
-
-
-
-  &.referral-system
-    header
-      bg                  color transparent
-      border              none
-      margin-bottom       10px
-      a.custom-link-view
-        margin-left       0
-        margin-right      20px
-        span.title
-          font-size       18px
-          line-height     40px
-    ul
-      li
-        a
-          color           #999
-          line-height     30px
-          float           none
-          margin-left     0
-          noTextDeco()
-
-  &.koding-keys
-    li
-      line-height     40px
-
-  &.ssh-keys
-    ul
-      margin-top      70px
-
-  &.billing-history
-    table
-      width           100%
-      line-height     1.6
-      margin-top      70px
-    tr
-      width           100%
-      td
-        width         20%
-        &.ccard
-          font-weight 600
-      a.action-link
-        display       table-cell
-        text-align    right
-        width         20%
-
-  &.ssh-keys
-    .add-key-form
-      margin-bottom   42px
-
-    .ssh-key-item
-      background      #fff
-      margin          2px 0 0 0
-      padding         14px 120px 14px 14px
-      rounded         12px
-      position        relative
-
-      .title
-        font-weight   400
-        font-size     16px
-
-      .key
-        font-size     14px
-        font-weight   200
-        color         #bcbcbc
-
-
-      .kdbutton.edit
-        abs           50% 22px 0 0
-        vendor        transform, translateY(-50%)
-
-
-.koding-keys
-  code
-    margin              10px 0
-    display             block
-    line-height         16px
-    font-size           12px
-    font-family         monoFamily
-    padding             14px
-    color               white
-    bg                  color #28292A
-
-
-.new-kdmodal.koding-keys
-  p
-    margin              10px 0
-  strong
-    font-weight         600
+      iframe
+       size                       100%, 100%
+       display                    block
+       margin                     0
+       padding                    0
