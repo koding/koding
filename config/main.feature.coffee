@@ -448,10 +448,12 @@ Configuration = (options={}) ->
         docker build -t koding_localbuild/mongo .
         docker run -d -p 27017:27017            --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
 
+        cd #{projectRoot}/install/docker-rabbitmq
+        docker build -t koding_localbuild/rabbitmq .
+        docker run -d -p 5672:5672              --name=rabbitmq koding_localbuild/rabbitmq
 
         docker run -d -p 6379:6379              --name=redis    redis
         docker run -d -p 5432:5432              --name=postgres koding/postgres
-        docker run -d -p 5672:5672              --name=rabbitmq koding/rabbitmq
         docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{prod_simulation_server}:7001 -addr #{prod_simulation_server}:4001
 
 
