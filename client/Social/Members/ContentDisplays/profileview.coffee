@@ -384,53 +384,19 @@ class ProfileView extends JView
           top      : @avatar.getBounds().y - 8
           left     : @avatar.getBounds().x - 8
 
-        if KD.isMine @memberData
+        @modal = new KDModalView
+          cssClass : "avatar-container"
+          width    : 390
+          fx       : yes
+          overlay  : yes
+          draggable: yes
+          position : pos
 
-          @avatarMenu?.destroy()
-          @avatarMenu = new KDContextMenu
-            menuWidth: 312
-            cssClass : "avatar-menu dark"
-            delegate : @avatar
-            x        : @avatar.getX() + 96
-            y        : @avatar.getY() - 7
-          , customView: @avatarChange = new AvatarChangeView delegate: this, @memberData
-
-          @avatarChange.on "UseGravatar", =>
-            @avatarSetGravatar()
-
-          @avatarChange.on "UsePhoto", (dataURI)=>
-            [_, avatarBase64] = dataURI.split ","
-            @avatar.setAvatar "url(#{dataURI})"
-            # i don't know why this was here - SY
-            # @avatar.$().css
-            #   backgroundSize: "auto 90px"
-            @avatarChange.emit "LoadingStart"
-            @uploadAvatar avatarBase64, =>
-              @avatarChange.emit "LoadingEnd"
-
-
-        else
-          @modal = new KDModalView
-            cssClass : "avatar-container"
-            width    : 390
-            fx       : yes
-            overlay  : yes
-            draggable: yes
-            position : pos
-
-          @modal.addSubView @bigAvatar = new AvatarStaticView
-            size     :
-              width  : 300
-              height : 300
-          , @memberData
-
-    if KD.isMine @memberData
-      avatarOptions.tooltip =
-        # offset      : top: 0, left: -3
-        title       : "<p class='centertext'>Click avatar to edit</p>"
-        placement   : "below"
-        arrow       :
-          placement : "top"
+        @modal.addSubView @bigAvatar = new AvatarStaticView
+          size     :
+            width  : 300
+            height : 300
+        , @memberData
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 

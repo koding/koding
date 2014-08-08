@@ -70,6 +70,7 @@ body.account
 
       .avatar-buttons
         margin                    30px 0 0 24px
+        position                  relative
         fl()
 
         .kdbutton
@@ -79,6 +80,9 @@ body.account
           width                   205px
           margin                  0 0 7px
           padding                 0 0 0 15px
+
+          canvas
+            vertical-align        middle
 
           .icon
             padding               0
@@ -92,6 +96,14 @@ body.account
         .use-gravatar .icon
           margin-left             1px
           r-sprite                'account', 'import-16'
+
+        .upload-input
+          display                 block
+          size                    205px
+          height                  40px
+          abs                     0px 0 0 0px
+          opacity                 0
+          cursor                  pointer
 
 
       .avatarview
