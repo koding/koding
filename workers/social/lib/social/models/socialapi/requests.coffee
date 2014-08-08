@@ -166,7 +166,36 @@ addParticipants = (data, callback)->
 
 removeParticipants = (data, callback)->
   url = "/channel/#{data.channelId}/participants/remove"
-  doChannelParticipantOperation data, url, callback
+  doChannelParticipantOperation data, url, (err, response)->
+    return callback err if err
+    cycleChannelHelper data, response, callback
+
+# TODO we can move this to realtime worker later on
+cycleChannelHelper = (data, removeResult, callback)->
+  return callback { message: "user(s) could not leave the channel" } unless removeResult?.length
+
+  isUserRemoved = (removeResult)->
+    for accountResult in removeResult
+      return yes  if accountResult.statusConstant is 'left'
+
+    return no
+
+  return callback { message: "user(s) could not leave the channel" } unless isUserRemoved removeResult
+
+  {channelId, accountId} = data
+  channelById {id: channelId, accountId}, (err, channel)->
+    return callback err if err
+    return callback { message: 'Channel not found' } unless channel?.channel
+    {channel} = channel
+    options =
+      groupSlug     : channel.groupName
+      apiChannelType: channel.typeConstant
+      apiChannelName: channel.name
+    SocialChannel = require './channel'
+    SocialChannel.cycleChannel options, (err)->
+      return callback err if err
+      callback null, removeResult
+
 
 doChannelParticipantOperation = (data, url, callback)->
   return callback { message: "Request is not valid" } unless data.channelId
@@ -197,8 +226,15 @@ fetchFollowedChannels = (data, callback)->
   url = "/account/#{data.accountId}/channels"
   get url, data, callback
 
-sendPrivateMessage = (data, callback)->
+initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
+    return callback { message: "Request is not valid"}
+
+  url = "/privatemessage/init"
+  post url, data, callback
+
+sendPrivateMessage = (data, callback)->
+  if not data.body or not data.channelId
     return callback { message: "Request is not valid"}
 
   url = "/privatemessage/send"
@@ -207,20 +243,6 @@ sendPrivateMessage = (data, callback)->
 fetchPrivateMessages = (data, callback)->
   url = "/privatemessage/list"
   get url, data, callback
-
-listNotifications = (data, callback)->
-  if not data.accountId # or not data.groupName
-    return callback {message: "Request is not valid"}
-
-  url = "/notification/#{data.accountId}"
-  get url, data, callback
-
-glanceNotifications = (accountId, callback)->
-  if not accountId
-    return callback {message: "Request is not valid"}
-
-  url = "/notification/glance"
-  post url, {accountId}, callback
 
 followUser = (data, callback)->
   followHelper data, addParticipants, callback
@@ -361,6 +383,7 @@ module.exports = {
   fetchProfileFeed
   searchTopics
   fetchPrivateMessages
+  initPrivateMessage
   sendPrivateMessage
   fetchFollowedChannels
   listParticipants
@@ -385,8 +408,6 @@ module.exports = {
   fetchChannelActivities
   fetchActivityCount
   fetchGroupChannels
-  listNotifications
-  glanceNotifications
   followUser
   unfollowUser
   createGroupNotification

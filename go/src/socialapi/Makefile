@@ -18,9 +18,9 @@ ifeq ($(debug), true)
 	DBG="-d" # don't use DEBUG, it's set to `yes`
 endif
 
-metrics?=false
-ifeq ($(metrics), true)
-	METRICS="-m"
+outputMetrics?=false
+ifeq ($(outputMetrics), true)
+	METRICS="-outputMetrics"
 endif
 
 # set config name
@@ -32,7 +32,6 @@ PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
 	socialapi/workers/dailyemailnotifier \
-	socialapi/workers/followingfeed \
 	socialapi/workers/notification \
 	socialapi/workers/pinnedpost \
 	socialapi/workers/popularpost \
@@ -43,11 +42,13 @@ PACKAGES = \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer
+	socialapi/workers/sitemap/sitemapinitializer \
+	socialapi/workers/algoliaconnector
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev followingfeeddev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev
+minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
 apidev:
@@ -60,9 +61,6 @@ topicfeeddev:
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
-followingfeeddev:
-	@echo "$(OK_COLOR)==> Running Following Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/followingfeed -c $(CONFIG) $(DBG) $(METRICS)
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
@@ -70,6 +68,10 @@ populartopicdev:
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
 	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+
+algoliaconnectordev:
+	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
+	@$(GOBINDIR)/rerun socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
@@ -156,6 +158,16 @@ testapi:
 	@./models.test $(DBG) $(METRICS) -c ./config/vagrant.toml
 	@rm ./models.test
 
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@go test -c workers/algoliaconnector/algoliaconnector/*.go
+	@./algoliaconnector.test -c ./config/test.toml
+	@rm ./algoliaconnector.test
+
+	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
+	@go test -c workers/common/metrics/*.go
+	@./metrics.test
+	@rm ./metrics.test
+
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
@@ -179,7 +191,6 @@ vet:
 	@`which go` tool vet -all=true .
 
 pkgs = \
-	followingfeed \
 	realtime \
 	rerun \
 	topicfeed \

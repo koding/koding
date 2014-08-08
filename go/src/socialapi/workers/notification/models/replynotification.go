@@ -89,7 +89,7 @@ func NewReplyNotification() *ReplyNotification {
 }
 
 func (n *ReplyNotification) GetDefinition() string {
-	return getGenericDefinition(NotificationContent_TYPE_COMMENT)
+	return NotificationContent_TYPE_COMMENT
 }
 
 func (n *ReplyNotification) GetActivity() string {

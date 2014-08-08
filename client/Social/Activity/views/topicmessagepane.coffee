@@ -1,8 +1,8 @@
 class TopicMessagePane extends MessagePane
 
-  bindChannelEvents: ->
+  constructor: (options = {}, data) ->
 
-    super
+    super options, data
 
     KD.singletons.socialapi
       .on 'MessageAdded',   @bound 'prependMessage'

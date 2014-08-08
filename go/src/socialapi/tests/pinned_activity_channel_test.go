@@ -166,10 +166,11 @@ func TestPinnedActivityChannel(t *testing.T) {
 			_, err := rest.AddPinnedMessage(account.Id, post.Id, "koding")
 			// there should be an err
 			So(err, ShouldBeNil)
-			// use account id as message id
+			// use account id as message id, pin message is idempotent, if it is
+			// in the channel, wont give error
 			_, err = rest.AddPinnedMessage(account.Id, post.Id, "koding")
-			// there should be an err
-			So(err, ShouldNotBeNil)
+			// there should not be an err
+			So(err, ShouldBeNil)
 		})
 
 		Convey("Non-exist message should not be added as pinned ", nil)

@@ -13,49 +13,110 @@ class AccountEditUsername extends JView
 
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
+    @uploadAvatarBtn  = new KDButtonView
+      icon            : yes
+      style           : 'solid medium green'
+      cssClass        : 'upload-avatar'
+      title           : 'Upload a photo'
+      loader          : yes
+
+    @uploadAvatarInput = new KDInputView
+      type            : 'file'
+      cssClass        : 'upload-input'
+      change          : @bound 'uploadInputChange'
+      attributes      :
+        accept        : 'image/*'
+
+    @useGravatarBtn  = new KDButtonView
+      icon           : yes
+      style          : 'solid medium gray'
+      cssClass       : 'use-gravatar'
+      title          : 'Use Gravatar'
+      callback       : =>
+        @account.modify "profile.avatar": ""
+
     @emailForm = new KDFormViewWithFields
       fields               :
+        profileHeader      :
+          itemClass        : KDHeaderView
+          title            : 'Profile Info'
+          cssClass         : 'section-header'
         firstName          :
           placeholder      : "firstname"
           name             : "firstName"
-          cssClass         : "medium half"
-          nextElement      :
-            lastName       :
-              cssClass     : "medium half"
-              placeholder  : "lastname"
-              name         : "lastName"
+          cssClass         : "medium"
+          label            : 'Name'
+        lastName           :
+          cssClass         : "medium"
+          placeholder      : "lastname"
+          name             : "lastName"
+          label            : 'Lastname'
         email              :
           cssClass         : "medium"
           placeholder      : "you@yourdomain.com"
           name             : "email"
           testPath         : "account-email-input"
+          label            : 'Email'
         username           :
           cssClass         : "medium"
           placeholder      : "username"
           name             : "username"
+          label            : 'Username'
           attributes       :
             readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
+        passwordHeader     :
+          itemClass        : KDHeaderView
+          title            : 'Change Password'
+          cssClass         : 'section-header'
         password           :
-          cssClass         : "medium half"
+          cssClass         : "medium"
           placeholder      : "password"
           name             : "password"
           type             : "password"
-          nextElement      :
-            confirm        :
-              cssClass     : "medium half"
-              placeholder  : "confirm password"
-              name         : "confirmPassword"
-              type         : "password"
+          label            : 'Password'
+        confirm            :
+          cssClass         : "medium"
+          placeholder      : "confirm password"
+          name             : "confirmPassword"
+          type             : "password"
+          label            : 'Password (again)'
       buttons              :
         Save               :
-          title            : 'SAVE CHANGES'
+          title            : 'Save Changes'
           type             : 'submit'
           cssClass         : 'profile-save-changes'
-          style            : 'solid green'
+          style            : 'solid green medium'
           loader           : yes
       callback             : @bound 'update'
 
+  uploadInputChange : ->
+    @uploadAvatarBtn.showLoader()
+
+    file          = @uploadAvatarInput.getElement().files[0]
+
+    unless file
+      @uploadAvatarBtn.hideLoader()
+      return
+
+    reader        = new FileReader
+
+    reader.onload = (event) =>
+      dataURL     = event.target.result
+      [_, base64] = dataURL.split ","
+
+      @uploadAvatar base64, =>
+        @uploadAvatarBtn.hideLoader()
+
+    reader.readAsDataURL file
+
+
+  uploadAvatar: (avatarData, callback)->
+    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
+      resized = KD.utils.proxifyUrl url,
+        crop: true, width: 300, height: 300
+
+      @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
 
   update:(formData)->
 
@@ -205,52 +266,22 @@ class AccountEditUsername extends JView
 
 
   getAvatarOptions:->
-
-    showStatus    : yes
-    tooltip       :
-      title       : "<p class='centertext'>Click avatar to edit</p>"
-      placement   : "below"
-      arrow       : placement : "top"
+    tagName       : 'figure'
     size          :
-      width       : 160
-      height      : 160
-    click         : =>
-      KD.singleton('appManager').require 'Activity', =>
-        pos =
-          top  : @avatar.getY() - 8
-          left : @avatar.getX() - 8
-
-        @avatarMenu?.destroy()
-        @avatarMenu = new KDContextMenu
-          menuWidth  : 312
-          cssClass   : "avatar-menu dark"
-          delegate   : @avatar
-          x          : @avatar.getX() + 96
-          y          : @avatar.getY() - 7
-        , customView : @avatarChange = new AvatarChangeView delegate: this, @account
-
-        @avatarChange.on "UseGravatar", => @account.modify "profile.avatar" : ""
-
-        @avatarChange.on "UsePhoto", (dataURI)=>
-          [_, avatarBase64] = dataURI.split ","
-          @avatar.setAvatar "url(#{dataURI})"
-          @avatar.$().css
-            backgroundSize: "auto 90px"
-          @avatarChange.emit "LoadingStart"
-          @uploadAvatar avatarBase64, =>
-            @avatarChange.emit "LoadingEnd"
-
-  uploadAvatar: (avatarData, callback)->
-    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
-      resized = KD.utils.proxifyUrl url,
-        crop: true, width: 300, height: 300
-
-      @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
+      width       : 150
+      height      : 150
 
   pistachio:->
 
     """
-    {{> @avatar}}
+    <div class='account-avatar-area clearfix'>
+      {{> @avatar}}
+      <div class='avatar-buttons'>
+        {{> @uploadAvatarBtn}}
+        {{> @uploadAvatarInput}}
+        {{> @useGravatarBtn}}
+      </div>
+    </div>
     <section>
       {{> @emailForm}}
     </section>

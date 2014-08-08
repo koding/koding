@@ -2,18 +2,14 @@ package realtime
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	mongomodels "koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
-	notificationmodels "socialapi/workers/notification/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"labix.org/v2/mgo"
 )
 
 const (
@@ -35,26 +31,6 @@ type Controller struct {
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
-}
-
-// NotificationEvent holds required data for notifcation processing
-type NotificationEvent struct {
-	// Holds routing key for notification dispatching
-	RoutingKey string `json:"routingKey"`
-
-	// Content of the notification
-	Content NotificationContent `json:"contents"`
-}
-
-// NotificationContent holds required data for notification events
-type NotificationContent struct {
-	// TypeConstant holds the type of a notification
-	// But in some cases, this property can hold the status of the
-	// notification, like "delivered" and "read"
-	TypeConstant string `json:"type"`
-
-	TargetId int64  `json:"targetId,string"`
-	ActorId  string `json:"actorId"`
 }
 
 type ParticipantContent struct {
@@ -224,8 +200,8 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		Count:        count,
 	}
 
-	m := models.NewChannelMessage()
-	if err := m.ById(i.MessageId); err != nil {
+	m, err := models.ChannelMessageById(i.MessageId)
+	if err != nil {
 		return err
 	}
 
@@ -240,12 +216,6 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 // MessageReplySaved updates the channels , send messages in updated channel
 // and sends messages which is added
 func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
-	// fetch a channel
-	reply := models.NewChannelMessage()
-	if err := reply.ById(mr.ReplyId); err != nil {
-		return err
-	}
-
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyAdded)
 	f.sendReplyAddedEvent(mr)
 
@@ -253,13 +223,15 @@ func (f *Controller) MessageReplySaved(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
-	parent := models.NewChannelMessage()
-	if err := parent.ById(mr.MessageId); err != nil {
+	parent, err := models.ChannelMessageById(mr.MessageId)
+	if err != nil {
 		return err
 	}
 
-	reply := models.NewChannelMessage()
-	if err := reply.ById(mr.ReplyId); err != nil {
+	// if reply is created now, it wont be in the cache
+	// but fetch it from db and add to cache, we may use it later
+	reply, err := models.ChannelMessageById(mr.ReplyId)
+	if err != nil {
 		return err
 	}
 
@@ -277,12 +249,14 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 }
 
 func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply, eventType channelUpdatedEventType) error {
-	parent, err := mr.FetchParent()
+	parent, err := models.ChannelMessageById(mr.MessageId)
 	if err != nil {
 		return err
 	}
 
-	reply, err := mr.FetchReply()
+	// if reply is created now, it wont be in the cache
+	// but fetch it from db and add to cache, we may use it later
+	reply, err := models.ChannelMessageById(mr.ReplyId)
 	if err != nil {
 		return err
 	}
@@ -294,7 +268,10 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 	}
 
 	if len(channels) == 0 {
-		f.log.Info("Message:(%d) is not in any channel", parent.Id)
+		f.log.Error(
+			"Message:(%d) is not in any channel, bu somehow we addd a reply??",
+			parent.Id,
+		)
 		return nil
 	}
 
@@ -307,16 +284,13 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 		EventType:            eventType,
 	}
 
+	// send this event to all channels
+	// that have this message
 	for _, channel := range channels {
-		// TODOremove all those if conditions after switching private messages to
-		// the channel message type
-		if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
-			continue
-		}
 		cue.Channel = &channel
 		// send this event to all channels
 		// that have this message
-		err := cue.send()
+		err := cue.notifyAllParticipants()
 		if err != nil {
 			f.log.Error("err %s", err.Error())
 		}
@@ -327,8 +301,8 @@ func (f *Controller) sendReplyEventAsChannelUpdatedEvent(mr *models.MessageReply
 
 func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 	f.sendReplyEventAsChannelUpdatedEvent(mr, channelUpdatedEventReplyRemoved)
-	m := models.NewChannelMessage()
-	if err := m.ById(mr.MessageId); err != nil {
+	m, err := models.ChannelMessageById(mr.MessageId)
+	if err != nil {
 		return err
 	}
 
@@ -346,8 +320,9 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		return err
 	}
 
-	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
+	// populate cache
+	cm, err := models.ChannelMessageById(cml.MessageId)
+	if err != nil {
 		return err
 	}
 
@@ -358,11 +333,11 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		EventType:            channelUpdatedEventMessageAddedToChannel,
 	}
 
-	if err := cue.send(); err != nil {
+	if err := cue.notifyAllParticipants(); err != nil {
 		return err
 	}
 
-	if err := f.sendChannelEvent(cml, "MessageAdded"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, "MessageAdded"); err != nil {
 		return err
 	}
 
@@ -390,8 +365,8 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 	}
 
 	// get the glanced message
-	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
+	cm, err := models.ChannelMessageById(cml.MessageId)
+	if err != nil {
 		return err
 	}
 
@@ -493,9 +468,16 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 		return err
 	}
 
-	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
-		return err
+	// first try to fetch data from cache
+	cm, _ := models.ChannelMessageById(cml.MessageId)
+	if cm == nil {
+		// if not found, fetch from db by unscoped
+		cm = models.NewChannelMessage()
+		// When a message is removed, deleted message is not found
+		// via regular ById method
+		if err := cm.UnscopedById(cml.MessageId); err != nil {
+			return err
+		}
 	}
 
 	cp := models.NewChannelParticipant()
@@ -509,111 +491,17 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 		EventType:            channelUpdatedEventMessageRemovedFromChannel,
 	}
 
-	if err := cue.send(); err != nil {
+	if err := cue.notifyAllParticipants(); err != nil {
 		return err
 	}
 
 	// f.sendNotification(cp.AccountId, ChannelUpdateEventName, cue)
 
-	if err := f.sendChannelEvent(cml, "MessageRemoved"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, "MessageRemoved"); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return errors.New("channel connection error")
-	}
-	defer channel.Close()
-
-	activity, nc, err := notification.FetchLastActivity()
-	if err != nil {
-		return err
-	}
-
-	// do not notify actor for her own action
-	if activity.ActorId == notification.AccountId {
-		return nil
-	}
-
-	// do not notify user when notification is not yet activated,
-	// or it is already glanced (subscription case)
-	if notification.ActivatedAt.IsZero() || notification.Glanced {
-		return nil
-	}
-
-	oldAccount, err := fetchOldAccount(notification.AccountId)
-	if err != nil {
-		f.log.Warning("an error occurred while fetching old account: %s", err)
-		return nil
-	}
-
-	// fetch user profile name from bongo as routing key
-	ne := &NotificationEvent{}
-
-	ne.Content = NotificationContent{
-		TargetId:     nc.TargetId,
-		TypeConstant: nc.TypeConstant,
-	}
-	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
-
-	notificationMessage, err := json.Marshal(ne)
-	if err != nil {
-		return err
-	}
-
-	routingKey := oldAccount.Profile.Nickname
-
-	err = channel.Publish(
-		"notification",
-		routingKey,
-		false,
-		false,
-		amqp.Publishing{Body: notificationMessage},
-	)
-	if err != nil {
-		return fmt.Errorf("an error occurred while notifying user: %s", err)
-	}
-
-	return nil
-}
-
-// to-do add eviction here
-func fetchOldAccountFromCache(accountId int64) (*mongomodels.Account, error) {
-	if account, ok := mongoAccounts[accountId]; ok {
-		return account, nil
-	}
-
-	account, err := fetchOldAccount(accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	mongoAccounts[accountId] = account
-	return account, nil
-}
-
-// fetchOldAccount fetches mongo account of a given new account id.
-// this function must be used under another file for further use
-func fetchOldAccount(accountId int64) (*mongomodels.Account, error) {
-	newAccount := models.NewAccount()
-	if err := newAccount.ById(accountId); err != nil {
-		return nil, err
-	}
-
-	account, err := modelhelper.GetAccountById(newAccount.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.New("old account not found")
-		}
-
-		return nil, err
-	}
-
-	return account, nil
 }
 
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
@@ -657,12 +545,7 @@ func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}
 	)
 }
 
-func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName string) error {
-	cm := models.NewChannelMessage()
-	if err := cm.ById(cml.MessageId); err != nil {
-		return err
-	}
-
+func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
 	cmc, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
 		return err
@@ -677,7 +560,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, eventName 
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
 	// fetch secret names of the channel
-	secretNames, err := fetchSecretNames(channelId)
+	secretNames, err := models.SecretNamesByChannelId(channelId)
 	if err != nil {
 		return err
 	}
@@ -719,24 +602,6 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 
 }
 
-func fetchSecretNames(channelId int64) ([]string, error) {
-	names := make([]string, 0)
-	c, err := models.ChannelById(channelId)
-	if err != nil {
-		return names, err
-	}
-
-	name := fmt.Sprintf(
-		"socialapi-group-%s-type-%s-name-%s",
-		c.GroupName,
-		c.TypeConstant,
-		c.Name,
-	)
-
-	names, err = modelhelper.FetchFlattenedSecretName(name)
-	return names, nil
-}
-
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
@@ -746,7 +611,7 @@ func (f *Controller) sendNotification(
 	}
 	defer channel.Close()
 
-	oldAccount, err := fetchOldAccountFromCache(accountId)
+	account, err := models.FetchAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}
@@ -764,7 +629,7 @@ func (f *Controller) sendNotification(
 
 	return channel.Publish(
 		"notification",
-		oldAccount.Profile.Nickname, // this is routing key
+		account.Nick, // this is routing key
 		false,
 		false,
 		amqp.Publishing{Body: byteNotification},

@@ -59,6 +59,7 @@ class MainController extends KDController
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
     KD.registerSingleton 'socialapi',                 new SocialApiController
+    KD.registerSingleton 'autocomplete',              new AutoCompleteController
 
     router.listen()
     @mainViewController = mvc

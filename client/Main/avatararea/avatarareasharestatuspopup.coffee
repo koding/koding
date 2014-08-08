@@ -31,20 +31,21 @@ class AvatarPopupShareStatus extends AvatarPopup
   updateStatus:(status)->
 
     @loader.show()
-    KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
-      unless err
-        new KDNotificationView
-          type     : 'growl'
-          cssClass : 'mini'
-          title    : 'Message posted!'
-          duration : 2000
-        @statusField.setValue ""
+    console.error "not impplemented feature"
+    # KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
+    #   unless err
+    #     new KDNotificationView
+    #       type     : 'growl'
+    #       cssClass : 'mini'
+    #       title    : 'Message posted!'
+    #       duration : 2000
+    #     @statusField.setValue ""
 
-        @loader.hide()
-        # @statusField.setPlaceholder reply.body
-        @hide()
+    #     @loader.hide()
+    #     # @statusField.setPlaceholder reply.body
+    #     @hide()
 
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        @loader.hide()
-        @hide()
+    #   else
+    #     new KDNotificationView type : "mini", title : "There was an error, try again later!"
+    #     @loader.hide()
+    #     @hide()

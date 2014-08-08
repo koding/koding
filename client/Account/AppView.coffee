@@ -21,6 +21,8 @@ class AccountListWrapper extends KDView
     kodingKeysController       : AccountKodingKeyListController
     kodingKeys                 : AccountKodingKeyList
     deleteAccount              : DeleteAccountView
+    termsOfService             : TermsOfServiceView
+    privacyPolicy              : PrivacyPolicyView
 
   viewAppended:->
     {listType} = @getData()

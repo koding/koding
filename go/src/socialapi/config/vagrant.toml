@@ -41,3 +41,13 @@ ForcedRecipient = "canthefason@gmail.com"
 [sitemap]
 XMLRoot = "workers/sitemap/files/"
 RedisDB = 1
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
+ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
+IndexSuffix    = ".vagrant"
+
+[analytics]
+Enabled       = false
+MixpanelToken = "113c2731b47a5151f4be44ddd5af0e7a"

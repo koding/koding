@@ -109,7 +109,6 @@ class MainView extends KDView
 
     @accountArea.destroySubViews()
 
-    # @accountArea.addSubView @accountMenu = new AvatarAreaIconMenu
     # KD.utils.defer => @accountMenu.accountChanged KD.whoami()
 
     @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()

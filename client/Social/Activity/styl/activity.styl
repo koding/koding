@@ -501,7 +501,7 @@ span.collapsedtext
     position                relative
 
     .settings-menu-wrapper
-      abs                   22px 24px 0 0
+      abs                   0 24px 0 0
       size                  15px 10px
       z-index               1
 
@@ -885,40 +885,117 @@ span.collapsedtext
 
 .activity-input-widget
   .link-embed-box
-    margin                  18px 0 0
-    rounded                 5px
+    width                   auto
+    padding                 14px
+    border-left             1px solid #d6d6d6
+    border-right            1px solid #d6d6d6
     position                relative
-    borderBox()
 
   .embed-link-view
     margin                  0
     border                  none
+    width                   auto
+    height                  100px
 
-  .embed-image-view
-    margin                  0 0 -18px
+  .preview-image
     border                  none
+    margin-right            10px
+    fl()
 
-    &:after
-      content               ""
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  96px
+    margin-top              4px
+    overflow                hidden
+    fl()
+
+    a
+      text-decoration       none
+
+    h4
+      display               inline-block
+      font-size             14px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
+
+    .description
       display               block
-      size                  38px 38px
-      rounded               0 0 0 60%
-      bg                    color rgba(255, 255, 255, .6)
-      top                   0
-      right                 0
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
+
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
       abs()
+      bottom                0
+      left                  0
+
+
+  .preview-link-pager
+    width                   auto
+    height                  16px
+    bottom                  5px
+    left                    5px
+    abs()
+    borderBox()
+
+    .thumb-count
+      hidden()
+
+    .preview-link-switch
+
+      cursor                pointer
+      display               inline-block
+      font-size             10px
+      height                16px
+      width                 16px
+      border                1px solid #727272
+      bg                    color, #fff
+      borderBox()
+      -webkit-user-select none
+      -moz-user-select    none
+      user-select         none
+
+
+      &.disabled
+        &:before
+          border-left-color  #ddd !important
+          border-right-color #ddd !important
+
+      &:before
+        content             " "
+        display             block
+        margin-top          3px
+        size                0 0
+        border-top          4px solid transparent
+        border-bottom       4px solid transparent
+
+      &.next
+        &:before
+          margin-left       4px
+          border-left       7px solid #727272
+
+      &.previous
+        &:before
+          margin-left       3px
+          border-right      7px solid #727272
+
 
   .embed-link-view
     padding                 0
 
-  .preview-image
-    rounded                 5px 0 0 5px
-  .preview-text
-    rounded                 0 5px 5px 0
-
   .hide-embed
     right                   7px
     top                     7px
+
     border                  none
     outline                 none
     shadow                  none
@@ -928,6 +1005,10 @@ span.collapsedtext
 
 .activity-item.status
   margin-bottom             56px
+
+  &.static
+    margin-bottom           16px
+    max-width               720px
 
   .link-embed-box
     padding                 0 14px 15px
@@ -1166,11 +1247,25 @@ span.collapsedtext
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height                0
 
+  .list-previous-link
+    size                100% 47px
+    border-radius       3px
+    line-height         47px
+    font-size           14px
+    font-weight         600
+    color               logoBg
+    display             block
+    margin-bottom       10px
+    margin-top          30px
+    text-align          center
+    bg                  color #F6F6F6
+    noTextDeco()
+
   .chat-heads
     top                     0
     height                  58px
     line-height             58px
-    kalc                    width (100% \- 584px)
+    kalc                    width (100% \- 500px)
     margin                  0 0 24px
     z-index                 1
     background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
@@ -1228,16 +1323,106 @@ span.collapsedtext
     margin-top              26px
     padding-bottom          86px
 
+    &:last-of-type
+      margin-top            0
+
   .activity-item.privatemessage
-    kalc                    min-height, 100vh \- 228px
-    padding                 0 0 0 52px
+
+    .settings-menu-wrapper
+      top             25px
+
+    .chevron
+      hidden()
+
+    time
+      display           inline-block
+      width             auto
+      overflow          visible
+      color             #d2d2d2
+      font-size         10px
+
+    &:hover
+      .chevron
+        display       inline-block !important
+        visibility    visible !important
+
+    .activity-content-wrapper
+      .meta
+        margin-top        10px
+
+    .comment-time
+      cursor            pointer
+      hidden()
+
+      &:hover
+        text-decoration underline
+
+    &.consequent
+      padding-left      56px
+
+      .settings-menu-wrapper
+        top             10px
+
+      .avatarview
+      a.profile
+        hidden()
+
+
+      &:hover
+        .comment-time
+          display       inline-block !important
+          visibility    visible !important
+
+        .action-link.like-link:after
+          r-sprite    activity heart-dim
+
+      .meta
+        display         inline-block
+        margin          4px 0 0 0
+        height          16px
+        width           62px
+        top             2px
+        left            -62px
+        text-align      right
+        z-index         10
+        abs()
+
+        time
+          hidden()
+
+        .action-link.like-link
+          display         inline-block
+          padding         5px
+          vertical-align  middle
+
+          &:after
+            content       ''
+            display       block
+            height        8px
+
+          &.has-likes:after
+            r-sprite      activity heart-outline !important
+
+          &.liked:after
+            r-sprite      activity heart-solid !important
+
+
+
+      .comment-body-container
+
+        p
+          line-height   20px
+
+
+    &.status
+      margin-bottom       0
 
     &.with-parent
       .activity-content-wrapper
         visible()
 
     .author-avatar
-      abs                   20px 0 0 -51px
+      abs                   10px 0 0 -51px
       border                none
 
     .list-previous-link
@@ -1320,12 +1505,6 @@ span.collapsedtext
       .kdlistitemview-comment
         padding             10px 15px 0 52px
 
-        .comment-time
-          cursor            pointer
-          hidden()
-
-          &:hover
-            text-decoration underline
 
         &:hover
           .action-link.like-link:after
@@ -1334,34 +1513,6 @@ span.collapsedtext
         .comment-menu
           right             0
 
-        &.consequent
-          padding           0 15px 0 52px
-
-          &:hover
-            .comment-time
-              display       inline-block !important
-              visibility    visible !important
-
-          > .avatarview
-          a.profile
-            hidden()
-
-          .comment-body-container
-
-            p
-              line-height   20px
-
-          .stats
-            height          16px
-            width           52px
-            top             2px
-            left            0
-            text-align      right
-            margin          0
-            abs()
-
-            time
-              hidden()
 
         .profile
           font-weight       600
@@ -1401,23 +1552,6 @@ span.collapsedtext
           color             #d2d2d2
           font-size         10px
 
-      .item-add-comment-box
-        position            fixed
-        bottom              0
-        height              auto
-        kalc                width (100% \- 584px)
-        padding             0 0 30px
-        bg                  color white
-        margin-top          8px
-
-        &:before
-          content         ""
-          top             18px
-          left            21px
-          r-sprite        activity widget-icon
-          z-index         2
-          abs()
-
         .avatarview
           hidden()
 
@@ -1434,6 +1568,28 @@ span.collapsedtext
             line-height     39px
             font-weight     400
             color           #b2b2b2
+
+  .reply-input-widget
+    position            fixed
+    bottom              0
+    height              auto
+    kalc                width (100% \- 584px)
+    padding             0 0 30px
+    bg                  color white
+    margin-top          8px
+    margin-bottom       0
+
+    &:before
+      content         ""
+      top             18px
+      left            21px
+      r-sprite        activity widget-icon
+      z-index         2
+      abs()
+
+    div[contenteditable=true]
+      border-radius   0
+      border          2px solid #eaeaea
 
 .reply-like-tooltip
   p
@@ -1852,16 +2008,22 @@ body.group.members
   .chat-heads
     display       inline-block
     width         auto
-    padding       9px
+    padding       9px 0
     z-index       10
     borderBox()
     abs()
 
   .chat-head
-    display       inline-block
-    size          30px 30px
-    margin-right  5px
+    display         inline-block
+    height          30px
+    margin-right    7px
     rel()
+
+    &:first-of-type
+      margin-left   9px
+
+    &:last-of-type
+      margin-right  0
 
     &:hover
     &.selected
@@ -1870,16 +2032,29 @@ body.group.members
         shadow    0 0 0 5px rgba(255,255,255,.9)
         visible()
 
-
     .close-icon
-      top         5px
-      right       5px
-      rounded     10px
-      size        20px 20px
+      top             5px
+      left            5px
+      rounded         10px
+      size            20px 20px
       hidden()
 
     .avatarview
-      size        30px 30px
+      size            30px 30px
+      fl()
+
+    .first-name
+      display         inline-block
+      height          30px
+      font-size       12px
+      background      #ececec
+      font-weight     600
+      margin-left     -15px
+      padding         4px 7px 2px 22px
+      z-index         -1
+      border-radius   0 3px 3px 0
+      borderBox()
+      rel()
 
   .formline.button-field
 
@@ -1931,8 +2106,8 @@ body.group.members
 
   border            1px solid #d1d1d1
   border-top        1px solid transparent
-  border-bottom     1px solid transparent
   shadow            0 3px 6px rgba(0,0,0,0.1)
+  fix()
 
   .kdautocompletelistitem
     font-size       12px

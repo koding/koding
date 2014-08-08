@@ -58,6 +58,36 @@ module.exports = class JGroup extends Module
       'remove documents from collection'  : ['moderator']
       'view readme'                       : ['guest','member','moderator']
       'send invitations'                  : ['moderator']
+
+      # those are for messages
+      'read posts'              : ['member', 'moderator']
+      'create posts'            : ['member', 'moderator']
+      'edit posts'              : ['moderator']
+      'delete posts'            : ['moderator']
+      'edit own posts'          : ['member', 'moderator']
+      'delete own posts'        : ['member', 'moderator']
+      'reply to posts'          : ['member', 'moderator']
+      'like posts'              : ['member', 'moderator']
+      'pin posts'               : ['member', 'moderator']
+      'send private message'    : ['member', 'moderator']
+      'list private messages'   : ['member', 'moderator']
+
+      # JTag related permissions
+      'read tags'               :
+        public                  : ['guest', 'member', 'moderator']
+        private                 : ['member', 'moderator']
+      'create tags'             : ['member', 'moderator']
+      'freetag content'         : ['member', 'moderator']
+      'browse content by tag'   : ['member', 'moderator']
+      'edit tags'               : ['moderator']
+      'delete tags'             : ['moderator']
+      'edit own tags'           : ['moderator']
+      'delete own tags'         : ['moderator']
+      'assign system tag'       : ['moderator']
+      'fetch system tag'        : ['moderator']
+      'create system tag'       : ['moderator']
+      'remove system tag'       : ['moderator']
+      'create synonym tags'     : ['moderator']
     indexes         :
       slug          : 'unique'
     sharedEvents    :
@@ -198,8 +228,6 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
-        countMembers:
-          (signature Function)
         makePayment:
           (signature Object, Function)
         # # addProduct:
@@ -1312,7 +1340,6 @@ module.exports = class JGroup extends Module
   remove_ = @::remove
   remove: secure (client, callback)->
     JName = require '../name'
-    JNewStatusUpdate = require '../messages/newstatusupdate'
 
     @fetchOwner (err, owner)=>
       return callback err if err
@@ -1362,21 +1389,6 @@ module.exports = class JGroup extends Module
         => @fetchApplications (err, apps)->
           JNewApp = require '../app'
           removeHelperMany JNewApp, apps, err, callback, queue
-
-        => JNewStatusUpdate.count group:@slug, (err, count)=>
-          numberOfNamePages = Math.ceil(count / 50)
-
-          deleteQueue = [1..numberOfNamePages].map (pageNumber)=>=>
-            skip = (pageNumber - 1) * 50
-            option = {
-              limit : 50,
-              skip  : skip
-            }
-            JNewStatusUpdate.some group:@slug, option, (err, statusUpdates)=>
-              removeHelperMany JNewStatusUpdate, statusUpdates, err, callback, deleteQueue
-
-          deleteQueue.push => queue.next()
-          daisy deleteQueue
 
         =>
           @constructor.emit 'GroupDestroyed', this
@@ -1445,18 +1457,9 @@ module.exports = class JGroup extends Module
       else
         callback new KodingError 'Unable to fetch group bundle'
 
-  countMembers: secure (client, callback)->
-    {Member} = require "../graph"
-    Member.fetchMemberCount {groupId:@_id, client:client}, callback
-
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
-      supportedTypes = ['Invitation', 'InvitationRequest', 'InvitationCode']
-      return callback 'unsupported type'  unless type in supportedTypes
-
-      options.groupId = @getId()
-      {Invitation} = require "../graph"
-      Invitation["fetchOrCount#{type}s"] method, options, callback
+      return callback {message: "unimplemented feature"}
 
   fetchInvitationsByStatus: permit 'send invitations',
     success: (client, options, callback)->
@@ -1494,11 +1497,7 @@ module.exports = class JGroup extends Module
         return callback err, result?[0]?.count
 
   fetchMembersFromGraph:(client, options, callback)->
-    options.groupId = @getId()
-    options.client  = client
-    {Member} = require '../graph'
-    Member.fetchMemberList options, (err, results)=>
-      callback err, results
+    return callback {message: "unimplemented feature"}
 
   fetchMembersFromGraph$: permit 'list members',
     success: (client, rest...) -> @fetchMembersFromGraph client, rest...

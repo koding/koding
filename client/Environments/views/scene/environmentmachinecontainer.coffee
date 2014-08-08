@@ -44,6 +44,9 @@ class EnvironmentMachineContainer extends EnvironmentContainer
               KD.singleton("vmController").createNewVM stackId, (err) ->
                 KD.showError err
 
+                {dock} = KD.singletons
+                dock.refreshSidebarVMs()
+
     KD.getSingleton("vmController").on 'VMListChanged', =>
       @loadItems().then => @emit 'VMListChanged'
 
