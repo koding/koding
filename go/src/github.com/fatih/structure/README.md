@@ -1,8 +1,10 @@
-# Structure [![GoDoc](https://godoc.org/github.com/fatih/structure?status.svg)](http://godoc.org/github.com/fatih/structure) [![Build Status](https://travis-ci.org/fatih/structure.svg)](https://travis-ci.org/fatih/structure)
+# Structure [![GoDoc](https://godoc.org/github.com/fatih/structure?status.svg)](http://godoc.org/github.com/fatih/structure) [![Build Status](https://travis-ci.org/fatih/structure.svg)](https://travis-ci.org/fatih/structure) [![Coverage Status](https://img.shields.io/coveralls/fatih/structure.svg)](https://coveralls.io/r/fatih/structure)
 
-Structure contains various utilities to work with Go (Golang) structs.
-
-**WIP, Use with care until it's finished and announced**
+Structure contains various utilities to work with Go (Golang) structs. It was
+initially used by me to convert a struct into a `map[string]interface{}`. With
+time I've added other utilities for structs.  It's basically a high level
+package based on primitives from the reflect package. Feel free to add new
+functions or improve the existing code.
 
 ## Install
 
@@ -34,11 +36,11 @@ s := &Server{
 m := structure.Map(s)
 
 // Convert the values of a struct to a []interface{}
-// => [true, 123456, "gopher"]
+// => [123456, "gopher", true]
 v := structure.Values(s)
 
 // Convert the fields of a struct to a []string. 
-// => ["Enabled", "ID", "Name"]
+// => ["Name", "ID", "Enabled"]
 f := structure.Fields(s)
 
 // Return the struct name
@@ -47,11 +49,16 @@ n := structure.Name(s)
 
 // Check if field name exists
 // => true
-n := structure.Has(s, "Enabled")
+h := structure.Has(s, "Enabled")
 
-// Check if the fields of a struct is initialized or not.
-if !structure.IsZero(s) {
-    fmt.Println("s is initialized")
+// Check if any field of a struct is initialized or not.
+if structure.HasZero(s) {
+    fmt.Println("s has a zero value field")
+}
+
+// Check if all fields of a struct is initialized or not.
+if structure.IsZero(s) {
+    fmt.Println("all fields of s is zero value")
 }
 
 // Check if it's a struct or a pointer to struct
@@ -60,4 +67,14 @@ if structure.IsStruct(s) {
 }
 
 ```
+
+## Credits
+
+ * [Fatih Arslan](https://github.com/fatih)
+ * [Cihangir Savas](https://github.com/cihangir)
+
+## License
+
+The MIT License (MIT) - see LICENSE.md for more details
+
 
