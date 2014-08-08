@@ -1,6 +1,9 @@
 box: koding/base@0.0.6
 services:
   - wercker/postgresql@0.0.4
+  - wercker/rabbitmq@1.0.1
+  - wercker/redis@0.0.8
+  - wercker/mongodb@1.0.1
 
 build:
   steps:
