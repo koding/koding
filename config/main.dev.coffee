@@ -183,7 +183,7 @@ Configuration = (options={}) ->
     cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
-    socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath}"
+    socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
     authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName}"
     sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port}"
