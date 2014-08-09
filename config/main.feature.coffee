@@ -86,12 +86,10 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    presence          : {exchange      : 'services-presence'}
     webserver         : {port          : 3000                        , useCacheHeader: no}
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
     mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
-    elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
     email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
@@ -149,7 +147,7 @@ Configuration = (options={}) ->
     apiUri            : "/"
     mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
-    appsUri           : "https://rest.kd.io"
+    appsUri           : "/appsproxy"
 
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
@@ -205,20 +203,6 @@ Configuration = (options={}) ->
     sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
     emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
     webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-
-    # these are unnecessary on production machines.
-    # ------------------------------------------------------------------------------------------
-    # clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
-    # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
-    # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
-    # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
-    # boxproxy            : command : "node   #{projectRoot}/servers/boxproxy/boxproxy.js           -c #{configName}"
-    # ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
-    # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
-    # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-    # ------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -276,6 +260,8 @@ Configuration = (options={}) ->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
         proxy_connect_timeout 1;
+        add_header            X-Upstream       $upstream_addr;
+        add_header            X-Backend-Server $HOSTNAME;
       }
 
       location /xhr {
@@ -450,24 +436,6 @@ Configuration = (options={}) ->
 
 
     run = """
-      #/bin/bash
-      touch /root/ididrun
-      echo '#{b64z runContents}' | base64 --decode | gunzip | bash &>/root/koding-init.log
-    """
-      # chmod 0755 /root/run
-      # uptime &>/root/uptime
-      # /root/run &>/var/log/koding-init.log
-
-    # return run
-      # writefiles:
-      #   - content     : !!binary |
-      #       #{zlib.compress(new Buffer(runContents))}
-      #     encoding    : gzip
-      #     owner       : root:root
-      #     path        : /root/run
-      #     permissions : '0755'
-
-    run = """
       #cloud-config
 
       # this file cannot exceed 16k therefore, i'm placing supervisor and nginxConf
@@ -491,8 +459,6 @@ Configuration = (options={}) ->
 
 
       write_files:
-        - content : hello world
-          path : /root/helloworld
         - path : /root/.ssh/id_rsa
           permissions: '0600'
           content : |
@@ -528,6 +494,8 @@ Configuration = (options={}) ->
           content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
         - path : /root/.ssh/authorized_keys
           content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com\n
+        - path : /root/.ssh/authorized_keys
+          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com\n
 
         - path : /root/.ssh/config
           content : |

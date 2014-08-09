@@ -181,7 +181,7 @@ module.exports =
       github    :
         clientId: "f733c52d991ae9642365"
       newkontrol:
-        url         : 'https://stage-kontrol.koding.com/kite'
+        url         : 'http://sandbox.koding.com:8888/kite'
       fileFetchTimeout: 15 * 1000 # seconds
       externalProfiles  :
         github          :
@@ -282,12 +282,12 @@ module.exports =
     cleanupCron     : '*/10 * * * * *'
   pidFile       : '/tmp/koding.server.pid'
   newkites      :
-    useTLS          : yes
+    useTLS          : no
     certFile        : "/etc/ssl/koding/wildcard.sj.koding.com.crt"
     keyFile         : "/etc/ssl/koding/wildcard.sj.koding.com.key"
   newkontrol      :
-    port            : 443
-    useTLS          : yes
+    port            : 8888
+    useTLS          : no
     certFile        : "/opt/koding/certs/koding_com_cert.pem"
     keyFile         : "/opt/koding/certs/koding_com_key.pem"
     publicKeyFile   : "/opt/koding/certs/test_kontrol_rsa_public.pem"
