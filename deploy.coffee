@@ -306,7 +306,7 @@ if argv.deploy
     options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
 
     if options.config is "feature"
-      subdomain = eden.eve().toLowerCase()
+      subdomain = eden.eve().toLowerCase().replace(' ', '-')
       options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
 
     KONFIG = require("./config/main.#{options.config}.coffee")
