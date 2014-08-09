@@ -173,7 +173,7 @@ Configuration = (options={}) ->
   GOBIN = "#{projectRoot}/go/bin"
 
 
-  # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+  # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
