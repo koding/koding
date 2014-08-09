@@ -405,7 +405,7 @@ Configuration = (options={}) ->
 
         echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
         tar jxvf /opt/koding/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        mongorestore -h#{prod_simulation_server} -dkoding dump/koding
 
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
