@@ -403,6 +403,10 @@ Configuration = (options={}) ->
         docker build -t koding_localbuild/mongo .
         docker run -d -p 27017:27017            --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
 
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+        tar jxvf /opt/koding/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
         docker run -d -p 5672:5672              --name=rabbitmq koding_localbuild/rabbitmq
@@ -455,6 +459,7 @@ Configuration = (options={}) ->
         - graphicsmagick
         - mosh
         - nginx
+        - mongodb-clients
 
 
       write_files:
