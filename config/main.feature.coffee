@@ -260,8 +260,6 @@ Configuration = (options={}) ->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
         proxy_connect_timeout 1;
-        add_header            X-Upstream       $upstream_addr;
-        add_header            X-Backend-Server $HOSTNAME;
       }
 
       location /xhr {
