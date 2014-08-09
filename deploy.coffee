@@ -383,29 +383,6 @@ if argv.deploy
             log "URL: https://koding.io "
             log "------------------------------------------------------------------"
 
-
-
-
-# cf.listDomainRecords "koding.io",(err,res)->
-#   for i in res
-#     if i.name is "letty.koding.io"
-#       log "--->",i # i.name,i.service_mode
-
-# # Release.registerInstancesWithPrefix "prod--v1-5-100",log
-
-
-# cf.addDomainRecord "koding.io",
-#   type : "A"
-#   name : "test-"+eden.word().toLowerCase()
-#   content : "54.210.232.5"
-#   service_mode : 1 #cloudflare enabled.
-# ,log
-
-
-
-
-
-
         # log JSON.stringify res,null,2
 
         # res.Instances.forEach (instance)->
@@ -431,46 +408,3 @@ if argv.deploy
 
         # log "#{res.instanceName} is ready."
         # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
-
-
-# KONFIG = require("./config/main.prod.coffee")
-#   hostname : "foo"
-#   tag      : "options.tag"
-
-
-# fs.writeFileSync "./foo.sh",KONFIG.runFile
-# fs.writeFileSync "./foo.sh64",fs.readFileSync("./foo.sh").toString('base64')
-
-
-
-
-# ze = ec2.createImage
-
-#   InstanceId: 'i-c7fdeaed'
-#   Name: 'test1'+Date.now()
-#   # BlockDeviceMappings: [
-#   #   {
-#   #     # DeviceName: 'testdevicename',
-#   #     Ebs:
-#   #       DeleteOnTermination: yes
-#   #       # Encrypted: no
-#   #       # Iops: 100 # Required when the volume type is io1; not used with standard or gp2 volumes.
-#   #       # SnapshotId: 'snap-koding-v1.5.5'
-#   #       VolumeSize: 8,
-#   #       VolumeType: 'standard' # | io1 | gp2'
-
-#   #     # NoDevice: 'STRING_VALUE',
-#   #     # VirtualName: 'STRING_VALUE'
-#   #   }
-#   # ]
-#   Description: 'testing image'
-#   # DryRun: true || false,
-#   NoReboot: false
-# ,(err,callback)->
-#   log arguments
-#   start = new Date()
-
-#   ze.on("success"  , (response)      -> console.log "Success!", timethat.calc start,new Date()
-#   ).on("error"     , (response)      -> console.log "Error!"
-#   ).on("complete"  , (response)      -> console.log "Always!", timethat.calc start,new Date()
-#   ).send()
