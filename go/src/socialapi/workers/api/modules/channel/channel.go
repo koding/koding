@@ -220,13 +220,13 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
-	existingOne := models.NewChannel()
-	if err := existingOne.ById(id); err != nil {
+	existingOne, err := models.ChannelById(id)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	if existingOne.CreatorId != req.CreatorId {
-		return response.NewBadRequest(errors.New("CreatorId doesnt match"))
+		return response.NewBadRequest(errors.New("creatorId doesnt match"))
 	}
 
 	// only allow purpose and name to be updated

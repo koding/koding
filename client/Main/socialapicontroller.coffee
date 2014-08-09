@@ -38,6 +38,7 @@ class SocialApiController extends KDController
         channelType: "group"
         channelName: slug
         isExclusive: yes
+        connectDirectly: yes
 
       channelName    = generateChannelName
         name         : slug
@@ -199,9 +200,9 @@ class SocialApiController extends KDController
     {socialapi} = KD.singletons
 
     getCurrentGroup (group)->
-      for socialApiChannel in socialApiChannels
+      socialApiChannels.forEach (socialApiChannel) ->
         channelName = generateChannelName socialApiChannel
-        continue  if socialapi.openedChannels[channelName]
+        return  if socialapi.openedChannels[channelName]
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
@@ -211,6 +212,7 @@ class SocialApiController extends KDController
           channelType: socialApiChannel.typeConstant
           channelName: socialApiChannel.name
           isExclusive: yes
+          connectDirectly: yes
 
         KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
@@ -377,6 +379,9 @@ class SocialApiController extends KDController
       mapperFn           : mapPrivateMessages
 
     revive               : mapActivity
+
+    fetchDataFromEmbedly : (args...) ->
+      KD.remote.api.SocialMessage.fetchDataFromEmbedly args...
 
   channel:
     byId                 : channelRequesterFn

@@ -104,8 +104,7 @@ class PrivateMessageModal extends KDModalViewWithForms
     autoCompleteView = @autoComplete.getView()
 
     @autoComplete.on 'ItemListChanged', =>
-      heads = @autoComplete.getSelectedItemData()
-      autoCompleteView.setWidth inputs.recipient.getWidth() - heads.length * 35
+      autoCompleteView.setWidth inputs.recipient.getWidth() - @chatHeads.getWidth()
 
     autoCompleteView.on 'keydown', @bound 'handleRecipientKeydown'
 

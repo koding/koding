@@ -48,7 +48,7 @@ func NewInteractionNotification(notificationType string) *InteractionNotificatio
 }
 
 func (n *InteractionNotification) GetDefinition() string {
-	return getGenericDefinition(n.TypeConstant)
+	return n.TypeConstant
 }
 
 func (n *InteractionNotification) GetActivity() string {

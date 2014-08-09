@@ -9,14 +9,25 @@ class AutoCompleteController extends KDObject
     @algolia = new AlgoliaSearch appId, apiKey
 
   search: (indexName, seed) ->
-    new Promise (resolve) =>
+    new Promise (resolve, reject) =>
       index = @getIndex "#{ indexName }#{ KD.config.algolia.indexSuffix }"
       index.search seed, (success, results) ->
-        resolve if success then results.hits else []
+        return reject new Error "Couldn't search algolia"  unless success
+        return resolve results.hits ? []
+
+  searchAccountsMongo: (seed) ->
+    val = seed.replace /^@/, ''
+
+    query =
+      'profile.nickname': val
+
+    KD.remote.api.JAccount.one query
+      .then (it) -> [it]
 
   searchAccounts: (seed) ->
     @search 'accounts', seed
       .map ({ objectID }) -> KD.remote.cacheableAsync 'JAccount', objectID
+      .catch (err) => @searchAccountsMongo seed
       .filter Boolean
 
   getIndex: (indexName) ->

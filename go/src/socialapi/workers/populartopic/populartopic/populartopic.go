@@ -1,7 +1,6 @@
 package populartopic
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
@@ -133,15 +132,6 @@ func GetMonthlyKey(c *models.Channel, cml *models.ChannelMessageList) string {
 	}
 
 	return PreparePopularTopicKey(c.GroupName, "monthly", year, int(month))
-}
-
-func mapMessage(data []byte) (*models.ChannelMessageList, error) {
-	cm := models.NewChannelMessageList()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
 }
 
 func (f *Controller) isEligible(c *models.Channel) bool {

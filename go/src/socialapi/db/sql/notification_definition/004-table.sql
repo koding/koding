@@ -20,9 +20,7 @@ GRANT SELECT, INSERT, UPDATE ON "notification"."notification" TO "socialapplicat
 CREATE TYPE "notification"."notification_content_type_constant_enum" AS ENUM (
     'like',
     'comment',
-    'follow',
-    'join',
-    'leave',
+    'pm',
     'mention'
 );
 ALTER TYPE "notification"."notification_content_type_constant_enum" OWNER TO "social";

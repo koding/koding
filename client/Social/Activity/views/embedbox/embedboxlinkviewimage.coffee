@@ -6,10 +6,17 @@ class EmbedBoxLinkViewImage extends CustomLinkView
     options.href   = data.link_url or data.link_embed?.url
     options.target = "_blank"
 
+    imageOptions         = options.imageOptions or {}
+    imageOptions.width  ?= 619
+    imageOptions.height ?= 200
+    imageOptions.crop   ?= yes
+    imageOptions.grow   ?= yes
+
     super options, data
 
     oembed = @getData().link_embed
-    @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url, width: 619, height: 200, crop: yes, grow: yes)
+
+    @imageLink    = @utils.proxifyUrl oembed.images?[0]?.url, imageOptions
     altSuffix     = if oembed.author_name then " by #{oembed.author_name}" else ''
     @imageAltText = oembed.title + altSuffix
 

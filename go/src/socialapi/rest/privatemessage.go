@@ -17,7 +17,7 @@ func SendPrivateMessage(senderId int64, body string, groupName string, recipient
 	pmr.GroupName = groupName
 	pmr.Recipients = recipients
 
-	url := "/privatemessage/send"
+	url := "/privatemessage/init"
 	res, err := marshallAndSendRequest("POST", url, pmr)
 	if err != nil {
 		return nil, err

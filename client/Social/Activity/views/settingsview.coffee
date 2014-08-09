@@ -43,8 +43,9 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addMenuItem title, ->
       messageId = post.getId()
-      fn {messageId}, (err)-> return KD.showError err  if err
-
+      fn {messageId}, (err)->
+        return KD.showError err  if err
+        post.isFollowed = not post.isFollowed
 
     return @menu
 
