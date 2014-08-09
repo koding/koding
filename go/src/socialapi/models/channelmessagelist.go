@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"socialapi/request"
 	"time"
 
@@ -35,21 +34,21 @@ type ChannelMessageList struct {
 
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	if cp.ChannelId == 0 {
-		return 0, errors.New("ChannelId is not set")
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	if cp.AccountId == 0 {
-		return 0, errors.New("AccountId is not set")
+		return 0, ErrAccountIdIsNotSet
 	}
 
 	if cp.LastSeenAt.IsZero() {
-		return 0, errors.New("Last seen at date is not valid - it is zero")
+		return 0, ErrLastSeenAtIsNotSet
 	}
 
 	// checks if channel participant is a troll, if so we show all messages
 	isExempt, err := cp.isExempt()
 	if err != nil {
-		return 0, errors.New(fmt.Sprintf("isExempt return error: %v", err))
+		return 0, err
 	}
 
 	query := "channel_id = ? and added_at > ?"
@@ -65,7 +64,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 		query,
 		cp.ChannelId,
 		// todo change this format to get from a specific place
-		cp.LastSeenAt.UTC().Format(time.RFC3339),
+		cp.LastSeenAt.UTC().Format(time.RFC3339Nano),
 		metaBits,
 	)
 }
@@ -222,12 +221,20 @@ func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, e
 }
 
 func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
-	channelIds, err := c.FetchMessageChannelIds(messageId)
+	var channels []Channel
+
+	q := &bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": messageId,
+		},
+	}
+
+	err := bongo.B.Some(c, &channels, q)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewChannel().FetchByIds(channelIds)
+	return channels, nil
 }
 
 func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {

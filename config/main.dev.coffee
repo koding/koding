@@ -315,7 +315,7 @@ Configuration = (options={}) ->
         if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
           echo you seem to have correct .ngrok file.
         else
-          echo 'created ~/.ngrok file (you may still need to download the client)'
+          echo 'created ~/.ngrok file'
           echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
         fi
 
@@ -358,12 +358,13 @@ Configuration = (options={}) ->
         # check if docker is installed
         # boot2docker is setup
         # env DOCKER_HOST there etc
+        echo ""
 
       }
 
       function check_service_dependencies () {
 
-        echo hi1
+        echo ""
 
       }
 

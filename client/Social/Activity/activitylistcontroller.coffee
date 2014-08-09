@@ -30,6 +30,12 @@ class ActivityListController extends KDListViewController
     @hiddenItems = []
 
 
+  getIndex: (index) ->
+    return if @getOptions().lastToFirst
+    then index
+    else @getItemCount() - index - 1
+
+
   # LEGACY
 
   postIsCreated: (post) =>

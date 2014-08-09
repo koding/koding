@@ -30,19 +30,21 @@ ALTER TABLE api.account ADD CONSTRAINT "account_nick_key" UNIQUE ("nick") NOT DE
 -- ----------------------------
 ALTER TABLE api.channel ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
+--  Unique structure for table channel
+-- ----------------------------
+ALTER TABLE api.channel ADD CONSTRAINT "channel_name_group_name_type_constant_key" UNIQUE ("name","group_name","type_constant") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
 --  Foreign keys structure for table channel
 -- ----------------------------
 ALTER TABLE api.channel ADD CONSTRAINT "channel_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES api.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Indexes structure for table channel
 -- ----------------------------
-CREATE INDEX  "channel_group_name_type_constant_name_idx" ON "api"."channel" USING btree("group_name", "type_constant", "name");
 
 -- ----------------------------
 --  Check constraints for table channel
 -- ----------------------------
 ALTER TABLE api.channel ADD CONSTRAINT "channel_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
-
 
 -- ------------------------------------------------------------------------------------------
 --  Structure for table ChannelMessage
@@ -88,6 +90,8 @@ ALTER TABLE api.channel_message_list ADD CONSTRAINT "channel_message_list_channe
 DROP INDEX IF EXISTS "api"."channel_message_list_channel_id_idx";
 CREATE INDEX  "channel_message_list_channel_id_idx" ON api.channel_message_list USING btree(channel_id DESC NULLS LAST);
 
+DROP INDEX IF EXISTS "api"."channel_message_list_channel_id_message_id_deleted_at_idx";
+CREATE INDEX  "channel_message_list_channel_id_message_id_deleted_at_idx" ON "api"."channel_message_list" USING btree(deleted_at ASC NULLS LAST, channel_id DESC, message_id DESC);
 -- ----------------------------------------------------------------------------------------
 --  Structure for table ChannelParticipant
 -- ----------------------------------------------------------------------------------------

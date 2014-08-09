@@ -246,7 +246,6 @@ class EmbedBoxWidget extends KDView
     addClass embedDiv, "custom-#{type}"  if embedDiv?
 
   fetchEmbed:(url='', options={}, callback=noop)->
-    return callback {message: "unimplemented feature"}
 
     # if there is no protocol, supply one! embedly doesn't support //
     unless @utils.webProtocolRegExp.test url then url = 'http://'+url
@@ -258,9 +257,11 @@ class EmbedBoxWidget extends KDView
       wmode     : 'transparent'
     }, options
 
+    { fetchDataFromEmbedly } = KD.singletons.socialapi.message
+
     # fetch embed.ly data from the server api
-    # KD.remote.api.JNewStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
-    #   callback oembed[0], embedlyOptions
+    fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+      callback oembed[0], embedlyOptions
 
   pistachio:->
     """

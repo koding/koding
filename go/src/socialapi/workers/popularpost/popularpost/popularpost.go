@@ -48,8 +48,8 @@ func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 }
 
 func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Interaction) error {
-	cm := models.NewChannelMessage()
-	if err := cm.ById(i.MessageId); err != nil {
+	cm, err := models.ChannelMessageById(i.MessageId)
+	if err != nil {
 		return err
 	}
 
