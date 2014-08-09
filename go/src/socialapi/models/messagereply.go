@@ -118,7 +118,7 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 	var replies []int64
 
 	if m.MessageId == 0 {
-		return nil, errors.New("messageId is not set")
+		return nil, ErrMessageIdIsNotSet
 	}
 
 	q := &bongo.Query{
@@ -154,11 +154,11 @@ func (m *MessageReply) fetchMessages(query *request.Query) ([]ChannelMessage, er
 
 func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExempt bool) (int, error) {
 	if messageId == 0 {
-		return 0, errors.New("messageId is not set")
+		return 0, ErrMessageIdIsNotSet
 	}
 
 	if addedAt.IsZero() {
-		return 0, errors.New("last seen at date is not valid - it is zero")
+		return 0, ErrAddedAtIsNotSet
 	}
 
 	query := "message_id = ? and created_at > ?"
@@ -174,14 +174,14 @@ func (m *MessageReply) UnreadCount(messageId int64, addedAt time.Time, showExemp
 		m,
 		query,
 		messageId,
-		addedAt.UTC().Format(time.RFC3339),
+		addedAt.UTC().Format(time.RFC3339Nano),
 		metaBits,
 	)
 }
 
 func (m *MessageReply) Count(q *request.Query) (int, error) {
 	if m.MessageId == 0 {
-		return 0, errors.New("messageId is not set")
+		return 0, ErrMessageIdIsNotSet
 	}
 
 	query := &bongo.Query{

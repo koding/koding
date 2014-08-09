@@ -55,7 +55,6 @@ const (
 	Channel_TYPE_TOPIC           = "topic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
-	Channel_TYPE_CHAT            = "chat"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_DEFAULT         = "default"
@@ -66,6 +65,8 @@ const (
 	Channel_KODING_NAME = "koding"
 )
 
+// NewChannel inits channel
+// fills required constants what necessary is as default
 func NewChannel() *Channel {
 	return &Channel{
 		Name:            "channel_" + RandomName(),
@@ -75,6 +76,9 @@ func NewChannel() *Channel {
 	}
 }
 
+// NewPrivateMessageChannel takes the creator id and group name of the channel as arguments
+// sets required content of the channel
+// and sets constants as 'private'
 func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
@@ -86,6 +90,8 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	return c
 }
 
+// Create creates a channel in db
+// some fields of the channel must be filled (should not be empty)
 func (c *Channel) Create() error {
 	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" || c.CreatorId == 0 {
 		return fmt.Errorf("Validation failed %s - %s - %s - %d", c.Name, c.GroupName, c.TypeConstant, c.CreatorId)
@@ -101,6 +107,7 @@ func (c *Channel) Create() error {
 		return bongo.B.Create(c)
 	}
 
+	// selectors helps database to create what we need
 	var selector map[string]interface{}
 
 	switch c.TypeConstant {
@@ -146,6 +153,9 @@ func (c *Channel) CreateRaw() error {
 		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
 }
 
+// AddParticipant adds a user(participant) to the channel
+// if account is already in the channel,
+// it won't add again user to channel as participant
 func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -175,7 +185,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 
 	// if we have this record in DB
 	if cp.Id != 0 {
-		// if the user is alredy actively particiapant of a channel
+		// if the user is already actively participant of a channel
 		// return it early
 		if cp.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
 			// TODO, why we are returning an error here?
@@ -199,6 +209,8 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 	return cp, nil
 }
 
+// RemoveParticipant removes the user(participant) from the channel
+// if user is already removed from the channel, don't need to do anything
 func (c *Channel) RemoveParticipant(participantId int64) error {
 	if c.Id == 0 {
 		return ErrChannelIdIsNotSet
@@ -218,6 +230,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 		return err
 	}
 
+	// status of the participant is left (participant is not in the channel), do nothing
 	if cp.StatusConstant == ChannelParticipant_STATUS_LEFT {
 		return nil
 	}
@@ -230,6 +243,7 @@ func (c *Channel) RemoveParticipant(participantId int64) error {
 	return nil
 }
 
+// FetchParticipantIds gives ID of the accounts which ids are active in the channel
 func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	var participantIds []int64
 
@@ -256,8 +270,8 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	return participantIds, nil
 }
 
-// AddMessage adds given message to the channel, it the message is already in the
-// channel, it doesnt add again, this method is idempotent
+// AddMessage adds given message to the channel, if the message is already in the
+// channel, it doesn't add again, this method is idempotent
 // you can call many times, but message will be in the channel list once
 //
 // has full test suit
@@ -272,7 +286,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 
 	cml, err := c.FetchMessageList(messageId)
 	if err == nil {
-		return nil, ErrAlreadyInTheChannel
+		return nil, ErrMessageAlreadyInTheChannel
 	}
 
 	// silence record not found err
@@ -315,9 +329,21 @@ func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageLis
 		return nil, err
 	}
 
-	return c.AddMessage(messageId)
+	_, err = c.AddMessage(messageId)
+	if err == ErrMessageAlreadyInTheChannel {
+		return cml, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cml, nil
 }
 
+// RemoveMessage removes the message from the channel
+// if message is already removed from the channel, it will not remove again  when we try to remove it
+//
 // TODO do not return channelmessagelist from delete function
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
@@ -340,6 +366,8 @@ func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
+// FetchMessageList fetchs the messages in the channel
+//
 // has full test suit
 func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
@@ -359,6 +387,7 @@ func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error)
 	return cml, cml.One(bongo.NewQS(selector))
 }
 
+// FetchChannelIdByNameAndGroupName fetchs the first ID of the channel via channel name & group name
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
 	if name == "" {
 		return 0, ErrNameIsNotSet
@@ -483,6 +512,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// FetchLastMessage fetch the last message of the channel from DB
+// sorts the messages, then fetch the message which added last
 func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -518,6 +549,7 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	return cm, nil
 }
 
+// FetchPinnedActivityChannel fetch the channel within required fields
 func (c *Channel) FetchPinnedActivityChannel(accountId int64, groupName string) error {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -672,4 +704,29 @@ func (c *Channel) getAccountId() (int64, error) {
 
 	return cn.CreatorId, nil
 
+}
+
+func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error) {
+	if c.Id == 0 {
+		return nil, ErrIdIsNotSet
+	}
+
+	if accountId == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	cp := NewChannelParticipant()
+	cp.AccountId = accountId
+	cp.ChannelId = c.Id
+	if err := cp.FetchParticipant(); err != nil {
+		return nil, err
+	}
+
+	return cp, nil
+}
+
+func (c *Channel) IsParticipant(accountId int64) (bool, error) {
+	cp := NewChannelParticipant()
+	cp.ChannelId = c.Id
+	return cp.IsParticipant(accountId)
 }

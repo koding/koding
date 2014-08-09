@@ -98,13 +98,6 @@ styleScrollBars()
           &:nth-of-type(4n)
             margin-right   0
 
-  &.fixed > main
-  > main
-    size                100% auto
-    margin              0
-    margin-left         292px
-    borderBox()
-
   &.fixed > aside
     margin-top         24px
     top                55px
@@ -262,57 +255,48 @@ styleScrollBars()
         &.active
           color         logoBg
 
-aside.activity-sidebar
-  left                0
-  top                 0
-  size                258px 100%
-  z-index             10
-  bg                  color #424242
-  borderBox()
-  fix()
+  aside.app-sidebar
+    bg                  color #424242
+    > main
+      font-family         openSansFamily
+      padding             1px 16px 16px
+      borderBox()
 
-  styleScrollBars()
-
-  > main
-    font-family         openSansFamily
-    padding             1px 16px 16px
-    borderBox()
-
-    > section
-      size              auto auto
-      overflow          visible
-      margin            0 0 3px 0
+      > section
+        size              auto auto
+        overflow          visible
+        margin            0 0 3px 0
 
 
-      .lazy-loader
-        margin            0
-        top               -28px
-        right             36px
-        abs()
+        .lazy-loader
+          margin            0
+          top               -28px
+          right             36px
+          abs()
 
-      .kdlistview
-        overflow        visible
+        .kdlistview
+          overflow        visible
 
-        .nothing
-          background    #3B3B3B
-          width         auto
-          font-size     14px
-          margin        0 6px
-          padding       16px 18px
-          rounded       3px
-          line-height   19px
-          text-align    center
-          font-weight   400
-          color         #787878
-          margin-bottom 16px
-          borderBox()
+          .nothing
+            background    #3B3B3B
+            width         auto
+            font-size     14px
+            margin        0 6px
+            padding       16px 18px
+            rounded       3px
+            line-height   19px
+            text-align    center
+            font-weight   400
+            color         #787878
+            margin-bottom 16px
+            borderBox()
 
-          a
-            color             #929292
-            text-decoration   underline
+            a
+              color             #929292
+              text-decoration   underline
 
-    a.public-feed-link.selected
-      color               #fff
+      a.public-feed-link.selected
+        color               #fff
 
 .activity
 
@@ -333,7 +317,6 @@ aside.activity-sidebar
       .ttag
         text-decoration underline
 
-
     cite.count
       size            auto 20px
       line-height     20px
@@ -352,12 +335,6 @@ aside.activity-sidebar
       color         #B8B8B8
       line-height   18px
 
-    .tag-info
-      display       block
-      font-weight   300
-      color         #949494
-      font-size     12px
-
     .profile
       ellipsis()
       color         #B8B8B8
@@ -374,13 +351,11 @@ aside.activity-sidebar
       padding       0
       borderBox()
       &:hover
-        border-color    transparent
-        bg              color #777
+        border          none
         .icon
           r-sprite      activity 'check-gray'
 
       .icon
-        r-sprite        activity 'check-gray'
         margin          0 6px 0 0
         padding         0
         fr()
@@ -394,6 +369,11 @@ aside.activity-sidebar
 
         .icon
           r-sprite      activity 'check-gray'
+
+        &:hover
+          border        1px solid #b1b1b1
+          .icon
+            display     none
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -419,15 +399,14 @@ aside.activity-sidebar
       &.follow:before
         color           #d1efdf
 
-      .icon
-        r-sprite      activity 'check-gray'
-
       &.following
         bg              color transparent
         border-color    transparent
 
-        .icon
-          r-sprite      activity 'check-gray'
+        &:hover
+          border          1px solid #b1b1b1
+          .icon
+            display       none
 
   .conversations
   .messages
@@ -1146,40 +1125,117 @@ span.collapsedtext
 
 .activity-input-widget
   .link-embed-box
-    margin                  18px 0 0
-    rounded                 5px
+    width                   auto
+    padding                 14px
+    border-left             1px solid #d6d6d6
+    border-right            1px solid #d6d6d6
     position                relative
-    borderBox()
 
   .embed-link-view
     margin                  0
     border                  none
+    width                   auto
+    height                  100px
 
-  .embed-image-view
-    margin                  0 0 -18px
+  .preview-image
     border                  none
+    margin-right            10px
+    fl()
 
-    &:after
-      content               ""
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  96px
+    margin-top              4px
+    overflow                hidden
+    fl()
+
+    a
+      text-decoration       none
+
+    h4
+      display               inline-block
+      font-size             14px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
+
+    .description
       display               block
-      size                  38px 38px
-      rounded               0 0 0 60%
-      bg                    color rgba(255, 255, 255, .6)
-      top                   0
-      right                 0
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
+
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
       abs()
+      bottom                0
+      left                  0
+
+
+  .preview-link-pager
+    width                   auto
+    height                  16px
+    bottom                  5px
+    left                    5px
+    abs()
+    borderBox()
+
+    .thumb-count
+      hidden()
+
+    .preview-link-switch
+
+      cursor                pointer
+      display               inline-block
+      font-size             10px
+      height                16px
+      width                 16px
+      border                1px solid #727272
+      bg                    color, #fff
+      borderBox()
+      -webkit-user-select none
+      -moz-user-select    none
+      user-select         none
+
+
+      &.disabled
+        &:before
+          border-left-color  #ddd !important
+          border-right-color #ddd !important
+
+      &:before
+        content             " "
+        display             block
+        margin-top          3px
+        size                0 0
+        border-top          4px solid transparent
+        border-bottom       4px solid transparent
+
+      &.next
+        &:before
+          margin-left       4px
+          border-left       7px solid #727272
+
+      &.previous
+        &:before
+          margin-left       3px
+          border-right      7px solid #727272
+
 
   .embed-link-view
     padding                 0
 
-  .preview-image
-    rounded                 5px 0 0 5px
-  .preview-text
-    rounded                 0 5px 5px 0
-
   .hide-embed
     right                   7px
     top                     7px
+
     border                  none
     outline                 none
     shadow                  none
@@ -1189,6 +1245,10 @@ span.collapsedtext
 
 .activity-item.status
   margin-bottom             56px
+
+  &.static
+    margin-bottom           16px
+    max-width               720px
 
   .link-embed-box
     padding                 0 14px 15px
@@ -1445,7 +1505,7 @@ span.collapsedtext
     top                     0
     height                  58px
     line-height             58px
-    kalc                    width (100% \- 584px)
+    kalc                    width (100% \- 500px)
     margin                  0 0 24px
     z-index                 1
     background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
@@ -2098,16 +2158,22 @@ body.group.members
   .chat-heads
     display       inline-block
     width         auto
-    padding       9px
+    padding       9px 0
     z-index       10
     borderBox()
     abs()
 
   .chat-head
-    display       inline-block
-    size          30px 30px
-    margin-right  5px
+    display         inline-block
+    height          30px
+    margin-right    7px
     rel()
+
+    &:first-of-type
+      margin-left   9px
+
+    &:last-of-type
+      margin-right  0
 
     &:hover
     &.selected
@@ -2116,16 +2182,29 @@ body.group.members
         shadow    0 0 0 5px rgba(255,255,255,.9)
         visible()
 
-
     .close-icon
-      top         5px
-      right       5px
-      rounded     10px
-      size        20px 20px
+      top             5px
+      left            5px
+      rounded         10px
+      size            20px 20px
       hidden()
 
     .avatarview
-      size        30px 30px
+      size            30px 30px
+      fl()
+
+    .first-name
+      display         inline-block
+      height          30px
+      font-size       12px
+      background      #ececec
+      font-weight     600
+      margin-left     -15px
+      padding         4px 7px 2px 22px
+      z-index         -1
+      border-radius   0 3px 3px 0
+      borderBox()
+      rel()
 
   .formline.button-field
 
@@ -2177,8 +2256,8 @@ body.group.members
 
   border            1px solid #d1d1d1
   border-top        1px solid transparent
-  border-bottom     1px solid transparent
   shadow            0 3px 6px rgba(0,0,0,0.1)
+  fix()
 
   .kdautocompletelistitem
     font-size       12px

@@ -48,6 +48,11 @@ class PrivateMessagePane extends MessagePane
     @prependMessage message, @listController.getItemCount()
 
 
+  removeMessage: (message) ->
+    return  unless @messageMap[message.id]
+    super message
+
+
   loadMessage: (message) -> @appendMessage message, 0
 
 
@@ -95,6 +100,12 @@ class PrivateMessagePane extends MessagePane
   messageRemoved: (item, index) ->
 
     {data} = item
+
+    # return if there is not already a
+    # mapped message so that we won't
+    # try to remove the same item again.
+    return  unless @messageMap[data.id]
+
     delete @messageMap[data.id]
 
     prevSibling = @listController.getListItems()[index-1]
