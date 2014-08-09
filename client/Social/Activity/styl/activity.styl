@@ -351,13 +351,11 @@ styleScrollBars()
       padding       0
       borderBox()
       &:hover
-        border-color    transparent
-        bg              color #777
+        border          none
         .icon
           r-sprite      activity 'check-gray'
 
       .icon
-        r-sprite        activity 'check-gray'
         margin          0 6px 0 0
         padding         0
         fr()
@@ -371,6 +369,11 @@ styleScrollBars()
 
         .icon
           r-sprite      activity 'check-gray'
+
+        &:hover
+          border        1px solid #b1b1b1
+          .icon
+            display     none
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -396,15 +399,14 @@ styleScrollBars()
       &.follow:before
         color           #d1efdf
 
-      .icon
-        r-sprite      activity 'check-gray'
-
       &.following
         bg              color transparent
         border-color    transparent
 
-        .icon
-          r-sprite      activity 'check-gray'
+        &:hover
+          border          1px solid #b1b1b1
+          .icon
+            display       none
 
   .conversations
   .messages
@@ -2288,7 +2290,7 @@ body.group.members
       background      #ececec
       font-weight     600
       margin-left     -15px
-      padding         3px 7px 3px 22px
+      padding         4px 7px 2px 22px
       z-index         -1
       border-radius   0 3px 3px 0
       borderBox()
@@ -2344,8 +2346,8 @@ body.group.members
 
   border            1px solid #d1d1d1
   border-top        1px solid transparent
-  border-bottom     1px solid transparent
   shadow            0 3px 6px rgba(0,0,0,0.1)
+  fix()
 
   .kdautocompletelistitem
     font-size       12px
