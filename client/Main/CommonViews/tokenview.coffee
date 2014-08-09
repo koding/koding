@@ -15,7 +15,7 @@ class TokenView extends JView
 
   getIdentity: ->
     data = @getData()
-    return "#{data.bongo_.constructorName}:#{data.getId()}:#{data.title}"
+    return "SocialChannel:#{data.getId()}:#{data.name}"
 
   encodeValue: ->
     return   "" unless data = @getData()

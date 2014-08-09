@@ -16,6 +16,7 @@ module.exports = [
   "kodingrouter.coffee",
   "mq.config.coffee",
   "log.config.coffee",
+  "algoliaresult.coffee",
 
   # jview
   "jview.coffee",
