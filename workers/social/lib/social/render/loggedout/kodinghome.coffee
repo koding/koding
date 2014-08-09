@@ -3,13 +3,16 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
+  getTitle     = require './../title'
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
 
   prepareHTML = (scripts)->
     """
     <!doctype html>
     <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      #{getTitle()}
       #{getStyles()}
       #{getGraphMeta()}
     </head>
@@ -17,7 +20,8 @@ module.exports = (options, callback)->
       <!--[if IE]>
       <script>(function(){window.location.href='/unsupported.html'})();</script>
       <![endif]-->
-      #{KONFIG.getConfigScriptTag { roles: ['guest'], permissions: [] } }
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=false;</script>
       #{scripts}
     </body>
     </html>

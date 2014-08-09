@@ -23,6 +23,7 @@ module.exports = [
   "views/deleteaccountview.coffee",
   "views/gmailcontact.coffee",
   "views/referrermodal.coffee",
+  "views/credentials.coffee",
   "AppView.coffee",
 
   "styl/account.styl"

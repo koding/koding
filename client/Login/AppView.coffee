@@ -381,7 +381,7 @@ class LoginView extends JView
           @registerForm.reset()
           @registerForm.button.hideLoader()
           @hide()
-          KD.singleton("router").handleRoute "/Activity"
+          location.replace('/Activity')
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
@@ -448,7 +448,10 @@ class LoginView extends JView
         @loginForm.reset()
 
         KD.mixpanel "Login, success"
-        window.location.reload()  if redirectTo
+        if redirectTo
+          window.location.reload()
+        else
+          window.location.replace '/Activity'
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()

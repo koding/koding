@@ -28,8 +28,18 @@ class NotificationController extends KDObject
     @notificationChannel.on 'message', (notification)=>
       @emit "NotificationHasArrived", notification
       if notification.contents
-        @emit notification.event, notification.contents
-        @prepareNotification notification
+
+        unless notification.context
+          @emit notification.event, notification.contents
+
+        if notification.context is KD.getGroup().slug
+          @emit notification.event, notification.contents
+
+        else
+          @emit "#{notification.event}-off-context", notification.contents
+
+    @on 'ChannelUpdateHappened', (notification) =>
+      @emit notification.event, notification  if notification.event
 
     @on 'GuestTimePeriodHasEnded', ()->
       # todo add a notification to user
@@ -105,130 +115,3 @@ class NotificationController extends KDObject
       @utils.wait 10000, =>
         Cookies.expire 'clientId'
         location.reload yes
-
-  prepareNotification: (notification)->
-
-    # NOTIFICATION SAMPLES
-
-    # 1 - < actor fullname > commented on your < activity type >.
-    # 2 - < actor fullname > also commented on the < activity type > that you commented.
-    # 3 - < actor fullname > liked your < activity type >.
-    # 4 - < actor fullname > sent you a private message.
-    # 5 - < actor fullname > replied to your private message.
-    # 6 - < actor fullname > also replied to your private message.
-    # 7 - Your membership request to < group title > has been approved.
-    # 8 - < actor fullname > has requested access to < group title >.
-    # 9 - < actor fullname > has invited you to < group title >.
-    # 10 - < actor fullname > has joined < group title >.
-    # 11 - < actor fullname > has left < group title >.
-
-    options = {}
-    {origin, subject, actionType, actorType} = notification.contents
-
-    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
-    actor = notification.contents[actorType]
-
-    return  unless actor
-
-    fetchSubjectObj = (callback)=>
-      if not subject or subject.constructorName is "JPrivateMessage"
-        return callback null
-      if subject.constructorName in ["JComment", "JOpinion"]
-        method = 'fetchRelated'
-        args   = subject.id
-      else
-        method = 'one'
-        args   = _id: subject.id
-      KD.remote.api[subject.constructorName]?[method] args, callback
-
-    KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
-      # Ignore all guest notifications
-      # https://app.asana.com/0/1177356931469/7014047104322
-      return  if actorAccount.type is 'unregistered'
-      fetchSubjectObj (err, subjectObj)=>
-
-        # TODO: Cross group notifications is not working, so hide for now. -- fka
-        # https://app.asana.com/0/3716548652471/7601810287306
-        return if err or not subjectObj
-
-        actorName = KD.utils.getFullnameFromAccount actorAccount
-        options.actorAvatar = new AvatarView
-          size      :
-            width   : 35
-            height  : 35
-          , actorAccount
-        options.title = switch actionType
-          when "reply", "opinion"
-            if isMine
-              switch subject.constructorName
-                when "JPrivateMessage"
-                  "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
-                else
-                  "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
-            else
-              switch subject.constructorName
-                when "JPrivateMessage"
-                  "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
-                else
-                  originatorName   = KD.utils.getFullnameFromAccount origin
-                  if actorName is originatorName
-                    originatorName = "their own"
-                    separator      = ""
-                  else
-                    separator      = "'s"
-                  "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
-
-          when "like"
-            "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
-          when "newMessage"
-            @emit "NewMessageArrived"
-            "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
-          when "groupRequestApproved"
-            "Your membership request to <a href='#'>#{subjectObj.title}</a> has been approved."
-          when "groupAccessRequested"
-            "#{actorName} has requested access to <a href='#'>#{subjectObj.title}</a>."
-          when "groupInvited"
-            "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
-          when "groupJoined"
-            "#{actorName} has joined <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
-          when "groupLeft"
-            "#{actorName} has left <a href='/#{subjectObj.slug}'>#{subjectObj.title}</a>."
-          else
-            if actorType is "follower"
-              "#{actorName} started following you."
-
-        if subject
-          options.click = ->
-            view = this
-            if subject.constructorName is "JPrivateMessage"
-              KD.getSingleton('router').handleRoute "/Inbox"
-            else if subjectObj.constructor.name is "JOpinion"
-              KD.remote.api.JOpinion.fetchRelated subjectObj._id, (err, post) ->
-                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-                view.destroy()
-            else if subject.constructorName is 'JGroup'
-              suffix = ''
-              suffix = '/Dashboard' if actionType is 'groupAccessRequested'
-              KD.getSingleton('router').handleRoute "/#{subjectObj.slug}#{suffix}"
-              view.destroy()
-            else
-              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}", state:subjectObj
-              view.destroy()
-
-        options.type  = actionType or actorType or ''
-        @notify options
-
-  notify:(options  = {})->
-
-    options.title       or= 'notification arrived'
-
-    notification = new KDNotificationView
-      type     : 'tray'
-      cssClass : "mini realtime #{options.type}"
-      duration : 10000
-      title    : "<span></span>#{options.title}"
-      content  : options.content  or null
-
-    if options.actorAvatar then notification.addSubView options.actorAvatar
-
-    notification.once 'click', options.click

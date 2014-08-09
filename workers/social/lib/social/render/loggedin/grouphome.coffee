@@ -2,8 +2,9 @@ module.exports = (options, callback)->
 
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
+  getTitle     = require './../title'
   getSidebar   = require './sidebar'
-  encoder      = require 'htmlencode'
+
 
   {
     account, slug, title, content, body,
@@ -11,25 +12,29 @@ module.exports = (options, callback)->
     bongoModels, client
   } = options
 
+  entryPoint = { slug : slug, type: "group" }
+  options.entryPoint = entryPoint
+
   prepareHTML = (scripts)->
     """
 
     <!DOCTYPE html>
     <html>
     <head>
-      <title>#{encoder.XSSEncode title}</title>
+      #{getTitle()}
       #{getStyles customize}
     </head>
     <body class="group logged-in">
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:['guest'], permissions:[]}}
+    #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
+    <script>KD.isLoggedInOnLoad=true;</script>
     #{scripts}
     </body>
     </html>
 
     """
 
-  fetchScripts {bongoModels, client, slug}, (err, scripts)->
+  fetchScripts options, (err, scripts)->
     callback null, prepareHTML scripts

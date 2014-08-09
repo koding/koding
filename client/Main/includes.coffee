@@ -1,12 +1,14 @@
 module.exports = [
 
   # Libs
+  "libs/deb.min.js",
   "libs/md5-min.js",
   "libs/uuid.js",
   "libs/accounting.js",
   "libs/bluebird.js",
   "libs/kite.js",
   "libs/kontrol.js",
+  "libs/algoliasearch.min.js",
 
 
   # --- Application ---
@@ -22,6 +24,7 @@ module.exports = [
 
   # mainapp controllers
   "activitycontroller.coffee",
+  "messageeventmanager.coffee",
   "socialapicontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
@@ -95,12 +98,10 @@ module.exports = [
   "navigation/navigationcontroller.coffee",
 
   "CommonViews/VideoPopup.coffee",
-  "CommonViews/LikeView.coffee",
   "CommonViews/ShowMoreDataModalView.coffee",
   "CommonViews/SkillTagFormView.coffee",
   "CommonViews/SkillTagAutoCompleteController.coffee",
   "CommonViews/SkillTagAutoCompletedItem.coffee",
-  "CommonViews/messagesList.coffee",
   "CommonViews/SplitViewWithOlderSiblings.coffee",
   "CommonViews/ContentPageSplitBelowHeader.coffee",
   "CommonViews/CommonListHeader.coffee",
@@ -112,24 +113,12 @@ module.exports = [
   "CommonViews/VerifyPasswordModal.coffee",
 
   "CommonViews/followbutton.coffee",
+  "CommonViews/topicfollowbutton.coffee",
+
+  "CommonViews/trollbutton.coffee",
 
   # "CommonViews/remotesmodal.coffee",
   # "CommonViews/databasesmodal.coffee",
-
-  # "CommonViews/opinions/opinionview.coffee",
-  # "CommonViews/opinions/discussionactivityopinionview.coffee",
-  # "CommonViews/opinions/discussionactivityopinionlistitemview.coffee",
-  # "CommonViews/opinions/tutorialactivityopinionview.coffee",
-  # "CommonViews/opinions/tutorialactivityopinionlistitemview.coffee",
-  # "CommonViews/opinions/tutorialopinionviewheader.coffee",
-  # "CommonViews/opinions/opinionviewheader.coffee",
-  # "CommonViews/opinions/opinionlistviewcontroller.coffee",
-  # "CommonViews/opinions/opinionlistitemview.coffee",
-  # "CommonViews/opinions/opinioncommentlistitemview.coffee",
-  # "CommonViews/opinions/opinionformview.coffee",
-  # "CommonViews/opinions/opinioncommentview.coffee",
-  # "CommonViews/opinions/discussionformview.coffee",
-  # "CommonViews/opinions/tutorialformview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
@@ -152,8 +141,40 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "providers/machine.coffee",
+
+  "providers/config.coffee",
+  "providers/computecontroller.coffee",
+  "providers/computecontroller.ui.coffee",
+  "providers/computeeventlistener.coffee",
+
+  "providers/dummymachine.coffee",
+  "providers/machineitem.coffee",
+  "providers/machinelist.coffee",
+
+  "providers/provideritemview.coffee",
+  "providers/providerbaseview.coffee",
+
+  "providers/cloudinstanceitemview.coffee",
+
+  "providers/providerdigitalocean.coffee",
+  "providers/providerwelcomeview.coffee",
+  "providers/providerengineyard.coffee",
+  "providers/providerkoding.coffee",
+  "providers/provideramazon.coffee",
+  "providers/providergoogle.coffee",
+  "providers/providerrackspace.coffee",
+
+  "providers/providerview.coffee",
+
+  # Algolia-based autocomplete:
+  "autocompletecontroller.coffee",
+
+  "navigation/topnavigation.coffee",
+
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
+  "navigation/navigationmachineitem.coffee",
   "navigation/navigationseparator.coffee",
   "navigation/navigationadminlink.coffee",
   "navigation/navigationinvitationlink.coffee",
@@ -162,11 +183,11 @@ module.exports = [
   "navigation/navigationdocsjobslink.coffee",
   "navigation/navigationpromotelink.coffee",
 
+  "machinesettingsmodal.coffee",
+
   # LOCATION
   "locationcontroller.coffee",
   "CommonViews/location/locationform.coffee",
-  # BadgeController
-  "badgecontroller.coffee",
 
   # PAYMENT
   # controller
@@ -190,23 +211,10 @@ module.exports = [
   "payment/existingaccountworkflow.coffee",
 
 
-  # BOOK
-  # "book/embedded/tableofcontents.coffee",
-  # "book/embedded/updatewidget.coffee",
-  # "book/embedded/topics.coffee",
-  # "book/embedded/startbutton.coffee",
-  # "book/embedded/developbutton.coffee",
-  # "book/embedded/socialshare.coffee",
-  # "book/bookdata.coffee",
-  # "book/pointerview.coffee",
-  # "book/bookview.coffee",
-  # "book/bookpage.coffee",
-
   #maintabs
 
   "maintabs/maintabview.coffee",
   "maintabs/maintabpaneview.coffee",
-  "maintabs/maintabhandleholder.coffee",
 
   # global notifications
   "globalnotification.coffee",
@@ -231,11 +239,6 @@ module.exports = [
   "avatararea/avatarareapopuplist.coffee",
   "avatararea/avatarareagroupswitcherpopup.coffee",
   "avatararea/avatarareaiconlink.coffee",
-  "avatararea/avatarareaiconmenu.coffee",
-  "avatararea/avatarareamessagespopup.coffee",
-  "avatararea/avatarareanotificationspopup.coffee",
-  "avatararea/avatarareapopupmessageslistitem.coffee",
-  "avatararea/avatarareapopupnotificationslistitem.coffee",
   "avatararea/avatarareasharestatuspopup.coffee",
 
   "maincontroller/groupdata.coffee",
@@ -270,19 +273,13 @@ module.exports = [
   "pinger.coffee",
 
   # KITE CONTROLLER
-  "kite/kite.coffee",
-  "kite/kite2.coffee",
-  "kite/oskite.coffee",
-  "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/kitehelper.coffee",
 
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
-  "kite/kites/vmkite.coffee",
-  "kite/kites/oskite.coffee",
-  "kite/kites/terminalkite.coffee",
+  "kite/kites/klient.coffee",
+  "kite/kites/kloud.coffee",
 
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
@@ -308,15 +305,12 @@ module.exports = [
 
   "styl/appfn.styl",
   "styl/resurrection.styl",
-  # "styl/resurrection.activity.styl",
+  "styl/resurrection.sidebar.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
-  # "styl/resurrection.activity.styl",
-  # "styl/resurrection.apps.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
-  # "styl/formworkflow.styl"
-  # "styl/resurrection.feeder.styl",
+  "styl/computeproviders.styl",
 
   "styl/dock.responsive.styl"
   "styl/app.markdown.styl"

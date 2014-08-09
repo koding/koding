@@ -1,23 +1,16 @@
-fs = require 'fs'
-nodePath = require 'path'
-deepFreeze = require 'koding-deep-freeze'
-
-version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
-projectRoot = nodePath.join __dirname, '..'
-
-mongo        = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
-mongoKontrol = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
-
-mongoReplSet = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
-
+fs              = require 'fs'
+nodePath        = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
+version         = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot     = nodePath.join __dirname, '..'
+mongo           = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/koding'
+mongoKontrol    = 'dev:k9lc4G1k32nyD72@172.16.3.9:27017/kontrol'
+mongoReplSet    = 'mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred'
 socialQueueName = "koding-social-#{version}"
 logQueueName    = socialQueueName+'log'
-
 authExchange    = "auth-#{version}"
 authAllExchange = "authAll-#{version}"
-
 embedlyApiKey   = '94991069fb354d4e8fdb825e52d4134a'
-
 environment     = "production"
 regions         =
   vagrant       : "vagrant"
@@ -25,10 +18,10 @@ regions         =
   aws           : "aws"
   premium       : "premium-sj"
 
-cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
-cookieSecure = yes
+cookieMaxAge    = 1000 * 60 * 60 * 24 * 14 # two weeks
+cookieSecure    = yes
 
-module.exports =
+module.exports  =
   environment   : environment
   regions       : regions
   version       : version
@@ -48,26 +41,23 @@ module.exports =
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : no
-  socialApiUrl  : "http://localhost:7000"
+  socialapi:
+    port        : 7000
+    clusterSize : 5
+    proxyUrl    : "http://social-api-1a.sj.koding.com:7000"
   sourceServer  :
     enabled     : no
     port        : 1337
-  neo4j         :
-    read        : "http://172.16.3.16"
-    write       : "http://172.16.3.16"
-    port        : 7474
   mongo         : mongo
   mongoKontrol  : mongoKontrol
   mongoReplSet  : mongoReplSet
   mongoMinWrites: 3
-  runNeo4jFeeder: yes
   runGoBroker   : no
   runGoBrokerKite : no
   runPremiumBrokerKite : no
   runPremiumBroker : no
   runKontrol    : yes
   runRerouting  : yes
-  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -117,10 +107,6 @@ module.exports =
     numberOfWorkers      : 2
     watch                : no
     cronSchedule         : '00 00 00 * * *'
-  topicModifier          :
-    cronSchedule         : '0 */5 * * * *'
-  graphFeederWorker:
-    numberOfWorkers: 4
   social        :
     login       : 'prod-social'
     numberOfWorkers: 7
@@ -149,6 +135,10 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia: #TODO change these credentials
+        appId: '8KD9RHY1OA'
+        apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
+        indexSuffix: ''
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5 # 5 min
       sessionCookie :
@@ -162,7 +152,6 @@ module.exports =
       embedly        :
         apiKey       : embedlyApiKey
       userSitesDomain: 'kd.io'
-      useNeo4j: yes
       logToExternal : yes
       logToInternal : yes
       resourceName: socialQueueName
@@ -382,16 +371,13 @@ module.exports =
     token        : "xoxp-2155583316-2155760004-2158149487-a72cf4"
     channel      : "C024LG80K"
   logLevel        :
-    neo4jfeeder   : "info"
     oskite        : "info"
     terminal      : "info"
     kontrolproxy  : "info"
     kontroldaemon : "info"
-    userpresence  : "info"
     vmproxy       : "info"
     graphitefeeder: "info"
     sync          : "info"
-    topicModifier : "info"
     postModifier  : "info"
     router        : "info"
     rerouting     : "info"

@@ -6,25 +6,33 @@ import (
 	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
+	"koding/kites/klient/protocol"
+	"koding/kites/klient/usage"
 	"log"
 	"net/url"
 	"os"
-	"strconv"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-)
-
-const (
-	VERSION = "0.0.1"
-	NAME    = "klient"
+	kiteprotocol "github.com/koding/kite/protocol"
 )
 
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 3000, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagEnvironment = flag.String("environment", "public-host", "Change environment")
+	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
+	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
+	flagRegion      = flag.String("region", protocol.Region, "Change region")
+	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+
+	VERSION = protocol.Version
+	NAME    = protocol.Name
+
+	// this is our main reference to count and measure metrics for the klient
+	usg = usage.NewUsage()
 )
 
 func main() {
@@ -35,9 +43,20 @@ func main() {
 	}
 
 	k := kite.New(NAME, VERSION)
-	k.Config = config.MustGet()
+	conf := config.MustGet()
+	k.Config = conf
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
+	k.Config.Region = *flagRegion
+
+	// always boot up with the same id in the kite.key
+	k.Id = conf.Id
+
+	// we measure every incoming request
+	k.PreHandleFunc(usg.Counter)
+
+	// this provides us to get the current usage whenever we want
+	k.HandleFunc("klient.usage", usg.Current)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -58,23 +77,48 @@ func main() {
 
 	k.HandleFunc("exec", command.Exec)
 
-	if err := k.RegisterForever(registerURL()); err != nil {
-		log.Fatal(err)
+	// return current version of klient
+	k.HandleFunc("version", func(r *kite.Request) (interface{}, error) { return VERSION, nil })
+
+	registerURL := k.RegisterURL(*flagLocal)
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
 	}
+
+	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
+	if *flagProxy {
+		// Koding proxies in production only
+		proxyQuery := &kiteprotocol.KontrolQuery{
+			Username:    "koding",
+			Environment: "production",
+			Name:        "proxy",
+		}
+
+		k.Log.Info("Seaching proxy: %#v", proxyQuery)
+		go k.RegisterToProxy(registerURL, proxyQuery)
+	} else {
+		if err := k.RegisterForever(registerURL); err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	go func() {
+		kloud, err := NewKloud(k)
+		if err != nil {
+			k.Log.Warning(err.Error())
+		}
+
+		for _ = range time.Tick(time.Second * 5) {
+			err := kloud.Report()
+			fmt.Printf("err %+v\n", err)
+		}
+
+	}()
 
 	k.Run()
-}
-
-func registerURL() *url.URL {
-	l := &localhost{}
-	p, err := l.PublicIp()
-	if err != nil {
-		return nil
-	}
-
-	return &url.URL{
-		Scheme: "ws",
-		Host:   p.String() + ":" + strconv.Itoa(*flagPort),
-		Path:   "/" + NAME + "-" + VERSION,
-	}
 }

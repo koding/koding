@@ -168,7 +168,7 @@ class KodingAppsController extends KDController
     # Which means this is an invm-app
     if vmName
 
-      file = FSHelper.createFileFromPath url
+      file = FSHelper.createFileInstance path: url
       file.fetchContents (err, partial)=>
         return  if err
 
@@ -231,34 +231,6 @@ class KodingAppsController extends KDController
   # MAKE NEW APP
   # #
 
-  defaultManifest = (type, name)->
-
-    {profile} = KD.whoami()
-    raw =
-      background    : no
-      behavior      : "application"
-      version       : "0.1"
-      title         : "#{name or type.capitalize()}"
-      name          : "#{name or type.capitalize()}"
-      identifier    : "com.koding.apps.#{utils.slugify name or type}"
-      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
-      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
-      description   : "#{name or type} : a Koding application created with the #{type} template."
-      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
-      source        :
-        blocks      :
-          app       :
-            files   : [ "./index.coffee" ]
-        stylesheets : [ "./resources/style.css" ]
-      options       :
-        type        : "tab"
-      icns          :
-        "128"       : "./resources/icon.128.png"
-      fileTypes     : []
-
-    json = JSON.stringify raw, null, 2
-
   newAppModal = null
 
   getAppPath:(manifest, escaped=no)->
@@ -269,7 +241,7 @@ class KodingAppsController extends KDController
     return FSHelper.escapeFilePath path  if escaped
     return path.replace /(\/+)$/, ""
 
-  makeNewApp:(callback)->
+  makeNewApp:(machine, callback)->
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
@@ -295,6 +267,7 @@ class KodingAppsController extends KDController
                   color           : "#444444"
                   diameter        : 12
                 callback          : =>
+
                   form = newAppModal.modalTabs.forms.form
                   unless form.inputs.name.validate()
                     form.buttons.Create.hideLoader()
@@ -306,21 +279,28 @@ class KodingAppsController extends KDController
 
                   type        = "blank"
                   name        = (name.replace /[^a-zA-Z]/g, '').capitalize()
-                  manifestStr = defaultManifest type, name
+                  manifestStr = AppSkeleton.manifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
-                  defaultVm   = KD.singletons.vmController.defaultVmName
 
-                  FSHelper.exists appPath, defaultVm, (err, exists)=>
+                  appFolder   = FSHelper.createFileInstance {
+                    path: appPath, machine, type: "folder"
+                  }
+
+                  appFolder.exists (err, exists)=>
+
                     if exists
+
                       form.buttons.Create.hideLoader()
                       new KDNotificationView
                         type      : "mini"
                         cssClass  : "error"
                         title     : "App folder with that name is already exists, please choose a new name."
                         duration  : 3000
+
                     else
-                      @prepareApplication name, (err, response)=>
+
+                      @prepareApplication { machine, name }, (err, response)=>
                         callback? err, response
                         form.buttons.Create.hideLoader()
                         newAppModal.destroy()
@@ -336,18 +316,7 @@ class KodingAppsController extends KDController
                   messages        :
                     regExp        : "For Application name only lowercase letters are allowed!"
 
-  _createChangeLog:(name)->
-    today = new Date().format('yyyy-mm-dd')
-    {profile} = KD.whoami()
-    fullName  = KD.utils.getFullnameFromAccount()
-
-    """
-     #{today} #{fullName} <@#{profile.nickname}>
-
-        * #{name} (index.coffee): Application created.
-    """
-
-  prepareApplication:(name, callback)->
+  prepareApplication:({ machine, name }, callback)->
 
     unless name
       return new KDNotificationView
@@ -356,49 +325,60 @@ class KodingAppsController extends KDController
     type         = "blank"
     appname      = KD.utils.slugify name.replace /[^a-zA-Z]/g, ''
     APPNAME      = appname.capitalize()
-    manifestStr  = defaultManifest type, APPNAME
-    changeLogStr = @_createChangeLog APPNAME
+    manifestStr  = AppSkeleton.manifest type, APPNAME
+    changeLogStr = AppSkeleton.changeLog APPNAME
     manifest     = JSON.parse manifestStr
     appPath      = @getAppPath manifest
 
-    {vmController} = KD.singletons
+    machine.getBaseKite()
 
-    vmController.run
-      method    : "app.skeleton"
-      withArgs  :
-        type    : "blank"
-        appPath : appPath
+    .exec
+      command : "mkdir -p #{appPath}/resources"
 
     .then ->
-      indexFile = FSHelper.createFileFromPath "#{appPath}/index.coffee"
-      indexFile.fetchContents().then (content) ->
-        content = content.replace(/\%\%APPNAME\%\%/g, APPNAME)
-                         .replace(/\%\%appname\%\%/g, appname)
-                         .replace(/\%\%AUTHOR\%\%/g , KD.nick())
-        indexFile.save content
+      indexFile = FSHelper.createFileInstance {
+        path: "#{appPath}/index.coffee", machine
+      }
+      content = AppSkeleton.indexCoffee
+                  .replace /\%\%APPNAME\%\%/g, APPNAME
+                  .replace /\%\%appname\%\%/g, appname
+                  .replace /\%\%AUTHOR\%\%/g , KD.nick()
+
+      indexFile.save content
 
     .then ->
-      styleFile = FSHelper.createFileFromPath "#{appPath}/resources/style.css"
-      styleFile.fetchContents().then (content) ->
-        content = content.replace(/\%\%appname\%\%/g, appname)
-        styleFile.save content
+      styleFile = FSHelper.createFileInstance {
+        path: "#{appPath}/resources/style.css", machine
+      }
+      content = AppSkeleton.styleCss
+                  .replace /\%\%appname\%\%/g, appname
+      styleFile.save content
 
     .then ->
-      readmeFile = FSHelper.createFileFromPath "#{appPath}/README.md"
-      readmeFile.fetchContents().then (content) ->
-        author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
-        content = content
-          .replace(/\%\%APPNAME\%\%/g, APPNAME)
-          .replace(/\%\%AUTHOR_FULLNAME\%\%/g , author)
-        readmeFile.save content
+      readmeFile = FSHelper.createFileInstance {
+        path: "#{appPath}/README.md", machine
+      }
+      author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
+      content = AppSkeleton.readmeMd
+        .replace /\%\%APPNAME\%\%/g, APPNAME
+        .replace /\%\%AUTHOR_FULLNAME\%\%/g , author
+      readmeFile.save content
 
     .then ->
-      FSHelper.createFileFromPath("#{appPath}/manifest.json")
-              .save manifestStr
+
+      FSHelper.createFileInstance {
+        path: "#{appPath}/manifest.json", machine
+      }
+
+      .save manifestStr
 
     .then ->
-      FSHelper.createFileFromPath("#{appPath}/ChangeLog")
-              .save changeLogStr
+
+      FSHelper.createFileInstance {
+        path: "#{appPath}/ChangeLog", machine
+      }
+
+      .save manifestStr
 
     .then ->
       return { appPath }
@@ -556,7 +536,7 @@ class KodingAppsController extends KDController
 
   @fetchManifest = (path, callback = noop)->
 
-    manifest = FSHelper.createFileFromPath path
+    manifest = FSHelper.createFileInstance path:  path
     manifest.fetchContents (err, response)=>
 
       return warn err  if err
@@ -571,3 +551,128 @@ class KodingAppsController extends KDController
         }
 
       callback null, manifest
+
+
+class AppSkeleton
+
+  @manifest = (type, name)->
+
+    {profile} = KD.whoami()
+    raw =
+      background    : no
+      behavior      : "application"
+      version       : "0.1"
+      title         : "#{name or type.capitalize()}"
+      name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{utils.slugify name or type}"
+      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
+      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
+      description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
+      source        :
+        blocks      :
+          app       :
+            files   : [ "./index.coffee" ]
+        stylesheets : [ "./resources/style.css" ]
+      options       :
+        type        : "tab"
+      icns          :
+        "128"       : "./resources/icon.128.png"
+      fileTypes     : []
+
+    json = JSON.stringify raw, null, 2
+
+
+  @changeLog = (name)->
+
+    today = new Date().format('yyyy-mm-dd')
+    {profile} = KD.whoami()
+    fullName  = KD.utils.getFullnameFromAccount()
+
+    """
+     #{today} #{fullName} <@#{profile.nickname}>
+
+        * #{name} (index.coffee): Application created.
+    """
+
+
+  @indexCoffee =
+
+    """
+      class %%APPNAME%%MainView extends KDView
+
+        constructor:(options = {}, data)->
+          options.cssClass = '%%appname%% main-view'
+          super options, data
+
+        viewAppended:->
+          @addSubView new KDView
+            partial  : "Welcome to %%APPNAME%% app!"
+            cssClass : "welcome-view"
+
+      class %%APPNAME%%Controller extends AppController
+
+        constructor:(options = {}, data)->
+          options.view    = new %%APPNAME%%MainView
+          options.appInfo =
+            name : "%%APPNAME%%"
+            type : "application"
+
+          super options, data
+
+      do ->
+
+        # In live mode you can add your App view to window's appView
+        if appView?
+
+          view = new %%APPNAME%%MainView
+          appView.addSubView view
+
+        else
+
+          KD.registerAppClass %%APPNAME%%Controller,
+            name     : "%%APPNAME%%"
+            routes   :
+              "/:name?/%%APPNAME%%" : null
+              "/:name?/%%AUTHOR%%/Apps/%%APPNAME%%" : null
+            dockPath : "/%%AUTHOR%%/Apps/%%APPNAME%%"
+            behavior : "application"
+    """
+
+  @styleCss =
+
+    """
+      .%%appname%%.main-view {
+        background: white;
+      }
+
+      .%%appname%% .welcome-view {
+
+        background: #eee;
+
+        height: auto;
+        width: auto;
+        max-width: 300px;
+
+        margin: 50px auto;
+
+        border: 1px solid #ccc;
+        border-radius: 4px;
+
+        padding:10px;
+
+        text-align:center;
+
+      }
+    """
+
+  @readmeMd =
+
+    """
+      %%APPNAME%%
+      -----------
+
+      Yet another awesome Koding application! by %%AUTHOR_FULLNAME%%
+
+    """

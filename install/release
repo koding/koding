@@ -1,0 +1,130 @@
+#!/usr/bin/env coffee
+
+Connection = require "ssh2"
+{argv}     = require 'optimist'
+log        = console.log
+eden       = require 'node-eden'
+RS         = require 'pkgcloud'
+hat        = require 'hat'
+timethat   = require 'timethat'
+PRJ        = __dirname
+BLD        = PRJ+"/install/BUILD_DATA"
+fs         = require 'fs'
+{exec}     = require 'child_process'
+_          = require 'underscore'
+
+rsKeys     =
+  provider  : 'rackspace'
+  username  : "kodinginc"
+  apiKey    : "96d6388ccb936f047fd35eb29c36df17"
+  region    : 'IAD'
+
+
+
+
+rs =
+  compute : RS.compute.createClient rsKeys
+  dns     : RS.dns.createClient rsKeys
+  lb      : RS.loadbalancer.createClient rsKeys
+  bs      : RS.blockstorage.createClient rsKeys
+
+
+KODING_LB = "300793"
+
+scrub = (obj) ->
+  # scrub the fuckin nodejitsu bullshit
+  scrb = (o) ->
+    delete o.client
+    delete o._events
+    delete o._conf
+    delete o.delimiter
+    delete o.newListener
+    delete o.wildcard
+    delete o.listenerTree
+    return o
+
+  return null unless obj
+  return scrb obj[key] for item,key in obj if Array.isArray(obj)
+  return scrb o
+
+class Release
+
+  getServersByName = (str,callback)->
+
+    rs.compute.getServers (err,servers)->
+    	return callback err if err
+    	s = []
+    	for server in servers when server.name.indexOf(str) > -1
+    		s.push
+    			name 			: server.name
+    			address		: server.addresses.private[0].addr
+    	callback null, s
+
+  @getNodesByName = (str, callback) ->
+    res = []
+    getServersByName str,(err, servers)->
+      rs.lb.getNodes KODING_LB,(err,nodes)->
+        for node in nodes
+          for server in servers
+            if server.address is node.address
+              node.name = server.name
+              res.push node
+        callback null, res
+
+  updateNodeOptions = (node,options,callback)->
+    node = _.extend node,options
+    log "updating node",node.name
+    rs.lb.updateNode KODING_LB, node, (err,res)->
+      callback err,res
+
+
+  @disableNodesByName = (str,callback)->
+    Release.getNodesByName str,(err,nodes)->
+      nodes.forEach (node)->
+        updateNodeOptions node, {condition : 'DISABLED'},(err,res)->
+          log node.name + "couldn't disable" if err
+          log node.name + " is disabled" unless err
+
+  @enableNodesByName = (str,callback)->
+    Release.getNodesByName str,(err,nodes)->
+      nodes.forEach (node)->
+        updateNodeOptions node, {condition : 'ENABLED'},(err,res)->
+          log node.name + "couldn't enable" if err
+          log node.name + " is enabled" unless err
+
+
+
+# Release.getServersByName "nginx",(err,servers)->
+#   log servers
+#   #rs.lb.addNodes "300793", s, (err)
+# 	rs.updateNodes
+
+
+# Release.disableNodesByName "prod-1754",(err,nodes) ->
+#   log nodes
+
+# for i in [1..150] by 5
+#   do (i)->
+#     name = eden.eve()
+#     rs.bs.createVolume
+#       name: name
+#       description: 'my volume'
+#       size: i,
+#     ,(err,res)->
+#       if err
+#         log "fail: disk size #{i} "
+#       else
+#         log "done: disk size #{i} - #{name} "
+
+
+# Release.enableNodesByName "prod-1755",(err,nodes) ->
+
+# rs.lb.getLoadBalancer KODING_LB,(err,lb)->
+#   log lb
+  # lb.httpsRedirect = "true"
+  # rs.lb.updateLoadBalancer lb, (err,res)->
+  #   log err,res
+
+
+
+

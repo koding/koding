@@ -6,7 +6,7 @@ class FatihFileListItem extends KDListItemView
     super options, data
 
   click: (event) ->
-    KD.getSingleton('appManager').openFile FSHelper.createFileFromPath @getData().path
+    KD.getSingleton('appManager').openFile FSHelper.createFileInstance path: @getData().path
 
     listView = @getDelegate()
     plugin   = listView.getDelegate()

@@ -7,78 +7,147 @@ class StackView extends KDView
     super options, data
 
     @bindTransitionEnd()
+    @stack = @getData()
+
 
   viewAppended:->
 
     @createHeaderElements()
 
     # Main scene for DIA
-    @addSubView @scene = new EnvironmentScene @getData().stack
+    @addSubView @scene = new EnvironmentScene {}, @stack
 
     # Rules Container
-    @rules = new EnvironmentRuleContainer
-    @scene.addContainer @rules
-    @rules.on "itemAdded", @lazyBound "updateView", yes
+    # @rules = new EnvironmentRuleContainer {}, @stack
+    # @scene.addContainer @rules
+    # @rules.on "itemAdded", @lazyBound "updateView", yes
 
     # Domains Container
-
-    @domains = new EnvironmentDomainContainer { delegate: this }
+    @domains = new EnvironmentDomainContainer {}, @stack
     @scene.addContainer @domains
-    @domains.on 'itemAdded', @lazyBound 'updateView', yes
+    @domains.on 'itemAdded',   @lazyBound 'updateView', yes
+    @domains.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # VMs / Machines Container
-    stackId = @getOptions().stack.getId?()
-    @vms    = new EnvironmentMachineContainer { stackId }
-    @scene.addContainer @vms
-
-    KD.getSingleton("vmController").on 'VMListChanged', =>
-      EnvironmentDataProvider.get (data) => @loadContainers data
+    @machines = new EnvironmentMachineContainer {}, @stack
+    @scene.addContainer @machines
+    @machines.on 'itemAdded',   @lazyBound 'updateView', yes
+    @machines.on 'itemRemoved', @lazyBound 'updateView', yes
 
     # Extras Container
-    @extras = new EnvironmentExtraContainer
-    @scene.addContainer @extras
+    # @extras = new EnvironmentExtraContainer {}, @stack
+    # @scene.addContainer @extras
+    # @extras.on 'itemAdded', @lazyBound 'updateView', yes
 
     @loadContainers()
     @emit "ready", this
 
   loadContainers: (data)->
 
-    env     = data or @getData()
-    orphans = domains: [], vms: []
-    {stack, isDefault} = @getOptions()
-
     # Add rules
-    @rules.removeAllItems()
-    @rules.addItem rule  for rule in env.rules
+    # if @stack.rules?
+    #   @rules.removeAllItems()
+    #   @rules.addItem rule        for rule in @stack.rules
 
     # Add domains
-    @domains.removeAllItems()
-    for domain in env.domains
-      if domain.stack is stack.getId() or (isDefault and not domain.stack)
-        @domains.addDomain domain
-      else
-        orphans.domains.push domain
+    if @stack.domains?
+      @domains.removeAllItems()
+      @domains.addDomain domain  for domain in @stack.domains
 
-    # Add vms
-    @vms.removeAllItems()
-    for vm in env.vms
-      if vm.stack is stack.getId() or (isDefault and not vm.stack)
-        vm.title = vm.hostnameAlias
-        @vms.addItem vm
-      else
-        orphans.vms.push vm
+    # Add machines
+    if @stack.machines?
+      @machines.removeAllItems()
+      @machines.addItem machine  for machine in @stack.machines
 
     # Add extras
-    @extras.removeAllItems()
-    @extras.addItem extra  for extra in env.extras
+    # if @stack.extras?
+    #   @extras.removeAllItems()
+    #   @extras.addItem extra      for extra in @stack.extras
 
     @setHeight @getProperHeight()
+
     KD.utils.wait 300, =>
       @_inProgress = no
       @updateView yes
 
+
+  deleteStack: ->
+
+    # REMOVE ME BEFORE PUBLISH ~ GG !!!
+    # ----
+    # @stack.delete (err, res) =>
+    #   return KD.showError err  if err
+    #   KD.utils.defer @bound 'destroy'
+
+    # return
+    # -----
+
+    stackTitle = @stack.title or ""
+    stackSlug  = "confirm"
+
+    modal      = new VmDangerModalView
+      name     : stackTitle
+      action   : "DELETE MY STACK"
+      title    : "Delete your #{stackTitle} stack"
+      width    : 650
+      content  : """
+          <div class='modalformline'>
+            <p><strong>CAUTION! </strong>This will destroy your #{stackTitle} stack including</strong>
+            all VMs and domains inside this stack. You will also lose all your data in your VMs. This action <strong>CANNOT</strong> be undone.</p><br><p>
+            Please enter <strong>#{stackSlug}</strong> into the field below to continue: </p>
+          </div>
+        """
+      callback : =>
+
+        modal.destroy()
+        @stack.delete (err, res) =>
+          return KD.showError err  if err
+          @destroy()
+
+    , stackSlug
+
+
+  ### Stack Config Helpers ###
+
+  ###*
+   * creates a new EditorModal
+   * @return {EditorModal} stack config editor
+  ###
+  createConfigEditor: ->
+
+    # FIXME we need to use key/value ui for this ~ GG
+
+    content = ""
+    for key, value of @stack.config or {}
+      content += "#{key}=#{value}\n"
+
+    new EditorModal
+      editor              :
+        title             : "Stack Config Editor <span>(experimental)</span>"
+        content           : content
+        saveMessage       : "Stack config saved."
+        saveFailedMessage : "Couldn't save your config"
+        saveCallback      : (config, modal)=>
+
+          newConfig = {}
+          for line in config.split '\n'
+            [key, value]   = line.split '='
+            newConfig[key] = value  if key? and value?
+
+          @stack.modify config: newConfig, (err, res) =>
+            modal.emit if err then "SaveFailed" else "Saved"
+            @stack.config = newConfig  unless err
+
+  ### Stack Dump Helpers ###
+
+  ###*
+   * helper to dump stack information
+   * inside of a {new EditorModal}
+  ###
   dumpStack:->
+
     stackRecipe  = @getStackDump yes
+
     editorModal  = new EditorModal
       removeOnOverlayClick : yes
       cssClass   : "recipe-editor"
@@ -100,11 +169,17 @@ class StackView extends KDView
           }
         ]
 
+  ###*
+   * walk through stacks and create a dump
+   * @param  {boolean} asYaml = no [returns dump as yAML formatted if true]
+   * @return {object} JSON or yAML dump of stack
+  ###
   getStackDump: (asYaml = no) ->
+
     {containers, connections} = @scene
     dump = {}
 
-    dump.config = "[...]"  if @getOptions().stack.meta?.config
+    dump.config = "[...]"  if @stack.config
 
     for i, container of containers
       name = EnvironmentScene.containerMap[container.constructor.name]
@@ -112,147 +187,53 @@ class StackView extends KDView
       for j, dia of container.dias
         dump[name].push \
           if name is 'domains'
-            title   : dia.data.title
-            aliases : dia.data.aliases
-          else if name is 'vms'
+            title    : dia.data.title
+            machines : dia.data.machines
+          else if name is 'machines'
             obj     =
-              title : dia.data.title
-            if dia.data.meta?.initScript
+              provider : dia.data.provider
+              meta     : dia.data.meta
+            if dia.data.initScript
               obj.initScript = "[...]"
             obj
-          else if name is 'rules'
-            title   : dia.data.name
-            rules   : dia.data.rules
+          # else if name is 'rules'
+          #   title   : dia.data.name
+          #   rules   : dia.data.rules
           else dia.data
 
     return if asYaml then jsyaml.dump dump else dump
 
-  updateView:(dataUpdated = no)->
-    @scene.updateConnections()  if dataUpdated
 
-    if @getHeight() > 50
-      @setHeight @getProperHeight()
+  ### UI Helpers ###
 
-    @scene.highlightLines()
-    @scene.updateScene()
 
   getProperHeight:->
-    (Math.max.apply null, \
-      (box.diaCount() for box in @scene.containers)) * 45 + 170
+    (Math.max.apply null,                     \
+      (box.diaCount() * (box.itemHeight + 10) \
+        for box in @scene.containers))  + 170
 
-  getMenuItems: ->
+
+  getMenuItems:->
+    this_ = this
     items =
       'Show stack recipe'  :
         callback           : @bound "dumpStack"
       'Clone this stack'   :
         callback           : =>
           stackDump        = @getStackDump()
-          stackDump.config = @getOptions().stack.meta?.config or ""
+          stackDump.config = @stack.config or ""
           @emit "CloneStackRequested", stackDump
       'Delete stack'       :
-        callback           : @bound "confirmStackDelete"
-
-    delete items['Delete stack']  if @getOptions().isDefault
+        callback           : ->
+          @destroy(); this_.deleteStack()
 
     return items
 
-  confirmStackDelete: ->
-    stackMeta  = @getOptions().stack.meta or {}
-    stackTitle = stackMeta.title or ""
-    stackSlug  = stackMeta.slug  or "confirm"
 
-    modal      = new VmDangerModalView
-      name     : stackTitle
-      action   : "DELETE MY STACK"
-      title    : "Delete your #{stackTitle} stack"
-      width    : 650
-      content  : """
-          <div class='modalformline'>
-            <p><strong>CAUTION! </strong>This will destroy your #{stackTitle} stack including</strong>
-            all VMs and domains inside this stack. You will also lose all your data in your VMs. This action <strong>CANNOT</strong> be undone.</p><br><p>
-            Please enter <strong>#{stackSlug}</strong> into the field below to continue: </p>
-          </div>
-        """
-      callback : =>
-        modal.destroy()
-        @deleteStack()
-    , stackSlug
+  createHeaderElements:->
 
-  deleteDomains: (callback = noop) ->
-    domainDias    = @domains.dias
-    domainDiaKeys = Object.keys domainDias
-    domainCouter  = 0
-    domainQueue   = domainDiaKeys.map (key) =>=>
-      domainDias[key].data.domain.remove (err, res) =>
-        domainCouter++
-        domainQueue.next()
-        @progressModal?.error()  if err
-        @progressModal?.next()
-        callback()  if domainCouter is domainDiaKeys.length
-
-    Bongo.daisy domainQueue
-
-  deleteVms: (callback = noop) ->
-    vmc       = KD.getSingleton "vmController"
-    vmDias    = @vms.dias
-    vmDiaKeys = Object.keys vmDias
-    vmCounter = 0
-    vmQueue   = vmDiaKeys.map (key) =>=>
-      vmc.deleteVmByHostname vmDias[key].data.hostnameAlias, (err) =>
-        vmCounter++
-        vmQueue.next()
-        @progressModal?.next()
-        @progressModal?.error()  if err
-        callback()  if vmCounter is vmDiaKeys.length
-      , no
-
-    Bongo.daisy vmQueue
-
-  deleteJStack: ->
-    {stack} = @getOptions()
-    stack.remove (err, res) =>
-      return KD.showError err  if err
-      @destroy()
-      @progressModal?.destroy()
-
-  deleteStack: ->
-    hasDomain = Object.keys(@domains.dias).length
-    hasVm     = Object.keys(@vms.dias).length
-
-    @createProgressModal hasDomain, hasVm  if hasVm and hasDomain
-
-    if hasDomain
-      @deleteDomains =>
-        if hasVm
-          @deleteVms =>
-            @deleteJStack()
-        else
-          @deleteJStack()
-    else if hasVm
-      @deleteVms =>
-        @deleteJStack()
-    else
-      @deleteJStack()
-
-  createProgressModal: (hasDomain, hasVm) ->
-    listData = {}
-
-    if hasDomain
-      arr = listData["Deleting Domains"] = []
-      for key, domain of @domains.dias
-        arr.push domain.data.title
-
-    if hasVm
-      arr = listData["Deleting VMs"] = []
-      for key, vm of @vms.dias
-        arr.push vm.data.title
-
-    @progressModal = new StackProgressModal {}, listData
-
-  createHeaderElements: ->
-    {stack} = @getOptions()
-    group   = KD.getGroup().title
-    title   = "#{stack.meta?.title or 'a'} stack on #{group}"
+    group = KD.getGroup().title
+    title = "#{@stack.title or 'a'} on #{group}"
 
     @addSubView title = new KDView
       cssClass : 'stack-title'
@@ -297,18 +278,12 @@ class StackView extends KDView
       iconClass : "editor"
       callback  : @bound "createConfigEditor"
 
-  createConfigEditor: ->
-    new EditorModal
-      editor              :
-        title             : "Stack Config Editor <span>(experimental)</span>"
-        content           : @getOptions().stack?.meta?.config or ""
-        saveMessage       : "Stack config saved."
-        saveFailedMessage : "Couldn't save your config"
-        saveCallback      : @bound "saveConfig"
 
-  saveConfig: (config, modal) ->
-    {stack} = @getOptions()
+  updateView:(dataUpdated = no)->
 
-    stack.updateConfig config, (err, res) =>
-      eventName = if err then "SaveFailed" else "Saved"
-      modal.emit eventName
+    @scene.updateConnections()  if dataUpdated
+
+    @setHeight @getProperHeight()  if @getHeight() > 50
+
+    @scene.highlightLines()
+    @scene.updateScene()

@@ -18,7 +18,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       return unless data
 
       if data.path and @openedFiles.indexOf(data.path) is -1
-        file = FSHelper.createFileFromPath data.path
+        file = FSHelper.createFileInstance path: data.path
         @createEditorInstance file, null, data.sessionKey
 
     @tabsRef.on "child_removed", (snapshot) =>
@@ -82,7 +82,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       @activeTabIndex = newIndex
 
   createEditorInstance: (file, content, sessionKey) ->
-    file      = FSHelper.createFileFromPath "localfile:/untitled.txt"  unless file
+    file      = FSHelper.createFileInstance path:  "localfile:/untitled.txt"  unless file
     plainPath = FSHelper.plainPath file.path
     index     = @openedFiles.indexOf plainPath
     return @tabView.showPaneByIndex index  if index > -1

@@ -1,3 +1,8 @@
+
+# Notes:                                  ~ GG
+# RestoreTab functionality removed with
+# 8c9f80cff24c93107de583cb864b0001f1e737af
+
 class WebTermAppView extends JView
 
   loadingPartial = 'Loading Terminal...'
@@ -5,6 +10,8 @@ class WebTermAppView extends JView
   constructor: (options = {}, data) ->
 
     super options, data
+
+    @machines = {}
 
     @dirty = KD.utils.dict()
 
@@ -22,87 +29,80 @@ class WebTermAppView extends JView
       closeAppWhenAllTabsClosed : no
 
     @tabView
-      .on('TabsSorted',    @bound 'updateSessions')
-      .on('PaneDidShow',   @bound 'handlePaneShown')
+      .on('TabsSorted',      @bound 'updateSessions')
+      .on('PaneDidShow',     @bound 'handlePaneShown')
 
     @addStartTab()
 
-    @on 'VMItemClicked',     @bound 'prepareAndRunTerminal'
+    @on 'VMItemClicked',     @bound 'createNewTab'
+
     @on 'PlusHandleClicked', @bound 'handlePlusClick'
     @on 'WebTermConnected',  @bound 'updateSessions'
     @on 'TerminalClosed',    @bound 'removeSession'
 
+    @on "SessionSelected", ({ machine, session })=>
+      @createNewTab { machine, session, mode: 'resume' }
+
+    @on "SessionRemoveRequested", ({ machine, session })=>
+      @removeSession { machineId: machine.uid, sessionId: session }
+
     @on 'TerminalStarted', ->
       KD.mixpanel "Open new Webterm, success"
 
-    {vmController} = KD.singletons
-    vmController.on 'vm.progress.error', => @notify cssClass : 'error'
 
-    @on "SessionSelected", ({vm, session}) => @createNewTab {vm, session, mode: 'resume'}
+  viewAppended: ->
+    super
 
-    {vmController} = KD.singletons
-    {terminalKites} = vmController
-    vmController.ready @bound 'restoreTabs'
+    {computeController} = KD.singletons
+    computeController.fetchMachines (err, machines)=>
 
-  restoreTabs: ->
-    @fetchStorage (storage) =>
-      sessions = storage.getValue 'savedSessions'
-      return  unless sessions?.length
+      machines.forEach (machine)=>
+        @machines[machine.uid] = machine
 
-      @notify
-        title     : "Checking for previous sessions"
-        cssClass  : "success"
+    path = location.pathname + location.search + "?"
+    mainController = KD.getSingleton("mainController")
 
-      # group sessions by alias
-      aliases = []
-      sessions.forEach (session) ->
-        [alias, sessionId] = session.split ':'
-        aliases.push alias  unless alias in aliases
+    unless KD.isLoggedIn()
+      mainController.once "accountChanged.to.loggedIn", =>
+        wc = KD.singleton 'windowController'
+        wc.clearUnloadListeners()
+        location.replace path
 
-      # fetch vms and store in an object with the key of alias
-      KD.singletons.vmController.fetchGroupVMs no, (err, vms) =>
-        return warn err  if err
-        vmList = {}
-        vms.map (vm) ->
-          vmList[vm.hostnameAlias] = vm
 
-        {dash} = Bongo
+  addStartTab:->
 
-        # fetch all active vm sessions via terminal kites
-        activeSessions = []
-        {vmController, kontrol} = KD.singletons
-        kites =
-          if KD.useNewKites
-          then kontrol.kites.terminal
-          else vmController.terminalKites
-        queue = aliases.map (alias)->->
-          # when we have sessions from another xontext in appStorage
-          # prevent restoring sessions of terminals in that context
-          kites[alias]?.webtermGetSessions().then (sessions) =>
-            activeSessions = activeSessions.concat sessions
-            queue.fin()
-          .catch (err) ->
-            warn err
-            queue.fin()
+    pane = new KDTabPaneView
+      name          : 'intro'
+      tabHandleView : new KDCustomHTMLView
+        tagName     : 'span'
+        cssClass    : 'home'
+      view          : @startTab = new TerminalStartTab
+        tagName     : 'main'
+        delegate    : this
+      closable      : no
 
-        # after all active sessions are fetched, compare them with last open sessions
-        sessionRestored = no
-        dash queue, =>
-          sessions.forEach (session) =>
-            [alias, sessionId] = session.split ':'
-            if sessionId in activeSessions
-              sessionRestored = yes
-              @createNewTab
-                vm         : vmList[alias]
-                session    : sessionId
-                mode       : 'resume'
-                shouldShow : no
+    @tabView.addPane pane
 
-          unless sessionRestored
-            @notify
-              title     : "Your previous sessions are no longer online since your VM is turned off due to inactivity. \
-                           If you want always on VMs, you can upgrade your plan"
-              cssClass  : "fail"
+
+  handleQuery:(query)->
+    pane = @tabView.getActivePane()
+    {terminalView} = pane.getOptions()
+    terminalView.terminal?.scrollToBottom()
+    terminalView.once "TerminalClosed", @bound "removeSession"
+    terminalView.once 'WebTermConnected', (remote)=>
+      @emit "WebTermConnected"
+      if query.command
+        command = decodeURIComponent query.command
+        @showApprovalModal remote, command
+
+      # chrome app specific settings
+      if query.chromeapp
+
+        query.fullscreen = yes # forcing fullscreen
+        @chromeAppMode()
+
+      if query.fullscreen
+        KD.getSingleton("mainView").enableFullscreen()
 
 
   initPane: (pane) ->
@@ -120,23 +120,29 @@ class WebTermAppView extends JView
 
 
   handlePaneShown:(pane, index)->
+
     @_windowDidResize()
     {terminalView} = pane.getOptions()
 
     return  unless terminalView
 
     @initPane pane
+
+    @fetchStorage (storage) ->
+      storage.setValue 'activeIndex', index
+
     terminalView.terminal?.scrollToBottom()
     KD.utils.defer -> terminalView.setKeyView()
-    @fetchStorage (storage) -> storage.setValue 'activeIndex', index
 
 
   fetchStorage: (callback) ->
+
     storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
 
 
   showApprovalModal: (remote, command)->
+
     modal = new KDModalView
       cssClass: "terminal-command-warning"
       title   : "Warning!"
@@ -164,20 +170,9 @@ class WebTermAppView extends JView
           callback: ->
             modal.destroy()
 
-  getAdvancedSettingsMenuView: (item, menu)->
-    pane = @tabView.getActivePane()
-    return  unless pane
-
-    {terminalView} = pane.getOptions()
-    settingsView = new KDView
-      cssClass: "editor-advanced-settings-menu"
-    settingsView.addSubView new WebtermSettingsView
-      menu    : menu
-      delegate: terminalView
-
-    return settingsView
 
   runCommand:(_command)->
+
     pane = @tabView.getActivePane()
     {terminalView} = pane.getOptions()
 
@@ -201,27 +196,23 @@ class WebTermAppView extends JView
       terminalView.once "TerminalClosed", @bound "removeSession"
       terminalView.once 'WebTermConnected', runner
 
-  handleQuery:(query)->
-    pane = @tabView.getActivePane()
+
+  getAdvancedSettingsMenuView: (item, menu)->
+
+    return  unless pane = @tabView.getActivePane()
+
     {terminalView} = pane.getOptions()
-    terminalView.terminal?.scrollToBottom()
-    terminalView.once "TerminalClosed", @bound "removeSession"
-    terminalView.once 'WebTermConnected', (remote)=>
-      @emit "WebTermConnected"
-      if query.command
-        command = decodeURIComponent query.command
-        @showApprovalModal remote, command
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new WebtermSettingsView {
+      menu, delegate: terminalView
+    }
 
-      # chrome app specific settings
-      if query.chromeapp
+    return settingsView
 
-        query.fullscreen = yes # forcing fullscreen
-        @chromeAppMode()
-
-      if query.fullscreen
-        KD.getSingleton("mainView").enableFullscreen()
 
   chromeAppMode: ->
+
     windowController = KD.getSingleton("windowController")
     mainController   = KD.getSingleton("mainController")
 
@@ -239,99 +230,107 @@ class WebTermAppView extends JView
 
     @addSubView new ChromeTerminalBanner
 
-  viewAppended: ->
-    super
-    path = location.pathname + location.search + "?"
-    mainController = KD.getSingleton("mainController")
-
-    unless KD.isLoggedIn()
-      mainController.once "accountChanged.to.loggedIn", =>
-        wc = KD.singleton 'windowController'
-        wc.clearUnloadListeners()
-        location.replace path
-
 
   createNewTab: (options = {}) ->
 
     {shouldShow, session} = options
-    {hostnameAlias: vmName, region} = options.vm
 
-    # before creating new tab check for its existence first and then show that pane if it is already opened
+    # before creating new tab check for its existence
+    # first and then show that pane if it is already opened
     pane = @findPane session
-
     return @tabView.showPane pane  if pane
 
-    defaultOptions =
-      testPath    : "webterm-tab"
-      delegate    : this
+    options.testPath = "webterm-tab"
+    options.delegate = this
 
-    terminalView   = new WebTermView (KD.utils.extend defaultOptions, options)
+    terminalView = new WebTermView options
 
     @emit 'TerminalStarted'
 
     @appendTerminalTab terminalView, shouldShow
     terminalView.connectToTerminal()
+
     @forwardEvent terminalView, "WebTermConnected"
     @forwardEvent terminalView, "TerminalClosed"
 
-  addStartTab:->
-
-    pane = new KDTabPaneView
-      name          : 'intro'
-      tabHandleView : new KDCustomHTMLView
-        tagName     : 'span'
-        cssClass    : 'home'
-      view          : @startTab = new TerminalStartTab
-        tagName     : 'main'
-        delegate    : this
-      closable      : no
-
-    @tabView.addPane pane
 
   appendTerminalTab: (terminalView, shouldShow = yes) ->
 
     @forwardEvents terminalView, ['KeyViewIsSet', 'command']
 
     pane = new KDTabPaneView
-      name          : 'Terminal'
-      terminalView  : terminalView
+      name         : 'Terminal'
+      terminalView : terminalView
 
     @tabView.addPane pane, shouldShow
     pane.addSubView terminalView
 
-    terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
-      @createNewTab {vm, session, mode: 'resume', shouldShow : no}
+    # FIXME GG
+    # terminalView.on "WebTermNeedsToBeRecovered", ({vm, session}) =>
 
-      title = "Reconnected to Terminal"
-      Metric.create title, vm
-      @notify {title}
+    #   @createNewTab {
+    #     vm, session, mode: 'resume', shouldShow : no
+    #   }
 
-      pane.destroySubViews()
+    #   title = "Reconnected to Terminal"
+    #   Metric.create title, vm
+    #   @notify {title}
+
+    #   pane.destroySubViews()
+    #   @tabView.removePane pane
+
+    terminalView.once 'TerminalCanceled', ({ machineId }) =>
       @tabView.removePane pane
-
-    terminalView.once 'TerminalCanceled', ({ vmName }) =>
-      @tabView.removePane pane
-      unless @dirty[vmName]
+      unless @dirty[machineId]
         @tabView.off 'AllTabsClosed'
-        @dirty[vmName] = yes
+        @dirty[machineId] = yes
 
     # terminalView.once 'KDObjectWillBeDestroyed', => @tabView.removePane pane
 
   updateSessions: ->
+
     storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage =>
+
       activeIndex = @tabView.getActivePaneIndex()
       sessions = []
+
       @tabView.panes.forEach (pane) =>
         { terminalView } = pane.getOptions()
         return unless terminalView
+
         sessionId = terminalView.sessionId ? terminalView.getOption 'session'
-        {hostnameAlias} = terminalView.getOption 'vm'
-        sessions.push "#{ hostnameAlias }:#{ sessionId }"
+
+        if sessionId
+          machineId = terminalView.getMachine().uid
+          sessions.push "#{ machineId }:#{ sessionId }"
+        else
+          info "There is terminal pane but no sessionId is set."
+
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
 
+
+  removeSession: ({machineId, sessionId}) ->
+
+    @updateSessions()
+
+    machine = @machines[machineId]
+    machine.getBaseKite().webtermKillSession
+
+      session: sessionId
+
+    .then (response) =>
+
+      info "Terminal session removed from #{machineId} klient kite"
+      @emit 'SessionListChanged'
+
+    .catch (err) ->
+      warn err
+
+
   findPane: (session) ->
+
     foundPane = null
     @tabView.panes.forEach (pane) =>
       { terminalView } = pane.getOptions()
@@ -341,100 +340,19 @@ class WebTermAppView extends JView
 
     return foundPane
 
-  removeSession: ({vmName, sessionId}) ->
-    @updateSessions()
-    {vmController, kontrol} = KD.singletons
-    terminalKites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.terminalKites
-
-    terminalKites[vmName].webtermKillSession
-      session: sessionId
-    .then (response) ->
-      log 'session removed from terminal kite'
-    .catch (err) ->
-      warn err
-
-  addNewTab: (vm) ->
-
-    @_secondTab = yes
-    mode        = 'create'
-
-    @prepareAndRunTerminal vm, mode
-
-
-  showVMSelection:->
-
-    return  if @vmselection and not @vmselection.isDestroyed
-    @vmselection = new VMSelection delegate : this
-
 
   handlePlusClick:->
 
-    vmc = KD.getSingleton 'vmController'
-    if vmc.vms.length > 1 then @showVMSelection()
-    else
-      vm = vmc.vms.first
+    # FIXME ~GG
+    # machine = @machines.first
+    # @createNewTab { machine, mode:'create' }
 
-      unless vm
-        ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
-        return
-
-      osKite =
-        if KD.useNewKites
-        then vmc.kites.oskite[vm.hostnameAlias]
-        else vmc.kites[vm.hostnameAlias]
-
-      state = osKite.recentState?.state
-
-      if state is 'RUNNING'
-      then @prepareAndRunTerminal vm
-      else
-        ErrorLog.create "terminal: handlePlusClick error",
-          {reason: "vm has unknown state", osKiteState: state}
-
-        @notify cssClass : 'error'
-
-  prepareAndRunTerminal: (vm, mode = 'create') ->
-    {vmController} = KD.singletons
-    osKite =
-      if KD.useNewKites
-      then vmController.kites.oskite[vm.hostnameAlias]
-      else vmController.kites[vm.hostnameAlias]
-
-    {recentState}  = osKite
-
-    state = osKite.recentState?.state
-
-    if state is 'RUNNING'
-      @createNewTab {vm, mode}
-    else if state in ['STOPPED', 'FAILED']
-      osKite?.vmOn().catch @bound "handlePrepareError"
-    else
-      ErrorLog.create "terminal: prepareAndRunTerminal error",
-        {vm, reason: "vm has unknown state", osKiteState: state}
-
-      @notify cssClass : 'error'
-      osKite?.vmOff()
-
-  handlePrepareError: (err) ->
-    title = err?.message
-
-    if title and /limit reached/.test title
-      title += ". Please upgrade to run more VMs."
-
-    numberOfVms = Object.keys(KD.singletons.vmController.vmsInfo).length
-    ErrorLog.create err?.message, {numberOfVms}
-
-    new KDNotificationView {title}
 
   pistachio: ->
     """
     {{> @tabHandleContainer}}
     {{> @tabView}}
     """
-
 
   notify: do ->
 

@@ -3,9 +3,10 @@ module.exports = class JStack extends jraphical.Module
 
   KodingError        = require '../error'
 
-  {secure, ObjectId, signature} = require 'bongo'
+  {secure, ObjectId, signature, daisy} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require './group/permissionset'
+  Validators         = require './group/validators'
 
   @trait __dirname, '../traits/protected'
 
@@ -13,107 +14,272 @@ module.exports = class JStack extends jraphical.Module
 
   @set
 
-    softDelete        : yes
+    softDelete           : yes
 
-    permissions       :
-      'create stacks' : ['member']
-      'update stacks' : ['member']
-      'get stacks'    : ['member']
+    permissions          :
 
-    sharedMethods     :
-      static          :
-        one           :
-          (signature Object, Function)
-        getStack      :
-          (signature Function)
-        createStack   :
-          (signature Object, Function)
-        getStacks     :
-          (signature Function)
-      instance        :
-        remove        :
-          (signature Function)
-        push          :
-          (signature Object, Function)
-        updateConfig  :
-          (signature String, Function)
+      'create stack'     : ['member']
 
-    sharedEvents      :
-      static          : [ ]
-      instance        : [
+      'update stack'     : []
+      'update own stack' : ['member']
+
+      'delete stack'     : []
+      'delete own stack' : ['member']
+
+      'list stacks'      : ['member']
+
+    sharedMethods        :
+      static             :
+        create           :
+          (signature Object, Function)
+        some             : [
+          (signature Object, Function)
+          (signature Object, Object, Function)
+        ]
+      instance           :
+        delete           :
+          (signature Function)
+        modify           :
+          (signature Object, Function)
+
+    sharedEvents         :
+      static             : [ ]
+      instance           : [
         { name : 'updateInstance' }
       ]
 
-    schema            :
-      user            : String
-      group           : String
-      meta            : Object
+    indexes              :
+      publicKey          : 'unique'
 
-  @getStacks = ({user, group}, callback)->
+    schema               :
 
-    JStack.some {user, group}, {}, (err, stacks)->
-      return callback err  if err
+      title              :
+        type             : String
+        required         : yes
 
-      if stacks.length is 0
-        meta = title: "Default", slug: "default"
-        JStack.getStack { user, group, meta }, (err, stack) =>
-          callback err, [stack]
-      else
-        callback null, stacks
+      originId           :
+        type             : ObjectId
+        required         : yes
 
-  @getStackId = (selector, callback)->
+      group              :
+        type             : String
+        required         : yes
 
-    @getStack selector, (err, stack)->
-      callback err, stack?.getId()
+      baseStackId        : ObjectId
 
-  @getStack = ({user, group, meta}, callback)->
-    meta  or= title: "Default", slug: "default"
-    JStack.one {user, group, meta}, (err, stack)->
-      return callback err  if err
+      rules              : [ ObjectId ]
+      domains            : [ ObjectId ]
+      machines           : [ ObjectId ]
+      extras             : [ ObjectId ]
 
-      return callback null, stack  if stack
+      config             : Object
 
-      stack = new JStack {user, group, meta}
-      stack.save (err)->
-        if err then callback err
-        else callback null, stack
+      meta               : require 'bongo/bundles/meta'
 
-  @createStack = permit 'create stacks',
+      status             :
+        type             : String
+        enum             : ["Wrong type specified!", [
 
-    success: (client, meta, callback)->
+          # States which description ending with '...' means its an ongoing
+          # proccess which you may get progress info about it
+          #
+          "Initial"         # Initial state
+          "Terminating"     # Stack is getting destroyed...
+          "Terminated"      # Stack is destroyed, not exists anymore
+        ]]
 
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+        default          : -> "Initial"
 
-      @getStack {user, group, meta}, callback
 
-  @getStack$ = permit 'get stacks',
+  @getStack = (account, _id, callback)->
+
+    JStack.one { _id, originId : account.getId() }, (err, stackObj)->
+      if err? or not stackObj?
+        return callback new KodingError "A valid stack id required"
+      callback null, stackObj
+
+
+  appendTo: (itemToAppend, callback)->
+
+    # itemToAppend is like: { machines: machine.getId() }
+
+    # TODO add check for itemToAppend to make sure its just ~ GG
+    # including supported fields: [rules, domains, machines, extras]
+
+    @update $addToSet: itemToAppend, (err)-> callback err
+
+
+  ###*
+   * JStack::create wrapper for client requests
+   * @param  {Mixed}    client
+   * @param  {Object}   data
+   * @param  {Function} callback
+   * @return {void}
+  ###
+  @create$ = permit 'create stack', success: (client, data, callback)->
+
+    data.account   = client.connection.delegate
+    data.groupSlug = client.context.group
+    delete data.baseStackId
+
+    JStack.create data, callback
+
+
+  ###*
+   * JStack::create
+   * @param  {Object}   data
+   * @param  {Function} callback
+   * @return {void}
+  ###
+  @create = (data, callback)->
+
+    { account, groupSlug, config, title, baseStackId } = data
+    originId = account.getId()
+
+    stack = new JStack {
+      title, config, originId, baseStackId,
+      group: groupSlug
+    }
+
+    stack.save (err)->
+      return callback err  if err?
+      callback null, stack
+
+  @getSelector = (selector, account)->
+    selector ?= {}
+    selector.originId = account.getId()
+    selector.status   = $ne: "Terminated"
+    return selector
+
+  @some$ = permit 'list stacks',
+
+    success: (client, selector, options, callback)->
+
+      [options, callback] = [callback, options]  unless callback
+      options ?= {}
+
+      { delegate } = client.connection
+
+      selector = @getSelector selector, delegate
+
+      JStack.some selector, options, (err, _stacks)->
+
+        if err
+
+          msg = "Failed to fetch stacks"
+          callback new KodingError msg
+          console.warn msg, err
+
+        else if not _stacks or _stacks.length is 0
+
+          callback null, []
+
+        else
+
+          stacks = []
+
+          queue = _stacks.map (stack) -> ->
+            stack.revive (err, revivedStack)->
+              stacks.push revivedStack
+              queue.next()
+
+          queue.push ->
+            callback null, stacks
+
+          daisy queue
+
+
+
+  revive: (callback)->
+
+    JDomain  = require "./domain"
+    JMachine = require "./computeproviders/machine"
+
+    queue    = []
+    domains  = []
+    machines = []
+
+    (@machines ? []).forEach (machineId)->
+      queue.push -> JMachine.one _id: machineId, (err, machine)->
+        if not err? and machine
+          machines.push machine
+        queue.next()
+
+    (@domains ? []).forEach (domainId)->
+      queue.push -> JDomain.one _id: domainId, (err, domain)->
+        if not err? and domain
+          domains.push domain
+        queue.next()
+
+    queue.push =>
+      this.machines = machines
+      this.domains = domains
+      callback null, this
+
+    daisy queue
+
+
+  delete: permit
+
+    # TODO Add password check for stack delete
+    #
+
+    advanced: [
+      { permission: 'delete own stack', validateWith: Validators.own }
+    ]
 
     success: (client, callback)->
 
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+      # TODO Implement delete methods.
+      @update $set: status: "Terminating"
 
-      @getStack {user, group}, callback
+      JDomain  = require "./domain"
+      JMachine = require "./computeproviders/machine"
 
-  @getStacks$ = permit 'get stacks',
+      { delegate } = client.connection
 
-    success: (client, callback)->
+      @domains?.forEach (_id)->
+        JDomain.one {_id}, (err, domain)->
+          if not err? and domain?
+            domain.remove (err)->
+              if err then console.error \
+                "Failed to remove domain: #{domain.domain}", err
 
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+      @machines?.forEach (_id)->
+        JMachine.one {_id}, (err, machine)->
+          if not err? and machine?
+            machine.remove (err)->
+              if err then console.error \
+                "Failed to remove machine: #{machine.title}", err
 
-      @getStacks {user, group}, callback
+      Relationship.remove {
+        targetName : "JStackTemplate"
+        targetId   : @baseStackId
+        sourceId   : delegate.getId()
+        sourceName : "JAccount"
+        as         : "user"
+      }, (err)=>
 
-  updateConfig: permit "update stacks",
-    success: (client, config, callback) ->
-      {group} = client.context
-      user    = client.connection.delegate.profile.nickname
+        @remove callback
 
-      if @user isnt user
-        return callback new KodingError "Access denied"
 
-      @update $set: "meta.config": config, (err) =>
-        err = new KodingError {message: "Failed to update", err}  if err
 
-        callback err, this
+  modify: permit
+
+    advanced: [
+      { permission: 'update own stack', validateWith: Validators.own }
+    ]
+
+    success: (client, options, callback)->
+
+      { title, config } = options
+
+      unless title or config
+        return callback new KodingError "Nothing to update"
+
+      title  ?= @title
+      config ?= @config
+
+      @update $set : { title, config }, (err)->
+        return callback err  if err?
+        callback null

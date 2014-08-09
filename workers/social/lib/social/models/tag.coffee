@@ -1,6 +1,4 @@
-
 jraphical = require 'jraphical'
-CActivity = require './activity'
 KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
@@ -78,10 +76,6 @@ module.exports = class JTag extends jraphical.Module
           (signature Object, Object, Function)
           (signature Object, Object, Object, Function)
         ]
-        addSystemTagToStatusUpdate:
-          (signature Object, Function)
-        removeTagFromStatus:
-          (signature Object, Function)
         fetchSynonym:
           (signature Function)
         delete:
@@ -168,30 +162,12 @@ module.exports = class JTag extends jraphical.Module
       JAccount = require './account'
       creator       :
         targetType  : JAccount
-      activity      :
-        targetType  : CActivity
-        as          : 'follower'
       follower      :
         targetType  : JAccount
         as          : 'follower'
       synonym       :
         targetType  : JTag
         as          : "synonymOf"
-      content       :
-        targetType  : [
-          "JNewStatusUpdate"
-          # "JCodeSnip"
-          # "JNewApp"
-          # "JLink"
-          # "JTutorial"
-          # "JAccount"
-          # "JOpinion"
-          # "JDiscussion"
-          # "JCodeShare"
-          # 'JBlogPost'
-
-        ]
-        as          : 'post'
 
   constructor:->
     super
@@ -492,36 +468,10 @@ module.exports = class JTag extends jraphical.Module
     selector.category = "system-tag"
     @some selector, options, callback
 
-  addSystemTagToStatusUpdate : permit 'assign system tag',
-    success: (client, statusUpdate, callback)->
-      callback new KodingError "That is not system tag!" unless @category is "system-tag"
-      JNewStatusUpdate = require './messages/newstatusupdate'
-      JNewStatusUpdate.one _id:statusUpdate._id, (err, status)=>
-        callback err if err
-        if status
-          tagsArray = [
-            slug: @slug
-          ]
-          status.addTags client, tagsArray , (err)->
-            callback err, null
-        else
-          callback new KodingError "Status not found!"
-
   @createSystemTag = permit 'create system tag',
     success: (client, data, callback)->
       data.category = "system-tag"
       @create client, data, callback
-
-  removeTagFromStatus  = permit 'remove system tag',
-    success: (client, statusUpdate, callback)->
-      callback new KodingError "That is not system tag!" unless @category is "system-tag"
-      JNewStatusUpdate = require './messages/newstatusupdate'
-      JNewStatusUpdate.one id:statusUpdate._id, (err, status)=>
-        callback err if err or not status
-        Relationship.remove {
-          targetId    : @getId()
-          sourceId    : status.getId()
-        } , callback
 
   fetchLastInteractors: secure (client, options, callback)->
     {limit}  = options

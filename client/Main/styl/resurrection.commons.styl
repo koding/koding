@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
-@import "../styl/app.fonts"
 
 @css {
 /*
@@ -9,13 +8,11 @@ resurrection.commons.styl
 */
 }
 
-body.activity
 body.dashboard
 body.account
 body.apps
 body.environments
-body.profile
-  bg                    color, #e4e4e4
+  bg                    color #e4e4e4
 
 html.app
 body.activity
@@ -37,17 +34,12 @@ body.environments
   vertical-align            top
   rounded                   50%
   img
-    // to avoid chrome's weird rendering bug
-    // where it first shows the image as a square
-    // then hides the corners to make them rounded - SY
-    // - fixed the line below.
     rounded                 50%
-    vendor                  transition, opacity .3s ease
+    // vendor                  transition, opacity .3s ease
 
 .content-page
   max-width                 1146px
   margin                    0 auto
-  padding                   55px 20px 0
   size                      auto auto
 
   > aside.kdview
@@ -88,8 +80,6 @@ body.environments
 
 
 .application-page
-  margin                    0
-  padding                   55px 0 0
   width                     100%
   z-index                   10
   borderBox()
@@ -127,7 +117,7 @@ a.custom-link-view.border-only-green
 
 .kdcontextmenu.resurrection
   width                 130px
-  margin                4px 0 0 14px
+  margin                7px 0 0 18px
   rounded               6px
   border                1px solid #e4e4e4
   shadow                0 8px 35px rgba(0, 0, 0, .22)
@@ -370,6 +360,47 @@ button.app-settings-menu
   &:focus
     shadow             0 0 10px -2px logoBg
 
+  // Sizes
+  &.medium
+    height             42px
+    line-height        38px
+    rounded            21px
+
+  &.small
+    height             26px
+    line-height        24px
+    rounded            13px
+
+    span.button-title
+      font-size        14px
+
+  // Color variatons
+
+  &.red
+    border-color       #E94835
+
+    span.button-title
+      color            #E94835
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
+  &.gray
+    border-color       #929292
+
+    span.button-title
+      color            #666666
+
+    &:active
+      bg               color #E94835
+
+      span.button-title
+        color          white
+
+
 //
 // SOLID BUTTON STYLES
 //
@@ -530,6 +561,7 @@ button.app-settings-menu
     opacity            0
 
   .kdloader
+    size               auto, auto
     vendor             transform, translateX(-50%) translateY(-50%)
 
 
@@ -1112,7 +1144,7 @@ a.action-link.verify-email
   .avatarview
     display         block
     left            -41px
-    top             15px !important
+    top             15px
     abs()
 
   .follow-btn
@@ -1166,11 +1198,14 @@ a.action-link.verify-email
     white-space     nowrap
     overflow        hidden
     text-overflow   ellipsis
-    color           #3c4752
-    opacity         .8
+    color           #9a9a9a
     letter-spacing  0
     line-height     15px
     fl()
+
+  .profile
+    color           #3c4752
+
   .user-numbers
     height          18px
     margin          3px 0 0
@@ -1185,6 +1220,7 @@ a.action-link.verify-email
       width         340px
 
 .kdmodal.github-modal
+.kdmodal.machines-modal
 
   a
     text-decoration none
@@ -1212,14 +1248,29 @@ a.action-link.verify-email
   .listview-wrapper
     margin-top    10px
     height        260px
-    border-top    1px solid #eee
-    border-bottom 1px solid #eee
+    // border-top    1px solid #eee
+    // border-bottom 1px solid #eee
 
   .noitem-warning
     text-align    center
     margin-top    115px
     font-size     12px
     opacity       .6
+
+  .remember-machine
+
+    margin-top      12px
+
+    .koding-on-off
+      bottom        5px
+      right         5px
+      abs()
+
+  .kdmodal-buttons
+    margin-top    2px !important
+    border        none
+
+.kdmodal.github-modal
 
   .refresh-button
     background    none
@@ -1267,12 +1318,12 @@ a.action-link.verify-email
       overflow        hidden
       width           480px
 
-
     .action-button
       top         10px
       right       10px
       visibility  hidden
       abs()
+
 
 // onboarding
 .onboarding-item
@@ -1512,7 +1563,7 @@ Markdown widget
 @css {
 /*
 resurrection.commons.styl
-Testimonials view that used on landing pages
+Testimonials view that is used on landing pages
 */
 }
 section.testimonials
@@ -1539,7 +1590,7 @@ section.testimonials
     &:before
       content           ""
       display           block
-      r-sprite          "business", "quote"
+      r-sprite          app quote
       opacity           .4
       abs               0px 0 0 0px
 
@@ -1712,6 +1763,99 @@ footer.main-footer
       font-size         13px
       font-weight       400
       noTextDeco()
+
+
+// new private message and topics modal common styles
+// Moved to commons because Vm modals use these too [BC]
+.kdmodal.activity-modal
+
+  bg              color #e9e9e9
+  border          1px solid #c1c1c1
+  shadow          0 0 29px rgba(0,0,0,.33)
+
+  .modal-arrow
+    size          0, 0
+    right         100%
+    border        10px solid transparent
+    border-right-color #c1c1c1
+    z-index       10
+
+    &:before
+      z-index       9
+      content       ''
+      display       block
+      size          0, 0
+      abs           -10px 0 0 -9px
+      border        10px solid transparent
+      border-right-color #e9e9e9
+
+
+  .kdmodal-inner
+    margin        31px
+    bg            color transparent
+
+  .kdmodal-title span.title
+    font-size     12px !important
+    font-weight   600
+    color         logoBg
+
+  textarea.kdinput.text
+    border        1px solid #d1d1d1
+    border-bottom none
+    bg            color white
+    rounded       5px
+    height        150px
+    &:hover
+      border-color  #c1c1c1
+    &:focus
+      border-color  #b1b1b1
+      shadow        none
+    &.validation-error
+      border-color  red !important
+
+
+  textarea.kdinput.text
+  input.kdinput.text
+    font-size             12px
+    font-weight           600
+    &::-webkit-input-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+    &:-moz-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+
+  .formline.button-field
+    height                34px !important
+
+    button.kdbutton.transparent
+      border                none !important
+      text-transform        none !important
+      line-height           34px !important
+      margin                0 !important
+
+      &:hover
+        shadow              none !important
+
+        .button-title
+          text-shadow       none !important
+          color             #838383
+
+      .button-title
+        color               #a3a3a3
+        font-size           12px
+        text-decoration     underline !important
+
+  .nothing
+    font-weight             600
+    font-size               12px
+    margin                  10px 0 0
+    color                   #a3a3a3
+    text-align              center
+
+
 
 @media only screen and (min-width : 320px) and (max-width : 568px)
   footer.main-footer

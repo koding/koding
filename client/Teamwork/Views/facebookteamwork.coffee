@@ -146,7 +146,7 @@ class FacebookTeamwork extends TeamworkWorkspace
 
     markup = @examplesPageMarkup markup
 
-    file = FSHelper.createFileFromPath "Web/Teamwork/Facebook/index.html"
+    file = FSHelper.createFileInstance path: "Web/Teamwork/Facebook/index.html"
     file.save markup, (err, res) =>
       return warn err  if err
 
@@ -178,7 +178,7 @@ class FacebookTeamwork extends TeamworkWorkspace
   showHintModal: ->
     editor = @getActivePanel().getPaneByName "editor"
     file   = editor.getActivePaneFileData()
-    readme = FSHelper.createFileFromPath "#{file.parentPath}/README.md"
+    readme = FSHelper.createFileInstance path:  "#{file.parentPath}/README.md"
     readme.fetchContents (err, content) =>
       return  unless content
       @getDelegate().showMarkdownModal content

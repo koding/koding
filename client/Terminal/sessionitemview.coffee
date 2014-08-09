@@ -4,14 +4,18 @@ class SessionItemView extends KDView
 
     options.tagName = 'li'
     options.index  ?= 1
-    options.partial = "Session #{options.index}"
+    options.partial = "Session #{options.index} <cite>x</cite>"
 
     super options, data
 
 
-  click: ->
+  click: (event)->
 
-    {session, vm} = @getOptions()
-    @getDelegate().emit "SessionSelected", {vm, session}
+    {session, machine} = @getOptions()
+
+    task = if $(event.target).is 'cite' \
+           then "SessionRemoveRequested" else "SessionSelected"
+
+    @getDelegate().emit task, { machine, session }
 
     no

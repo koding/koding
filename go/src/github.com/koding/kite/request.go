@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/koding/cache"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/sockjsclient"
@@ -14,12 +15,31 @@ import (
 
 // Request contains information about the incoming request.
 type Request struct {
-	Method    string
-	Args      *dnode.Partial
+	// Method defines the method name which is invoked by the incoming request
+	Method string
+
+	// Args defines the incoming arguments for the given method
+	Args *dnode.Partial
+
+	// LocalKite defines a context for the local kite
 	LocalKite *Kite
-	Client    *Client
-	Username  string
-	Auth      *Auth
+
+	// Client defines a context for the remote kite
+	Client *Client
+
+	// Username defines the username which the incoming request is bound to.
+	// This is authenticated and validated if authentication is enabled.
+	Username string
+
+	// Auth stores the authentication information for the incoming request and
+	// the type of authentication. This is not used when authentication is disabled
+	Auth *Auth
+
+	// Context holds a context that used by the current ServeKite handler. Any
+	// items added to the Context can be fetched from other handlers in the
+	// chain. This is useful with PreHandle and PostHandle handlers to pass
+	// data between handlers.
+	Context cache.Cache
 }
 
 // Response is the type of the object that is returned from request handlers
@@ -41,7 +61,9 @@ func (c *Client) runMethod(method *Method, args *dnode.Partial) {
 	defer func() {
 		if r := recover(); r != nil {
 			debug.PrintStack()
-			callFunc(nil, createError(r))
+			kiteErr := createError(r)
+			c.LocalKite.Log.Error(kiteErr.Error()) // let's log it too :)
+			callFunc(nil, kiteErr)
 		}
 	}()
 
@@ -58,8 +80,13 @@ func (c *Client) runMethod(method *Method, args *dnode.Partial) {
 		request.Username = request.Client.Kite.Username
 	}
 
-	// Call the handler function.
-	result, err := method.handler.ServeKite(request)
+	method.mu.Lock()
+	method.preHandlers = append(method.preHandlers, c.LocalKite.preHandlers...)
+	method.postHandlers = append(method.postHandlers, c.LocalKite.postHandlers...)
+	method.mu.Unlock()
+
+	// Call the handler functions.
+	result, err := method.ServeKite(request)
 
 	callFunc(result, createError(err))
 }
@@ -97,6 +124,7 @@ func (c *Client) newRequest(method string, args *dnode.Partial) (*Request, func(
 		LocalKite: c.LocalKite,
 		Client:    c,
 		Auth:      options.Auth,
+		Context:   cache.NewMemory(),
 	}
 
 	// Call response callback function, send back our response

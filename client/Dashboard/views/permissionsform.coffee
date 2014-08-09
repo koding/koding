@@ -70,18 +70,17 @@ class PermissionsForm extends KDFormViewWithFields
 
   readableText = (text)->
     dictionary =
-      "JTag"        : "Tags"
-      "JNewApp"     : "Apps"
-      "JGroup"      : "Groups"
-      "JPost"       : "Social API"
-      "JVM"         : "Compute"
-      "CActivity"   : "Activity"
-      "JGroupBundle": "Group Bundles"
-      "JDomain"     : "Domains"
-      "JProxyFilter": "Proxy Filters"
-      "JInvitation" : "Invitations"
-      "JComment"    : "Comments"
-      "JStack"      : "Stacks"
+      "JNewApp"        : "Apps"
+      "JGroup"         : "Groups"
+      "SocialMessage"  : "Social API"
+      "JVM"            : "Compute"
+      "JGroupBundle"   : "Group Bundles"
+      "JDomain"        : "Domains"
+      "JProxyFilter"   : "Proxy Filters"
+      "JInvitation"    : "Invitations"
+      "JStack"         : "Stacks"
+      "JStackTemplate" : "Stack Templates"
+      "JCredential"    : "Credentials"
 
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 

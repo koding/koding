@@ -15,6 +15,7 @@ import (
 	ehttp "github.com/coreos/etcd/http"
 	"github.com/coreos/etcd/log"
 	"github.com/coreos/etcd/metrics"
+	"github.com/coreos/etcd/mod"
 	uhttp "github.com/coreos/etcd/pkg/http"
 	"github.com/coreos/etcd/server/v1"
 	"github.com/coreos/etcd/server/v2"
@@ -98,6 +99,14 @@ func (s *Server) Store() store.Store {
 	return s.store
 }
 
+func (s *Server) SetRegistry(registry *Registry) {
+	s.registry = registry
+}
+
+func (s *Server) SetStore(store store.Store) {
+	s.store = store
+}
+
 func (s *Server) installV1(r *mux.Router) {
 	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.GetKeyHandler).Methods("GET", "HEAD")
 	s.handleFuncV1(r, "/v1/keys/{key:.*}", v1.SetKeyHandler).Methods("POST", "PUT")
@@ -126,6 +135,10 @@ func (s *Server) installV2(r *mux.Router) {
 	s.handleFunc(r2, "/v2/stats/leader", s.GetLeaderStatsHandler).Methods("GET", "HEAD")
 	s.handleFunc(r2, "/v2/stats/store", s.GetStoreStatsHandler).Methods("GET", "HEAD")
 	s.handleFunc(r2, "/v2/speedTest", s.SpeedTestHandler).Methods("GET", "HEAD")
+}
+
+func (s *Server) installMod(r *mux.Router) {
+	r.PathPrefix("/mod").Handler(http.StripPrefix("/mod", mod.HttpHandler(s.URL())))
 }
 
 func (s *Server) installDebug(r *mux.Router) {
@@ -298,6 +311,7 @@ func (s *Server) GetPeersHandler(w http.ResponseWriter, req *http.Request) error
 
 // Retrieves stats on the Raft server.
 func (s *Server) GetStatsHandler(w http.ResponseWriter, req *http.Request) error {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(s.peerServer.Stats())
 	return nil
 }
@@ -305,6 +319,7 @@ func (s *Server) GetStatsHandler(w http.ResponseWriter, req *http.Request) error
 // Retrieves stats on the leader.
 func (s *Server) GetLeaderStatsHandler(w http.ResponseWriter, req *http.Request) error {
 	if s.peerServer.RaftServer().State() == raft.Leader {
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(s.peerServer.PeerStats())
 		return nil
 	}
@@ -320,6 +335,7 @@ func (s *Server) GetLeaderStatsHandler(w http.ResponseWriter, req *http.Request)
 
 // Retrieves stats on the leader.
 func (s *Server) GetStoreStatsHandler(w http.ResponseWriter, req *http.Request) error {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(s.store.JsonStats())
 	return nil
 }

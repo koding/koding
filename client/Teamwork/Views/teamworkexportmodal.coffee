@@ -64,7 +64,7 @@ class TeamworkExportModal extends KDModalView
       return warn err  if err
       return warn res.stderr  if res.exitStatus > 0
 
-      file = FSHelper.createFileFromPath "#{tempPath}/#{name}.zip"
+      file = FSHelper.createFileInstance path: "#{tempPath}/#{name}.zip"
       file.fetchRawContents().then (res) =>
         FSHelper.s3.upload "#{name}.zip", res.content, "user", "", (err, res) =>
           file.remove()

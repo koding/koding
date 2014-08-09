@@ -39,6 +39,7 @@ config =
   main            :
     environment   : 1
     regions       :
+      kodingme    : 1
       vagrant     : 1
       sj          : 1
       aws         : 1
@@ -60,7 +61,10 @@ config =
       clusterSize : 1
       queueName   : 1
       watch       : 1
-    socialApiUrl  : 1
+    socialapi:
+      port        : 1
+      clusterSize : 1
+      proxyUrl    : 1
     sourceServer  :
       enabled     : 1
       port        : 1
@@ -68,16 +72,13 @@ config =
     mongoKontrol  : 1
     mongoReplSet  : 1
     mongoMinWrites: 1
-    neo4j         :
-      read        : 1
-      write       : 1
-      port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
     runGoBrokerKite: 1
     runPremiumBrokerKite: 1
     runPremiumBroker: 1
     runKontrol    : 1
+    runKloud      : 1
     runRerouting  : 1
     runPersistence: 1
     compileGo     : 1
@@ -170,6 +171,10 @@ config =
           os:
             version: 1
           terminal:
+            version: 1
+          klient:
+            version: 1
+          kloud:
             version: 1
         osKitePollingMs: 1
         userIdleMs: 1

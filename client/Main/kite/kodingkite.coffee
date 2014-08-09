@@ -28,7 +28,21 @@ class KodingKite extends KDObject
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
-    @ready().then => @transport.tell rpcMethod, [params], callback
+
+    unless @invalid
+
+      @ready().then => @transport.tell rpcMethod, [params], callback
+
+    else
+
+      { name } = @getOptions()
+
+      Promise.reject
+        name    : "KiteInvalid"
+        message : """Kite is invalid. This kite (#{name}) not exists
+                     or there is a problem with connection."""
+        err     : @_invalid
+
 
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) -> @tell rpcMethod, payload
@@ -38,3 +52,6 @@ class KodingKite extends KDObject
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
   @constructors = {}
+
+  connect:    -> @transport?.connect()
+  disconnect: -> @transport?.disconnect()

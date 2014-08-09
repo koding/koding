@@ -11,7 +11,9 @@ module.exports = (options = {}, callback)->
   prefetchedFeeds  = null
   customPartial    = null
   campaignData     = null
+  socialapidata    = null
   currentGroup     = null
+  userMachines     = null
   usePremiumBroker = no
 
   {bongoModels, client, slug} = options
@@ -22,22 +24,18 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedFeed          = JSON.stringify prefetchedFeeds, replacer
     encodedCampaignData  = JSON.stringify campaignData, replacer
     encodedCustomPartial = JSON.stringify customPartial, replacer
+    encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
+    userMachines         = JSON.stringify userMachines
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
     {rollbar, version, environment} = KONFIG
 
     """
-    <script>
-      console.time("Framework loaded");
-      console.time("Koding.com loaded");
-    </script>
-
     <!-- SEGMENT.IO -->
     <script type="text/javascript">
       window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;window.analytics.methods.length>i;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
@@ -48,16 +46,17 @@ module.exports = (options = {}, callback)->
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
+    <script>KD.socialApiData=#{encodedSocialApiData}</script>
+    <script>KD.userMachines=#{userMachines}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
-    KD.utils.defer(function () {
-      KD.currentGroup = KD.remote.revive(#{currentGroup});
-      KD.userAccount = KD.remote.revive(#{userAccount});
-    });
+      KD.utils.defer(function () {
+        KD.currentGroup = KD.remote.revive(#{currentGroup});
+        KD.userAccount = KD.remote.revive(#{userAccount});
+      });
     </script>
-    <script>KD.prefetchedFeeds=#{encodedFeed};</script>
 
     <!-- Google Analytics -->
     <script>
@@ -127,25 +126,24 @@ module.exports = (options = {}, callback)->
 
       bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
         console.log err if err
+
         # add custom partial into referral campaign
-        bongoModels.JReferralCampaign.one {isActive:yes}, (err, campaignData_)->
+        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+
           if not err and campaignData_ and campaignData_.data
             campaignData = campaignData_.data
+
           if group
             currentGroup = group
-          kallback()
+
+          bongoModels.JMachine.some$ client, {}, (err, machines) ->
+            console.log err  if err
+            userMachines = machines or []
+            kallback()
 
 
 
-  {delegate} = options.client.connection
-  # if user is exempt or super-admin do not cache his/her result set
-  return generateScript()  if delegate and delegate.checkFlag ['super-admin', 'exempt']
-
-  Cache  = require '../cache/main'
-  feedFn = require '../cache/feed'
-
-  getCacheKey =-> return "scriptblock#{options.client.context.group}"
-
-  Cache.fetch getCacheKey(), feedFn, options, (err, data)->
-    prefetchedFeeds = data    # this is updating the prefetchedFeeds property
+  socialApiCacheFn = require '../cache/socialapi'
+  socialApiCacheFn options, (err, data)->
+    socialapidata = data
     return generateScript()   # we can generate html here

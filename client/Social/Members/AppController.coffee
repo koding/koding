@@ -48,6 +48,9 @@ class MembersAppController extends AppController
         @createProfileView contentDisplay, model
       else
         @createGroupMembersView contentDisplay
+
+      contentDisplay.addSubView new MemberTabsView {}, model
+
       @showContentDisplay contentDisplay
       @utils.defer -> callback contentDisplay
 
@@ -92,8 +95,8 @@ class MembersAppController extends AppController
         statuses            :
           noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
           dataSource        : (selector, options = {}, callback)=>
-            options.originId = account.getId()
-            KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
+            options.targetId = account.socialApiId
+            KD.singletons.socialapi.channel.fetchProfileFeed options, callback
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
@@ -116,8 +119,7 @@ class MembersAppController extends AppController
           loggedInOnly      : yes
           noItemFoundText   : "#{owner} #{auxVerb.have} not liked any posts yet."
           dataSource        : (selector, options, callback)->
-            selector = {sourceName: $in: ['JNewStatusUpdate']}
-            account.fetchLikedContents options, selector, callback
+            return callback {message: "not impplemented feature"}
         members              :
           noItemFoundText    : "There is no member."
           itemClass          : GroupMembersPageListItemView
@@ -153,7 +155,8 @@ class MembersAppController extends AppController
 
   prepareProfileView:(member, callback)->
     options      =
-      cssClass   : "profilearea clearfix"
+      tagName    : 'aside'
+      cssClass   : "activity-sidebar clearfix"
 
     if KD.isMine member
       options.cssClass = KD.utils.curry "own-profile", options.cssClass
@@ -194,8 +197,19 @@ class MembersAppController extends AppController
     whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback
 
+class MemberTabsView extends KDCustomHTMLView
+  constructor: (options = {}, data) ->
+    options.cssClass    = 'member-tabs'
+    options.tagName     = 'nav'
+    super options, data
+
+    @addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'active'
+      partial    : "Posts"
+
 class MemberActivityListController extends ActivityListController
   # used for filtering received live updates
   addItem: (activity, index, animation)->
-    if activity.originId is @getOptions().creator.getId()
+    if activity.account._id is @getOptions().creator.getId()
       super activity, index, animation

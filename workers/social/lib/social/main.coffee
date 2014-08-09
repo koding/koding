@@ -1,16 +1,6 @@
-log = -> logger.info arguments...
+process.title = 'koding-socialworker'
 
-log4js  = require 'log4js'
-logger  = log4js.getLogger('social')
-
-log4js.configure {
-  appenders: [
-    { type: 'console' }
-    { type: 'file', filename: 'logs/social.log', category: 'social' }
-    { type: "log4js-node-syslog", tag : "social", facility: "local0", hostname: "localhost", port: 514 }
-  ],
-  replaceConsole: true
-}
+log = -> console.log arguments...
 
 {argv} = require 'optimist'
 
@@ -37,15 +27,7 @@ mqOptions.login = social.login if social?.login?
 
 broker = new Broker mqOptions
 
-processMonitor = (require 'processes-monitor').start
-  name : "Social Worker #{process.pid}"
-  stats_id: "worker.social." + process.pid
-  interval : 30000
-  limit_hard  :
-    memory   : 600
-    callback : (name,msg,details)->
-      console.log "[#{JSON.stringify(new Date())}][SOCIAL WORKER #{name}] Using excessive memory, exiting."
-      process.exit()
+
 
 koding = new Bongo {
   verbose     : social.verbose

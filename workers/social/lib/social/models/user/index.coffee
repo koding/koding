@@ -566,6 +566,9 @@ Team Koding
             groupInvite    : on
             groupRequest   : on
             groupApproved  : on
+            groupJoined    : on
+            groupLeft      : off
+            mention        : on
           }
         }
 

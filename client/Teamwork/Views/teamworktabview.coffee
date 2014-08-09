@@ -193,7 +193,7 @@ class TeamworkTabView extends CollaborativePane
       when "drawing"   then @createDrawingBoard sessionKey, indexKey
       when "editor"
         path = data.filePath or "localfile:/untitled.txt"
-        file = FSHelper.createFileFromPath path
+        file = FSHelper.createFileInstance path: path
         @createEditor file, "FIREBASE_CONTENT", sessionKey, indexKey
         # placeholder for setting the firebase content to editor when page refreshed
 
@@ -258,7 +258,7 @@ class TeamworkTabView extends CollaborativePane
 
   createEditor: (file, content = "", sessionKey, indexKey) ->
     isLocal  = not file
-    file     = file or FSHelper.createFileFromPath "localfile:/untitled.txt"
+    file     = file or FSHelper.createFileInstance path:  "localfile:/untitled.txt"
     indexKey = indexKey or @createSessionKey()
     pane     = new KDTabPaneView { title: Encoder.XSSEncode(file.name), indexKey }
     delegate = @getDelegate()

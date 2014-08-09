@@ -4,6 +4,7 @@
 *.sublime-*
 *.swo
 *.swp
+*.etcd
 *conflicted\ copy\ 201*
 .cake_task_cache
 .DS_Store
@@ -12,7 +13,9 @@
 .rabbitvhost
 .revision
 .vagrant
+.runningpids
 /.build
+/.logs
 /.deployments
 /.pydevproject
 /.revision
@@ -26,6 +29,7 @@ kontrol-data-*
 /go/bin-vagrant
 /go/build
 /go/pkg
+/go/binexport
 /kd-server.js
 /node_modules
 /node_modules/*
@@ -37,6 +41,8 @@ kontrol-data-*
 /website/dev/sourceServer.json
 /website/a/js/requiresReload.txt
 /website_nonstatic/index.html
+/install/BUILD_DATA
+BUILD_CONFIG.json
 ebin
 node_modules/.bin
 sftp-config.json
@@ -68,15 +74,30 @@ logs/*.log
 
 node_modules_koding/processes/src/.tmp*
 
-/client/Main/__generatedroutes__.coffee
-/client/Main/__generatedapps__.coffee
+/go/src/socialapi/topicfeed
+/go/src/socialapi/rerun
+/go/src/socialapi/realtime
+/go/src/socialapi/popularpost
+/go/src/socialapi/populartopic
+/go/src/socialapi/followingfeed
+/go/src/socialapi/api
+/go/src/socialapi/notification
+/go/src/socialapi/emailnotifier
+/go/src/socialapi/migrator
+/go/src/socialapi/sitemapfeeder
+/go/src/socialapi/dailyemailnotifier
 
-website/a/sprites/*.sprite.png
-
-client/Main/__generated*
 website/a/css/kd.css
 website/a/css/koding.css
 website/a/js/bongo.js
 website/a/js/kd.js
 website/a/js/kd.libs.js
 website/a/js/koding.js
+
+client/Main/__generated*
+
+website/a/sprites/*.sprite.png
+
+/run
+
+

@@ -28,13 +28,13 @@ class MainController extends KDController
     @attachListeners()
 
     @detectIdleUser()
-    @startCachingAssets()  unless KD.isLoggedIn()
+    @startCachingAssets()  unless KD.isLoggedInOnLoad
 
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
 
-    KD.registerSingleton "kontrol",                   new KodingKontrol
+    KD.registerSingleton 'kontrol',                   new KodingKontrol
 
     KD.registerSingleton 'appManager',   appManager = new ApplicationManager
     KD.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
@@ -49,16 +49,18 @@ class MainController extends KDController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
     KD.registerSingleton 'vmController',              new VirtualizationController
+    KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
-    KD.registerSingleton 'badgeController',           new BadgeController
     KD.registerSingleton 'helpController',            new HelpController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController
     KD.registerSingleton 'localSync',                 new LocalSyncController
     KD.registerSingleton 'dock',                      new DockController
-    KD.registerSingleton 'mainView',             mv = new MainView domId : 'kdmaincontainer'
+    KD.registerSingleton 'mainView',             mv = new MainView
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
+    KD.registerSingleton 'socialapi',                 new SocialApiController
+    KD.registerSingleton 'autocomplete',              new AutoCompleteController
 
     router.listen()
     @mainViewController = mvc
@@ -67,7 +69,6 @@ class MainController extends KDController
     @ready =>
       KD.registerSingleton 'widgetController',        new WidgetController
       KD.registerSingleton 'onboardingController',    new OnboardingController
-      KD.registerSingleton "socialapi",               new SocialApiController
 
       @emit 'AppIsReady'
 
@@ -83,12 +84,16 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
+    if KD.useNewKites
+      (KD.getSingleton 'kontrol').reauthenticate()
+      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
+    account.fetchMyPermissionsAndRoles (err, res)=>
+
       return warn err  if err
-      KD.config.roles       = roles
-      KD.config.permissions = permissions
+
+      KD.config.roles       = res.roles
+      KD.config.permissions = res.permissions
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
@@ -270,6 +275,3 @@ class MainController extends KDController
       for src in images
         image     = new Image
         image.src = src
-
-
-

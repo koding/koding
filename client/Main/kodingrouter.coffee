@@ -1,13 +1,5 @@
 class KodingRouter extends KDRouter
 
-  nicenames = StartTab  : 'Develop'
-
-  getSectionName = (model) ->
-
-    sectionName = nicenames[model.bongo_.constructorName]
-    if sectionName? then " - #{sectionName}" else ''
-
-
   constructor: (@defaultRoute) ->
 
     @breadcrumb = []
@@ -171,7 +163,7 @@ class KodingRouter extends KDRouter
 
     unless route
       {entryPoint} = KD.config
-      route = if KD.isLoggedIn() and entryPoint?.type is 'group' and entryPoint?.slug?
+      route = if KD.isLoggedIn() and KD.isGroup() and not KD.isKoding()
       then "/#{KD.config.entryPoint?.slug}"
       else '/'
 

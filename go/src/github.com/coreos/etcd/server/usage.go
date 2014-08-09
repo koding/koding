@@ -53,9 +53,11 @@ Other Options:
   -max-result-buffer   Max size of the result buffer.
   -max-retry-attempts  Number of times a node will try to join a cluster.
   -retry-interval      Seconds to wait between cluster join retry attempts.
-  -max-cluster-size    Maximum number of nodes in the cluster.
   -snapshot=false      Disable log snapshots
   -snapshot-count      Number of transactions before issuing a snapshot.
+  -cluster-active-size Number of active nodes in the cluster.
+  -cluster-remove-delay Seconds before one node is removed.
+  -cluster-sync-interval Seconds between synchronizations for standby mode.
 `
 
 // Usage returns the usage message for etcd.

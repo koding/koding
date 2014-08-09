@@ -9,7 +9,7 @@ class EnvironmentContainer extends KDDiaContainer
     title   = @getOption 'title'
     @header = new KDHeaderView {type : "medium", title}
 
-    @itemHeight = options.itemHeight ? 24
+    @itemHeight = options.itemHeight ? 28
 
     @on "DataLoaded", => @_dataLoaded = yes
 
@@ -19,18 +19,19 @@ class EnvironmentContainer extends KDDiaContainer
         height   : 20
         width    : 20
 
+    @addButton = new KDButtonView
+      title    : "+"
+      cssClass : 'add-button'
+      callback : => @emit 'PlusButtonClicked'
+
   viewAppended:->
     super
 
     @addSubView @header
     @header.addSubView @loader
 
-    @addButton = new KDButtonView
-      title    : "+"
-      cssClass : 'add-button'
-      callback : => @emit 'PlusButtonClicked'
     @addSubView @addButton
-    @addButton.setY 54
+    @updateAddButton()
 
     {@appStorage} = @parent
 
@@ -43,7 +44,7 @@ class EnvironmentContainer extends KDDiaContainer
     @loader.hide()
 
   addDia:(diaObj, pos)->
-    pos = x: 20, y: 50 + @diaCount() * (@itemHeight + 14)
+    pos = x: 10, y: 50 + @diaCount() * (@itemHeight + 14)
     super diaObj, pos
 
     diaObj.on "KDObjectWillBeDestroyed", @bound 'updatePositions'
@@ -54,7 +55,7 @@ class EnvironmentContainer extends KDDiaContainer
 
     index = 0
     for _key, dia of @dias
-      dia.setX 20
+      dia.setX 10
       dia.setY 50 + index * (@itemHeight + 14)
       index++
 
@@ -66,4 +67,4 @@ class EnvironmentContainer extends KDDiaContainer
     @removeAllItems()
 
   updateAddButton:->
-    @addButton.setY 54 + @diaCount() * (@itemHeight + 14)
+    @addButton.setY 6 + @diaCount() * (@itemHeight + 14)

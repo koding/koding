@@ -22,10 +22,11 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
 	"github.com/koding/redis"
 
 	"github.com/streadway/amqp"
-	"gopkg.in/fatih/set.v0"
+	set "gopkg.in/fatih/set.v0"
 )
 
 const BROKER_NAME = "broker"
@@ -191,20 +192,11 @@ func (b *Broker) startAMQP() error {
 	b.PublishConn = amqputil.CreateConnection(conf, b.Config.Name)
 	b.ConsumeConn = amqputil.CreateConnection(conf, b.Config.Name)
 	consumeChannel := amqputil.CreateChannel(b.ConsumeConn)
-	presenceQueue := amqputil.JoinPresenceExchange(
-		consumeChannel,              // channel
-		"services-presence",         // exchange
-		b.Config.Name,               // serviceType
-		b.Config.ServiceGenericName, // serviceGenericName
-		b.ServiceUniqueName,         // serviceUniqueName
-		false,                       // loadBalancing
-	)
 
 	go func() {
 		sigusr1Channel := make(chan os.Signal)
 		signal.Notify(sigusr1Channel, syscall.SIGUSR1)
 		<-sigusr1Channel
-		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "topic", b.Config.ServiceGenericName, "#", false)

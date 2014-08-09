@@ -4,5 +4,4 @@ module.exports = [
   "AppView.coffee",
 
   "styl/home.styl"
-
 ]

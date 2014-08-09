@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
-	"path/filepath"
+	"os/signal"
+	"syscall"
 )
 
 type Broker struct {
@@ -44,10 +43,10 @@ type Config struct {
 			}
 		}
 	}
-	Mongo        string
-	MongoKontrol string
+	Mongo          string
+	MongoKontrol   string
 	MongoMinWrites int
-	Mq           struct {
+	Mq             struct {
 		Host          string
 		Port          int
 		ComponentUser string
@@ -156,6 +155,24 @@ type Config struct {
 	SubscriptionEndpoint string
 }
 
+// TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
+// RUN WITH RERUN
+
+func init() {
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+				os.Exit(0)
+			}
+		}
+	}()
+}
+
 func MustConfig(profile string) *Config {
 	conf, err := readConfig("", profile)
 	if err != nil {
@@ -174,109 +191,18 @@ func MustConfigDir(dir, profile string) *Config {
 	return conf
 }
 
-func ReadJson(profile string) (*Config, error) {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	configPath := filepath.Join(pwd, "config", fmt.Sprintf("main.%s.json", profile))
-
-	data, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, err
-	}
-
-	conf := new(Config)
-	err = json.Unmarshal(data, &conf)
-	if err != nil {
-		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), string(data))
-	}
-
-	return conf, nil
-}
-
-func ReadConfigManager(profile string) (*Config, error) {
-	cmd := exec.Command("node", "-e", "require('koding-config-manager').printJson('main."+profile+"')")
-
-	data, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("Could not execute configuration source: %s\nConfiguration source output:\n%s\n",
-			err.Error(), data)
-	}
-
-	conf := new(Config)
-	err = json.Unmarshal(data, &conf)
-	if err != nil {
-		return nil, fmt.Errorf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n",
-			err.Error(), string(data))
-	}
-
-	// successfully unmarshalled into Current
-	return conf, nil
-}
-
-// readConfig reads and unmarshalls the appropriate config into the Config
-// struct (which is used in many applications). It reads the config from the
-// koding-config-manager  with command line flag -c. If there is no flag
-// specified it tries to get the config from the environment variable
-// "CONFIG".
 func readConfig(configDir, profile string) (*Config, error) {
-	if profile == "" {
-		// this is needed also if you can't pass a flag into other packages, like testing.
-		// otherwise it's impossible to inject the config paramater. For example:
-		// this doesn't work  : go test -c "vagrant"
-		// but this will work : CONFIG="vagrant" go test
-		envProfile := os.Getenv("CONFIG")
-		if envProfile == "" {
-			return nil, errors.New("config.go: please specify a configuration profile via -c or set a CONFIG environment.")
-		}
-
-		profile = envProfile
+	jsonData := os.Getenv("KONFIG_JSON")
+	if jsonData == "" {
+		return nil, errors.New("KONFIG_JSON is not set")
 	}
 
-	if configDir == "" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-
-		configDir = filepath.Join(cwd, "config")
-	}
-
-	configPath := filepath.Join(configDir, fmt.Sprintf("main.%s.json", profile))
-	ok, err := exists(configPath)
+	conf := new(Config)
+	err := json.Unmarshal([]byte(jsonData), &conf)
 	if err != nil {
-		return nil, err
-	}
-
-	var conf *Config
-	if ok {
-		conf, err = ReadJson(profile)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		conf, err = ReadConfigManager(profile)
-		if err != nil {
-			return nil, err
-		}
+		return nil, fmt.Errorf("Configuration error, make sure KONFIG_JSON is set: %s\nConfiguration source output:\n%s\n",
+			err.Error(), string(jsonData))
 	}
 
 	return conf, nil
-}
-
-// exists returns whether the given file or directory exists or not.
-func exists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
-	}
-
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-
-	return false, err
 }

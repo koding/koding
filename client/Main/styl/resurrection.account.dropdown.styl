@@ -1,6 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
 @import "../styl/appfn"
-@import "../styl/app.fonts"
 
 @css {
 /*
@@ -8,225 +7,39 @@ Account Menu Dropdowns stylesheet
 resurrection.account.dropdown.styl
 */
 }
-
 .avatararea-popup
-  height                    auto
-  border                    none
-  overflow                  visible
-  top                       53px
-  width                     280px
-  display                   none
-  z-index                   1000
+  size                    232px, auto
+  bottom                  59px
+  left                    26px
+  bg                      color, #1A1A1A
+  z-index                 100
+  display                 none
+  shadow                  0 2px 13px rgba(0, 0, 0, 0.5)
+  borderBox()
   fix()
+
   &.active
-    display                 block
+    display               block
 
-  .kdview.kdlistview
-    margin                  0
-  .tab
-    cursor                  pointer
-    border-bottom           none
-    abs()
-    top                     -54px
-    right                   0
-    text-align              center
-    z-index                 1
-    size                    45px 55px
-    bg                      color,#212932
-    span
-      margin-top            22px
-      size                  20px, 20px
-      blockMid()
   .content
-    shadow                  0 0 21px 10px rgba(0,0,0,0.18)
-    size                    100%, auto
-    bg                      color, #212932
-    rounded                 0 0 5px 5px
-    borderBox()
-
-  &.notifications
-    right                   295px
-    .tab span
-      margin                19px 0 0 3px
-      r-sprite              app account-notifications
-
-  &.group-switcher
-    right                   55px
-    width                   238px
-    rounded                 0 0 5px 5px
-    &.submenu
-    &.submenu .content
-      rounded               0 0 0 5px
-    .tab
-      hidden()
-    .content
-      margin-top            2px
-      bg                    color, #212932
-      color                 rgba(255, 255, 255, .8)
-      shadow                none
-
-    a.separator
-      border-top            1px solid #2F3435
-
-    .bb
-      border-bottom         1px solid #2F3435
-
-    .kdscrollview
-      max-height            322px !important
-
-
-    .avatararea-popup-list li a.avatararea-group-name
-    a.bottom
-      display               block
-      padding               10px 12px
-      color                 white
-      font-size             13px
-      line-height           20px
-      font-weight           300
-      text-decoration       none
-      &:hover
-        text-decoration     none
-        bg                  color, logoBg
-      span
-        font-weight         300
-        color               white
-
-    .avatararea-popup-list
-      li
-        padding             0
-        border-bottom       none
-        &:hover
-          text-decoration   none
-          bg                color, logoBg
-        &~li
-          border-top        none
-        a.fr
-          abs()
-          top               7px
-          right             10px
-        span.avatar
-          border            1px solid #e3e3e3
-          margin-right      10px
-          size              20px, 20px
-
-        .custom-link-view.admin-icon
-          display           block
-          padding           10px 12px
-          top               0
-          right             0
-          abs()
-
-        .custom-link-view .icon
-          size              20px 20px
-          display           block
-          kdfsprite()
-
-        .avatararea-group-name
-          padding-right     40px
-
-        &:hover
-          .custom-link-view .icon.dashboard-page
-            r-sprite        app '20-cog-white'
-
-        .custom-link-view .icon.dashboard-page
-          r-sprite          app '20-cog'
-          opacity           .5
-
-        .avatararea-group-logo
-          margin            4px 8px 0 6px
-          rounded           4px
-          size              30px 30px
-          border            none
-          bg                size cover
-          fl()
-
-        .buttons
-          fr()
-          button span.accept
-            bg              position, -80px -500px
-          button span.ignore
-            bg              position, -80px -480px
-
-  .sublink
-    font-size             11px
-    padding               7px 12px
-    font-weight           400
+    padding               13px
     width                 auto
-    text-align            center
-    rounded               0 0 3px 3px
-    bg                    color, #12171c
-    &.top
-      color               #8f98a1
-      bg                  color, #212932
-      border-top-width    0
-      rounded             0
-    span.icon
-      top                 4px
-      right               4px
-      size                20px, 20px
-      opacity             .5
-      // sprite()
-      abs()
-      &.help
-        bg                position, -140px -460px
 
-  .sublink a
-    color                 #8f98a1
-    noTextDeco()
+    > a
+      size                auto, 31px
+      line-height         31px
+      rounded             3px
+      display             block
+      color               #fff
+      font-size           14px
+      font-weight         400
+      opacity             .99
+      text-indent         9px
+      noTextDeco()
 
-  .input-with-extras
-    textarea
-      font-size             12px !important
-      color                 #5a5a5a !important
+      &:hover
+        bg                color, #424242
 
-  .lazy-loader
-    .kdloader
-      margin                10px auto
-      display               block
-
-
-
-.avatararea-popup-list
-  margin                    0
-
-  li
-    padding                 16px
-    borderBox()
-
-    &~li
-      border-top            1px solid #323a41
-
-    &.unread
-      bg                    color, #2a3440
-
-    .avatarview
-      size                  45px 45px
-      fl()
-
-    .fr
-      kalc                  width, 100% \- 56px
-
-    div
-      font-size             12px
-      color                 #8f98a1
-      line-height           15px
-
-      .link-group
-        width               100%
-        overflow            hidden
-        text-overflow       ellipsis
-        white-space         nowrap
-
-        a
-          font-weight       400
-          font-size         14px
-          display           inline
-          color             #8f98a1
-          noTextDeco()
-
-    time
-      font-size             10px
-      color                 #5f6770
 
 .go-back-survey
   a

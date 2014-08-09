@@ -64,7 +64,7 @@ do ->
         {mainController} = KD.singletons
         mainController.doLogout()
     '/:name?/Topics/:slug'   : ({params:{name, slug}}) ->
-      route = "/Activity?q=#{slug}"
+      route = unless slug then "/Activity/Topic/#{slug}" else "/Activity"
       route = "#{name}/#{route}"  if name
       @handleRoute route
     '/:slug/:name' : ({params, query}, model, route) ->
@@ -76,7 +76,6 @@ do ->
         @handleRoute '/Activity', entryPoint: KD.config.entryPoint
         new ReferrerModal
       else @handleRoute '/Login'
-    '/:name?/RegisterHostKey': KiteHelper.initiateRegistiration
     '/member/:username': ({params:{username}})->
       @handleRoute "/#{username}", replaceState: yes
     '/:name?/Unsubscribe/:token/:email/:opt?':
@@ -88,11 +87,11 @@ do ->
         (
           if opt is 'email'
           then KD.remote.api.JMail
-          else KD.remote.api.JMailNotification
+          else KD.remote.api.JNotificationMailToken
         ).unsubscribeWithId token, email, opt, (err, content)->
           if err or not content
-            title   = 'An error occured'
-            content = 'Invalid unsubscribe token provided.'
+            title   = 'An error occurred'
+            content = 'Invalid unsubscription token provided.'
             log err
           else
             title   = 'E-mail settings updated'
