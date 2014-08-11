@@ -14,6 +14,7 @@ Configuration = (options={}) ->
   build               = options.build          or "1111"
 
 
+  # services
   mongo               = "#{boot2dockerbox}:27017/koding"
   redis               = {host     : "#{boot2dockerbox}"     , port : "6379" }
   socialapi           = {proxyUrl : "http://localhost:7000" , port : 7000 , clusterSize : 5     , configFilePath : "#{projectRoot}/go/src/socialapi/config/dev.toml" }
@@ -96,7 +97,7 @@ Configuration = (options={}) ->
     boxproxy          : {port          : 8090 }
     appsproxy         : {port          : 3500 }
     sourcemaps        : {port          : 3526 }
-    kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
+    kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite", registerUrl: "http://kloud-#{publicHostname}.ngrok.com/kite"  }
     emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
 
     newkontrol        : kontrol
@@ -177,7 +178,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url #{KONFIG.kloud.kontrolUrl} -register-url #{KONFIG.kloud.registerUrl}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
