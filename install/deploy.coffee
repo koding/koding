@@ -1,8 +1,7 @@
-#!/usr/bin/env coffee
 
 AWS        = require 'aws-sdk'
 cloudflare = require 'cloudflare'
-AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/install/keys/aws/koding-prod-deployment.pem")
+AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/../install/keys/aws/koding-prod-deployment.pem")
 AWS.config.region = 'us-east-1'
 AWS.config.update accessKeyId: 'AKIAI7RHT42HWAA652LA', secretAccessKey: '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'
 cf = cloudflare.createClient
@@ -264,124 +263,9 @@ class Deploy
       log "current version is #{version}"
       callback null, "v"+semver.inc(version,type)
 
-release = (key)->
-  Release.registerInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now deployed and live with bazillion instances."
-    log "------------------------------------------------------------------------------"
 
-rollback = (key)->
-  Release.deregisterInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now rolled back. All instances are taken out of rotation."
-    log "------------------------------------------------------------------------------"
+module.exports = {Deploy, Release, AWS, cf}
 
-
-if argv.release
-  release argv.release
-
-if argv.rollback
-  rollback argv.rollback
-
-if argv.deploy
-  d = new Date()
-  log "fetching latest version tag. please wait... "
-
-  Deploy.getNextVersion {},(err,version)->
-
-
-    options =
-      boxes       : argv.boxes          or 1
-      boxtype     : argv.boxtype        or "t2.medium" #"m3.xlarge"
-      versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
-      config      : argv.config         or "feature" # prod | staging | sandbox
-      version     : argv.version        or version
-
-    options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
-
-    if options.config is "feature"
-      subdomain = eden.eve().toLowerCase()
-      options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
-
-    KONFIG = require("./config/main.#{options.config}.coffee")
-      hostname : options.hostname
-      tag      : options.version
-
-    #create the new tag
-    log "deploying version #{options.version}"
-    exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
-
-      UserData = new Buffer(KONFIG.runFile).toString('base64')
-
-      deployOptions =
-        params :
-          ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-          InstanceType  : options.boxtype
-          MinCount      : options.boxes
-          MaxCount      : options.boxes
-          SubnetId      : "subnet-b47692ed"
-          KeyName       : "koding-prod-deployment"
-          UserData      : UserData
-        instanceName    : options.hostname
-        configName      : options.config
-        environment     : options.config
-        tag             : options.version
-
-
-
-
-      Deploy.createInstances deployOptions,(err,res)->
-
-        if options.config is "feature"
-          # log JSON.stringify res,null,2
-
-          InstanceId = res.Instances[0].InstanceId
-          log InstanceId
-          t = setInterval ->
-            ec2.describeInstances {InstanceIds:[InstanceId]},(err,inst)->
-              # log JSON.stringify inst,null,2
-              IP            = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
-              PublicDnsName = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
-
-              if PublicDnsName
-                clearTimeout t
-
-                Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
-
-                cf.addDomainRecord "koding.io",
-                  type : "A"
-                  name : subdomain
-                  content : IP
-                  service_mode : 1 #cloudflare enabled.
-                ,(err,res)->
-
-                  # log arguments
-
-                  log "------------------------------------------------------------------"
-                  log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-                  log "------------------------------------------------------------------"
-                  log "URL: #{PublicDnsName} "
-                  log "------------------------------------------------------------------"
-                  log "URL: #{subdomain}.koding.io     IP: #{IP}"
-                  log "------------------------------------------------------------------"
-          ,5000
-
-
-        if options.config is "prod"
-          Release.registerInstancesWithPrefix options.hostname,(err,res)->
-            log "------------------------------------------------------------------"
-            log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-            log "------------------------------------------------------------------"
-            log "ELB: koding-prod-deployment-109498171.us-east-1.elb.amazonaws.com "
-            log "------------------------------------------------------------------"
-            log "URL: https://koding.io "
-            log "------------------------------------------------------------------"
 
         # log JSON.stringify res,null,2
 

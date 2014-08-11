@@ -1,0 +1,152 @@
+#!/usr/bin/env coffee
+
+
+{Deploy, Release, AWS, cf} = require "./install/deploy.coffee"
+
+argv       = require('minimist')(process.argv.slice(2))
+eden       = require 'node-eden'
+log        = console.log
+timethat   = require 'timethat'
+Connection = require "ssh2"
+fs         = require 'fs'
+semver     = require 'semver'
+{exec}     = require 'child_process'
+request    = require 'request'
+ec2        = new AWS.EC2()
+elb        = new AWS.ELB()
+
+
+
+if argv.release
+  release argv.release
+
+if argv.rollback
+  rollback argv.rollback
+
+if argv.deploy
+  d = new Date()
+  log "fetching latest version tag. please wait... "
+
+  Deploy.getNextVersion {},(err,version)->
+
+
+    options =
+      boxes       : argv.boxes          or 1
+      boxtype     : argv.boxtype        or "t2.medium" #"m3.xlarge"
+      versiontype : argv.versiontype    or "patch"  # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
+      config      : argv.config         or "feature" # prod | staging | sandbox
+      version     : argv.version        or version
+
+    options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
+
+    if options.config is "feature"
+      subdomain = eden.eve().toLowerCase()
+      options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
+
+    KONFIG = require("./config/main.#{options.config}.coffee")
+      hostname : options.hostname
+      tag      : options.version
+
+    #create the new tag
+    log "deploying version #{options.version}"
+    exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
+
+      UserData = new Buffer(KONFIG.runFile).toString('base64')
+
+      deployOptions =
+        params :
+          ImageId       : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+          InstanceType  : options.boxtype
+          MinCount      : options.boxes
+          MaxCount      : options.boxes
+          SubnetId      : "subnet-b47692ed"
+          KeyName       : "koding-prod-deployment"
+          UserData      : UserData
+        instanceName    : options.hostname
+        configName      : options.config
+        environment     : options.config
+        tag             : options.version
+
+
+
+
+      Deploy.createInstances deployOptions,(err,res)->
+
+        if options.config is "feature"
+          # log JSON.stringify res,null,2
+
+          InstanceId = res.Instances[0].InstanceId
+          log InstanceId
+          t = setInterval ->
+            ec2.describeInstances {InstanceIds:[InstanceId]},(err,inst)->
+              # log JSON.stringify inst,null,2
+              IP            = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
+              PublicDnsName = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
+
+              if PublicDnsName
+                clearTimeout t
+
+                Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
+
+                cf.addDomainRecord "koding.io",
+                  type : "A"
+                  name : subdomain
+                  content : IP
+                  service_mode : 1 #cloudflare enabled.
+                ,(err,res)->
+                  # this additional step is required to enable cloudflare (https)
+                  cf.editDomainRecord "koding.io",res.rec_id,
+                    type : "A"
+                    name : subdomain
+                    content : IP
+                    service_mode : 1
+                    ttl: 120
+                  ,->
+
+                    # log arguments
+
+                    log "------------------------------------------------------------------"
+                    log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+                    log "------------------------------------------------------------------"
+                    log "URL: #{PublicDnsName} "
+                    log "------------------------------------------------------------------"
+                    log "URL: #{subdomain}.koding.io     IP: #{IP}"
+                    log "------------------------------------------------------------------"
+          ,5000
+
+
+        if options.config is "prod"
+          Release.registerInstancesWithPrefix options.hostname,(err,res)->
+            log "------------------------------------------------------------------"
+            log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+            log "------------------------------------------------------------------"
+            log "ELB: koding-prod-deployment-109498171.us-east-1.elb.amazonaws.com "
+            log "------------------------------------------------------------------"
+            log "URL: https://koding.io "
+            log "------------------------------------------------------------------"
+
+        # log JSON.stringify res,null,2
+
+        # res.Instances.forEach (instance)->
+        #   IP = instance.PublicIpAddress
+        #   log "testing instance..."
+        #   _t = setInterval ->
+        #     Deploy.deployTest [
+        #         {url : "http://#{IP}:3000/"          , target: "webserver"          , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}:3030/xhr"       , target: "socialworker"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:8008/subscribe" , target: "broker"             , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}:5500/kite"      , target: "kloud"              , expectString: "Welcome"}
+        #         {url : "http://#{IP}/"               , target: "webserver-nginx"    , expectString: "UA-6520910-8"}
+        #         {url : "http://#{IP}/xhr"            , target: "socialworker-nginx" , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/subscribe"      , target: "broker-nginx"       , expectString: "Cannot GET"}
+        #         {url : "http://#{IP}/kloud/kite"     , target: "kloud-nginx"        , expectString: "Welcome"}
+        #       ]
+        #     ,(err,test_res)->
+        #       log val for val in test_res
+
+        #       if OK then runTests()
+
+        #   ,10000
+
+        # log "#{res.instanceName} is ready."
+        # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
