@@ -320,7 +320,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
@@ -356,19 +355,7 @@ class ActivitySidebar extends KDCustomHTMLView
       partial  : '1'
 
 
-  addHotTopics: ->
 
-    @addSubView @sections.hot = new ActivitySideView
-      title      : 'TRENDING'
-      cssClass   : 'hot topics hidden'
-      itemClass  : SidebarTopicItem
-      dataPath   : 'popularTopics'
-      delegate   : this
-      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
-      dataSource : (callback) ->
-        KD.singletons.socialapi.channel.fetchPopularTopics
-          limit  : 5
-        , callback
 
 
   addFollowedTopics: ->
