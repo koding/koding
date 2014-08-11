@@ -389,7 +389,7 @@ Configuration = (options={}) ->
         echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
         tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf #{projectRoot}/dump
+        rm -rf ./dump
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
