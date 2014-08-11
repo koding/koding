@@ -21,7 +21,7 @@ resurrection.styl
 
 
 #sidebar-toggle
-  bg              color red
+  bg              color #262626
   size            18px 18px
   margin-top      -9px
   margin-left     -9px
@@ -31,6 +31,13 @@ resurrection.styl
   cursor          pointer
   top             50%
   fix()
+  &:after
+    abs()
+    top           4px
+    left          5px
+    display       block
+    content       ' '
+    r-sprite      app sidebar-toggle
 
 
 #kdmaincontainer
