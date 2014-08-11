@@ -43,9 +43,7 @@ class ActivityAppView extends KDView
     # @addSubView @groupHeader  unless isKoding()
     # @addSubView @sidebar
     { mainView } = KD.singletons
-    mainView.ready =>
-      @sidebar     = mainView.activitySidebar
-
+    @sidebar     = mainView.activitySidebar
     @addSubView @tabs
 
 
@@ -60,10 +58,10 @@ class ActivityAppView extends KDView
   # slug: [slug|id|name]
   open: (type, slug) ->
 
-    {socialapi, router, notificationController, mainView} = KD.singletons
+    {socialapi, router, notificationController} = KD.singletons
+
 
     kallback = (data) =>
-
       name = if slug then "#{type}-#{slug}" else type
       pane = @tabs.getPaneByName name
 
@@ -74,25 +72,23 @@ class ActivityAppView extends KDView
       then @tabs.showPane pane
       else @createTab name, data
 
-    mainView.ready =>
+    @sidebar.selectItemByRouteOptions type, slug
+    item = @sidebar.selectedItem
 
-      @sidebar.selectItemByRouteOptions type, slug
-      item = @sidebar.selectedItem
+    if not item
+      type_ = switch type
+        when 'message' then 'privatemessage'
+        when 'post'    then 'activity'
+        else type
 
-      if not item
-        type_ = switch type
-          when 'message' then 'privatemessage'
-          when 'post'    then 'activity'
-          else type
+      socialapi.cacheable type_, slug, (err, data) =>
+        if err then router.handleNotFound router.getCurrentPath()
+        else
+          @sidebar.addItem data
+          kallback data
 
-        socialapi.cacheable type_, slug, (err, data) =>
-          if err then router.handleNotFound router.getCurrentPath()
-          else
-            @sidebar.addItem data
-            kallback data
-
-      else
-        kallback item.getData()
+    else
+      kallback item.getData()
 
 
   openNext: ->
