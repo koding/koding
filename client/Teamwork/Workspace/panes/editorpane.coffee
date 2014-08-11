@@ -24,7 +24,7 @@ class EditorPane extends Pane
 
   createSingleEditor: ->
     path      = @files or "localfile:/Untitled.txt"
-    file      = FSHelper.createFileFromPath path
+    file      = FSHelper.createFileInstance { path }
     {content} = @getOptions()
     @ace      = @createEditorInstance file, content
 
@@ -41,7 +41,7 @@ class EditorPane extends Pane
 
     @files.forEach (options) =>
       {name, path, content} = options
-      file                  = FSHelper.createFileFromPath path
+      file                  = FSHelper.createFileInstance { path }
       pane                  = new KDTabPaneView
         name                : file.name or "Untitled.txt"
         closable            : no

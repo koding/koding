@@ -13,7 +13,7 @@ module.exports = (options = {}, callback)->
   campaignData     = null
   socialapidata    = null
   currentGroup     = null
-  userVMs          = null
+  userMachines     = null
   usePremiumBroker = no
 
   {bongoModels, client, slug} = options
@@ -29,18 +29,13 @@ module.exports = (options = {}, callback)->
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
-    userVMs              = JSON.stringify userVMs
+    userMachines         = JSON.stringify userMachines
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
     {rollbar, version, environment} = KONFIG
 
     """
-    <script>
-      console.time("Framework loaded");
-      console.time("Koding.com loaded");
-    </script>
-
     <!-- SEGMENT.IO -->
     <script type="text/javascript">
       window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;window.analytics.methods.length>i;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
@@ -52,16 +47,16 @@ module.exports = (options = {}, callback)->
     <script>KD.customPartial=#{encodedCustomPartial}</script>
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
-    <script>KD.userVMs=#{userVMs}</script>
+    <script>KD.userMachines=#{userMachines}</script>
     <script>KD.userAccount=#{userAccount}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
-    KD.utils.defer(function () {
-      KD.currentGroup=KD.remote.revive(#{currentGroup});
-      KD.userAccount=KD.remote.revive(KD.userAccount);
-    });
+      KD.utils.defer(function () {
+        KD.currentGroup = KD.remote.revive(#{currentGroup});
+        KD.userAccount = KD.remote.revive(#{userAccount});
+      });
     </script>
 
     <!-- Google Analytics -->
@@ -132,15 +127,19 @@ module.exports = (options = {}, callback)->
 
       bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
         console.log err if err
+
         # add custom partial into referral campaign
-        bongoModels.JReferralCampaign.one {isActive:yes}, (err, campaignData_)->
+        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+
           if not err and campaignData_ and campaignData_.data
             campaignData = campaignData_.data
+
           if group
             currentGroup = group
-          bongoModels.JVM.fetchVmsByContext client, {}, (err, vms) ->
+
+          bongoModels.JMachine.some$ client, {}, (err, machines) ->
             console.log err  if err
-            userVMs = vms or []
+            userMachines = machines or []
             kallback()
 
 

@@ -20,6 +20,8 @@ class AccountListWrapper extends KDView
     keys                       : AccountSshKeyList
     kodingKeysController       : AccountKodingKeyListController
     kodingKeys                 : AccountKodingKeyList
+    credentialsController      : AccountCredentialListController
+    credentials                : AccountCredentialList
     deleteAccount              : DeleteAccountView
     termsOfService             : TermsOfServiceView
     privacyPolicy              : PrivacyPolicyView

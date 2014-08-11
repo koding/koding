@@ -79,6 +79,8 @@ class PermissionsForm extends KDFormViewWithFields
       "JProxyFilter"   : "Proxy Filters"
       "JInvitation"    : "Invitations"
       "JStack"         : "Stacks"
+      "JStackTemplate" : "Stack Templates"
+      "JCredential"    : "Credentials"
 
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 

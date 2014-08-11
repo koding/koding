@@ -4,15 +4,7 @@ class ActivityAppController extends AppController
   KD.registerAppClass this,
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
-    commands:
-      'next tab'     : 'goToNextTab'
-      'previous tab' : 'goToPreviousTab'
-    keyBindings: [
-      { command: 'next tab',      binding: 'meta+alt+]',    global: yes }
-      { command: 'next tab',      binding: 'meta+alt+down', global: yes }
-      { command: 'previous tab',  binding: 'meta+alt+up',   global: yes }
-      { command: 'previous tab',  binding: 'meta+alt+[',    global: yes }
-    ]
+
 
   constructor: (options = {}) ->
 
@@ -32,12 +24,18 @@ class ActivityAppController extends AppController
 
   post: (options = {}, callback = noop) ->
 
-    (KD.singleton 'socialapi').message.post options, callback
+    {body, payload} = options
+    {socialapi} = KD.singletons
+
+    socialapi.message.post {body, payload}, callback
 
 
   edit: (options = {}, callback = noop) ->
 
-    (KD.singleton 'socialapi').message.edit options, callback
+    {id, body} = options
+    {socialapi} = KD.singletons
+
+    socialapi.message.edit {id, body}, callback
 
 
   reply: ({activity, body}, callback = noop) ->
@@ -87,21 +85,6 @@ class ActivityAppController extends AppController
     firstFetch = yes
 
 
-  getActiveChannel: -> @getView().sidebar.selectedItem.getData()
-
-
-  goToNextTab: (event) ->
-
-    KD.utils.stopDOMEvent event
-    @getView().openNext()
-
-
-  goToPreviousTab: (event) ->
-
-    KD.utils.stopDOMEvent event
-    @getView().openPrev()
-
-
   #
   # LEGACY
   #
@@ -117,11 +100,28 @@ class ActivityAppController extends AppController
     @utils.defer -> callback contentDisplay
 
 
-  bindModalDestroy: (modal, lastRoute) ->
+  fetchActivitiesProfilePage:(options, callback)->
 
-    {router} = KD.singletons
+    {originId} = options
+    options.to = options.to or @profileLastTo or Date.now()
+    if KD.checkFlag 'super-admin'
+      appStorage = new AppStorage 'Activity', '1.0'
+      appStorage.fetchStorage (storage)=>
+        options.withExempt = appStorage.getValue('showLowQualityContent') or off
+        @fetchActivitiesProfilePageWithExemptOption options, callback
+    else
+      options.withExempt = false
+      @fetchActivitiesProfilePageWithExemptOption options, callback
 
-    modal.once 'KDModalViewDestroyed', ->
-      router.back() if lastRoute is router.visitedRoutes.last
 
-    router.once 'RouteInfoHandled', -> modal?.destroy()
+  fetchActivitiesProfilePageWithExemptOption:(options, callback)->
+
+    {JNewStatusUpdate} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    JNewStatusUpdate.fetchProfileFeed options, (err, activities)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+
+      if activities?.length > 0
+        lastOne = activities.last.meta.createdAt
+        @profileLastTo = (new Date(lastOne)).getTime()
+      callback err, activities

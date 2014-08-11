@@ -7,3 +7,6 @@
 [submodule "client/Finder"]
 	path = client/Finder
 	url = git@github.com:koding/finder.git
+[submodule "tests"]
+        path = tests
+        url = git@github.com:koding/tests.git

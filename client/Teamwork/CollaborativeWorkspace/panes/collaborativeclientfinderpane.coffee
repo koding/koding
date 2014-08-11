@@ -22,8 +22,12 @@ class CollaborativeClientFinderPane extends Pane
 
       fileInstances = []
 
+      # FIXME ACET
       for file in files
-        fileInstance = FSHelper.createFileFromPath file.path, file.type, yes
+        fileInstance = FSHelper.createFileInstance
+          path : file.path
+          type : file.type
+
         fileInstance.vmName = file.vmName
         fileInstances.push fileInstance
 

@@ -1,0 +1,45 @@
+upstream webs      {server 127.0.0.1:3000;}
+upstream social    {server 127.0.0.1:3030;}
+upstream subscribe {server 127.0.0.1:8008;}
+
+
+
+server {
+      listen 80 default_server;
+      listen [::]:80 default_server ipv6only=on;
+
+      root /usr/share/nginx/html;
+      index index.html index.htm;
+
+      # Make site accessible from http://localhost/
+      server_name localhost;
+
+
+      server_name cihangir-1111;
+      location / {
+        proxy_pass http://webs;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+      location /xhr {
+        proxy_pass http://social;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+      # TBD. ADD WEBSOCKET SUPPORT HERE
+
+      location /subscribe {
+        proxy_pass http://subscribe;
+        proxy_set_header  X-Real-IP   $remote_addr;
+        proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout   1;
+      }
+
+}

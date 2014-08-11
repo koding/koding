@@ -1,5 +1,5 @@
 {argv} = require 'optimist'
-
+process.title = 'koding-authworker'
 koding = require './bongo'
 koding.connect()
 

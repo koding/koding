@@ -130,13 +130,13 @@ module.exports = class JVM extends Module
         default         : no
       maxMemoryInMB     :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.ram ? 1024
+        default         : 1024
       diskSizeInMB      :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.storage ? VMDefaultDiskSize
+        default         : VMDefaultDiskSize
       numCPUs           :
         type            : Number
-        default         : KONFIG.defaultVMConfigs.freeVM.cpu ? 1
+        default         : 1
       stack             : ObjectId
       meta              : Object
       state             :
@@ -722,6 +722,8 @@ module.exports = class JVM extends Module
 
   wrapGroup = (group)-> [ { id: group.getId() } ]
 
+  ###
+
   do ->
 
     JAccount  = require './account'
@@ -845,6 +847,10 @@ module.exports = class JVM extends Module
         else vms.forEach (vm)-> vm.remove handleError
 
     JGroup.on 'MemberAdded', ({group, member})->
+
+      console.warn "Auto VM Create disabled!"
+      return
+
       member.fetchUser (err, user)->
         return handleError err  if err
         return handleError new Error "user not defined" unless user
@@ -929,3 +935,4 @@ module.exports = class JVM extends Module
                       return userRecord  unless isMatch
                       return { id, sudo: hasPermission }
                   }, handleError
+  ###

@@ -1,0 +1,38 @@
+---
+- hosts: all
+  vars:
+    rax_name : 'devrim.koding.me'
+    rax_flavor : '4'
+    image : "ubuntu-1204-lts-precise-pangolin"
+    count : 5
+    group : "raxhosts"
+
+
+  tasks:
+    - name: Provision a set of instances
+      local_action:
+          module: rax
+          name: "{{ rax_name }}"
+          flavor: "{{ rax_flavor }}"
+          image: "{{ rax_image }}"
+          count: "{{ rax_count }}"
+          group: "{{ group }}"
+          wait: yes
+      register: rax
+
+  # - name: Add the instances we created (by public IP) to the group 'raxhosts'
+  #   local_action:
+  #       module: add_host
+  #       hostname: "{{ item.name }}"
+  #       ansible_ssh_host: "{{ item.rax_accessipv4 }}"
+  #       ansible_ssh_pass: "{{ item.rax_adminpass }}"
+  #       groupname: raxhosts
+  #   with_items: rax.success
+  #   when: rax.action == 'create'
+
+  # - name: Configuration play
+  #   hosts: raxhosts
+  #   user: root
+  #   roles:
+  #     - ntp
+  #     - webserver

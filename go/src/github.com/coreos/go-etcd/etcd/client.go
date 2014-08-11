@@ -32,8 +32,8 @@ type Config struct {
 	CertFile    string        `json:"certFile"`
 	KeyFile     string        `json:"keyFile"`
 	CaCertFile  []string      `json:"caCertFiles"`
-	Timeout     time.Duration `json:"timeout"`
-	Consistency string        `json: "consistency"`
+	DialTimeout time.Duration `json:"timeout"`
+	Consistency string        `json:"consistency"`
 }
 
 type Client struct {
@@ -42,6 +42,20 @@ type Client struct {
 	httpClient  *http.Client
 	persistence io.Writer
 	cURLch      chan string
+	// CheckRetry can be used to control the policy for failed requests
+	// and modify the cluster if needed.
+	// The client calls it before sending requests again, and
+	// stops retrying if CheckRetry returns some error. The cases that
+	// this function needs to handle include no response and unexpected
+	// http status code of response.
+	// If CheckRetry is nil, client will call the default one
+	// `DefaultCheckRetry`.
+	// Argument cluster is the etcd.Cluster object that these requests have been made on.
+	// Argument numReqs is the number of http.Requests that have been made so far.
+	// Argument lastResp is the http.Responses from the last request.
+	// Argument err is the reason of the failure.
+	CheckRetry func(cluster *Cluster, numReqs int,
+		lastResp http.Response, err error) error
 }
 
 // NewClient create a basic client that is configured to be used
@@ -49,7 +63,7 @@ type Client struct {
 func NewClient(machines []string) *Client {
 	config := Config{
 		// default timeout is one second
-		Timeout: time.Second,
+		DialTimeout: time.Second,
 		// default consistency level is STRONG
 		Consistency: STRONG_CONSISTENCY,
 	}
@@ -74,7 +88,7 @@ func NewTLSClient(machines []string, cert, key, caCert string) (*Client, error) 
 
 	config := Config{
 		// default timeout is one second
-		Timeout: time.Second,
+		DialTimeout: time.Second,
 		// default consistency level is STRONG
 		Consistency: STRONG_CONSISTENCY,
 		CertFile:    cert,
@@ -149,10 +163,15 @@ func NewClientFromReader(reader io.Reader) (*Client, error) {
 	return c, nil
 }
 
+// Override the Client's HTTP Transport object
+func (c *Client) SetTransport(tr *http.Transport) {
+	c.httpClient.Transport = tr
+}
+
 // initHTTPClient initializes a HTTP client for etcd client
 func (c *Client) initHTTPClient() {
 	tr := &http.Transport{
-		Dial: dialTimeout,
+		Dial: c.dial,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
@@ -178,7 +197,7 @@ func (c *Client) initHTTPSClient(cert, key string) error {
 
 	tr := &http.Transport{
 		TLSClientConfig: tlsConfig,
-		Dial:            dialTimeout,
+		Dial:            c.dial,
 	}
 
 	c.httpClient = &http.Client{Transport: tr}
@@ -268,7 +287,7 @@ func (c *Client) SyncCluster() bool {
 // internalSyncCluster syncs cluster information using the given machine list.
 func (c *Client) internalSyncCluster(machines []string) bool {
 	for _, machine := range machines {
-		httpPath := c.createHttpPath(machine, version+"/machines")
+		httpPath := c.createHttpPath(machine, path.Join(version, "machines"))
 		resp, err := c.httpClient.Get(httpPath)
 		if err != nil {
 			// try another machine in the cluster
@@ -299,8 +318,12 @@ func (c *Client) internalSyncCluster(machines []string) bool {
 // createHttpPath creates a complete HTTP URL.
 // serverName should contain both the host name and a port number, if any.
 func (c *Client) createHttpPath(serverName string, _path string) string {
-	u, _ := url.Parse(serverName)
-	u.Path = path.Join(u.Path, "/", _path)
+	u, err := url.Parse(serverName)
+	if err != nil {
+		panic(err)
+	}
+
+	u.Path = path.Join(u.Path, _path)
 
 	if u.Scheme == "" {
 		u.Scheme = "http"
@@ -308,9 +331,29 @@ func (c *Client) createHttpPath(serverName string, _path string) string {
 	return u.String()
 }
 
-// Dial with timeout.
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, time.Second)
+// dial attempts to open a TCP connection to the provided address, explicitly
+// enabling keep-alives with a one-second interval.
+func (c *Client) dial(network, addr string) (net.Conn, error) {
+	conn, err := net.DialTimeout(network, addr, c.config.DialTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	tcpConn, ok := conn.(*net.TCPConn)
+	if !ok {
+		return nil, errors.New("Failed type-assertion of net.Conn as *net.TCPConn")
+	}
+
+	// Keep TCP alive to check whether or not the remote machine is down
+	if err = tcpConn.SetKeepAlive(true); err != nil {
+		return nil, err
+	}
+
+	if err = tcpConn.SetKeepAlivePeriod(time.Second); err != nil {
+		return nil, err
+	}
+
+	return tcpConn, nil
 }
 
 func (c *Client) OpenCURL() {
@@ -373,8 +416,8 @@ func (c *Client) MarshalJSON() ([]byte, error) {
 // as defined by the standard JSON package.
 func (c *Client) UnmarshalJSON(b []byte) error {
 	temp := struct {
-		Config  Config   `json: "config"`
-		Cluster *Cluster `json: "cluster"`
+		Config  Config   `json:"config"`
+		Cluster *Cluster `json:"cluster"`
 	}{}
 	err := json.Unmarshal(b, &temp)
 	if err != nil {

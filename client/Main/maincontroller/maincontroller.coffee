@@ -32,7 +32,7 @@ class MainController extends KDController
 
   createSingletons:->
 
-    KD.registerSingleton 'mainController',            this
+    KD.registerSingleton "mainController",            this
 
     KD.registerSingleton 'kontrol',                   new KodingKontrol
 
@@ -49,6 +49,7 @@ class MainController extends KDController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
     KD.registerSingleton 'vmController',              new VirtualizationController
+    KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
@@ -82,12 +83,16 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    (KD.getSingleton 'kontrol').reauthenticate()  if KD.useNewKites
+    if KD.useNewKites
+      (KD.getSingleton 'kontrol').reauthenticate()
+      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
-    account.fetchMyPermissionsAndRoles (err, { permissions, roles }) =>
+    account.fetchMyPermissionsAndRoles (err, res)=>
+
       return warn err  if err
-      KD.config.roles       = roles
-      KD.config.permissions = permissions
+
+      KD.config.roles       = res.roles
+      KD.config.permissions = res.permissions
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 

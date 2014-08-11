@@ -47,10 +47,12 @@ func (r *Register) Exec(args []string) error {
 		return err
 	}
 
-	result, err := kontrol.TellWithTimeout("registerMachine", 10*time.Minute)
+	result, err := kontrol.TellWithTimeout("registerMachine", 5*time.Minute, *username)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("result", result)
 
 	if err := kitekey.Write(result.MustString()); err != nil {
 		return err
