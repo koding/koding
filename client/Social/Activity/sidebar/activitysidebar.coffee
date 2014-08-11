@@ -374,7 +374,7 @@ class ActivitySidebar extends KDCustomHTMLView
   addFollowedTopics: ->
 
     @addSubView @sections.followedTopics = new ActivitySideView
-      title      : 'My Feeds'
+      title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
@@ -392,7 +392,7 @@ class ActivitySidebar extends KDCustomHTMLView
   addConversations: ->
 
     @addSubView @sections.conversations = new ActivitySideView
-      title      : 'Conversations'
+      title      : 'Threads'
       cssClass   : 'conversations'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
@@ -408,7 +408,7 @@ class ActivitySidebar extends KDCustomHTMLView
   addMessages: ->
 
     @addSubView @sections.messages = new ActivitySideView
-      title      : 'Private Conversations'
+      title      : 'Private Messages'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
