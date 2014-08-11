@@ -66,6 +66,82 @@ resurrection.styl
   padding             1px 16px
   borderBox()
 
+  a.kdlistitemview-main-nav
+    display           block
+    size              auto 26px
+    opacity           1
+    z-index           1
+    vendor            transition, top .2s  linear \,\
+                                left .2s linear
+    font-size         14px
+    line-height       18px
+    color             #B8B8B8
+    padding           5px 8px 5px 28px
+    rounded           4px
+    ellipsis()
+    borderBox()
+    noTextDeco()
+
+    &.add-app
+    &.add-vm
+      padding         5px 8px
+      opacity         .5
+      &:hover
+        opacity       1
+
+    cite
+      font-style      normal
+
+    .fake-icon
+      width           30px
+      height          20px
+      left            13px
+      top             14px
+      text-align      center
+      padding-top     4px
+      padding-bottom  4px
+      font-size       20px
+      color           white
+      border-radius   3px
+      abs()
+      hidden()
+
+    > figure
+      display       block
+      width         16px
+      height        16px
+      bg            color #222
+      top           6px
+      left          6px
+      abs()
+
+    &.selected
+      bg            color #15171A
+
+    &.social > figure
+    &.activity > figure
+      r-sprite      app new-nav-activity
+    // &.editor > figure
+    //   r-sprite      app nav-editor
+    &.terminal > figure
+      r-sprite      app new-nav-terminal
+    &.ide > figure
+      r-sprite      app new-nav-ide
+    &.vm
+      > figure
+        r-sprite    app new-nav-vm
+      > span
+        r-sprite    app vm-settings-icon
+        right       0
+        top         5px
+        opacity     .5
+        abs()
+      &:hover > span
+        opacity     1
+      &.running > figure
+        r-sprite    app new-nav-vm-green
+
+
   > section
     size              auto auto
     overflow          visible
@@ -308,92 +384,6 @@ resurrection.styl
       font-weight   300
       abs()
 
-// fixme: this is mostly copy/paste of below
-#dock a.add-vm
-  display           block
-  size              auto 26px
-  opacity           1
-  z-index           1
-  font-size         14px
-  line-height       18px
-  color             #B8B8B8
-  opacity           .5
-  padding           5px 8px
-  // text-align        center
-  noTextDeco()
-  &:hover
-    opacity         1
-
-
-#dock > .kdlistview
-
-  > a
-    display         block
-    size            auto 26px
-    opacity         1
-    z-index         1
-    vendor          transition, top .2s  linear \,\
-                                left .2s linear
-    font-size       14px
-    line-height     18px
-    color           #B8B8B8
-    padding         5px 8px 5px 28px
-    rounded         4px
-    ellipsis()
-    borderBox()
-    noTextDeco()
-
-    cite
-      font-style    normal
-
-    .fake-icon
-      width           30px
-      height          20px
-      left            13px
-      top             14px
-      text-align      center
-      padding-top     4px
-      padding-bottom  4px
-      font-size       20px
-      color           white
-      border-radius   3px
-      abs()
-      hidden()
-
-    > figure
-      display       block
-      width         16px
-      height        16px
-      bg            color #222
-      top           6px
-      left          6px
-      abs()
-
-    &.selected
-      bg            color #15171A
-
-    &.social > figure
-    &.activity > figure
-      r-sprite      app new-nav-activity
-    // &.editor > figure
-    //   r-sprite      app nav-editor
-    &.terminal > figure
-      r-sprite      app new-nav-terminal
-    &.ide > figure
-      r-sprite      app new-nav-ide
-    &.vm
-      > figure
-        r-sprite    app new-nav-vm
-      > span
-        r-sprite    app vm-settings-icon
-        right       0
-        top         5px
-        opacity     .5
-        abs()
-      &:hover > span
-        opacity     1
-      &.running > figure
-        r-sprite    app new-nav-vm-green
 
 .account-area
   bottom            0
