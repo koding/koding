@@ -303,7 +303,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   getItemByRouteParams: (type, slug) ->
 
-    typeConstant = k for own k, v of typeMap when v = type
+    typeConstant = k for own k, v of typeMap when v is type
 
     itemWeWant = null
     for own name, section of @sections
