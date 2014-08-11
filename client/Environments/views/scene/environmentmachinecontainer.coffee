@@ -45,7 +45,7 @@ class EnvironmentMachineContainer extends EnvironmentContainer
                 KD.showError err
 
                 {dock} = KD.singletons
-                dock.refreshSidebarVMs()
+                log 'dock.refreshSidebarVMs()'
 
     KD.getSingleton("vmController").on 'VMListChanged', =>
       @loadItems().then => @emit 'VMListChanged'
