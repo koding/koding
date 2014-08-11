@@ -15,11 +15,10 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, type, lastToFirst, wrapper} = @getOptions()
-    {typeConstant}    = @getData()
-
-    {channelId} = options
+    {itemClass, type, lastToFirst, wrapper, channelId} = @getOptions()
+    {typeConstant} = @getData()
     viewOptions = {itemOptions: {channelId}}
+
     @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
     @createInputWidget()
@@ -28,12 +27,10 @@ class MessagePane extends KDTabPaneView
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    @on 'LazyLoadThresholdReached', @bound 'lazyLoad'  if typeConstant in ['group', 'topic']
+    if typeConstant in ['group', 'topic']
+      @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
-    {windowController} = KD.singletons
-    windowController.addFocusListener (focused) =>
-
-      @glance()  if focused and @active
+    KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
     switch typeConstant
       when 'post'
@@ -42,6 +39,10 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
+
+
+  handleFocus: (focused) -> @glance()  if focused and @active
+
 
   scrollDown: (item) ->
 
@@ -142,17 +143,15 @@ class MessagePane extends KDTabPaneView
 
   glance: ->
 
-    data = @getData()
-    {id, typeConstant} = data
-    {socialapi, appManager} = KD.singletons
+    {socialapi, appManager}  = KD.singletons
+    {id, typeConstant, name} = @getData()
 
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
     return  unless item?.count
-    # no need to send updatelastSeenTime or glance
-    # when checking publicfeeds
-    return  if typeConstant is 'group'
+    # no need to send updatelastSeenTime or glance when checking publicfeeds
+    return  if name is 'public'
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'

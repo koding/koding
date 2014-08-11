@@ -77,7 +77,7 @@ module.exports = (options={}, callback)->
         slug:    params?.slug    or "/"
         data:    data
 
-      queue.localPrefetchedFeeds.navigatedData = res
+      queue.localPrefetchedFeeds.navigated = res
       queue.fin()
 
   dash queue, ()-> callback null, queue.localPrefetchedFeeds

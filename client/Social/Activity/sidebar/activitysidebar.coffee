@@ -1,4 +1,4 @@
-class ActivitySidebar extends KDCustomScrollView
+class ActivitySidebar extends KDCustomHTMLView
 
 
   typeMap =
@@ -22,6 +22,7 @@ class ActivitySidebar extends KDCustomScrollView
 
 
   constructor: (options = {}) ->
+
     options.cssClass  = 'app-sidebar'
 
     super options
@@ -165,7 +166,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   getItems: ->
 
-    items = [ @public ]
+    items = []
     items = items.concat @sections.followedTopics.listController.getListItems()
     items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
@@ -272,13 +273,6 @@ class ActivitySidebar extends KDCustomScrollView
 
     @deselectAllItems()
 
-    if type is 'public'
-      @selectedItem = @public
-      @public.setClass 'selected'
-      return
-    else
-      @public.unsetClass 'selected'
-
     type       = 'privatemessage'  if type is 'message'
     candidates = []
 
@@ -309,7 +303,7 @@ class ActivitySidebar extends KDCustomScrollView
 
   getItemByRouteParams: (type, slug) ->
 
-    typeConstant = k for own k, v of typeMap when v = type
+    typeConstant = k for own k, v of typeMap when v is type
 
     itemWeWant = null
     for own name, section of @sections
@@ -326,63 +320,51 @@ class ActivitySidebar extends KDCustomScrollView
 
     super
 
-    # @wrapper.addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
-    @addGroupDescription()  unless KD.getGroup().slug is 'koding'
-    @addPublicFeedLink()
-    # @addHotTopics()
+    @addVMTree()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
-    # @addChat()
+    @addGroupDescription()  unless KD.isKoding()
 
 
   addGroupDescription: ->
 
-    { dock } = KD.singletons
-
-    dock.getView().addSubView new GroupDescription
+    KD.singletons.dock.getView().addSubView new GroupDescription
 
 
-  addPublicFeedLink: ->
+  listVMs: (vms) ->
 
-    {activityController} = KD.singletons
-    {slug, socialApiChannelId} = KD.getGroup()
-
-    @wrapper.addSubView @public = new CustomLinkView
-      title    : 'Public Feed'
-      href     : '/Activity/Public'
-      cssClass : 'kdlistitemview-sidebar-item public-feed-link'
-    ,
-      name         : slug
-      typeConstant : 'group'
-      groupName    : slug
-      id           : socialApiChannelId ? '1'
-
-    @public.addSubView new KDCustomHTMLView
-      cssClass : 'count hidden'
-      tagName  : 'cite'
-      partial  : '1'
+    @vmTree.addNode vm  for vm in vms
 
 
-  addHotTopics: ->
+  addVMTree: ->
 
-    @wrapper.addSubView @sections.hot = new ActivitySideView
-      title      : 'TRENDING'
-      cssClass   : 'hot topics hidden'
-      itemClass  : SidebarTopicItem
-      dataPath   : 'popularTopics'
-      delegate   : this
-      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
-      dataSource : (callback) ->
-        KD.singletons.socialapi.channel.fetchPopularTopics
-          limit  : 5
-        , callback
+    @addSubView section = new KDCustomHTMLView tagName : 'section'
+
+    @vmTree = new JTreeViewController
+      type                : 'main-nav'
+      treeItemClass       : NavigationMachineItem
+
+    @vmTree.getView().on 'VMCogClicked', (vm, item)->
+      {mainView} = KD.singletons
+      mainView.openVMModal vm, item
+
+    section.addSubView header = new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'VMs'
+
+    section.addSubView @vmTree.getView()
+
+    if KD.userMachines.length
+    then @listVMs KD.userMachines
+    else @fetchVMs @bound 'listVMs'
 
 
   addFollowedTopics: ->
 
-    @wrapper.addSubView @sections.followedTopics = new ActivitySideView
-      title      : 'My Feeds'
+    @addSubView @sections.followedTopics = new ActivitySideView
+      title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
@@ -399,8 +381,8 @@ class ActivitySidebar extends KDCustomScrollView
 
   addConversations: ->
 
-    @wrapper.addSubView @sections.conversations = new ActivitySideView
-      title      : 'Conversations'
+    @addSubView @sections.conversations = new ActivitySideView
+      title      : 'Threads'
       cssClass   : 'conversations'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
@@ -415,8 +397,8 @@ class ActivitySidebar extends KDCustomScrollView
 
   addMessages: ->
 
-    @wrapper.addSubView @sections.messages = new ActivitySideView
-      title      : 'Private Conversations'
+    @addSubView @sections.messages = new ActivitySideView
+      title      : 'Private Messages'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
@@ -430,17 +412,3 @@ class ActivitySidebar extends KDCustomScrollView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
-
-
-  addChat: ->
-
-    @wrapper.addSubView @sections.chat = new ActivitySideView
-      title      : 'Chat'
-      cssClass   : 'chat users'
-      itemClass  : SidebarChatMemberItem
-      delegate   : this
-      headerLink : new CustomLinkView
-        title    : 'NEW'
-        href     : KD.utils.groupifyLink '/Activity/Chat/New'
-      dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 10}, callback

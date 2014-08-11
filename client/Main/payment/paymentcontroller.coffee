@@ -174,7 +174,8 @@ class PaymentController extends KDController
         else
           @emit "SubscriptionCompleted"
 
-        KD.singletons.dock.getView().show()
+        log 'KD.singletons.dock.getView().show()'
+
       .enter()
 
     workflow

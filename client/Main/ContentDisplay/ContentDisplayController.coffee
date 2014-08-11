@@ -36,7 +36,6 @@ class ContentDisplayController extends KDController
     model = view.getData()
     @changePageTitle model
 
-    KD.singleton('dock').navController.selectItemByName 'Activity'
     return tabPane
 
 

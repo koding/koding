@@ -93,7 +93,7 @@ class MainViewController extends KDViewController
     appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
-    {navController} = KD.singleton 'dock'
+    warn 'set active nav item by route change, not by maintabpane change'
 
     # KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
@@ -101,12 +101,6 @@ class MainViewController extends KDViewController
     if pane
     then @setViewState pane.getOptions()
     else mainTabView.getActivePane().show()
-
-    {title} = app?.getOption('navItem')
-
-    if title
-    then navController.selectItemByName title
-    else navController.deselectAllItems()
 
 
   setViewState: (options = {}) ->

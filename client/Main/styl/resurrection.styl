@@ -51,6 +51,7 @@ pre
   width             auto
   // vendor            transform, translateX(0)
   #main-sidebar
+    z-index           0
     hidden()
 
   &.fullscreen
@@ -81,6 +82,16 @@ pre
       kalc            width, 100% \- 258px
       margin-left     258px
 
+#main-panel-wrapper
+  min-height          100%
+  z-index             1
+  bg                  color, white
+// #main-sidebar
+#main-panel-wrapper
+aside.app-sidebar
+  vendor              transition, width .177s ease \,
+                                  left .177s ease \,
+                                  margin .177s ease
 
 #main-header
   margin              0

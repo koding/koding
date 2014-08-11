@@ -1,4 +1,4 @@
-class NavigationMachineItem extends KDListItemView
+class NavigationMachineItem extends JTreeItemView
 
   {Running, Stopped} = Machine.State
 
@@ -11,7 +11,7 @@ class NavigationMachineItem extends KDListItemView
   constructor:(options = {}, data)->
 
     machine            = data
-    @alias             = machine.getName()
+    @alias             = machine.label
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'

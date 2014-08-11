@@ -245,7 +245,6 @@ module.exports = [
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/mainviews/mainview.coffee",
   "maincontroller/mainviewcontroller.coffee",
-  "maincontroller/dockcontroller.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/maincontroller.coffee",
   "maincontroller/helpcontroller.coffee",
@@ -312,7 +311,6 @@ module.exports = [
   "styl/troubleshoot.styl",
   "styl/computeproviders.styl",
 
-  "styl/dock.responsive.styl"
   "styl/app.markdown.styl"
 
 ]
