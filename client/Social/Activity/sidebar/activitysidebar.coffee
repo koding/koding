@@ -320,6 +320,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     super
 
+    @addVMTree()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
@@ -331,13 +332,33 @@ class ActivitySidebar extends KDCustomHTMLView
     KD.singletons.dock.getView().addSubView new GroupDescription
 
 
+  listVMs: (vms) ->
+
+    @vmTree.addNode vm  for vm in vms
 
 
+  addVMTree: ->
 
+    @addSubView section = new KDCustomHTMLView tagName : 'section'
 
+    @vmTree = new JTreeViewController
+      type                : 'main-nav'
+      treeItemClass       : NavigationVMItem
 
+    @vmTree.getView().on 'VMCogClicked', (vm, item)->
+      {mainView} = KD.singletons
+      mainView.openVMModal vm, item
 
+    section.addSubView header = new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'VMs'
 
+    section.addSubView @vmTree.getView()
+
+    if KD.userVMs.length
+    then @listVMs KD.userVMs
+    else @fetchVMs @bound 'listVMs'
 
 
   addFollowedTopics: ->
