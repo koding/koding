@@ -54,7 +54,7 @@ class ActivityAppView extends KDView
     else @unsetClass 'fixed'
 
 
-  # type: [public|topic|post|message|chat|null]
+  # type: [topic|post|message|chat|null]
   # slug: [slug|id|name]
   open: (type, slug) ->
 
@@ -75,11 +75,7 @@ class ActivityAppView extends KDView
     @sidebar.selectItemByRouteOptions type, slug
     item = @sidebar.selectedItem
 
-    if type is 'public'
-      item = @sidebar.public
-      kallback item.getData()
-
-    else if not item
+    if not item
       type_ = switch type
         when 'message' then 'privatemessage'
         when 'post'    then 'activity'
@@ -154,7 +150,7 @@ class ActivityAppView extends KDView
 
   showNewMessageModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     bounds = @sidebar.sections.messages.options.headerLink.getBounds()
 
@@ -176,13 +172,13 @@ class ActivityAppView extends KDView
 
   showAllTopicsModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new YourTopicsModal delegate : this
 
 
   showAllConversationsModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this
