@@ -76,7 +76,6 @@ class MainView extends KDView
 
     @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
 
-    @sidebar.wrapper.addSubView KD.singletons.dock.getView()
 
 
   createPanelWrapper:->

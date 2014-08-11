@@ -21,11 +21,11 @@ class ActivityAppController extends AppController
 
     super options
 
-    {dock, appStorageController} = KD.singletons
+    {appStorageController} = KD.singletons
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
-    dock.getView().show()
+    warn 'dock.getView().show()'
 
     @on 'LazyLoadThresholdReached', @getView().bound 'lazyLoadThresholdReached'
 

@@ -218,7 +218,6 @@ module.exports = [
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/mainviews/mainview.coffee",
   "maincontroller/mainviewcontroller.coffee",
-  "maincontroller/dockcontroller.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/maincontroller.coffee",
   "maincontroller/helpcontroller.coffee",

@@ -54,7 +54,6 @@ class MainController extends KDController
     KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController
     KD.registerSingleton 'localSync',                 new LocalSyncController
-    KD.registerSingleton 'dock',                      new DockController
     KD.registerSingleton 'mainView',             mv = new MainView
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
