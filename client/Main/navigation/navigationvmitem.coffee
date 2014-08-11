@@ -1,4 +1,4 @@
-class NavigationVMItem extends KDListItemView
+class NavigationVMItem extends JTreeItemView
 
   constructor:(options = {}, data)->
 
@@ -16,6 +16,9 @@ class NavigationVMItem extends KDListItemView
     super options, data
 
 
+  viewAppended: -> @setPartial @partial()
+
+
   click: (event) ->
 
     return yes  if event.target.tagName.toLowerCase() isnt 'span'
@@ -24,8 +27,6 @@ class NavigationVMItem extends KDListItemView
 
     list = @getDelegate()
     list.emit 'VMCogClicked', @getData(), this
-
-
 
 
   partial: -> return "<figure></figure>#{@alias}<span></span>"
