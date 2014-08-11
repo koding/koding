@@ -124,14 +124,72 @@ body.dashboard
       margin               0
 
     .lazy-loader
+    .kdloader
       text-align          center
       padding             40px 0
+
+    .loading-text
+      text-align          center
 
     .no-item-found
       color               #878787
       font-size           14px
       padding             24px 0
       text-align          center
+
+  .kdtabpaneview
+
+    &.members
+
+      .listview-wrapper > .kdscrollview
+        padding-right     34px
+        margin-top        34px
+        kalc              height, 100vh \- 107px
+        kalc              width, 100% \+ 34px
+        borderBox()
+
+      .kdlistitemview-member
+        padding           34px 0
+        border-bottom     1px solid #DEDEDE
+        font-size         14px
+        line-height       19px
+        borderBox()
+
+        .avatarview
+          margin          0 18px 0 0
+          fl()
+
+        a
+          color           #4c4c4c
+          noTextDeco()
+
+        a.profile
+          font-weight     600
+
+        .user-numbers
+          color           #7b7b7b
+
+        .edit-btn
+          fr()
+
+        .kd-checkbox-holder
+          line-height    24px
+          padding        0 12px 6px 0
+          fl()
+
+        .edit-container
+          display         block
+          clear           both
+          padding-left    54px
+          borderBox()
+
+          .buttons .kdbutton
+            width         23.5%
+
+            &~.kdbutton
+              margin-left 2%
+
+
 
 
 // .kdtabpaneview.dashboard
@@ -317,9 +375,9 @@ body.dashboard
 //       margin-top              -14px
 
 // @css {
-// /*
-// Dashboard Member List styles
-// */
+/*
+Dashboard Member List styles
+*/
 // }
 
 // .kdtabpaneview.members
@@ -391,38 +449,37 @@ body.dashboard
 //           left                 0
 //           abs()
 
+//   .kdlistview
+//     overflow            visible
+//   .kdlistitemview-member-item
+//     border-bottom       1px solid #f5f5f5
+//     &:nth-child(1n)
+//       border-right      1px solid #f5f5f5
 
-// //   .kdlistview
-// //     overflow            visible
-// //   .kdlistitemview-member-item
-// //     border-bottom       1px solid #f5f5f5
-// //     &:nth-child(1n)
-// //       border-right      1px solid #f5f5f5
+//     .kdlistitemview-member-item-inner
+//       margin            3px 3px 0 0
 
-// //     .kdlistitemview-member-item-inner
-// //       margin            3px 3px 0 0
+//     section
+//       .profile
+//         borderBox()
+//         margin-left     60px
+//         padding         2px
+//         display         block
+//       .role
+//         borderBox()
+//         margin-left     60px
+//         padding         2px
+//         display         block
+//       .edit-link
+//       .save-link
+//       .cancel-link
+//         fr()
+//       .edit-link
+//         hidden()
 
-// //     section
-// //       .profile
-// //         borderBox()
-// //         margin-left     60px
-// //         padding         2px
-// //         display         block
-// //       .role
-// //         borderBox()
-// //         margin-left     60px
-// //         padding         2px
-// //         display         block
-// //       .edit-link
-// //       .save-link
-// //       .cancel-link
-// //         fr()
-// //       .edit-link
-// //         hidden()
-
-// //     &:hover
-// //       section .edit-link
-// //         visible()
+//     &:hover
+//       section .edit-link
+//         visible()
 
 // @css {
 // /*
@@ -431,13 +488,6 @@ body.dashboard
 // }
 
 // .member-related
-//   .listview-wrapper .lazy-loader
-//     font-weight               600
-//     font-size                 12px
-//     color                     #5F5F5F
-//     .kdview.kdloader
-//       display                 inline-block
-
 //   .kdview.kdlistitemview
 //     &.editing
 //       bg                      color, rgba(255, 146, 0, 0.1)
@@ -572,10 +622,11 @@ body.dashboard
 //   .policy-overlay
 //     size                  100%, 100vh
 //     position              fixed
-//     top                   58px
-//     margin-left           -31px
+//     top                   0
+//     margin-left           -34px
 //     z-index               10
-//     bg                    color, rgba(0,0,0,.05)
+//     bg                    color, rgba(255,255,255,.75)
+
 //   p.coming-soon
 //     size              460px, 128px
 //     rounded           6px
@@ -585,9 +636,11 @@ body.dashboard
 //     font-size         30px
 //     color             #1aaf5d
 //     line-height       128px
+//     z-index           11
 //     text-align        center
-//     background-color  rgba(255,255,255,.75)
+//     background-color  rgba(0,0,0,.05)
 //     abs()
+
 //     .icon
 //       r-sprite        "dashboard", "coming-soon"
 //       display         inline-block
@@ -611,8 +664,6 @@ body.dashboard
 //       display                   block
 //       padding                   10px
 //       font-size                 11px
-
-
 
 // @css {
 // /*

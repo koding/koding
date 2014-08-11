@@ -4,8 +4,14 @@ class GroupPermissionsView extends JView
     options.cssClass = "permissions-view"
     super options, data
 
-    @loader     = new KDLoaderView showLoader: yes
-    @loaderText = new KDView partial: 'Loading Permissions...'
+    @loader     = new KDLoaderView
+      showLoader     : yes
+      loaderOptions  :
+        shape        : 'spiral'
+        color        : '#a4a4a4'
+      size           :
+        width        : 40
+        height       : 40
 
     @addPermissionsView()
 
@@ -20,13 +26,10 @@ class GroupPermissionsView extends JView
           permissions.destroy()
           @addPermissionsView()
           @loader.show()
-          @loaderText.show()
 
         @loader.hide()
-        @loaderText.hide()
 
   pistachio:->
     """
     {{> @loader}}
-    {{> @loaderText}}
     """
