@@ -426,6 +426,10 @@ Configuration = (options={}) ->
 
         ./cleanup @$
 
+      elif [ "$1" == "buildclient" ]; then
+
+        ./build-client.coffee --watch false  --verbose
+
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
