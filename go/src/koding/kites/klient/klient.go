@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"koding/kite-handler/command"
@@ -11,6 +12,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/koding/kite"
@@ -28,11 +30,23 @@ var (
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 
+	// update paramters
+	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
+		"Change interval for checking for new updates")
+	flagUpdateURL = flag.String("update-url",
+		"https://s3.amazonaws.com/koding-kites/klient/"+protocol.Environment+"/latest-version.txt",
+		"Change update endpoint for latest version")
+
 	VERSION = protocol.Version
 	NAME    = protocol.Name
 
 	// this is our main reference to count and measure metrics for the klient
-	usg = usage.NewUsage()
+	usg  = usage.NewUsage()
+	klog kite.Logger
+
+	// we also could use an atomic boolean this is simple for now.
+	updating   = false
+	updatingMu sync.Mutex // protects updating
 )
 
 func main() {
@@ -49,14 +63,43 @@ func main() {
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
 
+	klog = k.Log
+
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
+
+	// dont' allow anyone to call a method if we are during an update
+	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
+		updatingMu.Lock()
+		defer updatingMu.Unlock()
+
+		if updating {
+			return nil, errors.New("Updating klient. Can't accept any method.")
+		}
+
+		return true, nil
+	})
 
 	// we measure every incoming request
 	k.PreHandleFunc(usg.Counter)
 
 	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
+
+	if *flagUpdateInterval < time.Minute {
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		*flagUpdateInterval = time.Minute
+	}
+
+	updater := &Updater{
+		Endpoint: *flagUpdateURL,
+		Interval: *flagUpdateInterval,
+	}
+
+	go updater.Run()
+
+	// also invoke updating
+	k.Handle("klient.update", updater)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -107,18 +150,18 @@ func main() {
 		}
 	}
 
-	go func() {
-		kloud, err := NewKloud(k)
-		if err != nil {
-			k.Log.Warning(err.Error())
-		}
-
-		for _ = range time.Tick(time.Second * 5) {
-			err := kloud.Report()
-			fmt.Printf("err %+v\n", err)
-		}
-
-	}()
+	// go func() {
+	// 	kloud, err := NewKloud(k)
+	// 	if err != nil {
+	// 		k.Log.Warning(err.Error())
+	// 	}
+	//
+	// 	for _ = range time.Tick(time.Second * 5) {
+	// 		err := kloud.Report()
+	// 		fmt.Printf("err %+v\n", err)
+	// 	}
+	//
+	// }()
 
 	k.Run()
 }

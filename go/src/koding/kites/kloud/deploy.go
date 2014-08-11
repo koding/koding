@@ -122,7 +122,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Fetching latest klient.deb binary")
-	latestDeb, err := k.Bucket.Latest()
+	latestDeb, err := k.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +160,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 
 	log("Patching klient.conf")
 	out, err = client.StartCommand(patchConfCommand(username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Chowning /opt/kite/klient to user's permisison")
+	out, err = client.StartCommand(fmt.Sprintf("chown %s:%s -R /opt/kite/klient", username, username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
