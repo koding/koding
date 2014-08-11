@@ -326,7 +326,6 @@ class ActivitySidebar extends KDCustomHTMLView
     @addFollowedTopics()
     @addConversations()
     @addMessages()
-    # @addChat()
 
 
   addGroupDescription: ->
@@ -424,17 +423,3 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
-
-
-  addChat: ->
-
-    @addSubView @sections.chat = new ActivitySideView
-      title      : 'Chat'
-      cssClass   : 'chat users'
-      itemClass  : SidebarChatMemberItem
-      delegate   : this
-      headerLink : new CustomLinkView
-        title    : 'NEW'
-        href     : KD.utils.groupifyLink '/Activity/Chat/New'
-      dataSource : (callback) ->
-        KD.getGroup().fetchNewestMembers {}, {limit : 10}, callback
