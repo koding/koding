@@ -225,6 +225,25 @@ class Deploy
 
           callback null, data
 
+  @addDomainRecord = (options,callback)->
+    ttl = 120 or options.ttl
+    cf.addDomainRecord options.domain,
+      type : "A"
+      name : options.name
+      content : options.content
+      service_mode : options.service_mode
+    ,(err,res)->
+      callback err if err
+      # this additional step is required to enable cloudflare (https)
+      cf.editDomainRecord options.domain,res.rec_id,
+        type : options.type
+        name : options.name
+        content : options.content
+        service_mode : options.service_mode
+        ttl: ttl
+      ,callback
+
+
 
   @deployTest = (options,callback)->
 

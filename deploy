@@ -17,6 +17,7 @@ elb        = new AWS.ELB()
 
 
 
+
 if argv.release
   release argv.release
 
@@ -88,30 +89,24 @@ if argv.deploy
 
                 Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
 
-                cf.addDomainRecord "koding.io",
+                Deploy.addDomainRecord
+                  domain: "koding.io"
                   type : "A"
                   name : subdomain
                   content : IP
                   service_mode : 1 #cloudflare enabled.
                 ,(err,res)->
-                  # this additional step is required to enable cloudflare (https)
-                  cf.editDomainRecord "koding.io",res.rec_id,
-                    type : "A"
-                    name : subdomain
-                    content : IP
-                    service_mode : 1
-                    ttl: 120
-                  ,->
 
-                    # log arguments
 
-                    log "------------------------------------------------------------------"
-                    log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-                    log "------------------------------------------------------------------"
-                    log "URL: #{PublicDnsName} "
-                    log "------------------------------------------------------------------"
-                    log "URL: #{subdomain}.koding.io     IP: #{IP}"
-                    log "------------------------------------------------------------------"
+                  # log arguments
+
+                  log "------------------------------------------------------------------"
+                  log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+                  log "------------------------------------------------------------------"
+                  log "URL: #{PublicDnsName} "
+                  log "------------------------------------------------------------------"
+                  log "URL: #{subdomain}.koding.io     IP: #{IP}"
+                  log "------------------------------------------------------------------"
           ,5000
 
 

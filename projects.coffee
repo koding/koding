@@ -156,16 +156,16 @@ bundles           =
 
   Koding          :
     projects      : [
-                     'KDBackend'
+                     # 'KDBackend'
                      'KDMainApp'
-                     'Finder'
-                     'Environments'
-                     'Dashboard'
-                     'Pricing'
-                     'Account'
-                     'Ace'
-                     'Terminal'
-                     'Login'
+                     # 'Finder'
+                     # 'Environments'
+                     # 'Dashboard'
+                     # 'Pricing'
+                     # 'Account'
+                     # 'Ace'
+                     # 'Terminal'
+                     # 'Login'
                      'PostOperations'
                     ]
 
