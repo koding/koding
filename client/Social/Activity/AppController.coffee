@@ -68,18 +68,23 @@ class ActivityAppController extends AppController
     socialapi.message.sendPrivateMessage options, callback
 
 
+  firstFetch = yes
+
   fetch: ({channelId, from, limit}, callback = noop) ->
 
     id = channelId
     {socialapi} = KD.singletons
     {socialApiChannelId} = KD.getGroup()
+    id ?= socialApiChannelId
 
-    if socialApiChannelId is channelId and socialapi.getPrefetchedData('publicFeed').length > 0
-      messages = socialapi.getPrefetchedData 'publicFeed'
+    if firstFetch and socialapi.getPrefetchedData('navigated').length > 0
+      messages   = socialapi.getPrefetchedData 'navigated'
       KD.utils.defer ->  callback null, messages
-      KD.socialApiData.publicFeed = null
     else
+      log id, firstFetch, 'hello'
       socialapi.channel.fetchActivities {id, from, limit}, callback
+
+    firstFetch = yes
 
 
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
