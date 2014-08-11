@@ -9,21 +9,6 @@ resurrection.activity.styl
 */
 }
 
-styleScrollBars()
-
-  &.has-vertical
-    padding-right       0
-
-  .kdview.kdscrolltrack
-    bg                  color transparent
-    overflow            visible
-    .kdscrollthumb
-      bg                color rgba(255,255,255,.15)
-      margin            0 4px
-      width             7px
-      rounded           6px
-
-
 .activity-status-context
   display               none
 
@@ -37,7 +22,7 @@ styleScrollBars()
   .no-item-found
     text-align            center
     color                 #B4B4B4
-    padding               178px 0
+    padding               40px 0
     font-size             16px
     font-weight           300
     letter-spacing        .02em
@@ -52,6 +37,7 @@ styleScrollBars()
   padding               0 34px 0 0
   position              static
   overflow              visible
+  min-height            100vh
 
   &.group
     margin-top          55px
@@ -255,231 +241,6 @@ styleScrollBars()
         &.active
           color         logoBg
 
-  aside.app-sidebar
-    bg                  color #424242
-    > main
-      font-family         openSansFamily
-      padding             1px 16px 16px
-      borderBox()
-
-      > section
-        size              auto auto
-        overflow          visible
-        margin            0 0 3px 0
-
-
-        .lazy-loader
-          margin            0
-          top               -28px
-          right             36px
-          abs()
-
-        .kdlistview
-          overflow        visible
-
-          .nothing
-            background    #3B3B3B
-            width         auto
-            font-size     14px
-            margin        0 6px
-            padding       16px 18px
-            rounded       3px
-            line-height   19px
-            text-align    center
-            font-weight   400
-            color         #787878
-            margin-bottom 16px
-            borderBox()
-
-            a
-              color             #929292
-              text-decoration   underline
-
-      a.public-feed-link.selected
-        color               #fff
-
-.activity
-
-  .kdlistitemview-sidebar-item
-    size              auto 28px
-    padding           5px 8px
-    rounded           4px
-    font-size         14px
-    overflow          visible
-    position          relative
-    display           block
-    color             #B8B8B8
-    borderBox()
-    &:hover
-      bg              color rgba(0,0,0,.01)
-      pointer()
-      .profile
-      .ttag
-        text-decoration underline
-
-    cite.count
-      size            auto 20px
-      line-height     20px
-      color           #fff
-      padding         0 10px
-      abs             4px 7px 0 0
-      font-size       10px
-      font-weight     700
-      background      #E06F6F
-      rounded         3px
-      fr()
-
-    .ttag
-      display       block
-      font-weight   500
-      color         #B8B8B8
-      line-height   18px
-
-    .profile
-      ellipsis()
-      color         #B8B8B8
-
-    .topic-follow-btn
-      size          24px 18px
-      abs           5px 7px 0 0
-      border        1px solid #b1b1b1
-      background    transparent
-      shadow        none
-      outline       none
-      rounded       3px
-      margin        0
-      padding       0
-      borderBox()
-      &:hover
-        border          none
-        .icon
-          r-sprite      activity 'check-gray'
-
-      .icon
-        margin          0 6px 0 0
-        padding         0
-        fr()
-
-      .button-title
-        hidden()
-
-      &.following
-        bg              color transparent
-        border-color    transparent
-
-        .icon
-          r-sprite      activity 'check-gray'
-
-        &:hover
-          border        1px solid #b1b1b1
-          .icon
-            display     none
-
-  .kdlistitemview-sidebar-item.selected
-    background          #15171A
-
-    .profile
-      color             #F9F7F3
-
-    .user-numbers
-      color             #B8B8B8 !important
-
-    .online-status.online
-      background        #B8B8B8 !important
-
-    .ttag
-      color             #F9F7F3
-
-    .tag-info
-      color             #B8B8B8
-
-    .topic-follow-btn
-      border-color      #e9e9e9
-
-      &.follow:before
-        color           #d1efdf
-
-      &.following
-        bg              color transparent
-        border-color    transparent
-
-        &:hover
-          border          1px solid #b1b1b1
-          .icon
-            display       none
-
-  .conversations
-  .messages
-
-    .kdlistitemview-sidebar-item
-      height        40px
-      min-height    0
-      margin        0
-      borderBox()
-
-      > .profile
-        display     block
-        float       none
-        padding     0 0 0 36px
-        font-size   14px
-        line-height 18px
-        width       174px
-        color       #B8B8B8
-        font-weight 600
-        borderBox()
-
-      > .user-numbers
-        padding     0 0 0 36px
-        margin      -1px 0 0
-        width       87%
-        font-weight 400
-        font-size   12px
-        color       #919297
-        font-weight 600
-        borderBox()
-
-        span
-          font-weight inherit
-          color       inherit
-
-      .avatarview
-        top           6px
-        left          8px
-
-      &.unread
-        > .profile
-          color       #F9F7F3
-
-        > .user-numbers
-          color       #C9C9CC
-
-  .messages
-
-    .kdlistitemview-sidebar-item
-      height            28px
-
-      .avatarview
-        size            24px 24px
-        top             2px
-        left            8px
-
-
-  .conversations
-
-    .kdlistitemview-sidebar-item
-
-      cite.count
-        abs             10px 7px 0 0
-
-  a.kdlistitemview-sidebar-item
-
-    noTextDeco()
-
-    &.public-feed-link
-      margin-top      13px
-      padding         0 8px
-      height          28px
-      line-height     28px
 
 .activity-related
   padding-bottom      62px
@@ -762,9 +523,9 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 -2px 0 0 -56px
+      abs                 0 0 0 -54px
       display             block
-      border              2px solid #0EB463
+      // border              2px solid #0EB463
 
       img
         display           block

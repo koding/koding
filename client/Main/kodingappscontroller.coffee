@@ -27,9 +27,6 @@ class KodingAppsController extends KDController
       warn "#{name} is already imported"
       return callback null
 
-    # put the '?' bc it was throwing after logging out - SY
-    KD.singletons.dock?.setNavItemState {name, route:"/#{name}" }, 'loading'
-
     app = KD.config.apps[name]
     @putAppScript app, callback
 
@@ -74,11 +71,6 @@ class KodingAppsController extends KDController
     else
       route = "/#{jApp.manifest.authorNick}/Apps/#{jApp.name}"
 
-    KD.singletons.dock?.setNavItemState {
-      name : app.name, options: {dockPath : route}
-    }, 'loading'
-
-    @putAppScript app, ->
 
       KD.utils.defer ->
 

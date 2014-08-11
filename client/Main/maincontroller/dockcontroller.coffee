@@ -3,11 +3,11 @@ class DockController extends KDViewController
   isRunning = (item) -> item?.state is 'running'
 
   defaultItems = [
-    { title : 'Activity',  path : '/Activity', order : 10, type :'persistent' }
+    # { title : 'Social',  path : '/Activity', order : 10, type :'persistent' }
     { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
     { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
-    { title : 'Apps',      path : '/Apps',     order : 40, type :'persistent' }
-    { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : '+',      path : '/Apps',     order : 40, type :'persistent' }
+    # { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
     # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
@@ -44,26 +44,8 @@ class DockController extends KDViewController
       items        : []
 
 
-    @machineList = new KDListViewController
-      wrapper             : no
-      scrollView          : no
-      startWithLazyLoader : yes
-      itemClass           : NavigationMachineItem
-      lazyLoaderOptions   : loaderOptions
-    ,
-      id           : 'vms'
-      title        : 'vms'
-      items        : []
-
-    @machineList.getListView().on 'MachineCogClicked', (machine, item)->
-      {mainView} = KD.singletons
-      mainView.openMachineModal machine, item
-
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
-
-    KD.singletons.computeController.on "renderStacks", =>
-      @fetchMachines @bound 'listMachines'
 
     @trackStateTransitions()
     @bindKeyCombos()
@@ -156,8 +138,6 @@ class DockController extends KDViewController
         return @emit 'ready'
 
       @setNavItems @buildNavItems usersNavItems
-      @fetchMachines @bound 'listMachines'
-
       @emit 'ready'
 
 
@@ -194,13 +174,24 @@ class DockController extends KDViewController
           @addItem { title : name, path, \
                      order : 60 + KD.utils.uniqueId(), type :"" }
 
-  listMachines: (machines) ->
-
-    @machineList.replaceAllItems machines
-    @machineList.hideLazyLoader()
-
-
   loadView: (dock) ->
+
+    dock.addSubView new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'VMs'
+
+    dock.addSubView @vmTree.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'kdlistitemview-main-nav add-vm'
+      title    : '+ Add another VM'
+      click    : ->
+        # fixme: this is a temp solution
+        # this should change with the new environments
+        KD.singletons.appManager.require 'Environments', ->
+          env = new EnvironmentMachineContainer
+          env.emit 'PlusButtonClicked'
 
     dock.addSubView new KDCustomHTMLView
       tagName  : 'h3'
@@ -208,32 +199,18 @@ class DockController extends KDViewController
       partial  : 'MY APPS'
 
     dock.addSubView @navController.getView()
-
-    dock.addSubView new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'MY VMs'
-
-    dock.addSubView @machineList.getView()
     dock.addSubView new CustomLinkView
       icon     : no
-      cssClass : 'add-vm'
-      title    : '+ Add another VM'
-      click    : ->
-
-        ComputeController.UI.showProvidersModal \
-          KD.singletons.computeController.stacks.first
+      cssClass : 'kdlistitemview-main-nav add-app'
+      title    : '+ Add more apps'
+      href     : '/Apps'
 
 
 
+    # @navController.reset()
+    # @setNavItems defaultItems
     @setNavItems defaultItems
     @emit 'ready'
-
-    if KD.userMachines.length
-      @listMachines ( new Machine { machine } for machine in KD.userMachines )
-    else
-      @fetchMachines @bound 'listMachines'
-
 
     @ready =>
 
@@ -257,17 +234,31 @@ class DockController extends KDViewController
         @setNavItemState {name:options.name, options}, 'active'
 
 
-  fetchMachines: (callback)->
+  fetchVMs: (callback)->
 
-    {computeController} = KD.singletons
-    computeController.fetchMachines (err, machines)=>
+    {vmController} = KD.singletons
 
+    # force refetch from server everytime vms fetched.
+    vmController.fetchVMs force = yes, (err, vms) =>
       if err
-        ErrorLog.create 'Environments: Couldn\'t fetch machines', reason : err
-        return new KDNotificationView title : 'Couldn\'t fetch your Machines'
+        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-      callback machines
+      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
+      # gets just the vm number
+      getVMNumber = ({hostnameAlias})->
+        +(hostnameAlias.match(/\d+/)[0])
 
+      # sort vms by vm number
+      vms.sort (a,b)->
+        getVMNumber(a) > getVMNumber(b)
+
+      callback vms
+
+  refreshSidebarVMs: ->
+    @fetchVMs (vms) =>
+      @vmTree.removeAllNodes()
+      @listVMs vms
 
   getRelativeItem: (increment, predicate) ->
 

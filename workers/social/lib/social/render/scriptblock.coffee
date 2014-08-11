@@ -48,6 +48,7 @@ module.exports = (options = {}, callback)->
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userMachines=#{userMachines}</script>
+    <script>KD.userAccount=#{userAccount}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
