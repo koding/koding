@@ -293,7 +293,7 @@ Configuration = (options={}) ->
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+        cp -f #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
 
         echo '#---> BUILDING BROKER-CLIENT @chris <---#'
         echo "building koding-broker-client."
