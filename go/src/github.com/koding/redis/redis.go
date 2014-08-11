@@ -146,6 +146,14 @@ func (r *RedisSession) Incr(key string) (int, error) {
 	return redis.Int(r.Do("INCR", r.AddPrefix(key)))
 }
 
+// Incrby increments the number stored at key by given number. If the key does
+// not exist, it is set to 0 before performing the operation. An error is
+// returned if the key contains a value of the wrong type or contains a string
+// that can not be represented as integer
+func (r *RedisSession) IncrBy(key string, by int64) (int64, error) {
+	return redis.Int64(r.Do("INCRBY", r.AddPrefix(key), by))
+}
+
 // Decr decrements the number stored at key by one. If the key does not exist,
 // it is set to 0 before performing the operation. An error is returned if the
 // key contains a value of the wrong type or contains a string that can not be
