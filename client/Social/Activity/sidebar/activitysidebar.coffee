@@ -320,12 +320,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    # @addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
-    @addGroupDescription()  unless KD.isKoding()
     # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
     @addMessages()
+    @addGroupDescription()  unless KD.isKoding()
 
 
   addGroupDescription: ->
