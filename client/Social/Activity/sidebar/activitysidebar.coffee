@@ -333,26 +333,9 @@ class ActivitySidebar extends KDCustomHTMLView
     dock.getView().addSubView new GroupDescription
 
 
-  addPublicFeedLink: ->
 
-    {activityController} = KD.singletons
-    # {slug}               = KD.config.entryPoint
-    # {socialApiChannelId} = KD.getGroup()
 
-    @addSubView @public = new CustomLinkView
-      title    : 'Public Feed'
-      href     : '/Activity/Public'
-      cssClass : 'kdlistitemview-sidebar-item public-feed-link'
-    ,
-      # name         : slug
-      typeConstant : 'group'
-      # groupName    : slug
-      # id           : socialApiChannelId ? '1'
 
-    @public.addSubView new KDCustomHTMLView
-      cssClass : 'count hidden'
-      tagName  : 'cite'
-      partial  : '1'
 
 
 
