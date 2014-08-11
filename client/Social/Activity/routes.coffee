@@ -46,9 +46,6 @@ do ->
     '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'message', slug
 
-    '/:name?/Activity/Chat/:slug?' : ({params:{name, slug}, query}) ->
-      handleChannel 'chat', slug
-
     '/:name?/Activity/:slug' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
 
