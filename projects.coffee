@@ -149,23 +149,10 @@ projects =
 
 bundles           =
 
-  # Social          :
-  #   projects      : ['Activity', 'Members', 'Apps', 'Bugs']
-  #   style         : "website/a/css/__social.css"
-  #   script        : "website/a/js/__social.js"
-
   Koding          :
     projects      : [
                      'KDBackend'
                      'KDMainApp'
-                     'Activity'
-                     'Finder'
-                     'Environments'
-                     'Dashboard'
-                     'Pricing'
-                     'Account'
-                     'Ace'
-                     'Terminal'
                      'Login'
                      'PostOperations'
                     ]
