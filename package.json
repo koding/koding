@@ -87,10 +87,10 @@
     "xml2js": "0.2.6",
     "zlib": "^1.0.5",
     "node-eden": "0.0.3",
-    "compress-buffer": "~1.2.2"
+    "compress-buffer": "~1.2.2",
+    "loadfire": "3.0.1"
   },
   "devDependencies": {
-    "loadfire": "3.0.1",
     "which": "^1.0.5"
   },
   "optionalDependencies": {},
