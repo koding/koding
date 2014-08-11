@@ -109,11 +109,11 @@ class ActivityAppController extends AppController
   createContentDisplay:(activity, callback = ->)->
 
     contentDisplay = new ContentDisplayStatusUpdate
-      title : "Status Update"
-      type  : "status"
+      title : 'Status Update'
+      type  : 'status'
     , activity
 
-    KD.singleton('display').emit "ContentDisplayWantsToBeShown", contentDisplay
+    KD.singleton('display').emit 'ContentDisplayWantsToBeShown', contentDisplay
     @utils.defer -> callback contentDisplay
 
 
