@@ -102,12 +102,6 @@ class MainViewController extends KDViewController
     then @setViewState pane.getOptions()
     else mainTabView.getActivePane().show()
 
-    {title} = app?.getOption('navItem')
-
-    if title
-    then navController.selectItemByName title
-    else navController.deselectAllItems()
-
 
   setViewState: (options = {}) ->
 
