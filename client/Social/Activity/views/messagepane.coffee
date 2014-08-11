@@ -143,17 +143,15 @@ class MessagePane extends KDTabPaneView
 
   glance: ->
 
-    data = @getData()
-    {id, typeConstant} = data
-    {socialapi, appManager} = KD.singletons
+    {socialapi, appManager}  = KD.singletons
+    {id, typeConstant, name} = @getData()
 
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
     return  unless item?.count
-    # no need to send updatelastSeenTime or glance
-    # when checking publicfeeds
-    return  if typeConstant is 'group'
+    # no need to send updatelastSeenTime or glance when checking publicfeeds
+    return  if name is 'public'
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
