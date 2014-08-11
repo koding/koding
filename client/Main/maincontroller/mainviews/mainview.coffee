@@ -74,8 +74,8 @@ class MainView extends KDView
       tagName  : 'aside'
       domId    : 'main-sidebar'
 
-    @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
-
+    KD.singletons.appManager.require 'Activity', =>
+      @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
 
 
   createPanelWrapper:->
