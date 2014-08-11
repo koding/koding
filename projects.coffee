@@ -158,6 +158,7 @@ bundles           =
     projects      : [
                      'KDBackend'
                      'KDMainApp'
+                     'Activity'
                      'Finder'
                      'Environments'
                      'Dashboard'
