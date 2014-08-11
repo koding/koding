@@ -405,7 +405,7 @@ class SocialApiController extends KDController
 
     fetchActivities      : channelRequesterFn
       fnName             : 'fetchActivities'
-      validateOptionsWith: ["id"]
+      validateOptionsWith: ['id']
       mapperFn           : mapActivities
 
     fetchPopularPosts    : channelRequesterFn
