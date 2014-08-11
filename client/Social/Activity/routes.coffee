@@ -26,10 +26,12 @@ do ->
 
   KD.registerRoutes 'Activity',
 
-    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'public', name or 'koding'
+    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'topic', 'public'
 
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
-      handleChannel 'topic', slug
+      if slug is 'public'
+      then KD.singletons.router.handleRoute '/Activity/Public'
+      else handleChannel 'topic', slug
 
     '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
