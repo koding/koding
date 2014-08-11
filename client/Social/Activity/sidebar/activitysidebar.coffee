@@ -166,7 +166,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   getItems: ->
 
-    items = [ @public ]
+    items = []
     items = items.concat @sections.followedTopics.listController.getListItems()
     items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
@@ -273,13 +273,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @deselectAllItems()
 
-    if type is 'public'
-      @selectedItem = @public
-      @public.setClass 'selected'
-      return
-    else
-      @public.unsetClass 'selected'
-
     type       = 'privatemessage'  if type is 'message'
     candidates = []
 
@@ -329,7 +322,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     # @addSubView new GroupDescription  unless KD.getGroup().slug is 'koding'
     @addGroupDescription()  unless KD.isKoding()
-    @addPublicFeedLink()
     # @addHotTopics()
     @addFollowedTopics()
     @addConversations()
