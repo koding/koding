@@ -328,9 +328,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addGroupDescription: ->
 
-    { dock } = KD.singletons
+    KD.singletons.dock.getView().addSubView new GroupDescription
 
-    dock.getView().addSubView new GroupDescription
 
 
 
