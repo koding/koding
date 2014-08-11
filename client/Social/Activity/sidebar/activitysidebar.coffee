@@ -343,7 +343,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @vmTree = new JTreeViewController
       type                : 'main-nav'
-      treeItemClass       : NavigationVMItem
+      treeItemClass       : NavigationMachineItem
 
     @vmTree.getView().on 'VMCogClicked', (vm, item)->
       {mainView} = KD.singletons
@@ -356,8 +356,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     section.addSubView @vmTree.getView()
 
-    if KD.userVMs.length
-    then @listVMs KD.userVMs
+    if KD.userMachines.length
+    then @listVMs KD.userMachines
     else @fetchVMs @bound 'listVMs'
 
 
