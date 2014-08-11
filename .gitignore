@@ -20,6 +20,7 @@
 /.pydevproject
 /.revision
 /.settings
+/install/docker-mongo/dump
 /broker/apps/broker/src/broker.app.src
 /broker/deps
 /broker/log
