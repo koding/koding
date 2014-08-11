@@ -44,21 +44,6 @@ class DockController extends KDViewController
       items        : []
 
 
-    @vmsList = new KDListViewController
-      wrapper             : no
-      scrollView          : no
-      startWithLazyLoader : yes
-      itemClass           : NavigationVMItem
-      lazyLoaderOptions   : loaderOptions
-    ,
-      id           : 'vms'
-      title        : 'vms'
-      items        : []
-
-    @vmsList.getListView().on 'VMCogClicked', (vm, item)->
-      {mainView} = KD.singletons
-      mainView.openVMModal vm, item
-
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
 
@@ -189,14 +174,24 @@ class DockController extends KDViewController
           @addItem { title : name, path, \
                      order : 60 + KD.utils.uniqueId(), type :"" }
 
-  listVMs: (vms) ->
-
-    @vmsList.hideLazyLoader()
-
-    @vmsList.addItem vm  for vm in vms
-
-
   loadView: (dock) ->
+
+    dock.addSubView new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'VMs'
+
+    dock.addSubView @vmTree.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'kdlistitemview-main-nav add-vm'
+      title    : '+ Add another VM'
+      click    : ->
+        # fixme: this is a temp solution
+        # this should change with the new environments
+        KD.singletons.appManager.require 'Environments', ->
+          env = new EnvironmentMachineContainer
+          env.emit 'PlusButtonClicked'
 
     dock.addSubView new KDCustomHTMLView
       tagName  : 'h3'
@@ -206,37 +201,16 @@ class DockController extends KDViewController
     dock.addSubView @navController.getView()
     dock.addSubView new CustomLinkView
       icon     : no
-      cssClass : 'add-vm'
+      cssClass : 'kdlistitemview-main-nav add-app'
       title    : '+ Add more apps'
       href     : '/Apps'
 
-    dock.addSubView new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'MY VMs'
-
-    dock.addSubView @vmsList.getView()
-    dock.addSubView new CustomLinkView
-      icon     : no
-      cssClass : 'add-vm'
-      title    : '+ Add another VM'
-      click    : ->
-        # fixme: this is a temp solution
-        # this should change with the new environments
-        KD.singletons.appManager.require 'Environments', ->
-          env = new EnvironmentMachineContainer
-          env.emit 'PlusButtonClicked'
 
 
     # @navController.reset()
     # @setNavItems defaultItems
     @setNavItems defaultItems
     @emit 'ready'
-
-    if KD.userVMs.length
-    then @listVMs KD.userVMs
-    else @fetchVMs @bound 'listVMs'
-
 
     @ready =>
 
@@ -283,7 +257,7 @@ class DockController extends KDViewController
 
   refreshSidebarVMs: ->
     @fetchVMs (vms) =>
-      @vmsList.removeAllItems()
+      @vmTree.removeAllNodes()
       @listVMs vms
 
   getRelativeItem: (increment, predicate) ->
