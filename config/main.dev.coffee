@@ -281,7 +281,6 @@ Configuration = (options={}) ->
 
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
-        rm -rf #{projectRoot}/go/pkg
         #{projectRoot}/go/build.sh
 
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
