@@ -17,19 +17,23 @@ build:
     - script:
         name: initialize submodules
         code: git submodule update --init --recursive
-    - npm-install
+    - script:
+        name: npm install
+        code: |
+          npm install || :
+    - script:
+        name: configure build
+        code: ./configure
     - script:
         name: build client
-        code: cake -c sjc-production buildClient
+        code: ./run buildclient
     - script:
         name: build go binaries
         code: go/build.sh
     - script:
         name: build social api
         cwd: go/src/socialapi
-        code: |
-          make install
-          make build
+        code: make configure
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
