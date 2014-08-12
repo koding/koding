@@ -8,15 +8,18 @@ class ReplyInputWidget extends ActivityInputWidget
     super options, data
     @setClass 'reply-input-widget'
 
+    @forwardEvent @input, "Enter"
 
-  create: ({body}, callback) ->
+
+  create: ({body, requestData}, callback) ->
 
     {channel: {id: channelId}}  =  @getOptions()
 
     {appManager} = KD.singletons
-    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body}, (err, reply) =>
+    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body, requestData}, (err, reply) =>
       return KD.showError err  if err
-      callback()
+
+      callback err, reply.first.lastMessage
 
 
   viewAppended: ->
