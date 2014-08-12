@@ -85,6 +85,8 @@ class SocialApiController extends KDController
     # response for pinned messages
     m.unreadRepliesCount = data.unreadRepliesCount
 
+    m.requestData = plain.requestData
+
     m.interactions    = interactions or
       like            :
         actorsCount   : 0
