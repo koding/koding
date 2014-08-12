@@ -7,7 +7,11 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
 
+	kmetrics "github.com/koding/metrics"
+
 	"github.com/rcrowley/go-tigertonic"
+
+	gometrics "github.com/rcrowley/go-metrics"
 )
 
 var (
@@ -21,6 +25,7 @@ type Request struct {
 	Handler        interface{}
 	Name           string
 	CollectMetrics bool
+	Metrics        *kmetrics.Metrics
 }
 
 func Wrapper(r Request) http.Handler {
@@ -28,23 +33,35 @@ func Wrapper(r Request) http.Handler {
 	logName := r.Name
 	collectMetrics := r.CollectMetrics
 
-	return cors.Build(
-		tigertonic.Timed(
-			tigertonic.If(
-				func(r *http.Request) (http.Header, error) {
-					// this is an example
-					// set group name to context
-					tigertonic.Context(r).(*models.Context).GroupName = "koding"
-					return nil, nil
-				},
-				CountedByStatus(
-					tigertonic.Marshaled(handler), logName, collectMetrics,
-				),
-			),
-			logName,
-			nil,
-		),
+	var hHandler http.Handler
+
+	hHandler = CountedByStatus(
+		tigertonic.Marshaled(handler), logName, collectMetrics,
 	)
+
+	hHandler = tigertonic.If(
+		func(r *http.Request) (http.Header, error) {
+			// this is an example
+			// set group name to context
+			tigertonic.Context(r).(*models.Context).GroupName = "koding"
+			return nil, nil
+		},
+		hHandler,
+	)
+
+	var registry gometrics.Registry
+
+	if r.Metrics != nil {
+		registry = r.Metrics.Registry
+	}
+
+	hHandler = tigertonic.Timed(
+		hHandler,
+		logName,
+		registry,
+	)
+
+	return cors.Build(hHandler)
 }
 
 //----------------------------------------------------------

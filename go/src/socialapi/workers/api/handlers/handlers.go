@@ -13,11 +13,11 @@ import (
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 
+	"github.com/koding/metrics"
 	"github.com/rcrowley/go-tigertonic"
 )
 
-func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-
+func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	// Message Operations
 	//----------------------------------------------------------
@@ -193,6 +193,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        message.Create,
 			Name:           "channel-message-create",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
