@@ -147,7 +147,7 @@ class MachineSettingsModal extends KDModalViewWithForms
     # If JMachine data loaded from KD.userMachines
     # we need to revive them once from DB to be able to use
     # provided instance methods on it.
-    unless @machine.jMachine["ಠ_ಠ"]
+    unless @machine.jMachine?["ಠ_ಠ"]
       KD.remote.api.JMachine.one @machine.uid, (err, jMachine)=>
         info "Revived from DB", err, jMachine
         unless err then @machine.jMachine = jMachine
