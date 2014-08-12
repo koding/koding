@@ -29,12 +29,13 @@ func (k *KodingDeploy) createKey(username, kiteId string) (string, error) {
 	token := jwt.New(jwt.GetSigningMethod("RS256"))
 
 	token.Claims = map[string]interface{}{
-		"iss":        "koding",                              // Issuer, should be the same username as kontrol
-		"sub":        username,                              // Subject
-		"iat":        time.Now().UTC().Unix(),               // Issued At
-		"jti":        kiteId,                                // JWT ID
-		"kontrolURL": k.KontrolURL,                          // Kontrol URL
-		"kontrolKey": strings.TrimSpace(k.KontrolPublicKey), // Public key of kontrol
+		"iss":         "koding",                              // Issuer, should be the same username as kontrol
+		"sub":         username,                              // Subject
+		"iat":         time.Now().UTC().Unix(),               // Issued At
+		"jti":         kiteId,                                // JWT ID
+		"discoverURL": k.DiscoveryURL,                        // Use discovery to search fo a Kontrol URL
+		"kontrolURL":  k.KontrolURL,                          // Kontrol URL
+		"kontrolKey":  strings.TrimSpace(k.KontrolPublicKey), // Public key of kontrol
 	}
 
 	return token.SignedString([]byte(k.KontrolPrivateKey))

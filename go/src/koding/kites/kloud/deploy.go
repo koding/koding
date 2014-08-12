@@ -27,6 +27,7 @@ type KodingDeploy struct {
 	KontrolPublicKey  string
 	KontrolPrivateKey string
 	KontrolURL        string
+	DiscoveryURL      string
 
 	Bucket *Bucket
 }

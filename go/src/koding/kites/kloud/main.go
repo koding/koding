@@ -149,6 +149,10 @@ func newKite() *kite.Kite {
 		Bucket:            newBucket("koding-kites", klientFolder),
 	}
 
+	if *flagDiscovery {
+		deployer.DiscoveryURL = etcd.DefaultDiscoveryURL
+	}
+
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud")

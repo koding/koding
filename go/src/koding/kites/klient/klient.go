@@ -8,13 +8,16 @@ import (
 	"koding/kite-handler/terminal"
 	"koding/kites/klient/protocol"
 	"koding/kites/klient/usage"
+	"koding/tools/etcd"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 	kiteprotocol "github.com/koding/kite/protocol"
 )
 
@@ -27,6 +30,7 @@ var (
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+	flagKontrolURL  = flag.String("kontrol-url", "", "Kontrol URL to be connected")
 
 	VERSION = protocol.Version
 	NAME    = protocol.Name
@@ -121,4 +125,53 @@ func main() {
 	}()
 
 	k.Run()
+}
+
+// kontrolURL returns a kontrol URL that kloud is going to connect. First it
+// tries to read from kite.key. If -discovery flag is enabled it search it from
+// the discovery endpoint. If -kontrol-url is given explicitly it's going to
+// use that.
+// TODO: duplicate code in kloud and klient
+func kontrolURL(k *kite.Kite) string {
+	kontrolURL := config.MustGet().KontrolURL
+	k.Log.Info("Reading kontrol URL from kite.key as: %s", kontrolURL)
+
+	// no need to check for err, because config.MustGet() already panic for parsing
+	key, _ := kitekey.Parse()
+
+	if discoveryURL, ok := key.Claims["discoveryURL"].(string); ok {
+		k.Log.Info("Discovery enabled. Searching for a production kontrol at %s ...", discoveryURL)
+
+		etcd.DefaultDiscoveryURL = discoveryURL
+
+		query := &kiteprotocol.KontrolQuery{
+			Username:    "koding",
+			Environment: "production",
+			Name:        "kontrol",
+		}
+
+		kontrols, err := etcd.Kontrols(query)
+		if err != nil {
+			k.Log.Warning("Discovery couldn't find any kontrol: %s. Going to use default URL", err)
+		} else {
+			index := rand.Intn(len(kontrols))
+			kontrolURL = kontrols[index].URL // pick up a random kite
+			k.Log.Info("Discovery found a production kontrol. Going to use it: %s", kontrolURL)
+		}
+	}
+
+	if *flagKontrolURL != "" {
+		u, err := url.Parse(*flagKontrolURL)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		k.Log.Info("Kontrol URL is given explicitly. Going to use: %s", u.String())
+		kontrolURL = u.String()
+	}
+
+	// we are going to use our final url for kontrol queries and registering
+	k.Config.KontrolURL = kontrolURL
+
+	return kontrolURL
 }
