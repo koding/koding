@@ -38,7 +38,6 @@ func init() {
 		flag.PrintDefaults()
 	}
 	mux = tigertonic.NewTrieServeMux()
-	mux = handlers.Inject(mux)
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
 	mux = sitemapapi.InitHandlers(mux)
@@ -66,6 +65,8 @@ func main() {
 	server := newServer(r.Conf)
 	// shutdown server
 	defer server.Close()
+
+	mux = handlers.Inject(mux, r.Metrics)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)

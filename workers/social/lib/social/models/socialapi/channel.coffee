@@ -8,6 +8,7 @@ request        = require 'request'
 
 module.exports = class SocialChannel extends Base
   @share()
+  @byPassBatching()
 
   @set
     sharedMethods :

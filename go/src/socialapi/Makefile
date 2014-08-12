@@ -155,12 +155,12 @@ testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@go test -c models/*.go
-	@./models.test $(DBG) $(METRICS) -c ./config/vagrant.toml
+	@./models.test $(DBG) $(METRICS) -c ./config/dev.toml
 	@rm ./models.test
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test -c ./config/test.toml
+	@./algoliaconnector.test -c ./config/dev.toml
 	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
@@ -172,7 +172,7 @@ testapi:
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
 	@go test -c workers/trollmode/trollmode/*.go
-	@./trollmode.test $(DBG) $(METRICS) -c ./config/vagrant.toml
+	@./trollmode.test $(DBG) $(METRICS) -c ./config/dev.toml
 	@rm  ./trollmode.test
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"

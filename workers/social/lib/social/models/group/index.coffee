@@ -269,6 +269,7 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId: String
+      socialApiDefaultChannelId: String
       avatar        : String
       slug          :
         type        : String
@@ -1611,7 +1612,8 @@ module.exports = class JGroup extends Module
         callback()
 
   createSocialApiChannelId: (callback) ->
-    return callback null, @socialApiChannelId  if @socialApiChannelId
+    if @socialApiChannelId and @socialApiDefaultChannelId
+      return callback null, @socialApiChannelId
     @fetchOwner (err, owner)=>
       return callback err if err
       unless owner
@@ -1621,16 +1623,50 @@ module.exports = class JGroup extends Module
         # required data for creating a channel
         privacy = if @slug is "koding" then "public" else "private"
 
-        data =
-          name            : @slug
-          creatorId       : socialApiId
-          groupName       : @slug
-          typeConstant    : "group"
-          privacyConstant : privacy
+        options =
+          creatorId: socialApiId
+          privacyConstant: privacy
 
-        {createChannel} = require '../socialapi/requests'
-        createChannel data, (err, socialApiChannel)=>
+        @createDefaultChannel options, (err, defaultChannelId) =>
           return callback err if err
-          @update $set: socialApiChannelId: socialApiChannel.id, (err)->
+          @createGroupChannel options, (err, groupChannelId) =>
             return callback err if err
-            return callback null, socialApiChannel.id
+            return callback null, groupChannelId
+
+  createDefaultChannel:(options, callback)->
+    options.varName = "socialApiDefaultChannelId"
+    options.typeConstant = "default"
+
+    return @createSocialAPIChannel options, callback
+
+
+  createGroupChannel:(options, callback)->
+    options.name = "public"
+    options.varName = "socialApiChannelId"
+    options.typeConstant = "group"
+
+    return @createSocialAPIChannel options, callback
+
+  createSocialAPIChannel:(options, callback)->
+    {varName, name, typeConstant, creatorId, privacyConstant} = options
+
+    return @[varName]  if @[varName]
+
+    defaultChannel =
+      name            : name or @slug
+      creatorId       : creatorId
+      groupName       : @slug
+      typeConstant    : typeConstant
+      privacyConstant : privacyConstant
+
+    {createChannel} = require '../socialapi/requests'
+    createChannel defaultChannel, (err, channel)=>
+      return callback err if err
+
+      op = $set:{}
+      op.$set[varName] = channel.id
+
+      @update op, (err)->
+        return callback err if err
+        return callback null, channel.id
+

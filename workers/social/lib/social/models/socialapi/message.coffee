@@ -9,6 +9,7 @@ ApiError       = require './error'
 
 module.exports = class SocialMessage extends Base
   @share()
+  @byPassBatching()
 
   @set
     sharedMethods :
