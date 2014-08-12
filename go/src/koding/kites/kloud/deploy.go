@@ -104,6 +104,15 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Migrating user's data")
+	// TODO: Extract these from the database
+	basicAuth := "a:a"
+	migrator := "https://kontainer13.sj.koding.com:3000"
+	vmID := "52845b416765a3e60d0002d7"
+	if _, err := client.StartCommand(createMigrationCommand(basicAuth, migrator, vmID)); err != nil {
+		return nil, err
+	}
+
 	log("Creating a key with kontrolURL: " + k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
@@ -209,6 +218,21 @@ passwd -d %s && \
 gpasswd -a %s sudo  && \
 echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
  `, username, username, username, username, username, username)
+
+}
+
+// Build the command used to migrate files
+func createMigrationCommand(auth, migratorHost, vmID string) string {
+	// 1. Create tmp folder
+	// 2. Download and untar archive
+	// 3. Migrate selected files & folders
+	// 4. Cleanup temporary untared archive
+	return fmt.Sprintf(`
+mkdir -p /tmp/out_tmp && \
+curl -k -u %s -X POST "%s/export-files" -d "vm=%s" | tar -C /tmp/out_tmp -zxv && \
+cp -R -n /tmp/out_tmp/home / && \
+rm -rf /tmp/out_tmp
+`, auth, migratorHost, vmID)
 
 }
 
