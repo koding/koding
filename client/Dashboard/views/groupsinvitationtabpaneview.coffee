@@ -14,13 +14,13 @@ class GroupsInvitationTabPaneView extends KDView
       lazyLoadThreshold   : 0.90
       startWithLazyLoader : yes
       lazyLoaderOptions   :
-        spinnerOptions          :
-          loaderOptions         :
-            shape               : 'spiral'
-            color               : '#a4a4a4'
-          size                  :
-            width               : 40
-            height              : 40
+        spinnerOptions    :
+          loaderOptions   :
+            shape         : 'spiral'
+            color         : '#a4a4a4'
+          size            :
+            width         : 40
+            height        : 40
 
     @addSubView @listView = @controller.getView()
 
