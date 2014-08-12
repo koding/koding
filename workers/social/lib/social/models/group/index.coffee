@@ -1612,7 +1612,7 @@ module.exports = class JGroup extends Module
         callback()
 
   createSocialApiChannelId: (callback) ->
-    if @socialApiChannelId and @socialApiDefaultChannelId
+    if @socialApiChannelId
       return callback null, @socialApiChannelId
     @fetchOwner (err, owner)=>
       return callback err if err
@@ -1627,17 +1627,9 @@ module.exports = class JGroup extends Module
           creatorId: socialApiId
           privacyConstant: privacy
 
-        @createDefaultChannel options, (err, defaultChannelId) =>
+        @createGroupChannel options, (err, groupChannelId) =>
           return callback err if err
-          @createGroupChannel options, (err, groupChannelId) =>
-            return callback err if err
-            return callback null, groupChannelId
-
-  createDefaultChannel:(options, callback)->
-    options.varName = "socialApiDefaultChannelId"
-    options.typeConstant = "default"
-
-    return @createSocialAPIChannel options, callback
+          return callback null, groupChannelId
 
 
   createGroupChannel:(options, callback)->
