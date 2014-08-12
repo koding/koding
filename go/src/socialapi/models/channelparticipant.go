@@ -289,29 +289,20 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 }
 
 func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, error) {
-	var channels []Channel
+	var channelIds []int64
 	channel := NewChannel()
 	bongoQuery := &bongo.Query{
 		Selector: map[string]interface{}{
-			"group_name": q.GroupName,
+			"group_name":    q.GroupName,
+			"type_constant": Channel_TYPE_GROUP,
 		},
 		Pluck:      "id",
 		Pagination: *bongo.NewPagination(2, 0),
 	}
 
-	query := bongo.B.BuildQuery(channel, bongoQuery)
-	query = query.Where("type_constant = ? or type_constant = ?", Channel_TYPE_DEFAULT, Channel_TYPE_GROUP)
-
-	if err := bongo.CheckErr(
-		query.Find(&channels),
-	); err != nil {
+	err := channel.Some(&channelIds, bongoQuery)
+	if err != nil {
 		return nil, err
-	}
-
-	channelIds := make([]int64, len(channels))
-
-	for i, channel := range channels {
-		channelIds[i] = channel.Id
 	}
 
 	return channelIds, nil
