@@ -4,6 +4,7 @@ module.exports = [
   "namespaces.coffee"
 
   # finder
+  "finder/idefinderitem.coffee"
   "finder/idemachineitem.coffee"
 
   # workspace
