@@ -1,8 +1,7 @@
-#!/usr/bin/env coffee
 
 AWS        = require 'aws-sdk'
 cloudflare = require 'cloudflare'
-AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/install/keys/aws/koding-prod-deployment.pem")
+AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/../install/keys/aws/koding-prod-deployment.pem")
 AWS.config.region = 'us-east-1'
 AWS.config.update accessKeyId: 'AKIAI7RHT42HWAA652LA', secretAccessKey: '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'
 cf = cloudflare.createClient
@@ -226,6 +225,25 @@ class Deploy
 
           callback null, data
 
+  @addDomainRecord = (options,callback)->
+    ttl = 120 or options.ttl
+    cf.addDomainRecord options.domain,
+      type : "A"
+      name : options.name
+      content : options.content
+      service_mode : options.service_mode
+    ,(err,res)->
+      callback err if err
+      # this additional step is required to enable cloudflare (https)
+      cf.editDomainRecord options.domain,res.rec_id,
+        type : options.type
+        name : options.name
+        content : options.content
+        service_mode : options.service_mode
+        ttl: ttl
+      ,callback
+
+
 
   @deployTest = (options,callback)->
 
@@ -264,23 +282,8 @@ class Deploy
       log "current version is #{version}"
       callback null, "v"+semver.inc(version,type)
 
-release = (key)->
-  Release.registerInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now deployed and live with bazillion instances."
-    log "------------------------------------------------------------------------------"
 
-rollback = (key)->
-  Release.deregisterInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now rolled back. All instances are taken out of rotation."
-    log "------------------------------------------------------------------------------"
+module.exports = {Deploy, Release, AWS, cf}
 
 
 if argv.release

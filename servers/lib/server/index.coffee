@@ -398,7 +398,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 # Main Handler for Koding.com
 #
 app.get "/", (req, res, next)->
-
+  console.log new Date(), "global handler /"
   # Handle crawler request
   #
   if req.query._escaped_fragment_?

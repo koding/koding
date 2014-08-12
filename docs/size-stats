@@ -1,0 +1,36 @@
+
+KDBackend   : 171.58 : 0
+KDMainApp   : 771.05 : 125.67
+Activity    : 206.10 : 66.07
+Members     : 35.15  : 3.20
+Feeder      : 22.97  : 0
+Account     : 78.37  : 11.06
+Login       : 39.90  : 12.46
+Apps        : 24.89  : 11.17
+Kites       : 7.88   : 55.04
+Terminal    : 78.49  : 34.51
+Ace         : 67.86  : 15.95
+Finder      : 125.78 : 13.42
+Viewer      : 4.52   : 1.41
+Teamwork    : 452.73 : 54.36
+IDE         : 85.91  : 36.13
+About       : 10.67  : 12.61
+Home        : 4.02   : 7.90
+Business    : 3.97   : 8.16
+Education   : 4.63   : 9.81
+Environments: 124.44 : 64.70
+Dashboard   : 178.90 : 40.46
+Pricing     : 23.50  : 43.32
+Bugs        : 5.91   : 0
+DevTools    : 21.29  : 4.43
+
+Bundles ............................
+
+Koding    .... filesize is 1.82 MB
+      styles,  filesize is 427.63 kB
+
+TeamworkBundle filesize is 478.44 kB
+      styles,  filesize is 60.20 kB
+
+IDEBundle .... filesize is 236.65 kB
+      styles,  filesize is 88.00 kB

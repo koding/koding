@@ -104,6 +104,7 @@ serveHome = (req, res, next)->
   {generateFakeClient}   = require "./client"
 
   generateFakeClient req, res, (err, client)->
+
     if err or not client
       console.error err
       return next()
