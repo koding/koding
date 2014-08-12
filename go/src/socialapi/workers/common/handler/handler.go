@@ -35,10 +35,12 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
+	// count the statuses of the requests
 	hHandler = CountedByStatus(
 		tigertonic.Marshaled(handler), logName, collectMetrics,
 	)
 
+	// add context
 	hHandler = tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
 			// this is an example
@@ -55,12 +57,14 @@ func Wrapper(r Request) http.Handler {
 		registry = r.Metrics.Registry
 	}
 
+	// add request time tracking
 	hHandler = tigertonic.Timed(
 		hHandler,
 		logName,
 		registry,
 	)
 
+	// create the final handler
 	return cors.Build(hHandler)
 }
 
