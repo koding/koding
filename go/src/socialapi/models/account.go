@@ -49,6 +49,7 @@ func (a *Account) FetchOrCreate() error {
 		if err := a.Create(); err != nil {
 			return err
 		}
+
 		return nil
 	}
 
