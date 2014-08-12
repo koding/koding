@@ -167,7 +167,7 @@ bundles           =
     script        : "website/a/js/__teamwork.js"
 
   IDEBundle       :
-    projects      : ['Ace', 'Terminal', 'Viewer', 'IDE']
+    projects      : ['Ace', 'Terminal', 'Finder', 'Viewer', 'IDE']
     style         : "website/a/css/__ide.css"
     script        : "website/a/js/__ide.js"
 
