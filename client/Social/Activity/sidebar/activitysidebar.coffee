@@ -332,16 +332,16 @@ class ActivitySidebar extends KDCustomHTMLView
     KD.singletons.dock.getView().addSubView new GroupDescription
 
 
-  listVMs: (vms) ->
+  listMachines: (machines) ->
 
-    @vmTree.addNode vm  for vm in vms
+    @machineTree.addNode machine  for machine in machines
 
 
   addVMTree: ->
 
     @addSubView section = new KDCustomHTMLView tagName : 'section'
 
-    @vmTree = new JTreeViewController
+    @machineTree = new JTreeViewController
       type                : 'main-nav'
       treeItemClass       : NavigationMachineItem
 
@@ -350,7 +350,8 @@ class ActivitySidebar extends KDCustomHTMLView
       cssClass : 'sidebar-title'
       partial  : 'VMs'
 
-    section.addSubView @vmTree.getView()
+    section.addSubView @machineTree.getView()
+
     @machineTree.on 'NodeWasAdded', (machineItem) ->
 
       machineItem.on 'click', (event) ->
@@ -360,8 +361,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
     if KD.userMachines.length
-    then @listVMs KD.userMachines
-    else @fetchVMs @bound 'listVMs'
+    then @listMachines KD.userMachines
+    else @fetchMachines @bound 'listMachines'
 
 
   addFollowedTopics: ->
