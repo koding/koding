@@ -726,3 +726,11 @@ utils.extend utils,
   hasPermission: (name) ->
 
     (KD.config.permissions.indexOf name) >= 0
+
+
+  # helper to generate an identifier
+  # for non-important stuff.
+  generateFakeIdentifier: (timestamp) ->
+    "#{KD.whoami().profile.nickname}-#{timestamp}"
+
+
