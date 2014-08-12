@@ -161,7 +161,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
 
-  submit: (callback) ->
+  submit: (value) ->
 
     return  if @locked
     return @reset yes  unless body = @input.getValue().trim()
