@@ -52,6 +52,7 @@ build:
           sudo -E scripts/wercker/init-socialapi.sh
           tail -n 100 /var/log/koding/social-api.log
           tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi
   after-steps:
