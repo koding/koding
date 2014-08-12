@@ -23,6 +23,8 @@ class AccountListWrapper extends KDView
     credentialsController      : AccountCredentialListController
     credentials                : AccountCredentialList
     deleteAccount              : DeleteAccountView
+    termsOfService             : TermsOfServiceView
+    privacyPolicy              : PrivacyPolicyView
 
   viewAppended:->
     {listType} = @getData()

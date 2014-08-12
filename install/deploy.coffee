@@ -1,8 +1,7 @@
-#!/usr/bin/env coffee
 
 AWS        = require 'aws-sdk'
 cloudflare = require 'cloudflare'
-AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/install/keys/aws/koding-prod-deployment.pem")
+AWS_DEPLOY_KEY    = require("fs").readFileSync("#{__dirname}/../install/keys/aws/koding-prod-deployment.pem")
 AWS.config.region = 'us-east-1'
 AWS.config.update accessKeyId: 'AKIAI7RHT42HWAA652LA', secretAccessKey: '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'
 cf = cloudflare.createClient
@@ -226,6 +225,25 @@ class Deploy
 
           callback null, data
 
+  @addDomainRecord = (options,callback)->
+    ttl = 120 or options.ttl
+    cf.addDomainRecord options.domain,
+      type : "A"
+      name : options.name
+      content : options.content
+      service_mode : options.service_mode
+    ,(err,res)->
+      callback err if err
+      # this additional step is required to enable cloudflare (https)
+      cf.editDomainRecord options.domain,res.rec_id,
+        type : options.type
+        name : options.name
+        content : options.content
+        service_mode : options.service_mode
+        ttl: ttl
+      ,callback
+
+
 
   @deployTest = (options,callback)->
 
@@ -264,23 +282,8 @@ class Deploy
       log "current version is #{version}"
       callback null, "v"+semver.inc(version,type)
 
-release = (key)->
-  Release.registerInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now deployed and live with bazillion instances."
-    log "------------------------------------------------------------------------------"
 
-rollback = (key)->
-  Release.deregisterInstancesWithPrefix key,(err,res)->
-    log res
-    log ""
-    log ""
-    log "------------------------------------------------------------------------------"
-    log "#{key} is now rolled back. All instances are taken out of rotation."
-    log "------------------------------------------------------------------------------"
+module.exports = {Deploy, Release, AWS, cf}
 
 
 if argv.release
@@ -306,7 +309,7 @@ if argv.deploy
     options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}"
 
     if options.config is "feature"
-      subdomain = eden.eve().toLowerCase()
+      subdomain = eden.eve().toLowerCase().replace(' ', '-')
       options.hostname     = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
 
     KONFIG = require("./config/main.#{options.config}.coffee")
@@ -383,29 +386,6 @@ if argv.deploy
             log "URL: https://koding.io "
             log "------------------------------------------------------------------"
 
-
-
-
-# cf.listDomainRecords "koding.io",(err,res)->
-#   for i in res
-#     if i.name is "letty.koding.io"
-#       log "--->",i # i.name,i.service_mode
-
-# # Release.registerInstancesWithPrefix "prod--v1-5-100",log
-
-
-# cf.addDomainRecord "koding.io",
-#   type : "A"
-#   name : "test-"+eden.word().toLowerCase()
-#   content : "54.210.232.5"
-#   service_mode : 1 #cloudflare enabled.
-# ,log
-
-
-
-
-
-
         # log JSON.stringify res,null,2
 
         # res.Instances.forEach (instance)->
@@ -431,46 +411,3 @@ if argv.deploy
 
         # log "#{res.instanceName} is ready."
         # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
-
-
-# KONFIG = require("./config/main.prod.coffee")
-#   hostname : "foo"
-#   tag      : "options.tag"
-
-
-# fs.writeFileSync "./foo.sh",KONFIG.runFile
-# fs.writeFileSync "./foo.sh64",fs.readFileSync("./foo.sh").toString('base64')
-
-
-
-
-# ze = ec2.createImage
-
-#   InstanceId: 'i-c7fdeaed'
-#   Name: 'test1'+Date.now()
-#   # BlockDeviceMappings: [
-#   #   {
-#   #     # DeviceName: 'testdevicename',
-#   #     Ebs:
-#   #       DeleteOnTermination: yes
-#   #       # Encrypted: no
-#   #       # Iops: 100 # Required when the volume type is io1; not used with standard or gp2 volumes.
-#   #       # SnapshotId: 'snap-koding-v1.5.5'
-#   #       VolumeSize: 8,
-#   #       VolumeType: 'standard' # | io1 | gp2'
-
-#   #     # NoDevice: 'STRING_VALUE',
-#   #     # VirtualName: 'STRING_VALUE'
-#   #   }
-#   # ]
-#   Description: 'testing image'
-#   # DryRun: true || false,
-#   NoReboot: false
-# ,(err,callback)->
-#   log arguments
-#   start = new Date()
-
-#   ze.on("success"  , (response)      -> console.log "Success!", timethat.calc start,new Date()
-#   ).on("error"     , (response)      -> console.log "Error!"
-#   ).on("complete"  , (response)      -> console.log "Always!", timethat.calc start,new Date()
-#   ).send()

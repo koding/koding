@@ -21,14 +21,15 @@ class AccountEmailNotifications extends KDView
 
     globalValue = frequency.global
 
+    @addSubView @list = new KDCustomHTMLView tagName : 'ul'
+
     for own flag, field of fields
-      @addSubView field.formView = new KDFormView
-      field.formView.addSubView    new KDLabelView
-        title        : field.title
-        cssClass     : "main-label" # +if flag isnt 'global' then 'indent' else ''
+      @list.addSubView field.formView = new KDCustomHTMLView tagName : 'li'
+      field.formView.addSubView    new KDCustomHTMLView
+        partial      : field.title
+        cssClass     : "title"
 
       fieldSwitch = new KodingSwitch
-        cssClass      : 'dark'
         defaultValue  : frequency[flag]
         callback      : (state) ->
           prefs = {}

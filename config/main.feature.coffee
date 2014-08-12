@@ -86,12 +86,11 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    presence          : {exchange      : 'services-presence'}
     webserver         : {port          : 3000                        , useCacheHeader: no}
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
     mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
-    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
+    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
     email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
@@ -149,7 +148,7 @@ Configuration = (options={}) ->
     apiUri            : "/"
     mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
-    appsUri           : "https://rest.kd.io"
+    appsUri           : "/appsproxy"
 
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
@@ -183,7 +182,6 @@ Configuration = (options={}) ->
 
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
-    cron                : command : "#{GOBIN}/cron      -c #{configName}"
     kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
     kontrol             : command : "#{GOBIN}/kontrol   -c #{configName} -r #{region} -m #{etcd}"
     socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
@@ -205,20 +203,6 @@ Configuration = (options={}) ->
     sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
     emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
     webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-
-    # these are unnecessary on production machines.
-    # ------------------------------------------------------------------------------------------
-    # clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
-    # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
-    # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
-    # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
-    # boxproxy            : command : "node   #{projectRoot}/servers/boxproxy/boxproxy.js           -c #{configName}"
-    # ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
-    # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
-    # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
-    # ------------------------------------------------------------------------------------------
-
-
 
 
 
@@ -242,36 +226,6 @@ Configuration = (options={}) ->
       else
         return ""
 
-
-  prodPrivateKey = """
-  -----BEGIN RSA PRIVATE KEY-----
-  MIIEpAIBAAKCAQEAxJUfKx05K3kymTkgISnFOoh1PY/jJ3dlUnAUE8WqCXlDQi+C
-  FIJO+pKGNNyo8z2fF43iCGfc9h3a0qvhvyWY4f6tkllSBdWLWwV2O8edRJXIwMyu
-  ku8SIXeNg0Qg0+iqZKUZJEnv6MSUcDNejFS0AVz4Dw3pSfLT+xTEWD4j9hM6I8BQ
-  qEYM2wqkyqjjIVS0bGQE0buohLiWymI4J95B5MbKuofo5eAUxkFOA+vTt66RSbWB
-  BAFVg0jIDMJ4bXU28JBO8GXt0N7GkpLRPd1IEjoJ8d0iKghT6KMtwzEWyr2k6Qta
-  3FybcFbjhKJneitK+ln5BXiU917p3cYAG3xRDwIDAQABAoIBACyBKiZDnm7GKHth
-  4HFBmKIwxIIkciO8Nxcbwp/bTyyH5H82bDeibKjzxShwkFtJJxxZBcQrZ23cwm6R
-  dTEmHN+FHdyVFim196+qo+LSxTsCwglMDXW8ZBlpjIMcSGZRNUpFylRZ3NOQtZ5V
-  MuGIR5xLZOlbl+Yi8HTWdcEYiGGsAPemKTaalSAK91ak1kkb0wDpUJU/NK01glSk
-  HqqsUAzmGmd19VLJhRRKNVpGbI+zhJbgl7rn0CynTdJDDtuwYwQZYjxtHDp3/UiW
-  lLkBToe74L7WrNH6ZZgCCFDFx9nUAnbHPEvh6vnN5s+Ce46F69pKWihvBEyH23UT
-  8wzl3IECgYEA7AnHjlK0buZLJr1IQ5YD8vd7LIK7wwHeaPOh+dhZrvn3twfibSRu
-  55ew/2wmd/E5yyzgdDBGQCjPKwfs/2FnPg01KlMObAkGn0KG8j0/NecQdlv9PJgv
-  lriLY7rm5O40aKMevdQ3PinvkS+KTUdbd6GfVyC77zh9HnIhW2xllc8CgYEA1TUg
-  pzKQSwn8fxyKctKFf+4QEogdUPIWLgJCF8kgJGaSAl1r/wwEbQIhF8SeTEL199Cm
-  5uk8w6oGlsNbPgZkF8PBuwFS3x2cbIbC+/HdWZmiPmx96o/pEZ9sWKQyX46nN9es
-  5HqxULgB0m/9AxzAtFZTwV5pBWkXdIwBQuyroMECgYEAwB7JpeddY7Lg0nxYeGJ/
-  fmC/iiAy8evwet5rJbBadxiQ7xJk009HUgvfDleaDCB1WRGC9C9iztAop67A0bEX
-  VqNrdbK612aVVEXTDxKZA6e6d4wyWALLIVO+aQN08juMvuqemAZGnLuHelYGrRX6
-  tioARuum7HS/KmvdCMv293MCgYEAhS8x3aAFaQqs8w52IfIGOPsSiTED9yuy1TzN
-  4qPd8z8rmFSZgPIV1a6N05YcOJFfq1Vo3Tf3oFaW1Rjl52IApqO/Yj0acovByj2I
-  ke/tkOoa4pnNMniBZGPNP7YaTX0EUirlMri+CSlY4gbY61fLvRtsKI/8VMfoQgKv
-  Swoi0EECgYAHjz0jBVfpGLkkYAcaYOMcV4yFxkax4ZiuBMK4TcsrL6/KiietjmdK
-  mxiIASXhNP0ZEEdAHgBr6o3EQHnJksXo7VTTBRcXOSmE7httIRrOC06qAB0kV4Ub
-  qoNO+NWbDkfJB/YtKtRdUtW6QmmdUHowT10TZH24Ig7CdrdrV46X3A==
-  -----END RSA PRIVATE KEY-----
-  """
 
   nginxConf = """
     upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
@@ -408,7 +362,7 @@ Configuration = (options={}) ->
 
     runContents = """
       #!/bin/bash
-      #{envvars}
+      #{envvars()}
 
       function install() {
         touch /root/run.install.start
@@ -448,6 +402,10 @@ Configuration = (options={}) ->
         docker build -t koding_localbuild/mongo .
         docker run -d -p 27017:27017            --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
 
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+        tar jxvf /opt/koding/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{prod_simulation_server} -dkoding dump/koding
+
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
         docker run -d -p 5672:5672              --name=rabbitmq koding_localbuild/rabbitmq
@@ -480,24 +438,6 @@ Configuration = (options={}) ->
 
 
     run = """
-      #/bin/bash
-      touch /root/ididrun
-      echo '#{b64z runContents}' | base64 --decode | gunzip | bash &>/root/koding-init.log
-    """
-      # chmod 0755 /root/run
-      # uptime &>/root/uptime
-      # /root/run &>/var/log/koding-init.log
-
-    # return run
-      # writefiles:
-      #   - content     : !!binary |
-      #       #{zlib.compress(new Buffer(runContents))}
-      #     encoding    : gzip
-      #     owner       : root:root
-      #     path        : /root/run
-      #     permissions : '0755'
-
-    run = """
       #cloud-config
 
       # this file cannot exceed 16k therefore, i'm placing supervisor and nginxConf
@@ -518,11 +458,10 @@ Configuration = (options={}) ->
         - graphicsmagick
         - mosh
         - nginx
+        - mongodb-clients
 
 
       write_files:
-        - content : hello world
-          path : /root/helloworld
         - path : /root/.ssh/id_rsa
           permissions: '0600'
           content : |
@@ -558,6 +497,12 @@ Configuration = (options={}) ->
           content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
         - path : /root/.ssh/authorized_keys
           content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com\n
+        - path : /root/.ssh/authorized_keys
+          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com\n
+        - path : /root/.ssh/authorized_keys
+          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDrLvWTozcvXzJkUrMVoTdf2j4zY6dZ7nst9Ro2zXSHlnFtUeRmbYH4cd87LleqkgBRoJ5Wy6Ai9nqH3MJq6XSVWp21xyU4DEmq27+6eVvBHENfdQQPq3imiC7sejwH8Yslx7reVi90/ZSwEEKA6rNOoD0InRN1zUCFWoKMQFY0aw9GAxBeDAStQR3H+Zr8nhaSZw4gySLZ3Ps3j45sAeIMjNk0MUZprTHKjIpz5Ni+5OpT4cxC8Ji2aCC3Xvc8sLndZ7mHWFrM0RuBh2GJ0e8juTBAt7D+IOZi2y41NfQA6LQr1N9DHdBDpMqUjby0jJZsMiwtD7730n0xcoKhSqAr Sonmez's iMac\n
+        - path : root/.ssh/authorized_keys
+          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYOpuDUC52QNgoM2O6Ja7SW6zm3Hmpxdu0nUKw6MKDcnKK7dOADRwpDmoPsj/Aw/p9fetjJaacjxlPQwGHCjUcVgk3/zVwi8P4StkKnxHuhRBEj+YeTQ3vaWbJ3Syk2FnjZRSlqi4a7cEiMMjHQAflx3BdeYqO1F7+kB4bsoM/0/NQJkv0UnphFW1y9zk65mi3CTHAyFTU/Tz5LEsBWp35XorwQ+vmJ9OJNNDF3mhOejYkob0s3CbwoL6xaidTD0eT1VBz+ceggpaLP57vG2l6yl1zYSzf5jhBGjM6b9a3NyOO1RjrBpgZ2TfQrPTxTnzTy7V6gmNcv/heiREw7Mpv Sonmez's MacBook Pro\n
 
         - path : /root/.ssh/config
           content : |

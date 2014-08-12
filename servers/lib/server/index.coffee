@@ -68,7 +68,7 @@ app.configure ->
   app.use express.bodyParser()
   app.use express.compress()
   # helmet:
-  app.use helmet.xframe()
+  app.use helmet.xframe('sameorigin')
   app.use helmet.iexss()
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()
@@ -398,7 +398,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 # Main Handler for Koding.com
 #
 app.get "/", (req, res, next)->
-
+  console.log new Date(), "global handler /"
   # Handle crawler request
   #
   if req.query._escaped_fragment_?

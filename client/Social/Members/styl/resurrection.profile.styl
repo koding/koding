@@ -11,15 +11,23 @@ resurrection.profile.styl
 
 
 body.profile
-  .activity-sidebar
+  .app-sidebar
     bg                    color, #EFEFEF
     text-align            center
+
+    > main
+      font-family         openSansFamily
+      padding             1px 16px 16px
+      borderBox()
 
     .avatarview
       size                143px, 143px
       margin              43px auto 18px
       padding             0
       border              3px solid #0EB463
+
+      img
+        cursor            pointer
 
     h3.full-name
       display             block
@@ -99,10 +107,6 @@ body.profile
         letter-spacing    0.02em
 
   .kdtabpaneview.statuses
-    kalc                  width, 100% \- 292px
-    margin                0 0 0 292px
-    padding               0
-    borderBox()
 
     .feeder-header
       display             none
@@ -149,263 +153,3 @@ body.profile
     padding               0 34px 0 0
     position              static
     overflow              visible
-
-
-//
-// Profile avatar change styles
-// (Profile settings page uses this styles too)
-//
-
-.avatar-container
-  .kdmodal-content
-    overflow              hidden!important
-
-.avatar-menu
-  max-width               312px !important
-  min-width               312px !important
-  overflow                visible
-  z-index                 10001
-  padding                 28px 0
-
-  &.dark
-    color                 #bebebe
-    strong
-      color               #bebebe
-      text-shadow         0 1px 0 #000
-      font-weight         normal !important
-      font-size           11px !important
-
-    .kdlistview-contextmenu
-      box-shadow          0px 5px 10px rgba(0,0,0,0.5)
-      border              1px solid #454545
-    .kdlistview
-      padding             5px 0
-      gradient            #676767, #5f5f5f
-
-    .kdbutton
-      height              24px
-      gradient            #464646, #1c1c1c
-      color               #9e9e9e
-      text-shadow         0 1px 0 #000
-      border-top-color    #292929
-      border-left-color   #313131
-      border-right-color  #313131
-      border-bottom-color #1f1f1e
-
-      &.icon-only
-      &.cancel
-        text-shadow       none
-        border-radius     5px
-        width             60px!important
-        border            1px solid #4b4b4b
-        gradient          #757575, #585858
-        font-weight       normal
-
-      &:active
-        vendor box-shadow, inset 0 0 5px 2px #000, 0 1px 0 0 #313131;
-
-      &:focus
-        border            none
-        outline           none
-
-  .kdlistview
-    background-color      #fff !important
-
-  .kdlistitemview
-    overflow              visible
-  .avatar-change-menu
-    overflow              visible
-
-    .arrow
-      abs                 5px 0 0 -5px
-      size                0px 0px
-      border-top          5px solid transparent
-      border-bottom       5px solid transparent
-      border-right        5px solid #454545
-      z-index             10
-
-    .wrapper
-      overflow            hidden
-      height              20px
-    .avatar-button
-      height              19px
-      box-shadow          0px 1px #7b7b7b
-      font-weight         normal
-      line-height         10px
-      border-radius       15px
-      min-width           97px
-      margin              0 3px
-
-      &.icon-only
-        width             20px !important
-        min-width         20px
-        gradient          #5e5e5e, #464646
-
-        .icon
-          kdfsprite()
-          size          15px, 15px
-          &.okay
-            bg            position,-84px -504px
-          &.cross
-            bg            position,-83px -483px
-
-      &.cancel
-        min-width         45px !important
-        float             right
-        padding           0
-        margin-right      5px
-        width             auto !important
-        color             #3f3f3f
-        box-shadow        none
-
-      &.confirm
-        float             right
-
-    .avatar-holder
-      box-shadow          inset 0px 25px 10px -20px rgba(0, 0, 0, 0.5),
-                          inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-      vendor              transition-duration, 200ms
-      overflow            hidden
-      border-radius       0 0 5px 5px
-      background          #ededed
-      abs                 26px, 0, 0, 5px
-      size                300px, 0px
-      opacity             0.6
-      &.opened
-        opacity           1
-        height            300px
-        &.wide
-          height          225px
-          video
-          canvas
-            width         300px
-            abs           0px
-        .avatarview
-          display         block
-          bg              repeat, no-repeat
-          bg              position, center center
-          bg              size, cover
-          rounded         0
-          img
-            rounded       0
-
-      .webcam-tip
-        background        transparent url(/a/images/photo.png) center 40px no-repeat
-        text-align        center
-        color             #676767
-        cite
-          display         block
-          font-style      normal
-          font-size       14px
-          margin-top      150px
-          padding         0 50px
-
-      .take-photo
-        position          absolute
-        z-index           2
-        top               210px
-        left              50%
-        margin-left       -18px
-        margin-top        -35px
-        width             35px
-        height            35px
-        text-indent       -9999px
-        background        url(/a/images/take-photo.png)
-        vendor            transition-duration, 400ms
-
-        &:hover
-          vendor          transform, rotate(270deg) scale(1.2)
-
-      .avatarview
-        background-size   auto 300px
-        box-shadow        inset 0px 7px 20px -10px rgba(0,0,0,0.5),
-                          0 7px 20px -7px rgba(0,0,0,0.8)
-
-      .file-droparea
-        borderBox()
-        noTextSelection()
-        margin          10px
-        size            auto, auto
-        border          5px dashed #afafaf
-        border-radius   5px
-        background      url(/a/images/drag.png) center 90px no-repeat
-        &.hover
-          border-color  #444
-          box-shadow    inset 10px 10px 0px #e4d4be, inset -10px -10px 0px #e4d4be
-        .file-drop
-          text-align    center
-          font-size     14px
-          color         #676767
-          font-weight   bold
-          position      absolute
-          top           160px
-          width         100%
-          z-index       0
-
-    .avatar-change-header
-      .kdloader
-        float             right
-        margin-right      10px
-        margin-top        2px
-      button
-        outline           0
-
-      strong
-        font-size         14px
-        font-weight       bold
-        margin-left       5px
-        line-height       20px
-
-        &.loading
-          padding-left    15px
-          background      url(/a/images/small-loader.gif) left center no-repeat
-
-
-.kdwebcamview
-  width             auto
-  height            auto
-  display           inline-block
-  background-color  #000
-
-  video
-    abs             0px 0 0 0px
-    z-index         2
-    width           100%
-    vendor          transition-duration, 2s
-    &.invisible
-      opacity       0
-
-  .snap-button
-    abs             0 0px 0px 0
-    z-index         1
-    height          35px
-    background-color #444
-    color           #ff9200
-    rounded         5px
-    margin          10px
-    kalc            width, 100% \- 20px, !important
-    opacity         0.8
-    font-weight     bold
-    border          2px solid #333
-    &:hover
-      opacity       0.9
-
-    &.save
-      kalc            width, 50% \- 15px, !important
-      background-color green
-      color           #fff
-
-    &.retake
-      kalc            width, 50% \- 15px, !important
-      abs             0 0 0px 0px
-
-.kdwebcamview-flash
-  abs               0px 0 0 0px
-  z-index           10002
-  background-color  #ffffff
-  opacity           0.95
-  &.flashed
-    vendor        transition-property, opacity
-    vendor        transition-duration, 500ms
-    opacity       0

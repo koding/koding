@@ -12,7 +12,7 @@ class SidebarMessageItem extends SidebarItem
 
     data = @getData()
 
-    for account in data.participantsPreview when account._id isnt KD.whoami().getId()
+    for account in data.participantsPreview when account._id isnt KD.userAccount._id
       origin = constructorName : 'JAccount', id : account._id
       break
 

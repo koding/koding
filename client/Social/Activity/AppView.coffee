@@ -17,15 +17,16 @@ class ActivityAppView extends KDView
     {
       appStorageController
       windowController
+      mainView
     }             = KD.singletons
     {entryPoint}  = KD.config
     @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
-    @sidebar     = new ActivitySidebar tagName : 'aside', delegate : this
-    @tabs        = new KDTabView
+    @tabs = new KDTabView
       tagName             : 'main'
+      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     @appStorage.setValue 'liveUpdates', off
@@ -40,7 +41,9 @@ class ActivityAppView extends KDView
   viewAppended: ->
 
     # @addSubView @groupHeader  unless isKoding()
-    @addSubView @sidebar
+    # @addSubView @sidebar
+    { mainView } = KD.singletons
+    @sidebar     = mainView.activitySidebar
     @addSubView @tabs
 
 
@@ -51,7 +54,7 @@ class ActivityAppView extends KDView
     else @unsetClass 'fixed'
 
 
-  # type: [public|topic|post|message|chat|null]
+  # type: [topic|post|message|chat|null]
   # slug: [slug|id|name]
   open: (type, slug) ->
 
@@ -72,11 +75,7 @@ class ActivityAppView extends KDView
     @sidebar.selectItemByRouteOptions type, slug
     item = @sidebar.selectedItem
 
-    if type is 'public'
-      item = @sidebar.public
-      kallback item.getData()
-
-    else if not item
+    if not item
       type_ = switch type
         when 'message' then 'privatemessage'
         when 'post'    then 'activity'
@@ -151,7 +150,7 @@ class ActivityAppView extends KDView
 
   showNewMessageModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     bounds = @sidebar.sections.messages.options.headerLink.getBounds()
 
@@ -173,13 +172,13 @@ class ActivityAppView extends KDView
 
   showAllTopicsModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new YourTopicsModal delegate : this
 
 
   showAllConversationsModal: ->
 
-    @open 'public'  unless @tabs.getActivePane()
+    @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this

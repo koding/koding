@@ -17,7 +17,7 @@
   "dependencies": {
     "amqplib": "^0.2.0",
     "async": "0.2.5",
-    "aws-sdk": "^0.9.5-pre.6",
+    "aws-sdk": "2.0.6",
     "bitly": "1.2.4",
     "bluebird": "~1.0.8",
     "checksum": "0.1.*",
@@ -85,10 +85,12 @@
     "validator": "0.2.0",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "node-eden": "0.0.3",
+    "compress-buffer": "~1.2.2",
+    "loadfire": "3.0.1"
   },
   "devDependencies": {
-    "loadfire": "3.0.1",
     "which": "^1.0.5"
   },
   "optionalDependencies": {},

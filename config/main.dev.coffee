@@ -173,7 +173,7 @@ Configuration = (options={}) ->
   GOBIN = "#{projectRoot}/go/bin"
 
 
-  # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+  # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
@@ -248,9 +248,10 @@ Configuration = (options={}) ->
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
+      export KONFIG_JSON='#{KONFIG.JSON}'
 
       """
-      env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+      # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
 
     workersRunList = ->
@@ -273,7 +274,7 @@ Configuration = (options={}) ->
 
         # Disabled for now, if any of installed globally with sudo
         # this overrides them and broke developers machine ~
-        # npm i gulp stylus coffee-script nodemon -g --silent
+        # npm i gulp stylus coffee-script -g --silent
 
         npm i --unsafe-perm --silent
 
@@ -292,7 +293,7 @@ Configuration = (options={}) ->
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+        cp -f #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
 
         echo '#---> BUILDING BROKER-CLIENT @chris <---#'
         echo "building koding-broker-client."
@@ -315,7 +316,7 @@ Configuration = (options={}) ->
         if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
           echo you seem to have correct .ngrok file.
         else
-          echo 'created ~/.ngrok file (you may still need to download the client)'
+          echo 'created ~/.ngrok file'
           echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
         fi
 
@@ -342,6 +343,73 @@ Configuration = (options={}) ->
         kill_all
       }
 
+      function run () {
+        #{projectRoot}/go/build.sh
+        cd #{projectRoot}/go/src/socialapi
+        make configure
+        cd #{projectRoot}
+        #{workersRunList()}
+        tail -fq ./.logs/*.log
+
+      }
+
+      function check (){
+
+        # umuts domain
+        # check if docker is installed
+        # boot2docker is setup
+        # env DOCKER_HOST there etc
+        echo ""
+
+      }
+
+      function check_service_dependencies () {
+
+        echo ""
+
+      }
+
+      function services () {
+        boot2docker up
+        docker stop mongo redis postgres rabbitmq etcd
+        docker rm   mongo redis postgres rabbitmq etcd
+
+        # Build Mongo service
+        cd #{projectRoot}/install/docker-mongo
+        docker build -t koding_localbuild/mongo .
+
+        # Build rabbitMQ service
+        cd #{projectRoot}/install/docker-rabbitmq
+        docker build -t koding_localbuild/rabbitmq .
+
+
+        #build postgres
+        cd #{projectRoot}/go/src/socialapi/db/sql
+        docker build -t koding_localbuild/postgres .
+
+        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding_localbuild/rabbitmq
+
+        docker run -d -p 6379:6379                --name=redis    redis
+        docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
+        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
+
+        cd #{projectRoot}/install/docker-mongo
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
+        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+
+      }
+
+
 
       function kill_all () {
         rm -rf #{projectRoot}/.logs
@@ -367,42 +435,16 @@ Configuration = (options={}) ->
 
         ./cleanup @$
 
+      elif [ "$1" == "buildclient" ]; then
+
+        ./build-client.coffee --watch false  --verbose
+
       elif [ "$1" == "services" ]; then
-        boot2docker up
-        docker stop mongo redis postgres rabbitmq etcd
-        docker rm   mongo redis postgres rabbitmq etcd
-        cd #{projectRoot}/install/docker-mongo
-        docker build -t koding_localbuild/mongo .
-        cd #{projectRoot}/install/docker-rabbitmq
-        docker build -t koding_localbuild/rabbitmq .
-
-        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
-        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding_localbuild/rabbitmq
-
-        docker run -d -p 6379:6379                --name=redis    redis
-        docker run -d -p 5432:5432                --name=postgres koding/postgres
-        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
-
-
-
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-        cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
-
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-
-
-
-
+        check_service_dependencies
+        services
       else
-        #{projectRoot}/go/build.sh
-        cd #{projectRoot}/go/src/socialapi
-        make configure
-        cd #{projectRoot}
-        #{workersRunList()}
-        tail -fq ./.logs/*.log
-
+        check
+        run
       fi
       # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
       """

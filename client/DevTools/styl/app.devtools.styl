@@ -21,7 +21,7 @@ body.devtools
       top           0
       left          0
       background    #1F2628
-      color         white
+      color         rgba(227,227,227,0.9)
       opacity       1
       vendor        transition, top .5s ease\, \
                                 opacity .5s ease
@@ -33,17 +33,32 @@ body.devtools
         opacity     0
 
       h1
-        width       400px
-        margin      0 auto
-        text-align  center
-        font-size   24px
-        margin-top  100px
+        width         400px
+        margin        0 auto
+        text-align    center
+        font-size     24px
+        margin-top    100px
+
+      .info
+        margin        10px auto
+        max-width     660px
+
+        h2
+          font-size   18px
+          padding-top 10px
+
+        p
+          padding-top 23px
+          line-height 23px
+
+        a
+          color       #1aaf5d
 
       .button-container
-        width       300px
-        height      auto
-        text-align  center
-        margin      50px auto
+        width         300px
+        height        auto
+        text-align    center
+        margin        15px auto
 
     .inner-header
 
@@ -197,9 +212,7 @@ body.devtools
         opacity   .1
 
     .kdbutton.solid
-
-      height        22px
-      padding       0 5px
+      height        45px
       font-weight   300
 
       &.live
@@ -210,4 +223,4 @@ body.devtools
 
       .button-title
         line-height 22px
-        font-size   12px
+        font-size   16px

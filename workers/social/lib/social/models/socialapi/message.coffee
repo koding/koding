@@ -4,53 +4,13 @@ request        = require 'request'
 ApiError       = require './error'
 
 {secure, daisy, dash, signature, Base} = Bongo
-{uniq} = require 'underscore'
+{uniq, extend} = require 'underscore'
 
 
 module.exports = class SocialMessage extends Base
   @share()
 
   @set
-    permissions :
-      # JPost related permissions
-      'read posts'              : ['member', 'moderator']
-      'create posts'            : ['member', 'moderator']
-      'edit posts'              : ['moderator']
-      'delete posts'            : ['moderator']
-      'edit own posts'          : ['member', 'moderator']
-      'delete own posts'        : ['member', 'moderator']
-      'reply to posts'          : ['member', 'moderator']
-      'like posts'              : ['member', 'moderator']
-      'pin posts'               : ['member', 'moderator']
-      'send private message'    : ['member', 'moderator']
-      'list private messages'   : ['member', 'moderator']
-
-      # JComment related permissions
-      'edit comments'           : ['moderator']
-      'edit own comments'       : ['moderator']
-
-      # JTag related permissions
-      'read tags'               :
-        public                  : ['guest', 'member', 'moderator']
-        private                 : ['member', 'moderator']
-      'create tags'             : ['member', 'moderator']
-      'freetag content'         : ['member', 'moderator']
-      'browse content by tag'   : ['member', 'moderator']
-      'edit tags'               : ['moderator']
-      'delete tags'             : ['moderator']
-      'edit own tags'           : ['moderator']
-      'delete own tags'         : ['moderator']
-      'assign system tag'       : ['moderator']
-      'fetch system tag'        : ['moderator']
-      'create system tag'       : ['moderator']
-      'remove system tag'       : ['moderator']
-      'create synonym tags'     : ['moderator']
-      # 'delete system tag'     : ['moderator']
-
-    # move permission from jpost to here
-    # permissions :
-    #   'send private message' : ['member', 'moderator']
-    #   'list private messages' : ['member', 'moderator']
     sharedMethods :
       static   :
         byId   :
@@ -81,6 +41,10 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         fetch  :
           (signature Object, Function)
+        fetchDataFromEmbedly: [
+          (signature String, Object, Function)
+          (signature [String], Object, Function)
+        ]
 
     schema          :
       id               : Number
@@ -219,4 +183,32 @@ module.exports = class SocialMessage extends Base
         if accountId is socialApiId
           return callback null, yes
         fn client, callback
+
+
+  cachedEmbedlyResult = {}
+
+  @fetchDataFromEmbedly = (urls, options, callback) ->
+
+    if result = cachedEmbedlyResult[urls]
+      return callback null, result
+
+    urls = [urls]  unless Array.isArray urls
+
+    Embedly    = require "embedly"
+    { apiKey } = KONFIG.embedly
+
+    new Embedly key: apiKey, (err, api) ->
+
+      return callback err  if err
+
+      options    = extend options,
+        urls     : urls
+        maxWidth : 150
+
+      api.extract options, (err, result) ->
+        return callback err, result  if err
+
+        cachedEmbedlyResult[urls] = result
+        callback err, result
+
 

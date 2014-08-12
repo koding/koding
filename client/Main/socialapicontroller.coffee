@@ -13,11 +13,16 @@ class SocialApiController extends KDController
   getPrefetchedData: (dataPath) ->
 
     return [] unless KD.socialApiData
-    return [] unless data = KD.socialApiData[dataPath]
+
+    data = if dataPath is 'navigated'
+    then KD.socialApiData[dataPath].messageList
+    else KD.socialApiData[dataPath]
+
+    return [] unless data
 
     fn = switch dataPath
       when 'popularTopics', 'followedChannels' then mapChannels
-      when 'publicFeed', 'pinnedMessages'      then mapActivities
+      when 'pinnedMessages', 'navigated'       then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
 
     return fn(data) or []
@@ -38,6 +43,7 @@ class SocialApiController extends KDController
         channelType: "group"
         channelName: slug
         isExclusive: yes
+        connectDirectly: yes
 
       channelName    = generateChannelName
         name         : slug
@@ -199,9 +205,9 @@ class SocialApiController extends KDController
     {socialapi} = KD.singletons
 
     getCurrentGroup (group)->
-      for socialApiChannel in socialApiChannels
+      socialApiChannels.forEach (socialApiChannel) ->
         channelName = generateChannelName socialApiChannel
-        continue  if socialapi.openedChannels[channelName]
+        return  if socialapi.openedChannels[channelName]
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
@@ -211,6 +217,7 @@ class SocialApiController extends KDController
           channelType: socialApiChannel.typeConstant
           channelName: socialApiChannel.name
           isExclusive: yes
+          connectDirectly: yes
 
         KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
           {name} = brokerChannel
@@ -378,6 +385,9 @@ class SocialApiController extends KDController
 
     revive               : mapActivity
 
+    fetchDataFromEmbedly : (args...) ->
+      KD.remote.api.SocialMessage.fetchDataFromEmbedly args...
+
   channel:
     byId                 : channelRequesterFn
       fnName             : 'byId'
@@ -395,7 +405,7 @@ class SocialApiController extends KDController
 
     fetchActivities      : channelRequesterFn
       fnName             : 'fetchActivities'
-      validateOptionsWith: ["id"]
+      validateOptionsWith: ['id']
       mapperFn           : mapActivities
 
     fetchPopularPosts    : channelRequesterFn

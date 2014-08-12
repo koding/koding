@@ -8,7 +8,6 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'topic',
     'followingfeed',
     'followers',
-    'chat',
     'pinnedactivity',
     'privatemessage',
     'default'
@@ -65,7 +64,6 @@ CREATE TYPE "api"."channel_message_type_constant_enum" AS ENUM (
     'reply',
     'join',
     'leave',
-    'chat',
     'privatemessage'
 );
 

@@ -2,11 +2,8 @@ class SidebarItem extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    groupSlug = KD.getGroup().slug
-    groupSlug = if groupSlug is 'koding' then '' else "/#{groupSlug}"
-
     options.type       or= 'sidebar-item'
-    options.route        = "#{groupSlug}/Activity/#{options.route}"
+    options.route        = KD.utils.groupifyLink "/Activity/#{options.route}"
     options.tagName    or= 'a'
     options.attributes or= href : options.route
 
