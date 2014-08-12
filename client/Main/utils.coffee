@@ -741,6 +741,7 @@ utils.extend utils,
     isoNow    = now.toISOString()
 
     fakeObject         =
+      isFake           : yes
       on               : -> this
       watch            : -> this
       body             : body
