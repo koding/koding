@@ -20,23 +20,14 @@ func main() {
 	k := kite.New("exp2", "1.0.0")
 	k.Config = config.MustGet()
 
-	fmt.Printf("k.Config.Id %+v\n", k.Config.Id)
 	kites, err := k.GetKites(protocol.KontrolQuery{
 		Username:    k.Config.Username,
 		Environment: k.Config.Environment,
 		Name:        "math",
-		// Version:     "1.0.0",
-		// Region:      k.Config.Region,
-		// Hostname:    k.Kite().Hostname,
-		// ID: k.Config.Id,
 	})
 	if err != nil {
 		log.Fatalln(err)
 	}
-
-	fmt.Printf("found kites %+v\n", kites)
-
-	// os.Exit(1)
 
 	// Connect to remote kite
 	mathWorker := kites[0]
