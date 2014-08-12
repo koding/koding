@@ -27,25 +27,28 @@ class DomainCreateForm extends KDCustomHTMLView
       type : "subdomain"
       view : @subdomainForm = new SubdomainCreateForm
 
-    @tabView.addPane dom = new KDTabPaneView
-      name               : "Route own domain"
-      type               : "redirect"
-      view               : @domainForm = new CommonDomainCreateForm
-        label            : ""
-        placeholder      : "Type your domain name..."
-        noDomainSelector : yes
-
-    nickname = KD.whoami().profile.nickname
-
-    dom.addSubView @redirectNotice = (new KDCustomHTMLView
-      tagName  : "p"
-      cssClass : "status-message"
-      partial  : """
-        Before adding your domain, you need to create a <strong>CNAME RECORD</strong> pointing to: <strong>#{nickname}.kd.io</strong> or an <br/>
-        <strong>A RECORD</strong> which is pointing to: <strong>68.68.97.66</strong>
-        Otherwise Koding won't be able to add your domain. <a href="http://learn.koding.com/add-cname-records-to-your-domain/" target="_blank">Learn how</a>
-        """
-    ), null, yes
+    # Custom domains commented-out for now ~ GG
+    #
+    # @tabView.addPane dom = new KDTabPaneView
+    #   name               : "Route own domain"
+    #   type               : "redirect"
+    #   view               : @domainForm = new CommonDomainCreateForm
+    #     label            : ""
+    #     placeholder      : "Type your domain name..."
+    #     noDomainSelector : yes
+    #
+    # nickname = KD.whoami().profile.nickname
+    #
+    # dom.addSubView @redirectNotice = (new KDCustomHTMLView
+    #   tagName  : "p"
+    #   cssClass : "status-message"
+    #   partial  : """
+    #     Before adding your domain, you need to create a <strong>CNAME RECORD</strong> pointing to: <strong>#{nickname}.kd.io</strong> or an <br/>
+    #     <strong>A RECORD</strong> which is pointing to: <strong>68.68.97.66</strong>
+    #     Otherwise Koding won't be able to add your domain. <a href="http://learn.koding.com/add-cname-records-to-your-domain/" target="_blank">Learn how</a>
+    #     """
+    # ), null, yes
+    # ##
 
     @tabView.showPane sub
 
@@ -72,7 +75,7 @@ class DomainCreateForm extends KDCustomHTMLView
         @showError err.message
       else
         @showSuccess domain, @domainForm
-        @updateDomains()
+
 
   createSubDomain: ->
 
@@ -86,15 +89,14 @@ class DomainCreateForm extends KDCustomHTMLView
       createButton.hideLoader()
       return notifyUser "#{domain} is an invalid subdomain."
 
-    domain =
-      Encoder.XSSEncode "#{domain}.#{domains.getValue()}"
+    domain = Encoder.XSSEncode \
+      "#{domain}.#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @createJDomain domain, (err, domain)=>
       createButton.hideLoader()
       return @handleDomainCreationError err  if err
 
       @showSuccess domain
-      @updateDomains()
 
   handleDomainCreationError: (err) ->
     warn "An error occured while creating domain:", err
@@ -151,39 +153,6 @@ class DomainCreateForm extends KDCustomHTMLView
 
     @emit 'CloseClicked'
 
-  updateDomains: ->
-
-    domainList = []
-    pushDomainOption = (context) ->
-      domain = "#{context}.kd.io"
-      domainList.push {title:".#{domain}", value: domain}
-
-    {JDomain} = KD.remote.api
-    JDomain.fetchDomains (err, userDomains)=>
-
-      return warn "Failed to update domains:", err  if err
-
-      if userDomains
-        for domain in userDomains
-          if not domain.regYears > 0
-            domainList.push {title:".#{domain.domain}", value:domain.domain}
-
-      group = KD.getSingleton("groupsController").currentGroupName
-      # adds group root domain to domain selections
-      unless group is "koding"
-        pushDomainOption group
-      else
-        slug = KD.whoami().profile.nickname              # if user domain root does not exist, it is added
-        rootDomain = userDomains.filter (domain) ->      # here. actually it is not possible to delete a root
-          domain.domain is "#{slug}.kd.io"               # domain, but defensive checks are always good.
-        pushDomainOption slug  unless rootDomain.length
-
-      {domains, domainName} = @subdomainForm.inputs
-      domainName.setValue ""
-      domains.removeSelectOptions()
-      domains.setSelectOptions domainList
-
   viewAppended:->
-    @updateDomains()
-    KD.getSingleton("vmController").on 'VMListChanged', @bound 'updateDomains'
+
     @subdomainForm.inputs.domainName.setFocus()

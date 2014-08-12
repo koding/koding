@@ -1,6 +1,7 @@
 package bongo
 
 import (
+	"github.com/cenkalti/backoff"
 	"github.com/koding/broker"
 	"github.com/koding/logging"
 
@@ -25,9 +26,24 @@ func New(b *broker.Broker, db *gorm.DB, l logging.Logger) *Bongo {
 }
 
 func (b *Bongo) Connect() error {
-	if err := b.Broker.Connect(); err != nil {
+
+	bo := backoff.NewExponentialBackOff()
+	ticker := backoff.NewTicker(bo)
+
+	var err error
+	for _ = range ticker.C {
+		if err = b.Broker.Connect(); err != nil {
+			b.log.Error("err while connecting: %s  will retry...", err.Error())
+			continue
+		}
+
+		break
+	}
+
+	if err != nil {
 		return err
 	}
+
 	B = b
 
 	b.log.Info("Bongo connected %t", true)

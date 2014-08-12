@@ -12,8 +12,6 @@ import (
 	"time"
 
 	etcdErr "github.com/coreos/etcd/error"
-	"github.com/coreos/etcd/etcd"
-	"github.com/coreos/etcd/store"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/hashicorp/go-version"
 	"github.com/koding/kite"
@@ -44,15 +42,6 @@ var (
 type Kontrol struct {
 	Kite *kite.Kite
 
-	// etcd options
-	Name         string   // Name of the etcd instance
-	DataDir      string   // etcd data dir
-	EtcdAddr     string   // The public host:port used for etcd server.
-	EtcdBindAddr string   // The listening host:port used for etcd server.
-	PeerAddr     string   // The public host:port used for peer communication.
-	PeerBindAddr string   // The listening host:port used for peer communication.
-	Peers        []string // other peers in cluster (must be peer address of other instances)
-
 	// MachineAuthenticate is used to authenticate the request in the
 	// "handleMachine" method.  The reason for a separate auth function is, the
 	// request must not be authenticated because clients do not have a kite.key
@@ -64,13 +53,17 @@ type Kontrol struct {
 	privateKey string // for signing tokens
 
 	// To cancel running watchers, we must store the references
-	watchers      map[string]*store.Watcher
+	watchers      map[string]*Watcher
 	watchersMutex sync.Mutex
 
 	// Holds refence to all connected clients (key is ID of kite)
 	clients map[string]*kite.Client
 
-	etcd *etcd.Etcd
+	// storage defines the storage of the kites.
+	storage Storage
+
+	// a list of etcd machintes to connect
+	Machines []string
 }
 
 // New creates a new kontrol instance with the given verson and config
@@ -93,22 +86,12 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 		k.Config.Port = DefaultPort
 	}
 
-	hostname := k.Kite().Hostname
-
 	kontrol := &Kontrol{
-		Kite:         k,
-		Name:         hostname,
-		DataDir:      "kontrol-data." + hostname,
-		EtcdAddr:     "localhost:4001",
-		EtcdBindAddr: "0.0.0.0:4001",
-		PeerAddr:     "localhost:7001",
-		PeerBindAddr: "0.0.0.0:7001",
-		Peers:        nil,
-		publicKey:    publicKey,
-		privateKey:   privateKey,
-		watchers:     make(map[string]*store.Watcher),
-		clients:      make(map[string]*kite.Client),
-		etcd:         etcd.New(nil), // create with default config, we'll update it when running kontrol.
+		Kite:       k,
+		publicKey:  publicKey,
+		privateKey: privateKey,
+		watchers:   make(map[string]*Watcher),
+		clients:    make(map[string]*kite.Client),
 	}
 
 	log = k.Log
@@ -140,45 +123,40 @@ func (k *Kontrol) AddAuthenticator(keyType string, fn func(*kite.Request) error)
 }
 
 func (k *Kontrol) Run() {
-	k.init()
+	rand.Seed(time.Now().UnixNano())
+
+	// assume we are going to work locally instead of panicing
+	if k.Machines == nil || len(k.Machines) == 0 {
+		k.Machines = []string{"127.0.0.1:4001"}
+	}
+
+	k.Kite.Log.Info("Connecting to Etcd with machines: %v", k.Machines)
+	etcdClient, err := NewEtcd(k.Machines)
+	if err != nil {
+		panic("could not connect to etcd: " + err.Error())
+	}
+	etcdClient.log = k.Kite.Log
+
+	k.storage = etcdClient
+
+	// now go and register ourself
+	go k.registerSelf()
+
 	k.Kite.Run()
 }
 
 // Close stops kontrol and closes all connections
 func (k *Kontrol) Close() {
-	k.etcd.Stop()
 	k.Kite.Close()
-}
-
-// init does common operations of Run() and Start().
-func (k *Kontrol) init() {
-	rand.Seed(time.Now().UnixNano())
-
-	// Update etcd config before running
-	k.etcd.Config.Name = k.Name
-	k.etcd.Config.DataDir = k.DataDir
-	k.etcd.Config.Addr = k.EtcdAddr
-	k.etcd.Config.BindAddr = k.EtcdBindAddr
-	k.etcd.Config.Peer.Addr = k.PeerAddr
-	k.etcd.Config.Peer.BindAddr = k.PeerBindAddr
-	k.etcd.Config.Peers = k.Peers
-
-	go k.etcd.Run()
-	<-k.etcd.ReadyNotify()
-
-	go k.registerSelf()
 }
 
 // ClearKites removes everything under "/kites" from etcd.
 func (k *Kontrol) ClearKites() error {
-	_, err := k.etcd.Store.Delete(
-		KitesPrefix, // path
-		true,        // recursive
-		true,        // dir
-	)
+	err := k.storage.Delete(KitesPrefix)
 	if err != nil && err.(*etcdErr.Error).ErrorCode != etcdErr.EcodeKeyNotFound {
 		return fmt.Errorf("Cannot clear etcd: %s", err)
 	}
+
 	return nil
 }
 
@@ -225,11 +203,6 @@ func (k *Kontrol) registerUser(username string) (kiteKey string, err error) {
 	return token.SignedString([]byte(k.privateKey))
 }
 
-// registerValue is the type of the value that is saved to etcd.
-type registerValue struct {
-	URL string `json:"url"`
-}
-
 func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 	log.Info("Register request from: %s", r.Client.Kite)
 
@@ -271,7 +244,7 @@ func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
 	}
 
 	// setKey sets the value of the Kite in etcd.
-	setKey, etcdKey := k.makeSetter(&r.Kite, value)
+	setKey, etcdKey, etcdIDKey := k.makeSetter(&r.Kite, value)
 
 	// Register to etcd.
 	err = setKey()
@@ -289,11 +262,9 @@ func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
 	r.OnDisconnect(func() {
 		// Delete from etcd, WatchEtcd() will get the event
 		// and will notify watchers of this Kite for deregistration.
-		k.etcd.Store.Delete(
-			etcdKey, // path
-			false,   // recursive
-			false,   // dir
-		)
+		k.storage.Delete(etcdKey)
+		// And the Id
+		k.storage.Delete(etcdIDKey)
 	})
 
 	return nil
@@ -314,7 +285,7 @@ func (k *Kontrol) registerSelf() {
 	value := &registerValue{
 		URL: k.Kite.Config.KontrolURL,
 	}
-	setter, _ := k.makeSetter(k.Kite.Kite(), value)
+	setter, _, _ := k.makeSetter(k.Kite.Kite(), value)
 	for {
 		if err := setter(); err != nil {
 			log.Error(err.Error())
@@ -327,35 +298,23 @@ func (k *Kontrol) registerSelf() {
 }
 
 //  makeSetter returns a func for setting the kite key with value in etcd.
-func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter func() error, etcdKey string) {
+func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter func() error, etcdKey, etcdIDKey string) {
 	etcdKey = KitesPrefix + kite.String()
+	etcdIDKey = KitesPrefix + "/" + kite.ID
 
 	valueBytes, _ := json.Marshal(value)
 	valueString := string(valueBytes)
 
 	setter = func() error {
-		expireAt := time.Now().Add(HeartbeatDelay)
-
 		// Set the kite key.
 		// Example "/koding/production/os/0.0.1/sj/kontainer1.sj.koding.com/1234asdf..."
-		_, err := k.etcd.Store.Set(
-			etcdKey,     // path
-			false,       // dir
-			valueString, // value
-			expireAt,    // expire time
-		)
-		if err != nil {
+		if err := k.storage.Set(etcdKey, valueString); err != nil {
 			log.Error("etcd error: %s", err)
 			return err
 		}
 
-		// Set the TTL for the username. Otherwise, empty dirs remain in etcd.
-		_, err = k.etcd.Store.Update(
-			KitesPrefix+"/"+kite.Username, // path
-			"",       // new value
-			expireAt, // expire time
-		)
-		if err != nil {
+		// Also store the the kite.Key Id for easy lookup
+		if err := k.storage.Set(etcdIDKey, kite.String()); err != nil {
 			log.Error("etcd error: %s", err)
 			return err
 		}
@@ -364,89 +323,6 @@ func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter 
 	}
 
 	return
-}
-
-// validateKiteKey returns a string representing the kite uniquely
-// that is suitable to use as a key for etcd.
-func validateKiteKey(k *protocol.Kite) error {
-	// Order is important.
-	fields := map[string]string{
-		"username":    k.Username,
-		"environment": k.Environment,
-		"name":        k.Name,
-		"version":     k.Version,
-		"region":      k.Region,
-		"hostname":    k.Hostname,
-		"id":          k.ID,
-	}
-
-	// Validate fields.
-	for k, v := range fields {
-		if v == "" {
-			return fmt.Errorf("Empty Kite field: %s", k)
-		}
-		if strings.ContainsRune(v, '/') {
-			return fmt.Errorf("Field \"%s\" must not contain '/'", k)
-		}
-	}
-
-	return nil
-}
-
-var keyOrder = []string{"username", "environment", "name", "version", "region", "hostname", "id"}
-
-// getQueryKey returns the etcd key for the query.
-func getQueryKey(q *protocol.KontrolQuery) (string, error) {
-	fields := map[string]string{
-		"username":    q.Username,
-		"environment": q.Environment,
-		"name":        q.Name,
-		"version":     q.Version,
-		"region":      q.Region,
-		"hostname":    q.Hostname,
-		"id":          q.ID,
-	}
-
-	if q.Username == "" {
-		return "", errors.New("Empty username field")
-	}
-
-	// Validate query and build key.
-	path := "/"
-
-	empty := false   // encountered with empty field?
-	empytField := "" // for error log
-
-	// http://golang.org/doc/go1.3#map, order is important and we can't rely on
-	// maps because the keys are not ordered :)
-	for _, key := range keyOrder {
-		v := fields[key]
-		if v == "" {
-			empty = true
-			empytField = key
-			continue
-		}
-
-		if empty && v != "" {
-			return "", fmt.Errorf("Invalid query. Query option is not set: %s", empytField)
-		}
-
-		path = path + v + "/"
-	}
-
-	path = strings.TrimSuffix(path, "/")
-
-	return path, nil
-}
-
-func getAudience(q protocol.KontrolQuery) string {
-	if q.Name != "" {
-		return "/" + q.Username + "/" + q.Environment + "/" + q.Name
-	} else if q.Environment != "" {
-		return "/" + q.Username + "/" + q.Environment
-	} else {
-		return "/" + q.Username
-	}
 }
 
 func (k *Kontrol) handleGetKites(r *kite.Request) (interface{}, error) {
@@ -514,7 +390,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	var keyRest string            // query key after the version field (not including version)
 
 	// We will make a get request to etcd store with this key.
-	etcdKey, err := getQueryKey(&query)
+	etcdKey, err := k.getQueryKey(&query)
 	if err != nil {
 		return nil, err
 	}
@@ -522,10 +398,21 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	// audience will go into the token as "aud" claim.
 	audience := getAudience(query)
 
-	// If version field contains a constraint we need no make a new query
-	// up to "name" field and filter the results after getting all versions.
-	versionConstraint, err := version.NewConstraint(query.Version)
-	if err == nil {
+	// If version field contains a constraint we need no make a new query up to
+	// "name" field and filter the results after getting all versions.
+	// NewVersion returns an error if it's a constraint, like: ">= 1.0, < 1.4"
+	// Because NewConstraint doesn't return an error for version's like "0.0.1"
+	// we check it with the NewVersion function.
+	var versionConstraint version.Constraints
+	_, err = version.NewVersion(query.Version)
+	if err != nil && query.Version != "" {
+		// now parse our constraint
+		versionConstraint, err = version.NewConstraint(query.Version)
+		if err != nil {
+			// version is a malformed, just return the error
+			return nil, err
+		}
+
 		hasVersionConstraint = true
 		nameQuery := &protocol.KontrolQuery{
 			Username:    query.Username,
@@ -534,7 +421,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		}
 		// We will make a get request to all nodes under this name
 		// and filter the result later.
-		etcdKey, _ = getQueryKey(nameQuery)
+		etcdKey, _ = k.getQueryKey(nameQuery)
 
 		// Rest of the key after version field
 		keyRest = "/" + strings.TrimRight(query.Region+"/"+query.Hostname+"/"+query.ID, "/")
@@ -555,12 +442,8 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	// Registering watcher should be done before making etcd.Get() because
 	// Get() may return an empty result.
 	if watchCallback.Caller != nil {
-		watcher, err := k.etcd.Store.Watch(
-			KitesPrefix+etcdKey, // prefix
-			true, // recursive
-			true, // stream
-			0,    // since index
-		)
+		k.Kite.Log.Info("Watcher enabled for query: %s", query)
+		watcher, err := k.storage.Watch(KitesPrefix+etcdKey, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -578,6 +461,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		// Stop watching on disconnect.
 		disconnect := make(chan bool)
 		r.Client.OnDisconnect(func() {
+			k.Kite.Log.Info("Watcher client disconnected, closing the watcher")
 			// Remove watcher from the map
 			k.watchersMutex.Lock()
 			defer k.watchersMutex.Unlock()
@@ -585,7 +469,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 
 			// Notify disconnection and stop watching.
 			close(disconnect)
-			watcher.Remove()
+			watcher.Stop()
 		})
 		k.watchersMutex.Unlock()
 
@@ -593,12 +477,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	}
 
 	// Get kites from etcd
-	event, err := k.etcd.Store.Get(
-		KitesPrefix+etcdKey, // path
-		true,  // recursive, return all child directories too
-		false, // sorting flag, we don't care about sorting for now
-	)
-
+	node, err := k.storage.Get(KitesPrefix + etcdKey)
 	if err != nil {
 		if err2, ok := err.(*etcdErr.Error); ok && err2.ErrorCode == etcdErr.EcodeKeyNotFound {
 			result.Kites = make([]*protocol.KiteWithToken, 0) // do not send null
@@ -609,42 +488,41 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		return nil, fmt.Errorf("internal error - getKites")
 	}
 
-	// Get all nodes recursively.
-	nodes := flatten(event.Node.Nodes)
-
-	// Convert etcd nodes to kites.
-	kites := make([]*protocol.KiteWithToken, len(nodes))
-	for i, n := range nodes {
-		kites[i], err = kiteWithTokenFromEtcdNode(n, token)
+	// means a query with all fields were made or a query with an ID was made,
+	// in which case also returns a full path. This path has a value that
+	// contains the final kite URL. Therefore this is a single kite result,
+	// create it and pass it back.
+	if node.HasValue() {
+		kiteWithToken, err := node.Kite()
 		if err != nil {
 			return nil, err
 		}
+
+		// attach our generated token
+		kiteWithToken.Token = token
+
+		result.Kites = []*protocol.KiteWithToken{kiteWithToken}
+		return result, nil
+	}
+
+	// we have a tree of nodes. Get all the kites under the current tree
+	kites, err := node.Kites()
+	if err != nil {
+		return nil, err
 	}
 
 	// Filter kites by version constraint
-	var filtered []*protocol.KiteWithToken
 	if hasVersionConstraint {
-		for _, k := range kites {
-			if isValid(&k.Kite, versionConstraint, keyRest) {
-				filtered = append(filtered, k)
-			}
-		}
-	} else {
-		filtered = kites
-	}
-
-	// Attach tokens to kites
-	for _, k := range filtered {
-		k.Token = token
+		kites.Filter(versionConstraint, keyRest)
 	}
 
 	// Shuffle the list
-	shuffled := make([]*protocol.KiteWithToken, len(filtered))
-	for i, v := range rand.Perm(len(filtered)) {
-		shuffled[v] = filtered[i]
-	}
+	kites.Shuffle()
 
-	result.Kites = shuffled
+	// Attach tokens to kites
+	kites.Attach(token)
+
+	result.Kites = kites
 	return result, nil
 }
 
@@ -662,175 +540,6 @@ func isValid(k *protocol.Kite, c version.Constraints, keyRest string) bool {
 	}
 
 	return true
-}
-
-func (k *Kontrol) handleCancelWatcher(r *kite.Request) (interface{}, error) {
-	id := r.Args.One().MustString()
-	return nil, k.cancelWatcher(id)
-}
-
-func (k *Kontrol) cancelWatcher(watcherID string) error {
-	k.watchersMutex.Lock()
-	defer k.watchersMutex.Unlock()
-	watcher, ok := k.watchers[watcherID]
-	if !ok {
-		return errors.New("Watcher not found")
-	}
-	watcher.Remove()
-	delete(k.watchers, watcherID)
-	return nil
-}
-
-// TODO watchAndSendKiteEvents takes too many arguments. Refactor it.
-func (k *Kontrol) watchAndSendKiteEvents(watcher *store.Watcher, watcherID string, disconnect chan bool, etcdKey string, callback dnode.Function, token string, hasConstraint bool, constraint version.Constraints, keyRest string) {
-	var index uint64 = 0
-	for {
-		select {
-		case <-disconnect:
-			return
-		case etcdEvent, ok := <-watcher.EventChan:
-			// Channel is closed. This happens in 3 cases:
-			//   1. Remote kite called "cancelWatcher" method and removed the watcher.
-			//   2. Remote kite has disconnected and the watcher is removed.
-			//   3. Remote kite couldn't consume messages fast enough, buffer has filled up and etcd cancelled the watcher.
-			if !ok {
-				// Do not try again if watcher is cancelled.
-				k.watchersMutex.Lock()
-				if _, ok := k.watchers[watcherID]; !ok {
-					k.watchersMutex.Unlock()
-					return
-				}
-
-				// Do not try again if disconnected.
-				select {
-				case <-disconnect:
-					k.watchersMutex.Unlock()
-					return
-				default:
-				}
-				k.watchersMutex.Unlock()
-
-				// If we are here that means we did not consume fast enough and etcd
-				// has canceled our watcher. We need to create a new watcher with the same key.
-				var err error
-				watcher, err = k.etcd.Store.Watch(
-					KitesPrefix+etcdKey, // prefix
-					true,  // recursive
-					true,  // stream
-					index, // since index
-				)
-				if err != nil {
-					log.Error("Cannot re-watch query: %s", err.Error())
-					callback.Call(kite.Response{
-						Error: &kite.Error{
-							Type:    "watchError",
-							Message: err.Error(),
-						},
-					})
-					return
-				}
-
-				continue
-			}
-
-			index = etcdEvent.Node.ModifiedIndex
-
-			switch etcdEvent.Action {
-			case store.Set:
-				// Do not send Register events for heartbeat messages.
-				// PrevNode must be empty if the kite has registered for the first time.
-				if etcdEvent.PrevNode != nil {
-					continue
-				}
-
-				otherKite, err := kiteWithTokenFromEtcdNode(etcdEvent.Node, token)
-				if err != nil {
-					continue
-				}
-
-				if hasConstraint && !isValid(&otherKite.Kite, constraint, keyRest) {
-					continue
-				}
-
-				var e protocol.KiteEvent
-				e.Action = protocol.Register
-				e.Kite = otherKite.Kite
-				e.URL = otherKite.URL
-				e.Token = otherKite.Token
-
-				callback.Call(kite.Response{Result: e})
-
-			// Delete happens when we detect that otherKite is disconnected.
-			// Expire happens when we don't get heartbeat from otherKite.
-			case store.Delete, store.Expire:
-				otherKite, err := kiteFromEtcdKey(etcdEvent.Node.Key)
-				if err != nil {
-					continue
-				}
-
-				if hasConstraint && !isValid(otherKite, constraint, keyRest) {
-					continue
-				}
-
-				var e protocol.KiteEvent
-				e.Action = protocol.Deregister
-				e.Kite = *otherKite
-
-				callback.Call(kite.Response{Result: e})
-			}
-		}
-	}
-}
-
-// flatten converts the recursive etcd directory structure to flat one that contains Kites.
-func flatten(in store.NodeExterns) (out store.NodeExterns) {
-	for _, node := range in {
-		if node.Dir {
-			out = append(out, flatten(node.Nodes)...)
-			continue
-		}
-
-		out = append(out, node)
-	}
-
-	return
-}
-
-func kitesFromNodes(nodes store.NodeExterns) ([]*protocol.KiteWithToken, error) {
-	kites := make([]*protocol.KiteWithToken, len(nodes))
-
-	for i, node := range nodes {
-		var rv registerValue
-		json.Unmarshal([]byte(*node.Value), &rv)
-
-		kite, _ := kiteFromEtcdKey(node.Key)
-
-		kites[i] = &protocol.KiteWithToken{
-			Kite: *kite,
-			URL:  rv.URL,
-		}
-	}
-
-	return kites, nil
-}
-
-func kiteWithTokenFromEtcdNode(node *store.NodeExtern, token string) (*protocol.KiteWithToken, error) {
-	kite, err := kiteFromEtcdKey(node.Key)
-	if err != nil {
-		return nil, err
-	}
-
-	var rv registerValue
-	err = json.Unmarshal([]byte(*node.Value), &rv)
-	if err != nil {
-		return nil, err
-	}
-
-	return &protocol.KiteWithToken{
-		Kite:  *kite,
-		URL:   rv.URL,
-		Token: token,
-	}, nil
 }
 
 // generateToken returns a JWT token string. Please see the URL for details:
@@ -888,26 +597,6 @@ func generateToken(queryKey, username, issuer, privateKey string) (string, error
 	return signed, nil
 }
 
-// kiteFromEtcdKey returns a *protocol.Kite from an etcd key.
-// etcd key is like: /kites/devrim/development/mathworker/1/localhost/tardis.local/662ed473-351f-4c9f-786b-99cf02cdaadb
-func kiteFromEtcdKey(key string) (*protocol.Kite, error) {
-	// TODO replace "kites" with KitesPrefix constant
-	fields := strings.Split(strings.TrimPrefix(key, "/"), "/")
-	if len(fields) != 8 || (len(fields) > 0 && fields[0] != "kites") {
-		return nil, fmt.Errorf("Invalid Kite: %s", key)
-	}
-
-	return &protocol.Kite{
-		Username:    fields[1],
-		Environment: fields[2],
-		Name:        fields[3],
-		Version:     fields[4],
-		Region:      fields[5],
-		Hostname:    fields[6],
-		ID:          fields[7],
-	}, nil
-}
-
 func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 	var query protocol.KontrolQuery
 	err := r.Args.One().Unmarshal(&query)
@@ -915,17 +604,12 @@ func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Invalid query")
 	}
 
-	kiteKey, err := getQueryKey(&query)
+	kiteKey, err := k.getQueryKey(&query)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = k.etcd.Store.Get(
-		KitesPrefix+kiteKey, // path
-		false, // recursive
-		false, // sorted
-	)
-
+	_, err = k.storage.Get(KitesPrefix + kiteKey)
 	if err != nil {
 		if err2, ok := err.(*etcdErr.Error); ok && err2.ErrorCode == etcdErr.EcodeKeyNotFound {
 			return nil, errors.New("Kite not found")

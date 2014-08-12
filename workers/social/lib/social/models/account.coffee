@@ -3,8 +3,6 @@ KodingError = require '../error'
 ApiError    = require './socialapi/error'
 
 module.exports = class JAccount extends jraphical.Module
-  log4js          = require "log4js"
-  log             = log4js.getLogger("[JAccount]")
 
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
@@ -359,6 +357,15 @@ module.exports = class JAccount extends jraphical.Module
       kite          :
         as          : 'owner'
         targetType  : JKite
+
+      credential    :
+        as          : ['owner', 'user']
+        targetType  : 'JCredential'
+
+      stackTemplate :
+        as          : 'user'
+        targetType  : 'JStackTemplate'
+
 
   constructor:->
     super

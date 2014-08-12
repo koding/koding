@@ -846,11 +846,20 @@ section.resources-container
 
 
 .environments-add-domain-form
+
   input.kdinput
     background      #fff !important
 
     &.text
-      padding-left  14px
+      font-weight   500
+
+  .suffix-domain
+    top     13px
+    right   10px
+    z-index 1
+    width   auto
+    color   #999
+    abs()
 
   label
     font-size       14px
@@ -867,6 +876,7 @@ section.resources-container
       text-overflow ellipsis
 
 
+
 /*--- Scene -----*/
 
 div.environments-scene
@@ -880,7 +890,7 @@ div.environments-scene
   kalc                  height, 100% \- 49px
 
   canvas
-    left                -8px
+    left                -6px
     top                 -2px
 
     // .zoom-slider
@@ -948,14 +958,15 @@ div.environment-stack
   height                48px
   border                1px solid #BBB
   bg                    color #E9E9E9
-  width                 936px
+  width                 583px
   margin                30px auto
   border-radius         3px
   vendor                transition, height .2s ease
+  overflow              hidden
 
   .stack-title
     height              auto
-    padding             10px 15px
+    padding             10px 12px
     font-weight         300
     font-size           22px
     border-bottom       1px solid #e2e2e2
@@ -964,7 +975,7 @@ div.environment-stack
   .stack-button
     top                 0
     right               10px
-    height              49px
+    height              43px
     padding             0 10px
     abs()
 
@@ -995,11 +1006,16 @@ div.environment-stack
 
 div.environments-container
 
-  width           220px
+  width           230px
   height          100%
   overflow-y      hidden
-  margin-top      15px
+  margin-top      10px
+  padding         10px
   noTextSelection()
+  borderBox()
+
+  &.machines
+    width         300px
 
   &::-webkit-scrollbar
     width         0
@@ -1025,15 +1041,11 @@ div.environments-container
     font-weight   200
     color         white
     border-radius 2px
-    width         180px
-    margin-left   20px
     height        33px
-    margin-top    13px
     font-size     18px
 
   .add-button
-    margin-left               20px
-    width                     180px
+    width                     100%
     height                    30px
     border                    1px solid #e6e6e6
     border-radius             3px
@@ -1042,48 +1054,142 @@ div.environments-container
     font-weight               bold
     font-size                 16px
     padding-bottom            7px
-    abs()
 
     &:hover
       background              white
 
+@-webkit-keyframes popHighlight
+  0%
+    -webkit-transform   scale(1)
+  33%
+    -webkit-transform   scale(1.02)
+  66%
+    -webkit-transform   scale(.998)
+  100%
+    -webkit-transform   scale(1)
+
+@-moz-keyframes popHighlight
+  0%
+    -moz-transform      scale(1)
+  33%
+    -moz-transform      scale(1.02)
+  66%
+    -moz-transform      scale(.998)
+  100%
+    -moz-transform      scale(1)
+
+@-webkit-keyframes animate-stripes {
+    from {
+        background-position: 0 0;
+    }
+    to {
+       background-position: -50px 0;
+    }
+}
+
 div.environments-item
 
+  padding         8px
+
   cursor          default
-  width           180px
+  width           210px
   height          34px
   background      white
-  border          none
-  rounded         2px
-  vendor          transition, opacity .3s ease
+  rounded         3px
+
   noTextSelection()
   borderBox()
 
   span.url
+  span.state
+  span.toggle
+  span.terminal
+    font-size   10px
+    color       #aaa
+    abs()
+
+  &:hover
+    .init-machine-view
+      display   block
+
+  .init-machine-view
+    top         0
+    left        0
+    padding     10px
+    box-sizing  border-box
+
+    color       white
+
+    font-size   12px
+    line-height 14px
+
+    display     none
+    abs()
+
+    &.hidden-all
+      display   none !important
+
+    button
+      bottom    10px
+      right     10px
+      abs()
+
+  // FIXME refactor with styl
+  &.busy
+    background-image -webkit-gradient(linear, 0 0, 100% 100%,
+        color-stop(.25, rgba(0, 0, 0, .03)),
+        color-stop(.25, transparent),
+        color-stop(.5, transparent),
+        color-stop(.5, rgba(0, 0, 0, .03)),
+        color-stop(.75, rgba(0, 0, 0, .03)),
+        color-stop(.75, transparent),
+        to(transparent))
+
+    background-image
+        -moz-linear-gradient(-45deg,
+            rgba(0, 0, 0, .03) 25%,
+            transparent 25%,
+            transparent 50%, rgba(0, 0, 0, .03) 50%,
+            rgba(0, 0, 0, .03) 75%,
+            transparent 75%, transparent
+        )
+    background-size           50px 50px
+    -moz-background-size      50px 50px
+    -webkit-background-size   50px 50px
+    -webkit-animation         animate-stripes 2s linear infinite
+
+  .koding-on-off
+    display     none
+    right       5px
+    top         35px
+    abs()
+
   span.chevron
   span.terminal
     size          14px, 14px
-    bottom        10px
+    bottom        8px
     right         10px
     r-sprite      environments 'gear'
-    display       block
+    abs()
 
   span.terminal
+    display       none
     r-sprite      environments 'terminal'
     cursor        pointer
-    right         32px
+    right         45px
+    bottom        7px !important
+    &.terminal-only
+      right       10px
+
+  span.state
+    left          14px
 
   span.url
-    r-sprite      environments 'link'
-    right         56px
-
-  &:hover
-    // gradient      white, #efefef // rgba(254, 255, 255, 1.0), rgba(222, 233, 234, 1.0)
-    background    rgba(255,255,255,.6)
-    .environments-joint
-      opacity     1
-    // span.chevron
-    //   display     block
+    display       none
+    size          auto, 14px
+    text-align    right
+    right         5px
+    top           5px
 
   .status-indicator
 
@@ -1104,12 +1210,8 @@ div.environments-item
     .status-indicator
       background  none
 
-  &.highlight
-    gradient      white, white // rgba(244, 244, 244, 1.0)
-    // shadow        0 0 6px #eee
-
   span.toggle
-    size          6px, 34px
+    size          6px, 100%
     background    #eee
     border-radius 2px 0 0 2px
     top           0
@@ -1119,25 +1221,42 @@ div.environments-item
     font-size     13px
     font-weight   200
     color         #333
-    width         130px
+    width         170px
     line-height   17px
     overflow      hidden
     white-space   nowrap
     text-overflow ellipsis
     padding-left  6px
-
-  div.details
-    padding       8px
-    span
-      font-size   10px
-      color       #aaa
-      abs()
+    cite
+      font-size   11px
+      line-height 11px
+      font-style  italic
+      color       #AAA
+      margin-left 3px
+      display     none
 
   &.rule
     span.toggle
       background      #4E89D3
 
   &.domain
+
+    opacity           .6
+
+    button
+      display         none
+      top             6px
+      right           6px
+      abs()
+
+    &.verified
+      opacity         1
+
+    &:hover
+      opacity         1
+      button
+        display       block
+
     span.toggle
       background      #4ED393
 
@@ -1148,9 +1267,78 @@ div.environments-item
       background      #FF676E
 
   &.machine
+
+    width             calc(100% \- 2px)
+    height            100%
+    min-height        58px
+
+    &:hover
+      h3
+        cite
+          display   inline
+
     // height            50px
 
-    span.url
+    &.loading
+
+      div.progressbar-container
+        display     block !important
+
+      span.terminal
+      .koding-on-off
+        display     none !important
+
+    &.building
+
+      div.progressbar-container
+        .bar
+          background    #FF7400 !important
+
+    &.terminating
+
+      div.progressbar-container
+        .bar
+          background    #E85F5F !important
+
+    &.terminated
+    &.notinitialized
+
+      span.state
+        color       #E85F5F
+
+    &.stopping
+
+      span.url
+        display     block
+
+      div.progressbar-container
+        .bar
+          background    #E59611 !important
+
+    &.stopped
+
+      .koding-on-off
+        display     block
+
+      span.state
+        color       #E59611
+
+    &.starting
+
+      div.progressbar-container
+        .bar
+          background    #5AA486 !important
+
+    &.running
+
+      span.url
+      span.terminal
+      .koding-on-off
+        display     block
+
+      span.state
+        color       #5AA486
+
     span.chevron
     span.terminal
       bottom          10px
@@ -1162,16 +1350,28 @@ div.environments-item
       background      #EBA612
 
     div.progressbar-container
-      top             25px
-      height          15px
-      width           80px
+      display         none
+      top             42px
+      left            14px
+      height          8px
+      width           calc(100% \- 20px)
+      border-radius   0
       abs()
+
+      .bar
+        background    #ccc
+        border        none
+        box-shadow    none
+        border-radius 0
+
       span.light-label
         display       none
+
       span.dark-label
         margin-top    2px
+
       &:last-of-type
-        left          94px
+        left          14px
 
     .toggle-menu
       width           70px
@@ -1179,6 +1379,40 @@ div.environments-item
       left            113px
       bottom          18px
       height          10px
+
+div.kdlistview
+
+  .environments-item.machine
+
+    margin-top      5px
+    border          1px solid #eee
+
+  .selected
+    .environments-item.machine
+      border-color  #bbb
+
+div.kddia-object
+
+  &.environments-item.machine
+
+    width           280px
+    height          60px
+
+    padding         0
+    border          1px solid #fff
+    rounded         4px
+
+    borderBox()
+
+    &.highlight
+      border        1px solid #aaa
+      rounded       4px
+
+    &:hover
+      border-color  #ccc
+      .environments-joint
+        opacity     1
+
 
 div.environments-joint
 

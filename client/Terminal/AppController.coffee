@@ -7,7 +7,7 @@ class WebTermController extends AppController
     multiple     : yes
     hiddenHandle : no
     preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn()
+      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
       failure    : (options, cb)->
         KD.singletons.appManager.open 'Terminal', conditionPassed : yes
         KD.showEnforceLoginModal()
@@ -17,10 +17,10 @@ class WebTermController extends AppController
         {title: "customViewAdvancedSettings"}
       ]
     commands     :
-      'ring bell'     : 'ringBell'
-      'noop'          : (->)
+      'ring bell': 'ringBell'
+      'noop'     : (->)
     keyBindings  : [
-      { command: 'ring bell',     binding: 'alt+meta+k',         global: yes }
+      { command: 'ring bell',     binding: 'alt+meta+k',        global: yes }
       { command: 'noop',          binding: ['meta+v','meta+r'], global: yes }
     ]
     behavior     : "application"
@@ -29,10 +29,10 @@ class WebTermController extends AppController
   constructor:(options = {}, data)->
 
     params              = options.params or {}
-    vmName              = params.vmName  or KD.getSingleton("vmController").defaultVmName
-    options.view        = new WebTermAppView { vmName }
+    options.view        = new WebTermAppView()
+                            .on 'command', @bound 'handleCommand'
     options.appInfo     =
-      title             : "Terminal on #{vmName}"
+      title             : "Terminal"
       cssClass          : "webterm"
 
     super options, data

@@ -1,6 +1,9 @@
 class WebTermView extends KDView
 
   constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'webterm', options.cssClass
+
     super options, data
 
     @initBackoff()
@@ -10,33 +13,39 @@ class WebTermView extends KDView
     @container = new KDView
       cssClass : "console ubuntu-mono green-on-black"
       bind     : "scroll"
-    @container.on "scroll", =>
-      @container.$().scrollLeft 0
+
+    @container.on "scroll", => @container.$().scrollLeft 0
+
     @addSubView @container
 
-    vmName = @getOption 'vmName'
+    { readOnly } = @getOptions()
+    @terminal = new WebTerm.Terminal
+      containerView : @container
+      readOnly      : readOnly ? no
 
-    @terminal = new WebTerm.Terminal @container
     @options.advancedSettings ?= no
+
     if @options.advancedSettings
-      @advancedSettings = new KDButtonViewWithMenu
-        style         : 'editor-advanced-settings-menu'
-        icon          : yes
-        iconOnly      : yes
-        iconClass     : "cog"
-        type          : "contextmenu"
-        delegate      : this
-        itemClass     : WebtermSettingsView
-        click         : (pubInst, event)-> @contextMenu event
-        menu          : @getAdvancedSettingsMenuItems.bind this
-      @addSubView @advancedSettings
+
+      @addSubView @advancedSettings = new KDButtonViewWithMenu
+        style     : 'editor-advanced-settings-menu'
+        icon      : yes
+        iconOnly  : yes
+        iconClass : "cog"
+        type      : "contextmenu"
+        delegate  : this
+        itemClass : WebtermSettingsView
+        click     : (pubInst, event)-> @contextMenu event
+        menu      : @getAdvancedSettingsMenuItems.bind this
+
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
-      @clearConnectionAttempts()
+      @clearBackoffTimeout()
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
+
 
     @listenWindowResize()
 
@@ -44,10 +53,12 @@ class WebTermView extends KDView
       @setFocus no
       KD.getSingleton('windowController').removeLayer this
 
-    @on "KDObjectWillBeDestroyed", @bound "clearConnectionAttempts"
+    @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
+
 
     window.addEventListener "blur",  => @terminal.setFocused no
     window.addEventListener "focus", => @setFocus @focused
+
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
@@ -55,15 +66,17 @@ class WebTermView extends KDView
 
     @forwardEvent @terminal, 'command'
 
-    KD.mixpanel "Open Webterm, click", {vmName}
+    KD.mixpanel "Open Webterm, click", {
+      machineName : @getMachine().getName()
+    }
 
-    @getDelegate().on 'KDTabPaneActive', =>
-      # @terminal.setSize 100, 100
-      @terminal.updateSize yes
+    @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 
     @setKeyView()
 
+
   generateOptions:->
+
     delegateOptions = @getDelegate().getOptions()
     myOptions       = @getOptions()
 
@@ -73,173 +86,179 @@ class WebTermView extends KDView
       sizeY       : @terminal.sizeY
       joinUser    : myOptions.joinUser  ? delegateOptions.joinUser
       session     : @sessionId ? myOptions.session ? delegateOptions.session
-      mode        : myOptions.mode      ? 'create'
+      mode        : myOptions.mode ? 'create'
 
-  getVMName:->
+    return params
 
-    if vm = @getOption 'vm'
-      { hostnameAlias: vmName } = vm
 
-    vmName = @getDelegate().getOption "vmName"  unless vmName
+  getMachine: -> @getOption 'machine'
+  getKite: -> @getMachine().getBaseKite()
 
-    return vmName
-
-  getKite: ->
-    { kontrol, kiteController, vmController } = KD.singletons
-    vmName = @getVMName()
-    if KD.useNewKites
-      kite = KD.singletons.kontrol.kites.terminal[vmName]
-      return kite  if kite?
-      kontrol.getKite
-        name            : 'terminal'
-        correlationName : vmName
-    else
-      kite = vmController.terminalKites[vmName]
-      return kite  if kite?
-      kiteController.getKite 'terminal', vmName, 'terminal'
 
   webtermConnect:(mode = 'create')->
 
-    return console.info "reconnection is in progress" if @reconnectionInProgress
+    if @reconnectionInProgress
+      return console.info "reconnection is in progress"
+
     @reconnectionInProgress = yes
+
     options = @generateOptions()
     options.mode = mode
 
-    {vmController, kontrol} = KD.singletons
-
     kite = @getKite()
-
     kite.webtermConnect(options).then (remote) =>
+
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>
         @emit "WebTermEvent", data
-      @terminal.server       = remote
+
+      @terminal.server = remote
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
       @reconnectionInProgress = false
 
     .catch (err) =>
+
       KD.utils.warnAndLog "terminal: webtermConnect error",
-        {hostnameAlias:@getVMName(), reason:err?.message, options}
+        { hostnameAlias: @getMachine().getName(), reason:err?.message, options }
 
       if err.code is "ErrInvalidSession"
+
         @reconnectionInProgress = false
         @emit 'TerminalCanceled',
-          vmName: @getVMName()
-          sessionId: @getOptions().session
-          error: err
+          machineId : @getMachine().uid
+          sessionId : @getOptions().session
+          error     : err
+
         return
+
       else
+
         @reconnectionInProgress = false
         throw err
 
+
   connectToTerminal: ->
+
     @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+
     @appStorage.fetchStorage =>
+
       @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
       @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
       @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
+
       {mode} = @getOptions()
       @webtermConnect mode
 
     KD.getSingleton("kiteController").on "KiteError", (err) =>
-      log "kite error:", err
+
+      warn "kite error:", err
+
       @reconnected = no
       {code, serviceGenericName} = err
 
-      vmName = (@getOption 'vmName') or @getDelegate().getOption "vmName"
+      machineName = @getMachine().getName()
 
-      ErrorLog.create "KiteError", {code, serviceGenericName, vmName, reason: err?.message}
+      ErrorLog.create "KiteError", {
+        code, serviceGenericName, machineName, reason: err?.message
+      }
 
-      if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-        @reconnectAttemptFailed serviceGenericName, vmName
+  # FIXME GG
+  #     if code is 503 and serviceGenericName.indexOf("kite-os") is 0
+  #       @reconnectAttemptFailed serviceGenericName, vmName
 
-  reconnectAttemptFailed: (serviceGenericName, vmName) ->
-    return  if @reconnected or not serviceGenericName
+  # reconnectAttemptFailed: (serviceGenericName, vmName) ->
+  #   return  if @reconnected or not serviceGenericName
 
-    kiteController = KD.getSingleton "kiteController"
-    [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
-    serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
+  #   kiteController = KD.getSingleton "kiteController"
+  #   [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
+  #   serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
 
-    @setBackoffTimeout(
-      @bound "attemptToReconnect"
-      @bound "handleConnectionFailure"
-    )
+  #   @setBackoffTimeout(
+  #     @bound "attemptToReconnect"
+  #     @bound "handleConnectionFailure"
+  #   )
 
-    kiteController.kiteInstances[serviceName]?.cycleChannel()
+  #   kiteController.kiteInstances[serviceName]?.cycleChannel()
 
-  attemptToReconnect: ->
-    return  if @reconnected
-    @getDelegate().notify
-      cssClass  : "error"
-      title     : "Trying to reconnect your Terminal"
-      duration  : 2 * 60 * 1000 # 2 mins
+  # attemptToReconnect: ->
+  #   return  if @reconnected
+  #   @getDelegate().notify
+  #     cssClass  : "error"
+  #     title     : "Trying to reconnect your Terminal"
+  #     duration  : 2 * 60 * 1000 # 2 mins
 
-    hasResponse  = no
+  #   hasResponse  = no
 
-    {vm} = @getOptions()
-    {hostnameAlias, region} = vm
-    {vmController, kontrol} = KD.singletons
+  #   {vm} = @getOptions()
+  #   {hostnameAlias, region} = vm
+  #   {vmController, kontrol} = KD.singletons
 
-    kite =
-      if KD.useNewKites
-      then kontrol.kites.terminal[hostnameAlias]
-      else vmController.terminalKites[hostnameAlias]
-    kite?.webtermGetSessions().then (sessions) =>
-      hasResponse = yes
-      return if @reconnected
+  #   kite =
+  #     if KD.useNewKites
+  #     then kontrol.kites.terminal[hostnameAlias]
+  #     else vmController.terminalKites[hostnameAlias]
+  #   kite?.webtermGetSessions().then (sessions) =>
+  #     hasResponse = yes
+  #     return if @reconnected
 
-    @handleReconnect()
+  #   @handleReconnect()
 
-  clearConnectionAttempts: ->
-    @clearBackoffTimeout()
+  # handleReconnect: (force = no) ->
+  #   return  if not force and @reconnected
 
-  handleReconnect: (force = no) ->
-    return  if not force and @reconnected
+  #   @clearBackoffTimeout()
+  #   options =
+  #     session : @sessionId
+  #     vm      : @getOption('vm')
 
-    @clearConnectionAttempts()
-    options =
-      session : @sessionId
-      vm      : @getOption('vm')
+  #   @emit "WebTermNeedsToBeRecovered", options
+  #   @reconnected = yes
 
-    @emit "WebTermNeedsToBeRecovered", options
-    @reconnected = yes
+  # handleConnectionFailure: ->
+  #   title = "Sorry, something is wrong with our backend."
 
-  handleConnectionFailure: ->
-    title = "Sorry, something is wrong with our backend."
+  #   ErrorLog.create title
 
-    ErrorLog.create title
+  #   return if @failedToReconnect
+  #   @reconnected       = no
+  #   @failedToReconnect = yes
+  #   @clearBackoffTimeout()
+  #   @getDelegate().notify
+  #     title     : title
+  #     cssClass  : "error"
+  #     duration  : 15 * 1000 # 15 secs
 
-    return if @failedToReconnect
-    @reconnected       = no
-    @failedToReconnect = yes
-    @clearConnectionAttempts()
-    @getDelegate().notify
-      title     : title
-      cssClass  : "error"
-      duration  : 15 * 1000 # 15 secs
 
   destroy: ->
     super
+
     KD.utils.killRepeat @checker
+
     unless @status is "fail"
       @emit "TerminalClosed",
-        vmName   : @getVMName()
-        sessionId: @getOptions().session
+        machineId : @getMachine().uid
+        sessionId : @getOptions().session
 
     @terminal.server?.terminate()
 
+
   updateSettings: ->
+
     @container.unsetClass font.value for font in __webtermSettings.fonts
     @container.unsetClass theme.value for theme in __webtermSettings.themes
+
     @container.setClass @appStorage.getValue('font')
     @container.setClass @appStorage.getValue('theme')
+
     @container.$().css
       fontSize: @appStorage.getValue('fontSize') + 'px'
+
     @terminal.updateSize true
     @terminal.scrollToBottom(no)
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'

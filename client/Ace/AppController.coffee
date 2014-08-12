@@ -11,7 +11,7 @@ class AceAppController extends AppController
     openWith      : "lastActive"
     behavior      : "application"
     preCondition  :
-      condition   : (options, cb)-> cb KD.isLoggedIn()
+      condition   : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
       failure     : (options, cb)->
         KD.singletons.appManager.open 'Ace', conditionPassed : yes
         KD.showEnforceLoginModal()

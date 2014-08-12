@@ -1,0 +1,8 @@
+
+[frontend-nginx]
+nginx1.koding.me
+nginx2.koding.me
+
+
+[localhost]
+localhost ansible_connection=local

@@ -61,6 +61,10 @@ class ApplicationManager extends KDObject
       # method of preCondition if exists
 
       if appOptions?.preCondition? and not options.conditionPassed
+
+        if appOptions.preCondition.checkOnLoadOnly
+          if @get name then return do defaultCallback
+
         appOptions.preCondition.condition appParams, (state, newParams)=>
           if state
             options.conditionPassed = yes
@@ -110,7 +114,7 @@ class ApplicationManager extends KDObject
   openFile:(file)->
 
     extension  = file.getExtension()
-    type       = FSItem.getFileType extension
+    type       = FSHelper.getFileType extension
     defaultApp = @defaultApps[extension]
 
     return @openFileWithApplication defaultApp, file  if defaultApp

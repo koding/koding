@@ -1,105 +1,59 @@
-class EnvironmentsMainScene extends JView
+class EnvironmentsMainScene extends KDView
 
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'environment-content', options.cssClass
-
     super options, data
 
+    @stacks = []
     @on "CloneStackRequested", @bound "cloneStack"
+
 
   viewAppended:->
 
-    container  = new KDCustomHTMLView
-      tagName  : "section"
-      cssClass : "environments-header"
+    @addSubView @renderHeader()
+    { computeController, mainController } = KD.singletons
+    computeController.on "renderStacks", @bound 'renderStacks'
 
-    container.addSubView header = new KDView
-      tagName  : 'header'
-      partial  : """
-        <h1>Environments</h1>
-        <div class="content">
-          Welcome to Environments.
-          Here you can setup your servers and development environment.
-        </div>
-      """
+    mainController.ready @bound 'renderStacks'
+    @once 'NoStacksFound', computeController.bound 'createDefaultStack'
 
-    header.addSubView new KDButtonView
-      cssClass : "solid green medium create-stack"
-      title    : "Create a new stack"
-      callback : @bound "showCreateStackModal"
+  renderStacks:->
 
-    @addSubView container
+    {computeController} = KD.singletons
+    computeController.fetchStacks (err, stacks = [])=>
 
-    freePlanView = new KDView
-      cssClass : "top-warning"
-      click    : (event) ->
-        if "usage" in event.target.classList
-          KD.utils.stopDOMEvent event
-          new KDNotificationView title: "Coming soon..."
+      (stack?.destroy?() for stack in @stacks)
+      @stacks = []
 
-    header.addSubView freePlanView
+      for stack, index in stacks
+        @stacks.push @addSubView \
+          stackView = new StackView {isDefault: index is 0}, stack
+        @forwardEvent stackView, "CloneStackRequested"
 
-    paymentControl = KD.getSingleton("paymentController")
-    paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
-      return warn err  if err
-      if not subscription or "nosync" in subscription.tags
-        freePlanView.updatePartial """
-          You are on a free developer plan,
-          see your <a class="usage" href="#">usage</a> or
-          <a class="pricing" href="/Pricing">upgrade</a>.
-        """
+      @emit "NoStacksFound"  if stacks.length is 0
+      @emit "StacksCreated"
 
-    paymentControl.on "SubscriptionCompleted", ->
-      freePlanView.updatePartial ""
 
-    KD.singletons.mainController.ready => @fetchStacks()
+  createNewStack: (meta, modal)->
 
-  fetchStacks: ->
-    EnvironmentDataProvider.get (@environmentData) =>
-      @emit "EnvironmentDataFetched", @environmentData
+    KD.remote.api.JStack.create meta, (err, stack)=>
 
-      {JStack} = KD.remote.api
-      JStack.getStacks (err, stacks = [])=>
-        warn err  if err
-        @createStacks stacks
-
-  createStacks: (stacks) ->
-    @stacks = []
-    stacks.forEach (stack, index) =>
-      stack = new StackView  { stack, isDefault: index is 0 }, @environmentData
-      stack.once "ready", @bound "watchRuleItems"
-
-      @stacks.push @addSubView stack
-      @forwardEvent stack, "CloneStackRequested"
-      callback?()  if index is stacks.length - 1
-
-    @emit "StacksCreated"
-
-  showCreateStackModal: ->
-    modal = new CreateStackModal
-      callback : @bound "createNewStack"
-
-  createNewStack: (meta, modal) ->
-    KD.remote.api.JStack.createStack meta, (err, stack) =>
       title = "Failed to create a new stack. Try again later!"
-      return new KDNotificationView { title }  if err
-      modal.destroy()
+      return new KDNotificationView { title }  if err?
 
-      stackView = new StackView { stack} , @environmentData
+      modal?.destroy()
+
+      @stacks.push @addSubView stackView = new StackView {}, stack
       @forwardEvent stackView, "CloneStackRequested"
-      @stacks.push @addSubView stackView
+
       @highlightStack stackView
 
-  highlightStack: (stackView) ->
-    stackView.once "transitionend", =>
-      stackView.getElement().scrollIntoView()
-      KD.utils.wait 300, => # wait for a smooth feedback
-        stackView.setClass "hilite"
-        stackView.once "transitionend", =>
-          stackView.setClass "hilited"
 
   cloneStack: (stackData) ->
+
+    return new KDNotificationView title: "FIXME ~GG"
+
     new CreateStackModal
       title   : "Give a title to your new stack"
       callback: (meta, modal) =>
@@ -112,9 +66,57 @@ class EnvironmentsMainScene extends JView
             @highlightStack @stacks.last
           @fetchStacks()
 
-  watchRuleItems: (stack) ->
-    for key, ruleItem of stack.rules.dias
-      ruleItem.on "RuleDataUpdated", =>
-        for stackView in @stacks
-          for key, ruleDia of stackView.rules.dias
-            ruleDia.handleDataUpdate yes
+
+  highlightStack: (stackView) ->
+    stackView.once "transitionend", ->
+      stackView.getElement().scrollIntoView()
+      KD.utils.wait 300, -> # wait for a smooth feedback
+        stackView.setClass "hilite"
+        stackView.once "transitionend", ->
+          stackView.setClass "hilited"
+
+
+  renderHeader: ->
+
+    container = new KDCustomHTMLView
+      tagName  : "section"
+      cssClass : "environments-header"
+
+    header = new KDView
+      tagName  : 'header'
+      partial  : """
+        <h1>Environments</h1>
+        <div class="content">
+          Welcome to Environments.
+          Here you can setup your servers and development environment.
+        </div>
+      """
+
+    header.addSubView new KDButtonView
+      title      : "Create a new stack"
+      cssClass   : "solid green medium create-stack"
+      callback   : => new CreateStackModal
+        callback : @bound "createNewStack"
+
+    header.addSubView freePlanView = new KDView
+      cssClass : "top-warning"
+      click    : (event) ->
+        if "usage" in event.target.classList
+          KD.utils.stopDOMEvent event
+          new KDNotificationView title: "Coming soon..."
+
+    paymentControl = KD.getSingleton("paymentController")
+    paymentControl.fetchActiveSubscription tags: "vm", (err, subscription) ->
+      return  if err
+      if not subscription or "nosync" in subscription.tags
+        freePlanView.updatePartial """
+          You are on a free developer plan,
+          see your <a class="usage" href="#">usage</a> or
+          <a class="pricing" href="/Pricing">upgrade</a>.
+        """
+
+    paymentControl.on "SubscriptionCompleted", ->
+      freePlanView.updatePartial ""
+
+    container.addSubView header
+    return container

@@ -1,0 +1,57 @@
+#!/usr/bin/env coffee
+
+argv       = require('minimist')(process.argv.slice(2))
+log        = console.log
+fs         = require 'fs'
+
+log "-------------------------"
+log ""
+log "# ./configure assumes development environment - comes bundled with options below."
+log "# override them as you see fit with command line arguments like --config --branch etc."
+log ""
+
+options = o =
+  projectRoot      : argv.projectRoot    or __dirname
+  config           : argv.config         or "dev"
+  region           : argv.region         or "dev"
+  branch           : argv.branch         or "cake-rewrite"
+  build            : argv.build          or 1
+  version          : argv.version        or "1.0"
+  environment      : argv.environment    or "dev"
+  hostname         : argv.hostname       or "lvh.me:8090"
+  publicHostname   : argv.publichostname or process.env.USER
+  target           : argv.target         or "localhost"
+  onlyconfigure    : argv.onlyconfigure  or no
+  supervisor       : argv.supervisor     or no
+  deploy           : argv.deploy         or no
+
+log "Configuring with options:"
+log "-------------------------"
+log o
+log "-------------------------"
+log ""
+
+KONFIG = require("./config/main.#{o.config}.coffee")(options)
+
+
+createRunFile = (KONFIG)->
+
+  fs.writeFileSync "run",KONFIG.runFile
+  fs.chmodSync "./run", 0o755
+
+  # write supervisor config
+  if o.supervisor
+    fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
+
+  log "Configuration done"
+  log "1) install Docker, do `boot2docker init`, `boot2docker up`"
+  log "2) export DOCKER_HOST as tcp://192.168.59.103:2375"
+  log "3) brew install mongodb"
+  log "4) do './run install' "
+  log "5) do './run services' for backend services after installing docker."
+  log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
+
+
+
+createRunFile KONFIG
+

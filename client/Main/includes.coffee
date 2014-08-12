@@ -1,6 +1,7 @@
 module.exports = [
 
   # Libs
+  "libs/deb.min.js",
   "libs/md5-min.js",
   "libs/uuid.js",
   "libs/accounting.js",
@@ -140,6 +141,32 @@ module.exports = [
   "CommonViews/memberautocomplete.coffee",
   "CommonViews/editormodal.coffee",
 
+  "providers/machine.coffee",
+
+  "providers/config.coffee",
+  "providers/computecontroller.coffee",
+  "providers/computecontroller.ui.coffee",
+  "providers/computeeventlistener.coffee",
+
+  "providers/dummymachine.coffee",
+  "providers/machineitem.coffee",
+  "providers/machinelist.coffee",
+
+  "providers/provideritemview.coffee",
+  "providers/providerbaseview.coffee",
+
+  "providers/cloudinstanceitemview.coffee",
+
+  "providers/providerdigitalocean.coffee",
+  "providers/providerwelcomeview.coffee",
+  "providers/providerengineyard.coffee",
+  "providers/providerkoding.coffee",
+  "providers/provideramazon.coffee",
+  "providers/providergoogle.coffee",
+  "providers/providerrackspace.coffee",
+
+  "providers/providerview.coffee",
+
   # Algolia-based autocomplete:
   "autocompletecontroller.coffee",
 
@@ -147,7 +174,7 @@ module.exports = [
 
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
-  "navigation/navigationvmitem.coffee",
+  "navigation/navigationmachineitem.coffee",
   "navigation/navigationseparator.coffee",
   "navigation/navigationadminlink.coffee",
   "navigation/navigationinvitationlink.coffee",
@@ -156,7 +183,7 @@ module.exports = [
   "navigation/navigationdocsjobslink.coffee",
   "navigation/navigationpromotelink.coffee",
 
-  "vmsettingsmodal.coffee",
+  "machinesettingsmodal.coffee",
 
   # LOCATION
   "locationcontroller.coffee",
@@ -218,7 +245,6 @@ module.exports = [
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/mainviews/mainview.coffee",
   "maincontroller/mainviewcontroller.coffee",
-  "maincontroller/dockcontroller.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/maincontroller.coffee",
   "maincontroller/helpcontroller.coffee",
@@ -246,19 +272,13 @@ module.exports = [
   "pinger.coffee",
 
   # KITE CONTROLLER
-  "kite/kite.coffee",
-  "kite/kite2.coffee",
-  "kite/oskite.coffee",
-  "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
-  "kite/kitehelper.coffee",
 
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
-  "kite/kites/vmkite.coffee",
-  "kite/kites/oskite.coffee",
-  "kite/kites/terminalkite.coffee",
+  "kite/kites/klient.coffee",
+  "kite/kites/kloud.coffee",
 
   # Virtualization CONTROLLER
   "VirtualizationController.coffee",
@@ -289,8 +309,8 @@ module.exports = [
   "styl/resurrection.anims.styl",
   "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
+  "styl/computeproviders.styl",
 
-  "styl/dock.responsive.styl"
   "styl/app.markdown.styl"
 
 ]

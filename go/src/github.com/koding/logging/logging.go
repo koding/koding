@@ -175,7 +175,6 @@ func NewLogger(name string) Logger {
 }
 
 func (l *logger) SetLevel(level Level) {
-	l.Handler.SetLevel(level)
 	l.Level = level
 }
 
@@ -375,7 +374,6 @@ func (b *WriterHandler) Handle(rec *Record) {
 	if message == "" {
 		return
 	}
-
 	if b.Colorize {
 		b.w.Write([]byte(fmt.Sprintf("\033[%dm", LevelColors[rec.Level])))
 	}

@@ -1,0 +1,36 @@
+#!/usr/bin/env coffee
+
+{ exec }  = require 'child_process'
+host      = process.argv[2] or "localhost"
+
+console.info "Trying to connect Mongo server at #{host}"
+
+check = """ mongo #{host}/koding --quiet --eval="print(db.jGroups.count({slug:'guests'}))" """
+
+exec check, (err, stdout, stderr)->
+
+  if err or= stderr
+
+    if err.code is 1
+      console.error "Failed to connect Mongo server."
+      console.info "You can pass different server address as first parameter."
+    else
+      console.error "An error occured:", err
+
+    process.exit 1
+
+  else if stdout is "1\n"
+    console.warn "DB already exists, not importing at this time."
+    process.exit 0
+
+  else
+    exec """
+      tar jxvf ./install/default-db-dump.tar.bz2
+      mongorestore -h#{host} -dkoding dump/koding
+      rm -rf ./dump
+    """, (err, stdout, stderr)->
+      console.log stdout
+      console.error stderr if stderr
+      console.info "DB didn't exists I created a blank one."
+      process.exit 0
+

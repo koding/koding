@@ -1,0 +1,31 @@
+#!/bin/bash
+
+trap     ctrl_c INT
+function ctrl_c () { kill -KILL $pid $$; }
+
+path=$@
+watchfolder=${path%/*}
+command="node $path"
+
+# echo
+# echo if you want to understand what this script is doing, un-comment the line below.
+# echo [watch-node $$] running $command and daemonizing, watching folder $watchfolder every 2 secs.
+# echo
+
+pid=0
+while [[ true ]]; do
+
+    files=`find $watchfolder -type f -mtime -2s`
+    if [[ $files != "" ]]
+    then
+        echo [watch-node $$] files changed [$files] killing $pid $command
+        kill -KILL $pid > /dev/null
+        echo [watch-node $$] new pid is $pid
+    fi
+    if ! ( ps -p $pid > /dev/null ); then
+        $command &
+        pid=$!
+        echo "[watch-node $$] process (re)started new pid $pid cmd: $command"
+    fi
+    sleep 2
+done

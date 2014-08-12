@@ -4,85 +4,58 @@ class TerminalStartTab extends JView
 
     super
 
-    @vmWrapper = new KDCustomHTMLView tagName : 'ul'
+    @machineWrapper = new KDCustomHTMLView tagName : 'ul'
 
     @message = new KDCustomHTMLView cssClass : 'terminal-bottom-message'
     @message.hide()
 
-    KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
-      if event in ["VMCreated", "VMRemoved"]
+    # FIXME GG
+    # KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
+    #   if event in ["VMCreated", "VMRemoved"]
+    #     @viewAppended yes
 
-        @viewAppended yes
-
-  viewAppended: (force = no) ->
+  viewAppended: ->
 
     super
-    @fetchVMs force
+    @fetchMachines()
     @prepareMessage()
 
 
-  fetchVMs: (force = no) ->
+  fetchMachines: ->
 
-    {vmController, kontrol} = KD.singletons
+    {computeController} = KD.singletons
+    computeController.fetchMachines (err, machines)=>
 
-    vmController.fetchVMs force, (err, vms)=>
       if err
-        ErrorLog.create "terminal: Couldn't fetch vms", reason:err
-        return new KDNotificationView title : "Couldn't fetch your VMs"
+        ErrorLog.create "terminal: Couldn't fetch machines", reason:err
+        return new KDNotificationView title : "Couldn't fetch your Machines"
 
-      vms.sort (a,b)-> a.hostnameAlias > b.hostnameAlias
+      machines = machines.filter (machine)-> machine.status.state is "Running"
 
-      @listVMs vms
+      @listMachines        machines
+      @listMachineSessions machines
 
-      terminalKites =
-        if KD.useNewKites
-        then kontrol.kites.terminal
-        else vmController.terminalKites
 
-      vmController.on 'terminalsReady', =>
-        @listVMSessions vms
+  listMachines: (machines)->
 
-      osKites =
-        if KD.useNewKites
-        then kontrol.kites.oskite
-        else vmController.kites
+    @machineWrapper.destroySubViews()
 
-      for own alias, kite of osKites
-        if kite.recentState
-          @vmWrapper[alias]?.handleVMInfo kite.recentState
+    machines.forEach (machine)=>
 
     vmController.on 'vm.progress.start', ({alias, update}) => @vmWrapper[alias]?.handleVMStart update
     vmController.on 'vm.progress.stop',  ({alias, update}) => @vmWrapper[alias]?.handleVMStop  update
     vmController.on 'vm.state.info',     ({alias, state})  => @vmWrapper[alias]?.handleVMInfo  state
     vmController.on 'vm.progress.error', ({alias, error})  => @vmWrapper[alias]?.handleVMError error
 
-
-  listVMs:(vms)->
-
-    @vmWrapper.destroySubViews()
-    vms.forEach (vm)=>
-      alias             = vm.hostnameAlias
-      @vmWrapper[alias] = new TerminalStartTabVMItem {}, vm
-      @vmWrapper.addSubView @vmWrapper[alias]
-      appView = @getDelegate()
-      appView.forwardEvent @vmWrapper[alias], 'VMItemClicked'
+    @getDelegate().forwardEvent @machineWrapper[machine.uid], 'VMItemClicked'
 
 
-  listVMSessions: (vms) ->
-    {vmController, kontrol} = KD.singletons
-    vmList = {}
-    vms.forEach (vm) -> vmList[vm.hostnameAlias] = vm
+  listMachineSessions: (machines) ->
 
-    terminalKites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.terminalKites
+    machines.forEach (machine)=>
 
-    delegate = @getDelegate()
-
-    for own alias, kite of terminalKites
-      vm = vmList[alias]
-      @vmWrapper[alias].addSubView new SessionStackView {kite, alias, vm, delegate}
+      @machineWrapper[machine.uid].addSubView \
+        new SessionStackView { machine, delegate: @getDelegate() }
 
 
   pistachio:->
@@ -90,11 +63,12 @@ class TerminalStartTab extends JView
     """
     <h1>This is where the magic happens!</h1>
     <h3>Your VMs</h3>
-    {{> @vmWrapper}}
+    {{> @machineWrapper}}
     <figure><iframe src="//www.youtube.com/embed/DmjWnmSlSu4?origin=https://koding.com&showinfo=0&rel=0&theme=dark&modestbranding=1&autohide=1&loop=1" width="100%" height="100%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe></figure>
     <h2>Terminal allows you to interact directly with your VM.</h2>
     {{> @message}}
     """
+
 
   prepareMessage: ->
 

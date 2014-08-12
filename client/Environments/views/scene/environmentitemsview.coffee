@@ -49,8 +49,8 @@ class EnvironmentItem extends KDDiaObject
       menuItems
 
     ctxMenu.on 'ContextMenuItemReceivedClick', (item) =>
-      {action} = item.getData()
-      ctxMenu.destroy()  if @["cm#{action}"]?
+      {action, callback} = item.getData()
+      ctxMenu.destroy()  if callback? or @["cm#{action}"]?
       @["cm#{action}"]?()
 
   # - Context Menu Actions - #
@@ -60,8 +60,7 @@ class EnvironmentItem extends KDDiaObject
 
   setColorTag : (color, save = yes) ->
 
-    @getElement().style.borderLeftColor = color
-    @options.colorTag                   = color
+    @options.colorTag = color
     @saveColorTag color  if save
     @parent.emit 'UpdateScene'
 
@@ -71,8 +70,8 @@ class EnvironmentItem extends KDDiaObject
 
     colorTags = (@parent.appStorage.getValue 'colorTags') or {}
     name      = @constructor.name
-    title     = pipedVmName @getData().title
-    colorTags["#{name}-#{title}"] = color
+    uid       = @getData().uid
+    colorTags["#{name}-#{uid}"] = color
 
     @parent.appStorage.setValue 'colorTags', colorTags
 
@@ -82,12 +81,10 @@ class EnvironmentItem extends KDDiaObject
 
     colorTags = (@parent.appStorage.getValue 'colorTags') or {}
     name      = @constructor.name
-    title     = pipedVmName @getData().title
-    color     = colorTags["#{name}-#{title}"]
+    uid       = @getData().uid
+    color     = colorTags["#{name}-#{uid}"]
 
     @setColorTag color  if color
-
-  pipedVmName = (vmName)-> vmName.replace /\./g, '|'
 
   viewAppended:->
     JView::viewAppended.call this

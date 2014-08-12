@@ -1,0 +1,128 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CoreOS on EC2: http://coreos.com/docs/running-coreos/cloud-providers/ec2/",
+  "Mappings" : {
+      "RegionMap" : {
+
+          "ap-northeast-1" : {
+              "AMI" : "ami-19fba518"
+          },
+
+          "sa-east-1" : {
+              "AMI" : "ami-631bb27e"
+          },
+
+          "ap-southeast-2" : {
+              "AMI" : "ami-c5abcdff"
+          },
+
+          "ap-southeast-1" : {
+              "AMI" : "ami-8ee4bcdc"
+          },
+
+          "us-east-1" : {
+              "AMI" : "ami-9aba6cf2"
+          },
+
+          "us-west-2" : {
+              "AMI" : "ami-431f6573"
+          },
+
+          "us-west-1" : {
+              "AMI" : "ami-f9474abc"
+          },
+
+          "eu-west-1" : {
+              "AMI" : "ami-d6f82aa1"
+          }
+
+      }
+  },
+  "Parameters": {
+    "InstanceType" : {
+      "Description" : "EC2 HVM instance type (m3.medium, etc).",
+      "Type" : "String",
+      "Default" : "t2.micro",
+      "AllowedValues" : [ "t2.micro", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "c3.large","c3.xlarge", "c3.2xlarge", "c3.4xlarge","c3.8xlarge", "cc2.8xlarge","cr1.8xlarge","hi1.4xlarge", "hs1.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "r3.large", "r3.xlarge", "r3.2xlarge","r3.4xlarge", "r3.8xlarge", "t2.micro", "t2.small", "t2.medium" ],
+      "ConstraintDescription" : "Must be a valid EC2 HVM instance type."
+    },
+    "SecurityGroupId":{
+      "Default" : "sg-64126d01",
+      "Type": "String",
+      "Description": "Security group to launch instances into. (it must exist, it won't be created.)"
+    },
+    "SubnetId":{
+      "Default" : "subnet-b47692ed",
+      "Type": "String",
+      "Description": "VPC group to launch instances into. (it must exist, it won't be created.)"
+    },
+    "ClusterSize": {
+      "Default": "3",
+      "MinValue": "3",
+      "MaxValue": "12",
+      "Description": "Number of nodes in cluster (3-12).",
+      "Type": "Number"
+    },
+    "DiscoveryURL": {
+      "Description": "An unique etcd cluster discovery URL. Grab a new token from https://discovery.etcd.io/new",
+      "Type": "String"
+    },
+    "AdvertisedIPAddress": {
+      "Description": "Use 'private' if your etcd cluster is within one region or 'public' if it spans regions or cloud providers.",
+      "Default": "private",
+      "AllowedValues": ["private", "public"],
+      "Type": "String"
+    },
+    "AllowSSHFrom": {
+      "Description": "The net block (CIDR) that SSH is available to.",
+      "Default": "0.0.0.0/0",
+      "Type": "String"
+    },
+    "KeyPair" : {
+      "Default" : "koding-prod-deployment",
+      "Description" : "The name of an EC2 Key Pair to allow SSH access to the instance.",
+      "Type" : "String"
+    }
+  },
+  "Resources": {
+    "CoreOSServerAutoScale": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": [ "us-east-1a"],
+        "LaunchConfigurationName": {"Ref": "CoreOSServerLaunchConfig"},
+        "VPCZoneIdentifier": [{"Ref":"SubnetId"}],
+        "MinSize": "3",
+        "MaxSize": "12",
+        "DesiredCapacity": {"Ref": "ClusterSize"},
+        "Tags": [
+            {"Key": "Name", "Value": { "Ref" : "AWS::StackName" }, "PropagateAtLaunch": true}
+        ]
+      }
+    },
+    "CoreOSServerLaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI" ]},
+        "InstanceType": {"Ref": "InstanceType"},
+        "KeyName": {"Ref": "KeyPair"},
+        "SecurityGroups": [{"Ref": "SecurityGroupId"}],
+        "UserData" : { "Fn::Base64":
+          { "Fn::Join": [ "", [
+            "#cloud-config\n\n",
+            "coreos:\n",
+            "  etcd:\n",
+            "    discovery: ", { "Ref": "DiscoveryURL" }, "\n",
+            "    addr: $", { "Ref": "AdvertisedIPAddress" }, "_ipv4:4001\n",
+            "    peer-addr: $", { "Ref": "AdvertisedIPAddress" }, "_ipv4:7001\n",
+            "  units:\n",
+            "    - name: etcd.service\n",
+            "      command: start\n",
+            "    - name: fleet.service\n",
+            "      command: start\n"
+            ] ]
+          }
+        }
+      }
+    }
+  }
+}

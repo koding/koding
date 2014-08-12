@@ -7,7 +7,7 @@ versionFile = (kiteName) ->
 module.exports =
   disableWebSocketByDefault: yes
   stack:
-    force: no
+    force: yes
     newKites: yes
   kontrol:
     username: 'koding'
@@ -15,3 +15,7 @@ module.exports =
     version: versionFile 'os'
   terminal:
     version: versionFile 'terminal'
+  klient:
+    version: versionFile 'klient'
+  kloud:
+    version: versionFile 'kloud'

@@ -14,8 +14,12 @@ services=(
   koding/kites/os
   koding/kites/terminal
   github.com/koding/kite/cmd/kite
+  github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
-  koding/kites/proxy
+  github.com/coreos/etcd
+  koding/kites/klient
+  koding/kites/kloud
+  github.com/koding/kloudctl
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview

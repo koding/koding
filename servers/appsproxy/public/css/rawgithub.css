@@ -1,0 +1,78 @@
+html {
+    background: #fff;
+    color: #333;
+    font: 16px/1.5 Ubuntu, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased
+}
+
+body {
+    padding: 0 1em;
+}
+
+code, pre {
+    font-family: 'Ubuntu Mono', 'Source Code Pro', 'DejaVu Sans Mono', Menlo, monospace;
+}
+
+code {
+    background: #f8f8f8;
+    border: 1px solid #efefef;
+    padding: 1px 4px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: bold;
+    margin: 1.4em 0 0.5em;
+}
+
+h1 {
+    font-size: 2.8em;
+    margin-top: 1em;
+}
+
+h2 { font-size: 1.6em; }
+h3 { font-size: 1.2em; }
+h4, h5, h6 { font-size: 1em; }
+
+h3 a {
+    color: inherit;
+    margin-top: 1.8em;
+    text-decoration: none;
+}
+
+pre { overflow-x: auto; }
+
+#doc {
+    margin: 0 auto;
+    max-width: 800px;
+    min-width: 500px;
+}
+
+.hd { text-align: center; }
+
+.logo {
+    display: block;
+    height: 54px;
+    margin: 0 auto;
+    width: 96px;
+}
+
+.ft {
+    font-size: 0.8em;
+    margin: 3em 11em 4em;
+    text-align: center;
+}
+
+.after, .before {
+    border: 1px solid;
+    padding: 4px 6px;
+}
+
+.after {
+    background: #F2FFEB;
+    border-color: #D0FFB5;
+}
+
+.before {
+    background: #FFF7F7;
+    border-color: #FFCCCC;
+}

@@ -1,0 +1,224 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../../Main/styl/appfn"
+@import "../../Main/styl/app.fonts"
+
+@css {
+/*
+Vendors/Providers stylesheet
+computeproviders.styl
+*/
+}
+
+.provider-modal
+
+  .kdmodal-inner
+    margin           15px
+    // .kdmodal-buttons
+    //   display        none
+
+.provider-base-view
+
+  height             530px
+
+  .provider-mainview
+    background       white
+
+  .provider-split
+    background       white
+    .panel-1
+      border-left    1px solid #eee
+
+  .welcome-pane
+    text-align      center
+    padding         50px
+    box-sizing      border-box
+
+    h1
+      font-size     20px
+      font-weight   400
+      margin        10px
+    p
+      line-height   20px
+      margin        5px
+
+  .provider-view
+
+    overflow        hidden  !important
+
+    p
+      line-height   20px
+      border-bottom 1px solid #eee
+      padding       10px
+
+    .kdloader
+      left          50%
+      top           50%
+      margin        -20px 0 0 -20px
+      abs()
+
+    .kdselectbox
+      width           97%
+      margin          10px
+
+      span.title
+        font-weight   600
+        font-size     16px
+
+    .content-view
+      overflow-y      scroll
+
+    .form-view
+      z-index         102
+      background      white
+      left            50%
+      width           460px
+      margin-left     -230px
+      top             -120%
+      padding         10px
+
+      box-shadow      0 0 10px rgba(0,0,0,0.3)
+      border-radius   0 0 3px 3px
+      vendor          transition, top .3s ease
+      abs()
+
+      &.in
+        top         0
+
+      .button-field
+        height      43px !important
+
+  .instance-list
+
+    height            auto
+    padding           10px
+    border-top        1px solid #eee
+    margin-bottom     120px
+
+    .cloud-item
+
+      margin          0 0 10px
+      border-bottom   1px solid #eee
+      width           552px
+      cursor          default
+      borderBox()
+
+      h2
+        font-weight   400
+
+      button
+        right         5px
+        top           5px
+        abs()
+
+  .provider-list
+
+    .kdlistitemview
+      cursor         pointer
+      height         50px
+      border-bottom  1px solid #ddd
+
+      &.Amazon
+        background   url("../images/vendors/amazon.png")
+        background-size auto 40px
+        background-repeat no-repeat
+        background-position 10px 5px
+
+      &.Koding
+        background   url("../images/vendors/koding.png")
+        background-size auto 40px
+        background-repeat no-repeat
+        background-position 10px 5px
+
+      &.DigitalOcean
+        background   url("../images/vendors/digitalocean.png")
+        background-size 180px
+        background-repeat no-repeat
+        background-position 10px 12px
+
+      &.Rackspace
+        background   url("../images/vendors/rackspace.png")
+        background-size 180px
+        background-repeat no-repeat
+        background-position 10px 4px
+
+      &.EngineYard
+        background   url("../images/vendors/engineyard.png")
+        background-size auto 40px
+        background-repeat no-repeat
+        background-position 10px 5px
+
+      &.Google
+        background   url("../images/vendors/google.png")
+        background-size 200px
+        background-repeat no-repeat
+        background-position 0 1px
+
+      &:hover
+        background-color  #eee
+
+      &.selected
+        background-color  #eee
+
+  .new-vm-selection
+    padding            20px
+    width              550px
+    margin             0 auto
+
+  .add-vm-box
+    background         #f3f7fa
+    size               170px, 220px
+    padding            25px
+    color              #50595a
+    rounded            2px
+    borderBox()
+    fl()
+
+    &~.add-vm-box
+      margin-left      18px
+
+    &.passive
+      opacity          .3
+
+    &.selected
+      shadow           inset 0 0 0 3px rgba(17, 175, 94, .4)
+
+
+    h3
+      line-height      24px
+      display          block
+      border-bottom    1px solid #d7dcdf
+      font-size        16px
+      font-weight      500
+      padding          6px 0 12px
+
+      cite
+        display        inline-block
+        size           24px, 24px
+        line-height    24px
+        text-align     center
+        color          #fff
+        background     #646c6d
+        rounded        50%
+        font-size      12px
+        font-weight    200
+        margin         0 0 0 6px
+
+    ul
+      margin           20px 0 0
+      font-weight      200
+      line-height      34px
+      font-size        14px
+
+      strong
+        font-weight    500
+        font-size      16px
+
+  h5.coming-soon-title
+    font-size         22px
+    font-weight       400
+    line-height       220px
+    left              300px
+    top               -220px
+    text-shadow       0 0 2px white
+    color             rgba(0, 0, 0, .75)
+    position          relative
