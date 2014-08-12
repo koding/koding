@@ -180,7 +180,7 @@ getSidebar = ->
     <div id="dock">
       <h3 class="sidebar-title">MY APPS</h3>
       <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim activity running selected" href="/Activity">
+        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim activity running selected" href="/Activity/Public">
           <figure></figure>
           <cite>Activity</cite>
         </a>
@@ -202,6 +202,12 @@ getSidebar = ->
         </a>
       </div>
     </div>
+    <a href="/Login" type="submit" class="kdbutton solid medium login-register">
+      <span class="button-title">LOGIN</span>
+    </a>
+    <a href="/Register" type="submit" class="kdbutton solid medium login-register">
+      <span class="button-title">REGISTER</span>
+    </a>
   </aside>
   """
 
