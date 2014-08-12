@@ -5,7 +5,7 @@ GODIR=$(CURDIR)/../../../go
 GOBINDIR=$(GODIR)/bin
 GOPATH := $(realpath $(GODIR))
 GOBIN := $(realpath $(GOBINDIR))
-CONFIG=./config/vagrant.toml
+CONFIG=./config/dev.toml
 MAJOR=0
 MINOR=1
 # export MAJOR
