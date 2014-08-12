@@ -600,6 +600,35 @@ Configuration = (options={}) ->
 
     return run
 
+  cloudformation = ->
+    return
+        AWSTemplateFormatVersion: "2010-09-09"
+        Description: "Koding deployment on AWS"
+        Resources:
+            KodingAutoScale:
+                Type: "AWS::AutoScaling::AutoScalingGroup"
+                Properties:
+                    AvailabilityZones: ["us-east-1a"]
+                    LaunchConfigurationName: {Ref: "KodingLaunchConfig"}
+                    VPCZoneIdentifier: ["subnet-b47692ed"]
+                    LoadBalancerNames: ["koding-prod-deployment"]
+                    MinSize: "3"
+                    MaxSize: "12"
+                    DesiredCapacity: "3"
+                    Tags: [ Key: "Name", Value: {Ref: "AWS::StackName"}, PropagateAtLaunch: yes]
+
+            KodingLaunchConfig:
+                Type: "AWS::AutoScaling::LaunchConfiguration"
+                Properties:
+                    ImageId: "ami-864d84ee"
+                    InstanceType: "t2.micro"
+                    KeyName: "koding-prod-deployment"
+                    SecurityGroups: ["sg-64126d01"]
+                    UserData: "Fn::Base64": run
+
+
+
+
   machineSettings = """
         \n
         echo '#{b64z nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
