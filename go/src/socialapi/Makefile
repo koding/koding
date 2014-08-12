@@ -175,6 +175,9 @@ testapi:
 	@./trollmode.test $(DBG) $(METRICS) -c ./config/dev.toml
 	@rm  ./trollmode.test
 
+	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
+	@go test -c workers/topicfeed/topicfeed/*.go
+
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go
 	@./main.test

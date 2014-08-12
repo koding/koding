@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/kylemcc/twitter-text-go/extract"
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -98,16 +99,22 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 func extractTopics(body string) []string {
 	flattened := make([]string, 0)
 
-	res := topicRegex.FindAllStringSubmatch(body, -1)
-	if len(res) == 0 {
+	// extract twitter style hashtags
+	res := extract.ExtractHashtags(body)
+	if res == nil {
 		return flattened
 	}
 
 	topics := map[string]struct{}{}
 	// remove duplicate tag usages
-	for _, ele := range res {
-		topics[ele[1]] = struct{}{}
+	for _, e := range res {
+		if hashTag, ok := e.Hashtag(); ok {
+			topics[hashTag] = struct{}{}
+		}
 	}
+
+	// filter unwanted topics
+	topics = filterTopics(topics)
 
 	for topic := range topics {
 		flattened = append(flattened, topic)
@@ -116,6 +123,34 @@ func extractTopics(body string) []string {
 	return flattened
 }
 
+func filterTopics(topics map[string]struct{}) map[string]struct{} {
+	blacklistedTopics := []string{
+		// public topic is used for group channel, if user adds `public` tag
+		// into the message, do not try to add it to the group channel again
+		"public",
+	}
+
+	filteredTopics := make(map[string]struct{})
+
+	for topic, _ := range topics {
+		blacklisted := false
+		// check if the topic is in blacklisted topics
+		for _, blacklistedTopic := range blacklistedTopics {
+			if topic == blacklistedTopic {
+				blacklisted = true
+				break
+			}
+		}
+
+		// merge -not blacklisted- topics
+		if !blacklisted {
+			filteredTopics[topic] = struct{}{}
+		}
+	}
+
+	return filteredTopics
+
+}
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 	if res, _ := isEligible(data); !res {
 		return nil
