@@ -266,5 +266,8 @@ func kontrolURL(k *kite.Kite) string {
 		kontrolURL = u.String()
 	}
 
+	// we are going to use our final url for kontrol queries and registering
+	k.Config.KontrolURL = kontrolURL
+
 	return kontrolURL
 }

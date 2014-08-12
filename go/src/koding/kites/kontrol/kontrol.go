@@ -17,10 +17,11 @@ import (
 const version = "0.0.6"
 
 var (
-	flagProfile  = flag.String("c", "", "Configuration profile")
-	flagRegion   = flag.String("r", "", "Region")
-	flagMachines = flag.String("m", "", "Machines (comma seperated)")
-	flagPort     = flag.Int("port", 4000, "Port number of kontrol server")
+	flagProfile     = flag.String("c", "", "Configuration profile")
+	flagRegion      = flag.String("r", "", "Region")
+	flagMachines    = flag.String("m", "", "Machines (comma seperated)")
+	flagPort        = flag.Int("port", 4000, "Port number of kontrol server")
+	flagRegisterURL = flag.String("register-url", "", "Change self register URL")
 )
 
 func main() {
@@ -59,6 +60,10 @@ func main() {
 
 	kon := kontrol.New(kiteConf, version, string(publicKey), string(privateKey))
 	kon.Machines = machines
+
+	if *flagRegisterURL != "" {
+		kon.RegisterURL = *flagRegisterURL
+	}
 
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateFromKodingPassword
