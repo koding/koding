@@ -17,9 +17,9 @@
 
 **Python libraries**
 
-- [transitorykris/etcd-py](https://github.com/transitorykris/etcd-py)
 - [jplana/python-etcd](https://github.com/jplana/python-etcd) - Supports v2
 - [russellhaering/txetcd](https://github.com/russellhaering/txetcd) - a Twisted Python library
+- [cholcombe973/autodock](https://github.com/cholcombe973/autodock) - A docker deployment automation tool
 
 **Node libraries**
 
@@ -89,3 +89,6 @@ A detailed recap of client functionalities can be found in the [clients compatib
 - [configdb](https://git.autistici.org/ai/configdb/tree/master) - A REST relational abstraction on top of arbitrary database backends, aimed at storing configs and inventories.
 - [scrz](https://github.com/scrz/scrz) - Container manager, stores configuration in etcd.
 - [fleet](https://github.com/coreos/fleet) - Distributed init system
+- [GoogleCloudPlatform/kubernetes](https://github.com/GoogleCloudPlatform/kubernetes) - Container cluster manager.
+- [mailgun/vulcand](https://github.com/mailgun/vulcand) - HTTP proxy that uses etcd as a configuration backend.
+- [duedil-ltd/discodns](https://github.com/duedil-ltd/discodns) - Simple DNS nameserver using etcd as a database for names and records.

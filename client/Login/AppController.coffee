@@ -12,7 +12,6 @@ class LoginAppsController extends AppController
 
     super options, data
 
-
   prepareFinishRegistrationForm: (token) ->
 
     { JPasswordRecovery } = KD.remote.api

@@ -8,6 +8,8 @@ class CommonDomainCreateForm extends KDFormViewWithFields
         domainName          :
           name              : "domainInput"
           cssClass          : "domain-input"
+          attributes        :
+            spellcheck      : false
           label             : options.label        ? "Subdomain"
           placeholder       : options.placeholder or "Type your domain"
           validate          :
@@ -18,9 +20,16 @@ class CommonDomainCreateForm extends KDFormViewWithFields
               itemClass     : KDSelectBox
               cssClass      : "main-domain-select"
               selectOptions : options.selectOptions
+            suffixDomain    :
+              itemClass     : KDView
+              cssClass      : "suffix-domain"
+              partial       : ".#{options.suffixDomain}"
 
+    if options.noDomainSelector
+      delete o.fields.domainName.nextElement.domains
 
-    delete o.fields.domainName.nextElement  if options.noDomainSelector
+    unless options.suffixDomain
+      delete o.fields.domainName.nextElement.suffixDomain
 
     super o, data
 

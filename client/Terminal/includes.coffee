@@ -7,12 +7,12 @@ module.exports = [
   "chrometerminalbanner.coffee"
   "vmitem.coffee",
   "terminalstarttab.coffee",
-  "vmselectionview.coffee",
   "webtermview.coffee",
   "webtermsettingsview.coffee",
   "webtermsettings.coffee",
   "sessionstackview.coffee",
   "sessionitemview.coffee",
+  "terminalmodal.coffee",
 
   "src/ControlCodeReader.coffee",
   "src/Cursor.coffee",

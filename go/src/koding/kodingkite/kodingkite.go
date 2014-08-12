@@ -3,7 +3,6 @@ package kodingkite
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -42,18 +41,18 @@ func New(kodingConf *kodingconfig.Config, name, version string) (*KodingKite, er
 	}
 
 	// prepare our multilog handler
-	syslog, err := logging.NewSyslogHandler(name)
-	if err != nil {
-		log.Fatalf("Cannot connect to syslog: %s", err.Error())
-	}
+	// syslog, err := logging.NewSyslogHandler(name)
+	// if err != nil {
+	// 	log.Fatalf("Cannot connect to syslog: %s", err.Error())
+	// }
 
-	logger := logging.NewLogger(name)
-	logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
+	// logger := logging.NewLogger(name)
+	// logger.SetHandler(logging.NewMultiHandler(logging.StderrHandler, syslog))
 
-	k.Log = logger
-	k.SetLogLevel = func(l kite.Level) {
-		logger.SetLevel(convertLevel(l))
-	}
+	// k.Log = logger
+	// k.SetLogLevel = func(l kite.Level) {
+	// 	logger.SetLevel(convertLevel(l))
+	// }
 
 	if kodingConf.NewKites.UseTLS {
 		kk.UseTLSFile(kodingConf.NewKites.CertFile, kodingConf.NewKites.KeyFile)
@@ -97,10 +96,14 @@ func getRegisterIP(environment string) (string, error) {
 	switch environment {
 	case "production":
 		fallthrough
+	case "prod":
+		fallthrough
+	case "kodingme":
+		fallthrough
 	case "staging":
 		// Magical IP address of Openstack Metadata Service
 		// http://docs.openstack.org/grizzly/openstack-compute/admin/content/metadata-service.html
-		resp, err := http.Get("http://169.254.169.254/latest/meta-data/public-ipv4")
+		resp, err := http.Get("http://echoip.com")
 		if err != nil {
 			return "", errors.New("cannot get public IP address: " + err.Error())
 		}

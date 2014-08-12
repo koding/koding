@@ -3,11 +3,11 @@ class DockController extends KDViewController
   isRunning = (item) -> item?.state is 'running'
 
   defaultItems = [
-    { title : 'Activity',  path : '/Activity', order : 10, type :'persistent' }
+    # { title : 'Social',  path : '/Activity', order : 10, type :'persistent' }
     { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
     { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
-    { title : 'Apps',      path : '/Apps',     order : 40, type :'persistent' }
-    { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : '+',      path : '/Apps',     order : 40, type :'persistent' }
+    # { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
     # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
@@ -43,21 +43,6 @@ class DockController extends KDViewController
       title        : 'navigation'
       items        : []
 
-
-    @vmsList = new KDListViewController
-      wrapper             : no
-      scrollView          : no
-      startWithLazyLoader : yes
-      itemClass           : NavigationVMItem
-      lazyLoaderOptions   : loaderOptions
-    ,
-      id           : 'vms'
-      title        : 'vms'
-      items        : []
-
-    @vmsList.getListView().on 'VMCogClicked', (vm, item)->
-      {mainView} = KD.singletons
-      mainView.openVMModal vm, item
 
     # {mainController} = KD.singletons
     # mainController.ready @bound 'accountChanged'
@@ -189,31 +174,17 @@ class DockController extends KDViewController
           @addItem { title : name, path, \
                      order : 60 + KD.utils.uniqueId(), type :"" }
 
-  listVMs: (vms) ->
-
-    @vmsList.hideLazyLoader()
-
-    @vmsList.addItem vm  for vm in vms
-
-
   loadView: (dock) ->
 
     dock.addSubView new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : 'MY APPS'
+      partial  : 'VMs'
 
-    dock.addSubView @navController.getView()
-
-    dock.addSubView new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'MY VMs'
-
-    dock.addSubView @vmsList.getView()
+    dock.addSubView @vmTree.getView()
     dock.addSubView new CustomLinkView
       icon     : no
-      cssClass : 'add-vm'
+      cssClass : 'kdlistitemview-main-nav add-vm'
       title    : '+ Add another VM'
       click    : ->
         # fixme: this is a temp solution
@@ -222,16 +193,24 @@ class DockController extends KDViewController
           env = new EnvironmentMachineContainer
           env.emit 'PlusButtonClicked'
 
+    dock.addSubView new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'sidebar-title'
+      partial  : 'MY APPS'
+
+    dock.addSubView @navController.getView()
+    dock.addSubView new CustomLinkView
+      icon     : no
+      cssClass : 'kdlistitemview-main-nav add-app'
+      title    : '+ Add more apps'
+      href     : '/Apps'
+
+
 
     # @navController.reset()
     # @setNavItems defaultItems
     @setNavItems defaultItems
     @emit 'ready'
-
-    if KD.userVMs.length
-    then @listVMs KD.userVMs
-    else @fetchVMs @bound 'listVMs'
-
 
     @ready =>
 
@@ -278,7 +257,7 @@ class DockController extends KDViewController
 
   refreshSidebarVMs: ->
     @fetchVMs (vms) =>
-      @vmsList.removeAllItems()
+      @vmTree.removeAllNodes()
       @listVMs vms
 
   getRelativeItem: (increment, predicate) ->

@@ -70,11 +70,12 @@ class MainView extends KDView
 
     @setClass 'with-sidebar'
 
-    @addSubView @sidebar = new KDCustomHTMLView
+    @addSubView @sidebar = new KDCustomScrollView
       tagName  : 'aside'
       domId    : 'main-sidebar'
 
-    @sidebar.addSubView KD.singletons.dock.getView()
+    @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
+
 
 
   createPanelWrapper:->
@@ -83,10 +84,15 @@ class MainView extends KDView
       tagName  : 'section'
       domId    : 'main-panel-wrapper'
 
+    @panelWrapper.addSubView new KDCustomHTMLView
+      tagName  : 'cite'
+      domId    : 'sidebar-toggle'
+      click    : => @toggleClass 'collapsed'
+
 
   createAccountArea:->
 
-    @sidebar.addSubView @accountArea = new KDCustomHTMLView
+    @addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
     if KD.isLoggedIn()
@@ -214,14 +220,14 @@ class MainView extends KDView
     @panelWrapper.addSubView @appSettingsMenuButton
 
 
-  openVMModal: (vm, item) ->
+  openMachineModal: (machine, item) ->
 
     bounds   = item.getBounds()
     position =
-      top    : Math.max bounds.y - 40, 0
-      left   : bounds.x + bounds.w + 20
+      top    : Math.max bounds.y - 38, 0
+      left   : bounds.x + bounds.w + 16
 
-    new VMSettingsModal {position}, vm
+    new MachineSettingsModal {position}, machine
 
 
   setStickyNotification:->

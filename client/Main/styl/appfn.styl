@@ -67,145 +67,17 @@ greenLink()
 noAnim()
   vendor                transition, none!important
 
-appThumbStyl()
-  height                  auto
-  padding                 20px 0% 48px 1%
-  width                   100%
-  overflow                visible
-  borderBox()
+styleScrollBars()
 
-  .top-badge
-    position              absolute
-    top                   8px
-    left                  9px
-    border-radius         4px
-    font-size             9px
-    padding               0 3px 1px 3px
-    color                 #fff
+  &.has-vertical
+    padding-right       0
 
-    &.gray
-      background-color      rgba(114, 114, 114, 0.25)
-      border                1px solid rgba(186, 196, 186, 0.98)
+  .kdview.kdscrolltrack
+    bg                  color transparent
+    overflow            visible
+    .kdscrollthumb
+      bg                color rgba(255,255,255,.15)
+      margin            0 4px
+      width             7px
+      rounded           6px
 
-    &.green
-      border              1px solid #63a62f
-      border-color        #63a62f #63a62f #5b992b #63a62f
-      gradient            #7fbf4d, #63a62f
-    &.orange
-      border              1px solid #f76f14
-      bg                  color, #ff9200
-
-  figure
-    display               inline-block
-    rel()
-    size                  19%, auto
-    margin                0 1% 1% 0
-    min-width             120px
-    max-width             200px
-    padding               20px
-    overflow              hidden
-    text-align            center
-    vertical-align        top
-    cursor                pointer
-    rounded               4px
-    vendor                transition, all .2s ease-out
-    shadow                0 1px 2px rgba(0,0,0,0.15)
-    bg                    color, rgba(255, 255, 255, 0.2)
-    borderBox()
-    &:hover
-      bg                  color, rgba(255, 255, 255, 0.5)
-      shadow              0 2px 10px rgba(0,0,0,0.15)
-      .icon-container
-        margin-top        0
-        opacity           1
-      cite
-        height            13px
-    &.disabled
-      padding-bottom      20px
-      &:after
-        content           'Coming Soon'
-        background        black
-        border-radius     0 0 4px 4px
-        bottom            -20px
-        color             #FF9200
-        display           block
-        left              0
-        abs()
-        opacity           0
-        padding           5px 0
-        transition        bottom .3s linear
-        text-shadow       none
-        visibility        none
-        width             100%
-
-      &:hover:after
-        display           block
-        opacity           1
-        bottom            0
-        visibility        visible
-
-      img
-      strong
-      span.data
-        opacity           .5
-
-    .kdloader
-      abs()
-      top                 50%
-      left                50%
-      margin              -20px 0 0 -20px
-      z-index             1000
-
-    p
-      rounded             4px
-
-    img
-      width               100%
-
-    cite
-      abs()
-      display             block
-      bottom              10px
-      left                0
-      //size                100%, 100%
-      width               100%
-      max-width           100%
-      font-size           11px
-      font-style          normal
-      color               #aaa
-      white-space         nowrap
-      text-overflow       ellipsis
-      overflow            hidden
-      //vendor              transition, height .15s linear .6s
-
-    span
-      noTextDeco()
-
-    span > span
-      font-size           11px
-
-    .icon-container
-      abs()
-      display             inline-block
-      top                 5px
-      right               5px
-      margin-top          -30px
-      opacity             0
-      // vendor              transition, opacity .15s linear
-
-    span.icon
-      size                20px, 20px
-      opacity             .4
-      fl()
-      sprite()
-      &:hover
-        opacity           .6
-      &.info
-        bg                position, -260px -440px
-        right             5px
-      &.compile
-        bg                position, -300px -440px
-        right             26px
-      &.delete
-        bg                position, -280px -441px
-        right             47px

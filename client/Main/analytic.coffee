@@ -34,7 +34,7 @@ do->
     gaSend "event", args...
 
   gaSend = (args...)->
-    return  unless ga and KD.config.logToExternal
+    return  if not ga? or not KD.config.logToExternal
 
     lastGAMessage = new Date
     ga "send", args...

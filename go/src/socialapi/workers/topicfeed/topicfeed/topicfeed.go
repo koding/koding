@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/kylemcc/twitter-text-go/extract"
 	"github.com/streadway/amqp"
 
 	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -98,15 +99,17 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 func extractTopics(body string) []string {
 	flattened := make([]string, 0)
 
-	res := topicRegex.FindAllStringSubmatch(body, -1)
-	if len(res) == 0 {
+	res := extract.ExtractHashtags(body)
+	if res == nil {
 		return flattened
 	}
 
 	topics := map[string]struct{}{}
 	// remove duplicate tag usages
-	for _, ele := range res {
-		topics[ele[1]] = struct{}{}
+	for _, e := range res {
+		if hashTag, ok := e.Hashtag(); ok {
+			topics[hashTag] = struct{}{}
+		}
 	}
 
 	for topic := range topics {

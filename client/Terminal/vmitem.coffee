@@ -2,10 +2,6 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  MESSAGE_MAP =
-    'started'                : 'Checking VM state'
-    'vm is already prepared' : 'READY'
-
   constructor:(options = {}, data)->
 
     options.tagName  = 'li'
@@ -13,8 +9,7 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     super options, data
 
-    vm             = @getData()
-    {vmController} = KD.singletons
+    @machine = @getData()
 
     @loader = new KDLoaderView
       size          : width : 16
@@ -32,84 +27,91 @@ class TerminalStartTabVMItem extends KDCustomHTMLView
 
     @alwaysOn = new KDCustomHTMLView
       tagName  : 'cite'
-      partial  : if vm.alwaysOn then "always-on" else ""
+      partial  : if @machine.alwaysOn then "always-on" else ""
 
-
-  handleVMStart:(update)->
-    { message, currentStep, totalStep } = update
-
-    if message is 'FINISHED'
+    @once 'viewAppended', =>
       @setClass 'ready'
-      @emit 'vm.is.prepared'
       @notice.updatePartial 'READY'
       @loader.hide()
-      return
-
-    @unsetClass 'off ready'
-
-    if message is 'STARTED'
-      # @loader.canvas.setColor "#1aaf5d"
-      @loader.show()
-      @progress.setCss 'background-color', "#1aaf5d"
-      return
-    percentage = Math.round currentStep/totalStep*100
-    @progress.setWidth percentage, '%'
-    @notice.updatePartial "#{percentage}%"
 
 
-  handleVMStop:(update)->
-    { message, currentStep, totalStep } = update
-    return @renderVMStop()  if message is 'FINISHED'
-
-    @unsetClass 'off ready'
-    # niceMessage = MESSAGE_MAP[message.toLowerCase()]
-    # @notice.updatePartial niceMessage or message
-    if message is 'STARTED'
-      # @loader.canvas.setColor "#FF7379"
-      @loader.show()
-      @progress.setCss 'background-color', "#FF7379"
-      @notice.updatePartial "100%"
-      @progress.setWidth 100, '%'
-      return
-    percentage = 100 - Math.round currentStep/totalStep*100
-    @progress.setWidth percentage, '%'
-    @notice.updatePartial "#{percentage}%"
+  click: -> @emit 'VMItemClicked', { @machine }
 
 
-  handleVMInfo:(info)->
-    unless info
-      @unsetClass 'ready off'
-      @loader.show()
-      @notice.updatePartial 'LOADING'
-      @progress.setWidth 0, '%'
-      return
+  pistachio: ->
 
-    { state } = info
-    switch state.toLowerCase()
-      when "running"
-        @loader.hide()
-        @unsetClass 'off'
-        @notice.updatePartial 'READY'
-        @setClass 'ready'
-      when "stopped"
-        @unsetClass 'ready'
-        @renderVMStop()
+    name = @machine.getName()
 
-  handleVMError:(error)->
-    @renderVMStop()
-
-  renderVMStop: ->
-    @loader.hide()
-    @setClass 'off'
-    @notice.updatePartial 'OFF'
-
-  click : -> @emit 'VMItemClicked', @getData()
-
-  pistachio:->
-    vm    = @getData()
-    alias = vm.hostnameAlias
     """
-    <figure>{{> @loader}}</figure>#{alias.replace 'koding.kd.io', 'kd.io'} {{> @alwaysOn}} {{> @notice}}
+    <figure>{{> @loader}}</figure>#{name.replace 'koding.kd.io', 'kd.io'} {{> @alwaysOn}} {{> @notice}}
     {{> @progress}}
     """
 
+
+  # handleVMStart:(update)->
+  #   { message, currentStep, totalStep } = update
+
+  #   if message is 'FINISHED'
+  #     @setClass 'ready'
+  #     @emit 'vm.is.prepared'
+  #     @notice.updatePartial 'READY'
+  #     @loader.hide()
+  #     return
+
+  #   @unsetClass 'off ready'
+
+  #   if message is 'STARTED'
+  #     # @loader.canvas.setColor "#1aaf5d"
+  #     @loader.show()
+  #     @progress.setCss 'background-color', "#1aaf5d"
+  #     return
+  #   percentage = Math.round currentStep/totalStep*100
+  #   @progress.setWidth percentage, '%'
+  #   @notice.updatePartial "#{percentage}%"
+
+
+  # handleVMStop:(update)->
+  #   { message, currentStep, totalStep } = update
+  #   return @renderVMStop()  if message is 'FINISHED'
+
+  #   @unsetClass 'off ready'
+  #   # niceMessage = MESSAGE_MAP[message.toLowerCase()]
+  #   # @notice.updatePartial niceMessage or message
+  #   if message is 'STARTED'
+  #     # @loader.canvas.setColor "#FF7379"
+  #     @loader.show()
+  #     @progress.setCss 'background-color', "#FF7379"
+  #     @notice.updatePartial "100%"
+  #     @progress.setWidth 100, '%'
+  #     return
+  #   percentage = 100 - Math.round currentStep/totalStep*100
+  #   @progress.setWidth percentage, '%'
+  #   @notice.updatePartial "#{percentage}%"
+
+
+  # handleVMInfo:(info)->
+  #   unless info
+  #     @unsetClass 'ready off'
+  #     @loader.show()
+  #     @notice.updatePartial 'LOADING'
+  #     @progress.setWidth 0, '%'
+  #     return
+
+  #   { state } = info
+  #   switch state.toLowerCase()
+  #     when "running"
+  #       @loader.hide()
+  #       @unsetClass 'off'
+  #       @notice.updatePartial 'READY'
+  #       @setClass 'ready'
+  #     when "stopped"
+  #       @unsetClass 'ready'
+  #       @renderVMStop()
+
+  # handleVMError:(error)->
+  #   @renderVMStop()
+
+  # renderVMStop: ->
+  #   @loader.hide()
+  #   @setClass 'off'
+  #   @notice.updatePartial 'OFF'

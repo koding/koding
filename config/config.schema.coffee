@@ -39,6 +39,7 @@ config =
   main            :
     environment   : 1
     regions       :
+      kodingme    : 1
       vagrant     : 1
       sj          : 1
       aws         : 1
@@ -71,12 +72,15 @@ config =
     mongoKontrol  : 1
     mongoReplSet  : 1
     mongoMinWrites: 1
+    runNeo4jFeeder: 1
     runGoBroker   : 1
     runGoBrokerKite: 1
     runPremiumBrokerKite: 1
     runPremiumBroker: 1
     runKontrol    : 1
+    runKloud      : 1
     runRerouting  : 1
+    runPersistence: 1
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
@@ -126,6 +130,8 @@ config =
       numberOfWorkers     : 1
       watch               : 1
       cronSchedule        : 1
+    topicModifier         :
+      cronSchedule        : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -141,6 +147,8 @@ config =
       verbose     : 1
       run         : 1
       runWorker   : 1
+    graphFeederWorker :
+      numberOfWorkers : 1
     presence        :
       exchange      : 1
     client          :
@@ -164,10 +172,10 @@ config =
             version: 1
           terminal:
             version: 1
-        algolia:
-          appId: 1
-          apiKey: 1
-          indexSuffix: 1
+          klient:
+            version: 1
+          kloud:
+            version: 1
         osKitePollingMs: 1
         userIdleMs: 1
         sessionCookie :
@@ -181,6 +189,7 @@ config =
         embedly       :
           apiKey      : 1
         userSitesDomain: 1
+        useNeo4j      : 1
         logToExternal : 1
         logToInternal : 1
         resourceName  : 1
@@ -399,13 +408,16 @@ config =
       token         : 1
       channel       : 1
     logLevel        :
+      neo4jfeeder   : 1
       oskite        : 1
       terminal      : 1
       kontrolproxy  : 1
       kontroldaemon : 1
+      userpresence  : 1
       vmproxy       : 1
       graphitefeeder: 1
       sync          : 1
+      topicModifier : 1
       postModifier  : 1
       router        : 1
       rerouting     : 1

@@ -11,29 +11,23 @@ import (
 	"koding/tools/build"
 	"koding/tools/config"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/nu7hatch/gouuid"
+	"github.com/koding/kite/reverseproxy"
 )
 
 var (
-	flagProfile = flag.String("c", "", "Define config profile to be included")
-	flagRegion  = flag.String("r", "", "Define region profile to be included")
-	flagApp     = flag.String("a", "", "App to be build")
-
-	// klient specific flags
-	flagUsername   = flag.String("username", "", "Username to be created for the klient app")
-	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
-	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
-	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
+	flagProfile     = flag.String("c", "", "Define config profile to be included")
+	flagRegion      = flag.String("r", "", "Define region profile to be included")
+	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
+	flagHost        = flag.String("h", "", "Define hostname for kite reveseproxy")
+	flagApp         = flag.String("a", "", "App to be build")
+	flagBuildNumber = flag.Int("b", 0, "Build number is added to the generated file if specified")
 
 	// kontrolproxy specific flags
 	flagProxy = flag.String("p", "", "Select user proxy or koding proxy") // Proxy only
@@ -44,6 +38,7 @@ var (
 	packages = map[string]func() error{
 		"oskite":       buildOsKite,
 		"kontrolproxy": buildKontrolProxy,
+		"reverseproxy": buildProxyKite,
 		"terminal":     buildTerminal,
 		"kontrol":      buildKontrol,
 		"klient":       buildKlient,
@@ -56,6 +51,7 @@ type pkg struct {
 	files         []string
 	version       string
 	upstartScript string
+	ldflags       string
 }
 
 func main() {
@@ -86,40 +82,9 @@ func packageList() string {
 	return pkgs
 }
 
-func createKey(username, kontrolURL, publicKey, privateKey string) (string, error) {
-	tknID, err := uuid.NewV4()
-	if err != nil {
-		return "", errors.New("cannot generate a token")
-	}
-
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	token.Claims = map[string]interface{}{
-		"iss":        "koding",                     // Issuer, should be the same username as kontrol
-		"sub":        username,                     // Subject
-		"iat":        time.Now().UTC().Unix(),      // Issued At
-		"jti":        tknID.String(),               // JWT ID
-		"kontrolURL": kontrolURL,                   // Kontrol URL
-		"kontrolKey": strings.TrimSpace(publicKey), // Public key of kontrol
-	}
-
-	log.Printf("Registered machine on user: %s", username)
-
-	return token.SignedString([]byte(privateKey))
-}
-
-func buildKlient() error {
-	if *flagPrivateKey == "" || *flagPublicKey == "" {
-		return errors.New("Please define config -c and region -r")
-	}
-
-	if *flagUsername == "" {
-		return errors.New("empty username")
-	}
-
-	parsed, err := url.Parse(*flagKontrolURL)
-	if err != nil {
-		return fmt.Errorf("cannot parse kontrol URL: %s", err)
+func buildProxyKite() error {
+	if *flagEnvironment == "" || *flagRegion == "" || *flagHost == "" {
+		return errors.New("Please define environment -e , region -r and host -h")
 	}
 
 	gopath := os.Getenv("GOPATH")
@@ -127,36 +92,65 @@ func buildKlient() error {
 		return errors.New("GOPATH is not set")
 	}
 
-	publicKey, err := ioutil.ReadFile(*flagPublicKey)
+	importPath := "github.com/koding/kite/reverseproxy/reverseproxy"
+	upstartPath := filepath.Join(gopath, "src/koding/kites/reverseproxy/files/reverseproxy.conf")
+
+	temps := struct {
+		Environment string
+		Region      string
+		Host        string
+	}{
+		Environment: *flagEnvironment,
+		Region:      *flagRegion,
+		Host:        *flagHost,
+	}
+
+	files := []string{}
+	files = append(files, "certs/koding_com_cert.pem", "certs/koding_com_key.pem")
+
+	// change our upstartscript because it's a template
+	configUpstart, err := prepareUpstart(upstartPath, temps)
 	if err != nil {
 		return err
 	}
+	defer os.Remove(configUpstart)
 
-	privateKey, err := ioutil.ReadFile(*flagPrivateKey)
-	if err != nil {
-		return err
+	kiteproxy := pkg{
+		appName:       *flagApp,
+		importPath:    importPath,
+		files:         files,
+		version:       reverseproxy.Version,
+		upstartScript: configUpstart,
 	}
 
-	key, err := createKey(*flagUsername, parsed.String(), string(publicKey), string(privateKey))
-	if err != nil {
-		return err
-	}
+	return kiteproxy.build()
+}
 
-	if err = ioutil.WriteFile("kite.key", []byte(key), 0400); err != nil {
-		return err
+func buildKlient() error {
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		return errors.New("GOPATH is not set")
 	}
 
 	importPath := "koding/kites/klient"
 	upstartPath := filepath.Join(gopath, "src", importPath, "files/klient.conf")
 
-	files := []string{filepath.Join(gopath, "bin-vagrant/kite")}
+	symbolvalue := "0.0.1"
+	if *flagBuildNumber != 0 {
+		symbolvalue = "0.1." + strconv.Itoa(*flagBuildNumber)
+	}
+
+	ldflags := fmt.Sprintf("-X koding/kites/klient/protocol.Version %s", symbolvalue)
+	if *flagEnvironment != "" {
+		ldflags += fmt.Sprintf(" -X koding/kites/klient/protocol.Environment %s", *flagEnvironment)
+	}
 
 	kclient := pkg{
 		appName:       *flagApp,
 		importPath:    importPath,
-		files:         files,
-		version:       "0.0.1",
+		version:       symbolvalue,
 		upstartScript: upstartPath,
+		ldflags:       ldflags,
 	}
 
 	return kclient.build()
@@ -416,6 +410,7 @@ func (p *pkg) build() error {
 		Files:         strings.Join(p.files, ","),
 		InstallPrefix: "opt/kite",
 		UpstartScript: p.upstartScript,
+		Ldflags:       p.ldflags,
 	}
 
 	debFile, err := deb.Build()
@@ -423,14 +418,21 @@ func (p *pkg) build() error {
 		log.Println("linux:", err)
 	}
 
-	// rename file to see for which region and env it is created
+	// customize our created file with the passed arguments
 	oldname := debFile
-	newname := ""
 
-	if *flagProfile == "" || *flagRegion == "" {
-		newname = fmt.Sprintf("%s_%s_%s.deb", p.appName, p.version, deb.Arch)
+	newname := p.appName + "_" + p.version
+	if *flagBuildNumber != 0 {
+		// http://semver.org/ see build-number paragraph
+		newname = p.appName + "_0.1." + strconv.Itoa(*flagBuildNumber)
+	}
+
+	if *flagProfile != "" && *flagRegion != "" {
+		newname += fmt.Sprintf("_%s-%s_%s.deb", *flagProfile, *flagRegion, deb.Arch)
+	} else if *flagEnvironment != "" {
+		newname += fmt.Sprintf("_%s_%s.deb", *flagEnvironment, deb.Arch)
 	} else {
-		newname = fmt.Sprintf("%s_%s_%s-%s_%s.deb", p.appName, p.version, *flagProfile, *flagRegion, deb.Arch)
+		newname += fmt.Sprintf("_%s.deb", deb.Arch)
 	}
 
 	if err := os.Rename(oldname, newname); err != nil {

@@ -31,10 +31,8 @@ body.environments
   overflow                  hidden
   display                   block
   vertical-align            top
-  rounded                   50%
   img
-    rounded                 50%
-    // vendor                  transition, opacity .3s ease
+    rounded                 3px
 
 .content-page
   margin                    0 auto
@@ -47,7 +45,6 @@ body.environments
 
 aside.app-sidebar
   left            258px
-  top             0
   top             0
   size            258px 100%
   z-index         10
@@ -1204,6 +1201,7 @@ a.action-link.verify-email
       width         340px
 
 .kdmodal.github-modal
+.kdmodal.machines-modal
 
   a
     text-decoration none
@@ -1231,14 +1229,29 @@ a.action-link.verify-email
   .listview-wrapper
     margin-top    10px
     height        260px
-    border-top    1px solid #eee
-    border-bottom 1px solid #eee
+    // border-top    1px solid #eee
+    // border-bottom 1px solid #eee
 
   .noitem-warning
     text-align    center
     margin-top    115px
     font-size     12px
     opacity       .6
+
+  .remember-machine
+
+    margin-top      12px
+
+    .koding-on-off
+      bottom        5px
+      right         5px
+      abs()
+
+  .kdmodal-buttons
+    margin-top    2px !important
+    border        none
+
+.kdmodal.github-modal
 
   .refresh-button
     background    none
@@ -1286,12 +1299,12 @@ a.action-link.verify-email
       overflow        hidden
       width           480px
 
-
     .action-button
       top         10px
       right       10px
       visibility  hidden
       abs()
+
 
 // onboarding
 .onboarding-item
@@ -1348,35 +1361,6 @@ a.action-link.verify-email
     top                 10px
     right               10px
 
-.kdcontextmenu.dock
-  border             2px solid #4F595C
-  border-radius      4px
-  box-shadow         0 0 40px #1F2628
-
-  ul
-    background-color #1F2628 !important
-
-    .kdlistitemview-contextitem
-      color          #eee
-      padding        7px 10px
-
-      &:first-child
-        background   #4F595C
-        opacity      1
-        cursor       default
-        color        #fff
-        font-weight  400
-
-        &:hover
-          background   #4F595C
-
-        &.selected
-          text-shadow  none
-
-
-  > span.arrow
-    border 15px solid transparent
-    border-bottom-color #4F595C
 
 .kdmodal.run-app-dialog
 
@@ -1731,6 +1715,99 @@ footer.main-footer
       font-size         13px
       font-weight       400
       noTextDeco()
+
+
+// new private message and topics modal common styles
+// Moved to commons because Vm modals use these too [BC]
+.kdmodal.activity-modal
+
+  bg              color #e9e9e9
+  border          1px solid #c1c1c1
+  shadow          0 0 29px rgba(0,0,0,.33)
+
+  .modal-arrow
+    size          0, 0
+    right         100%
+    border        10px solid transparent
+    border-right-color #c1c1c1
+    z-index       10
+
+    &:before
+      z-index       9
+      content       ''
+      display       block
+      size          0, 0
+      abs           -10px 0 0 -9px
+      border        10px solid transparent
+      border-right-color #e9e9e9
+
+
+  .kdmodal-inner
+    margin        31px
+    bg            color transparent
+
+  .kdmodal-title span.title
+    font-size     12px !important
+    font-weight   600
+    color         logoBg
+
+  textarea.kdinput.text
+    border        1px solid #d1d1d1
+    border-bottom none
+    bg            color white
+    rounded       5px
+    height        150px
+    &:hover
+      border-color  #c1c1c1
+    &:focus
+      border-color  #b1b1b1
+      shadow        none
+    &.validation-error
+      border-color  red !important
+
+
+  textarea.kdinput.text
+  input.kdinput.text
+    font-size             12px
+    font-weight           600
+    &::-webkit-input-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+    &:-moz-placeholder
+      font-size           12px
+      color               #a3a3a3
+      font-weight         600
+
+  .formline.button-field
+    height                34px !important
+
+    button.kdbutton.transparent
+      border                none !important
+      text-transform        none !important
+      line-height           34px !important
+      margin                0 !important
+
+      &:hover
+        shadow              none !important
+
+        .button-title
+          text-shadow       none !important
+          color             #838383
+
+      .button-title
+        color               #a3a3a3
+        font-size           12px
+        text-decoration     underline !important
+
+  .nothing
+    font-weight             600
+    font-size               12px
+    margin                  10px 0 0
+    color                   #a3a3a3
+    text-align              center
+
+
 
 @media only screen and (min-width : 320px) and (max-width : 568px)
   footer.main-footer

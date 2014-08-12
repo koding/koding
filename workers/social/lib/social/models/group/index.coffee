@@ -295,6 +295,9 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
         paymentQuota: Number
+
+      stackTemplates: [ ObjectId ]
+
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
       'owner', 'tag', 'role'
@@ -360,6 +363,10 @@ module.exports = class JGroup extends Module
       subscription  :
         targetType  : 'JPaymentSubscription'
         as          : 'payment plan subscription'
+      credential    :
+        as          : ['owner', 'user']
+        targetType  : 'JCredential'
+
 
   constructor:->
     super

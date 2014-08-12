@@ -29,15 +29,16 @@ class AceAppView extends JView
       @openLastFiles()
 
   openLastFiles:->
-    vmc = KD.getSingleton("vmController")
-    vmc.once "StateChanged", (err, vm, info)=>
-      appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
-      lastOpenedFiles = KD.singletons.localSync.getRecentOpenedFiles()
-      return  unless appStorage.getValue("openRecentFiles")
-      for file in lastOpenedFiles
-        unless file is 'localfile:/Untitled.txt'
-          fsfile = FSHelper.createFileFromPath file
-          @openFile fsfile
+    new KDNotificationView title: "Fix lastOpenedFiles ~ GG"
+    # vmc = KD.getSingleton("vmController")
+    # vmc.once "StateChanged", (err, vm, info)=>
+    #   appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+    #   lastOpenedFiles = KD.singletons.localSync.getRecentOpenedFiles()
+    #   return  unless appStorage.getValue("openRecentFiles")
+    #   for file in lastOpenedFiles
+    #     unless file is 'localfile:/Untitled.txt'
+    #       fsfile = FSHelper.createFileInstance path:  file
+    #       @openFile fsfile
 
   attachEvents:->
     @tabView.on "PaneDidShow", (pane) ->
@@ -84,7 +85,7 @@ class AceAppView extends JView
       @addNewTab() if @tabView.panes.length is 0
 
   addNewTab: (file) ->
-    file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
+    file = file or FSHelper.createFileInstance path: 'localfile:/Untitled.txt'
     aceView = new AceView delegate: this, file
     path = FSHelper.getFullPath file
     @aceViews[path] = aceView

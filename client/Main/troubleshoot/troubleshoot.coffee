@@ -12,8 +12,8 @@ class Troubleshoot extends KDObject
     @status = PENDING
 
     @prepareCheckSequence()
-    @brokerRecovery = new BrokerRecovery
-    @brokerKiteRecovery = new BrokerRecovery type: 'kite'
+    # @brokerRecovery = new BrokerRecovery
+    # @brokerKiteRecovery = new BrokerRecovery type: 'kite'
     @registerItems()
     # when a user stays idle for an hour we forward userIdle event
     @idleUserDetector = new IdleUserDetector threshold: KD.config.troubleshoot.idleTime
@@ -112,13 +112,7 @@ class Troubleshoot extends KDObject
     broker = KD.remote.mq
     @registerItem "broker",
       troubleshoot : broker.bound 'ping'
-      recover      : @brokerRecovery.bound 'recover'
-
-    # register kite
-    brokerKite = KD.kite.mq
-    @registerItem "brokerKite",
-      troubleshoot : brokerKite.bound 'ping'
-      recover      : @brokerKiteRecovery.bound 'recover'
+      # recover      : @brokerRecovery.bound 'recover'
 
   registerItem : (name, options) ->
     options.name = name

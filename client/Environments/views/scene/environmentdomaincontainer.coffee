@@ -1,23 +1,26 @@
 class EnvironmentDomainContainer extends EnvironmentContainer
 
-  EnvironmentDataProvider.addProvider "domains", ->
+  # EnvironmentDataProvider.addProvider "domains", ->
 
-    new Promise (resolve, reject)->
+  #   new Promise (resolve, reject)->
 
-      KD.remote.api.JDomain.fetchDomains (err, domains)->
-        if err or not domains or domains.length is 0
-          warn "Failed to fetch domains", err  if err
-          return resolve []
+  #     KD.remote.api.JDomain.fetchDomains (err, domains)->
+  #       if err or not domains or domains.length is 0
+  #         warn "Failed to fetch domains", err  if err
+  #         return resolve []
 
-        resolve domains
+  #       resolve domains
 
   constructor: (options = {}, data) ->
 
-    options.cssClass  = 'domains'
-    options.title     = 'domains'
-    options.itemClass = EnvironmentDomainItem
+    options     =
+      title     : 'domains'
+      cssClass  : 'domains'
+      itemClass : EnvironmentDomainItem
 
     super options, data
+
+    @stack = @getData()
 
     # Plus button on domainsContainer opens up the domainCreateModal
     @on 'PlusButtonClicked', =>
@@ -30,7 +33,7 @@ class EnvironmentDomainContainer extends EnvironmentContainer
         title          : "Add Domain"
         cssClass       : "domain-creation"
         view           : domainCreateForm
-        width          : 700
+        width          : 600
         overlay        : yes
         buttons        :
           createButton :
@@ -42,12 +45,6 @@ class EnvironmentDomainContainer extends EnvironmentContainer
             callback   : =>
               paneType = domainCreateForm.tabView.getActivePane().getOption 'type'
 
-              # @buttons?.createButton.hideLoader()
-              # @off  "FormValidationPassed"
-              # @once "FormValidationPassed", =>
-              #   @emit 'registerDomain'
-              #   @buttons?.createButton.showLoader()
-
               if paneType is "redirect"
                 domainCreateForm.handleRedirect()
               else
@@ -56,17 +53,15 @@ class EnvironmentDomainContainer extends EnvironmentContainer
   addDomain: (domain) ->
 
     @addItem
-      title       : domain.domain
-      description : $.timeago domain.createdAt
+      title       : domain.proposedDomain
+      description : $.timeago domain.meta.createdAt
       activated   : yes
-      aliases     : domain.hostnameAlias
+      machines    : domain.machines
       domain      : domain
 
   getDomainCreateForm: ->
-    {stack} = @getDelegate().getOptions()
-    domainCreateForm = new DomainCreateForm {}, { stack }
 
-    @on "itemRemoved", domainCreateForm.bound "updateDomains"
+    domainCreateForm = new DomainCreateForm {}, { @stack }
     domainCreateForm.on "DomainSaved", (domain) =>
       @addDomain domain
       @emit "itemAdded"

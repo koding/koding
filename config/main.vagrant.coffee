@@ -20,6 +20,7 @@ regions         =
   sj            : "sj"
   aws           : "aws"
   premium       : "vagrant"
+  kodingme	    : "kodingme"
 
 cookieMaxAge = 1000 * 60 * 60 * 24 * 14 # two weeks
 cookieSecure = no
@@ -60,6 +61,7 @@ module.exports =
   runPremiumBroker: yes
   runPremiumBrokerKite: yes
   runKontrol    : yes
+  runKloud      : no
   runRerouting  : yes
   compileGo     : yes
   buildClient   : yes

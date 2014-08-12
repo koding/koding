@@ -134,6 +134,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
+      partial    : 'Environments'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        KD.getSingleton("router").handleRoute "/Environments"
+        @hide()
+
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
       partial    : 'System health check'
       click      : (event)=>
         new TroubleshootModal

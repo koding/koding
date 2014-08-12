@@ -51,6 +51,9 @@ type Deps struct {
 	// BuildGoPath is used to fetch dependencies of the given Packages
 	BuildGoPath string
 
+	// Ldflags is passed to `go build`
+	Ldflags string
+
 	// currentGoPath, is taken from current GOPATH environment variable
 	currentGoPath string
 }
@@ -146,6 +149,12 @@ func (d *Deps) InstallDeps() error {
 		binFile := filepath.Join(binPath, filepath.Base(binPath))
 
 		args := []string{"build", "-o", binFile, pkg.ImportPath}
+		if d.Ldflags != "" {
+			args = []string{"build",
+				"-ldflags", d.Ldflags,
+				"-o", binFile, pkg.ImportPath}
+		}
+
 		cmd := exec.Command("go", args...)
 		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
 

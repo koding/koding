@@ -14,15 +14,3 @@ processMonitor = (require 'processes-monitor').start
 
 guestCleanerhWorker = new GuestCleanerWorker koding, guestCleanerWorker
 guestCleanerhWorker.init()
-
-log4js  = require 'log4js'
-logger  = log4js.getLogger('guestCleaner')
-
-log4js.configure {
-  appenders: [
-    { type: 'console' }
-    { type: 'file', filename: 'logs/guestCleaner.log', category: 'guestCleaner' }
-    { type: "log4js-node-syslog", tag : "guestCleaner", facility: "local0", hostname: "localhost", port: 514 }
-  ],
-  replaceConsole: true
-}

@@ -159,7 +159,7 @@ class ActivityCodeSnippetWidget extends ActivityWidgetFormView
 
     @loader.show()
 
-    @aceWrapper.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
+    @aceWrapper.addSubView @ace = new Ace {}, FSHelper.createFileInstance path: "localfile:/codesnippet#{snippetCount++}.txt"
     @aceDefaultContent = "//your code snippet goes here..."
 
     @ace.on "ace.ready", =>

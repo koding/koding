@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/tools/pty"
+	"os"
 	"os/exec"
 	"os/user"
 	"syscall"
@@ -24,12 +25,14 @@ const randomStringLength = 24 // 144 bit base64 encoded
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
+	Session          string `json:"session"`
 	remote           Remote
 	pty              *pty.PTY
 	currentSecond    int64
 	messageCounter   int
 	byteCounter      int
 	lineFeeedCounter int
+	throttling       bool
 }
 
 type Remote struct {
@@ -79,8 +82,13 @@ func Connect(r *kite.Request) (interface{}, error) {
 		Mode         string
 	}
 
-	if r.Args.One().Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-		return nil, errors.New(fmt.Sprintf("{ remote: [object], session: %s, sizeX: %d, sizeY: %d, noScreen: [bool] } { raw JSON : %v }", params.Session, params.SizeX, params.SizeY, r.Args.One()))
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, fmt.Errorf("{ remote: [object], session: %s, noScreen: [bool] }, err: %s",
+			params.Session, err)
+	}
+
+	if params.SizeX <= 0 || params.SizeY <= 0 {
+		return nil, fmt.Errorf("{ sizeX: %d, sizeY: %d } { raw JSON : %v }", params.SizeX, params.SizeY, r.Args.One())
 	}
 
 	user, err := user.Current()
@@ -93,14 +101,40 @@ func Connect(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	// get pty and tty descriptors
+	p, err := pty.NewPTY()
+	if err != nil {
+		return nil, err
+	}
+
 	// We will return this object to the client.
-	server := &Server{remote: params.Remote, pty: pty.New("/dev/pts")}
+	server := &Server{
+		Session: command.Session,
+		remote:  params.Remote,
+		pty:     p,
+	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
-	cmd := exec.Command(command.Name, command.Args...)
+	// wrap the command with sudo -i for initiation login shell. This is needed
+	// in order to have Environments and other to be initialized correctly.
+	// check also if klient was started in root mode or not.
+	var args []string
+	if os.Geteuid() == 0 {
+		args = []string{"-i", command.Name}
+	} else {
+		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
+	}
+
+	args = append(args, command.Args...)
+	cmd := exec.Command("/usr/bin/sudo", args...)
+
+	// For test use this, sudo is not going to work
+	// cmd := exec.Command(command.Name, command.Args...)
+
 	cmd.Env = []string{"TERM=xterm-256color", "HOME=" + user.HomeDir}
 	cmd.Stdin = server.pty.Slave
 	cmd.Stdout = server.pty.Slave
+	cmd.Dir = user.HomeDir
 	// cmd.Stderr = server.pty.Slave
 
 	// Open in background, this is needed otherwise the process will be killed
@@ -138,18 +172,20 @@ func Connect(r *kite.Request) (interface{}, error) {
 			}
 
 			// Rate limiting...
-			s := time.Now().Unix()
-			if server.currentSecond != s {
-				server.currentSecond = s
-				server.messageCounter = 0
-				server.byteCounter = 0
-				server.lineFeeedCounter = 0
-			}
-			server.messageCounter += 1
-			server.byteCounter += n
-			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-				time.Sleep(time.Second)
+			if server.throttling {
+				s := time.Now().Unix()
+				if server.currentSecond != s {
+					server.currentSecond = s
+					server.messageCounter = 0
+					server.byteCounter = 0
+					server.lineFeeedCounter = 0
+				}
+				server.messageCounter += 1
+				server.byteCounter += n
+				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+					time.Sleep(time.Second)
+				}
 			}
 
 			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
