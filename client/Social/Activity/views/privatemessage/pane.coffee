@@ -121,7 +121,6 @@ class PrivateMessagePane extends MessagePane
 
   fetch: (options = {}, callback) ->
 
-    options.limit or= 3
     super options, (err, data) =>
       channel = @getData()
       channel.replies = data
