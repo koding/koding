@@ -11,6 +11,12 @@ class ReplyInputWidget extends ActivityInputWidget
     @forwardEvent @input, "Enter"
 
 
+  lockSubmit: -> @locked = yes
+
+
+  unlockSubmit: -> @locked = no
+
+
   create: ({body, requestData}, callback) ->
 
     {channel: {id: channelId}}  =  @getOptions()
@@ -26,3 +32,4 @@ class ReplyInputWidget extends ActivityInputWidget
 
     @addSubView @icon
     @addSubView @input
+
