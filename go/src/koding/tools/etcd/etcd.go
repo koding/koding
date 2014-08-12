@@ -2,8 +2,6 @@ package etcd
 
 import (
 	"errors"
-	"log"
-	"os"
 
 	"github.com/coreos/go-etcd/etcd"
 	"github.com/koding/kite/kontrol"
@@ -29,7 +27,7 @@ func Kontrols(query *protocol.KontrolQuery) ([]*Kontrol, error) {
 	client := etcd.NewClient([]string{DefaultDiscoveryURL})
 
 	// Set the logger to see what's going on.
-	etcd.SetLogger(log.New(os.Stderr, "etcd-discovery ", log.LstdFlags))
+	// etcd.SetLogger(log.New(os.Stderr, "etcd-discovery ", log.LstdFlags))
 
 	// STRONG_CONSISTENCY doesn't play good with AMAZON ELB
 	client.SetConsistency(etcd.WEAK_CONSISTENCY)

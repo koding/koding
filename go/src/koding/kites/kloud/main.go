@@ -8,9 +8,12 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 	"koding/tools/config"
+	"koding/tools/etcd"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/fatih/structure"
 	"github.com/koding/kite"
@@ -21,7 +24,12 @@ import (
 	"github.com/koding/logging"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 var (
+	// ---- FLAGS ------
 	flagProfile  = flag.String("c", "", "Configuration profile from file")
 	flagIP       = flag.String("ip", "", "Change public ip")
 	flagPort     = flag.Int("port", 3000, "Change running port")
@@ -38,10 +46,11 @@ var (
 	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
 	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
 
-	// Kontrol registiraiton related  flags
+	// Kontrol registration related  flags
 	flagPublic      = flag.Bool("public", false, "Start klient in local environment.")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+	flagDiscovery   = flag.Bool("discovery", false, "Enable discovery mode")
 
 	// Development related flags
 	flagTest = flag.Bool("test", false, "Activate test mode (Disables VM authentication checks [useful for development], etc ..)")
@@ -70,8 +79,6 @@ func main() {
 		registerURL = u
 	}
 
-	fmt.Printf("registering with url %+v\n", registerURL)
-
 	if *flagProxy {
 		k.Log.Info("Proxy mode is enabled")
 		// Koding proxies in production only
@@ -98,6 +105,7 @@ func newKite() *kite.Kite {
 	k.Config.Port = *flagPort
 
 	if *flagRegion != "" {
+		k.Config.Region = *flagRegion
 	}
 
 	if *flagEnv != "" {
@@ -135,7 +143,7 @@ func newKite() *kite.Kite {
 	deployer := &KodingDeploy{
 		Kite:              k,
 		Log:               newLogger("kloud-deploy"),
-		KontrolURL:        kontrolURL(),
+		KontrolURL:        kontrolURL(k),
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Bucket:            newBucket("koding-kites", klientFolder),
@@ -196,6 +204,8 @@ func newLogger(name string) logging.Logger {
 	return log
 }
 
+// kontrolKeys returns the private/public pairs to be used for kite.key
+// generation that are deployed with klient's.
 func kontrolKeys(conf *config.Config) (string, string) {
 	pubKeyPath := *flagPublicKey
 	if *flagPublicKey == "" {
@@ -220,9 +230,31 @@ func kontrolKeys(conf *config.Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL() string {
-	// read kontrolURL from kite.key if it doesn't exist.
+// kontrolURL returns a kontrol URL that kloud is going to connect. First it
+// tries to read from kite.key. If -discovery flag is enabled it search it from
+// the discovery endpoint. If -kontrol-url is given explicitly it's going to
+// use that.
+func kontrolURL(k *kite.Kite) string {
 	kontrolURL := kiteconfig.MustGet().KontrolURL
+	k.Log.Info("Reading kontrol URL from kite.key as: %s", kontrolURL)
+
+	if *flagDiscovery {
+		k.Log.Info("Discovery enabled. Searching for a production kontrol...")
+		query := &protocol.KontrolQuery{
+			Username: "testuser",
+			// Environment: "prod",
+			// Name:        "kontrol",
+		}
+
+		kontrols, err := etcd.Kontrols(query)
+		if err != nil {
+			k.Log.Warning("Discovery couldn't find any kontrol: %s. Going to use default URL", err)
+		} else {
+			index := rand.Intn(len(kontrols))
+			kontrolURL = kontrols[index].URL // pick up a random kite
+			k.Log.Info("Discovery found a production kontrol. Going to use it: %s", kontrolURL)
+		}
+	}
 
 	if *flagKontrolURL != "" {
 		u, err := url.Parse(*flagKontrolURL)
@@ -230,6 +262,7 @@ func kontrolURL() string {
 			log.Fatalln(err)
 		}
 
+		k.Log.Info("Kontrol URL is given explicitly. Going to use: %s", u.String())
 		kontrolURL = u.String()
 	}
 
