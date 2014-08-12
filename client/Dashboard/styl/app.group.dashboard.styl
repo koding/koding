@@ -300,1102 +300,215 @@ body.dashboard
             margin-right        6px
             fr()
 
-// .kdtabpaneview.dashboard
-
-//   color                   #828B8B
-
-//   .content-page
-//     min-height            100%
-//     max-width             1100px
-//     padding-top           150px
-
-//   .list-group-title
-//     hidden()
-
-//   .kdformview .button-field
-//     bg                    color transparent
-
-// //////////////////////////////////////
-// //                                  //
-// //                                  //
-// //                                  //
-// //                                  //
-// //   OLD STYLES SHOULD BE UPDATED   //
-// //   - SY                           //
-// //                                  //
-// //                                  //
-// //                                  //
-// //                                  //
-// //////////////////////////////////////
-
-// .group-product-section
-//   .payment-settings-view
-//     height auto
-//   .kdlistitemview
-//     clear both
-
-// .plan-child-products
-//   padding 5px
-//   margin  10px
-//   border  solid 1px #eee
-
-// .content-area-pane.dashboard
-//   // section.searchbar
-//   //   top                   24px
-//   //   right                 24px
-//   //   size                  200px, 32px
-//   //   abs()
-//   //   .header-search-input.hitenterview
-//   //     top                 0
-//   //     right               0
-//   //     // rel()
-//   //   span.title
-//   //     font-size           18px
-//   //     font-weight         300
-//   //     margin              0 0 0 20px
-//   //     line-height         50px
-//   //     text-shadow         0px 1px 0px white
-//   //     color               linkColor1
-//   //   span.icon.search
-//   //     display             block
-//   //     bg                  position, -100px -480px
-//   //     size                20px, 20px
-//   //     top                 7px
-//   //     right               7px
-//   //     opacity             .7
-//   //     kdfsprite()
-//   //     abs()
-
-//   .dashboard-tabs
-//     border-left           1px solid #f5f5f5
-//     borderBox()
-
-//     .kdhiddentab
-//       display             none
-
-//     > .kdtabpaneview
-//       > .kdview
-//         overflow          auto
-
-
-// @css {
-// /*
-// Dashboard Readme Styles
-// */
-// }
-// body.group.dashboard
-// .dashboard-tabs
-//   .kdtabpaneview.readme
-//     borderBox()
-//     padding                   20px
-//     width                     100%
-
-//     .button-bar
-//       abs()
-//       top                     0
-//       right                   0
-//       text-align              right
-//       width                   auto
-//       z-index                 1
-
-//     .edit
-//       margin-top              44px
-//       width                   100%
-//       min-height              200px
-//       max-height              400px
-//       borderBox()
-//       .preview_content
-//         padding               10px
-
-//     .edit-cancel
-//       font-size               12px
-//       margin-right            5px
-//       line-height             26px
-//       span
-//         noTextDeco()
-//         color                 #aaa
-
-// @css {
-// /*
-// Dashboard Settings Styles
-// */
-// }
-
-
-// .general-settings-view
-
-//   div.vm-settings > .kdformview > .formline .kdselectbox
-//     margin-right              0
-
-//   > .kdformview
-//     min-height                100%
-
-//     > .formline
-//       textarea.kdinput.text
-//         font-size             14px
-//         min-height            100px
-//         borderBox()
-
-//       .kdlabel
-//         margin-top            0
-
-//         &.group-name
-//           margin-top          11px
-
-//         &.visibility
-//           margin-top          6px
-
-//   .group-logo
-//     figure
-//       size                    55px, 55px
-//       rounded                 6px 6px 0 0
-//     &.default
-//       figure
-//         r-sprite              "dashboard", "group-default-logo-bg"
-//         background-color      #CACACA !important
-//   .upload-button
-//     size                      55px, 25px
-//     rounded                   0
-//     padding                   0
-//     span
-//       font-size               10px !important
-//       line-height             25px !important
-//       text-align              center
-//       text-transform          uppercase
-//       width                   55px
-//       display                 block
-//     &.save, &.cancel
-//       margin-top              3px
-//       rounded                 36px
-//       margin-right            10px
-
-//   .group-image-preview
-//     vendor                    transform, translate(-50%, -50%)
-//     abs()
-//     left                      50%
-//     top                       50%
-//     max-width                 120px
-
-//   .group-logo-uploader
-//     size                      100% 110px
-//     .file-drop
-//       font-size               14px
-//       margin-top              -14px
-
-// @css {
-/*
-Dashboard Member List styles
-*/
-// }
-
-// .kdtabpaneview.members
-//   .searchbar
-//     margin                     0 12px 22px 0
-
-//   .listview-wrapper
-//     .kdlistview
-//       padding-bottom           10px
-
-//       &.item-editing
-//         .kdlistitemview-member
-//           opacity              .5
-
-//       .kdlistitemview-member
-//         vendor                 transition, opacity .2s ease
-//         kalc                   width, 50% \- 12px
-//         background             #FFF
-//         rounded                6px
-//         padding                20px
-//         box-sizing             border-box
-//         margin                 0 0 12px 0
-//         fl()
-
-//         &:nth-child(2n-1)
-//           margin-left          12px
-
-//         .profile
-//         .user-numbers
-//           margin               0
-//           width                auto
-//           height               auto
-//           float                none
-//           line-height          20px
-
-//         .avatarview
-//           position             relative
-//           top                  4px !important
-//           left                 0
-//           fl()
-//           margin-right         20px
-
-//         .edit-link
-//         .cancel-link
-//           padding              1px 8px
-//           color                #3c4752
-//           font-size            14px
-//           line-height          30px
-
-//         .edit-link
-//           hidden()
-
-//         .checkboxes
-//           border-color         #ededed
-
-//         &:hover
-//           .edit-link
-//             visible()
-
-//         &.editing
-//           border-bottom        none
-//           opacity              1
-
-//         .edit-container
-//           z-index              10
-//           background           #fff
-//           top                  64px
-//           height               90px
-//           left                 0
-//           abs()
-
-//   .kdlistview
-//     overflow            visible
-//   .kdlistitemview-member-item
-//     border-bottom       1px solid #f5f5f5
-//     &:nth-child(1n)
-//       border-right      1px solid #f5f5f5
-
-//     .kdlistitemview-member-item-inner
-//       margin            3px 3px 0 0
-
-//     section
-//       .profile
-//         borderBox()
-//         margin-left     60px
-//         padding         2px
-//         display         block
-//       .role
-//         borderBox()
-//         margin-left     60px
-//         padding         2px
-//         display         block
-//       .edit-link
-//       .save-link
-//       .cancel-link
-//         fr()
-//       .edit-link
-//         hidden()
-
-//     &:hover
-//       section .edit-link
-//         visible()
-
-// @css {
-// /*
-// Dashboard member listing related common styles
-// */
-// }
-
-// .member-related
-//   .kdview.kdlistitemview
-//     &.editing
-//       bg                      color, rgba(255, 146, 0, 0.1)
-
-//     .kdselectbox
-//       display                 inline-block
-//       float                   right
-
-//     .profile
-//       font-size               16px
-
-//     .role
-//       color                   #999
-
-//     span.icon
-//       &.edit
-//         bg                    position, -120px -400px
-//       &.delete
-//         bg                    position, -80px -520px
-//       &.save
-//         bg                    position, -80px -500px
-
-//     .kd-checkbox-holder
-//       line-height             30px
-//       margin-right            10px
-//       display                 inline-block
-
-//       input[type=checkbox]
-//         vertical-align        baseline
-//         display               inline
-//         width                 auto
-//         margin                0 10px 0 3px
-
-//       label
-//         float                 none
-//         display               inline
-
-
-//   .edit-container
-//     padding                   10px
-//     bg                        color, rgba(255, 146, 0, 0.1)
-//     borderBox()
-//     .checkboxes
-//       border-bottom           1px solid rgba(255, 146, 0, 0.1)
-
-//     .buttons
-//       margin                  10px 0 0
-//       .kdbutton
-//         width                 auto
-//         margin-right          10px
-//         padding               0 21px
-
-// @css {
-// /*
-// Dashboard Membership Policy styles
-// */
-// }
-
-// .kdtabpaneview.membership-policy
-//   .policy-view-wrapper
-//     height                95vh
-
-//     .koding-on-off
-//       margin-top          14px
-//       fl()
-
-//     > .kdbutton.edit-link
-//       size                auto, 33px
-//       rounded             24px
-//       bg                  color, #1aaf5d
-//       margin              14px 0 0 0
-//       fl()
-
-//       span
-//         line-height       33px
-//         font-size         12px
-
-//   .button-bar
-//     margin-right          20px
-
-//   section.formline
-//     margin-left           100px
-//     margin-top            10px
-//     padding               10px
-
-//     h2
-//       padding-left        0
-//       padding-bottom      0px
-//       height              17px
-//       // font-weight 600
-//       font-size           14px
-//       // border none
-//     h3
-//       font-size           12px
-//       padding-bottom      10px
-
-//     > div > p
-//       margin-top          0px
-//       margin-bottom       15px
-//       padding-left        0px
-
-//     > a
-//       margin-left         10px
-
-//     button
-//       height              24px
-//       line-height         8px
-
-//     .policylanguage-editor
-//       width               auto
-//       display             block
-//       clear               both
-//       button
-//         margin            10px 10px 0 0
-//       textarea
-//         width             100%
-//         min-width         400px
-//         min-height        100px
-
-//     div.formline
-//       borderBox()
-//       margin              0
-//       padding             10px 0
-//       bg color,           transparent
-//       border              none
-
-//       > span
-//         margin-left       20px
-//         display           inline-block
-//         hidden()
-
-//   .policy-overlay
-//     size                  100%, 100vh
-//     position              fixed
-//     top                   0
-//     margin-left           -34px
-//     z-index               10
-//     bg                    color, rgba(255,255,255,.75)
-
-//   p.coming-soon
-//     size              460px, 128px
-//     rounded           6px
-//     top               55px
-//     left              50%
-//     margin            0 0 0 -230px
-//     font-size         30px
-//     color             #1aaf5d
-//     line-height       128px
-//     z-index           11
-//     text-align        center
-//     background-color  rgba(0,0,0,.05)
-//     abs()
-
-//     .icon
-//       r-sprite        "dashboard", "coming-soon"
-//       display         inline-block
-//       margin-right    22px
-//       position        relative
-//       top             4px
-
-//   .policy-language-image-wrapper
-//     fr()
-//     width                       auto
-//     border                      1px solid #e8e8e8
-//     rounded                     5px
-//     bg                          color, #fbfbfb
-//     margin-left                 10px
-//     img
-//       width                     auto
-//       height                    auto
-//       margin                    3px 3px 0
-//     span
-//       border-top                1px solid #e8e8e8
-//       display                   block
-//       padding                   10px
-//       font-size                 11px
-
-// @css {
-// /*
-// Dashboard invitations tab styles
-// */
-// }
-
-// .kdtabview.dashboard-tabs .invitations
-//   .kdtabhandlecontainer
-//     padding-top               20px
-//     height                    50px
-//     borderBox()
-
-//     .kdtabhandle
-//       .new
-//       .pending
-//         display               none
-//         font-size             11px
-//         line-height           1
-//         padding               1px 4px
-//         rounded               3px
-
-//       &.has-pending .pending
-//         display               inline
-//         background-color      #eee
-//         color                 #666
-//       &.dirty .new
-//         display               inline
-//         color                 white
-
-//     .kdtabhandle
-//       color                   #1aaf5d
-//       border                  none
-
-//     .kdtabhandle.active
-//       height                  30px
-//       color                   #ababab
-
-//     .button-bar
-//       height                  auto
-//       width                   auto
-//       abs                     15px 0px 0 0
-
-//       .show-resolved
-//         height                auto
-//         width                 150px
-
-//         label
-//           line-height         45px
-//           font-size           11px
-//           fl()
-
-//         .koding-on-off.small
-//           margin              8px
-//           fl()
-
-//       .show-resolved
-//       .on-off
-//         display               inline-block
-
-//   .member-related
-//     .invitation-request-list
-//       margin-top              24px
-
-//     section
-//       padding                 10px
-//       margin-bottom           1px
-//       background              #fff
-//       rounded                 6px
-//       min-height              40px
-
-//       &:hover
-//         background-color      #f2f2f2
-
-//       .buttons
-//         fr()
-//         button
-//           height              35px
-//           margin-top          2px
-//           span
-//             font-size         16px
-//             line-height       35px
-
-//       .status
-//         font-size             14px
-//         height                35px
-//         line-height           35px
-//         margin-right          10px
-//         fr()
-//         &.sent
-//           .icon
-//             r-sprite          "dashboard", "ok"
-//             top               4px
-//             left              2px
-//             position          relative
-//         &.accepted
-//         &.approved
-//           color               #40af00
-//           .icon
-//             bg                position, -80px -500px
-//         &.ignored
-//         &.declined
-//         &.deleted
-//           color               #be2a26
-//           .icon
-//             bg                position, -80px -480px
-//         &.pending
-//           color               #acacac
-//           .icon
-//             bg                position, -320px -140px
-//         span
-//           display             inline-block
-//           &.icon
-//             size              20px, 20px
-//             kdfsprite()
-//           &.title
-//             color             #1aaf5d
-//             font-weight       400
-//             margin            0 10px
-//       .details
-//         margin-left           50px
-//         .requested-at
-//         .usage
-//           color               #999
-//           font-size           12px
-//           line-height         18px
-//           margin-top          4px
-
-//         .code
-//           margin-top          4px
-
-//         a
-//           color               logoBg
-//           noTextDeco()
-
-//       span.avatar
-//         margin-right          10px
-//         fl()
-
-//   .invitation-code section .details
-//     margin-left               10px
-
-// @css {
-// /*
-// Dashboard Invitations Modal Styles
-// */
-// }
-
-// .kdlistview.invitation-request-list
-//   .lazy-loader
-//     padding                   40px
-//     text-align                center
-
-
-// .invitations-request-modal .invitation-request-list
-//   .formline.kdlistitemview-invitation-request
-//     padding                   10px
-//     border-bottom             1px solid #eee
-//     width                     auto
-//     button
-//       height                  24px
-//       line-height             8px
-//     .details .requested-at
-//       margin-top              5px
-
-// .kdmodal.edit-invitation-message textarea.message-input
-//   height                    160px !important
-
-// .kdmodal.invite-by-email
-// .kdmodal.bulk-approve
-//   .report
-//     color                     red
-//     line-height               16px
-//     overflow-y                scroll
-//     max-height                180px
-
-//   .kdlabel
-//     min-width                 126px
-
-// .kdmodal.invite-by-email
-//   textarea.emails-input
-//   textarea.message-input
-//     height                    80px !important
-//   div.message-input
-//     border-bottom             none
-//     padding-bottom            0
-//   div.save-message
-//     padding                   0 0 0 124px
-
-//     .kdlabel
-//       line-height             48px
-
-//     input.save-message
-//       width                   auto
-//       display                 inline-block
-//       fl()
-//     .input-wrapper .input-wrapper
-//       display                 inline-block
-//       margin-left             5px
-//       label
-//         line-height           1em
-
-// .kdmodal.invite-by-username
-//   .kdautocompletewrapper
-//     width             250px
-//     display           inline-block
-//     vertical-align    bottom
-//     borderBox()
-//     input.text
-//       width           100%
-//       borderBox()
-//   .completed-items
-//     width             250px
-//     max-height        300px
-//     margin-left       95px
-//     padding           5px 0 0 0
-//     overflow          auto
-
-//   .kdview.kdautocompletedlistitem
-//     margin            5px 5px 0 0
-//     padding-left      0
-//     span.avatar
-//       abs()
-//       top             1px
-//       left            1px
-//       padding         1px
-//       bg(color,white)
-//       size(16px,16px)
-//     .avatarview
-//       cite
-//         hidden()
-
-//     span.profile
-//       margin-left     21px
-//       display         block
-//       overflow        hidden
-
-// .kdmodal.create-invitation-code
-
-//   .suggest-button
-//     height            44px
-//     position          absolute
-//     right             -1px
-//     top               0
-//     rounded           0px 6px 6px 0px
-//     z-index           1
-
-//     .button-title
-//       line-height     44px
-
-// //
-// // FIX THIS HUGE BLOCK
-// //
-
-
-
-// .kdtabview.dashboard-tabs
-//   margin-left                 34px
-//   kalc                        width, 100% \- 224px
-
-
-//   .kdtabhandlecontainer
-//     bg                        color transparent
-//     border                    none
-
-
-//   .loader
-//     fl()
-//     margin-top                10px
-//   .loader-text
-//     display                   block
-//     width                     auto
-//     height                    auto
-//     margin-top                8px
-//     padding-left              5px
-
-//   .desc
-//     border-bottom             1px solid #f2f2f2
-//     padding                   20px 0
-
-//   .invitations section.formline div.formline.kdlistitemview-invitation-request
-//   .members .kdlistitemview-member-item-inner
-//     min-width               350px
-//     padding                 10px
-//     // background-color        rgba(0,0,0,0.02)
-//     // vendor transition,      background-color 0.2s ease-in-out
-//     borderBox()
-
-//   .permissions
-//     height: auto;
-
-//   .form-generator
-//     min-width               600px
-//     overflow                hidden
-//     .wrapper
-//       width                 auto
-//       border                1px solid #e8e8e8
-//       rounded               4px
-//       bg color,             #f5f5f5
-
-//     .form-builder
-//       width                 100%
-//     .add-header
-//       bg color,             #fbfbfb
-//       border-bottom         1px solid #e8e8e8
-//       rounded               5px 5px 0 0
-//       div
-//         color               #444
-//         borderBox()
-//         padding             5px 8px 4px 8px
-//         margin              0
-//         width               150px
-//         font-weight         bold
-//         font-size           12px
-//         display             inline-block
-//         vertical-align      top
-//         &:first-child
-//           width             100px
-//     .add-inputs
-//       padding-top           10px
-//       // border-top 1px solid #f5f5f5
-//       bg color,             #fbfbfb
-//       // bg color, #f5f5f5
-//       width                 auto
-//       rounded               0 0 5px 5px
-//       .add-input
-//         width               150px
-//         borderBox()
-//         display             inline-block
-//         padding             4px 9px
-//         vertical-align      top
-//         &:first-child
-//           width             100px
-//           .kdselectbox
-//             width           80px
-
-//         &.button
-//           padding           0
-//           width             auto
-
-//         &.select
-//           display           block
-
-//         .kdinput
-//           width             140px
-
-//         .kdselectbox
-//           width             130px
-//       .select-fields
-//       .radio-fields
-//         margin-left         405px
-//         padding             5px
-//         width               250px
-//         borderBox()
-//         border              1px solid #e8e8e8
-//         bg color,           #f5f5f5
-//         rounded             4px
-//         > input.text
-//           display           inline-block
-//         h3
-//           // bg color, #f5f5f5
-//           // color #444
-//           padding           5px 5px 5px 0
-//         .form-builder-select
-//         .form-builder-radio
-//           margin-bottom     10px
-//           .default-item
-//             color           #aaa
-//           .kdlistitemview
-//             width           auto
-//             bg color,       white
-//             margin          3px
-//             padding         5px 5px 0px 5px
-//             span.value
-//               color         #aaa
-//             .title
-//               display       inline-block
-//               width         auto
-//             .remove-button
-//               display       inline-block
-//               width         auto
-//               margin-left   5px
-//               fr()
-//     .form-item
-//       borderBox()
-//       width                 auto
-//       border-bottom         1px solid #e8e8e8
-//       bg color,             white
-//       padding-top           2px
-//       &:hover
-//         bg color,           #f5f5f5
-//       > div
-//         borderBox()
-//         border-right        1px solid #f5f5f5
-//         overflow-x          hidden
-//         overflow-y          hidden
-//         text-overflow       ellipsis
-//         white-space         nowrap
-//         width               150px
-//         // min-width 200px
-//         display             inline-block
-//         padding             3px 9px
-//         margin              0
-//         border              none
-//         line-height         1.5
-//         vertical-align      middle
-//         &:first-child
-//           width             100px
-
-//         &.title
-//           font-weight       500
-//         // height 25px
-//         .kdselectbox
-//           margin-top        -4px
-//           height            18px
-//           width             130px
-//           span.title
-//             height          18px
-//             line-height     18px
-//             overflow        hidden
-//             text-overflow   ellipsis
-//           span.arrows
-//             top             0
-//         div.default
-//         fieldset
-//           &.textarea
-//             white-space     normal
-//           opacity           0.5
-//           // vendor transition, opacity 0.15s ease-in-out
-//           &:hover
-//             opacity         1
-//           span
-//             color           #aaa
-//             &.title
-//               color         #444
-//         &:first-child
-//           border-left       none
-//         &:last-child
-//           border-right      1px solid #f5f5f5
-//       &:last-child //> div
-//         padding-bottom      4px
-//   span.add-button
-//     noTextDeco()
-//     cursor                  pointer
-//     margin                  0 0 0 5px
-//     span.title
-//       noTextDeco()
-//       color                 black
-//       line-height           2.5
-//       font-weight           600
-
-//   button.save-button
-//     margin-left             10px
-
-//   span.remove-button
-//     borderBox()
-//     noTextDeco()
-//     display                 inline-block
-//     margin                  0 0 0 5px
-//     cursor                  pointer
-//     span.title
-//       noTextDeco()
-
-//   .permissions-view
-//     borderBox()
-//     // padding                 0 20px
-//     overflow                visible
-
-//     // .kdview.kdloader
-//     //   display           block
-//     //   margin            10px auto
-
-//     .button-field
-//       .kdbutton
-//         size               auto, 33px
-//         padding            0 14px
-//         margin             0 14px 0 0
-//         rounded            26px
-//         fr()
-
-//         span
-//           line-height      33px
-//           font-size        12px
-
-//         &.green
-//           bg               color, #1aaf5d
-//     form > .permissions-header .permissions-header
-//       height                18px
-
-//     form > .permissions-header:first-child
-//       position              fixed
-//       z-index               99
-//       gradient              rgba(228, 228, 228, .8) #e4e4e4
-//       size                  876px, 33px
-//       top                   0
-//       padding               77px 0 30px
-
-//       .header-item
-//         text-align          center !important
-
-//     .permissions-form
-//       overflow              visible
-
-//       .switcher
-//         text-align          center
-//         float               left
-
-//         .koding-on-off
-//           display           inline-block
-
-//       .formline
-//         borderBox()
-//         padding             10px 0
-//         border              none
-
-//         &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
-//           bg color,         rgba(0,0,0,0.025)
-//         .input-wrapper
-//           margin-bottom     0
-//         .input-wrapper:first-child
-//           border-left       none
-//           > .kdview
-//             borderBox()
-//             line-height     18px
-//             display         inline-block
-//             width           155px
-//             text-align      left
-//             padding         0 16px
-//             overflow        hidden
-//             text-overflow   ellipsis
-//             white-space     nowrap
-//             fl()
-
-
-
-//         input.kdinput.permission-checkbox
-//           display           inline
-//           width             auto
-//           margin            0 73px
-//           vertical-align    middle
-//         .input-wrapper
-//           // border-left       1px solid #f5f5f5
-//           borderBox()
-//           display           inline-block
-//           width             100%
-//           vertical-align    top
-//           > .input-wrapper
-//             vertical-align  middle
-
-//       .permissions-module
-//         color               white
-//         bg                  color logoBg
-//         padding             0 10px !important
-//         font-size           16px
-
-//         &:nth-child(2) // Header is first, first subgroup is 2
-//           padding-top       0
-
-//         .input-wrapper:first-child
-//           text-align        left
-//           overflow          visible
-//           > .kdview
-//             line-height     40px
-//             overflow        visible
-//             padding         0 6px!important
-
-//   .vocabulary > .kdview
-//     padding                 0 20px
-
-
-
-// @media screen and (max-width:1000px)
-
-//   .group-content-display .group-content
-//     .kdtabhandlecontainer
-//       .kdtabhandle
-//         padding-right         20px
-
-// .add-role-dialog
-//   // z-index               100000
-//   // max-width              300px
-
-//   .add-role-header
-//     padding-top         15px
-//     padding-bottom      15px
-//     font-size           14px
-//     font-weight         500
-
-//   .add-role-button
-//     margin-bottom       10px
-//   .add-role-cancel
-//     margin-top          8px
-
-//   label.label-role-name
-//     display             inline-block
-//     fl()
-//   input.role-name
-//     display             inline-block
-//     width               289px
-
-//   label.label-copy-permissions
-//     // margin-top          10px
-//     display             inline-block
-//     fl()
-//   // div.kdselectbox.copy-permissions
-//   //   margin-top          9px
-
-// .billing-link span
-//   display block
-
-// // .subscription-gauges
-// //   position static
-// //   .kdview
-// //     position static
-
-// .billing-history
-// .your-subscriptions
-//   height            auto
-//   min-height        70px
-
-// .subscription-gauges
-//   position static
-//   .kdview
-//     position static
+        form > .permissions-header .permissions-header
+          height                18px
+
+        form > .permissions-header:first-child
+          position              fixed
+          z-index               99
+          kalc                  width, 100% \- 584px
+          top                   0
+          background            none
+          padding               0
+          height                62px
+          line-height           62px
+          box-shadow            inset 0 -3px 0 #f2f2f2
+          border                none
+          background            #fff
+
+
+          .header-item
+            text-align          center !important
+            border              none
+            margin              22px 0 0 0
+            background          none
+            color               #969696
+            opacity             0.99
+            font-size           14px
+            font-weight         600
+
+        .permissions-form
+          overflow              visible
+
+          .switcher
+            text-align          center
+            float               left
+
+            .koding-on-off
+              display           inline-block
+
+          .formline
+            borderBox()
+            padding             10px 0
+            margin              0
+            border              none
+
+            &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+              bg color,         rgba(0,0,0,0.025)
+            .input-wrapper
+              margin-bottom     0
+            .input-wrapper:first-child
+              border-left       none
+              > .kdview
+                borderBox()
+                line-height     18px
+                display         inline-block
+                width           155px
+                text-align      left
+                padding         0 16px
+                overflow        hidden
+                text-overflow   ellipsis
+                white-space     nowrap
+                fl()
+
+            input.kdinput.permission-checkbox
+              display           inline
+              width             auto
+              margin            0 73px
+              vertical-align    middle
+            .input-wrapper
+              borderBox()
+              display           inline-block
+              width             100%
+              vertical-align    top
+              > .input-wrapper
+                vertical-align  middle
+
+          .permissions-module
+            color               white
+            bg                  color #323232
+            padding             0 10px !important
+            font-size           16px
+
+            &:nth-child(2) // Header is first, first subgroup is 2
+              padding-top       0
+
+            .input-wrapper:first-child
+              text-align        left
+              overflow          visible
+              > .kdview
+                line-height     40px
+                overflow        visible
+                padding         0 6px!important
+
+    &.membership-policy
+      .policy-view-wrapper
+        height                95vh
+
+        .koding-on-off
+          margin-top          14px
+          fl()
+
+        > .kdbutton.edit-link
+          size                auto, 33px
+          rounded             24px
+          bg                  color, #1aaf5d
+          margin              14px 0 0 0
+          fl()
+
+          span
+            line-height       33px
+            font-size         12px
+
+      .button-bar
+        margin-right          20px
+
+      section.formline
+        margin-left           100px
+        margin-top            10px
+        padding               10px
+
+        h2
+          padding-left        0
+          padding-bottom      0px
+          height              17px
+          // font-weight 600
+          font-size           14px
+          // border none
+        h3
+          font-size           12px
+          padding-bottom      10px
+
+        > div > p
+          margin-top          0px
+          margin-bottom       15px
+          padding-left        0px
+
+        > a
+          margin-left         10px
+
+        button
+          height              24px
+          line-height         8px
+
+        .policylanguage-editor
+          width               auto
+          display             block
+          clear               both
+          button
+            margin            10px 10px 0 0
+          textarea
+            width             100%
+            min-width         400px
+            min-height        100px
+
+        div.formline
+          borderBox()
+          margin              0
+          padding             10px 0
+          bg color,           transparent
+          border              none
+
+          > span
+            margin-left       20px
+            display           inline-block
+            hidden()
+
+      .policy-overlay
+        size                  100%, 100vh
+        position              fixed
+        top                   0
+        margin-left           -34px
+        z-index               10
+        bg                    color, rgba(255,255,255,.75)
+
+      p.coming-soon
+        size              460px, 128px
+        rounded           6px
+        top               55px
+        left              50%
+        margin            0 0 0 -230px
+        font-size         30px
+        color             #1aaf5d
+        line-height       128px
+        z-index           11
+        text-align        center
+        background-color  rgba(0,0,0,.05)
+        abs()
+
+        .icon
+          r-sprite        "dashboard", "coming-soon"
+          display         inline-block
+          margin-right    22px
+          position        relative
+          top             4px
+
+      .policy-language-image-wrapper
+        fr()
+        width                       auto
+        border                      1px solid #e8e8e8
+        rounded                     5px
+        bg                          color, #fbfbfb
+        margin-left                 10px
+        img
+          width                     auto
+          height                    auto
+          margin                    3px 3px 0
+        span
+          border-top                1px solid #e8e8e8
+          display                   block
+          padding                   10px
+          font-size                 11px
 
 .billing-history
 .your-subscriptions
