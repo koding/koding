@@ -734,3 +734,26 @@ utils.extend utils,
     "#{KD.whoami().profile.nickname}-#{timestamp}"
 
 
+  # Generates a fake SocialMessage object
+  generateDummyMessage: (body, timestamp) ->
+
+    now       = new Date timestamp
+    isoNow    = now.toISOString()
+
+    fakeObject         =
+      on               : -> this
+      watch            : -> this
+      body             : body
+      account          : KD.whoami()
+      createdAt        : isoNow
+      updatedAt        : isoNow
+      repliesCount     : 0
+      meta             :
+        createdAt      : now
+        updatedAt      : now
+      interactions     :
+        like           :
+          isInteracted : no
+          actorsCount  : 0
+
+
