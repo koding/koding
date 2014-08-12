@@ -251,7 +251,8 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 		query = query.Where("api.channel.meta_bits = ?", Safe)
 	}
 
-	rows, err := query.Limit(q.Limit).
+	rows, err := query.
+		Limit(q.Limit).
 		Offset(q.Skip).
 		Rows()
 
@@ -268,6 +269,49 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 	for rows.Next() {
 		rows.Scan(&channelId)
 		channelIds = append(channelIds, channelId)
+	}
+
+	// if this is the first query for listing the channels
+	// add default channels into the result set
+	if q.Skip == 0 {
+		defaultChannels, err := c.fetchDefaultChannels(q)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			for _, item := range channelIds {
+				defaultChannels = append(defaultChannels, item)
+			}
+			return defaultChannels, nil
+		}
+	}
+
+	return channelIds, nil
+}
+
+func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, error) {
+	var channels []Channel
+	channel := NewChannel()
+	bongoQuery := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name": q.GroupName,
+		},
+		Pluck:      "id",
+		Pagination: *bongo.NewPagination(2, 0),
+	}
+
+	query := bongo.B.BuildQuery(channel, bongoQuery)
+	query = query.Where("type_constant = ? or type_constant = ?", Channel_TYPE_DEFAULT, Channel_TYPE_GROUP)
+
+	if err := bongo.CheckErr(
+		query.Find(&channels),
+	); err != nil {
+		return nil, err
+	}
+
+	channelIds := make([]int64, len(channels))
+
+	for i, channel := range channels {
+		channelIds[i] = channel.Id
 	}
 
 	return channelIds, nil
