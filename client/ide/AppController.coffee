@@ -3,6 +3,7 @@ class IDEAppController extends AppController
   KD.registerAppClass this,
     name         : 'IDE'
     behavior     : 'application'
+    multiple     : yes
     preCondition :
       condition  : (options, cb) -> cb KD.isLoggedIn()
       failure    : (options, cb) ->
