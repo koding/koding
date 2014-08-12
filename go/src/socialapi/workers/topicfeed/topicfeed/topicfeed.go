@@ -99,6 +99,7 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 func extractTopics(body string) []string {
 	flattened := make([]string, 0)
 
+	// extract twitter style hashtags
 	res := extract.ExtractHashtags(body)
 	if res == nil {
 		return flattened
@@ -112,6 +113,9 @@ func extractTopics(body string) []string {
 		}
 	}
 
+	// filter unwanted topics
+	topics = filterTopics(topics)
+
 	for topic := range topics {
 		flattened = append(flattened, topic)
 	}
@@ -119,6 +123,34 @@ func extractTopics(body string) []string {
 	return flattened
 }
 
+func filterTopics(topics map[string]struct{}) map[string]struct{} {
+	blacklistedTopics := []string{
+		// public topic is used for group channel, if user adds `public` tag
+		// into the message, do not try to add it to the group channel again
+		"public",
+	}
+
+	filteredTopics := make(map[string]struct{})
+
+	for topic, _ := range topics {
+		blacklisted := false
+		// check if the topic is in blacklisted topics
+		for _, blacklistedTopic := range blacklistedTopics {
+			if topic == blacklistedTopic {
+				blacklisted = true
+				break
+			}
+		}
+
+		// merge -not blacklisted- topics
+		if !blacklisted {
+			filteredTopics[topic] = struct{}{}
+		}
+	}
+
+	return filteredTopics
+
+}
 func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 	if res, _ := isEligible(data); !res {
 		return nil
