@@ -143,13 +143,12 @@ body.dashboard
 
       .listview-wrapper > .kdscrollview
         padding-right     34px
-        margin-top        34px
-        kalc              height, 100vh \- 107px
+        kalc              height, 100vh \- 73px
         kalc              width, 100% \+ 34px
         borderBox()
 
       .kdlistitemview-member
-        padding           34px 0
+        padding           23px 0
         border-bottom     1px solid #DEDEDE
         font-size         14px
         line-height       19px
@@ -188,6 +187,106 @@ body.dashboard
 
             &~.kdbutton
               margin-left 2%
+
+
+    &.invitations
+
+      .invitations-tabs
+        overflow          visible
+
+      .listview-wrapper > .kdscrollview
+        padding-right     34px
+        kalc              height, 100vh \- 73px
+        kalc              width, 100% \+ 34px
+        borderBox()
+
+      .kdtabhandlecontainer
+        background        none
+        margin            -34px 0 0
+        padding           0
+        height            62px
+        line-height       62px
+        box-shadow        inset 0 -3px 0 #f2f2f2
+        border            none
+
+        .kdtabhandle-tabs
+          size            auto, auto
+          fl()
+
+        .kdtabhandle
+          padding         0 23px
+          margin          0
+          border          none
+          line-height     inherit
+          height          62px
+          background      none
+          color           #969696
+          opacity         0.99
+          font-size       14px
+          font-weight     600
+
+          &.active
+            box-shadow    inset 0 -3px 0 #01b05a
+            color         #575757
+
+        .button-bar
+          size            auto, auto
+          margin          18px 0 0 0
+          fr()
+
+          .show-resolved
+            size          auto, auto
+            padding       3px 18px 0 0
+            fl()
+
+            .kdlabel
+              fl()
+
+            .kdinput
+              margin     1px 0 0 6px
+              fr()
+
+          .kdbutton
+            fl()
+
+      .kdlistitemview-invitation-request
+        padding           23px 0
+        border-bottom     1px solid #DEDEDE
+        font-size         14px
+        line-height       19px
+        borderBox()
+
+        .status
+          size             38px, 38px
+          border           1px solid #EAEAEA
+          rounded          3px
+          margin           0 18px 0 0
+          text-align       center
+          line-height      38px
+          fl()
+
+          .icon
+            display        inline-block
+            r-sprite       'account', 'cross-8'
+
+          &.sent .icon
+            r-sprite       'account', 'check-8'
+
+        .details
+          color             #4c4c4c
+          font-weight       600
+
+          .requested-at
+          .usage
+            color           #7b7b7b
+            font-weight     400
+
+        .buttons
+          fr()
+
+          .kdbutton
+            margin-left     6px
+            fr()
 
 
 
