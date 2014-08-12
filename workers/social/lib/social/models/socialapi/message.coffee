@@ -9,9 +9,13 @@ ApiError       = require './error'
 
 module.exports = class SocialMessage extends Base
   @share()
-  @byPassBatching()
 
   @set
+    classAttributes:
+      # while sending XHR requests via bongo, we are batching those requests
+      # but SocialMessage requests will not be batched
+      bypassBatch   : yes
+
     sharedMethods :
       static   :
         byId   :
