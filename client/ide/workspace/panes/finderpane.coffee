@@ -4,16 +4,27 @@ class IDE.FinderPane extends IDE.Pane
 
     super options, data
 
-    appManager = KD.getSingleton 'appManager'
+    appManager  = KD.getSingleton 'appManager'
+    computeCtrl = KD.getSingleton 'computeController'
+    ideApp      = appManager.getFrontApp()
 
-    appManager.open 'Finder', (finderApp) =>
-      fc = @finderController = finderApp.create
-        addAppTitle   : no
-        treeItemClass : IDE.FinderItem
+    # TODO: 404 - Brain not found.
+    # It should be fixed with computeController.ready but there is a race condition
+    # there but I don't have enough brain to fix it right now.
 
-      @addSubView fc.getView()
-      @bindListeners()
-      fc.reset()
+    KD.utils.wait 2000, => # computeCtrl.ready =>
+      for machine in computeCtrl.machines when machine.uid is ideApp.mountedMachineUId
+        machineItem  = machine
+
+      appManager.open 'Finder', (finderApp) =>
+        fc = @finderController = finderApp.create
+          addAppTitle   : no
+          treeItemClass : IDE.FinderItem
+          machineToMount: machineItem
+
+        @addSubView fc.getView()
+        @bindListeners()
+        fc.reset()
 
   bindListeners: ->
     mgr = KD.getSingleton 'appManager'
