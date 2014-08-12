@@ -345,16 +345,19 @@ class ActivitySidebar extends KDCustomHTMLView
       type                : 'main-nav'
       treeItemClass       : NavigationMachineItem
 
-    @vmTree.getView().on 'VMCogClicked', (vm, item)->
-      {mainView} = KD.singletons
-      mainView.openVMModal vm, item
-
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : 'VMs'
 
     section.addSubView @vmTree.getView()
+    @machineTree.on 'NodeWasAdded', (machineItem) ->
+
+      machineItem.on 'click', (event) ->
+        machine = machineItem.getData()
+        KD.utils.stopDOMEvent event
+        KD.singletons.mainView.openMachineModal machine, machineItem
+
 
     if KD.userMachines.length
     then @listVMs KD.userMachines
