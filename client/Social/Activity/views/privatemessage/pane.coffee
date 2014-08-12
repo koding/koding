@@ -23,12 +23,70 @@ class PrivateMessagePane extends MessagePane
 
     @messageMap = {}
 
+    @fakeMessageMap = {}
+
     @createParticipantsView()
 
     @input = new ReplyInputWidget {channel}
 
+    @bindInputEvents()
+
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+
+
+  # override this so that it won't
+  # be have to scroll to the top when
+  # a new item is added to list
+  scrollUp: -> return
+
+
+  bindInputEvents: ->
+    @input
+      .on 'Enter', @bound 'handleEnter'
+      .on 'Submit', @bound 'replaceFakeMessage'
+
+
+  replaceFakeMessage: (message) ->
+
+    return  if @messageMap[message.id]
+
+    # insert the real message.
+    @messageMap[message.id] = yes
+    @prependMessage message, @listController.getItemCount() - 1
+
+    @removeFakeMessage message.requestData  if message.requestData
+
+  # as soon as the enter key down,
+  # we create a fake itemview and put
+  # it to dom. once the response from server
+  # comes back, it will replace the fake one
+  # with the real one.
+  handleEnter: (value, timestamp) ->
+    return  unless value
+
+    @input.reset yes
+    @createFakeItemView value, timestamp
+
+
+  createFakeItemView: (value, timestamp) ->
+
+    fakeData = KD.utils.generateDummyMessage value, timestamp
+
+    # add immediately to the end of the list.
+    item  = @appendMessage fakeData, @listController.getItemCount()
+
+    # save it to a map so that we have a reference
+    # to it to be deleted.
+    identifier = KD.utils.generateFakeIdentifier timestamp
+    @fakeMessageMap[identifier] = item
+
+
+  removeFakeMessage: (identifier) ->
+
+    return  unless item = @fakeMessageMap[identifier]
+
+    @listController.removeItem item
 
 
   bindChannelEvents: (channel) ->
@@ -42,13 +100,18 @@ class PrivateMessagePane extends MessagePane
 
 
   addMessage: (message) ->
+
     return  if @messageMap[message.id]
 
+    @removeFakeMessage message.requestData  if message.requestData
+
+    # insert the real message.
     @messageMap[message.id] = yes
     @prependMessage message, @listController.getItemCount()
 
 
   removeMessage: (message) ->
+
     return  unless @messageMap[message.id]
     super message
 
@@ -98,6 +161,8 @@ class PrivateMessagePane extends MessagePane
 
 
   messageRemoved: (item, index) ->
+
+    return  if item.getData().isFake
 
     {data} = item
 
@@ -176,3 +241,4 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+
