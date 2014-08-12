@@ -8,23 +8,13 @@ class IDE.FinderPane extends IDE.Pane
     computeCtrl = KD.getSingleton 'computeController'
     ideApp      = appManager.getFrontApp()
 
-    # TODO: 404 - Brain not found.
-    # It should be fixed with computeController.ready but there is a race condition
-    # there but I don't have enough brain to fix it right now.
+    appManager.open 'Finder', (finderApp) =>
+      fc = @finderController = finderApp.create
+        addAppTitle   : no
+        treeItemClass : IDE.FinderItem
 
-    KD.utils.wait 2000, => # computeCtrl.ready =>
-      for machine in computeCtrl.machines when machine.uid is ideApp.mountedMachineUId
-        machineItem  = machine
-
-      appManager.open 'Finder', (finderApp) =>
-        fc = @finderController = finderApp.create
-          addAppTitle   : no
-          treeItemClass : IDE.FinderItem
-          machineToMount: machineItem
-
-        @addSubView fc.getView()
-        @bindListeners()
-        fc.reset()
+      @addSubView fc.getView()
+      @bindListeners()
 
   bindListeners: ->
     mgr = KD.getSingleton 'appManager'

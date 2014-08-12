@@ -204,6 +204,18 @@ class IDEAppController extends AppController
     filesPane    = panel.getPaneByName 'filesPane'
     filesPane.emit 'VMUnmountRequested', vmData
 
+  mountMachineByMachineUId: (machineUId) ->
+    computeController = KD.getSingleton 'computeController'
+    computeController.ready =>
+      for machine in computeController.machines
+        if machine.uid is @mountedMachineUId
+          machineItem = machine
+
+      if machineItem then @mountVM machineItem
+      else
+        # TODO: Show fancy machine not found notification
+        KD.showError 'Machine not found'
+
   collapseSidebar: ->
     panel        = @workspace.getView()
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'

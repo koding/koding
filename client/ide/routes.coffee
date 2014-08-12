@@ -14,6 +14,7 @@ do ->
       fallback    = ->
         appManager.open 'IDE', { forceNew: yes }, (app) ->
           app.mountedMachineUId = slug
+          appManager.tell 'IDE', 'mountMachineByMachineUId', slug
 
       return fallback()  unless ideApps?.instances
 
