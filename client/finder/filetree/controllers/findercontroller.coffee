@@ -98,7 +98,7 @@ class NFinderController extends KDViewController
 
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = mRoots[uid] or "/"
+    path    = mRoots[uid] or "/home/#{KD.nick()}"
 
     if @getMachineNode uid
       return warn "Machine #{machine.getName()} is already mounted!"
