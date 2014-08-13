@@ -3,6 +3,10 @@ class TagContextMenuItem extends JContextMenuItem
     options.cssClass = KD.utils.curry "tag-context-menu-item", options.cssClass
     super options, data
 
+  viewAppended: JView::viewAppended
+
+  setTemplate: JView::setTemplate
+
   pistachio: ->
     {$suggest, $deleted} = @getData()
 
