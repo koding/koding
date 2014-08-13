@@ -9,22 +9,22 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     super options, data
 
     @editButton = new KDButtonView
-      style       : 'solid'
+      style       : 'solid medium'
       title       : 'Edit'
       callback    : @bound 'showEditModal'
 
     @shareButton = new KDButtonView
-      style       : 'solid green'
+      style       : 'solid medium green'
       title       : 'Share'
       callback    : @bound 'showShareModal'
 
     @deleteButton = new KDButtonView
-      style       : 'solid red'
+      style       : 'solid medium red'
       title       : 'Delete'
       callback    : @bound 'deleteInvitation'
 
     @statusText    = new KDCustomHTMLView
-      partial     : '<span class="icon"></span><span class="title"></span>'
+      partial     : '<span class="icon"></span>'
       cssClass    : 'status hidden'
 
   showEditModal:->

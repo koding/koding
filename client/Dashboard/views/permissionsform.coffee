@@ -12,7 +12,7 @@ class PermissionsForm extends KDFormViewWithFields
     @roles = (role.title for role in options.roles when role.title isnt 'owner')
     options.buttons or=
       Save          :
-        style       : "solid green"
+        style       : "solid medium green"
         loader      : yes
         callback    : =>
           @buttons["Save"].hideLoader()
@@ -22,7 +22,7 @@ class PermissionsForm extends KDFormViewWithFields
             new KDNotificationView title: "Group permissions have been updated."
       Add           :
         title       : "Add"
-        style       : "solid green"
+        style       : "solid medium green"
         callback    : @bound "showNewRoleModal"
 
     options.fields or= optionizePermissions @roles, @permissionSet
@@ -106,7 +106,7 @@ class PermissionsForm extends KDFormViewWithFields
 
     name = _getCheckboxName module, permission, current
 
-    widthForRows = (786-174)/roleCount
+    widthForRows = (window.innerWidth - 754)/roleCount
     cascadeData[current]= {
       name
       cssClass
@@ -123,7 +123,7 @@ class PermissionsForm extends KDFormViewWithFields
     return cascadeData
 
   cascadeHeaderElements = (roles, roleCount)->
-    widthForRows = (786-174)/roleCount
+    widthForRows = (window.innerWidth - 754)/roleCount
 
     [current,remainder...] = roles
     cascadeData = {}

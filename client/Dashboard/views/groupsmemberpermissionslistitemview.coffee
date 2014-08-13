@@ -13,13 +13,11 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     {roles, userRoles} = list.getOptions()
 
     @avatar  = new AvatarView
-      size       : width: 30, height: 30
-      cssClass   : "avatarview"
-      showStatus : yes
+      size       : width: 38, height: 38
     , data
 
     @profileLink       = new ProfileLinkView {}, data
-    @usersRole         = userRoles[data.getId()]
+    @usersRole         = userRoles[data.getId()] or []
 
     @userRole          = new KDCustomHTMLView
       partial          : "Roles: " + @usersRole.join ', '
@@ -28,24 +26,18 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
     if 'owner' in @usersRole or KD.whoami().getId() is data.getId()
       @editLink        = new KDCustomHTMLView "hidden"
     else
-      @editLink        = new CustomLinkView
+      @editLink        = new KDButtonView
         title          : 'Edit'
-        cssClass       : 'fr edit-link'
-        icon           :
-          cssClass     : 'edit'
-        click          : (event)=>
-          event.stopPropagation()
-          event.preventDefault()
+        cssClass       : 'edit-btn'
+        style          : 'solid green medium'
+        callback       : =>
           @showEditMemberRolesView()
 
-    @cancelLink        = new CustomLinkView
+    @cancelLink        = new KDButtonView
       title            : 'Cancel'
-      cssClass         : 'fr hidden cancel-link'
-      icon             :
-        cssClass       : 'delete'
-      click            : (event)=>
-        event.stopPropagation()
-        event.preventDefault()
+      cssClass         : 'edit-btn hidden'
+      style            : 'solid medium light-gray'
+      callback         : =>
         @hideEditMemberRolesView()
 
     @editContainer     = new KDView
