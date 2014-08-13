@@ -114,52 +114,54 @@ class GroupsMembershipPolicyDetailView extends JView
       delegate : @
     , policy
 
+    @subViewsCreated = yes
     JView::viewAppended.call this
 
   pistachio:->
-    """
-    <div class="policy-overlay"></div>
-    <p class="coming-soon"><span class="icon"></span>Coming Soon</p>
-    {{> @enableAccessRequests}}
-    <section class="formline">
-      <h2>Users may request access</h2>
-      <div class="formline">
-        <p>If you disable this feature, users will not be able to request
-        access to this group.  Turn this off to globally disable new
-        invitations and approval requests.</p>
-      </div>
-    </section>
-    {{> @enableDataCollection}}
-    <section class="formline">
-      <h2>Enable data collection</h2>
-      <div class="formline">
-        <p>This will allow you to collect additional data from users who
-        request access to your group.</p>
-      </div>
+    if @subViewsCreated
+      """
+      <div class="policy-overlay"></div>
+      <p class="coming-soon"><span class="icon"></span>Coming Soon</p>
+      {{> @enableAccessRequests}}
+      <section class="formline">
+        <h2>Users may request access</h2>
+        <div class="formline">
+          <p>If you disable this feature, users will not be able to request
+          access to this group.  Turn this off to globally disable new
+          invitations and approval requests.</p>
+        </div>
+      </section>
+      {{> @enableDataCollection}}
+      <section class="formline">
+        <h2>Enable data collection</h2>
+        <div class="formline">
+          <p>This will allow you to collect additional data from users who
+          request access to your group.</p>
+        </div>
 
-      {{> @formGenerator}}
-    </section>
-    {{> @enableWebhooks}}
-    <section class="formline">
-      <h2>Webhooks</h2>
-      <div class="formline">
-        <p>If you enable webhooks, then we will post some data to your webhooks
-        when someone requests access to the group.  The business logic at your
-        endpoint will be responsible for validating and approving the request</p>
-        <p>Webhooks and invitations may be used together.</p>
-      </div>
-      {{> @webhook}}
-      {{> @webhookEditor}}
-    </section>
-    {{> @showPolicyLanguageLink}}
-    <section class="formline clearfix">
-      <h2>Policy language</h2>
-      <div class="formline">
-        <p>It's possible to compose custom policy language (copy) to help your
-        users better understand how they may become members of your group.</p>
-        <p>The screenshot on the right shows where this text will be presented to the user.</p>
-        <p>If you wish, you may click 'Edit' to the left and then enter custom language below (markdown is OK):</p>
-      </div>
-      {{> @policyLanguageEditor}}
-    </section>
-    """
+        {{> @formGenerator}}
+      </section>
+      {{> @enableWebhooks}}
+      <section class="formline">
+        <h2>Webhooks</h2>
+        <div class="formline">
+          <p>If you enable webhooks, then we will post some data to your webhooks
+          when someone requests access to the group.  The business logic at your
+          endpoint will be responsible for validating and approving the request</p>
+          <p>Webhooks and invitations may be used together.</p>
+        </div>
+        {{> @webhook}}
+        {{> @webhookEditor}}
+      </section>
+      {{> @showPolicyLanguageLink}}
+      <section class="formline clearfix">
+        <h2>Policy language</h2>
+        <div class="formline">
+          <p>It's possible to compose custom policy language (copy) to help your
+          users better understand how they may become members of your group.</p>
+          <p>The screenshot on the right shows where this text will be presented to the user.</p>
+          <p>If you wish, you may click 'Edit' to the left and then enter custom language below (markdown is OK):</p>
+        </div>
+        {{> @policyLanguageEditor}}
+      </section>
+      """

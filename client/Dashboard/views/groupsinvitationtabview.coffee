@@ -14,6 +14,7 @@ class GroupsInvitationTabView extends KDTabView
     @showResolvedView.addSubView showResolvedLabelView = new KDLabelView
       title    : 'Show Resolved: '
     @showResolvedView.addSubView new KodingSwitch
+      size     : 'tiny'
       label    : showResolvedLabelView
       callback : (@showResolved)=> @setResolvedStateInView()
 
@@ -53,20 +54,20 @@ class GroupsInvitationTabView extends KDTabView
     @buttonContainer.addSubView @showResolvedView
     @buttonContainer.addSubView @editInvitationMessageButtion = new KDButtonView
       title    : "Edit Invitation Message"
-      cssClass : 'solid medium green'
+      cssClass : 'solid small green'
       callback : @getDelegate().showEditInviteMessageModal.bind @getDelegate()
     @buttonContainer.addSubView @bulkApproveButton = new KDButtonView
       title    : "Bulk #{bulkSubject}"
-      cssClass : 'solid medium green'
+      cssClass : 'solid small green'
       callback : @getDelegate().showBulkApproveModal.bind @getDelegate()
     @buttonContainer.addSubView @inviteByEmailButton = new KDButtonView
       title    : 'Invite by Email'
-      cssClass : 'solid medium green'
+      cssClass : 'solid small green'
       testPath : "groups-dashboard-invite-button"
       callback : @getDelegate().showInviteByEmailModal.bind @getDelegate()
     @buttonContainer.addSubView @createInvitationCodeButton = new KDButtonView
       title    : 'Create Invitation Code'
-      cssClass : 'solid medium green'
+      cssClass : 'solid small green'
       callback : @getDelegate().showCreateInvitationCodeModal.bind @getDelegate()
 
     @decorateHeaderButtons()

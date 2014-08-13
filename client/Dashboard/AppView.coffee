@@ -6,9 +6,11 @@ class DashboardAppView extends JView
     data or= KD.getSingleton("groupsController").getCurrentGroup()
     super options, data
 
-    @nav    = new KDView tagName : 'aside'
+    @nav    = new KDView
+      tagName     : 'aside'
+      cssClass    : 'app-sidebar'
     @tabs   = new KDTabView
-      cssClass            : 'dashboard-tabs'
+      cssClass            : 'dashboard-tabs app-content'
       hideHandleContainer : yes
     , data
 

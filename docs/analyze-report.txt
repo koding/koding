@@ -1,0 +1,281 @@
+Parsing source files...
+Parsing completed. 720 classes found.
+Writing graph data to ../docs/koding-dep.graph
+
+Following classes are defined more than once:
+
+{ MemberAutoCompleteItemView: 
+   [ 'Dashboard/views/administrationview.coffee',
+     'Main/CommonViews/memberautocomplete.coffee' ],
+  MemberAutoCompletedItemView: 
+   [ 'Dashboard/views/administrationview.coffee',
+     'Main/CommonViews/memberautocomplete.coffee' ],
+  OnboardingItemView: 
+   [ 'Dashboard/views/onboarding/onboardingitemview.coffee',
+     'Main/onboarding/onboardingitemview.coffee' ],
+  VmProductView: 
+   [ 'Environments/views/vms/vmproductview.coffee',
+     'Main/payment/vmproductview.coffee' ],
+  ActivityListController: 
+   [ 'Social/Activity/__old.aclc',
+     'Social/Activity/activitylistcontroller.coffee' ],
+  ActivityAppController: 
+   [ 'Social/Activity/__old',
+     'Social/Activity/AppController.coffee' ],
+  ViewerTopBar: [ 'Viewer/topbar.coffee', 'Viewer/viewertopbar.coffee' ] }
+
+Following files have more than one class in it:
+
+{ 'Account/AppView.coffee': 
+   [ 'AccountListWrapper',
+     'AccountNavigationItem',
+     'AccountsSwappable' ],
+  'Account/views/credentials.coffee': 
+   [ 'AccountCredentialListController',
+     'AccountCredentialList',
+     'AccountCredentialListItem' ],
+  'Account/views/deleteaccountview.coffee': [ 'DeleteAccountView', 'DeleteModalView' ],
+  'Account/views/editors.coffee': 
+   [ 'AccountEditorListController',
+     'AccountEditorList',
+     'AccountEditorExtensionTagger',
+     'AccountEditorTags',
+     'AccountEditorListItem' ],
+  'Account/views/kodingkeys.coffee': 
+   [ 'AccountKodingKeyListController',
+     'AccountKodingKeyList',
+     'AccountKodingKeyListItem' ],
+  'Account/views/linkedaccts.coffee': 
+   [ 'AccountLinkedAccountsListController',
+     'AccountLinkedAccountsList',
+     'AccountLinkedAccountsListItem' ],
+  'Account/views/mykitelist.coffee': 
+   [ 'AccountMyKiteListController',
+     'AccountMyKiteList',
+     'AccountMyKiteListItem' ],
+  'Account/views/paymenthistory.coffee': 
+   [ 'AccountPaymentHistoryListController',
+     'AccountPaymentHistoryList',
+     'AccountPaymentHistoryListItem' ],
+  'Account/views/paymentmethods.coffee': 
+   [ 'AccountPaymentMethodsListController',
+     'AccountPaymentMethodsList',
+     'AccountPaymentMethodsListItem' ],
+  'Account/views/referralsystem.coffee': 
+   [ 'AccountReferralSystemListController',
+     'AccountReferralSystemList',
+     'AccountReferralSystemListItem' ],
+  'Account/views/sshkeys.coffee': 
+   [ 'AccountSshKeyListController',
+     'AccountSshKeyList',
+     'AccountSshKeyListItem' ],
+  'Account/views/subscriptions.coffee': 
+   [ 'AccountSubscriptionsListController',
+     'AccountSubscriptionsList',
+     'AccountSubscriptionsListItem',
+     'SubscriptionControls' ],
+  'Dashboard/views/administrationview.coffee': 
+   [ 'AdministrationView',
+     'MemberAutoCompleteItemView',
+     'MemberAutoCompletedItemView' ],
+  'Dashboard/views/grouplogosettings.coffee': [ 'InlineImageSettings', 'GroupLogoSettings' ],
+  'Dashboard/views/groupsformgeneratorview.coffee': 
+   [ 'FormGeneratorView',
+     'FormGeneratorMultipleInputView',
+     'FormGeneratorMultipleInputItemView',
+     'FormGeneratorItemView',
+     'GroupsFormGeneratorView' ],
+  'Dashboard/views/groupsinvitationtabpaneview.coffee': 
+   [ 'GroupsInvitationTabPaneView',
+     'GroupsMembershipRequestsTabPaneView',
+     'GroupsSentInvitationsTabPaneView',
+     'GroupsInvitationCodesTabPaneView' ],
+  'Dashboard/views/onboarding/onboardingitemview.coffee': 
+   [ 'OnboardingItemView',
+     'OnboardingChildItem',
+     'OnboardingSettingsMenuItem' ],
+  'Environments/views/scene/environmentsceneview.coffee': [ 'EnvironmentScene', 'EnvironmentApprovalModal' ],
+  'Finder/AppController.coffee': [ 'FinderController', 'VMListItem' ],
+  'Finder/filetree/itemsubviews/finderitemrenameview.coffee': [ 'NFinderItemRenameView', 'NFinderRenameInput' ],
+  'IDE/workspace/panes/vmlistpane.coffee': [ 'IDE.VMListPane', 'IDE.VMPaneListItem' ],
+  'Login/Views/loginform.coffee': [ 'LoginViewInlineForm', 'LoginInlineForm' ],
+  'Login/Views/logininputs.coffee': [ 'LoginInputView', 'LoginInputViewWithLoader' ],
+  'Main/AppStorage.coffee': [ 'AppStorage', 'AppStorageController' ],
+  'Main/avatararea/avatarareagroupswitcherpopup.coffee': 
+   [ 'AvatarPopupGroupSwitcher',
+     'PopupGroupListItem',
+     'PopupGroupListItemPending' ],
+  'Main/CommonViews/avatarviews/avatarview.coffee': [ 'AvatarView', 'ErrorlessImageView' ],
+  'Main/CommonViews/CommonInnerNavigation.coffee': 
+   [ 'CommonInnerNavigation',
+     'CommonInnerNavigationListController',
+     'CommonInnerNavigationList',
+     'CommonInnerNavigationListItem' ],
+  'Main/CommonViews/CommonVMUsageBar.coffee': [ 'CommonVMUsageBar', 'VMRamUsageBar', 'VMDiskUsageBar' ],
+  'Main/CommonViews/fatih/fatihprefpane.coffee': [ 'FatihPrefPane', 'FatihPrefItem' ],
+  'Main/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee': 
+   [ 'FatihContentSearchPlugin',
+     'FatihContentSearchView',
+     'FatihContentSearchListItem',
+     'FatihContentSearchSummary' ],
+  'Main/CommonViews/fatih/plugins/fatihusersearchplugin.coffee': 
+   [ 'FatihUserSearchPlugin',
+     'FatihUserActionView',
+     'FatihUserListItem' ],
+  'Main/CommonViews/followbutton.coffee': [ 'FollowButton', 'MemberFollowToggleButton' ],
+  'Main/CommonViews/KeyboardHelper.coffee': 
+   [ 'KeyboardHelperView',
+     'KeySetView',
+     'KeyView',
+     'KeyboardHelperModalView' ],
+  'Main/CommonViews/memberautocomplete.coffee': [ 'MemberAutoCompleteItemView', 'MemberAutoCompletedItemView' ],
+  'Main/CommonViews/remotesmodal.coffee': 
+   [ 'ManageRemotesModal',
+     'RemoteListItem',
+     'KDYesNoSwitch',
+     'AskForPassword' ],
+  'Main/CommonViews/sharelink.coffee': 
+   [ 'ShareLink',
+     'TwitterShareLink',
+     'FacebookShareLink',
+     'LinkedInShareLink' ],
+  'Main/CommonViews/VideoPopup.coffee': 
+   [ 'VideoPopupController',
+     'VideoPopupList',
+     'VideoPopupListItem',
+     'VideoPopup' ],
+  'Main/kodingappscontroller.coffee': [ 'KodingAppsController', 'AppSkeleton' ],
+  'Main/localstorage.coffee': [ 'LocalStorage', 'LocalStorageController' ],
+  'Main/maincontroller/helpcontroller.coffee': [ 'HelpController', 'HelpPage', 'HelpModal' ],
+  'Main/navigation/navigationcontroller.coffee': [ 'NavigationController', 'MainNavController' ],
+  'Main/onboarding/onboardingitemview.coffee': [ 'OnboardingItemView', 'OnboardingContextMenu' ],
+  'Main/payment/existingaccountworkflow.coffee': [ 'ExistingAccountForm', 'ExistingAccountWorkflow' ],
+  'Main/providers/machineitem.coffee': [ 'MachineItem', 'MachineItemListView' ],
+  'Main/providers/machinelist.coffee': [ 'MachineList', 'MachineListModal' ],
+  'Social/Activity/views/feedcoverphotoview.coffee': [ 'FeedCoverPhotoView', 'CollageItemList' ],
+  'Social/Activity/views/tags/TagAutoCompleteController.coffee': 
+   [ 'TagAutoCompleteController',
+     'TagAutoCompleteItemView',
+     'TagAutoCompletedItemView',
+     'SuggestNewTagItem' ],
+  'Social/Activity/views/tags/TagViews.coffee': [ 'TagGroup', 'SkillTagGroup', 'TagCloudListItemView' ],
+  'Social/Activity/widgets/statuswidget.coffee': [ 'ActivityStatusUpdateWidget', 'InfoBox' ],
+  'Social/Members/AppController.coffee': 
+   [ 'MembersAppController',
+     'MemberTabsView',
+     'MemberActivityListController' ],
+  'Social/Members/ContentDisplays/profileview.coffee': 
+   [ 'AvatarChangeHeaderView',
+     'AvatarChangeView',
+     'ProfileContentEditableView',
+     'ProfileView' ],
+  'Social/Members/newmemberactivitylistitem.coffee': [ 'NewMemberActivityListItem', 'NewMemberListItem' ],
+  'Teamwork/CollaborativeWorkspace/panes/collaborativeclientfinderpane.coffee': 
+   [ 'CollaborativeClientFinderPane',
+     'CollaborativeClientTreeViewController' ],
+  'Teamwork/CollaborativeWorkspace/panes/collaborativefinderpane.coffee': 
+   [ 'CollaborativeFinderPane',
+     'CollaborativeFinderTreeController' ],
+  'Teamwork/CollaborativeWorkspace/panes/collaborativepreviewpane.coffee': [ 'CollaborativePreviewPane', 'CollaborativePreview' ],
+  'Teamwork/Views/teamworkavatartabview.coffee': 
+   [ 'TeamworkTabHandleWithAvatar',
+     'TeamworkTabHandleAvatarView',
+     'TeamworkAvatarContextMenuItem' ],
+  'Teamwork/Views/teamworkfinder.coffee': [ 'TeamworkFinderItem', 'TeamworkFinderTreeController' ],
+  'Terminal/src/ControlCodeReader.coffee': [ 'WebTerm.ControlCodeReader', 'WebTerm.TextReader' ] }
+
+Checking for usages... (this may take time) ... safe to stop with ctrl+c
+Following classes from pointed files may not be used in the code:
+
+
+From Account project ....................
+
+AccountContentWrapperController from Account/controllers/accountcontentwrappercontroller.coffee
+AccountNavigationController from Account/controllers/accountnavigationcontroller.coffee
+AccountSideBarController from Account/controllers/accountsidebarcontroller.coffee
+GmailContactsListItem from Account/views/gmailcontact.coffee
+AccountMyKiteListController from Account/views/mykitelist.coffee
+
+
+From Dashboard project ....................
+
+GroupPlanProduct from Dashboard/views/planproduct.coffee
+
+
+From Environments project ....................
+
+DomainBuyForm from Environments/views/domains/domainbuyform.coffee
+ResourcesContainer from Environments/views/resourcescontainer.coffee
+VMAlwaysOnToggleButtonView from Environments/views/vms/vmalwaysontogglebuttonview.coffee
+VmPaymentConfirmForm from Environments/views/vms/vmpaymentconfirmform.coffee
+VmProductForm from Environments/views/vms/vmproductform.coffee
+
+
+From Finder project ....................
+
+NMountToggleButtonView from Finder/filetree/itemsubviews/mounttogglebuttonview.coffee
+NVMToggleButtonView from Finder/filetree/itemsubviews/vmtogglebuttonview.coffee
+NMachineItemView from Finder/filetree/itemviews/machineitem.coffee
+AppsWatcher from Finder/fs/appswatcher.coffee
+FSVm from Finder/fs/fsvm.coffee
+
+
+From IDE project ....................
+
+IDE.IDESocialsTabView from IDE/views/tabview/idesocialstabview.coffee
+
+
+From Main project ....................
+
+AvatarPopupShareStatus from Main/avatararea/avatarareasharestatuspopup.coffee
+AdminModal from Main/CommonViews/adminmodal.coffee
+AutoCompleteAvatarView from Main/CommonViews/avatarviews/autocompleteavatarview.coffee
+VMRamUsageBar from Main/CommonViews/CommonVMUsageBar.coffee
+VMDiskUsageBar from Main/CommonViews/CommonVMUsageBar.coffee
+FormWorkflowModal from Main/CommonViews/formworkflow/modal.coffee
+FormWorkflow.Visualization from Main/CommonViews/formworkflow/visualization.coffee
+KeyboardHelperView from Main/CommonViews/KeyboardHelper.coffee
+KeyboardHelperModalView from Main/CommonViews/KeyboardHelper.coffee
+ActivityChildViewTagGroup from Main/CommonViews/linkviews/activitychildviewtaggroup.coffee
+ActivityLinkView from Main/CommonViews/linkviews/activitylinkview.coffee
+GroupLinkView from Main/CommonViews/linkviews/grouplinkview.coffee
+ProfileTextGroup from Main/CommonViews/linkviews/profiletextgroup.coffee
+NominateModal from Main/CommonViews/nominatemodal.coffee
+ManageRemotesModal from Main/CommonViews/remotesmodal.coffee
+SlidingSplit from Main/CommonViews/slidingsplit.coffee
+VideoPopupListItem from Main/CommonViews/VideoPopup.coffee
+KodingKite_KlientKite from Main/kite/kites/klient.coffee
+KodingKite_KloudKite from Main/kite/kites/kloud.coffee
+DockController from Main/maincontroller/dockcontroller.coffee
+NavigationActivityLink from Main/navigation/navigationactivitylink.coffee
+AdminNavigationLink from Main/navigation/navigationadminlink.coffee
+NavigationAppsLink from Main/navigation/navigationappslink.coffee
+NavigationDocsJobsLink from Main/navigation/navigationdocsjobslink.coffee
+NavigationInviteLink from Main/navigation/navigationinvitationlink.coffee
+NavigationPromoteLink from Main/navigation/navigationpromotelink.coffee
+NavigationSeparator from Main/navigation/navigationseparator.coffee
+PlanUpgradeForm from Main/payment/planupgradeform.coffee
+
+
+From Social project ....................
+
+PinnedActivityListController from Social/Activity/pinnedactivitylistcontroller.coffee
+SidebarMemberItem from Social/Activity/sidebar/memberitem.coffee
+EmbedBoxLinkViewAuthor from Social/Activity/views/embedbox/embedboxlinkviewauthor.coffee
+FilterWarning from Social/Activity/views/filterwarning.coffee
+ActivityLikeSummaryView from Social/Activity/views/likesummaryview.coffee
+SkillTagGroup from Social/Activity/views/tags/TagViews.coffee
+ODeskWidget from Social/Activity/widgets/odeskwidget.coffee
+ActivityUpdateWidgetController from Social/Activity/widgets/widgetcontroller.coffee
+AvatarChangeView from Social/Members/ContentDisplays/profileview.coffee
+NewMemberListItem from Social/Members/newmemberactivitylistitem.coffee
+
+
+From Teamwork project ....................
+
+TeamworkInviteModal from Teamwork/Views/teamworkinvitemodal.coffee
+
+
+From Terminal project ....................
+
+TerminalStartTabVMItem from Terminal/vmitem.coffee

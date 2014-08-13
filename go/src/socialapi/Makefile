@@ -180,7 +180,7 @@ testapi:
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go
-	@./main.test
+	@./main.test $(DBG) $(METRICS) -c ./config/dev.toml
 	@rm ./main.test
 
 doc:

@@ -1,7 +1,10 @@
 package main
 
 import (
+	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -9,9 +12,33 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 )
 
+func CreatePrivateMessageUser(nickname string) {
+	acc, err := modelhelper.GetAccount(nickname)
+	if err == nil {
+		return
+	}
+
+	if err != modelhelper.ErrNotFound {
+		panic(err)
+	}
+
+	acc = new(mongomodels.Account)
+	acc.Id = bson.NewObjectId()
+	acc.Profile.Nickname = nickname
+
+	modelhelper.CreateAccount(acc)
+}
+
 func TestPrivateMesssage(t *testing.T) {
+	modelhelper.Initialize(config.MustRead(*flagConfFile).Mongo)
+	defer modelhelper.Close()
+	CreatePrivateMessageUser("devrim")
+	CreatePrivateMessageUser("sinan")
+	CreatePrivateMessageUser("chris")
+
 	Convey("while testing private messages", t, func() {
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
