@@ -53,10 +53,17 @@ class NFinderController extends KDViewController
     @noMachineFoundWidget = new NoMachinesFoundWidget
     @cleanup()
 
-    # TODO ~ GG
-    # vmc = KD.getSingleton("vmController")
-    # vmc.on "StateChanged", @bound "checkVMState"
-    # vmc.on "VMDestroyed",  @bound "unmountVm"
+    { computeController } = KD.singletons
+
+    computeController.on "MachineDestroyed", ({machineId})=>
+      @unmountMachine machineId
+
+    computeController.on "MachineStopped", ({machineId})=>
+      @unmountMachine machineId
+
+    computeController.on "MachineStarted", ({machineId})=>
+      computeController.fetchMachine machineId, (err, machine)=>
+        @mountMachine machine  unless err
 
 
   loadView:(mainView)->
@@ -140,7 +147,7 @@ class NFinderController extends KDViewController
   unmountMachine: (uid)->
 
     machineItem = @getMachineNode uid
-    return warn 'No such VM!'  unless machineItem
+    return warn 'No such Machine!'  unless machineItem
 
     @updateMountState uid, no
     @stopWatching machineItem.data.path
@@ -271,8 +278,9 @@ class NFinderController extends KDViewController
 
     for own path, machineItem of @treeController.nodes
       if machineItem.data?.type is 'machine'
-        return machineItem  if machineItem.data.machine.uid is uid
-
+        if machineItem.data.machine.uid is uid or \
+           machineItem.data.machine._id is uid
+          return machineItem
 
   # Settings helpers
   #
