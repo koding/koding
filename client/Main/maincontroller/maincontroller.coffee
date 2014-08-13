@@ -32,7 +32,7 @@ class MainController extends KDController
 
   createSingletons:->
 
-    KD.registerSingleton "mainController",            this
+    KD.registerSingleton 'mainController',            this
 
     KD.registerSingleton 'kontrol',                   new KodingKontrol
 

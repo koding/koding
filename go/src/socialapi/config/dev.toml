@@ -1,6 +1,3 @@
-
-# THIS IS THE NEW DEVELOPMENT SETUP, WORKING WITH BOOT2DOCKER
-
 EventExchangeName="BrokerMessageBus"
 Mongo="192.168.59.103:27017/koding"
 Environment="prod"
@@ -28,17 +25,29 @@ DB  =0
 
 
 [limits]
-MessageBodyMinLen=1
-
-[Notification]
-CacheEnabled = false
+MessageBodyMinLen    = 1
+PostThrottleDuration = "10s"
+PostThrottleCount    = 100
 
 [emailnotification]
-templateRoot="workers/emailnotifier/templates/"
+TemplateRoot = "workers/emailnotifier/templates/"
 
 [sendgrid]
-Username=        "koding"
-Password=        "DEQl7_Dr"
-FromName=        "Koding"
-FromMail=        "hello@koding.com"
-ForcedRecipient= "canthefason@gmail.com"
+Username        = "koding"
+Password        = "DEQl7_Dr"
+FromName        = "Koding"
+FromMail        = "hello@koding.com"
+ForcedRecipient = "canthefason@gmail.com"
+
+[sitemap]
+RedisDB = 0
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
+ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
+IndexSuffix    = ".test"
+
+[analytics]
+Enabled       = false
+MixpanelToken = "113c2731b47a5151f4be44ddd5af0e7a"

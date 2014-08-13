@@ -56,11 +56,6 @@ class NavigationMachineItem extends JTreeItemView
     if event.target.tagName.toLowerCase() isnt 'span'
       return yes  if @machine.status.state is Running
 
-    KD.utils.stopDOMEvent event
-
-    list = @getDelegate()
-    list.emit 'MachineCogClicked', @machine, this
-
 
   pistachio:->
 

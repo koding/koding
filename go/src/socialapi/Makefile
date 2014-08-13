@@ -160,7 +160,7 @@ testapi:
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test -c ./config/test.toml
+	@./algoliaconnector.test -c ./config/dev.toml
 	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
@@ -174,6 +174,9 @@ testapi:
 	@go test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c ./config/dev.toml
 	@rm  ./trollmode.test
+
+	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
+	@go test -c workers/topicfeed/topicfeed/*.go
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go

@@ -10,7 +10,7 @@ class SidebarTopicItem extends SidebarItem
 
     super options, data
 
-    @followButton = if name in ['koding', 'public']
+    @followButton = if name is 'public'
     then new KDCustomHTMLView
     else new TopicFollowButton {}, @getData()
 

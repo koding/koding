@@ -274,6 +274,7 @@ class ActivitySidebar extends KDCustomHTMLView
     @deselectAllItems()
 
     type       = 'privatemessage'  if type is 'message'
+    type       = 'group'           if slug_ is 'public'
     candidates = []
 
     for own name_, {listController} of @sections
@@ -332,33 +333,57 @@ class ActivitySidebar extends KDCustomHTMLView
     KD.singletons.dock.getView().addSubView new GroupDescription
 
 
-  listVMs: (vms) ->
+  listMachines: (machines) ->
 
-    @vmTree.addNode vm  for vm in vms
+    @machineTree.addNode machine  for machine in machines
+
+
+  fetchMachines: (callback) ->
+
+    {computeController} = KD.singletons
+
+    # force refetch from server everytime machines fetched.
+    computeController.fetchMachines force = yes, (err, machines) =>
+      if err
+        ErrorLog.create 'terminal: Couldn\'t fetch machines', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+
+      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
+      # gets just the vm number
+      getVMNumber = ({hostnameAlias}) -> +(hostnameAlias.match(/\d+/)[0])
+
+      # sort machines by vm number
+      machines.sort (a,b)-> getVMNumber(a) > getVMNumber(b)
+
+      callback machines
 
 
   addVMTree: ->
 
     @addSubView section = new KDCustomHTMLView tagName : 'section'
 
-    @vmTree = new JTreeViewController
+    @machineTree = new JTreeViewController
       type                : 'main-nav'
       treeItemClass       : NavigationMachineItem
-
-    @vmTree.getView().on 'VMCogClicked', (vm, item)->
-      {mainView} = KD.singletons
-      mainView.openVMModal vm, item
 
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : 'VMs'
 
-    section.addSubView @vmTree.getView()
+    section.addSubView @machineTree.getView()
+
+    @machineTree.on 'NodeWasAdded', (machineItem) ->
+
+      machineItem.on 'click', (event) ->
+        machine = machineItem.getData()
+        KD.utils.stopDOMEvent event
+        KD.singletons.mainView.openMachineModal machine, machineItem
+
 
     if KD.userMachines.length
-    then @listVMs KD.userMachines
-    else @fetchVMs @bound 'listVMs'
+    then @listMachines KD.userMachines
+    else @fetchMachines @bound 'listMachines'
 
 
   addFollowedTopics: ->

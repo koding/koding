@@ -77,7 +77,7 @@ func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 	)
 
 	metrics := helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
-
+	r.Metrics = metrics
 	// panics if not successful
 	r.Bongo = helper.MustInitBongo(
 		WrapWithVersion(r.Name, flagVersion),

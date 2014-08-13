@@ -10,6 +10,11 @@ module.exports = class SocialChannel extends Base
   @share()
 
   @set
+    classAttributes:
+      # while sending XHR requests via bongo, we are batching those requests
+      # but SocialChannel requests will not be batched
+      bypassBatch   : yes
+
     sharedMethods :
       static      :
         byId                 :

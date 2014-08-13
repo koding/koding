@@ -30,6 +30,7 @@ services=(
   koding/kontrol/kontrolclient
   koding/workers/graphitefeeder
   socialapi/workers/api
+  github.com/skelterjohn/rerun
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
