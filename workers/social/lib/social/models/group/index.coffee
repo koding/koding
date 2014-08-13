@@ -269,7 +269,6 @@ module.exports = class JGroup extends Module
       # channelId for mapping social API
       # to internal usage
       socialApiChannelId: String
-      socialApiDefaultChannelId: String
       avatar        : String
       slug          :
         type        : String
