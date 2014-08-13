@@ -75,7 +75,9 @@ class ActivityAppView extends KDView
     @sidebar.selectItemByRouteOptions type, slug
     item = @sidebar.selectedItem
 
-    if not item
+    if slug is 'public'
+      kallback item.getData()
+    else if not item
       type_ = switch type
         when 'message' then 'privatemessage'
         when 'post'    then 'activity'

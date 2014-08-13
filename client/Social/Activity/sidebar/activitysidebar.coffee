@@ -274,6 +274,7 @@ class ActivitySidebar extends KDCustomHTMLView
     @deselectAllItems()
 
     type       = 'privatemessage'  if type is 'message'
+    type       = 'group'           if slug_ is 'public'
     candidates = []
 
     for own name_, {listController} of @sections
