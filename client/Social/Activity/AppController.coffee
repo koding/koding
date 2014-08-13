@@ -22,13 +22,6 @@ class ActivityAppController extends AppController
 
     @on 'LazyLoadThresholdReached', @getView().bound 'lazyLoadThresholdReached'
 
-    # FIXME
-    # remove this once there are koding and public channels in default db setup
-    # otherwise this will continue pollute your feeds - SY
-    if firstFetch
-      {generatePassword, getRandomNumber} = KD.utils
-      KD.singletons.socialapi.message.post body: "Hello world, #{generatePassword getRandomNumber(7), yes} #koding #public", log
-
 
   post: (options = {}, callback = noop) ->
 
