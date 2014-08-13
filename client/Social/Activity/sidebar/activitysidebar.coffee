@@ -335,7 +335,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   listMachines: (machines) ->
 
-    @machineTree.addNode machine  for machine in machines
+    @machineTree.addNode new Machine { machine }  for machine in machines
 
 
   fetchMachines: (callback) ->
