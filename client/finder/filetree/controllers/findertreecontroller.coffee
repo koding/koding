@@ -89,7 +89,7 @@ class NFinderTreeController extends JTreeViewController
     {machine}  = nodeView.getData()
     appManager = KD.getSingleton 'appManager'
     ideApp     = appManager.get 'IDE'
-    callback   = -> appManager.tell 'IDE', 'openVMTerminal', machine
+    callback   = -> appManager.tell 'IDE', 'openMachineTerminal', machine
 
     if ideApp then callback() else appManager.open 'IDE', callback
 
