@@ -10,6 +10,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
+	"labix.org/v2/mgo"
 )
 
 const (
@@ -561,12 +562,11 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
 	// fetch secret names of the channel
 	secretNames, err := models.SecretNamesByChannelId(channelId)
-	if err != nil {
+	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
 
-	// if we dont have any secret names, just return
-	if len(secretNames) < 1 {
+	if err == mgo.ErrNotFound || len(secretNames) < 1 {
 		f.log.Info("Channel %d doest have any secret name", channelId)
 		return nil
 	}
