@@ -161,7 +161,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
 
-  submit: (callback) ->
+  submit: (value, timestamp) ->
 
     return  if @locked
     return @reset yes  unless body = @input.getValue().trim()
@@ -186,7 +186,14 @@ class ActivityInputWidget extends KDView
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn {body, payload}, @bound 'submissionCallback'
+
+    obj = { body, payload }
+
+    if timestamp?
+      requestData = KD.utils.generateFakeIdentifier timestamp
+      obj.requestData = requestData
+
+    fn obj, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
     # fixme for bugs app

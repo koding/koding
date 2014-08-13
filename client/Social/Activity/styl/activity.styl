@@ -1246,7 +1246,8 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height                0
+  min-height            0
+  margin-top            35px
 
   .list-previous-link
     size                100% 47px
@@ -1256,8 +1257,8 @@ span.collapsedtext
     font-weight         600
     color               logoBg
     display             block
-    margin-bottom       10px
-    margin-top          30px
+    margin-bottom       0
+    margin-top          0
     text-align          center
     bg                  color #F6F6F6
     noTextDeco()
@@ -1266,7 +1267,7 @@ span.collapsedtext
     top                     0
     height                  58px
     line-height             58px
-    kalc                    width (100% \- 500px)
+    width                   100%
     margin                  0 0 24px
     z-index                 1
     background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
@@ -1297,10 +1298,10 @@ span.collapsedtext
       .avatarview
         size                auto, auto
         margin              0 6px 0 0
-        border              1px solid #d4d4d4
         fl()
 
         img
+          border            1px solid #d4d4d4
           display           block
           margin            0
           padding           0
@@ -1321,8 +1322,8 @@ span.collapsedtext
         r-sprite          'activity', 'new-participant-plus'
 
   .kdlistview-privatemessage
-    margin-top              26px
-    padding-bottom          86px
+    margin-top              15px
+    padding-bottom          100px
 
     &:last-of-type
       margin-top            0
@@ -1574,7 +1575,7 @@ span.collapsedtext
     position            fixed
     bottom              0
     height              auto
-    kalc                width (100% \- 584px)
+    width               100%
     padding             0 0 30px
     bg                  color white
     margin-top          8px

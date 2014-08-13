@@ -726,3 +726,35 @@ utils.extend utils,
   hasPermission: (name) ->
 
     (KD.config.permissions.indexOf name) >= 0
+
+
+  # helper to generate an identifier
+  # for non-important stuff.
+  generateFakeIdentifier: (timestamp) ->
+    "#{KD.whoami().profile.nickname}-#{timestamp}"
+
+
+  # Generates a fake SocialMessage object
+  generateDummyMessage: (body, timestamp) ->
+
+    now       = new Date timestamp
+    isoNow    = now.toISOString()
+
+    fakeObject         =
+      isFake           : yes
+      on               : -> this
+      watch            : -> this
+      body             : body
+      account          : KD.whoami()
+      createdAt        : isoNow
+      updatedAt        : isoNow
+      repliesCount     : 0
+      meta             :
+        createdAt      : now
+        updatedAt      : now
+      interactions     :
+        like           :
+          isInteracted : no
+          actorsCount  : 0
+
+

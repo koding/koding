@@ -47,7 +47,12 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	cmc := models.NewChannelMessageContainer()
-	return response.HandleResultAndError(cmc, cmc.Fetch(req.Id, request.GetQuery(u)))
+	err = cmc.Fetch(req.Id, request.GetQuery(u))
+
+	// assign request data back to message response because
+	// client uses it for latency compansation
+	cmc.Message.RequestData = req.RequestData
+	return response.HandleResultAndError(cmc, err)
 }
 
 func checkThrottle(channelId, requesterId int64) error {
