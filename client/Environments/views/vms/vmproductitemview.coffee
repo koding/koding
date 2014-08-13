@@ -1,4 +1,4 @@
-class VmProductView extends KDListItemView
+class VmProductItemView extends KDListItemView
 
   JView.mixin @prototype
 

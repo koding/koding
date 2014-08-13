@@ -36,7 +36,7 @@ class VmPaymentConfirmForm extends PlanUpgradeConfirmForm
     throw new Error 'Product data was not provided!'  unless data.productData?
 
     if data.productData.pack
-      packView = new VmProductView { showControls: no }, data.productData.pack
+      packView = new VmProductItemView { showControls: no }, data.productData.pack
       @pack.addSubView packView
     else
       @pack.hide()

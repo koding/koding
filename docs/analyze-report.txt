@@ -1,28 +1,12 @@
 Parsing source files...
-Parsing completed. 720 classes found.
+Parsing completed. 714 classes found.
 Writing graph data to ../docs/koding-dep.graph
 
 Following classes are defined more than once:
 
-{ MemberAutoCompleteItemView: 
-   [ 'Dashboard/views/administrationview.coffee',
-     'Main/CommonViews/memberautocomplete.coffee' ],
-  MemberAutoCompletedItemView: 
-   [ 'Dashboard/views/administrationview.coffee',
-     'Main/CommonViews/memberautocomplete.coffee' ],
-  OnboardingItemView: 
+{ OnboardingItemView: 
    [ 'Dashboard/views/onboarding/onboardingitemview.coffee',
-     'Main/onboarding/onboardingitemview.coffee' ],
-  VmProductView: 
-   [ 'Environments/views/vms/vmproductview.coffee',
-     'Main/payment/vmproductview.coffee' ],
-  ActivityListController: 
-   [ 'Social/Activity/__old.aclc',
-     'Social/Activity/activitylistcontroller.coffee' ],
-  ActivityAppController: 
-   [ 'Social/Activity/__old',
-     'Social/Activity/AppController.coffee' ],
-  ViewerTopBar: [ 'Viewer/topbar.coffee', 'Viewer/viewertopbar.coffee' ] }
+     'Main/onboarding/onboardingitemview.coffee' ] }
 
 Following files have more than one class in it:
 
@@ -74,10 +58,6 @@ Following files have more than one class in it:
      'AccountSubscriptionsList',
      'AccountSubscriptionsListItem',
      'SubscriptionControls' ],
-  'Dashboard/views/administrationview.coffee': 
-   [ 'AdministrationView',
-     'MemberAutoCompleteItemView',
-     'MemberAutoCompletedItemView' ],
   'Dashboard/views/grouplogosettings.coffee': [ 'InlineImageSettings', 'GroupLogoSettings' ],
   'Dashboard/views/groupsformgeneratorview.coffee': 
    [ 'FormGeneratorView',
@@ -186,6 +166,7 @@ Following files have more than one class in it:
 
 Checking for usages... (this may take time) ... safe to stop with ctrl+c
 Following classes from pointed files may not be used in the code:
+Uses 'ack' app, you can install it via '$ brew install ack'
 
 
 From Account project ....................
@@ -261,6 +242,7 @@ From Social project ....................
 
 PinnedActivityListController from Social/Activity/pinnedactivitylistcontroller.coffee
 SidebarMemberItem from Social/Activity/sidebar/memberitem.coffee
+ActivityListHeader from Social/Activity/views/activitylistheader.coffee
 EmbedBoxLinkViewAuthor from Social/Activity/views/embedbox/embedboxlinkviewauthor.coffee
 FilterWarning from Social/Activity/views/filterwarning.coffee
 ActivityLikeSummaryView from Social/Activity/views/likesummaryview.coffee
