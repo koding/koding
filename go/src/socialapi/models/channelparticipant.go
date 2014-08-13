@@ -297,7 +297,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 			"type_constant": Channel_TYPE_GROUP,
 		},
 		Pluck:      "id",
-		Pagination: *bongo.NewPagination(2, 0),
+		Pagination: *bongo.NewPagination(1, 0),
 	}
 
 	err := channel.Some(&channelIds, bongoQuery)
