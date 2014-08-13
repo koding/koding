@@ -23,7 +23,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   constructor: (options = {}) ->
 
-    options.cssClass  = 'app-sidebar'
+    options.cssClass  = 'activity-sidebar'
 
     super options
 
