@@ -413,7 +413,7 @@ Configuration = (options={}) ->
       function kill_all () {
         rm -rf #{projectRoot}/.logs
         #{killlist()}
-        pkill -9 node; ps -ef | grep go/bin | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
       if [[ "$1" == "killall" ]]; then
 
