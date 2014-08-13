@@ -62,3 +62,20 @@ func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 
 	return users, Mongo.Run("jUsers", query)
 }
+
+func CreateUser(a *models.User) error {
+	query := insertQuery(a)
+	return Mongo.Run("jUsers", query)
+}
+
+func UpdateEmailFrequency(username string, e models.EmailFrequency) error {
+	selector := bson.M{"username": username}
+	updateQuery := bson.M{"$set": bson.M{"emailFrequency": e}}
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(selector, updateQuery)
+		return err
+	}
+
+	return Mongo.Run("jUsers", query)
+}
