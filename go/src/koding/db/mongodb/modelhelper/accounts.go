@@ -50,3 +50,8 @@ func UpdateAccount(selector, options Selector) error {
 func RemoveAccount(id bson.ObjectId) error {
 	return RemoveDocument("jAccounts", id)
 }
+
+func CreateAccount(a *models.Account) error {
+	query := insertQuery(a)
+	return Mongo.Run("jAccounts", query)
+}

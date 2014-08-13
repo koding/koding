@@ -36,7 +36,7 @@ customDomain    =
   local_        : "localhost"
   port          : 80
 
-broker = 
+broker =
   name              : "broker"
   serviceGenericName: "broker"
   ip                : ""
@@ -63,7 +63,7 @@ brokerUniqueId  = hat()
 
 # KEYS
 publicKeyFile   = "#{projectRoot}/certs/test_kontrol_rsa_public.pem"
-privateKeyFile  = "#{projectRoot}/certs/test_kontrol_rsa_private.pem" 
+privateKeyFile  = "#{projectRoot}/certs/test_kontrol_rsa_private.pem"
 
 
 authExchange    = "auth"
@@ -139,7 +139,7 @@ module.exports =
     numberOfWorkers: 1
     watch       : ['./workers/log']
     queueName   : logQueueName
-        
+
   emailConfirmationCheckerWorker :
     enabled              : no
     login                : "#{rabbitmq.login}"
@@ -174,7 +174,7 @@ module.exports =
 
   broker              : broker
 
-    
+
   email         :
     host        : "#{customDomain.public}"
     protocol    : 'http:'
@@ -215,6 +215,10 @@ module.exports =
     staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"
     runtimeOptions:
       kites: require './kites.coffee'
+      algolia:
+        appId: 'DYVV81J2S1'
+        apiKey: '303eb858050b1067bcd704d6cbfb977c'
+        indexSuffix: '.vagrant'
       osKitePollingMs: 1000 * 60 # 1 min
       userIdleMs: 1000 * 60 * 5  # 5 min
       sessionCookie :
