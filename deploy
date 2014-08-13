@@ -61,30 +61,30 @@ if argv.deploy
             switch options.config
                 when "feature"
                     # log JSON.stringify res,null,2
+
+
+                    deployOptions =
+                        params :
+                            ImageId         : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
+                            InstanceType    : options.boxtype
+                            MinCount        : options.boxes
+                            MaxCount        : options.boxes
+                            SubnetId        : "subnet-b47692ed"
+                            KeyName         : "koding-prod-deployment"
+                            UserData        : new Buffer(KONFIG.runFile).toString('base64')
+                        instanceName        : options.hostname
+                        configName          : options.config
+                        environment         : options.config
+                        tag                 : options.version
+
                     Deploy.createInstances deployOptions,(err,res)->
-                        UserData = new Buffer(KONFIG.runFile).toString('base64')
-
-                        deployOptions =
-                            params :
-                                ImageId         : "ami-864d84ee" # Amazon ubuntu 14.04 "ami-1624987f" # Amazon Linux AMI x86_64 EBS
-                                InstanceType    : options.boxtype
-                                MinCount        : options.boxes
-                                MaxCount        : options.boxes
-                                SubnetId        : "subnet-b47692ed"
-                                KeyName         : "koding-prod-deployment"
-                                UserData        : UserData
-                            instanceName        : options.hostname
-                            configName          : options.config
-                            environment         : options.config
-                            tag                 : options.version
-
                         InstanceId = res.Instances[0].InstanceId
                         log InstanceId
                         t = setInterval ->
                             ec2.describeInstances {InstanceIds:[InstanceId]},(err,inst)->
                                 # log JSON.stringify inst,null,2
-                                IP                        = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
-                                PublicDnsName = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
+                                IP             = inst.Reservations?[0]?.Instances?[0]?.PublicIpAddress
+                                PublicDnsName  = inst.Reservations?[0]?.Instances?[0]?.PublicDnsName
 
                                 if PublicDnsName
                                     clearTimeout t
@@ -137,8 +137,6 @@ if argv.deploy
                                     KeyName: "koding-prod-deployment"
                                     SecurityGroups: ["sg-64126d01"]
                                     UserData:  "Fn::Base64": KONFIG.runFile
-
-
 
                     cloudformation.createStack
                         StackName    : options.hostname

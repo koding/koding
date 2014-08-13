@@ -80,7 +80,7 @@ class ActivityAppController extends AppController
     # otherwise this will continue pollute your feeds - SY
     if firstFetch
       {generatePassword, getRandomNumber} = KD.utils
-      KD.singletons.socialapi.message.post body: "Hello world, #{generatePassword getRandomNumber(7), yes} #koding #public", log
+      # KD.singletons.socialapi.message.post body: "Hello world, #{generatePassword getRandomNumber(7), yes} #koding #public", log
 
     if firstFetch and socialapi.getPrefetchedData('navigated').length > 0
       messages   = socialapi.getPrefetchedData 'navigated'
