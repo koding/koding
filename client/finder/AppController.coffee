@@ -21,7 +21,7 @@ class FinderController extends KDController
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
     finderView.addSubView @getUploader()
-    finderView.addSubView @getMountVMButton()
+    # finderView.addSubView @getMountVMButton()
 
     return @controller
 
