@@ -15,12 +15,17 @@ class ActivityLikeLink extends CustomLinkView
 
     KD.utils.stopDOMEvent event
 
+    return  if @locked
+    @locked = yes
+
     {id}           = data = @getData()
     {isInteracted} = data.interactions.like
     {like, unlike} = KD.singletons.socialapi.message
 
     fn = if isInteracted then unlike else like
-    fn {id}, (err) => @showError err  if err
+    fn {id}, (err) =>
+      @locked = no
+      @showError err  if err
 
 
   update: ->
