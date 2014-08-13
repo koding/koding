@@ -263,20 +263,6 @@ class AdministrationView extends KDTabViewWithForms
     fields.Block.show()
     buttons.Update.show()
 
-
-class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
-
-  JView.mixin @prototype
-
-  constructor:(options, data)->
-    options.cssClass = "clearfix member-suggestion-item"
-    super options, data
-
-    userInput = options.userInput or @getDelegate().userInput
-
-    @addSubView @profileLink = \
-      new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
-
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
 
   JView.mixin @prototype
