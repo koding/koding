@@ -1,6 +1,8 @@
 package trollmode
 
 import (
+	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"math"
 	"math/rand"
 	"socialapi/models"
@@ -17,6 +19,23 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+func CreatePrivateMessageUser() {
+	acc, err := modelhelper.GetAccount("sinan")
+	if err == nil {
+		return
+	}
+
+	if err != modelhelper.ErrNotFound {
+		panic(err)
+	}
+
+	acc = new(mongomodels.Account)
+	acc.Id = bson.NewObjectId()
+	acc.Profile.Nickname = "sinan"
+
+	modelhelper.CreateAccount(acc)
+}
+
 func TestMarkedAsTroll(t *testing.T) {
 	r := runner.New("TrollMode-Test")
 	err := r.Init()
@@ -25,6 +44,10 @@ func TestMarkedAsTroll(t *testing.T) {
 	}
 
 	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+	CreatePrivateMessageUser()
 	// disable logs
 	// r.Log.SetLevel(logging.CRITICAL)
 
