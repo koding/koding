@@ -31,7 +31,7 @@ class VmProductForm extends FormWorkflow
 
   createPackChoiceForm: -> new PackChoiceForm
     title     : 'Choose your subscription'
-    itemClass : VmProductView
+    itemClass : VmProductItemView
 
   setCurrentSubscriptions: (subscriptions) ->
     @currentSubscriptions = subscriptions
