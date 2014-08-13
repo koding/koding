@@ -78,7 +78,6 @@ func (cue *channelUpdatedEvent) notifyAllParticipants() error {
 		}
 	}
 
-	fmt.Println("err3-->", err)
 	return nil
 }
 
