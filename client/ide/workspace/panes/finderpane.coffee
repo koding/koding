@@ -26,8 +26,8 @@ class IDE.FinderPane extends IDE.Pane
         KD.getSingleton('windowController').setKeyView null
 
     fc.treeController.on 'TerminalRequested', (machine) ->
-      mgr.tell 'IDE', 'openVMTerminal', machine
+      mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    @on 'VMMountRequested',   (machine) -> fc.mountMachine machine
+    @on 'MachineMountRequested',   (machine) -> fc.mountMachine machine
 
-    @on 'VMUnmountRequested', (machine) -> fc.unmountMachine machine.uid
+    @on 'MachineUnmountRequested', (machine) -> fc.unmountMachine machine.uid

@@ -13,15 +13,15 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   bindListeners: ->
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
-    @tabView.on 'VMTerminalRequested',    @bound 'openVMTerminal'
-    @tabView.on 'VMWebPageRequested',     @bound 'openVMWebPage'
-    @tabView.on 'ShortcutsViewRequested', @bound 'createShortcutsView'
-    @tabView.on 'TerminalPaneRequested',  @bound 'createTerminal'
-    @tabView.on 'PreviewPaneRequested',   (url) => @createPreview url
-    @tabView.on 'DrawingPaneRequested',   @bound 'createDrawingBoard'
-    @tabView.on 'ViewNeedsToBeShown',     @bound 'showView'
-    @tabView.on 'TabNeedsToBeClosed',     @bound 'closeTabByFile'
-    @tabView.on 'GoToLineRequested',      @bound 'goToLine'
+    @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
+    @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
+    @tabView.on 'ShortcutsViewRequested',   @bound 'createShortcutsView'
+    @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
+    @tabView.on 'PreviewPaneRequested',     (url) => @createPreview url
+    @tabView.on 'DrawingPaneRequested',     @bound 'createDrawingBoard'
+    @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
+    @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
+    @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
@@ -177,10 +177,10 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   getDummyFilePath: ->
     return 'localfile:/Untitled.txt'
 
-  openVMTerminal: (vm) ->
-    @createTerminal vm
+  openMachineTerminal: (machine) ->
+    @createTerminal machine
 
-  openVMWebPage: (machine) ->
+  openMachineWebPage: (machine) ->
     @createPreview machine.ipAddress
 
   closeTabByFile: (file)  ->

@@ -61,7 +61,7 @@ class IDE.VMPaneListItem extends JView
       callback     : @bound 'createContextMenu'
 
   openVMDomain: ->
-    KD.getSingleton('appManager').tell 'IDE', 'openVMWebPage', @getData()
+    KD.getSingleton('appManager').tell 'IDE', 'openMachineWebPage', @getData()
 
   createContextMenu: (event) ->
     button         = @actionsButton
@@ -82,8 +82,8 @@ class IDE.VMPaneListItem extends JView
     data        = @getData()
     appManager  = KD.getSingleton 'appManager'
     menuItems   =
-      'Mount to filetree': callback: -> appManager.tell 'IDE', 'mountVM', data
-      'Open VM terminal' : callback: -> appManager.tell 'IDE', 'openVMTerminal', data
+      'Mount to filetree': callback: -> appManager.tell 'IDE', 'mountMachine', data
+      'Open VM terminal' : callback: -> appManager.tell 'IDE', 'openMachineTerminal', data
       'Open VM domain'   : callback: @bound 'openVMDomain'
 
     # FIXME: Find a better way to remove this drill down
@@ -95,7 +95,7 @@ class IDE.VMPaneListItem extends JView
       delete menuItems['Mount to filetree']
       menuItems['Unmount from filetree'] =
         callback : =>
-          appManager.tell 'IDE', 'unmountVM', data
+          appManager.tell 'IDE', 'unmountMachine', data
 
     return menuItems
 

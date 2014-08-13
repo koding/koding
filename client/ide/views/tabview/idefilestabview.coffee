@@ -44,11 +44,11 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     vmsPane.addSubView new IDE.VMListPane
     @tabView.addPane  vmsPane
 
-    @on 'VMMountRequested', (vmData) =>
-      @finderPane.emit 'VMMountRequested', vmData
+    @on 'MachineMountRequested', (vmData) =>
+      @finderPane.emit 'MachineMountRequested', vmData
 
-    @on 'VMUnmountRequested', (vmData) =>
-      @finderPane.emit 'VMUnmountRequested', vmData
+    @on 'MachineUnmountRequested', (vmData) =>
+      @finderPane.emit 'MachineUnmountRequested', vmData
 
   createSettingsPane: ->
     settingsPane = new KDTabPaneView

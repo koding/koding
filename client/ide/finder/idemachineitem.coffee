@@ -21,7 +21,7 @@ class IDE.MachineItemView extends NFileItemView
 
     @folderSelector = new KDSelectBox
       selectOptions : @createSelectOptions()
-      callback      : @bound 'updateVMRoot'
+      callback      : @bound 'updateRoot'
 
     @vm = KD.getSingleton 'vmController'
     @vm.on 'StateChanged', @bound 'checkVMState'
@@ -30,7 +30,7 @@ class IDE.MachineItemView extends NFileItemView
       if not err and domains.length > 0
         @vmInfo.updatePartial domains.first
 
-  updateVMRoot: (path) ->
+  updateRoot: (path) ->
     data    = @getData()
     vm      = data.vmName
     finder  = data.treeController.getDelegate()

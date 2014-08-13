@@ -188,21 +188,21 @@ class IDEAppController extends AppController
   openFile: (file, contents, callback = noop) ->
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback
 
-  openVMTerminal: (vmData) ->
-    @activeTabView.emit 'VMTerminalRequested', vmData
+  openMachineTerminal: (machineData) ->
+    @activeTabView.emit 'MachineTerminalRequested', machineData
 
-  openVMWebPage: (vmData) ->
-    @activeTabView.emit 'VMWebPageRequested', vmData
+  openMachineWebPage: (machineData) ->
+    @activeTabView.emit 'MachineWebPageRequested', machineData
 
-  mountVM: (vmData) ->
+  mountMachine: (machineData) ->
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
-    filesPane.emit 'VMMountRequested', vmData
+    filesPane.emit 'MachineMountRequested', machineData
 
-  unmountVM: (vmData) ->
+  unmountMachine: (machineData) ->
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
-    filesPane.emit 'VMUnmountRequested', vmData
+    filesPane.emit 'MachineUnmountRequested', machineData
 
   mountMachineByMachineUId: (machineUId) ->
     computeController = KD.getSingleton 'computeController'
@@ -211,7 +211,7 @@ class IDEAppController extends AppController
         if machine.uid is @mountedMachineUId
           machineItem = machine
 
-      if machineItem then @mountVM machineItem
+      if machineItem then @mountMachine machineItem
       else
         # TODO: Show fancy machine not found notification
         KD.showError 'Machine not found'
