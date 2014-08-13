@@ -24,7 +24,6 @@ module.exports = [
   "views/scene/environmentsceneview.coffee"
   "views/scene/initializemachineview.coffee"
   "views/stackview.coffee"
-  "views/resourcescontainer.coffee"
   "views/environmentsmainscene.coffee"
   "views/clonestackmodal.coffee"
   "views/createstackmodal.coffee"
@@ -33,16 +32,7 @@ module.exports = [
   "views/domains/domaincreateform.coffee"
   "views/domains/commondomaincreateform.coffee"
   "views/domains/domaindeletionmodal.coffee"
-  "views/domains/domainproductform.coffee"
-  "views/domains/domainbuyform.coffee"
-  "views/domains/domainbuyitem.coffee"
-  "views/domains/domainpaymentconfirmform.coffee"
   "views/domains/subdomaincreateform.coffee"
-
-  "views/vms/vmproductform.coffee"
-  "views/vms/vmpaymentconfirmform.coffee"
-  "views/vms/vmproductitemview.coffee"
-  "views/vms/vmalwaysontogglebuttonview.coffee"
 
   # firewall
   "views/firewall/addfirewallrulemodal.coffee"
