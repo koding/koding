@@ -7,9 +7,6 @@ class SocialApiController extends KDController
 
     super options, data
 
-    KD.getSingleton('mainController').ready @bound 'openGroupChannel'
-
-
   getPrefetchedData: (dataPath) ->
 
     return [] unless KD.socialApiData
@@ -30,30 +27,6 @@ class SocialApiController extends KDController
 
   eachCached: (id, fn) ->
     fn section[id]  for own name, section of @_cache when id of section
-
-  openGroupChannel: ->
-    # to - do refactor this part to use same functions with other parts
-    groupsController = KD.singleton "groupsController"
-    groupsController.ready =>
-      {slug} = groupsController.getCurrentGroup()
-
-      subscriptionData =
-        serviceType: 'socialapi'
-        group      : slug
-        channelType: "group"
-        channelName: slug
-        isExclusive: yes
-        connectDirectly: yes
-
-      channelName    = generateChannelName
-        name         : slug
-        typeConstant : 'group'
-        groupName    : slug
-
-      brokerChannel = KD.remote.subscribe channelName, subscriptionData
-      @forwardMessageEvents brokerChannel, this, getMessageEvents()
-      @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
-      @emit "ChannelRegistered-#{channelName}", this
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
@@ -221,12 +194,19 @@ class SocialApiController extends KDController
           isExclusive: yes
           connectDirectly: yes
 
-        KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
-          {name} = brokerChannel
-          socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
-          forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+        # do not use callbacks while subscribing, KD.remote.subscribe already
+        # returns the required channel object. Use it. Callbacks are called
+        # twice in the subscribe function
+        brokerChannel = KD.remote.subscribe channelName, subscriptionData
 
-          socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
+        # add opened channel to the openedChannels list, for later use
+        socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
+
+        # start forwarding private channel evetns to the original social channel
+        forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+
+        # notify listener
+        socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
 
   cycleChannel: (channel, callback)->
