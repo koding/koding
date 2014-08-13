@@ -41,7 +41,7 @@ module.exports = [
 
   "views/vms/vmproductform.coffee"
   "views/vms/vmpaymentconfirmform.coffee"
-  "views/vms/vmproductview.coffee"
+  "views/vms/vmproductitemview.coffee"
   "views/vms/vmalwaysontogglebuttonview.coffee"
 
   # firewall
