@@ -1,4 +1,9 @@
 box: koding/base@0.0.6
+services:
+  - wercker/postgresql@0.0.4
+  - wercker/rabbitmq@1.0.1
+  - wercker/redis@0.0.8
+  - wercker/mongodb@1.0.1
 
 build:
   steps:
@@ -33,7 +38,23 @@ build:
     - script:
         name: build social api
         cwd: go/src/socialapi
-        code: make configure
+        code: |
+          make configure
+          make install
+          make build
+    - script:
+        name: create postgresql tables
+        cwd: go/src/socialapi/db/sql
+        code: definition/create-wercker.sh .
+    - script:
+        name: test social api
+        code: |
+          sudo -E scripts/wercker/init-socialapi.sh
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
+          cd go/src/socialapi
+          make testapi
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding

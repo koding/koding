@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -32,16 +33,29 @@ func MustRead(path string) *Config {
 	// we can override Environment property of
 	//the config from env variable
 	// set environment variable
-	env := os.Getenv("SOCIAL_API_ENV")
-	if env != "" {
-		conf.Environment = env
-	}
+	getStringEnvVar(&conf.Environment, "SOCIAL_API_ENV")
 
 	// set URI for webserver
-	hostname := os.Getenv("SOCIAL_API_HOSTNAME")
-	if hostname != "" {
-		conf.Uri = hostname
-	}
+	getStringEnvVar(&conf.Uri, "SOCIAL_API_HOSTNAME")
+
+	// set host for rabbitMQ
+	getStringEnvVar(&conf.Mq.Host, "RABBITMQ_HOST")
+	getIntEnvVar(&conf.Mq.Port, "RABBITMQ_PORT")
+	getStringEnvVar(&conf.Mq.Username, "RABBITMQ_USERNAME")
+	getStringEnvVar(&conf.Mq.Password, "RABBITMQ_PASSWORD")
+
+	// set redis url
+	getStringEnvVar(&conf.Redis.URL, "REDIS_URL")
+
+	// set postgresql config
+	getStringEnvVar(&conf.Postgres.Host, "POSTGRES_HOST")
+	getIntEnvVar(&conf.Postgres.Port, "POSTGRES_PORT")
+	getStringEnvVar(&conf.Postgres.DBName, "POSTGRES_DBNAME")
+	getStringEnvVar(&conf.Postgres.Username, "POSTGRES_USERNAME")
+	getStringEnvVar(&conf.Postgres.Password, "POSTGRES_PASSWORD")
+
+	// set mongo config
+	getStringEnvVar(&conf.Mongo, "MONGO_URL")
 
 	return conf
 }
@@ -65,4 +79,22 @@ func mustGetConfigPath(path string) string {
 	}
 
 	panic(fmt.Errorf("couldn't find config with given parameter %s", path))
+}
+
+func getStringEnvVar(field *string, envVarName string) {
+	env := os.Getenv(envVarName)
+	if env != "" {
+		*field = env
+	}
+}
+
+func getIntEnvVar(field *int, envVarName string) {
+	env := os.Getenv(envVarName)
+	if env != "" {
+		value, err := strconv.Atoi(env)
+		if err != nil {
+			panic(fmt.Errorf("couldn't parse env variable: %s", envVarName))
+		}
+		*field = value
+	}
 }
