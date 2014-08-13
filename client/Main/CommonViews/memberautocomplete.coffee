@@ -14,6 +14,7 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
 
+  JView.mixin @prototype
+
   viewAppended:->
     @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
-    JView::viewAppended.call this

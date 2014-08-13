@@ -263,9 +263,3 @@ class AdministrationView extends KDTabViewWithForms
     fields.Block.show()
     buttons.Update.show()
 
-class MemberAutoCompletedItemView extends KDAutoCompletedItem
-
-  JView.mixin @prototype
-
-  viewAppended:->
-    @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
