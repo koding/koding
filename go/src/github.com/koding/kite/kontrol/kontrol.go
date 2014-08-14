@@ -18,6 +18,7 @@ import (
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/kitekey"
+	kontrolprotocol "github.com/koding/kite/kontrol/protocol"
 	"github.com/koding/kite/protocol"
 	"github.com/nu7hatch/gouuid"
 )
@@ -61,6 +62,10 @@ type Kontrol struct {
 
 	// storage defines the storage of the kites.
 	storage Storage
+
+	// RegisterURL defines the URL that is used to self register when adding
+	// itself to the storage backend
+	RegisterURL string
 
 	// a list of etcd machintes to connect
 	Machines []string
@@ -160,8 +165,8 @@ func (k *Kontrol) ClearKites() error {
 	return nil
 }
 
-// RegisterSelf registers this host and writes a key to ~/.kite/kite.key
-func (k *Kontrol) RegisterSelf() error {
+// InitializeSelf registers his host by writing a key to ~/.kite/kite.key
+func (k *Kontrol) InitializeSelf() error {
 	key, err := k.registerUser(k.Kite.Config.Username)
 	if err != nil {
 		return err
@@ -239,7 +244,7 @@ func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
 		return err
 	}
 
-	value := &registerValue{
+	value := &kontrolprotocol.RegisterValue{
 		URL: kiteURL,
 	}
 
@@ -282,9 +287,15 @@ func requestHeartbeat(r *kite.Client, setterFunc func() error) error {
 
 // registerSelf adds Kontrol itself to etcd as a kite.
 func (k *Kontrol) registerSelf() {
-	value := &registerValue{
+	value := &kontrolprotocol.RegisterValue{
 		URL: k.Kite.Config.KontrolURL,
 	}
+
+	// change if the user wants something different
+	if k.RegisterURL != "" {
+		value.URL = k.RegisterURL
+	}
+
 	setter, _, _ := k.makeSetter(k.Kite.Kite(), value)
 	for {
 		if err := setter(); err != nil {
@@ -298,7 +309,7 @@ func (k *Kontrol) registerSelf() {
 }
 
 //  makeSetter returns a func for setting the kite key with value in etcd.
-func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter func() error, etcdKey, etcdIDKey string) {
+func (k *Kontrol) makeSetter(kite *protocol.Kite, value *kontrolprotocol.RegisterValue) (setter func() error, etcdKey, etcdIDKey string) {
 	etcdKey = KitesPrefix + kite.String()
 	etcdIDKey = KitesPrefix + "/" + kite.ID
 
@@ -316,6 +327,12 @@ func (k *Kontrol) makeSetter(kite *protocol.Kite, value *registerValue) (setter 
 		// Also store the the kite.Key Id for easy lookup
 		if err := k.storage.Set(etcdIDKey, kite.String()); err != nil {
 			log.Error("etcd error: %s", err)
+			return err
+		}
+
+		// Set the TTL for the username. Otherwise, empty dirs remain in etcd.
+		if err := k.storage.Update(KitesPrefix+"/"+kite.Username, ""); err != nil {
+			log.Error("etcd error (3): %s", err)
 			return err
 		}
 
@@ -389,8 +406,8 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 	var hasVersionConstraint bool // does query contains a constraint on version?
 	var keyRest string            // query key after the version field (not including version)
 
-	// We will make a get request to etcd store with this key.
-	etcdKey, err := k.getQueryKey(&query)
+	// We will make a get request to etcd store with this key. Check first if
+	etcdKey, err := k.getEtcdKey(&query)
 	if err != nil {
 		return nil, err
 	}
@@ -421,7 +438,7 @@ func (k *Kontrol) getKites(r *kite.Request, query protocol.KontrolQuery, watchCa
 		}
 		// We will make a get request to all nodes under this name
 		// and filter the result later.
-		etcdKey, _ = k.getQueryKey(nameQuery)
+		etcdKey, _ = GetQueryKey(nameQuery)
 
 		// Rest of the key after version field
 		keyRest = "/" + strings.TrimRight(query.Region+"/"+query.Hostname+"/"+query.ID, "/")
@@ -604,7 +621,7 @@ func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Invalid query")
 	}
 
-	kiteKey, err := k.getQueryKey(&query)
+	kiteKey, err := k.getEtcdKey(&query)
 	if err != nil {
 		return nil, err
 	}
