@@ -32,23 +32,26 @@ class NavigationMachineItem extends JTreeItemView
 
     computeController.on "public-#{@machine._id}", (event)=>
 
-      if event.percentage?
+      {percentage, status} = event
 
-        if @progress.bar?
+      if percentage?
+
+        if @progress.bar
 
           @progress.show()
-          @progress.updateBar event.percentage
-          if event.percentage is 100
+          @progress.updateBar percentage
+
+          if percentage is 100
             KD.utils.wait 1000, @progress.bound 'hide'
 
       else
 
         @progress.hide()
 
-      if event.status?
+      if status?
 
         @unsetClass stateClasses
-        @setClass event.status.toLowerCase()
+        @setClass status.toLowerCase()
 
 
   click: (event)->
@@ -60,6 +63,6 @@ class NavigationMachineItem extends JTreeItemView
   pistachio:->
 
     """
-      <figure></figure>#{@alias}<span></span>
-      {{> @progress}}
+    <cite></cite><figure></figure>#{@alias}<span></span>
+    {{> @progress}}
     """
