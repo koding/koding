@@ -325,12 +325,6 @@ class ActivitySidebar extends KDCustomHTMLView
     @addFollowedTopics()
     @addConversations()
     @addMessages()
-    @addGroupDescription()  unless KD.isKoding()
-
-
-  addGroupDescription: ->
-
-    KD.singletons.dock.getView().addSubView new GroupDescription
 
 
   listMachines: (machines) ->
