@@ -112,39 +112,6 @@ class VideoPopupList extends KDListView
         @setClass "layout3x3"
 
 
-class VideoPopupListItem extends KDListItemView
-  constructor:(options,data)->
-    super options,data
-    @setClass "video-popup-list-item"
-
-    @focusWindowBar = new KDView
-      cssClass : "overlay-bar focus"
-      partial : "<span class='overlay-text'>Focus</span>"
-      click : =>
-        @getDelegate().emit "FocusWindow", @getData().name
-
-    @closeWindowBar = new KDView
-      cssClass : "overlay-bar close"
-      partial : "<span class='overlay-text'>Close</span>"
-      click : =>
-        @getDelegate().emit "CloseWindow", @getData().name
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  # click:->
-  #   @getDelegate().emit "FocusWindow", @getData().name
-
-  pistachio:->
-    """
-    <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
-    {{> @focusWindowBar}}
-    {{> @closeWindowBar}}
-    """
-
-
-
 class VideoPopup extends KDView
 
 # THIS NEEDS A DELEGATE

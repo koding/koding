@@ -47,19 +47,12 @@ module.exports = [
   "CommonViews/linkviews/linkview.coffee",
   "CommonViews/linkviews/linkmenuitemview.coffee",
   "CommonViews/linkviews/customlinkview.coffee",
-  "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/linkviews/profilelinkview.coffee",
   "CommonViews/linkviews/profiletextview.coffee",
-  "CommonViews/linkviews/profiletextgroup.coffee",
   "CommonViews/linkviews/taglinkview.coffee",
-  "CommonViews/linkviews/activitylinkview.coffee",
   "CommonViews/linkviews/applinkview.coffee",
-  "CommonViews/linkviews/activitychildviewtaggroup.coffee",
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
-  "CommonViews/linkviews/grouplinkview.coffee",
   "CommonViews/splitview.coffee",
-  "CommonViews/nominatemodal.coffee",
-  "CommonViews/slidingsplit.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
@@ -74,7 +67,6 @@ module.exports = [
   "CommonViews/avatarviews/avatartooltipview.coffee",
   "CommonViews/avatarviews/avatarimage.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
-  "CommonViews/avatarviews/autocompleteavatarview.coffee",
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
@@ -91,7 +83,7 @@ module.exports = [
   "CommonViews/formworkflow/formworkflow.coffee",
   "CommonViews/formworkflow/history.coffee",
   "CommonViews/formworkflow/collector.coffee",
-  "CommonViews/formworkflow/modal.coffee",
+  # "CommonViews/formworkflow/modal.coffee",
   # "CommonViews/formworkflow/visualization.coffee",
 
   # FIXME ~ GG
@@ -108,7 +100,6 @@ module.exports = [
   "CommonViews/CommonInnerNavigation.coffee",
   "CommonViews/headers.coffee",
   "CommonViews/HelpBox.coffee",
-  "CommonViews/KeyboardHelper.coffee",
   "CommonViews/VerifyPINModal.coffee",
   "CommonViews/VerifyPasswordModal.coffee",
 
@@ -117,13 +108,8 @@ module.exports = [
 
   "CommonViews/trollbutton.coffee",
 
-  # "CommonViews/remotesmodal.coffee",
-  # "CommonViews/databasesmodal.coffee",
-
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
-
-  "CommonViews/CommonVMUsageBar.coffee",
 
   # FATIH
   # "CommonViews/fatih/plugins/fatihpluginabstract.coffee",
@@ -175,13 +161,6 @@ module.exports = [
   "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
   "navigation/navigationmachineitem.coffee",
-  "navigation/navigationseparator.coffee",
-  "navigation/navigationadminlink.coffee",
-  "navigation/navigationinvitationlink.coffee",
-  "navigation/navigationactivitylink.coffee",
-  "navigation/navigationappslink.coffee",
-  "navigation/navigationdocsjobslink.coffee",
-  "navigation/navigationpromotelink.coffee",
 
   "machinesettingsmodal.coffee",
 
@@ -195,17 +174,13 @@ module.exports = [
   # views
   "payment/paymentmethodview.coffee",
   "payment/subscriptionview.coffee",
-  "payment/subscriptionusageview.coffee",
-  "payment/subscriptiongaugeitem.coffee",
   "payment/paymentmethodentryform.coffee",
   "payment/paymentchoiceform.coffee",
   "payment/paymentformmodal.coffee",
   "payment/paymentworkflow.coffee",
   "payment/paymentconfirmform.coffee",
   "payment/genericplanview.coffee",
-  "payment/planupgradeform.coffee",
   "payment/planupgradeconfirmform.coffee",
-  "payment/packchoiceform.coffee",
   "payment/planproductlist.coffee",
   "payment/existingaccountworkflow.coffee",
 
@@ -238,7 +213,6 @@ module.exports = [
   "avatararea/avatarareapopuplist.coffee",
   "avatararea/avatarareagroupswitcherpopup.coffee",
   "avatararea/avatarareaiconlink.coffee",
-  "avatararea/avatarareasharestatuspopup.coffee",
 
   "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
