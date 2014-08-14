@@ -2,7 +2,7 @@ class ReplyInputWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
-    options.placeholder    or= 'Type your reply and hit enter...'
+    options.placeholder    or= ''
     options.inputViewClass or= ReplyInputView
 
     super options, data
@@ -15,6 +15,9 @@ class ReplyInputWidget extends ActivityInputWidget
 
 
   unlockSubmit: -> @locked = no
+
+
+  empty: -> @input.empty()
 
 
   create: ({body, requestData}, callback) ->

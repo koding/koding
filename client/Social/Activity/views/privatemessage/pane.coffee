@@ -67,6 +67,7 @@ class PrivateMessagePane extends MessagePane
 
     @input.reset yes
     @createFakeItemView value, timestamp
+    @input.empty()
 
 
   createFakeItemView: (value, timestamp) ->

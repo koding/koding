@@ -6,7 +6,7 @@ class ActivityInputView extends KDTokenizedInput
     options.cssClass         = KD.utils.curry "input-view", options.cssClass
     options.type           or= "html"
     options.multiline       ?= yes
-    options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
+    options.placeholder     ?= "What's new #{KD.whoami().profile.firstName}?"
     options.tokenViewClass or= TokenView
     options.rules  or=
       tag            :
