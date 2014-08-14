@@ -55,7 +55,7 @@ class PrivateMessagePane extends MessagePane
     @messageMap[message.id] = yes
     @prependMessage message, @listController.getItemCount() - 1
 
-    @removeFakeMessage message.requestData  if message.requestData
+    @removeFakeMessage message.requestData
 
 
   # as soon as the enter key down,
@@ -106,8 +106,6 @@ class PrivateMessagePane extends MessagePane
     return  if @messageMap[message.id]
     return  if message.account._id is KD.whoami()._id
 
-    @removeFakeMessage message.requestData  if message.requestData
-
     # insert the real message.
     @messageMap[message.id] = yes
     @prependMessage message, @listController.getItemCount()
@@ -149,7 +147,18 @@ class PrivateMessagePane extends MessagePane
     {data} = item
     @messageMap[data.id] = yes
 
-    index = @listController.getListItems().lastIndexOf item
+    # TODO: This is a temporary fix,
+    # we need to revisit this part.
+    # messageAdded & messageRemoved has a race
+    # condition problem. ~Umut
+    if data.requestData and not data.isFake
+      fakeItem = @fakeMessageMap[data.requestData]
+
+      if fakeItem.hasClass 'consequent'
+      then item.setClass 'consequent'
+      else item.unsetClass 'consequent'
+
+      return
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
