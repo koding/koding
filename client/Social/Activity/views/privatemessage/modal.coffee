@@ -25,6 +25,7 @@ class PrivateMessageModal extends KDModalViewWithForms
               callback : (event) =>
                 @getDelegate()._lastMessage = null
                 @destroy()
+                router.back()
           fields           :
             recipient      :
               itemClass    : KDView
