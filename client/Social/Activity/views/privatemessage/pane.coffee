@@ -57,6 +57,7 @@ class PrivateMessagePane extends MessagePane
 
     @removeFakeMessage message.requestData  if message.requestData
 
+
   # as soon as the enter key down,
   # we create a fake itemview and put
   # it to dom. once the response from server
@@ -103,6 +104,7 @@ class PrivateMessagePane extends MessagePane
   addMessage: (message) ->
 
     return  if @messageMap[message.id]
+    return  if message.account._id is KD.whoami()._id
 
     @removeFakeMessage message.requestData  if message.requestData
 
@@ -139,7 +141,6 @@ class PrivateMessagePane extends MessagePane
       return KD.showError err  if err
 
       items.forEach @lazyBound 'loadMessage'
-
 
 
   messageAdded: (item, index) ->
