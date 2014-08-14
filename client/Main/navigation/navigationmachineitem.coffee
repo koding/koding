@@ -2,9 +2,9 @@ class NavigationMachineItem extends JTreeItemView
 
   {Running, Stopped} = Machine.State
 
-  stateClasses = ""
-  for state in Object.keys Machine.State
-    stateClasses += "#{state.toLowerCase()} "
+  stateClasses  = ''
+  stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
+
 
   JView.mixin @prototype
 
@@ -25,7 +25,7 @@ class NavigationMachineItem extends JTreeItemView
 
     @machine = @getData()
     @progress = new KDProgressBarView
-      cssClass : "hidden"
+      cssClass : 'hidden'
       # initial  : Math.floor Math.random() * 100
 
     { computeController } = KD.singletons
