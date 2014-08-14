@@ -34,7 +34,7 @@ class NFinderItem extends JTreeItemView
 
   getChildConstructor: (type) ->
     switch type
-      when "vm"         then NVMItemView
+      when "machine"    then NMachineItemView
       when "folder"     then NFolderItemView
       when "section"    then NSectionItemView
       when "mount"      then NMountItemView
