@@ -1,8 +1,10 @@
-package structure
+package structs
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestMapNonStruct(t *testing.T) {
@@ -17,6 +19,28 @@ func TestMapNonStruct(t *testing.T) {
 
 	// this should panic. We are going to recover and and test it
 	_ = Map(foo)
+}
+
+func TestStructIndexes(t *testing.T) {
+	type C struct {
+		something int
+		Props     map[string]interface{}
+	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+			t.Error("Using mixed indexes should not panic")
+		}
+	}()
+
+	// They should not panic
+	_ = Map(&C{})
+	_ = Fields(&C{})
+	_ = Values(&C{})
+	_ = IsZero(&C{})
+	_ = HasZero(&C{})
 }
 
 func TestMap(t *testing.T) {
@@ -61,9 +85,9 @@ func TestMap(t *testing.T) {
 
 func TestMap_Tag(t *testing.T) {
 	var T = struct {
-		A string `structure:"x"`
-		B int    `structure:"y"`
-		C bool   `structure:"z"`
+		A string `structs:"x"`
+		B int    `structs:"y"`
+		C bool   `structs:"z"`
 	}{
 		A: "a-value",
 		B: 2,
@@ -89,6 +113,72 @@ func TestMap_Tag(t *testing.T) {
 
 }
 
+func TestMap_CustomTag(t *testing.T) {
+	var T = struct {
+		A string `dd:"x"`
+		B int    `dd:"y"`
+		C bool   `dd:"z"`
+	}{
+		A: "a-value",
+		B: 2,
+		C: true,
+	}
+
+	defaultName := DefaultTagName
+	DefaultTagName = "dd"
+	defer func() {
+		DefaultTagName = defaultName
+	}()
+	a := Map(T)
+
+	inMap := func(key interface{}) bool {
+		for k := range a {
+			if reflect.DeepEqual(k, key) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, key := range []string{"x", "y", "z"} {
+		if !inMap(key) {
+			t.Errorf("Map should have the key %v", key)
+		}
+	}
+
+}
+
+func TestMap_OmitNested(t *testing.T) {
+	type A struct {
+		Name  string
+		Value string
+		Time  time.Time `structs:",omitnested"`
+	}
+	a := A{Time: time.Now()}
+
+	type B struct {
+		Desc string
+		A    A
+	}
+	b := &B{A: a}
+
+	m := Map(b)
+
+	in, ok := m["A"].(map[string]interface{})
+	if !ok {
+		t.Error("Map nested structs is not available in the map")
+	}
+
+	// should not happen
+	if _, ok := in["Time"].(map[string]interface{}); ok {
+		t.Error("Map nested struct should omit recursiving parsing of Time")
+	}
+
+	if _, ok := in["Time"].(time.Time); !ok {
+		t.Error("Map nested struct should stop parsing of Time at is current value")
+	}
+}
+
 func TestMap_Nested(t *testing.T) {
 	type A struct {
 		Name string
@@ -112,7 +202,7 @@ func TestMap_Nested(t *testing.T) {
 	}
 
 	if name := in["Name"].(string); name != "example" {
-		t.Error("Map nested struct's name field should give example, got: %s", name)
+		t.Errorf("Map nested struct's name field should give example, got: %s", name)
 	}
 }
 
@@ -140,7 +230,7 @@ func TestMap_Anonymous(t *testing.T) {
 	}
 
 	if name := in["Name"].(string); name != "example" {
-		t.Error("Embedded A struct's Name field should give example, got: %s", name)
+		t.Errorf("Embedded A struct's Name field should give example, got: %s", name)
 	}
 }
 
@@ -184,6 +274,45 @@ func TestValues(t *testing.T) {
 	}
 
 	for _, val := range []interface{}{"a-value", 2, true} {
+		if !inSlice(val) {
+			t.Errorf("Values should have the value %v", val)
+		}
+	}
+}
+
+func TestValues_OmitNested(t *testing.T) {
+	type A struct {
+		Name  string
+		Value int
+	}
+
+	a := A{
+		Name:  "example",
+		Value: 123,
+	}
+
+	type B struct {
+		A A `structs:",omitnested"`
+		C int
+	}
+	b := &B{A: a, C: 123}
+
+	s := Values(b)
+
+	if len(s) != 2 {
+		t.Errorf("Values of omitted nested struct should be not counted")
+	}
+
+	inSlice := func(val interface{}) bool {
+		for _, v := range s {
+			if reflect.DeepEqual(v, val) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, val := range []interface{}{123, a} {
 		if !inSlice(val) {
 			t.Errorf("Values should have the value %v", val)
 		}
@@ -270,7 +399,7 @@ func TestFields(t *testing.T) {
 
 	inSlice := func(val string) bool {
 		for _, v := range s {
-			if reflect.DeepEqual(v, val) {
+			if reflect.DeepEqual(v.Name(), val) {
 				return true
 			}
 		}
@@ -284,30 +413,37 @@ func TestFields(t *testing.T) {
 	}
 }
 
-func TestFields_Nested(t *testing.T) {
+func TestFields_OmitNested(t *testing.T) {
 	type A struct {
-		Name string
+		Name    string
+		Enabled bool
 	}
 	a := A{Name: "example"}
 
 	type B struct {
-		A A
-		C int
+		A      A
+		C      int
+		Value  string `structs:"-"`
+		Number int
 	}
 	b := &B{A: a, C: 123}
 
 	s := Fields(b)
 
+	if len(s) != 3 {
+		t.Errorf("Fields should omit nested struct. Expecting 2 got: %d", len(s))
+	}
+
 	inSlice := func(val interface{}) bool {
 		for _, v := range s {
-			if reflect.DeepEqual(v, val) {
+			if reflect.DeepEqual(v.Name(), val) {
 				return true
 			}
 		}
 		return false
 	}
 
-	for _, val := range []interface{}{"Name", "A", "C"} {
+	for _, val := range []interface{}{"A", "C"} {
 		if !inSlice(val) {
 			t.Errorf("Fields should have the value %v", val)
 		}
@@ -331,14 +467,14 @@ func TestFields_Anonymous(t *testing.T) {
 
 	inSlice := func(val interface{}) bool {
 		for _, v := range s {
-			if reflect.DeepEqual(v, val) {
+			if reflect.DeepEqual(v.Name(), val) {
 				return true
 			}
 		}
 		return false
 	}
 
-	for _, val := range []interface{}{"Name", "A", "C"} {
+	for _, val := range []interface{}{"A", "C"} {
 		if !inSlice(val) {
 			t.Errorf("Fields should have the value %v", val)
 		}
@@ -349,16 +485,13 @@ func TestIsZero(t *testing.T) {
 	var T = struct {
 		A string
 		B int
-		C bool `structure:"-"`
+		C bool `structs:"-"`
 		D []string
-	}{
-		A: "a-value",
-		B: 2,
-	}
+	}{}
 
 	ok := IsZero(T)
 	if !ok {
-		t.Error("IsZero should return true because A and B are initialized.")
+		t.Error("IsZero should return true because none of the fields are initialized.")
 	}
 
 	var X = struct {
@@ -369,8 +502,8 @@ func TestIsZero(t *testing.T) {
 	}
 
 	ok = IsZero(X)
-	if !ok {
-		t.Error("IsZero should return true because A is initialized")
+	if ok {
+		t.Error("IsZero should return false because A is initialized")
 	}
 
 	var Y = struct {
@@ -387,6 +520,34 @@ func TestIsZero(t *testing.T) {
 	}
 }
 
+func TestIsZero_OmitNested(t *testing.T) {
+	type A struct {
+		Name string
+		D    string
+	}
+	a := A{Name: "example"}
+
+	type B struct {
+		A A `structs:",omitnested"`
+		C int
+	}
+	b := &B{A: a, C: 123}
+
+	ok := IsZero(b)
+	if ok {
+		t.Error("IsZero should return false because A, B and C are initialized")
+	}
+
+	aZero := A{}
+	bZero := &B{A: aZero}
+
+	ok = IsZero(bZero)
+	if !ok {
+		t.Error("IsZero should return true because neither A nor B is initialized")
+	}
+
+}
+
 func TestIsZero_Nested(t *testing.T) {
 	type A struct {
 		Name string
@@ -401,9 +562,18 @@ func TestIsZero_Nested(t *testing.T) {
 	b := &B{A: a, C: 123}
 
 	ok := IsZero(b)
-	if !ok {
-		t.Error("IsZero should return true because D is not initialized")
+	if ok {
+		t.Error("IsZero should return false because A, B and C are initialized")
 	}
+
+	aZero := A{}
+	bZero := &B{A: aZero}
+
+	ok = IsZero(bZero)
+	if !ok {
+		t.Error("IsZero should return true because neither A nor B is initialized")
+	}
+
 }
 
 func TestIsZero_Anonymous(t *testing.T) {
@@ -421,12 +591,103 @@ func TestIsZero_Anonymous(t *testing.T) {
 	b.A = a
 
 	ok := IsZero(b)
+	if ok {
+		t.Error("IsZero should return false because A, B and C are initialized")
+	}
+
+	aZero := A{}
+	bZero := &B{}
+	bZero.A = aZero
+
+	ok = IsZero(bZero)
 	if !ok {
-		t.Error("IsZero should return false because D is not initialized")
+		t.Error("IsZero should return true because neither A nor B is initialized")
 	}
 }
 
-func TestHas(t *testing.T) {
+func TestHasZero(t *testing.T) {
+	var T = struct {
+		A string
+		B int
+		C bool `structs:"-"`
+		D []string
+	}{
+		A: "a-value",
+		B: 2,
+	}
+
+	ok := HasZero(T)
+	if !ok {
+		t.Error("HasZero should return true because A and B are initialized.")
+	}
+
+	var X = struct {
+		A string
+		F *bool
+	}{
+		A: "a-value",
+	}
+
+	ok = HasZero(X)
+	if !ok {
+		t.Error("HasZero should return true because A is initialized")
+	}
+
+	var Y = struct {
+		A string
+		B int
+	}{
+		A: "a-value",
+		B: 123,
+	}
+
+	ok = HasZero(Y)
+	if ok {
+		t.Error("HasZero should return false because A and B is initialized")
+	}
+}
+
+func TestHasZero_OmitNested(t *testing.T) {
+	type A struct {
+		Name string
+		D    string
+	}
+	a := A{Name: "example"}
+
+	type B struct {
+		A A `structs:",omitnested"`
+		C int
+	}
+	b := &B{A: a, C: 123}
+
+	// Because the Field A inside B is omitted  HasZero should return false
+	// because it will stop iterating deeper andnot going to lookup for D
+	ok := HasZero(b)
+	if ok {
+		t.Error("HasZero should return false because A and C are initialized")
+	}
+}
+
+func TestHasZero_Nested(t *testing.T) {
+	type A struct {
+		Name string
+		D    string
+	}
+	a := A{Name: "example"}
+
+	type B struct {
+		A A
+		C int
+	}
+	b := &B{A: a, C: 123}
+
+	ok := HasZero(b)
+	if !ok {
+		t.Error("HasZero should return true because D is not initialized")
+	}
+}
+
+func TestHasZero_Anonymous(t *testing.T) {
 	type A struct {
 		Name string
 		D    string
@@ -440,16 +701,9 @@ func TestHas(t *testing.T) {
 	b := &B{C: 123}
 	b.A = a
 
-	if !Has(b, "Name") {
-		t.Error("Has should return true for Name, but it's false")
-	}
-
-	if Has(b, "NotAvailable") {
-		t.Error("Has should return false for NotAvailable, but it's true")
-	}
-
-	if !Has(b, "C") {
-		t.Error("Has should return true for C, but it's false")
+	ok := HasZero(b)
+	if !ok {
+		t.Error("HasZero should return false because D is not initialized")
 	}
 }
 
@@ -462,12 +716,21 @@ func TestName(t *testing.T) {
 
 	n := Name(f)
 	if n != "Foo" {
-		t.Error("Name should return Foo, got: %s", n)
+		t.Errorf("Name should return Foo, got: %s", n)
 	}
 
 	unnamed := struct{ Name string }{Name: "Cihangir"}
 	m := Name(unnamed)
 	if m != "" {
-		t.Error("Name should return empty string for unnamed struct, got: %s", n)
+		t.Errorf("Name should return empty string for unnamed struct, got: %s", n)
 	}
+
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Error("Name should panic if a non struct is passed")
+		}
+	}()
+
+	Name([]string{})
 }
