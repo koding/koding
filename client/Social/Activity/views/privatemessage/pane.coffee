@@ -141,11 +141,14 @@ class PrivateMessagePane extends MessagePane
       items.forEach @lazyBound 'loadMessage'
 
 
+
   messageAdded: (item, index) ->
 
     @scrollDown()
     {data} = item
     @messageMap[data.id] = yes
+
+    index = @listController.getListItems().lastIndexOf item
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
@@ -172,7 +175,7 @@ class PrivateMessagePane extends MessagePane
     # try to remove the same item again.
     return  unless @messageMap[data.id]
 
-    delete @messageMap[data.id]
+    @messageMap[data.id] = no
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index]
