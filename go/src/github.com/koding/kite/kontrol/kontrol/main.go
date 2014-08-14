@@ -20,6 +20,7 @@ var (
 	port        = flag.Int("port", 4000, "")
 	tlsCertFile = flag.String("tls-cert", "", "TLS certificate file")
 	tlsKeyFile  = flag.String("tls-key", "", "TLS key file")
+	registerURL = flag.String("register-url", "", "Change self register URL")
 
 	// For self register and initial first key on a machine
 	initial    = flag.Bool("init", false, "create a new kite.key")
@@ -81,6 +82,10 @@ func main() {
 		k.Machines = strings.Split(*machines, ",")
 	}
 
+	if *registerURL != "" {
+		k.RegisterURL = *registerURL
+	}
+
 	k.Run()
 }
 
@@ -100,7 +105,7 @@ func initialKey(publicKey, privateKey []byte) {
 	conf.KontrolURL = *kontrolURL
 
 	k := kontrol.New(conf, *version, string(publicKey), string(privateKey))
-	err = k.RegisterSelf()
+	err = k.InitializeSelf()
 	if err != nil {
 		log.Fatal(err)
 	}
