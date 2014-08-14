@@ -1,5 +1,5 @@
 Parsing source files...
-Parsing completed. 714 classes found.
+Parsing completed. 692 classes found.
 Writing graph data to ../docs/koding-dep.graph
 
 Following classes are defined more than once:
@@ -33,10 +33,6 @@ Following files have more than one class in it:
    [ 'AccountLinkedAccountsListController',
      'AccountLinkedAccountsList',
      'AccountLinkedAccountsListItem' ],
-  'Account/views/mykitelist.coffee': 
-   [ 'AccountMyKiteListController',
-     'AccountMyKiteList',
-     'AccountMyKiteListItem' ],
   'Account/views/paymenthistory.coffee': 
    [ 'AccountPaymentHistoryListController',
      'AccountPaymentHistoryList',
@@ -169,38 +165,6 @@ Following classes from pointed files may not be used in the code:
 Uses 'ack' app, you can install it via '$ brew install ack'
 
 
-From Account project ....................
-
-AccountContentWrapperController from Account/controllers/accountcontentwrappercontroller.coffee
-AccountNavigationController from Account/controllers/accountnavigationcontroller.coffee
-AccountSideBarController from Account/controllers/accountsidebarcontroller.coffee
-GmailContactsListItem from Account/views/gmailcontact.coffee
-AccountMyKiteListController from Account/views/mykitelist.coffee
-
-
-From Dashboard project ....................
-
-GroupPlanProduct from Dashboard/views/planproduct.coffee
-
-
-From Environments project ....................
-
-DomainBuyForm from Environments/views/domains/domainbuyform.coffee
-ResourcesContainer from Environments/views/resourcescontainer.coffee
-VMAlwaysOnToggleButtonView from Environments/views/vms/vmalwaysontogglebuttonview.coffee
-VmPaymentConfirmForm from Environments/views/vms/vmpaymentconfirmform.coffee
-VmProductForm from Environments/views/vms/vmproductform.coffee
-
-
-From Finder project ....................
-
-NMountToggleButtonView from Finder/filetree/itemsubviews/mounttogglebuttonview.coffee
-NVMToggleButtonView from Finder/filetree/itemsubviews/vmtogglebuttonview.coffee
-NMachineItemView from Finder/filetree/itemviews/machineitem.coffee
-AppsWatcher from Finder/fs/appswatcher.coffee
-FSVm from Finder/fs/fsvm.coffee
-
-
 From IDE project ....................
 
 IDE.IDESocialsTabView from IDE/views/tabview/idesocialstabview.coffee
@@ -235,7 +199,9 @@ NavigationDocsJobsLink from Main/navigation/navigationdocsjobslink.coffee
 NavigationInviteLink from Main/navigation/navigationinvitationlink.coffee
 NavigationPromoteLink from Main/navigation/navigationpromotelink.coffee
 NavigationSeparator from Main/navigation/navigationseparator.coffee
+PackChoiceForm from Main/payment/packchoiceform.coffee
 PlanUpgradeForm from Main/payment/planupgradeform.coffee
+SubscriptionUsageView from Main/payment/subscriptionusageview.coffee
 
 
 From Social project ....................
