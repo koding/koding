@@ -401,6 +401,7 @@ class ActivitySidebar extends KDCustomHTMLView
       unless machineItem.machine.status.state is Running
         KD.utils.stopDOMEvent event
         @machineTree.deselectNode machineItem
+        KD.singletons.mainView.openMachineModal machine, machineItem
 
 
   addFollowedTopics: ->
