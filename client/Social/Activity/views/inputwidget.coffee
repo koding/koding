@@ -317,7 +317,7 @@ class ActivityInputWidget extends KDView
     data            =
       on            : -> return this
       watch         : -> return this
-      account       : KD.whoami().bongo_
+      account       : { _id : KD.whoami().getId(), constructorName : "JAccount"}
       body          : value
       typeConstant  : 'post'
       replies       : []
