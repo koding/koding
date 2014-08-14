@@ -77,8 +77,8 @@ sidebarGray = #B8B8B8
                                 left .2s linear
     font-size         14px
     line-height       18px
-    padding           5px 8px 5px 28px
     color             sidebarGray
+    padding           5px 8px 5px 42px
     rounded           4px
     ellipsis()
     borderBox()
@@ -93,6 +93,17 @@ sidebarGray = #B8B8B8
 
     cite
       font-style      normal
+      display         block
+      size            26px 20px
+      abs             0px 0 0 0px
+      &:after
+        content       ' '
+        border        5px solid sidebarGray
+        border-color  transparent transparent transparent sidebarGray
+        size          10px 10px
+        abs           8px 0 0 8px
+        borderBox()
+
 
     .fake-icon
       width           30px
@@ -113,9 +124,7 @@ sidebarGray = #B8B8B8
       width         16px
       height        16px
       bg            color #222
-      top           6px
-      left          6px
-      abs()
+      abs           6px 0 0 20px
 
     &.selected
       bg            color #15171A
@@ -318,6 +327,11 @@ sidebarGray = #B8B8B8
         font-size   12px
         color       #919297
         font-weight 600
+        overflow    hidden
+        text-overflow ellipsis
+        display     block
+        line-height 18px
+        white-space nowrap
         borderBox()
 
         span
@@ -327,6 +341,7 @@ sidebarGray = #B8B8B8
       .avatarview
         top           6px
         left          8px
+        abs()
 
       &.unread
         > .profile
