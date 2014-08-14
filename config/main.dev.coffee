@@ -5,8 +5,9 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  boot2dockerbox      = "192.168.59.103"
+  throw new Error("$DOCKER_HOST is not set")  unless process.env.DOCKER_HOST?
 
+  boot2dockerbox      = process.env.DOCKER_HOST.replace('tcp://', '').replace(':2375', '')
   hostname            = options.hostname       or "lvh.me:8090"
   publicHostname      = options.publicHostname or process.env.USER
   region              = options.region         or "dev"
@@ -621,16 +622,33 @@ Configuration = (options={}) ->
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
 
+        # Build algolia connector
+        cd #{projectRoot}/install/docker-algolia
+        docker build -t koding_localbuild/algolia .
+
         # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
         docker build -t koding_localbuild/postgres .
 
-        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
+        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --replSet dev --dbpath /data/db --smallfiles --nojournal
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding_localbuild/rabbitmq
 
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
         docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
+
+
+        echo '#---> WAITING FOR THE REPLICASET TO INITIATE <---#'
+        mongo #{boot2dockerbox}/koding --eval "rs.initiate()"
+        sleep 5
+
+        docker run -d --link mongo:mongo          --name=algolia  koding_localbuild/algolia #{publicHostname}
+
+        cd #{projectRoot}/install/docker-mongo
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
@@ -638,13 +656,6 @@ Configuration = (options={}) ->
 
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
-
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-        cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
 
       }
 
