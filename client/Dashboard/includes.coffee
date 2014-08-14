@@ -29,7 +29,6 @@ module.exports = [
   "views/planlistitem.coffee",
   "views/productsectionlistcontroller.coffee",
   "views/addproductlistitem.coffee",
-  "views/planproduct.coffee",
   "views/planaddproductsmodal.coffee",
   "views/groupsmemberpermissionslistitemview.coffee",
   "views/groupsmemberpermissionsview.coffee",
