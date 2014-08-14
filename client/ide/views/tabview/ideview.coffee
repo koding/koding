@@ -203,17 +203,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         @appStorage.setValue 'isShortcutsShown', yes
 
   getPlusMenuItems: ->
-    {machines}   = KD.getSingleton 'computeController'
-    machineItems = {}
-
-    machines.forEach (machine) =>
-      machineItems[machine.getName()] =
-        disabled : machine.status.state isnt Machine.State.Running
-        callback : => @createTerminal machine
-
     return {
       'Editor'        : callback : => @createEditor()
-      'Terminal'      : children : machineItems
+      'Terminal'      : callback : => @createTerminal()
       'Browser'       : callback : => @createPreview()
       'Drawing Board' : callback : => @createDrawingBoard()
     }
