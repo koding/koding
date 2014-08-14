@@ -30,5 +30,8 @@ class AutoCompleteController extends KDObject
       .catch (err) => @searchAccountsMongo seed
       .filter Boolean
 
+  searchTopics: (seed) ->
+    @search 'topics', seed
+
   getIndex: (indexName) ->
     @indexes[indexName] ?= @algolia.initIndex indexName
