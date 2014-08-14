@@ -376,6 +376,9 @@ class ActivitySidebar extends KDCustomHTMLView
     @machineTree.on 'NodeWasAdded', (machineItem) ->
 
       machineItem.on 'click', (event) ->
+
+        return yes  unless event.target.nodeName is 'SPAN'
+
         machine = machineItem.getData()
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
