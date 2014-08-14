@@ -64,6 +64,8 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 	rn := models.NewReplyNotification()
 	rn.TargetId = mr.MessageId
 	rn.NotifierId = reply.AccountId
+	rn.MessageId = reply.Id
+
 	subscribedAt := time.Now()
 
 	nc, err := models.CreateNotificationContent(rn)

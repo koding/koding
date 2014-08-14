@@ -51,3 +51,7 @@ func (n *MentionNotification) GetDefinition() string {
 func (n *MentionNotification) GetActivity() string {
 	return "mentioned you in a"
 }
+
+func (n *MentionNotification) GetMessageId() int64 {
+	return n.TargetId
+}

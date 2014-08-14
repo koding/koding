@@ -7,6 +7,7 @@ import (
 type ReplyNotification struct {
 	TargetId   int64
 	ListerId   int64
+	MessageId  int64
 	NotifierId int64
 }
 
@@ -98,4 +99,8 @@ func (n *ReplyNotification) GetActivity() string {
 	}
 
 	return "also commented on"
+}
+
+func (n *ReplyNotification) GetMessageId() int64 {
+	return n.MessageId
 }
