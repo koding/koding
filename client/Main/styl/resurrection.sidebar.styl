@@ -378,32 +378,6 @@ sidebarGray = #B8B8B8
       height          28px
       line-height     28px
 
-#dock
-  padding           1px 16px 16px
-  margin-top        2px
-  position          relative
-  borderBox()
-
-  &:after
-    opacity         0
-    content         ""
-    vendor          transition, opacity .5s ease
-
-  &.remove-app-state
-    height          180px
-
-    &:after
-      opacity       1
-      size          100%, 30px
-      content       "drag here to remove"
-      text-align    center
-      color         #eee
-      padding-top   10px
-      bottom        0
-      font-size     13px
-      font-weight   300
-      abs()
-
 
 .account-area
   bottom            0

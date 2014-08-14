@@ -172,7 +172,6 @@ module.exports = [
 
   "navigation/topnavigation.coffee",
 
-  "navigation/navigationlist.coffee",
   "navigation/navigationlink.coffee",
   "navigation/navigationmachineitem.coffee",
   "navigation/navigationseparator.coffee",
