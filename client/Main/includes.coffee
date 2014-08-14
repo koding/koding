@@ -100,6 +100,7 @@ module.exports = [
   "CommonViews/CommonInnerNavigation.coffee",
   "CommonViews/headers.coffee",
   "CommonViews/HelpBox.coffee",
+  "CommonViews/KeyboardHelper.coffee",
   "CommonViews/VerifyPINModal.coffee",
   "CommonViews/VerifyPasswordModal.coffee",
 
