@@ -373,20 +373,34 @@ class ActivitySidebar extends KDCustomHTMLView
 
     section.addSubView @machineTree.getView()
 
-    @machineTree.on 'NodeWasAdded', (machineItem) ->
+    @machineTree.on 'NodeWasAdded', (machineItem) =>
 
-      machineItem.on 'click', (event) ->
+      machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
-        return yes  unless event.target.nodeName is 'SPAN'
 
-        machine = machineItem.getData()
-        KD.utils.stopDOMEvent event
-        KD.singletons.mainView.openMachineModal machine, machineItem
 
 
     if KD.userMachines.length
     then @listMachines KD.userMachines
     else @fetchMachines @bound 'listMachines'
+
+
+  handleMachineItemClick: (machineItem, event) ->
+
+    machine = machineItem.getData()
+
+    if event.target.nodeName is 'SPAN'
+
+      KD.utils.stopDOMEvent event
+      KD.singletons.mainView.openMachineModal machine, machineItem
+
+    else
+
+      {Running, Stopped} = Machine.State
+
+      unless machineItem.machine.status.state is Running
+        KD.utils.stopDOMEvent event
+        @machineTree.deselectNode machineItem
 
 
   addFollowedTopics: ->

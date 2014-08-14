@@ -54,12 +54,6 @@ class NavigationMachineItem extends JTreeItemView
         @setClass status.toLowerCase()
 
 
-  click: (event)->
-
-    if event.target.tagName.toLowerCase() isnt 'span'
-      return yes  if @machine.status.state is Running
-
-
   pistachio:->
 
     """
