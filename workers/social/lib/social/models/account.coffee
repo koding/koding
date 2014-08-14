@@ -381,6 +381,7 @@ module.exports = class JAccount extends jraphical.Module
   canDeletePost: permit 'delete posts'
 
   createSocialApiId:(callback)->
+    return callback {message: "we dont allow guests in socialapi"}  if @type is 'unregistered'
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
     createAccount {id: @getId(), nickname: @profile.nickname}, (err, account)=>
