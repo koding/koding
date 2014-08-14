@@ -5,11 +5,11 @@ class TopicMessagePane extends MessagePane
     super options, data
 
     KD.singletons.socialapi
-      .on 'MessageAdded',   @bound 'prependMessage'
+      .on 'MessageAdded',   @bound 'addMessage'
       .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  prependMessage: (message) ->
+  addMessage: (message) ->
 
     {name} = @getData()
     return  unless message.body.match ///##{name}///
