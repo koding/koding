@@ -1,5 +1,5 @@
 Parsing source files...
-Parsing completed. 697 classes found.
+Parsing completed. 692 classes found.
 Writing graph data to ../docs/koding-dep.graph
 
 Following classes are defined more than once:
@@ -163,15 +163,6 @@ Following files have more than one class in it:
 Checking for usages... (this may take time) ... safe to stop with ctrl+c
 Following classes from pointed files may not be used in the code:
 Uses 'ack' app, you can install it via '$ brew install ack'
-
-
-From Finder project ....................
-
-NMountToggleButtonView from Finder/filetree/itemsubviews/mounttogglebuttonview.coffee
-NVMToggleButtonView from Finder/filetree/itemsubviews/vmtogglebuttonview.coffee
-NMachineItemView from Finder/filetree/itemviews/machineitem.coffee
-AppsWatcher from Finder/fs/appswatcher.coffee
-FSVm from Finder/fs/fsvm.coffee
 
 
 From IDE project ....................
