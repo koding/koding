@@ -19,7 +19,7 @@ class NavigationMachineItem extends JTreeItemView
     options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
     options.attributes =
       href             : path
-      # title            : "Go to your VM #{@alias}"
+      title            : "Open IDE for #{@alias}"
 
     super options, data
 
