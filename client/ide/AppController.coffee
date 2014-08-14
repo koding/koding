@@ -205,11 +205,9 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
   mountMachineByMachineUId: (machineUId) ->
-    computeController = KD.getSingleton 'computeController'
-    computeController.ready =>
-      for machine in computeController.machines
-        if machine.uid is @mountedMachineUId
-          machineItem = machine
+    KD.getSingleton('computeController').fetchMachines (err, machines) =>
+      for machine in machines when machine.uid is machineUId
+        machineItem = machine
 
       if machineItem then @mountMachine machineItem
       else
