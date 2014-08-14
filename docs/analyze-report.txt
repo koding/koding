@@ -1,5 +1,5 @@
 Parsing source files...
-Parsing completed. 662 classes found.
+Parsing completed. 664 classes found.
 Writing graph data to ../docs/koding-dep.graph
 
 Following classes are defined more than once:
@@ -87,7 +87,6 @@ Following files have more than one class in it:
      'CommonInnerNavigationListController',
      'CommonInnerNavigationList',
      'CommonInnerNavigationListItem' ],
-  'Main/CommonViews/CommonVMUsageBar.coffee': [ 'CommonVMUsageBar', 'VMRamUsageBar', 'VMDiskUsageBar' ],
   'Main/CommonViews/fatih/fatihprefpane.coffee': [ 'FatihPrefPane', 'FatihPrefItem' ],
   'Main/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee': 
    [ 'FatihContentSearchPlugin',
@@ -99,6 +98,11 @@ Following files have more than one class in it:
      'FatihUserActionView',
      'FatihUserListItem' ],
   'Main/CommonViews/followbutton.coffee': [ 'FollowButton', 'MemberFollowToggleButton' ],
+  'Main/CommonViews/KeyboardHelper.coffee': 
+   [ 'KeyboardHelperView',
+     'KeySetView',
+     'KeyView',
+     'KeyboardHelperModalView' ],
   'Main/CommonViews/memberautocomplete.coffee': [ 'MemberAutoCompleteItemView', 'MemberAutoCompletedItemView' ],
   'Main/CommonViews/sharelink.coffee': 
    [ 'ShareLink',
@@ -161,6 +165,8 @@ From Main project ....................
 AdminModal from Main/CommonViews/adminmodal.coffee
 FormWorkflowModal from Main/CommonViews/formworkflow/modal.coffee
 FormWorkflow.Visualization from Main/CommonViews/formworkflow/visualization.coffee
+KeyboardHelperView from Main/CommonViews/KeyboardHelper.coffee
+KeyboardHelperModalView from Main/CommonViews/KeyboardHelper.coffee
 KodingKite_KlientKite from Main/kite/kites/klient.coffee
 KodingKite_KloudKite from Main/kite/kites/kloud.coffee
 DockController from Main/maincontroller/dockcontroller.coffee
