@@ -42,9 +42,15 @@ if argv.deploy
 
         options.hostname      = "#{options.config}--#{options.version.replace(/\./g,'-')}"
 
-        if options.config is "feature"
-            subdomain         = eden.eve().toLowerCase()
-            options.hostname  = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
+        switch options.config
+            when "feature"
+                domain            = "koding.io"
+                subdomain         = eden.eve().toLowerCase()
+                options.hostname  = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
+            when "sandbox"
+                domain            = "koding.com"
+                subdomain         = "sandbox"
+                options.hostname  = "sandbox.koding.com"
 
         KONFIG = require("./config/main.#{options.config}.coffee")
             hostname : options.hostname
@@ -59,7 +65,7 @@ if argv.deploy
 
 
             switch options.config
-                when "feature"
+                when "feature","sandbox"
                     # log JSON.stringify res,null,2
 
 
@@ -92,7 +98,7 @@ if argv.deploy
                                     Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
 
                                     Deploy.addDomainRecord
-                                        domain: "koding.io"
+                                        domain: domain
                                         type : "A"
                                         name : subdomain
                                         content : IP
@@ -107,7 +113,7 @@ if argv.deploy
                                         log "------------------------------------------------------------------"
                                         log "URL: #{PublicDnsName} "
                                         log "------------------------------------------------------------------"
-                                        log "URL: #{subdomain}.koding.io         IP: #{IP}"
+                                        log "URL: #{subdomain}.#{domain}         IP: #{IP}"
                                         log "------------------------------------------------------------------"
                         ,5000
 

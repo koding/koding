@@ -227,6 +227,9 @@ class Deploy
 
     @addDomainRecord = (options,callback)->
         ttl = 120 or options.ttl
+        {name, domain} = options
+        fulldomain = "#{name}.#{domain}"
+
         cf.addDomainRecord options.domain,
             type : "A"
             name : options.name
@@ -241,7 +244,22 @@ class Deploy
                 content : options.content
                 service_mode : options.service_mode
                 ttl: ttl
-            ,callback
+            ,(err,data) ->
+
+                #check if it already exists and delete all except the newly created above
+                cf.listDomainRecords domain,(err,list)->
+                    exists = false
+                    for i,k in list
+                        # log i.rec_id,i.name
+                        unless i.rec_id is res.rec_id
+                            log "deleting",i.name
+                            exists = yes
+                            cf.deleteDomainRecord domain, i.rec_id, ->
+
+                callback null
+
+
+
 
 
 
