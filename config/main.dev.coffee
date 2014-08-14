@@ -180,7 +180,6 @@ Configuration = (options={}) ->
     kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
-    cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
