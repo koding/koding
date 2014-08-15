@@ -54,45 +54,39 @@ default: configure
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/api -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/fresh -r socialapi/workers/api -w socialapi -a "-c $(CONFIG) $(DBG) $(METRICS)"
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/fresh -r socialapi/workers/topicfeed -a "-c $(CONFIG) $(DBG) $(METRICS)"
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/fresh -r socialapi/workers/realtime -a "-c $(CONFIG) $(DBG) $(METRICS)"
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/fresh -r socialapi/workers/populartopic -a "-c $(CONFIG) $(DBG) $(METRICS)"
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/fresh -r socialapi/workers/pinnedpost -a "-c $(CONFIG) $(DBG) $(METRICS)"
 
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/algoliaconnector -a "-c $(CONFIG) $(DBG) $(METRICS)"
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/notification -a "-c $(CONFIG) $(DBG) $(METRICS)"
 emailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/emailnotifier -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/emailnotifier -a "-c $(CONFIG) $(DBG) $(METRICS)"
 dailyemailnotifierdev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/dailyemailnotifier -a "-c $(CONFIG) $(DBG) $(METRICS)"
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/popularpost -a "-c $(CONFIG) $(DBG) $(METRICS)"
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/trollmode -a "-c $(CONFIG) $(DBG) $(METRICS)"
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -102,26 +96,21 @@ configuremigration:
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/migrator -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/migrator -a "-c $(CONFIG) $(DBG) $(METRICS)"
 sitemapdev: sitemapfeederdev sitemapgeneratordev
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/sitemap/sitemapfeeder -a "-c $(CONFIG) $(DBG) $(METRICS)"
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/sitemap/sitemapgenerator -a "-c $(CONFIG) $(DBG) $(METRICS)"
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/sitemap/sitemapinitializer -a "-c $(CONFIG) $(DBG) $(METRICS)"
 sitemaprootgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/rerun socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DBG) $(METRICS)
-
+	@$(GOBINDIR)/fresh -r socialapi/workers/sitemap/sitemaprootgenerator -a "-c $(CONFIG) $(DBG) $(METRICS)"
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
