@@ -235,38 +235,39 @@ class Deploy
             rec_id = (i.rec_id for i,k in list when i.name is fulldomain)
 
 
+            switch rec_id.length
+                when 1
+                    log "domain record for #{fulldomain} found at #{rec_id}, updating..."
+                    cf.editDomainRecord options.domain,rec_id,
+                            type : options.type
+                            name : options.name
+                            content : options.content
+                            service_mode : options.service_mode
+                            ttl: ttl
+                        ,callback
 
-            if rec_id
-                if Array.isArray rec_id
+                when 0
+                    log "domain record for #{fulldomain} not found, creating a new one.."
+                    cf.addDomainRecord options.domain,
+                        type : "A"
+                        name : options.name
+                        content : options.content
+                        service_mode : options.service_mode
+                    ,(err,res)->
+                        callback err if err
+                        # this additional step is required to enable cloudflare (https)
+                        cf.editDomainRecord options.domain,res.rec_id,
+                            type : options.type
+                            name : options.name
+                            content : options.content
+                            service_mode : options.service_mode
+                            ttl: ttl
+                        ,callback
+                else
                     log a="multiple domain records found for #{fulldomain} rec_id #{rec_id}, not taking any action, pls fix it at cloudflare..."
                     log "no domain records have been changed"
                     return callback err
-                log "domain record for #{fulldomain} found at #{rec_id}, updating..."
-                cf.editDomainRecord options.domain,rec_id,
-                        type : options.type
-                        name : options.name
-                        content : options.content
-                        service_mode : options.service_mode
-                        ttl: ttl
-                    ,callback
 
-            else
-                log "domain record for #{fulldomain} not found, creating a new one.."
-                cf.addDomainRecord options.domain,
-                    type : "A"
-                    name : options.name
-                    content : options.content
-                    service_mode : options.service_mode
-                ,(err,res)->
-                    callback err if err
-                    # this additional step is required to enable cloudflare (https)
-                    cf.editDomainRecord options.domain,res.rec_id,
-                        type : options.type
-                        name : options.name
-                        content : options.content
-                        service_mode : options.service_mode
-                        ttl: ttl
-                    ,callback
 
 
 

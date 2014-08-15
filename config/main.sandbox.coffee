@@ -252,6 +252,7 @@ Configuration = (options={}) ->
       # Make site accessible from http://localhost/
       server_name localhost;
 
+      location /deploy-output.txt {alias /var/log/cloud-init-output.log; }
 
       server_name #{hostname};
       location / {
@@ -510,6 +511,8 @@ Configuration = (options={}) ->
         - cat /root/run.b64z | base64 --decode | gunzip > /root/run
         - /root/run
         - echo "deploy done."
+
+      final_message: "The system is finally up, after $UPTIME seconds"
 
     """
 

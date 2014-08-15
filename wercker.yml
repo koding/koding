@@ -33,7 +33,9 @@ deploy:
   steps:
     - script:
         name: deploy
-        code: ./deploy --deploy --config sandbox
+        code: |
+          git fetch --tags
+          ./deploy --deploy --config=sandbox
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
