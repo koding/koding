@@ -300,17 +300,6 @@ Configuration = (options={}) ->
         cake build
         cd #{projectRoot}
 
-
-        echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-        echo adding you to docker-hub..
-        if [ -f $HOME/.dockercfg ]; then
-          echo 'you seem to have correct docker config file - dont forget to install docker.'
-        else
-          echo 'added ~/.dockercfg - dont forget to install docker.'
-          echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
-        fi
-
-
         echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
         if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
           echo you seem to have correct .ngrok file.
