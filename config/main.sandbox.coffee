@@ -19,7 +19,7 @@ Configuration = (options={}) ->
   # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
   mongo               = "#{prod_simulation_server}:27017/koding"
   redis               = {host     : "#{prod_simulation_server}:27017/koding"   , port : "6379" }
-  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/feature.toml" }
+  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/sandbox.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
   etcd                = "#{prod_simulation_server}:4001"
 
