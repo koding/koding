@@ -39,9 +39,7 @@ func init() {
 	go fs.Run()
 	<-fs.ServerReadyNotify()
 
-	client := kite.New("client", "0.0.1")
-	client.Config.DisableAuthentication = true
-	remote = client.NewClientString("ws://127.0.0.1:3636")
+	remote = fs.NewClient("http://127.0.0.1:3636/kite")
 	err := remote.Dial()
 	if err != nil {
 		log.Fatal("err")
