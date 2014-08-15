@@ -229,8 +229,8 @@ class PrivateMessagePane extends MessagePane
         new PrivateMessageRecipientModal
           blacklist : participantsPreview.map (item) -> item._id
           position  :
-            top     : @getY() + 50
-            left    : @getX() - 150
+            top     : @participantsView.getY() + 50
+            left    : @participantsView.getX() - 150
         , @getData()
 
 
