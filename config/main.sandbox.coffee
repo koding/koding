@@ -371,7 +371,7 @@ Configuration = (options={}) ->
       function install() {
         touch /root/run.install.start
         cd /opt
-        git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
+        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
         cd /opt/koding
 
@@ -381,8 +381,6 @@ Configuration = (options={}) ->
         echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
         bash #{projectRoot}/machineSettings
 
-        git submodule init
-        git submodule update --recursive
         npm i gulp stylus coffee-script -g
         npm i --unsafe-perm
         /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
