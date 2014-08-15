@@ -64,3 +64,22 @@ func CreateAccountInBothDbs() (*models.Account, error) {
 
 	return acc.(*models.Account), nil
 }
+
+func CreateAccountWithDailyDigest() (*models.Account, error) {
+	acc, err := CreateAccountInBothDbs()
+	if err != nil {
+		return nil, err
+	}
+
+	eFreq := kodingmodels.EmailFrequency{
+		Global: true,
+		Daily:  true,
+	}
+
+	err = modelhelper.UpdateEmailFrequency(acc.OldId, eFreq)
+	if err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
