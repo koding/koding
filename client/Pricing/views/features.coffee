@@ -43,7 +43,7 @@ class PricingFeaturesView extends JView
         <h5>ALWAYS ON</h5>
         <p>
           The maximum number of VMs that you can keep turned on 24/7. For example,
-          you bought a package comes with 10 VMs and one always-on VM. The VM you
+          you bought a package that comes with 10 VMs and one always-on VM. The VM you
           mark as always-on will work 24/7, however the others will be powered off
           automatically 15 minutes after you log out.
         </p>
