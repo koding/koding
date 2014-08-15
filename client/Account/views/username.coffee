@@ -13,6 +13,9 @@ class AccountEditUsername extends JView
 
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
+    # TODO Since avatar upload is dependent on oskite
+    # these buttons are not appended to view, until a new
+    # avatar upload implementation
     @uploadAvatarBtn  = new KDButtonView
       icon            : yes
       style           : 'solid medium green'
@@ -276,14 +279,13 @@ class AccountEditUsername extends JView
     """
     <div class='account-avatar-area clearfix'>
       {{> @avatar}}
-      <div class='avatar-buttons'>
-        {{> @uploadAvatarBtn}}
-        {{> @uploadAvatarInput}}
-        {{> @useGravatarBtn}}
-      </div>
-    </div>
+    #   <div class='avatar-buttons'>
+    #     {{> @uploadAvatarBtn}}
+    #     {{> @uploadAvatarInput}}
+    #     {{> @useGravatarBtn}}
+    #   </div>
+    # </div>
     <section>
       {{> @emailForm}}
     </section>
     """
-
