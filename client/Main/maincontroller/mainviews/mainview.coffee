@@ -102,6 +102,9 @@ class MainView extends KDView
     @sidebar.on 'NoOffscreenItemsBelow', ->
       moreItemsBelow.hide()
 
+    KD.singletons.notificationController.on 'ParticipantUpdated', =>
+      @sidebar.updateOffscreenIndicators()
+
   createPanelWrapper:->
 
     @addSubView @panelWrapper = new KDView
