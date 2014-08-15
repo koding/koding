@@ -4,11 +4,11 @@ Environment = "prod"
 Port 	    = 4000
 
 #mongodb
-MongoURL = "192.168.59.103:27017/koding"
+MongoURL = "sjc-mongos1.objectrocket.com:24129/koding"
 
 #etcd
 Machines = ["http://10.0.0.127:4001,http://10.0.0.128:4001,http://10.0.0.126:4001"]
 
 # signing/generating token
-PrivateKey = "./prod_kontrol_rsa_private.pem"
-PublicKey  = "./prod_kontrol_rsa_public.pem"
+PrivateKey = "files/prod_kontrol_rsa_private.pem"
+PublicKey  = "files/prod_kontrol_rsa_public.pem"
