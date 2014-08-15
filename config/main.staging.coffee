@@ -316,7 +316,7 @@ module.exports =
       ftpip       : '54.208.3.200'
   recurly         :
     apiKey        : '4a0b7965feb841238eadf94a46ef72ee' # koding-test.recurly.com
-    loggedRequests: /^(subscriptions|transactions)/
+    loggedRequests: "/^(subscriptions|transactions)/"
   embedly       :
     apiKey      : embedlyApiKey
   opsview :

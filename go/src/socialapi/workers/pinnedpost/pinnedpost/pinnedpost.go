@@ -141,6 +141,7 @@ func (c *Controller) updateAllContainingChannels(parent, reply *models.ChannelMe
 			if err := channel.Update(); err != nil {
 				c.log.Error("channel update failed", err)
 			}
+
 			continue
 		}
 

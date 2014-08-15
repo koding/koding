@@ -254,13 +254,33 @@ Configuration = (options={}) ->
       # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
 
+    workerList = (separator=" ")->
+      (key for key,val of KONFIG.workers).join separator
+
     workersRunList = ->
       workers = ""
       for key,val of KONFIG.workers
-        workers +="#------------- worker: #{key} -------------#\n"
-        workers +="#{val.command} &>#{projectRoot}/.logs/#{key}.log & \n"
-        workers +="#{key}pid=$! \n"
-        workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
+
+        workers += """
+
+        function worker_daemon_#{key} {
+
+          #------------- worker: #{key} -------------#
+          #{val.command} &>#{projectRoot}/.logs/#{key}.log &
+          #{key}pid=$!
+          echo [#{key}] started with pid: $#{key}pid
+
+
+        }
+
+        function worker_#{key} {
+
+          #------------- worker: #{key} -------------#
+          #{val.command}
+
+        }
+
+        """
       return workers
 
     installScript = """
@@ -334,14 +354,19 @@ Configuration = (options={}) ->
       }
 
       function run () {
+
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
         cd #{projectRoot}
-        #{workersRunList()}
+
+        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
+
         tail -fq ./.logs/*.log
 
       }
+
+      #{workersRunList()}
 
       function check (){
 
@@ -357,15 +382,17 @@ Configuration = (options={}) ->
 
         echo "Usage: "
         echo ""
-        echo "  run               : to start koding"
-        echo "  run killall       : to kill every process started by run script"
-        echo "  run install       : to compile/install client and "
-        echo "  run buildclient   : to see of specified worker logs only"
-        echo "  run logs          : to see all workers logs"
-        echo "  run log [worker]  : to see of specified worker logs only"
-        echo "  run buildservices : to initialize and start services"
-        echo "  run services      : to stop and restart services"
-        echo "  run help          : to show this list"
+        echo "  run                    : to start koding"
+        echo "  run killall            : to kill every process started by run script"
+        echo "  run install            : to compile/install client and "
+        echo "  run buildclient        : to see of specified worker logs only"
+        echo "  run logs               : to see all workers logs"
+        echo "  run log [worker]       : to see of specified worker logs only"
+        echo "  run buildservices      : to initialize and start services"
+        echo "  run services           : to stop and restart services"
+        echo "  run worker             : to list workers"
+        echo "  run worker [worker]    : to run a single worker"
+        echo "  run help               : to show this list"
         echo ""
 
       }
@@ -489,6 +516,16 @@ Configuration = (options={}) ->
       elif [ "$1" == "help" ]; then
         printHelp
 
+      elif [ "$1" == "worker" ]; then
+
+        if [ "$2" == "" ]; then
+          echo Available workers:
+          echo "-------------------"
+          echo '#{workerList "\n"}'
+        else
+          eval "worker_$2"
+        fi
+
       elif [ "$#" == "0" ]; then
         check
         run
@@ -505,7 +542,6 @@ Configuration = (options={}) ->
   KONFIG.ENV            = generateEnvVariables   KONFIG
   KONFIG.supervisorConf = generateSupervisorConf KONFIG
   KONFIG.runFile        = generateRunFile        KONFIG
-
   return KONFIG
 
 module.exports = Configuration
