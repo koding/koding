@@ -34,6 +34,8 @@ deploy:
     - script:
         name: deploy
         code: |
+          git config --global user.email "wercker@koding.com"
+          git config --global user.name "wercker-build-box"
           git fetch --tags
           ./deploy --deploy --config=sandbox
   after-steps:
