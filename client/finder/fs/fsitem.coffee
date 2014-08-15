@@ -71,13 +71,12 @@ class FSItem extends KDObject
     @emit "fs.job.started"
 
     folderPath = folderPath.replace /\/$/, ''
-    folderPath = "#{folderPath}/#{@name}"
+    folderPath = FSHelper.plainPath "#{folderPath}/#{@name}"
 
     kite = @getKite()
     file = null
 
     kite.init().then =>
-
 
       kite.fsUniquePath { path: folderPath }
 
@@ -88,15 +87,6 @@ class FSItem extends KDObject
         kite.exec({command})
 
         .then(handleStdErr())
-
-        .then ->
-
-          return FSHelper.createFileInstance
-            path        : actualPath
-            parentPath  : folderPath
-            name        : @name
-            type        : @type
-            machine     : @machine
 
     .nodeify(callback)
 
