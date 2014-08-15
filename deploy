@@ -56,7 +56,8 @@ if argv.deploy
         exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
 
 
-
+            log JSON.stringify arguments,null,2
+            return callback null
 
 
             switch options.config
