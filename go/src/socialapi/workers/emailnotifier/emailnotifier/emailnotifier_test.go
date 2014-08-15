@@ -33,8 +33,9 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 
 		// update email settings for account
 		eFreq := models.EmailFrequency{
-			Global: true,
-			Daily:  true,
+			Global:  true,
+			Daily:   true,
+			Comment: true,
 		}
 		modelhelper.UpdateEmailFrequency(acc1.OldId, eFreq)
 

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/kr/pretty"
 	"socialapi/models"
 )
 
@@ -27,26 +28,28 @@ func (c *CreatePostType) Do() (*CreatePostReplyReturn, error) {
 	return &CreatePostReplyReturn{Post: cm}, err
 }
 
-func (c *CreatePostType) WithReply() (*CreatePostReplyReturn, error) {
-	return c.WithReplies(1)
+func (c *CreatePostType) CreateReply() (*CreatePostReplyReturn, error) {
+	return c.CreateReplies(1)
 }
 
-func (c *CreatePostType) WithReplies(count int) (*CreatePostReplyReturn, error) {
-	cReply, err := c.Do()
+func (c *CreatePostType) CreateReplies(n int) (*CreatePostReplyReturn, error) {
+	cpReturn, err := c.Do()
 	if err != nil {
 		return nil, err
 	}
 
-	cReply.Replies = make([]*models.ChannelMessage, 0)
+	cpReturn.Replies = make([]*models.ChannelMessage, 0)
 
-	for i := 1; i <= count; i++ {
-		reply, err := AddReply(cReply.Post.Id, c.Acc1Id, c.ChannelId)
+	for i := 1; i <= n; i++ {
+		reply, err := AddReply(cpReturn.Post.Id, c.Acc2Id, c.ChannelId)
+		pretty.Println(">>>>>>> reply", reply.Id, reply.AccountId)
+
 		if err != nil {
 			return nil, err
 		}
 
-		cReply.Replies = append(cReply.Replies, reply)
+		cpReturn.Replies = append(cpReturn.Replies, reply)
 	}
 
-	return cReply, nil
+	return cpReturn, nil
 }
