@@ -33,7 +33,7 @@ deploy:
   steps:
     - script:
         name: deploy
-        code: ./deploy --config sandbox
+        code: ./deploy --deploy --config sandbox
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding

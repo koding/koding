@@ -17,9 +17,6 @@ elb         = new AWS.ELB()
 
 
 
-
-
-
 if argv.release
     release argv.release
 
@@ -48,9 +45,9 @@ if argv.deploy
                 subdomain         = eden.eve().toLowerCase()
                 options.hostname  = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
             when "sandbox"
-                domain            = "koding.com"
+                domain            = "koding.io"
                 subdomain         = "sandbox"
-                options.hostname  = "sandbox.koding.com"
+                options.hostname  = "sandbox.koding.io"
 
         KONFIG = require("./config/main.#{options.config}.coffee")
             hostname : options.hostname
@@ -184,3 +181,18 @@ if argv.deploy
 
                 # log "#{res.instanceName} is ready."
                 # log "Box is ready at mosh root@#{res.instanceData.PublicIpAddress}"
+
+
+
+
+# cleanup script - in case u need it. use it carefully, sonmez & devrim blew up entire koding.com today 8/14/2014
+
+# cf.listDomainRecords "koding.io",(err,list)->
+#     for i,k in list
+#         do (i)->
+#             unless i.name is "koding.io"
+#                 log "deleted #{i.name}"
+#                 cf.deleteDomainRecord "koding.io",i.rec_id,-> log "deleted #{i.name}"
+#             else
+#                 log "not deleted:#{i.name}"
+
