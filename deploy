@@ -15,11 +15,35 @@ request     = require 'request'
 ec2         = new AWS.EC2()
 elb         = new AWS.ELB()
 
-if argv.release
-    release argv.release
 
-if argv.rollback
-    rollback argv.rollback
+tests = (IP,domain) ->
+   return [
+            {url : "http://#{IP}:3000/"               , target: "webserver"              , expectString: "UA-6520910-8"}
+            {url : "http://#{IP}:3030/xhr"            , target: "socialworker"           , expectString: "Cannot GET"}
+            {url : "http://#{IP}:8008/subscribe"      , target: "broker"                 , expectString: "Cannot GET"}
+            {url : "http://#{IP}:5500/kite"           , target: "kloud"                  , expectString: "Welcome"}
+            {url : "http://#{domain}/"                , target: "webserver-nginx"        , expectString: "UA-6520910-8"}
+            {url : "http://#{domain}/xhr"             , target: "socialworker-nginx"     , expectString: "Cannot GET"}
+            {url : "http://#{domain}/subscribe"       , target: "broker-nginx"           , expectString: "Cannot GET"}
+            {url : "http://#{domain}/kloud/kite"      , target: "kloud-nginx"            , expectString: "Welcome"}
+            {url : "https://#{domain}/"               , target: "webserver-nginx-ssl"    , expectString: "UA-6520910-8"}
+            {url : "https://#{domain}/xhr"            , target: "socialworker-nginx-ssl" , expectString: "Cannot GET"}
+            {url : "https://#{domain}/subscribe"      , target: "broker-nginx-ssl"       , expectString: "Cannot GET"}
+            {url : "https://#{domain}/kloud/kite"     , target: "kloud-nginx-ssl"        , expectString: "Welcome"}
+        ]
+
+
+IP = "koding:1q2w3e4r@54.86.67.116"
+domain =  "koding:1q2w3e4r@sandbox.koding.io"
+tesss = tests(IP,domain)
+log tesss
+_t = setInterval ->
+
+    Deploy.deployTest tesss,(err,res)->
+        log res
+,5000
+
+
 
 if argv.deploy
     d = new Date()
@@ -46,6 +70,7 @@ if argv.deploy
                 domain            = "koding.io"
                 subdomain         = "sandbox"
                 options.hostname  = "sandbox.koding.io"
+                fulldomain        = "sandbox.koding.io"
 
         KONFIG = require("./config/main.#{options.config}.coffee")
             hostname : options.hostname
@@ -92,7 +117,7 @@ if argv.deploy
                                 if PublicDnsName
                                     clearTimeout t
 
-                                    Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log"
+                                    Deploy.remoteTail "#{IP}","ubuntu", "/var/log/cloud-init-output.log" if options.config is "feature"
 
                                     Deploy.addDomainRecord
                                         domain: domain
@@ -102,16 +127,32 @@ if argv.deploy
                                         service_mode : 1 #cloudflare enabled.
                                     ,(err,res)->
 
+                                        log "testing instance..."
+                                        IP = "koding:1q2w3e4r@#{instance.PublicIpAddress}"
 
+                                        _ti = 0
+                                        _t = setInterval ->
+                                            Deploy.deployTest tests(IP,fulldomain),(err,res)->
+                                                if res._allpassed
+                                                    clearInterval _t
+                                                    log res
+                                                    log "------------------------------------------------------------------"
+                                                    log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+                                                    log "------------------------------------------------------------------"
+                                                    log "URL: #{PublicDnsName} "
+                                                    log "------------------------------------------------------------------"
+                                                    log "URL: #{subdomain}.#{domain}         IP: #{IP}"
+                                                    log "------------------------------------------------------------------"
+                                                else
+                                                    _ti++
+                                                    log "building #{fulldomain}: #{_ti*5} secs elapsed..."
+
+                                        ,5000
                                         # log arguments
 
-                                        log "------------------------------------------------------------------"
-                                        log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-                                        log "------------------------------------------------------------------"
-                                        log "URL: #{PublicDnsName} "
-                                        log "------------------------------------------------------------------"
-                                        log "URL: #{subdomain}.#{domain}         IP: #{IP}"
-                                        log "------------------------------------------------------------------"
+
+
+
                         ,5000
 
 

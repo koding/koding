@@ -288,10 +288,17 @@ class Deploy
                 __end = timethat.calc __start,new Date()
 
                 if not err and body?.indexOf expectString > -1
-                    result.push "[ TEST    PASSED #{__end} ] #{target}"
-                else result.push "[ TEST #FAILED #{__end} ] #{target}"
+                    result[target] = yes
 
-                callback null, result if i is options.length
+                else
+                    result[target] = no
+
+
+                if i is options.length
+                    r = 0
+                    r++ for k,v of result when v
+                    result._allpassed = yes if r is i
+                    callback null, result
 
     @getCurrentVersion = (options,callback=->)->
         exec "git fetch --tags && git tag",(a,b,c)->
