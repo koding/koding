@@ -1,0 +1,4 @@
+name = "Koding"
+port = 6060
+enabled = true
+users = ["ankara", "istanbul"]

@@ -378,7 +378,7 @@ func (p *pkg) build() error {
 		}
 		defer os.Remove("VERSION")
 
-		c, err := config.ReadConfigManager(*flagProfile)
+		c, err := config.Env()
 		if err != nil {
 			return err
 		}

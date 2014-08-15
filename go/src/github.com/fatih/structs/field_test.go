@@ -1,6 +1,9 @@
 package structs
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 // A test struct that defines all cases
 type Foo struct {
@@ -9,7 +12,9 @@ type Foo struct {
 	C    bool   `json:"c"`
 	d    string // not exported
 	x    string `xml:"x"` // not exported, with tag
-	*Bar        // embedded
+	Y    []string
+	Z    map[string]interface{}
+	*Bar // embedded
 }
 
 type Bar struct {
@@ -30,10 +35,68 @@ func newStruct() *Struct {
 		A: "gopher",
 		C: true,
 		d: "small",
+		Y: []string{"example"},
+		Z: nil,
 	}
 	f.Bar = b
 
 	return New(f)
+}
+
+func TestField_Set(t *testing.T) {
+	s := newStruct()
+
+	f := s.Field("A")
+	err := f.Set("fatih")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if f.Value().(string) != "fatih" {
+		t.Errorf("Setted value is wrong: %s want: %s", f.Value().(string), "fatih")
+	}
+
+	f = s.Field("Y")
+	err = f.Set([]string{"override", "with", "this"})
+	if err != nil {
+		t.Error(err)
+	}
+
+	sliceLen := len(f.Value().([]string))
+	if sliceLen != 3 {
+		t.Errorf("Setted values slice length is wrong: %d, want: %d", sliceLen, 3)
+	}
+
+	f = s.Field("C")
+	err = f.Set(false)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if f.Value().(bool) {
+		t.Errorf("Setted value is wrong: %s want: %s", f.Value().(bool), false)
+	}
+
+	// let's pass a different type
+	f = s.Field("A")
+	err = f.Set(123) // Field A is of type string, but we are going to pass an integer
+	if err == nil {
+		t.Error("Setting a field's value with a different type than the field's type should return an error")
+	}
+
+	// old value should be still there :)
+	if f.Value().(string) != "fatih" {
+		t.Errorf("Setted value is wrong: %s want: %s", f.Value().(string), "fatih")
+	}
+
+	// let's access an unexported field, which should give an error
+	f = s.Field("d")
+	err = f.Set("large")
+	if err != errNotExported {
+		t.Error(err)
+	}
+
+	// TODO: let's access a non addresable field, which should give an error
 }
 
 func TestField(t *testing.T) {
@@ -47,6 +110,26 @@ func TestField(t *testing.T) {
 	}()
 
 	_ = s.Field("no-field")
+}
+
+func TestField_Kind(t *testing.T) {
+	s := newStruct()
+
+	f := s.Field("A")
+	if f.Kind() != reflect.String {
+		t.Errorf("Field A has wrong kind: %s want: %s", f.Kind(), reflect.String)
+	}
+
+	f = s.Field("B")
+	if f.Kind() != reflect.Int {
+		t.Errorf("Field B has wrong kind: %s want: %s", f.Kind(), reflect.Int)
+	}
+
+	// unexported
+	f = s.Field("d")
+	if f.Kind() != reflect.String {
+		t.Errorf("Field d has wrong kind: %s want: %s", f.Kind(), reflect.String)
+	}
 }
 
 func TestField_Tag(t *testing.T) {
