@@ -37,7 +37,6 @@ log = (message, color)->
 
   console.log message
 
-
 log "Parsing source files...", 'yellow'
 
 exec command, (err, res)->
@@ -63,13 +62,13 @@ exec command, (err, res)->
 
     classNames.push klass
 
-    classes[klass] = { class: klass, file }
+    classes[klass] = { name: klass, file }
 
     projects[project].push classes[klass]
 
     if _e and eklass
       classes[klass].extends = eklass
-      relations.push { class: klass, extends: eklass }
+      relations.push { name: klass, extends: eklass }
       graph += """  "#{klass}" -> "#{eklass}";\n"""
 
   i = 0
@@ -96,47 +95,88 @@ exec command, (err, res)->
 
     log "Following classes are defined more than once:\n", 'red'
     log conflicts
-    log ""
+
 
   if hasFileIssues?
 
-    log "Following files have more than one class in it:\n", 'yellow'
-    log fileIssues
-    log ""
+    log "Following files have more than one class in it:\n", 'red'
+    for _file, _classes of fileIssues
+      log """
+        #{_file} includes #{_classes.length} classes:
+          \t#{_classes.join ', '}
+
+      """, 'yellow'
 
 
   log "Checking for usages... (this may take time) ... safe to stop with ctrl+c", 'yellow'
   log "Following classes from pointed files may not be used in the code:", 'red'
-  log "Uses 'ack' app, you can install it via '$ brew install ack'", 'cyan'
+  unless colorDisabled
+    log "Uses 'ack' app, you can install it via '$ brew install ack'", 'cyan'
 
-  lastProject = null
+  koding = require '../projects'
+
+  getProject = (path)->
+
+    for name, project of koding.projects
+      if ///^#{project.path}///.test "client/#{path}"
+        return project.sourceMapRoot
+
+  lastProject     = null
+  projectIncludes = []
+  notIncluded     = []
+  CoffeeScript    = require 'coffee-script'
 
   findUsage = (i)->
 
-    klass = classNames[i]
+    iterate = ->
+      if i < classNames.length - 1
+        findUsage i+1
+      else
+        log "Individual analyze completed.\n", 'green'
+        log "Warning: following classes is not even included in any project:", 'yellow'
+        for _klass in notIncluded
+          log " - class #{_klass.name} from #{_klass.file}"
+
+    klass   = classes[classNames[i]]
+    project = getProject klass.file
+
+    unless project
+      log """
+        Path couldn't recognized: #{klass.file}
+        (it is possible that there is no project definition for this file)
+      """, 'red'
+      return iterate()
+
+    fpath   = klass.file.replace ///^#{project}///, ''
+
+    if project isnt lastProject
+      lastProject = project
+      log "\nChecking #{lastProject} project ....................", 'cyan'
+      try
+        projectIncludes = CoffeeScript.eval fs.readFileSync "#{project}includes.coffee", "utf-8"
+      catch e
+        log "Project #{project} does not have includes.coffee!!!", 'red'
+        projectIncludes = []
 
     # Ignore AppController classes...
     unless colorDisabled
-      process.stdout.write "\r\r#{i} - working on #{klass}\r"
+      process.stdout.write "\r\r#{i} - working on #{klass.name}\r"
 
-    if /AppController.coffee$/.test classes[klass].file
-      if i < classNames.length - 1 then findUsage i+1
-      return
+    if /AppController.coffee$/.test klass.file
+      return iterate()
 
-    exec """ack -hc "#{klass}" """, (err, res)->
-      if (parseInt res) is 1
-        klass = classes[klass]
-        project = (klass.file.split '/')[0]
-        if project isnt lastProject
-          lastProject = project
-          log "\n\nFrom #{lastProject} project ....................\n", 'cyan'
+    exec """ack -hc "#{klass.name}" """, (err, res)->
 
-        if colorDisabled
-          log "#{klass.class} from #{klass.file}"
-        else
-          c = "#{klass.class}".yellow; f = "#{klass.file}".blue;
-          log "#{c} from #{f}"
+      if fpath in projectIncludes
+        if (parseInt res) is 1
+          if colorDisabled
+            log "#{klass.name} from #{klass.file}"
+          else
+            c = "#{klass.name}".yellow; f = "#{klass.file}".blue;
+            log "#{c} from #{f}"
+      else
+        notIncluded.push klass
 
-      findUsage i+1  if i < classNames.length - 1
+      iterate()
 
   findUsage 0
