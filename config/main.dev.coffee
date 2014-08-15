@@ -437,12 +437,15 @@ Configuration = (options={}) ->
         boot2docker up
         EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
         if [ $? -eq 1 ]; then
+          echo ""
           echo "Some of containers are missing, please do ./run buildservices"
           exit 1
         fi
 
         echo "Stopping services: $SERVICES"
         docker stop $SERVICES
+
+        echo "Starting services: $SERVICES"
         docker start $SERVICES
 
       }
