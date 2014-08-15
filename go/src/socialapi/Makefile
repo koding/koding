@@ -138,6 +138,10 @@ installrerun:
 	@go get github.com/skelterjohn/rerun
 	@go install github.com/skelterjohn/rerun
 
+installfresh:
+	@go get github.com/canthefason/fresh
+	@go install github.com/canthefason/fresh
+
 install:
 	@echo $(CONFIG)
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
