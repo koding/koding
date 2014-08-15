@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"koding/kites/kontrol/kontrol"
 	"koding/oskite"
 	"koding/terminal"
 	"koding/tools/build"
@@ -157,8 +158,8 @@ func buildKlient() error {
 }
 
 func buildKontrol() error {
-	if *flagProfile == "" || *flagRegion == "" {
-		return errors.New("Please define config -c and region -r")
+	if *flagEnvironment == "" {
+		return errors.New("Please define environment -e")
 	}
 
 	gopath := os.Getenv("GOPATH")
@@ -168,15 +169,14 @@ func buildKontrol() error {
 
 	kontrolPath := "koding/kites/kontrol"
 	temps := struct {
-		Profile string
-		Region  string
+		Environment string
 	}{
-		Profile: *flagProfile,
-		Region:  *flagRegion,
+		Environment: *flagEnvironment,
 	}
 
 	var files = make([]string, 0)
 	files = append(files, filepath.Join(gopath, "src", kontrolPath, "files"))
+	files = append(files, filepath.Join(gopath, "src", kontrolPath, "config"))
 
 	// change our upstartscript because it's a template
 	var configUpstart string
@@ -190,15 +190,15 @@ func buildKontrol() error {
 		defer os.Remove(configUpstart)
 	}
 
-	term := pkg{
+	kontrolPkg := pkg{
 		appName:       *flagApp,
 		importPath:    kontrolPath,
 		files:         files,
-		version:       "0.2.0",
+		version:       kontrol.Version,
 		upstartScript: configUpstart,
 	}
 
-	return term.build()
+	return kontrolPkg.build()
 }
 
 func buildTerminal() error {
