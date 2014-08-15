@@ -8,7 +8,7 @@ class ReplyInputWidget extends ActivityInputWidget
     super options, data
     @setClass 'reply-input-widget'
 
-    @forwardEvent @input, "Enter"
+    @forwardEvent @input, 'Enter'
 
 
   lockSubmit: -> @locked = yes
