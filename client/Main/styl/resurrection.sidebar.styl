@@ -8,7 +8,10 @@ resurrection.styl
 */
 }
 
-sidebarGray = #B8B8B8
+sidebarGray       = #A0A0A0
+sidebarActive     = #F4F1ED
+sidebarSubtitle   = #979087
+sidebarSelectedBg = #15171A
 
 #main-sidebar
 
@@ -63,39 +66,32 @@ sidebarGray = #B8B8B8
 
 
 .activity-sidebar
-  // bg                  color #424242
   font-family         openSansFamily
   padding             1px 16px
   borderBox()
 
-  a.kdlistitemview-main-nav
-    display           block
-    size              auto 26px
-    opacity           1
+  li + ul.kdlistview-main-nav.expanded
+    bg                color sidebarSelectedBg
+    padding-bottom    8px
+    rounded           0 0 4px 4px
+
+  li.kdlistitemview-main-nav
     z-index           1
     vendor            transition, top .2s  linear \,\
                                 left .2s linear
     font-size         14px
     line-height       18px
-    color             sidebarGray
-    padding           5px 8px 5px 42px
     rounded           4px
     ellipsis()
     borderBox()
-    noTextDeco()
 
-    &.add-app
-    &.add-vm
-      padding         5px 8px
-      opacity         .5
-      &:hover
-        opacity       1
-
-    cite
+    &.has-sub-items cite
       font-style      normal
       display         block
-      size            26px 20px
+      size            20px 26px
       abs             0px 0 0 0px
+      z-index         2
+      cursor          pointer
       &:after
         content       ' '
         border        5px solid sidebarGray
@@ -104,6 +100,45 @@ sidebarGray = #B8B8B8
         abs           8px 0 0 8px
         borderBox()
 
+    &.expanded.has-sub-items
+      bg              color sidebarSelectedBg
+      rounded         4px 4px 0 0
+      cite
+        &:after
+          border-color  sidebarGray transparent transparent transparent
+          abs           12px 0 0 5px
+
+    &.sub-title
+      padding         8px 0 6px 22px
+      color           sidebarSubtitle
+      font-size       12
+
+    &.app
+    &.workspace
+      color           sidebarActive
+      font-size       12px
+      line-height     18px
+      padding         0 0 6px 43px
+
+      figure
+        display       block
+        width         16px
+        height        16px
+        bg            color #222
+        abs           2px 0 0 22px
+        r-sprite      activity nav-workspace
+      a
+        padding           0
+        display           block
+        size              auto 26px
+        opacity           1
+        color             sidebarActive
+        borderBox()
+        noTextDeco()
+
+    &.app
+      figure
+        r-sprite      activity nav-app-store
 
     .fake-icon
       width           30px
@@ -119,45 +154,61 @@ sidebarGray = #B8B8B8
       abs()
       hidden()
 
-    > figure
-      display       block
-      width         16px
-      height        16px
-      bg            color #222
-      abs           6px 0 0 20px
-
     &.selected
-      bg            color #15171A
+      bg              color sidebarSelectedBg
 
-    &.social > figure
-    &.activity > figure
-      r-sprite      app new-nav-activity
-    // &.editor > figure
-    //   r-sprite      app nav-editor
-    &.terminal > figure
-      r-sprite      app new-nav-terminal
-    &.ide > figure
-      r-sprite      app new-nav-ide
-    &.vm
+    a
+      padding           5px 8px 5px 42px
+      display           block
+      size              auto 26px
+      opacity           1
+      color             sidebarActive
+      borderBox()
+      noTextDeco()
+      &.add-app
+      &.add-vm
+        padding         5px 8px
+        opacity         .5
+        &:hover
+          opacity       1
+
       > figure
-        r-sprite    app new-nav-vm
-      > span
-        r-sprite    app vm-settings-icon
-        right       0
-        top         5px
-        opacity     .5
-        abs()
-      &:hover > span
-        opacity     1
-      &.terminated
-      &.notinitialized
-        opacity     .5
-      &.running > figure
-        r-sprite    app new-nav-vm-green
-      > .progressbar-container
-        height      2px
-        background  none
-        border      none
+        display       block
+        width         16px
+        height        16px
+        bg            color #222
+        abs           6px 0 0 20px
+
+
+      &.social > figure
+      &.activity > figure
+        r-sprite      app new-nav-activity
+      // &.editor > figure
+      //   r-sprite      app nav-editor
+      &.terminal > figure
+        r-sprite      app new-nav-terminal
+      &.ide > figure
+        r-sprite      app new-nav-ide
+      &.vm
+        > figure
+          r-sprite    app new-nav-vm
+        > span
+          r-sprite    app vm-settings-icon
+          right       0
+          top         5px
+          opacity     .5
+          abs()
+        &:hover > span
+          opacity     1
+        &.terminated
+        &.notinitialized
+          opacity     .5
+        &.running > figure
+          r-sprite    app new-nav-vm-green
+        > .progressbar-container
+          height      2px
+          background  none
+          border      none
 
 
   > section
@@ -200,7 +251,7 @@ sidebarGray = #B8B8B8
     size              auto 28px
     padding           5px 8px
     rounded           4px
-    font-size         14px
+    font-size         12px
     overflow          visible
     position          relative
     display           block
@@ -228,8 +279,9 @@ sidebarGray = #B8B8B8
     .ttag
       display       block
       font-weight   500
-      color         sidebarGray
+      color         sidebarActive
       line-height   18px
+      font-size     14px
 
     .profile
       ellipsis()
@@ -271,17 +323,17 @@ sidebarGray = #B8B8B8
   .kdlistitemview-sidebar-item.selected
     background          #15171A
 
-    .profile
-      color             #F9F7F3
+    // .profile
+    //   color             #F9F7F3
 
-    .user-numbers
-      color             sidebarGray !important
+    // .user-numbers
+    //   color             sidebarGray !important
 
-    .ttag
-      color             #F9F7F3
+    // .ttag
+    //   color             #F9F7F3
 
-    .tag-info
-      color             sidebarGray
+    // .tag-info
+    //   color             sidebarGray
 
     .topic-follow-btn
       border-color      #e9e9e9
@@ -312,9 +364,8 @@ sidebarGray = #B8B8B8
         display     block
         float       none
         padding     0 0 0 36px
-        font-size   14px
         line-height 18px
-        width       174px
+        width       auto
         color       sidebarGray
         font-weight 600
         borderBox()
@@ -322,7 +373,7 @@ sidebarGray = #B8B8B8
       > .user-numbers
         padding     0 0 0 36px
         margin      -1px 0 0
-        width       87%
+        width       auto
         font-weight 400
         font-size   12px
         color       #919297
@@ -355,6 +406,9 @@ sidebarGray = #B8B8B8
     .kdlistitemview-sidebar-item
       height            28px
 
+      > .profile
+        color           sidebarActive
+
       .avatarview
         size            24px 24px
         top             2px
@@ -364,6 +418,9 @@ sidebarGray = #B8B8B8
   .conversations
 
     .kdlistitemview-sidebar-item
+
+      > .user-numbers
+        color           sidebarActive
 
       cite.count
         abs             10px 7px 0 0
@@ -455,7 +512,7 @@ h3.sidebar-title
   line-height     1em
   font-size       14px
   color           #7F7F80
-  text-transform  uppercase
+  // text-transform  uppercase
   word-spacing    .2em
   margin          19px 0 9px
   pointer()
