@@ -6,8 +6,9 @@ do ->
     else
       KD.getSingleton('router').handleRoute "/Activity"
 
-  handleResetRoute = ({params:{token}})->
-    KD.singleton('appManager').open 'Login', (app) ->
+  handleResetRoute = ({params:{token}}) ->
+    {appManager} = KD.singletons
+    appManager.require 'Login', (app) ->
       if KD.isLoggedIn()
         KD.remote.api.JUser.fetchUser (err, user)->
           if user and user.passwordStatus is "valid"
@@ -15,8 +16,9 @@ do ->
           else
             KD.getSingleton('router').handleRoute "/Account/Profile?focus=password&token=#{token}"
       else
-        app.getView().setCustomDataToForm('reset', {recoveryToken:token})
-        app.getView().animateToForm('reset')
+        appManager.open 'Login', ->
+          app.getView().setCustomDataToForm('reset', {recoveryToken:token})
+          app.getView().animateToForm('reset')
 
   handleVerifyRoute = ({params:{token}})->
     router = KD.getSingleton 'router'

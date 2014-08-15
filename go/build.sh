@@ -13,7 +13,7 @@ services=(
   koding/rerouting
   koding/kites/os
   koding/kites/terminal
-  github.com/koding/kite/cmd/kite
+  github.com/koding/kite/kitectl
   github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
   github.com/coreos/etcd
@@ -30,6 +30,7 @@ services=(
   koding/kontrol/kontrolclient
   koding/workers/graphitefeeder
   socialapi/workers/api
+  github.com/skelterjohn/rerun
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

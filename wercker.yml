@@ -1,7 +1,15 @@
-box: koding/base@0.0.9
+box: koding/base@0.0.10
+services:
+  - wercker/postgresql@0.0.4
+  - wercker/rabbitmq@1.0.1
+  - wercker/redis@0.0.8
+  - wercker/mongodb@1.0.1
 
 build:
   steps:
+    - script:
+        name: psuedo build
+        code: echo foo bar baz
     - script:
         name: initialize submodules
         code: git submodule update --init --recursive
@@ -21,7 +29,23 @@ build:
     - script:
         name: build social api
         cwd: go/src/socialapi
-        code: make configure
+        code: |
+          make configure
+          make install
+          make build
+    - script:
+        name: create postgresql tables
+        cwd: go/src/socialapi/db/sql
+        code: definition/create-wercker.sh .
+    - script:
+        name: test social api
+        code: |
+          sudo -E scripts/wercker/init-socialapi.sh
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
+          cd go/src/socialapi
+          make testapi
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
@@ -32,8 +56,32 @@ build:
 deploy:
   steps:
     - script:
+        name: create $HOME/.ssh directory
+        code: mkdir -p $HOME/.ssh
+    - create-file:
+        name: write private key
+        filename: $HOME/.ssh/id_rsa
+        content: $KEY_PRIVATE
+        overwrite: true
+        hide-from-log: true
+    - create-file:
+        name: write public key
+        filename: $HOME/.ssh/id_rsa.pub
+        content: $KEY_PUBLIC
+        overwrite: true
+        hide-from-log: false
+    - create-file:
+        name: create ssh configuration
+        filename: $HOME/.ssh/config
+        content: |-
+          Host github.com
+            User git
+            IdentityFile ~/.ssh/id_rsa
+    - script:
         name: deploy
         code: |
+          chmod 600 $HOME/.ssh/id_rsa
+          chmod 644 $HOME/.ssh/id_rsa.pub
           git config --global user.email "wercker@koding.com"
           git config --global user.name "wercker-build-box"
           git fetch --tags

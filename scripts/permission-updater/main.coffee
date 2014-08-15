@@ -35,7 +35,7 @@ koding.once 'dbClientReady', ->
   { permissionDefaultsByModule: defaults } = Protected
 
   JPermissionSet.each {}, {}, (err, permissionSet) ->
-    return callback err  if err?
+    console.error err  if err
 
     unless permissionSet?
       if argv.hard?

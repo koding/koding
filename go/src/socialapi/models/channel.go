@@ -116,6 +116,11 @@ func (c *Channel) Create() error {
 			"group_name":    c.GroupName,
 			"type_constant": c.TypeConstant,
 		}
+	case Channel_TYPE_DEFAULT:
+		selector = map[string]interface{}{
+			"group_name":    c.GroupName,
+			"type_constant": c.TypeConstant,
+		}
 	case Channel_TYPE_FOLLOWERS:
 		selector = map[string]interface{}{
 			"creator_id":    c.CreatorId,

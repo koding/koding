@@ -55,6 +55,9 @@ type ChannelMessage struct {
 
 	// Extra data storage
 	Payload gorm.Hstore `json:"payload,omitempty"`
+
+	// is required to identify to request in client side
+	RequestData string `json:"requestData,omitempty" sql:"-"`
 }
 
 const (

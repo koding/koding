@@ -1,4 +1,7 @@
 class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
+
+  JView.mixin @prototype
+
   constructor:(options, data)->
     options.cssClass = "clearfix member-suggestion-item"
     super options, data
@@ -8,10 +11,10 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     @addSubView @profileLink = \
       new AutoCompleteProfileTextView {userInput, shouldShowNick: yes}, data
 
-  viewAppended:-> JView::viewAppended.call this
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
 
+  JView.mixin @prototype
+
   viewAppended:->
     @addSubView @profileText = new AutoCompleteProfileTextView {}, @getData()
-    JView::viewAppended.call this

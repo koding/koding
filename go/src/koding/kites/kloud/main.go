@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/fatih/structure"
+	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
@@ -155,7 +155,7 @@ func newKite() *kite.Kite {
 			Username:   r.Username,
 		}
 
-		r.Context.Set("deployData", structure.Map(d))
+		r.Context.Set("deployData", structs.Map(d))
 		return true, nil
 	}
 

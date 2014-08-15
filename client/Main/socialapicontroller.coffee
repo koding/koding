@@ -7,9 +7,6 @@ class SocialApiController extends KDController
 
     super options, data
 
-    KD.getSingleton('mainController').ready @bound 'openGroupChannel'
-
-
   getPrefetchedData: (dataPath) ->
 
     return [] unless KD.socialApiData
@@ -30,30 +27,6 @@ class SocialApiController extends KDController
 
   eachCached: (id, fn) ->
     fn section[id]  for own name, section of @_cache when id of section
-
-  openGroupChannel: ->
-    # to - do refactor this part to use same functions with other parts
-    groupsController = KD.singleton "groupsController"
-    groupsController.ready =>
-      {slug} = groupsController.getCurrentGroup()
-
-      subscriptionData =
-        serviceType: 'socialapi'
-        group      : slug
-        channelType: "group"
-        channelName: slug
-        isExclusive: yes
-        connectDirectly: yes
-
-      channelName    = generateChannelName
-        name         : slug
-        typeConstant : 'group'
-        groupName    : slug
-
-      brokerChannel = KD.remote.subscribe channelName, subscriptionData
-      @forwardMessageEvents brokerChannel, this, getMessageEvents()
-      @openedChannels[channelName] = {delegate: brokerChannel, channel: this}
-      @emit "ChannelRegistered-#{channelName}", this
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
@@ -84,6 +57,8 @@ class SocialApiController extends KDController
     # this is sent by the server when
     # response for pinned messages
     m.unreadRepliesCount = data.unreadRepliesCount
+
+    m.requestData = plain.requestData
 
     m.interactions    = interactions or
       like            :
@@ -219,12 +194,19 @@ class SocialApiController extends KDController
           isExclusive: yes
           connectDirectly: yes
 
-        KD.remote.subscribe channelName, subscriptionData, (brokerChannel)->
-          {name} = brokerChannel
-          socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
-          forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+        # do not use callbacks while subscribing, KD.remote.subscribe already
+        # returns the required channel object. Use it. Callbacks are called
+        # twice in the subscribe function
+        brokerChannel = KD.remote.subscribe channelName, subscriptionData
 
-          socialapi.emit "ChannelRegistered-#{name}", socialApiChannel
+        # add opened channel to the openedChannels list, for later use
+        socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
+
+        # start forwarding private channel evetns to the original social channel
+        forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+
+        # notify listener
+        socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
 
   cycleChannel: (channel, callback)->
@@ -302,15 +284,20 @@ class SocialApiController extends KDController
       return callback null, item
 
     kallback = (err, data) =>
-
       return callback err  if err
 
       callback null, @cacheItem data
 
+    topicChannelKallback = (err, data) =>
+      return callback err  if err
+
+      registerAndOpenChannels [data]
+      kallback err, data
+
     return switch type
-      when 'topic'                     then @channel.byName {name: id}, kallback
+      when 'topic'                     then @channel.byName {name: id}, topicChannelKallback
       when 'activity'                  then @message.bySlug {slug: id}, kallback
-      when 'channel', 'privatemessage' then @channel.byId {id}, kallback
+      when 'channel', 'privatemessage' then @channel.byId {id}, topicChannelKallback
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 

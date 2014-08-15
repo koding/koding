@@ -60,15 +60,12 @@ class GroupsMemberPermissionsView extends JView
         @refresh()
 
     KD.singletons.groupsController.on "MemberJoinedGroup", (data) =>
-      @refresh()  unless @getData().slug is "koding" 
+      @refresh()  unless @getData().slug is "koding"
 
     @once 'viewAppended', @bound '_windowDidResize'
     @listenWindowResize()
-      
-    @refresh()
 
-  _windowDidResize:->
-    @$('.kdscrollview').height window.innerHeight - 230
+    @refresh()
 
   fetchRoles:(callback=->)->
     groupData = @getData()

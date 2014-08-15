@@ -14,15 +14,15 @@ import (
 
 func validateChannelRequest(c *models.Channel) error {
 	if c.GroupName == "" {
-		return errors.New("Group name is not set")
+		return models.ErrGroupNameIsNotSet
 	}
 
 	if c.Name == "" {
-		return errors.New("Channel name is not set")
+		return models.ErrNameIsNotSet
 	}
 
 	if c.CreatorId == 0 {
-		return errors.New("Creator id is not set")
+		return models.ErrCreatorIdIsNotSet
 	}
 
 	return nil

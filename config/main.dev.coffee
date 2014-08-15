@@ -90,7 +90,7 @@ Configuration = (options={}) ->
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     elasticSearch     : {host          : "#{boot2dockerbox}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 8090 }
@@ -180,7 +180,6 @@ Configuration = (options={}) ->
     kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
-    cron                : command : "#{GOBIN}/rerun koding/cron          -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
@@ -196,6 +195,7 @@ Configuration = (options={}) ->
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
 
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
+    guestCleaner        : command : "#{GOBIN}/rerun koding/workers/guestcleanerworker -c #{configName}"
 
 
 
@@ -281,7 +281,6 @@ Configuration = (options={}) ->
 
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
-        rm -rf #{projectRoot}/go/pkg
         #{projectRoot}/go/build.sh
 
         echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
@@ -323,6 +322,8 @@ Configuration = (options={}) ->
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
+      SERVICES="mongo redis postgres rabbitmq etcd"
+
       #{envvars()}
 
       trap ctrl_c INT
@@ -352,16 +353,38 @@ Configuration = (options={}) ->
 
       }
 
+      function printHelp (){
+
+        echo "Usage: "
+        echo ""
+        echo "  run               : to start koding"
+        echo "  run killall       : to kill every process started by run script"
+        echo "  run install       : to compile/install client and "
+        echo "  run buildclient   : to see of specified worker logs only"
+        echo "  run logs          : to see all workers logs"
+        echo "  run log [worker]  : to see of specified worker logs only"
+        echo "  run buildservices : to initialize and start services"
+        echo "  run services      : to stop and restart services"
+        echo "  run help          : to show this list"
+        echo ""
+
+      }
+
       function check_service_dependencies () {
 
         echo ""
 
       }
 
-      function services () {
+      function build_services () {
+
         boot2docker up
-        docker stop mongo redis postgres rabbitmq etcd
-        docker rm   mongo redis postgres rabbitmq etcd
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+
+        echo "Removing services: $SERVICES"
+        docker rm   $SERVICES
 
         # Build Mongo service
         cd #{projectRoot}/install/docker-mongo
@@ -371,8 +394,7 @@ Configuration = (options={}) ->
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
 
-
-        #build postgres
+        # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
         docker build -t koding_localbuild/postgres .
 
@@ -383,12 +405,6 @@ Configuration = (options={}) ->
         docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
         docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
-        cd #{projectRoot}/install/docker-mongo
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
-
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
@@ -396,15 +412,40 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
       }
 
+      function services () {
+
+        boot2docker up
+        EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
+        if [ $? -eq 1 ]; then
+          echo ""
+          echo "Some of containers are missing, please do ./run buildservices"
+          exit 1
+        fi
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+
+        echo "Starting services: $SERVICES"
+        docker start $SERVICES
+
+      }
 
 
       function kill_all () {
         rm -rf #{projectRoot}/.logs
         #{killlist()}
-        pkill -9 node; ps -ef | grep go/bin | grep -v grep | awk '{print $2}' | xargs kill -9
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
+
       if [[ "$1" == "killall" ]]; then
 
         kill_all
@@ -432,9 +473,30 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
-      else
+
+      elif [ "$1" == "buildservices" ]; then
+        check_service_dependencies
+
+        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        build_services
+
+      elif [ "$1" == "help" ]; then
+        printHelp
+
+      elif [ "$#" == "0" ]; then
         check
         run
+
+      else
+        echo "Unknown command: $1"
+        printHelp
+
       fi
       # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
       """
@@ -447,6 +509,3 @@ Configuration = (options={}) ->
   return KONFIG
 
 module.exports = Configuration
-
-
-

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/request"
+
+	"github.com/koding/bongo"
 )
 
 type channelUpdatedEventType string
@@ -181,8 +183,16 @@ func (cue *channelUpdatedEvent) sendForParticipant() error {
 
 	count, err := cue.calculateUnreadItemCount()
 	if err != nil {
-		cue.Controller.log.Notice("Error happened, setting unread count to 0 %s", err.Error())
 		count = 0
+
+		// surpress RecordNotFound errors
+		if err == bongo.RecordNotFound {
+			if cue.EventType != channelUpdatedEventMessageRemovedFromChannel {
+				cue.Controller.log.Notice("Error happened, setting unread count to 0 %s", err.Error())
+			}
+		} else {
+			cue.Controller.log.Notice("Error happened, setting unread count to 0 %s", err.Error())
+		}
 	}
 
 	cue.UnreadCount = count

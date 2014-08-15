@@ -161,7 +161,7 @@ class ActivityInputWidget extends KDView
     @currentHelperNames = []
 
 
-  submit: (callback) ->
+  submit: (value, timestamp) ->
 
     return  if @locked
     return @reset yes  unless body = @input.getValue().trim()
@@ -186,23 +186,16 @@ class ActivityInputWidget extends KDView
     @lockSubmit()
 
     fn = @bound if activity then 'update' else 'create'
-    fn {body, payload}, @bound 'submissionCallback'
+
+    obj = { body, payload }
+
+    if timestamp?
+      requestData = KD.utils.generateFakeIdentifier timestamp
+      obj.requestData = requestData
+
+    fn obj, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
-    # fixme for bugs app
-
-    # if app is 'bug'
-    #   queue.unshift =>
-    #     KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
-    #       if err then KD.showError err
-    #       else
-    #         feedType = "bug"
-    #         value += " #{KD.utils.tokenizeTag tag}"
-    #         tags.push id : tag.getId()
-    #       queue.next()
-    # dockItems = KD.singletons.dock.getItems()
-    # dockItem  = dockItems.filter (item) -> item.data.title is 'Bugs'
-    # if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
 
   submissionCallback: (err, activity) ->
@@ -310,7 +303,7 @@ class ActivityInputWidget extends KDView
     data            =
       on            : -> return this
       watch         : -> return this
-      account       : KD.whoami().bongo_
+      account       : { _id : KD.whoami().getId(), constructorName : "JAccount"}
       body          : value
       typeConstant  : 'post'
       replies       : []

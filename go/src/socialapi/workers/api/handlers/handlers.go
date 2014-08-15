@@ -13,11 +13,11 @@ import (
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 
+	"github.com/koding/metrics"
 	"github.com/rcrowley/go-tigertonic"
 )
 
-func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-
+func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	// Message Operations
 	//----------------------------------------------------------
@@ -26,6 +26,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        message.Update,
 			Name:           "message-update",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -34,6 +35,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        message.Delete,
 			Name:           "message-delete",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -43,6 +45,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: message.Get,
 			Name:    "message-get",
+			Metrics: metrics,
 		},
 	))
 
@@ -52,6 +55,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: message.GetBySlug,
 			Name:    "message-get-by-slug",
+			Metrics: metrics,
 		},
 	))
 
@@ -61,6 +65,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: message.GetWithRelated,
 			Name:    "message-get-with-related",
+			Metrics: metrics,
 		},
 	))
 
@@ -72,6 +77,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        reply.Create,
 			Name:           "reply-create",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 	// exempt contents are filtered
@@ -79,6 +85,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: reply.List,
 			Name:    "reply-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -90,6 +97,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        interaction.Add,
 			Name:           "interactions-add",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -98,6 +106,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        interaction.Delete,
 			Name:           "interactions-delete",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -107,6 +116,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: interaction.List,
 			Name:    "interactions-list-typed",
+			Metrics: metrics,
 		},
 	))
 
@@ -117,6 +127,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        channel.Create,
 			Name:           "channel-create",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -126,6 +137,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: channel.List,
 			Name:    "channel-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -135,6 +147,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: channel.Search,
 			Name:    "channel-search",
+			Metrics: metrics,
 		},
 	))
 
@@ -144,12 +157,14 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: channel.ByName,
 			Name:    "channel-get-byname",
+			Metrics: metrics,
 		},
 	))
 	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(
 		handler.Request{
 			Handler: channel.CheckParticipation,
 			Name:    "channel-check-participation",
+			Metrics: metrics,
 		},
 	))
 
@@ -159,6 +174,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        channel.Update,
 			Name:           "channel-update-old",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -167,6 +183,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        channel.Update,
 			Name:           "channel-update",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -175,6 +192,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        channel.Delete,
 			Name:           "channel-delete",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -184,6 +202,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: channel.Get,
 			Name:    "channel-get",
+			Metrics: metrics,
 		},
 	))
 
@@ -193,6 +212,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        message.Create,
 			Name:           "channel-message-create",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -201,6 +221,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: participant.List,
 			Name:    "participant-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -209,6 +230,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        participant.AddMulti,
 			Name:           "participant-multi-add",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -217,6 +239,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        participant.RemoveMulti,
 			Name:           "participant-multi-remove",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -225,6 +248,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        participant.UpdatePresence,
 			Name:           "participant-presence-update",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -235,6 +259,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: messagelist.List,
 			Name:    "channel-history-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -243,6 +268,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: messagelist.Count,
 			Name:    "channel-history-count",
+			Metrics: metrics,
 		},
 	))
 
@@ -252,6 +278,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        account.Register,
 			Name:           "account-create",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -261,6 +288,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: account.ListChannels,
 			Name:    "account-channel-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -269,6 +297,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: account.ListPosts,
 			Name:    "account-post-list",
+			Metrics: metrics,
 		},
 	))
 
@@ -278,6 +307,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        account.Follow,
 			Name:           "account-follow",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -287,6 +317,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        account.Unfollow,
 			Name:           "account-unfollow",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -303,6 +334,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: activity.GetPinnedActivityChannel,
 			Name:    "activity-pin-get-channel",
+			Metrics: metrics,
 		},
 	))
 
@@ -312,6 +344,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: activity.List,
 			Name:    "activity-pin-list-message",
+			Metrics: metrics,
 		},
 	))
 
@@ -321,6 +354,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        activity.PinMessage,
 			Name:           "activity-add-pinned-message",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 	// unpin a status update
@@ -329,6 +363,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        activity.UnpinMessage,
 			Name:           "activity-remove-pinned-message",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -338,6 +373,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        activity.Glance,
 			Name:           "activity-pinned-message-glance",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -348,6 +384,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: popular.ListTopics,
 			Name:    "list-popular-topics",
+			Metrics: metrics,
 		},
 	))
 
@@ -357,6 +394,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: popular.ListPosts,
 			Name:    "list-popular-posts",
+			Metrics: metrics,
 		},
 	))
 
@@ -365,6 +403,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        privatemessage.Init,
 			Name:           "privatemessage-init",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -373,6 +412,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 			Handler:        privatemessage.Send,
 			Name:           "privatemessage-send",
 			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -381,6 +421,7 @@ func Inject(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: privatemessage.List,
 			Name:    "privatemessage-list",
+			Metrics: metrics,
 		},
 	))
 

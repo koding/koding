@@ -26,7 +26,9 @@ func TestChannelMessageCreate(t *testing.T) {
 			cm := createMessageWithTest()
 			cm.TypeConstant = ""
 			So(cm.Create(), ShouldNotBeNil)
-			So(cm.Create().Error(), ShouldContainSubstring, "pq: invalid input value for enum channel_message_type_constant_enum: \"\"")
+			// complete error message is this: pq: invalid input value for enum channel_message_type_constant_enum: \"\"
+			// it is trimmed because wercker add schema name and returns api.channel_message_type_constant_enum
+			So(cm.Create().Error(), ShouldContainSubstring, "pq: invalid input value for enum")
 		})
 
 		Convey("type constant can be post", func() {

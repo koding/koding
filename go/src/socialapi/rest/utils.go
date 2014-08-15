@@ -8,11 +8,19 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 var (
 	ENDPOINT = "http://localhost:7000"
 )
+
+func init() {
+	env := os.Getenv("SOCIALAPI_HOSTNAME")
+	if env != "" {
+		ENDPOINT = env
+	}
+}
 
 // Gets URL and string data to be sent and makes request
 // reads response body and returns as string

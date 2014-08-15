@@ -10,6 +10,8 @@ class InvitationRequestListController extends KDListViewController
       cssClass : 'lazy-loader'
       partial  : options.noItemFound
 
+    @noItemView                  = options.noItemFoundWidget
+
     super options, data
 
     @listView.setDelegate this

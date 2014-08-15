@@ -5,6 +5,7 @@ class ActivityAppController extends AppController
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
 
+  firstFetch = yes
 
   constructor: (options = {}) ->
 
@@ -66,7 +67,6 @@ class ActivityAppController extends AppController
     socialapi.message.sendPrivateMessage options, callback
 
 
-  firstFetch = yes
 
   fetch: ({channelId, from, limit}, callback = noop) ->
 
@@ -74,13 +74,6 @@ class ActivityAppController extends AppController
     {socialapi} = KD.singletons
     {socialApiChannelId} = KD.getGroup()
     id ?= socialApiChannelId
-
-    # FIXME
-    # remove this once there are koding and public channels in default db setup
-    # otherwise this will continue pollute your feeds - SY
-    if firstFetch
-      {generatePassword, getRandomNumber} = KD.utils
-      # KD.singletons.socialapi.message.post body: "Hello world, #{generatePassword getRandomNumber(7), yes} #koding #public", log
 
     if firstFetch and socialapi.getPrefetchedData('navigated').length > 0
       messages   = socialapi.getPrefetchedData 'navigated'

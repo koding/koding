@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/request"
+	"strings"
 
 	"github.com/koding/bongo"
 )
@@ -29,6 +30,10 @@ func (a *Account) FetchOrCreate() error {
 		return errors.New("old id is not set")
 	}
 
+	if strings.Contains(a.Nick, "guest-") {
+		return errors.New("guests are not allowed")
+	}
+
 	selector := map[string]interface{}{
 		"old_id": a.OldId,
 	}
@@ -49,6 +54,7 @@ func (a *Account) FetchOrCreate() error {
 		if err := a.Create(); err != nil {
 			return err
 		}
+
 		return nil
 	}
 

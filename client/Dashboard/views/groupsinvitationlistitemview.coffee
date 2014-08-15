@@ -54,7 +54,7 @@ class GroupsInvitationListItemView extends KDListItemView
           @getDelegate().emit 'InvitationStatusChanged'  unless err
 
     @statusText    = new KDCustomHTMLView
-      partial     : '<span class="icon"></span><span class="title"></span>'
+      partial     : '<span class="icon"></span>'
       cssClass    : 'status hidden'
 
   decorateButtons:->

@@ -3,9 +3,6 @@ module.exports = [
   "AppController.coffee",
 
   # ACCOUNT CONTROLLERS
-  "controllers/accountnavigationcontroller.coffee",
-  "controllers/accountcontentwrappercontroller.coffee",
-  "controllers/accountsidebarcontroller.coffee",
   "controllers/accountlistcontroller.coffee",
 
   # ACCOUNT VIEWS
@@ -21,7 +18,6 @@ module.exports = [
   "views/subscriptions.coffee",
   "views/referralsystem.coffee",
   "views/deleteaccountview.coffee",
-  "views/gmailcontact.coffee",
   "views/referrermodal.coffee",
   "views/credentials.coffee",
   "views/tos.coffee",

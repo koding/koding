@@ -92,7 +92,7 @@ Configuration = (options={}) ->
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
@@ -492,16 +492,19 @@ Configuration = (options={}) ->
         - path : /root/.ssh/authorized_keys
           content : |
 
+            # wercker
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCTFF4indUR+kivtLUzJ7DjltGE7e/kqcuE8NKok0s7jfn8Cz3ClqEM5KjxQCCBc5t9VpuNVAPy1xFJnGJs35cBQKL7FAUYK6faq+RpQ+vC2QxLbls/SaMzIPQigcO4NBGjyzR4rUzcCM2zon3y0Q9KaMKU8nQkcFfbyYB98En7S7W04gKskAVeSYZ7xrxIQNyfpmojYzlTUETYLj4kNCbkZFaO1ig4THOi4ZGRvfnfv/8AAFddoTVVUIf6QbHt1P5GfSGyhGcFfFFwGWs/4xJMiTqG/UO2NjPbO0OqR73Lw4ftgm5mjXWvK878RKQwzMcNcGXaNGK71QhS8zo96fl9 wercker / koding / key
+
             # devrim        --#
             ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com
 
             # cihangir      --#
             ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com
 
-            #-- Sonmez imac --#
+            #-- Sonmez's iMac --#
             ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDrLvWTozcvXzJkUrMVoTdf2j4zY6dZ7nst9Ro2zXSHlnFtUeRmbYH4cd87LleqkgBRoJ5Wy6Ai9nqH3MJq6XSVWp21xyU4DEmq27+6eVvBHENfdQQPq3imiC7sejwH8Yslx7reVi90/ZSwEEKA6rNOoD0InRN1zUCFWoKMQFY0aw9GAxBeDAStQR3H+Zr8nhaSZw4gySLZ3Ps3j45sAeIMjNk0MUZprTHKjIpz5Ni+5OpT4cxC8Ji2aCC3Xvc8sLndZ7mHWFrM0RuBh2GJ0e8juTBAt7D+IOZi2y41NfQA6LQr1N9DHdBDpMqUjby0jJZsMiwtD7730n0xcoKhSqAr Sonmez's iMac
 
-            #-- Sonmez macbook --#
+            #-- Sonmez's MacBook Pro --#
             ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYOpuDUC52QNgoM2O6Ja7SW6zm3Hmpxdu0nUKw6MKDcnKK7dOADRwpDmoPsj/Aw/p9fetjJaacjxlPQwGHCjUcVgk3/zVwi8P4StkKnxHuhRBEj+YeTQ3vaWbJ3Syk2FnjZRSlqi4a7cEiMMjHQAflx3BdeYqO1F7+kB4bsoM/0/NQJkv0UnphFW1y9zk65mi3CTHAyFTU/Tz5LEsBWp35XorwQ+vmJ9OJNNDF3mhOejYkob0s3CbwoL6xaidTD0eT1VBz+ceggpaLP57vG2l6yl1zYSzf5jhBGjM6b9a3NyOO1RjrBpgZ2TfQrPTxTnzTy7V6gmNcv/heiREw7Mpv Sonmez's MacBook Pro
 
         - path : /root/.ssh/config
@@ -548,6 +551,3 @@ Configuration = (options={}) ->
   return KONFIG
 
 module.exports = Configuration
-
-
-
