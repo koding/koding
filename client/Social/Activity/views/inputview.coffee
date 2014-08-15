@@ -8,31 +8,22 @@ class ActivityInputView extends KDTokenizedInput
     options.multiline       ?= yes
     options.placeholder    or= "What's new #{KD.whoami().profile.firstName}?"
     options.tokenViewClass or= TokenView
-    # options.rules  or=
-    #   tag            :
-    #     type         : "tag"
-    #     prefix       : "#"
-    #     pistachio    : "\#{{#(title)}}"
-    #     dataSource   : @bound "fetchTopics"
+    options.rules  or=
+      tag            :
+        type         : "tag"
+        prefix       : "#"
+        pistachio    : "\#{{#(title)}}"
+        dataSource   : @bound "fetchTopics"
 
     super options, data
     @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
-    KD.getSingleton("appManager").tell "Topics", "fetchTopics", {inputValue}, (tags = [], deletedTags = []) =>
-      matches = []
-      if inputValue.length > 1 and not /^\W+$/.test inputValue
-        matches = tags.filter (tag) -> tag.title is inputValue or inputValue in tag.children
-        deletedMatches = deletedTags.filter (title) -> title is inputValue
-
-        unless matches.length
-          infoItem = if deletedMatches.length then $deleted: inputValue
-          else $suggest: inputValue
-          tags = [infoItem].concat tags
-
-      @showMenu
-        itemChildClass  : TagContextMenuItem
-      , tags
+    KD.singletons.autocomplete.searchTopics inputValue
+      .then (tags) =>
+        @showMenu
+          itemChildClass: TagContextMenuItem
+        , tags.map (tag) -> new AlgoliaResult tag
 
   menuItemClicked: (item) ->
     tokenViewClass = SuggestedTokenView  if item.data.$suggest
@@ -52,6 +43,7 @@ class ActivityInputView extends KDTokenizedInput
 
   selectToken: ->
     return  unless @menu
+
     {prefix} = @activeRule
     value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
     tokens = @menu.getData().filter @getTokenFilter()
@@ -60,6 +52,31 @@ class ActivityInputView extends KDTokenizedInput
         @addToken token, @getOptions().tokenViewClass
         @hideMenu()
         return  true
+
+  addToken: (item, tokenViewClass = @getOptions().tokenViewClass) ->
+    {type, prefix, pistachio} = @activeRule
+
+    switch type
+      when 'tag'
+        @addTag item
+      else
+        super item, tokenViewClass
+
+  addTag: ({name}) ->
+    view         = new KDCustomHTMLView
+      tagName    : 'span'
+      attributes : contenteditable: false
+      cssClass   : 'token'
+      partial    : "##{name}"
+
+    element = view.getElement()
+
+    @tokenInput.parentElement.insertBefore element, @tokenInput
+    view.emit "viewAppended"
+    @tokenInput.nextSibling.textContent = "\u00a0"
+
+    @utils.selectText @tokenInput.nextSibling, 1
+    @tokenInput.remove()
 
   keyDown: (event) ->
     super event

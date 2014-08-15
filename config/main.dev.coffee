@@ -195,6 +195,7 @@ Configuration = (options={}) ->
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
 
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
+    guestCleaner        : command : "#{GOBIN}/rerun koding/workers/guestcleanerworker -c #{configName}"
 
 
 
@@ -319,17 +320,6 @@ Configuration = (options={}) ->
         cake build
         cd #{projectRoot}
 
-
-        echo '#---> AUTHORIZING THIS COMPUTER TO DOCKER HUB (@devrim) <---#'
-        echo adding you to docker-hub..
-        if [ -f $HOME/.dockercfg ]; then
-          echo 'you seem to have correct docker config file - dont forget to install docker.'
-        else
-          echo 'added ~/.dockercfg - dont forget to install docker.'
-          echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' >> $HOME/.dockercfg
-        fi
-
-
         echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
         if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
           echo you seem to have correct .ngrok file.
@@ -351,6 +341,8 @@ Configuration = (options={}) ->
 
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
+
+      SERVICES="mongo redis postgres rabbitmq etcd"
 
       #{envvars()}
 
@@ -386,16 +378,40 @@ Configuration = (options={}) ->
 
       }
 
+      function printHelp (){
+
+        echo "Usage: "
+        echo ""
+        echo "  run                    : to start koding"
+        echo "  run killall            : to kill every process started by run script"
+        echo "  run install            : to compile/install client and "
+        echo "  run buildclient        : to see of specified worker logs only"
+        echo "  run logs               : to see all workers logs"
+        echo "  run log [worker]       : to see of specified worker logs only"
+        echo "  run buildservices      : to initialize and start services"
+        echo "  run services           : to stop and restart services"
+        echo "  run worker             : to list workers"
+        echo "  run worker [worker]    : to run a single worker"
+        echo "  run help               : to show this list"
+        echo ""
+
+      }
+
       function check_service_dependencies () {
 
         echo ""
 
       }
 
-      function services () {
+      function build_services () {
+
         boot2docker up
-        docker stop mongo redis postgres rabbitmq etcd
-        docker rm   mongo redis postgres rabbitmq etcd
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+
+        echo "Removing services: $SERVICES"
+        docker rm   $SERVICES
 
         # Build Mongo service
         cd #{projectRoot}/install/docker-mongo
@@ -405,8 +421,7 @@ Configuration = (options={}) ->
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
 
-
-        #build postgres
+        # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
         docker build -t koding_localbuild/postgres .
 
@@ -417,12 +432,6 @@ Configuration = (options={}) ->
         docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
         docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
-        cd #{projectRoot}/install/docker-mongo
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
-
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
@@ -430,8 +439,32 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
       }
 
+      function services () {
+
+        boot2docker up
+        EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
+        if [ $? -eq 1 ]; then
+          echo ""
+          echo "Some of containers are missing, please do ./run buildservices"
+          exit 1
+        fi
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+
+        echo "Starting services: $SERVICES"
+        docker start $SERVICES
+
+      }
 
 
       function kill_all () {
@@ -439,6 +472,7 @@ Configuration = (options={}) ->
         #{killlist()}
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
+
       if [[ "$1" == "killall" ]]; then
 
         kill_all
@@ -467,6 +501,21 @@ Configuration = (options={}) ->
         check_service_dependencies
         services
 
+      elif [ "$1" == "buildservices" ]; then
+        check_service_dependencies
+
+        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        build_services
+
+      elif [ "$1" == "help" ]; then
+        printHelp
+
       elif [ "$1" == "worker" ]; then
 
         if [ "$2" == "" ]; then
@@ -477,9 +526,14 @@ Configuration = (options={}) ->
           eval "worker_$2"
         fi
 
-      else
+      elif [ "$#" == "0" ]; then
         check
         run
+
+      else
+        echo "Unknown command: $1"
+        printHelp
+
       fi
       # ------ THIS FILE IS AUTO-GENERATED BY ./configure ----- #\n
       """

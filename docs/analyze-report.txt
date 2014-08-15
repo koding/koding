@@ -1,5 +1,5 @@
 Parsing source files...
-Parsing completed. 692 classes found.
+Parsing completed. 664 classes found.
 Writing graph data to ../docs/koding-dep.graph
 
 Following classes are defined more than once:
@@ -87,7 +87,6 @@ Following files have more than one class in it:
      'CommonInnerNavigationListController',
      'CommonInnerNavigationList',
      'CommonInnerNavigationListItem' ],
-  'Main/CommonViews/CommonVMUsageBar.coffee': [ 'CommonVMUsageBar', 'VMRamUsageBar', 'VMDiskUsageBar' ],
   'Main/CommonViews/fatih/fatihprefpane.coffee': [ 'FatihPrefPane', 'FatihPrefItem' ],
   'Main/CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee': 
    [ 'FatihContentSearchPlugin',
@@ -105,21 +104,12 @@ Following files have more than one class in it:
      'KeyView',
      'KeyboardHelperModalView' ],
   'Main/CommonViews/memberautocomplete.coffee': [ 'MemberAutoCompleteItemView', 'MemberAutoCompletedItemView' ],
-  'Main/CommonViews/remotesmodal.coffee': 
-   [ 'ManageRemotesModal',
-     'RemoteListItem',
-     'KDYesNoSwitch',
-     'AskForPassword' ],
   'Main/CommonViews/sharelink.coffee': 
    [ 'ShareLink',
      'TwitterShareLink',
      'FacebookShareLink',
      'LinkedInShareLink' ],
-  'Main/CommonViews/VideoPopup.coffee': 
-   [ 'VideoPopupController',
-     'VideoPopupList',
-     'VideoPopupListItem',
-     'VideoPopup' ],
+  'Main/CommonViews/VideoPopup.coffee': [ 'VideoPopupController', 'VideoPopupList', 'VideoPopup' ],
   'Main/kodingappscontroller.coffee': [ 'KodingAppsController', 'AppSkeleton' ],
   'Main/localstorage.coffee': [ 'LocalStorage', 'LocalStorageController' ],
   'Main/maincontroller/helpcontroller.coffee': [ 'HelpController', 'HelpPage', 'HelpModal' ],
@@ -172,36 +162,14 @@ IDE.IDESocialsTabView from IDE/views/tabview/idesocialstabview.coffee
 
 From Main project ....................
 
-AvatarPopupShareStatus from Main/avatararea/avatarareasharestatuspopup.coffee
 AdminModal from Main/CommonViews/adminmodal.coffee
-AutoCompleteAvatarView from Main/CommonViews/avatarviews/autocompleteavatarview.coffee
-VMRamUsageBar from Main/CommonViews/CommonVMUsageBar.coffee
-VMDiskUsageBar from Main/CommonViews/CommonVMUsageBar.coffee
 FormWorkflowModal from Main/CommonViews/formworkflow/modal.coffee
 FormWorkflow.Visualization from Main/CommonViews/formworkflow/visualization.coffee
 KeyboardHelperView from Main/CommonViews/KeyboardHelper.coffee
 KeyboardHelperModalView from Main/CommonViews/KeyboardHelper.coffee
-ActivityChildViewTagGroup from Main/CommonViews/linkviews/activitychildviewtaggroup.coffee
-ActivityLinkView from Main/CommonViews/linkviews/activitylinkview.coffee
-GroupLinkView from Main/CommonViews/linkviews/grouplinkview.coffee
-ProfileTextGroup from Main/CommonViews/linkviews/profiletextgroup.coffee
-NominateModal from Main/CommonViews/nominatemodal.coffee
-ManageRemotesModal from Main/CommonViews/remotesmodal.coffee
-SlidingSplit from Main/CommonViews/slidingsplit.coffee
-VideoPopupListItem from Main/CommonViews/VideoPopup.coffee
 KodingKite_KlientKite from Main/kite/kites/klient.coffee
 KodingKite_KloudKite from Main/kite/kites/kloud.coffee
 DockController from Main/maincontroller/dockcontroller.coffee
-NavigationActivityLink from Main/navigation/navigationactivitylink.coffee
-AdminNavigationLink from Main/navigation/navigationadminlink.coffee
-NavigationAppsLink from Main/navigation/navigationappslink.coffee
-NavigationDocsJobsLink from Main/navigation/navigationdocsjobslink.coffee
-NavigationInviteLink from Main/navigation/navigationinvitationlink.coffee
-NavigationPromoteLink from Main/navigation/navigationpromotelink.coffee
-NavigationSeparator from Main/navigation/navigationseparator.coffee
-PackChoiceForm from Main/payment/packchoiceform.coffee
-PlanUpgradeForm from Main/payment/planupgradeform.coffee
-SubscriptionUsageView from Main/payment/subscriptionusageview.coffee
 
 
 From Social project ....................

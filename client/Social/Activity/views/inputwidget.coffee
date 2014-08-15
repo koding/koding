@@ -196,20 +196,6 @@ class ActivityInputWidget extends KDView
     fn obj, @bound 'submissionCallback'
 
     @emit "ActivitySubmitted"
-    # fixme for bugs app
-
-    # if app is 'bug'
-    #   queue.unshift =>
-    #     KD.remote.api.JTag.one slug : 'bug', (err, tag)=>
-    #       if err then KD.showError err
-    #       else
-    #         feedType = "bug"
-    #         value += " #{KD.utils.tokenizeTag tag}"
-    #         tags.push id : tag.getId()
-    #       queue.next()
-    # dockItems = KD.singletons.dock.getItems()
-    # dockItem  = dockItems.filter (item) -> item.data.title is 'Bugs'
-    # if feedType is "bug" and dockItem.length is 0 then KD.singletons.dock.addItem { title : "Bugs", path : "/Bugs", order : 60 }
 
 
   submissionCallback: (err, activity) ->

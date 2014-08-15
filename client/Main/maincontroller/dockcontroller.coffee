@@ -1,3 +1,7 @@
+# KEEP THIS FILE AROUND UNTIL WE FINISH THE APP LISTING - SY
+
+
+
 class DockController extends KDViewController
 
   isRunning = (item) -> item?.state is 'running'

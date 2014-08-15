@@ -94,26 +94,46 @@ aside.app-sidebar
                                   margin .177s ease
 
 #main-header
-  margin              0
-  size                100%,55px
-  z-index             1000
-  overflow            visible
-  visibility          visible
-  shadow              0 3px 0 rgba(0, 0, 0, .15)
-  fix()
+  margin                0
+  size                  100%,55px
+  z-index               1000
+  overflow              visible
+  max-width             1290px
+  shadow                none
+  padding               0 45px
+  abs                   48px 0 0 50%
+  vendor                transform, translateX(-50%)
+  z-index               15
+  borderBox()
 
-  // .inner-container
-  //   bg                  color, #1f2628
-  //   size                100%, 55px
-  //   // vendor              transform, translateY(0)
-  //   // -webkit-transition  -webkit-transform .2s ease
-  //   // -moz-transition     -moz-transform .2s ease
-  //   // transition          transform .2s ease
-  //   z-index             1
-  //   rel()
 
-  //   .logotype
-  //     hidden()
+  .inner-container
+    bg                  color, transparent
+
+  .logotype
+    font-size               24px
+    color                   #444
+    font-weight             700
+    line-height             16px
+    color                   #fff
+    font-family             asapFamily
+    -webkit-font-smoothing  antialiased
+    noTextDeco()
+    visible()
+    fl()
+
+  #koding-logo
+    margin              0 14px 0 0
+    size                auto auto
+    bg                  color, transparent
+    position            static
+    letter-spacing      .01em
+    fl()
+
+    cite
+      r-sprite          home 'logo'
+      margin            0
+      display           block
 
   nav
     line-height         18px
@@ -130,7 +150,6 @@ aside.app-sidebar
       color             rgba(255,255,255,.83)
       padding-bottom    1px
       noTextDeco()
-      visibility        hidden
 
       &.active
         font-weight     600
@@ -148,50 +167,6 @@ aside.app-sidebar
         font-weight     600
         border          1px solid rgba(255, 255, 255, .5)
 
-  &.no-dock
-    max-width             1290px
-    shadow                none
-    margin                0
-    padding               0 45px
-    abs                   48px 0 0 50%
-    vendor                transform, translateX(-50%)
-    z-index               15
-    borderBox()
-
-
-    #dock
-      hidden()
-
-    .inner-container
-      bg                  color, transparent
-
-    .logotype
-      font-size               24px
-      color                   #444
-      font-weight             700
-      line-height             16px
-      color                   #fff
-      font-family             asapFamily
-      -webkit-font-smoothing  antialiased
-      noTextDeco()
-      visible()
-      fl()
-
-    #koding-logo
-      margin              0 14px 0 0
-      size                auto auto
-      bg                  color, transparent
-      position            static
-      letter-spacing      .01em
-      fl()
-
-      cite
-        r-sprite          home 'logo'
-        margin            0
-        display           block
-
-    nav a
-      visibility          visible
 
 .header-notification
   size                100% 26px
@@ -1177,32 +1152,3 @@ div.nominateicon
     padding-right           0
     .button-title
       color                 #aaa
-
-
-@media only screen and (min-width : 320px) and (max-width : 568px)
-  #main-header.no-dock
-    #koding-logo
-      kalc                margin-left, 50% \- 60px
-
-    nav
-      float               none
-      clear               both
-      padding-top         48px
-      text-align          center
-
-      a
-        font-size         14px
-
-        &:first-of-type
-          margin-left     0
-
-        &.about
-        &.pricing
-          display         none
-
-        &.login
-          padding         0
-          rounded         0
-          margin-left     12px
-          font-weight     500
-          border          none
