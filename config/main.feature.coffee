@@ -255,6 +255,8 @@ Configuration = (options={}) ->
 
       server_name #{hostname};
       location / {
+        auth_basic            "Restricted";
+        auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;
         proxy_pass            http://webs;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -329,9 +331,10 @@ Configuration = (options={}) ->
     # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
     conf = """
       [supervisord]
-      environment=#{supervisorEnvironmentStr}\n"""
-      # """[inet_http_server]
-      # port=localhost:9001\n\n"""
+      environment=#{supervisorEnvironmentStr}\n
+      [inet_http_server]
+      port=*:9001\n
+      """
     conf +="""
       [program:#{key}]
       command=#{val.command}\n
@@ -398,24 +401,38 @@ Configuration = (options={}) ->
         docker stop mongo redis postgres rabbitmq etcd
         docker rm   mongo redis postgres rabbitmq etcd
 
+        # Build Mongo service
         cd #{projectRoot}/install/docker-mongo
         docker build -t koding_localbuild/mongo .
-        docker run -d -p 27017:27017            --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
 
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-        tar jxvf /opt/koding/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{prod_simulation_server} -dkoding dump/koding
-
+        # Build rabbitMQ service
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
-        docker run -d -p 5672:5672              --name=rabbitmq koding_localbuild/rabbitmq
-
-        docker run -d -p 6379:6379              --name=redis    redis
-        docker run -d -p 5432:5432              --name=postgres koding/postgres
-        docker run -d -p 4001:4001 -p 7001:7001 --name=etcd     coreos/etcd -peer-addr #{prod_simulation_server}:7001 -addr #{prod_simulation_server}:4001
 
 
-        node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
+        #build postgres
+        cd #{projectRoot}/go/src/socialapi/db/sql
+        docker build -t koding_localbuild/postgres .
+
+        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding_localbuild/rabbitmq
+
+        docker run -d -p 6379:6379                --name=redis    redis
+        docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
+        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
+
+        cd #{projectRoot}/install/docker-mongo
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
+        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
         service nginx restart
         service supervisor restart
@@ -496,13 +513,22 @@ Configuration = (options={}) ->
         - path : /root/.ssh/id_rsa.pub
           content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
         - path : /root/.ssh/authorized_keys
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com\n
-        - path : /root/.ssh/authorized_keys
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com\n
-        - path : /root/.ssh/authorized_keys
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDrLvWTozcvXzJkUrMVoTdf2j4zY6dZ7nst9Ro2zXSHlnFtUeRmbYH4cd87LleqkgBRoJ5Wy6Ai9nqH3MJq6XSVWp21xyU4DEmq27+6eVvBHENfdQQPq3imiC7sejwH8Yslx7reVi90/ZSwEEKA6rNOoD0InRN1zUCFWoKMQFY0aw9GAxBeDAStQR3H+Zr8nhaSZw4gySLZ3Ps3j45sAeIMjNk0MUZprTHKjIpz5Ni+5OpT4cxC8Ji2aCC3Xvc8sLndZ7mHWFrM0RuBh2GJ0e8juTBAt7D+IOZi2y41NfQA6LQr1N9DHdBDpMqUjby0jJZsMiwtD7730n0xcoKhSqAr Sonmez's iMac\n
-        - path : root/.ssh/authorized_keys
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYOpuDUC52QNgoM2O6Ja7SW6zm3Hmpxdu0nUKw6MKDcnKK7dOADRwpDmoPsj/Aw/p9fetjJaacjxlPQwGHCjUcVgk3/zVwi8P4StkKnxHuhRBEj+YeTQ3vaWbJ3Syk2FnjZRSlqi4a7cEiMMjHQAflx3BdeYqO1F7+kB4bsoM/0/NQJkv0UnphFW1y9zk65mi3CTHAyFTU/Tz5LEsBWp35XorwQ+vmJ9OJNNDF3mhOejYkob0s3CbwoL6xaidTD0eT1VBz+ceggpaLP57vG2l6yl1zYSzf5jhBGjM6b9a3NyOO1RjrBpgZ2TfQrPTxTnzTy7V6gmNcv/heiREw7Mpv Sonmez's MacBook Pro\n
+          content : |
+
+            # wercker
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbONYo4s1Aqxe0FEnLwSA0wV+6DdAOOmDgkNjzNpxFe+ziZC5LKKXR3g82+V3YOBp9sPZsPIekeUvMrsEbPl45qCLE6haebFV9CELBK0lDuMlznbCVSZbLFE18wuyDAz9R9biw/vAm+ZclbNC0hZ51XomO/b/nq9YZTwPfBQeYFCCPLwfWCfry921kPnDjG+J4my2n7JdL8/VY1+MFcOPQdrrbPq0LLFYVDAOaBKy1P7rR+ztP47NOY3GATC431KiF9zsR+Ka4NCbk78BODym/z72+eIl9rVs2x9/KQJRrMtq6qu/JFUWdq/T1gY4MMbrDWEP8xdyB6PLKtDwVhlD3 wercker
+
+            # devrim        --#
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com
+
+            # cihangir      --#
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com
+
+            #-- Sonmez's iMac --#
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDrLvWTozcvXzJkUrMVoTdf2j4zY6dZ7nst9Ro2zXSHlnFtUeRmbYH4cd87LleqkgBRoJ5Wy6Ai9nqH3MJq6XSVWp21xyU4DEmq27+6eVvBHENfdQQPq3imiC7sejwH8Yslx7reVi90/ZSwEEKA6rNOoD0InRN1zUCFWoKMQFY0aw9GAxBeDAStQR3H+Zr8nhaSZw4gySLZ3Ps3j45sAeIMjNk0MUZprTHKjIpz5Ni+5OpT4cxC8Ji2aCC3Xvc8sLndZ7mHWFrM0RuBh2GJ0e8juTBAt7D+IOZi2y41NfQA6LQr1N9DHdBDpMqUjby0jJZsMiwtD7730n0xcoKhSqAr Sonmez's iMac
+
+            #-- Sonmez's MacBook Pro --#
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYOpuDUC52QNgoM2O6Ja7SW6zm3Hmpxdu0nUKw6MKDcnKK7dOADRwpDmoPsj/Aw/p9fetjJaacjxlPQwGHCjUcVgk3/zVwi8P4StkKnxHuhRBEj+YeTQ3vaWbJ3Syk2FnjZRSlqi4a7cEiMMjHQAflx3BdeYqO1F7+kB4bsoM/0/NQJkv0UnphFW1y9zk65mi3CTHAyFTU/Tz5LEsBWp35XorwQ+vmJ9OJNNDF3mhOejYkob0s3CbwoL6xaidTD0eT1VBz+ceggpaLP57vG2l6yl1zYSzf5jhBGjM6b9a3NyOO1RjrBpgZ2TfQrPTxTnzTy7V6gmNcv/heiREw7Mpv Sonmez's MacBook Pro
 
         - path : /root/.ssh/config
           content : |
@@ -513,8 +539,11 @@ Configuration = (options={}) ->
           content : #{b64z runContents}
         - path: /root/run
           permissions: '0755'
+        - path: /etc/nginx/conf.d/.htpasswd
+          content: koding:$apr1$K17a7D.N$vuaxDfc4kJvHAg7Id43wk1
 
       runcmd:
+        - echo 127.0.0.1 `hostname` >> /etc/hosts
         - echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > /root/.dockercfg
         - curl http://169.254.169.254/latest/meta-data/instance-id >/root/instance-id
         - curl -s https://get.docker.io/ubuntu/ | sudo sh
