@@ -18,10 +18,10 @@ elb         = new AWS.ELB()
 
 tests = (IP,domain) ->
    return [
-            {url : "http://#{IP}:3000/"               , target: "webserver"              , expectString: "UA-6520910-8"}
-            {url : "http://#{IP}:3030/xhr"            , target: "socialworker"           , expectString: "Cannot GET"}
-            {url : "http://#{IP}:8008/subscribe"      , target: "broker"                 , expectString: "Cannot GET"}
-            {url : "http://#{IP}:5500/kite"           , target: "kloud"                  , expectString: "Welcome"}
+            # {url : "http://#{IP}:3000/"               , target: "webserver"              , expectString: "UA-6520910-8"}
+            # {url : "http://#{IP}:3030/xhr"            , target: "socialworker"           , expectString: "Cannot GET"}
+            # {url : "http://#{IP}:8008/subscribe"      , target: "broker"                 , expectString: "Cannot GET"}
+            # {url : "http://#{IP}:5500/kite"           , target: "kloud"                  , expectString: "Welcome"}
             {url : "http://#{domain}/"                , target: "webserver-nginx"        , expectString: "UA-6520910-8"}
             {url : "http://#{domain}/xhr"             , target: "socialworker-nginx"     , expectString: "Cannot GET"}
             {url : "http://#{domain}/subscribe"       , target: "broker-nginx"           , expectString: "Cannot GET"}
@@ -31,18 +31,6 @@ tests = (IP,domain) ->
             {url : "https://#{domain}/subscribe"      , target: "broker-nginx-ssl"       , expectString: "Cannot GET"}
             {url : "https://#{domain}/kloud/kite"     , target: "kloud-nginx-ssl"        , expectString: "Welcome"}
         ]
-
-
-IP = "koding:1q2w3e4r@54.86.67.116"
-domain =  "koding:1q2w3e4r@sandbox.koding.io"
-tesss = tests(IP,domain)
-log tesss
-_t = setInterval ->
-
-    Deploy.deployTest tesss,(err,res)->
-        log res
-,5000
-
 
 
 if argv.deploy
