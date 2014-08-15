@@ -77,10 +77,8 @@ class FSHelper
       when "added"
         treeController.addNode file
       when "removed"
-        for own npath, node of treeController.nodes
-          if npath is file.path
-            treeController.removeNodeView node
-            break
+        node = treeController.nodes["#{path}/#{change.file.name}"]
+        treeController.removeNodeView node  if node
 
   @getFileExtension: (path) ->
     fileName = path or ''
