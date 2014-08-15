@@ -7,6 +7,7 @@ build:
           code: |
             ls -lha .
             git status
+            npm i
   #   - script:
   #       name: initialize submodules
   #       code: git submodule update --init --recursive
