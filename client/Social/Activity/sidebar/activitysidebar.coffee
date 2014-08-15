@@ -337,17 +337,11 @@ class ActivitySidebar extends KDCustomHTMLView
     {computeController} = KD.singletons
 
     # force refetch from server everytime machines fetched.
-    computeController.fetchMachines force = yes, (err, machines) =>
+    computeController.reset()
+    computeController.fetchMachines (err, machines)=>
       if err
         ErrorLog.create 'terminal: Couldn\'t fetch machines', reason : err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
-
-      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
-      # gets just the vm number
-      getVMNumber = ({hostnameAlias}) -> +(hostnameAlias.match(/\d+/)[0])
-
-      # sort machines by vm number
-      machines.sort (a,b)-> getVMNumber(a) > getVMNumber(b)
 
       callback machines
 
