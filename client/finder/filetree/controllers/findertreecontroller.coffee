@@ -294,7 +294,7 @@ class NFinderTreeController extends JTreeViewController
     movedNodes = []
     results = nodesToBeMoved.map (node) ->
       sourceItem = node.getData()
-      FSItem.move(sourceItem, targetItem).then ->
+      sourceItem.move("#{targetItem.path}/").then ->
         movedNodes.push node
 
     Promise.all(results).then =>
@@ -303,6 +303,7 @@ class NFinderTreeController extends JTreeViewController
       @refreshFolder targetNodeView
 
     .catch (err) =>
+      warn "Move failed with error:", err
       @notify null, null, err
 
     .nodeify callback
@@ -317,14 +318,14 @@ class NFinderTreeController extends JTreeViewController
     copiedNodes = []
     results = nodesToBeCopied.map (node) ->
       sourceItem = node.getData()
-      FSItem.copy(sourceItem, targetItem).then ->
+      sourceItem.copy(targetItem.path).then ->
         copiedNodes.push node
 
     Promise.all(results).then =>
       @notify "#{copiedNodes.length} item#{if copiedNodes.length > 1 then 's' else ''} copied!", "success"
-      @refreshFolder targetNodeView
 
     .catch (err) =>
+      warn "Copy failed with error:", err
       @notify null, null, err
 
     .nodeify callback

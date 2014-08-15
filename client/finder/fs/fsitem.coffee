@@ -71,13 +71,12 @@ class FSItem extends KDObject
     @emit "fs.job.started"
 
     folderPath = folderPath.replace /\/$/, ''
-    folderPath = "#{folderPath}/#{@name}"
+    folderPath = FSHelper.plainPath "#{folderPath}/#{@name}"
 
     kite = @getKite()
     file = null
 
     kite.init().then =>
-
 
       kite.fsUniquePath { path: folderPath }
 
@@ -88,15 +87,6 @@ class FSItem extends KDObject
         kite.exec({command})
 
         .then(handleStdErr())
-
-        .then ->
-
-          return FSHelper.createFileInstance
-            path        : actualPath
-            parentPath  : folderPath
-            name        : @name
-            type        : @type
-            machine     : @machine
 
     .nodeify(callback)
 
@@ -234,17 +224,16 @@ class FSItem extends KDObject
     .then =>
       @emit "fs.delete.finished"
 
-  # Move file to provided path, its using ::rename
-  move: (path, callback)->
-
-    newName = FSHelper.plainPath "#{ path }/#{ @name }"
-    @rename path: newName, callback
-
+  # Rename file with provided new name, its using ::move
   rename: (newName, callback)->
+
+    @move "#{FSHelper.getParentPath @getPath()}/#{newName}", callback
+
+  move: (newPath, callback)->
 
     @emit "fs.job.started"
 
-    newPath = "#{FSHelper.getParentPath @getPath()}/#{newName}"
+    newPath = FSHelper.plainPath newPath
 
     kite = @getKite()
 
@@ -252,7 +241,7 @@ class FSItem extends KDObject
 
     .then =>
 
-      kite.fsRename
+      kite.fsMove
         oldpath : @getPath()
         newpath : newPath
 
