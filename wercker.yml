@@ -2,39 +2,33 @@ box: koding/base@0.0.9
 
 build:
   steps:
-      - script:
-          name: test
-          code: |
-            ls -lha .
-            git status
-            npm i
-  #   - script:
-  #       name: initialize submodules
-  #       code: git submodule update --init --recursive
-  #   - script:
-  #       name: npm install
-  #       code: |
-  #         npm install || :
-  #   - script:
-  #       name: configure build
-  #       code: ./configure
-  #   - script:
-  #       name: build client
-  #       code: ./run buildclient
-  #   - script:
-  #       name: build go binaries
-  #       code: go/build.sh
-  #   - script:
-  #       name: build social api
-  #       cwd: go/src/socialapi
-  #       code: make configure
-  # after-steps:
-  #   - jessefulton/slack-notify:
-  #       subdomain: koding
-  #       token: $SLACK_TOKEN
-  #       channel: announce
-  #       username: wercker
-  #       icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+    - script:
+        name: initialize submodules
+        code: git submodule update --init --recursive
+    - script:
+        name: npm install
+        code: |
+          npm install || :
+    - script:
+        name: configure build
+        code: ./configure
+    - script:
+        name: build client
+        code: ./run buildclient
+    - script:
+        name: build go binaries
+        code: go/build.sh
+    - script:
+        name: build social api
+        cwd: go/src/socialapi
+        code: make configure
+  after-steps:
+    - jessefulton/slack-notify:
+        subdomain: koding
+        token: $SLACK_TOKEN
+        channel: announce
+        username: wercker
+        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 deploy:
   steps:
     - script:
