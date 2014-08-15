@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"github.com/kr/pretty"
 	"socialapi/models"
 )
 
@@ -42,8 +41,6 @@ func (c *CreatePostType) CreateReplies(n int) (*CreatePostReplyReturn, error) {
 
 	for i := 1; i <= n; i++ {
 		reply, err := AddReply(cpReturn.Post.Id, c.Acc2Id, c.ChannelId)
-		pretty.Println(">>>>>>> reply", reply.Id, reply.AccountId)
-
 		if err != nil {
 			return nil, err
 		}

@@ -72,8 +72,9 @@ func CreateAccountWithDailyDigest() (*models.Account, error) {
 	}
 
 	eFreq := kodingmodels.EmailFrequency{
-		Global: true,
-		Daily:  true,
+		Global:  true,
+		Daily:   true,
+		Comment: true,
 	}
 
 	err = modelhelper.UpdateEmailFrequency(acc.OldId, eFreq)
