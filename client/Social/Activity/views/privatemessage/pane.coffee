@@ -44,7 +44,7 @@ class PrivateMessagePane extends MessagePane
   bindInputEvents: ->
     @input
       .on 'Enter', @bound 'handleEnter'
-      .on 'Submit', @bound 'replaceFakeMessage'
+      .on 'MessageSavedSuccessfully', @bound 'replaceFakeMessage'
 
 
   replaceFakeMessage: (message) ->
