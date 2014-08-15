@@ -333,6 +333,8 @@ Configuration = (options={}) ->
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
+      SERVICES="mongo redis postgres rabbitmq etcd"
+
       #{envvars()}
 
       trap ctrl_c INT
@@ -372,7 +374,9 @@ Configuration = (options={}) ->
         echo "  run buildclient   : to see of specified worker logs only"
         echo "  run logs          : to see all workers logs"
         echo "  run log [worker]  : to see of specified worker logs only"
-        echo "  run services      : to start and initialize services"
+        echo "  run buildservices : to initialize and start services"
+        echo "  run services      : to stop and restart services"
+        echo "  run help          : to show this list"
         echo ""
 
       }
@@ -383,10 +387,15 @@ Configuration = (options={}) ->
 
       }
 
-      function services () {
+      function build_services () {
+
         boot2docker up
-        docker stop mongo redis postgres rabbitmq etcd
-        docker rm   mongo redis postgres rabbitmq etcd
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+
+        echo "Removing services: $SERVICES"
+        docker rm   $SERVICES
 
         # Build Mongo service
         cd #{projectRoot}/install/docker-mongo
@@ -396,8 +405,7 @@ Configuration = (options={}) ->
         cd #{projectRoot}/install/docker-rabbitmq
         docker build -t koding_localbuild/rabbitmq .
 
-
-        #build postgres
+        # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
         docker build -t koding_localbuild/postgres .
 
@@ -408,12 +416,6 @@ Configuration = (options={}) ->
         docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
         docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
-        cd #{projectRoot}/install/docker-mongo
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
-
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
         node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
@@ -421,8 +423,29 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
       }
 
+      function services () {
+
+        boot2docker up
+        EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
+        if [ $? -eq 1 ]; then
+          echo "Some of containers are missing, please do ./run buildservices"
+          exit 1
+        fi
+
+        echo "Stopping services: $SERVICES"
+        docker stop $SERVICES
+        docker start $SERVICES
+
+      }
 
 
       function kill_all () {
@@ -458,6 +481,18 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "buildservices" ]; then
+        check_service_dependencies
+
+        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        build_services
 
       elif [ "$1" == "help" ]; then
         printHelp
