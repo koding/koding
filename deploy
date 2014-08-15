@@ -128,11 +128,12 @@ if argv.deploy
                                     ,(err,res)->
 
                                         log "testing instance..."
-                                        IP = "koding:1q2w3e4r@#{instance.PublicIpAddress}"
+                                        _IP = "koding:1q2w3e4r@#{IP}"
+                                        _fulldomain = "koding:1q2w3e4r@#{fulldomain}"
 
                                         _ti = 0
                                         _t = setInterval ->
-                                            Deploy.deployTest tests(IP,fulldomain),(err,res)->
+                                            Deploy.deployTest tests(_IP,_fulldomain),(err,res)->
                                                 if res._allpassed
                                                     clearInterval _t
                                                     log res
