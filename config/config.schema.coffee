@@ -234,6 +234,8 @@ config =
           idleTime        : 1
           externalUrl     : 1
         recaptcha         : 1
+        hangouts          :
+          projectId       : 1
       # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1

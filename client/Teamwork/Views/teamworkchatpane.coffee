@@ -188,6 +188,14 @@ class TeamworkChatPane extends ChatPane
     @addSubView @usersArea, null, yes
     @usersArea.addSubView @avatars
 
+    {hangouts:{projectId}} = KD.config
+    encodedUrl = encodeURIComponent document.URL
+    @usersArea.addSubView new CustomLinkView
+      title    : 'Open in hangouts'
+      cssClass : 'tw-hangouts-link'
+      href : "https://plus.google.com/hangouts/_?gid=#{projectId}&gd=#{encodedUrl}"
+      target : '_blank'
+
     tipTitle   = if @workspace.amIHost() then messages.host else messages.you
 
     @avatars.addSubView new AvatarStaticView

@@ -214,6 +214,8 @@ module.exports =
         idleTime        : 1000 * 60 * 60
         externalUrl     : "https://s3.amazonaws.com/koding-ping/healthcheck.json"
       recaptcha         : "6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU"
+      hangouts          :
+        projectId       : "134407769088"
   mq            :
     host        : 'localhost'
     port        : 5672
