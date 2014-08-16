@@ -54,7 +54,7 @@ class IDE.MachineStateModal extends KDModalView
       Running        : 'up and running.'
       Building       : 'is building now.'
       NotInitialized : 'is not initialized.'
-      NotFound       : 'This machine is not exist.' # additional class level state to show a fancy modal for route hacking.
+      NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
     @label     = new KDCustomHTMLView
       tagName  : 'p'
