@@ -161,6 +161,7 @@ module.exports = [
   "navigation/topnavigation.coffee",
 
   "navigation/navigationlink.coffee",
+  "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
   "machinesettingsmodal.coffee",

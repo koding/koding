@@ -279,13 +279,8 @@ class AccountEditUsername extends JView
     """
     <div class='account-avatar-area clearfix'>
       {{> @avatar}}
-    #   <div class='avatar-buttons'>
-    #     {{> @uploadAvatarBtn}}
-    #     {{> @uploadAvatarInput}}
-    #     {{> @useGravatarBtn}}
-    #   </div>
-    # </div>
-    <section>
-      {{> @emailForm}}
-    </section>
+      <section>
+        {{> @emailForm}}
+      </section>
+    </div>
     """

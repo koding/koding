@@ -12,7 +12,6 @@ class ActivitySidebar extends KDCustomHTMLView
     SocialMessage : 'slug'
     SocialChannel : 'name'
 
-
   revive = (data) ->
 
     return switch data.typeConstant
@@ -37,6 +36,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @itemsBySlug  = {}
     @itemsByName  = {}
     @selectedItem = null
+
+    # @appsList = new DockController
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -329,7 +330,34 @@ class ActivitySidebar extends KDCustomHTMLView
 
   listMachines: (machines) ->
 
-    @machineTree.addNode new Machine { machine }  for machine in machines
+    treeData = []
+
+    for machine in machines
+      treeData.push item = new Machine {machine}
+      id = item.getId()
+      treeData.push
+        id       : "#{id}-workspaces"
+        title    : 'Workspaces'
+        type     : 'title'
+        parentId : id
+      treeData.push
+        title    : 'My Workspace'
+        type     : 'workspace'
+        href     : "/IDE/VM/#{machine.uid}"
+        parentId : id
+      treeData.push
+        id       : "#{id}-apps"
+        title    : 'Apps'
+        type     : 'title'
+        parentId : id
+      treeData.push
+        title    : 'App Store'
+        type     : 'app'
+        href     : '/Apps'
+        parentId : id
+
+
+    @machineTree.addNode data for data in treeData
 
 
   fetchMachines: (callback) ->
@@ -337,17 +365,11 @@ class ActivitySidebar extends KDCustomHTMLView
     {computeController} = KD.singletons
 
     # force refetch from server everytime machines fetched.
-    computeController.fetchMachines force = yes, (err, machines) =>
+    computeController.reset()
+    computeController.fetchMachines (err, machines)=>
       if err
         ErrorLog.create 'terminal: Couldn\'t fetch machines', reason : err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
-
-      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
-      # gets just the vm number
-      getVMNumber = ({hostnameAlias}) -> +(hostnameAlias.match(/\d+/)[0])
-
-      # sort machines by vm number
-      machines.sort (a,b)-> getVMNumber(a) > getVMNumber(b)
 
       callback machines
 
@@ -358,7 +380,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
-      treeItemClass       : NavigationMachineItem
+      treeItemClass       : NavigationItem
+      addListsCollapsed   : yes
 
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
@@ -388,14 +411,37 @@ class ActivitySidebar extends KDCustomHTMLView
       KD.utils.stopDOMEvent event
       KD.singletons.mainView.openMachineModal machine, machineItem
 
-    else
+    else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
+
+      @handleMachineToggle machineItem, event
+
+    else if machineItem.type in ['app', 'workspace']
+
+      return
+
+    else if machineItem.type is 'machine'
 
       {Running, Stopped} = Machine.State
 
-      unless machineItem.machine.status.state is Running
+      unless machine.status.state is Running
         KD.utils.stopDOMEvent event
         @machineTree.deselectNode machineItem
         KD.singletons.mainView.openMachineModal machine, machineItem
+
+
+  handleMachineToggle: (machineItem, event) ->
+
+    KD.utils.stopDOMEvent event
+
+    unless machineItem.child.hasClass 'running'
+      @machineTree.deselectNode machineItem
+      return
+
+    @machineTree.toggle machineItem
+
+    for id, node of @machineTree.nodes when node.type is 'machine' and node.id isnt machineItem.id
+      @machineTree.collapse node
+
 
 
   addFollowedTopics: ->

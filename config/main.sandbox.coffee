@@ -4,7 +4,7 @@ log                   = console.log
 
 Configuration = (options={}) ->
 
-  prod_simulation_server = "10.0.0.5"
+  prod_simulation_server = "10.0.0.137"
 
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
@@ -19,7 +19,7 @@ Configuration = (options={}) ->
   # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
   mongo               = "#{prod_simulation_server}:27017/koding"
   redis               = {host     : "#{prod_simulation_server}:27017/koding"   , port : "6379" }
-  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/feature.toml" }
+  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/sandbox.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
   etcd                = "#{prod_simulation_server}:4001"
 
@@ -92,7 +92,7 @@ Configuration = (options={}) ->
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
@@ -131,10 +131,10 @@ Configuration = (options={}) ->
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
-    algolia: #TODO change these credentials
-      appId: '8KD9RHY1OA'
-      apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
-      indexSuffix: '.feature'
+    algolia:
+      appId: 'DYVV81J2S1'
+      apiKey: '303eb858050b1067bcd704d6cbfb977c'
+      indexSuffix: '.sandbox'
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
@@ -371,7 +371,7 @@ Configuration = (options={}) ->
       function install() {
         touch /root/run.install.start
         cd /opt
-        git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
+        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
         cd /opt/koding
 
@@ -381,8 +381,6 @@ Configuration = (options={}) ->
         echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
         bash #{projectRoot}/machineSettings
 
-        git submodule init
-        git submodule update --recursive
         npm i gulp stylus coffee-script -g
         npm i --unsafe-perm
         /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false

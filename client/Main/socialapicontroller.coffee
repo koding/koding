@@ -200,7 +200,7 @@ class SocialApiController extends KDController
         brokerChannel = KD.remote.subscribe channelName, subscriptionData
 
         # add opened channel to the openedChannels list, for later use
-        socialapi.openedChannels[name] = {delegate: brokerChannel, channel: socialApiChannel}
+        socialapi.openedChannels[channelName] = {delegate: brokerChannel, channel: socialApiChannel}
 
         # start forwarding private channel evetns to the original social channel
         forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
