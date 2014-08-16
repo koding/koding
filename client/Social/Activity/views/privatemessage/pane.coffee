@@ -1,7 +1,8 @@
 class PrivateMessagePane extends MessagePane
 
-  constructor: (options = {}, data) ->
+  TEST_MODE = on
 
+  constructor: (options = {}, data) ->
     options.wrapper     ?= yes
     options.lastToFirst  = yes
 
@@ -57,6 +58,10 @@ class PrivateMessagePane extends MessagePane
 
     @removeFakeMessage message.requestData  if message.requestData
 
+
+  parse = (args...) -> args.map (item) -> parseInt item
+
+
   # as soon as the enter key down,
   # we create a fake itemview and put
   # it to dom. once the response from server
@@ -64,6 +69,14 @@ class PrivateMessagePane extends MessagePane
   # with the real one.
   handleEnter: (value, timestamp) ->
     return  unless value
+
+    if TEST_MODE
+      if value.match /^\/unleashtheloremipsum/
+        [_, interval, batchCount] = value.split " "
+        [interval, batchCount] = parse interval, batchCount
+        PrivateMessageLoadTest.run this, interval, batchCount
+      else if value.match /^\/analyzetheloremipsum/
+        PrivateMessageLoadTest.analyze this
 
     @input.reset yes
     @createFakeItemView value, timestamp
