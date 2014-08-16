@@ -8,7 +8,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     super options, data
 
     @createFilesPane()
-    @createVMsPane()
+    # @createVMsPane()
     @createSettingsPane()
 
     # temp hack to fix collapsed panel tab change bug
