@@ -618,6 +618,55 @@ body.ide .kddialogview.save-as-dialog
         color           #767676
         text-decoration underline
 
+// machine state modal
+.ide-machine-state
+  bg                    color, #E7E7E7
+  .close-icon
+    display             none
+  .kdmodal-inner
+    margin              0
+    bg                  color, #E7E7E7
+  .content-container
+    text-align          center
+    margin-bottom       30px
+  .state-label
+    margin              14px 0 22px 0
+    strong
+      font-weight       600
+    .icon
+      display           inline-block
+      r-sprite          'ide', 'vm-state-stopped'
+      margin-right      11px
+      vertical-align    middle
+    &.starting
+    &.building
+      .icon
+        r-sprite        'ide', 'vm-state-starting'
+    &.running
+      .icon
+        r-sprite        'ide', 'vm-state-running'
+  .kdbutton
+    rounded             4px !important
+  .footer
+    bg                  color, #DCDCDC
+    font-size           14px
+    padding             25px 30px
+    rounded             0 0 6px 6px
+    .upgrade-link
+      color             #4EA04C
+      display           block
+      margin-bottom     15px
+    .info-link
+      color             #A8A8A8
+      font-size         12px
+    .more-icon
+      display           inline-block
+      r-sprite          'ide', 'question-mark'
+      margin-left       12px
+      top               4px
+      position          relative
+
+
 
 // Collaboration
 .ide

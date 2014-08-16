@@ -29,6 +29,9 @@ module.exports = [
   "workspace/panes/settings/terminalsettingsview.coffee"
   "workspace/panes/settings/settingspane.coffee"
 
+  # modals
+  "views/modals/machinestatemodal.coffee"
+
   # views
   "views/tabview/idefilestabview.coffee"
   "views/tabview/ideview.coffee"
