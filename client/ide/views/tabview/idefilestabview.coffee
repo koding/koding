@@ -8,7 +8,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     super options, data
 
     @createFilesPane()
-    @createVMsPane()
+    # @createVMsPane()
     @createSettingsPane()
 
     # temp hack to fix collapsed panel tab change bug
@@ -36,6 +36,12 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @tabView.addPane filesPane
 
+    @on 'MachineMountRequested', (vmData) =>
+      @finderPane.emit 'MachineMountRequested', vmData
+
+    @on 'MachineUnmountRequested', (vmData) =>
+      @finderPane.emit 'MachineUnmountRequested', vmData
+
   createVMsPane: ->
     vmsPane    = new KDTabPaneView
       name     : 'VMs'
@@ -43,12 +49,6 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     vmsPane.addSubView new IDE.VMListPane
     @tabView.addPane  vmsPane
-
-    @on 'MachineMountRequested', (vmData) =>
-      @finderPane.emit 'MachineMountRequested', vmData
-
-    @on 'MachineUnmountRequested', (vmData) =>
-      @finderPane.emit 'MachineUnmountRequested', vmData
 
   createSettingsPane: ->
     settingsPane = new KDTabPaneView

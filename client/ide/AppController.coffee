@@ -205,16 +205,26 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
   mountMachineByMachineUId: (machineUId) ->
-    computeController = KD.getSingleton 'computeController'
-    computeController.ready =>
-      for machine in computeController.machines
-        if machine.uid is @mountedMachineUId
-          machineItem = machine
+    computeController =  KD.getSingleton 'computeController'
 
-      if machineItem then @mountMachine machineItem
+    computeController.fetchMachines (err, machines) =>
+      return KD.showError 'Something went wrong. Try again.'  if err
+
+      for machine in machines when machine.uid is machineUId
+        machineItem = machine
+
+      if machineItem
+        {state} = machineItem.status
+
+        if state is 'Running'
+          @mountMachine machineItem
+          computeController.on "stop-#{machineItem._id}", (event) ->
+            if event.status is 'Stopped'
+              new IDE.MachineStateModal { state: 'Stopped' }, machineItem
+        else
+          new IDE.MachineStateModal { state }, machineItem
       else
-        # TODO: Show fancy machine not found notification
-        KD.showError 'Machine not found'
+        new IDE.MachineStateModal { state: 'NotFound' } , undefined
 
   collapseSidebar: ->
     panel        = @workspace.getView()
