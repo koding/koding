@@ -388,14 +388,7 @@ class ActivitySidebar extends KDCustomHTMLView
       KD.utils.stopDOMEvent event
       KD.singletons.mainView.openMachineModal machine, machineItem
 
-    else
-
-      {Running, Stopped} = Machine.State
-
-      unless machineItem.machine.status.state is Running
-        KD.utils.stopDOMEvent event
-        @machineTree.deselectNode machineItem
-        KD.singletons.mainView.openMachineModal machine, machineItem
+    return  if machineItem.machine.status.state is Machine.State.Building
 
 
   addFollowedTopics: ->
