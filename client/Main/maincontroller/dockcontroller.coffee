@@ -1,13 +1,17 @@
+# KEEP THIS FILE AROUND UNTIL WE FINISH THE APP LISTING - SY
+
+
+
 class DockController extends KDViewController
 
   isRunning = (item) -> item?.state is 'running'
 
   defaultItems = [
     # { title : 'Social',  path : '/Activity', order : 10, type :'persistent' }
-    { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
-    { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
-    # { title : '+',      path : '/Apps',     order : 40, type :'persistent' }
-    # { title : 'DevTools',  path : '/DevTools', order : 50, type :'persistent' }
+    # { title : 'IDE',       path : '/IDE',      order : 20, type :'persistent' }
+    # { title : 'Teamwork',  path : '/Teamwork', order : 30, type :'persistent' }
+    { title : 'DevTools',  path : '/DevTools', order : 40, type :'persistent' }
+    { title : 'Apps',      path : '/Apps',     order : 50, type :'persistent' }
     # { title : 'Environments',  path : '/Environments', order : 60, type :'persistent' }
   ]
 
@@ -20,35 +24,8 @@ class DockController extends KDViewController
 
     @storage = new AppStorage "Dock", "1.0.3"
 
-    loaderOptions =
-      spinnerOptions    :
-        size            :
-          width         : 16
-        loaderOptions   :
-          color         : '#B8B8B8'
-
-    @navController = new MainNavController
-      view                : new NavigationList
-        domId             : 'main-nav'
-        testPath          : 'navigation-list'
-        type              : 'navigation'
-        itemClass         : NavigationLink
-        testPath          : 'navigation-list'
-      wrapper             : no
-      scrollView          : no
-      startWithLazyLoader : yes
-      lazyLoaderOptions   : loaderOptions
-    ,
-      id           : 'navigation'
-      title        : 'navigation'
-      items        : []
-
-
-    # {mainController} = KD.singletons
-    # mainController.ready @bound 'accountChanged'
-
     @trackStateTransitions()
-    @bindKeyCombos()
+    # @bindKeyCombos()
 
 
   buildNavItems:(sourceItems)->

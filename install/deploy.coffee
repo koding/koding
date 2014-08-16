@@ -227,21 +227,51 @@ class Deploy
 
     @addDomainRecord = (options,callback)->
         ttl = 120 or options.ttl
-        cf.addDomainRecord options.domain,
-            type : "A"
-            name : options.name
-            content : options.content
-            service_mode : options.service_mode
-        ,(err,res)->
-            callback err if err
-            # this additional step is required to enable cloudflare (https)
-            cf.editDomainRecord options.domain,res.rec_id,
-                type : options.type
-                name : options.name
-                content : options.content
-                service_mode : options.service_mode
-                ttl: ttl
-            ,callback
+        {name, domain} = options
+        fulldomain = "#{name}.#{domain}"
+
+        cf.listDomainRecords domain,(err,list)->
+
+            rec_id = (i.rec_id for i,k in list when i.name is fulldomain)
+
+
+            switch rec_id.length
+                when 1
+                    log "domain record for #{fulldomain} found at #{rec_id}, updating..."
+                    cf.editDomainRecord options.domain,rec_id,
+                            type : options.type
+                            name : options.name
+                            content : options.content
+                            service_mode : options.service_mode
+                            ttl: ttl
+                        ,callback
+
+                when 0
+                    log "domain record for #{fulldomain} not found, creating a new one.."
+                    cf.addDomainRecord options.domain,
+                        type : "A"
+                        name : options.name
+                        content : options.content
+                        service_mode : options.service_mode
+                    ,(err,res)->
+                        callback err if err
+                        # this additional step is required to enable cloudflare (https)
+                        cf.editDomainRecord options.domain,res.rec_id,
+                            type : options.type
+                            name : options.name
+                            content : options.content
+                            service_mode : options.service_mode
+                            ttl: ttl
+                        ,callback
+                else
+                    log a="multiple domain records found for #{fulldomain} rec_id #{rec_id}, not taking any action, pls fix it at cloudflare..."
+                    log "no domain records have been changed"
+                    return callback err
+
+
+
+
+
 
 
 
@@ -258,10 +288,17 @@ class Deploy
                 __end = timethat.calc __start,new Date()
 
                 if not err and body?.indexOf expectString > -1
-                    result.push "[ TEST    PASSED #{__end} ] #{target}"
-                else result.push "[ TEST #FAILED #{__end} ] #{target}"
+                    result[target] = yes
 
-                callback null, result if i is options.length
+                else
+                    result[target] = no
+
+
+                if i is options.length
+                    r = 0
+                    r++ for k,v of result when v
+                    result._allpassed = yes if r is i
+                    callback null, result
 
     @getCurrentVersion = (options,callback=->)->
         exec "git fetch --tags && git tag",(a,b,c)->

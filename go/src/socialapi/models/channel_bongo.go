@@ -46,7 +46,7 @@ func (c *Channel) BeforeUpdate() error {
 
 func (c *Channel) Update() error {
 	if c.Name == "" || c.GroupName == "" {
-		return fmt.Errorf("Validation failed %s - %s", c.Name, c.GroupName)
+		return fmt.Errorf("Validation failed Name: %s - GroupName:%s", c.Name, c.GroupName)
 	}
 
 	return bongo.B.Update(c)

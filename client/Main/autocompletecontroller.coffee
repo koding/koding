@@ -26,9 +26,15 @@ class AutoCompleteController extends KDObject
 
   searchAccounts: (seed) ->
     @search 'accounts', seed
+      .then (data) ->
+        throw new Error "No data!" if data.length is 0
+        return data
       .map ({ objectID }) -> KD.remote.cacheableAsync 'JAccount', objectID
       .catch (err) => @searchAccountsMongo seed
       .filter Boolean
+
+  searchTopics: (seed) ->
+    @search 'topics', seed
 
   getIndex: (indexName) ->
     @indexes[indexName] ?= @algolia.initIndex indexName

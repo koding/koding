@@ -284,15 +284,20 @@ class SocialApiController extends KDController
       return callback null, item
 
     kallback = (err, data) =>
-
       return callback err  if err
 
       callback null, @cacheItem data
 
+    topicChannelKallback = (err, data) =>
+      return callback err  if err
+
+      registerAndOpenChannels [data]
+      kallback err, data
+
     return switch type
-      when 'topic'                     then @channel.byName {name: id}, kallback
+      when 'topic'                     then @channel.byName {name: id}, topicChannelKallback
       when 'activity'                  then @message.bySlug {slug: id}, kallback
-      when 'channel', 'privatemessage' then @channel.byId {id}, kallback
+      when 'channel', 'privatemessage' then @channel.byId {id}, topicChannelKallback
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 

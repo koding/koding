@@ -12,7 +12,6 @@ class ActivitySidebar extends KDCustomHTMLView
     SocialMessage : 'slug'
     SocialChannel : 'name'
 
-
   revive = (data) ->
 
     return switch data.typeConstant
@@ -37,6 +36,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @itemsBySlug  = {}
     @itemsByName  = {}
     @selectedItem = null
+
+    # @appsList = new DockController
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -329,7 +330,34 @@ class ActivitySidebar extends KDCustomHTMLView
 
   listMachines: (machines) ->
 
-    @machineTree.addNode new Machine { machine }  for machine in machines
+    treeData = []
+
+    for machine in machines
+      treeData.push item = new Machine {machine}
+      id = item.getId()
+      treeData.push
+        id       : "#{id}-workspaces"
+        title    : 'Workspaces'
+        type     : 'title'
+        parentId : id
+      treeData.push
+        title    : 'My Workspace'
+        type     : 'workspace'
+        href     : "/IDE/VM/#{machine.uid}"
+        parentId : id
+      treeData.push
+        id       : "#{id}-apps"
+        title    : 'Apps'
+        type     : 'title'
+        parentId : id
+      treeData.push
+        title    : 'App Store'
+        type     : 'app'
+        href     : '/Apps'
+        parentId : id
+
+
+    @machineTree.addNode data for data in treeData
 
 
   fetchMachines: (callback) ->
@@ -358,7 +386,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
-      treeItemClass       : NavigationMachineItem
+      treeItemClass       : NavigationItem
+      addListsCollapsed   : yes
 
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
@@ -387,8 +416,33 @@ class ActivitySidebar extends KDCustomHTMLView
 
       KD.utils.stopDOMEvent event
       KD.singletons.mainView.openMachineModal machine, machineItem
+    
+    else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
-    return  if machineItem.machine.status.state is Machine.State.Building
+      @handleMachineToggle machineItem, event
+
+    else if machineItem.type in ['app', 'workspace']
+
+      return
+
+    else if machineItem.machine.status.state is Machine.State.Building
+
+      return  
+
+
+  handleMachineToggle: (machineItem, event) ->
+
+    KD.utils.stopDOMEvent event
+
+    unless machineItem.child.hasClass 'running'
+      @machineTree.deselectNode machineItem
+      return
+
+    @machineTree.toggle machineItem
+
+    for id, node of @machineTree.nodes when node.type is 'machine' and node.id isnt machineItem.id
+      @machineTree.collapse node
+
 
 
   addFollowedTopics: ->
