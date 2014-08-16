@@ -16,6 +16,7 @@ class KodingKite_KlientKite extends KodingKite
     fsUniquePath       : 'fs.uniquePath'
     fsWriteFile        : 'fs.writeFile'
     fsRename           : 'fs.rename'
+    fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
 
     webtermGetSessions : 'webterm.getSessions'
