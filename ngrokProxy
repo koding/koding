@@ -9,6 +9,7 @@ if user = valueOf "user"
 
   [{name:"kontrol", port: 4000},
    {name:"proxy",   port: 1234},
+   {name:"kloud",   port: 5500},
    {name:"koding",  port: 8090}].forEach (kite)->
     console.log "--------------------> creating tunnel #{kite.name}-#{user}.ngrok.com"
     ngrok.connect
