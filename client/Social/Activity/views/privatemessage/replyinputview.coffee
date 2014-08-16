@@ -5,3 +5,13 @@ class ReplyInputView extends ActivityInputView
   # be blurred after every 'enter'
   # key
   forceBlur: -> no
+
+
+  empty: ->
+    {type} = @getOptions()
+    element = @getEditableElement()
+    switch type
+      when "text" then element.textContent = ""
+      when "html" then element.innerHTML   = ""
+
+
