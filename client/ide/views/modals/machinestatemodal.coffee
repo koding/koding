@@ -50,6 +50,7 @@ class IDE.MachineStateModal extends KDModalView
     stateTexts       =
       Stopped        : 'is turned off.'
       Starting       : 'is starting now.'
+      Stopping       : 'is stopping now.'
       Running        : 'up and running.'
       Building       : 'is building now.'
       NotInitialized : 'is not initialized.'
