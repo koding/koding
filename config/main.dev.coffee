@@ -184,13 +184,13 @@ Configuration = (options={}) ->
 
     socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
-    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName}"
-    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port}"
-    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName}"
-    boxproxy            : command : "./watch-node #{projectRoot}/servers/boxproxy/boxproxy.js        -c #{configName}"
-    appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port}"
+    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName} --disable-newrelic"
+    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName} --disable-newrelic"
+    boxproxy            : command : "./watch-node #{projectRoot}/servers/boxproxy/boxproxy.js        -c #{configName} --disable-newrelic"
+    appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
     webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
 
