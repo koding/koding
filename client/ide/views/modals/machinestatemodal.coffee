@@ -53,7 +53,7 @@ class IDE.MachineStateModal extends KDModalView
       Stopping       : 'is stopping now.'
       Running        : 'up and running.'
       Building       : 'is building now.'
-      NotInitialized : 'is not initialized.'
+      NotInitialized : 'is turned off.'
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
     @label     = new KDCustomHTMLView
@@ -67,19 +67,13 @@ class IDE.MachineStateModal extends KDModalView
     @button      = new KDButtonView
       title      : 'Turn it on'
       cssClass   : 'turn-on state-button solid green medium'
-      callback   : @bound 'turnOnMachine'
+      callback   : @bound if @state is 'NotInitialized' then 'initalizeMachine' else 'turnOnMachine'
 
     if @state is 'Running'
       @button    = new KDButtonView
         title    : 'Start IDE'
         cssClass : 'start-ide state-button solid green medium'
         callback : @bound 'startIDE'
-
-    else if @state is 'NotInitialized'
-      @button    = new KDButtonView
-        title    : 'Initialize Machine'
-        cssClass : 'intialize state-button solid green medium'
-        callback : @bound 'initalizeMachine'
 
     @container.addSubView @button
 
