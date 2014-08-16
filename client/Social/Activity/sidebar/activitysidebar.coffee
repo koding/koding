@@ -416,7 +416,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
       KD.utils.stopDOMEvent event
       KD.singletons.mainView.openMachineModal machine, machineItem
-    
+
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
       @handleMachineToggle machineItem, event
@@ -425,9 +425,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return
 
-    else if machineItem.machine.status.state is Machine.State.Building
+    else if machineItem.getData().status.state is Machine.State.Building
 
-      return  
+      return
 
 
   handleMachineToggle: (machineItem, event) ->
