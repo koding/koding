@@ -299,13 +299,11 @@ sidebarSelectedBg = #15171A
       padding       0
       borderBox()
       &:hover
-        border-color    transparent
-        bg              color #777
+        border          none
         .icon
           r-sprite      activity 'check-gray'
 
       .icon
-        r-sprite        activity 'check-gray'
         margin          0 6px 0 0
         padding         0
         fr()
@@ -319,6 +317,11 @@ sidebarSelectedBg = #15171A
 
         .icon
           r-sprite      activity 'check-gray'
+
+        &:hover
+          border        1px solid #b1b1b1
+          .icon
+            display     none
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -341,15 +344,14 @@ sidebarSelectedBg = #15171A
       &.follow:before
         color           #d1efdf
 
-      .icon
-        r-sprite      activity 'check-gray'
-
       &.following
         bg              color transparent
         border-color    transparent
 
-        .icon
-          r-sprite      activity 'check-gray'
+        &:hover
+          border          1px solid #b1b1b1
+          .icon
+            display       none
 
   .conversations
   .messages
