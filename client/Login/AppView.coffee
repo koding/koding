@@ -361,14 +361,13 @@ class LoginView extends JView
           account, replacementToken:newToken
         }
 
-        titleText = unless err then 'You\'re good to go, Enjoy!' \
+        titleText = unless err then 'Check your email inbox to complete the registration process. Welcome to Koding!' \
                     else 'Quota exceeded and could not join to the group. Please contact the group admin'
         title = "<span>#{titleText}</span>"
 
         new KDNotificationView
           cssClass  : "login"
           title     : title
-          # content   : 'Successfully registered!'
           duration  : 2000
 
         return location.reload()  unless KD.remote.isConnected()
