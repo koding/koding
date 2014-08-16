@@ -1,3 +1,4 @@
+process.title = 'koding-appsproxy'
 
 var express    = require('express'),
     config     = require('./conf'),

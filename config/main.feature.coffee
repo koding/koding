@@ -396,6 +396,16 @@ Configuration = (options={}) ->
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+
+        # new relic setup
+        echo deb http://apt.newrelic.com/debian/ newrelic non-free >> /etc/apt/sources.list.d/newrelic.list
+        wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -
+        apt-get update
+        apt-get install newrelic-sysmond
+        nrsysmond-config --set license_key=aa81e308ad9a0d95cf5a90fec9692c80551e8a68
+        /etc/init.d/newrelic-sysmond start
+
+
         touch /root/run.install.end
       }
 
