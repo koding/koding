@@ -52,9 +52,10 @@ class MessagePane extends KDTabPaneView
 
     {typeConstant} = @getData()
 
-    listView = switch typeConstant
-      when 'post' then @listController.getListView().first.commentBox.controller.getListView()
-      when 'privatemessage' then @listController.getListView()
+    if item.getDelegate().addSubView
+      listView = item.getDelegate()
+    else
+      listView = item.getDelegate().getListView()
 
     unless @separator
       @separator = new KDView cssClass : 'new-messages'

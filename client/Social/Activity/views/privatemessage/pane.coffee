@@ -193,7 +193,7 @@ class PrivateMessagePane extends MessagePane
 
   messageAdded: (item, index) ->
 
-    @scrollDown()
+    @scrollDown item
     {data} = item
     @messageMap[data.id] = yes
 
