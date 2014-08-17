@@ -72,6 +72,7 @@ module.exports = [
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
+  "views/inputhelperview.coffee"
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 

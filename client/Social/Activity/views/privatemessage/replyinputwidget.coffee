@@ -2,13 +2,30 @@ class ReplyInputWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
-    options.placeholder    or= ''
-    options.inputViewClass or= ReplyInputView
+    options.placeholder    = ''
+    options.inputViewClass = ReplyInputView
 
     super options, data
+
     @setClass 'reply-input-widget'
 
+
+  initEvents: ->
+    @input.on "Escape", @bound "reset"
+    @input.on "Enter",  @bound "submit"
+    @input.on "keyup", =>
+      @showPreview() if @preview #Updates preview if it exists
+
     @forwardEvent @input, 'Enter'
+
+
+  createSubViews: ->
+    { inputViewClass, defaultValue, placeholder } = @getOptions()
+    data = @getData()
+
+    @input    = new inputViewClass {defaultValue, placeholder}
+    @embedBox = new EmbedBoxWidget delegate: @input, data
+    @icon     = new KDCustomHTMLView tagName : 'figure'
 
 
   lockSubmit: -> @locked = yes

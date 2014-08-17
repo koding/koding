@@ -2,46 +2,62 @@ class ActivityInputWidget extends KDView
 
   {daisy, dash} = Bongo
 
-  helpMap      =
-    mysql      :
-      niceName : 'MySQL'
-      tooltip  :
-        title  : 'Open your terminal and type <code>help mysql</code>'
-    phpmyadmin :
-      niceName : 'phpMyAdmin'
-      tooltip  :
-        title  : 'Open your terminal and type <code>help phpmyadmin</code>'
-    "vm size"  :
-      pattern  : 'vm\\ssize|vm\\sconfig'
-      niceName : 'VM config'
-      tooltip  :
-        title  : 'Open your terminal and type <code>help specs</code>'
-    "vm down"  :
-      pattern  : 'vm\\sdown|vm\\snot\\sworking|vm\\sis\\snot\\sworking'
-      niceName : 'non-working VM'
-      tooltip  :
-        title  : 'You can go to your environments and try to restart your VM'
-    help       :
-      niceName : 'Help!!!'
-      tooltip  :
-        title  : "You don't need to type help in your post, just ask your question."
-    wordpress  :
-      niceName : 'WordPress'
-      link     : 'http://learn.koding.com/?s=wordpress'
-
-
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
+    options.destroyOnSubmit ?= no
+    options.inputViewClass  ?= ActivityInputView
+
     super options, data
 
-    options.destroyOnSubmit ?= no
-    {defaultValue, placeholder} = options
 
-    inputViewClass = options.inputViewClass ? ActivityInputView
+    @createSubViews()
+    @initEvents()
 
-    @input = new inputViewClass {defaultValue, placeholder}
+
+  createSubViews: ->
+
+    {defaultValue, placeholder, inputViewClass} = @getOptions()
+    data = @getData()
+
+    @input        = new inputViewClass {defaultValue, placeholder}
+    @helperView   = new ActivityInputHelperView
+    @embedBox     = new EmbedBoxWidget delegate: @input, data
+    @icon         = new KDCustomHTMLView tagName : 'figure'
+
+    @submitButton = new KDButtonView
+      type        : "submit"
+      title       : "SEND"
+      cssClass    : "solid green small"
+      loader      : yes
+      callback    : @bound "submit"
+
+    @buttonBar    = new KDCustomHTMLView
+      cssClass    : "widget-button-bar"
+
+    @bugNotification = new KDCustomHTMLView
+      cssClass : 'bug-notification hidden'
+      partial  : '<figure></figure>Posts tagged
+        with <strong>#bug</strong> will be
+        moved to <a href="/Bugs" target="_blank">
+        Bug Tracker</a>.'
+
+    @bugNotification.bindTransitionEnd()
+
+    @previewIcon = new KDCustomHTMLView
+      tagName    : "span"
+      cssClass   : "preview-icon"
+      tooltip    :
+        title    : "Markdown preview"
+      click      : =>
+        if not @preview
+        then @showPreview()
+        else @hidePreview()
+
+
+  initEvents: ->
+
     @input.on "Escape", @bound "reset"
-    @input.on "Enter", @bound "submit"
+    @input.on "Enter",  @bound "submit"
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
@@ -53,7 +69,7 @@ class ActivityInputWidget extends KDView
       @showPreview() if @preview #Updates preview if it exists
 
       val = @input.getValue()
-      @checkForCommonQuestions val
+      @helperView?.checkForCommonQuestions val
       if val.indexOf("5051003840118f872e001b91") is -1
         @unsetClass 'bug-tagged'
         @bugNotification.hide()
@@ -62,103 +78,6 @@ class ActivityInputWidget extends KDView
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()
-
-    @embedBox = new EmbedBoxWidget delegate: @input, data
-
-    @submitButton = new KDButtonView
-      type        : "submit"
-      title       : "SEND"
-      cssClass    : "solid green small"
-      loader      : yes
-      callback    : @bound "submit"
-
-    @icon = new KDCustomHTMLView tagName : 'figure'
-
-    # @avatar = new AvatarView
-    #   size      :
-    #     width   : 42
-    #     height  : 42
-    # , KD.whoami()
-
-    @buttonBar = new KDCustomHTMLView
-      cssClass : "widget-button-bar"
-
-    @bugNotification = new KDCustomHTMLView
-      cssClass : 'bug-notification'
-      partial  : '<figure></figure>Posts tagged with <strong>#bug</strong>  will be moved to <a href="/Bugs" target="_blank">Bug Tracker</a>.'
-
-    @bugNotification.hide()
-    @bugNotification.bindTransitionEnd()
-
-    @previewIcon = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "preview-icon"
-      tooltip  :
-        title  : "Markdown preview"
-      click    : =>
-        if not @preview then @showPreview() else @hidePreview()
-
-    @helpContainer = new KDCustomHTMLView
-      cssClass : 'help-container hidden'
-      partial  : 'Need help with:'
-
-    @currentHelperNames = []
-
-
-  checkForCommonQuestions: KD.utils.throttle 200, (val)->
-
-    @hideAllHelpers()
-
-    pattern = ///#{(helpMap[item].pattern or item for item in Object.keys(helpMap)).join('|')}///gi
-    match   = pattern.exec val
-    matches = []
-    while match isnt null
-      matches.push match[0] if match
-      match = pattern.exec val
-
-    @addHelper keyword for keyword in matches
-
-
-  addHelper:(val)->
-
-    @helpContainer.show()
-
-    unless helpMap[val.toLowerCase()]
-      for own key, item of helpMap when item.pattern
-        if ///#{item.pattern}///i.test val
-          val = key
-          break
-
-    return if val in @currentHelperNames
-
-    {niceName, link, tooltip} = helpMap[val.toLowerCase()]
-
-    Klass     = KDCustomHTMLView
-    options   =
-      tagName : 'span'
-      partial : niceName
-
-    if tooltip
-      options.tooltip           = _.extend {}, tooltip
-      options.tooltip.cssClass  = 'activity-helper'
-      options.tooltip.placement = 'bottom'
-
-    if link
-      Klass           = CustomLinkView
-      options.tagName = 'a'
-      options.title   = niceName
-      options.href    = link or '#'
-      options.target  = if link?[0] isnt '/' then '_blank' else ''
-
-    @helpContainer.addSubView new Klass options
-    @currentHelperNames.push val
-
-
-  hideAllHelpers:->
-
-    @helpContainer.hide()
-    @helpContainer.destroySubViews()
-    @currentHelperNames = []
 
 
   submit: (value, timestamp) ->
@@ -344,7 +263,7 @@ class ActivityInputWidget extends KDView
     @addSubView @embedBox
     @addSubView @buttonBar
     @addSubView @bugNotification
-    @addSubView @helpContainer
+    @addSubView @helperView
     @buttonBar.addSubView @submitButton
     @buttonBar.addSubView @previewIcon
     @hide()  unless KD.isLoggedIn()
