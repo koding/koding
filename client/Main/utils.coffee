@@ -751,6 +751,7 @@ utils.extend utils,
       account          : account
       createdAt        : isoNow
       updatedAt        : isoNow
+      replies          : []
       repliesCount     : 0
       meta             :
         createdAt      : now
