@@ -381,7 +381,7 @@ class LoginView extends JView
           @registerForm.reset()
           @registerForm.button.hideLoader()
           @hide()
-          location.replace('/Activity')
+          location.replace('/')
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
