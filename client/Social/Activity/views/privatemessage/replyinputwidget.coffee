@@ -2,12 +2,11 @@ class ReplyInputWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
+    options.cssClass       = KD.utils.curry 'reply-input-widget', options.cssClass
     options.placeholder    = ''
     options.inputViewClass = ReplyInputView
 
     super options, data
-
-    @setClass 'reply-input-widget'
 
 
   initEvents: ->

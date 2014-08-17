@@ -59,6 +59,8 @@ class ActivityInputWidget extends KDView
     @input.on "Escape", @bound "reset"
     @input.on "Enter",  @bound "submit"
 
+    @forwardEvent @input, 'Enter'
+
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
         @bugNotification.show()
@@ -119,8 +121,6 @@ class ActivityInputWidget extends KDView
 
   submissionCallback: (err, activity) ->
 
-    @reset yes
-
     return @showError err  if err
 
     @emit 'MessageSavedSuccessfully', activity
@@ -137,8 +137,6 @@ class ActivityInputWidget extends KDView
       body += " ##{channel.name} "
 
     appManager.tell 'Activity', 'post', {body, payload, requestData}, (err, activity) =>
-
-      @reset()  unless err
 
       callback? err, activity
 
@@ -169,7 +167,6 @@ class ActivityInputWidget extends KDView
           userMessage: "You are not allowed to edit this post."
         return @showError err, options
 
-      @reset()
       callback()
 
       KD.mixpanel "Status update edit, success"
