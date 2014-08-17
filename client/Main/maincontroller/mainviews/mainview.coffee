@@ -74,19 +74,13 @@ class MainView extends KDView
       domId    : 'main-sidebar'
       offscreenIndicatorClassName: 'unread'
 
-    moreItemsAbove = new KDView
-      cssClass  : 'more-items-above'
-      partial   : "More unread items above"
+    @sidebar.addSubView moreItemsAbove = new KDView
+      cssClass  : 'more-items above hidden'
+      partial   : 'Unread items'
 
-    moreItemsBelow = new KDView
-      cssClass  : 'more-items-below'
-      partial   : "More unread items below"
-
-    moreItemsAbove.hide()
-    moreItemsBelow.hide()
-
-    @sidebar.addSubView moreItemsAbove
-    @sidebar.addSubView moreItemsBelow
+    @sidebar.addSubView moreItemsBelow = new KDView
+      cssClass  : 'more-items below hidden'
+      partial   : 'Unread items'
 
     @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
 
