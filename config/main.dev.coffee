@@ -269,23 +269,30 @@ Configuration = (options={}) ->
     #pid        logs/nginx.pid;
 
 
+
     events {
         worker_connections  1024;
     }
     http {
-    upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
-    upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
-    upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
-    upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
-    upstream kontrol   { server 127.0.0.1:#{KONFIG.kontrol.port}   ;}
-    upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-
-    # TBD @arslan -> make kontrol kite horizontally scalable then enable;
-    # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
+    upstream webs       { server 127.0.0.1:#{KONFIG.webserver.port}  ;}
+    upstream social     { server 127.0.0.1:#{KONFIG.social.port}     ;}
+    upstream subscribe  { server 127.0.0.1:#{KONFIG.broker.port}     ;}
+    upstream kloud      { server 127.0.0.1:#{KONFIG.kloud.port}      ;}
+    upstream kontrol    { server 127.0.0.1:#{KONFIG.kontrol.port}    ;}
+    upstream appsproxy  { server 127.0.0.1:#{KONFIG.appsproxy.port}  ;}
+    upstream sourcemaps { server 127.0.0.1:#{KONFIG.sourcemaps.port} ;}
 
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
-    # TBD ssl_config
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     server {
       listen 8090 default_server;
@@ -296,7 +303,6 @@ Configuration = (options={}) ->
 
       # Make site accessible from http://localhost/
       server_name localhost;
-
 
       server_name #{hostname};
       location / {
@@ -317,6 +323,14 @@ Configuration = (options={}) ->
 
       location /appsproxy {
         proxy_pass            http://appsproxy;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /sourcemaps {
+        proxy_pass            http://sourcemaps;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
