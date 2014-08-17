@@ -4,16 +4,60 @@ class ActivityInputWidget extends KDView
 
   constructor: (options = {}, data) ->
     options.cssClass = KD.utils.curry "activity-input-widget", options.cssClass
+    options.destroyOnSubmit ?= no
+    options.inputViewClass  ?= ActivityInputView
+
     super options, data
 
-    options.destroyOnSubmit ?= no
-    {defaultValue, placeholder} = options
 
-    inputViewClass = options.inputViewClass ? ActivityInputView
+    @createSubViews()
+    @initEvents()
 
-    @input = new inputViewClass {defaultValue, placeholder}
+
+  createSubViews: ->
+
+    {defaultValue, placeholder, inputViewClass} = @getOptions()
+    data = @getData()
+
+    @input        = new inputViewClass {defaultValue, placeholder}
+    @helperView   = new ActivityInputHelperView
+    @embedBox     = new EmbedBoxWidget delegate: @input, data
+    @icon         = new KDCustomHTMLView tagName : 'figure'
+
+    @submitButton = new KDButtonView
+      type        : "submit"
+      title       : "SEND"
+      cssClass    : "solid green small"
+      loader      : yes
+      callback    : @bound "submit"
+
+    @buttonBar    = new KDCustomHTMLView
+      cssClass    : "widget-button-bar"
+
+    @bugNotification = new KDCustomHTMLView
+      cssClass : 'bug-notification hidden'
+      partial  : '<figure></figure>Posts tagged
+        with <strong>#bug</strong> will be
+        moved to <a href="/Bugs" target="_blank">
+        Bug Tracker</a>.'
+
+    @bugNotification.bindTransitionEnd()
+
+    @previewIcon = new KDCustomHTMLView
+      tagName    : "span"
+      cssClass   : "preview-icon"
+      tooltip    :
+        title    : "Markdown preview"
+      click      : =>
+        if not @preview
+        then @showPreview()
+        else @hidePreview()
+
+
+  initEvents: ->
+
     @input.on "Escape", @bound "reset"
-    @input.on "Enter", @bound "submit"
+    @input.on "Enter",  @bound "submit"
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
@@ -25,7 +69,7 @@ class ActivityInputWidget extends KDView
       @showPreview() if @preview #Updates preview if it exists
 
       val = @input.getValue()
-      @checkForCommonQuestions val
+      @helperView?.checkForCommonQuestions val
       if val.indexOf("5051003840118f872e001b91") is -1
         @unsetClass 'bug-tagged'
         @bugNotification.hide()
@@ -34,49 +78,6 @@ class ActivityInputWidget extends KDView
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()
-
-    @embedBox = new EmbedBoxWidget delegate: @input, data
-    @helperView   = new ActivityInputHelperView
-
-    @submitButton = new KDButtonView
-      type        : "submit"
-      title       : "SEND"
-      cssClass    : "solid green small"
-      loader      : yes
-      callback    : @bound "submit"
-
-    @icon = new KDCustomHTMLView tagName : 'figure'
-
-    # @avatar = new AvatarView
-    #   size      :
-    #     width   : 42
-    #     height  : 42
-    # , KD.whoami()
-
-    @buttonBar = new KDCustomHTMLView
-      cssClass : "widget-button-bar"
-
-    @bugNotification = new KDCustomHTMLView
-      cssClass : 'bug-notification'
-      partial  : '<figure></figure>Posts tagged with <strong>#bug</strong>  will be moved to <a href="/Bugs" target="_blank">Bug Tracker</a>.'
-
-    @bugNotification.hide()
-    @bugNotification.bindTransitionEnd()
-
-    @previewIcon = new KDCustomHTMLView
-      tagName  : "span"
-      cssClass : "preview-icon"
-      tooltip  :
-        title  : "Markdown preview"
-      click    : =>
-        if not @preview then @showPreview() else @hidePreview()
-
-
-
-
-
-
-
 
 
   submit: (value, timestamp) ->
