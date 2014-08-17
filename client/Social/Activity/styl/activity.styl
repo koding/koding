@@ -1246,8 +1246,10 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height            0
+  min-height            100vh
   padding-top           58px
+  vendor                transform, translate3d(0,0,0)
+  borderBox()
 
   .list-previous-link
     size                100% 47px
@@ -1320,8 +1322,12 @@ span.collapsedtext
         display           block
         r-sprite          'activity', 'new-participant-plus'
 
+  .listview-wrapper > .kdscrollview
+    kalc                  height, 100vh \- 189px
+
+
   .kdlistview-privatemessage
-    padding-bottom          100px
+    padding-bottom          0
 
     &:last-of-type
       margin-top            0
@@ -1593,9 +1599,6 @@ span.collapsedtext
 .reply-like-tooltip
   p
     text-align              left
-
-
-
 
 /* Temp style for contentdisplay */
 

@@ -1,4 +1,4 @@
-box: koding/base@0.0.6
+box: koding/base@0.0.10
 services:
   - wercker/postgresql@0.0.4
   - wercker/rabbitmq@1.0.1
@@ -8,17 +8,8 @@ services:
 build:
   steps:
     - script:
-        name: init s3 configuration
-        code: scripts/wercker/init-s3cfg.sh
-    - script:
-        name: generate version
-        code: scripts/wercker/generate-version.sh
-    - script:
-        name: save build info
-        code: |
-          echo $WERCKER_GIT_BRANCH > BRANCH
-          echo $WERCKER_GIT_COMMIT > HEAD
-          echo $WERCKER_STARTED_BY > STARTED_BY
+        name: psuedo build
+        code: echo foo bar baz
     - script:
         name: initialize submodules
         code: git submodule update --init --recursive
@@ -65,29 +56,36 @@ build:
 deploy:
   steps:
     - script:
-        name: create tarball
-        code: |
-          TARBALL_FILENAME=`cat BRANCH`_`cat VERSION`.tgz
-          tar czf $TARBALL_FILENAME *
-    - rioki/s3put@0.0.3:
-        key-id: $S3_KEY_ID
-        key-secret: $S3_KEY_SECRET
-        file: $(cat BRANCH)_$(cat VERSION).tgz
-        url: $S3_BUCKET/
-    - mktemp:
-        envvar: KEY_PATH
+        name: create $HOME/.ssh directory
+        code: mkdir -p $HOME/.ssh
     - create-file:
         name: write private key
-        filename: $KEY_PATH
+        filename: $HOME/.ssh/id_rsa
         content: $KEY_PRIVATE
         overwrite: true
         hide-from-log: true
+    - create-file:
+        name: write public key
+        filename: $HOME/.ssh/id_rsa.pub
+        content: $KEY_PUBLIC
+        overwrite: true
+        hide-from-log: false
+    - create-file:
+        name: create ssh configuration
+        filename: $HOME/.ssh/config
+        content: |-
+          Host github.com
+            User git
+            IdentityFile ~/.ssh/id_rsa
     - script:
-        name: deploy to hosts
+        name: deploy
         code: |
-          TARBALL_FILENAME=`cat BRANCH`_`cat VERSION`.tgz
-          DEPLOY_OPTIONS="--option IdentityFile=$KEY_PATH $DEPLOY_OPTIONS"
-          parallel-ssh $DEPLOY_HOSTS $DEPLOY_OPTIONS "sudo koding-deploy $TARBALL_FILENAME"
+          chmod 600 $HOME/.ssh/id_rsa
+          chmod 644 $HOME/.ssh/id_rsa.pub
+          git config --global user.email "wercker@koding.com"
+          git config --global user.name "wercker-build-box"
+          git fetch --tags
+          ./deploy --deploy --config=sandbox
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding

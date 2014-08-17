@@ -1,12 +1,10 @@
-class NavigationMachineItem extends JTreeItemView
+class NavigationMachineItem extends JView
 
   {Running, Stopped} = Machine.State
 
   stateClasses  = ''
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
 
-
-  JView.mixin @prototype
 
   constructor:(options = {}, data)->
 
@@ -15,7 +13,6 @@ class NavigationMachineItem extends JTreeItemView
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
-    options.type     or= 'main-nav'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
     options.attributes =
       href             : path
@@ -57,6 +54,6 @@ class NavigationMachineItem extends JTreeItemView
   pistachio:->
 
     """
-    <cite></cite><figure></figure>#{@alias}<span></span>
+    <figure></figure>#{@alias}<span></span>
     {{> @progress}}
     """
