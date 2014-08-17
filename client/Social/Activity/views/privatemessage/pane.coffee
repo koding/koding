@@ -1,8 +1,17 @@
 class PrivateMessagePane extends MessagePane
 
-  TEST_MODE = on
+  TEST_MODE        = on
+  INTERACTIVE_MODE = off
+  lastQuestion     = null
+  isFromBot        = (message, callback) ->
+    {_id} = message.account
+    KD.remote.cacheable 'JAccount', _id, (err, {profile})->
+      {nickname} = profile
+      callback nickname in ['kodingbot', 'kbot']
+
 
   constructor: (options = {}, data) ->
+
     options.wrapper     ?= yes
     options.lastToFirst  = yes
 
@@ -29,6 +38,7 @@ class PrivateMessagePane extends MessagePane
     @createParticipantsView()
 
     @input = new ReplyInputWidget {channel}
+    @kodingBot = new KodingBot delegate : this
 
     @bindInputEvents()
 
@@ -78,10 +88,21 @@ class PrivateMessagePane extends MessagePane
         PrivateMessageLoadTest.run this, interval, batchCount
       else if value.match /^\/analyzetheloremipsum/
         PrivateMessageLoadTest.analyze this
+    @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     @input.reset yes
     @createFakeItemView value, timestamp
     @input.empty()
+
+
+  applyInteractiveResponse: (value) ->
+
+    if lastQuestion
+      message = lastQuestion.getData()
+      @kodingBot.process message, value
+
+
+    @setResponseMode off
 
 
   createFakeItemView: (value, timestamp) ->
@@ -121,13 +142,24 @@ class PrivateMessagePane extends MessagePane
 
     # insert the real message.
     @messageMap[message.id] = yes
-    @prependMessage message, @listController.getItemCount()
+    item = @prependMessage message, @listController.getItemCount()
+
+    isFromBot message, @bound 'setResponseMode'
+
+    return item
 
 
   removeMessage: (message) ->
 
     return  unless @messageMap[message.id]
     super message
+
+  setResponseMode: (mode) ->
+
+    if mode is on
+      lastQuestion = @listController.getListItems().last
+
+    INTERACTIVE_MODE = mode
 
 
   loadMessage: (message) -> @appendMessage message, 0
