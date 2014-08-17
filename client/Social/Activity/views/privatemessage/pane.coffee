@@ -79,20 +79,25 @@ class PrivateMessagePane extends MessagePane
   # comes back, it will replace the fake one
   # with the real one.
   handleEnter: (value, timestamp) ->
+
     return  unless value
 
-    if TEST_MODE
-      if value.match /^\/unleashtheloremipsum/
-        [_, interval, batchCount] = value.split " "
-        [interval, batchCount] = parse interval, batchCount
-        PrivateMessageLoadTest.run this, interval, batchCount
-      else if value.match /^\/analyzetheloremipsum/
-        PrivateMessageLoadTest.analyze this
+    @applyTestPatterns value  if TEST_MODE
     @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     @input.reset yes
     @createFakeItemView value, timestamp
     @input.empty()
+
+
+  applyTestPatterns: (value) ->
+
+    if value.match /^\/unleashtheloremipsum/
+      [_, interval, batchCount] = value.split " "
+      [interval, batchCount] = parse interval, batchCount
+      PrivateMessageLoadTest.run this, interval, batchCount
+    else if value.match /^\/analyzetheloremipsum/
+      PrivateMessageLoadTest.analyze this
 
 
   applyInteractiveResponse: (value) ->
