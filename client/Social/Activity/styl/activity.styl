@@ -1250,9 +1250,8 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height            100vh
+  min-height            0
   padding-top           58px
-  vendor                transform, translate3d(0,0,0)
   borderBox()
 
   .list-previous-link
@@ -1326,12 +1325,8 @@ span.collapsedtext
         display           block
         r-sprite          'activity', 'new-participant-plus'
 
-  .listview-wrapper > .kdscrollview
-    kalc                  height, 100vh \- 189px
-
-
   .kdlistview-privatemessage
-    padding-bottom          0
+    padding-bottom          100px
 
     &:last-of-type
       margin-top            0
@@ -1582,11 +1577,12 @@ span.collapsedtext
     position            fixed
     bottom              0
     height              auto
-    width               100%
+    kalc                width, 100% \- 326px
     padding             0 0 30px
     bg                  color white
     margin-top          8px
     margin-bottom       0
+    vendor              transition, width .177s ease
 
     &:before
       content         ""
@@ -1599,6 +1595,10 @@ span.collapsedtext
     div[contenteditable=true]
       border-radius   0
       border          2px solid #eaeaea
+
+#kdmaincontainer.collapsed .reply-input-widget
+  kalc                width, 100% \- 131px
+
 
 .reply-like-tooltip
   p
