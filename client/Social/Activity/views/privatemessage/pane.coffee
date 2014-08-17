@@ -47,9 +47,9 @@ class PrivateMessagePane extends MessagePane
 
 
   # override this so that it won't
-  # be have to scroll to the top when
+  # have to scroll to the top when
   # a new item is added to list
-  scrollUp: -> return
+  # scrollUp: -> return
 
 
   bindInputEvents: ->
