@@ -26,6 +26,35 @@ sidebarSelectedBg = #15171A
   > main > div:last-child
     margin-bottom     60px
 
+  .more-items
+    size              238px 20px
+    line-height       20px
+    color             #fff
+    font-size         10px
+    font-weight       700
+    background        #E06F6F
+    shadow            0 0 10px 10px #323232
+    text-align        center
+
+    &:after
+      content         ' '
+      border          5px solid transparent
+      size            10px 10px
+      borderBox()
+
+    &.above
+      rounded         0 0 3px 3px
+      abs             0px 0 0 10px
+      &:after
+        border-bottom-color white
+        abs           3px 0 0 8px
+
+    &.below
+      rounded         3px 3px 0 0
+      abs             0 0 59px 10px
+      &:after
+        border-top-color white
+        abs           8px 0 0 8px
 
 
 #sidebar-toggle
