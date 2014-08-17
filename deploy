@@ -46,6 +46,8 @@ if argv.deploy
             versiontype     : argv.versiontype        or "patch"     # available options major, premajor, minor, preminor, patch, prepatch, or prerelease
             config          : argv.config             or "feature"   # prod | staging | sandbox
             version         : argv.version            or version
+            githubuser      : argv.githubuser         or "koding"
+            gitremote       : argv.gitremote          or "origin"
 
         options.hostname      = "#{options.config}--#{options.version.replace(/\./g,'-')}"
 
@@ -54,6 +56,8 @@ if argv.deploy
                 domain            = "koding.io"
                 subdomain         = eden.eve().toLowerCase()
                 options.hostname  = "#{options.config}--#{options.version.replace(/\./g,'-')}-#{subdomain}"
+                fulldomain        = "#{subdomain}s.koding.io"
+
             when "sandbox"
                 domain            = "koding.io"
                 subdomain         = "sandbox"
@@ -61,12 +65,13 @@ if argv.deploy
                 fulldomain        = "sandbox.koding.io"
 
         KONFIG = require("./config/main.#{options.config}.coffee")
-            hostname : options.hostname
-            tag      : options.version
+            hostname   : options.hostname
+            tag        : options.version
+            githubuser : options.githubuser
 
         #create the new tag
         log "deploying version #{options.version}"
-        exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push --tags",(err,stdout,stderr)->
+        exec "git tag -a '#{options.version}' -m 'machine-settings-b64-zip-#{KONFIG.machineSettings}' && git push #{options.gitremote} --tags",(err,stdout,stderr)->
 
             if err
                 log stderr

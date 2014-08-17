@@ -1,3 +1,4 @@
+.dev.nginx.conf
 *.dump
 *.orig
 *.orig

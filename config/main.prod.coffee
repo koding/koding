@@ -1,6 +1,7 @@
 zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
+fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
@@ -392,6 +393,13 @@ Configuration = (options={}) ->
 
       function install() {
         touch /root/run.install.start
+
+        echo #{b64z prodKeys.id_rsa}          | base64 --decode | gunzip >/root/.ssh/id_rsa
+        echo #{b64z prodKeys.id_rsa_pub}      | base64 --decode | gunzip >/root/.ssh/id_rsa.pub
+        echo #{b64z prodKeys.authorized_keys} | base64 --decode | gunzip >/root/.ssh/authorized_keys
+        echo #{b64z prodKeys.config}          | base64 --decode | gunzip >/root/.ssh/config
+        chmod 0600 /root/.ssh/id_rsa
+
         cd /opt
         git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
@@ -416,6 +424,15 @@ Configuration = (options={}) ->
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+
+        # new relic setup
+        echo deb http://apt.newrelic.com/debian/ newrelic non-free >> /etc/apt/sources.list.d/newrelic.list
+        wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -
+        apt-get update
+        apt-get install newrelic-sysmond
+        nrsysmond-config --set license_key=aa81e308ad9a0d95cf5a90fec9692c80551e8a68
+        /etc/init.d/newrelic-sysmond start
+
         touch /root/run.install.end
       }
 
@@ -488,24 +505,6 @@ Configuration = (options={}) ->
         - nginx
 
       write_files:
-        - content : hello world
-          path : /root/helloworld
-        - path : /root/.ssh/id_rsa
-          permissions: '0600'
-          content : |
-            #{prodKeys.id_rsa}
-
-        - path : /root/.ssh/id_rsa.pub
-          content : #{prodKeys.id_rsa_pub}
-
-        - path : /root/.ssh/authorized_keys
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com\n
-
-        - path : /root/.ssh/config
-          content : |
-            Host github.com
-              StrictHostKeyChecking no
-
         - path: /root/run.b64z
           content : #{b64z runContents}
         - path: /root/run
