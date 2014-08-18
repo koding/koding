@@ -95,6 +95,12 @@ name := s.Field("Name")
 // Get the underlying value,  value => "gopher"
 value := name.Value().(string)
 
+// Set the field's value
+name.Set("another gopher")
+
+// Get the field's kind, kind =>  "string"
+name.Kind()
+
 // Check if the field is exported or not
 if name.IsExported() {
 	fmt.Println("Name field is exported")
@@ -121,6 +127,9 @@ addrField := s.Field("Server").Field("Addr")
 
 // Get the value for addr
 a := addrField.Value().(string)
+
+// Or get all fields
+httpServer := s.Field("Server").Fields()
 ```
 
 We can also get a slice of Fields from the Struct type to iterate over all
