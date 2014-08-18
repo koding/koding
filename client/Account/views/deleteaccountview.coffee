@@ -8,7 +8,7 @@ class DeleteAccountView extends JView
 
     @button = new KDButtonView
       title      : "Delete Account"
-      cssClass   : "delete-account solid red fr"
+      cssClass   : "delete-account solid red fr medium"
       bind       : "mouseenter"
       mouseenter : do ->
         times = 0
