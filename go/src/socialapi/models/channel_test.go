@@ -713,18 +713,16 @@ func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
 			So(fcid, ShouldEqual, 0)
 		})
 
-		/*
-			Convey("non-existing name & groupName should give error", func() {
-				// create channel in db
-				c := createNewChannelWithTest()
-				So(c.Create(), ShouldBeNil)
+		Convey("non-existing name & groupName should give error", func() {
+			// create channel in db
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
 
-				// nameTest & groupNameTest are an arbitrary strings
-				_, err := c.FetchChannelIdByNameAndGroupName("nameTest", "groupNameTest")
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
+			// nameTest & groupNameTest are an arbitrary strings
+			_, err := c.FetchChannelIdByNameAndGroupName("nameTest", "groupNameTest")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
 
-		*/
 	})
 }
