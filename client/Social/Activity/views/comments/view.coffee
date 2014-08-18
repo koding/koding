@@ -7,9 +7,12 @@ class CommentView extends KDView
 
     super options, data
 
+    @fakeMessageMap = {}
+
     @inputForm = new CommentInputForm delegate: this
       .on 'Focused', @bound 'decorateAsFocused'
       .on 'Blured',  @bound 'resetDecoration'
+      .on 'Submit',  @bound 'handleEnter'
       .on 'Submit',  @bound 'reply'
 
     {controllerClass} = @getOptions()
@@ -24,9 +27,53 @@ class CommentView extends KDView
 
     @on 'Reply', @inputForm.bound 'setFocus'
 
+    @on 'CommentSavedSuccessfully', @bound 'replaceFakeItemView'
+
     data
-      .on 'AddReply', @controller.bound 'addItem'
+      .on 'AddReply', @bound 'addMessage'
       .on 'RemoveReply', @controller.lazyBound 'removeItem', null
+
+
+  addMessage: (message) ->
+
+    return  if message.account._id is KD.whoami()._id
+
+    @controller.addItem message
+
+
+  handleEnter: (value, timestamp) ->
+    return  unless value
+
+    @createFakeItemView value, timestamp
+
+
+  putMessage: (message) -> @controller.addItem message
+
+
+  createFakeItemView: (value, timestamp) ->
+
+    fakeData = KD.utils.generateDummyMessage value, timestamp
+
+    item = @putMessage fakeData
+
+    # save it to a map so that we have a reference
+    # to it to be deleted.
+    identifier = KD.utils.generateFakeIdentifier timestamp
+    @fakeMessageMap[identifier] = item
+
+
+  replaceFakeItemView: (message) ->
+
+    @putMessage message
+
+    @removeFakeMessage message.requestData
+
+
+  removeFakeMessage: (identifier) ->
+
+    return  unless item = @fakeMessageMap[identifier]
+
+    @controller.removeItem item
 
 
   listPreviousReplies: (event) ->
@@ -64,6 +111,8 @@ class CommentView extends KDView
     appManager.tell 'Activity', 'reply', {activity, body, requestData}, (err, reply) =>
 
       return KD.showError err  if err
+
+      @emit 'CommentSavedSuccessfully', reply
 
       KD.mixpanel 'Comment activity, success'
 

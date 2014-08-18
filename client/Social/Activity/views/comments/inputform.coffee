@@ -27,15 +27,15 @@ class CommentInputForm extends KDView
 
   enter: (value) ->
 
+    @emit 'Submit', value, (new Date).getTime()
+
+    @input.setValue ''
+    @input.resize()
+    @input.setFocus()
+
     kallback = =>
 
-      @emit 'Submit', value, (new Date).getTime()
-
       KD.mixpanel 'Comment activity, click', value.length
-
-      @input.setValue ''
-      @input.resize()
-      @input.setFocus()
 
     KD.requireMembership
       callback  : kallback
