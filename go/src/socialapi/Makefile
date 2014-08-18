@@ -5,7 +5,7 @@ GODIR=$(CURDIR)/../../../go
 GOBINDIR=$(GODIR)/bin
 GOPATH := $(realpath $(GODIR))
 GOBIN := $(realpath $(GOBINDIR))
-CONFIG=./config/vagrant.toml
+CONFIG=./config/dev.toml
 MAJOR=0
 MINOR=1
 # export MAJOR
@@ -155,12 +155,12 @@ testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@go test -c models/*.go
-	@./models.test $(DBG) $(METRICS) -c ./config/dev.toml
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./models.test
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test -c ./config/dev.toml
+	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
@@ -172,7 +172,7 @@ testapi:
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@go test workers/trollmode/tests/*.go
 	@go test -c workers/trollmode/trollmode/*.go
-	@./trollmode.test $(DBG) $(METRICS) -c ./config/dev.toml
+	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
@@ -180,7 +180,7 @@ testapi:
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c tests/*.go
-	@./main.test $(DBG) $(METRICS) -c ./config/dev.toml
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
 doc:
