@@ -44,6 +44,7 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return nwc, nil
 }
 
+// CreateReplyNotification notifies main thread owner.
 func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) error {
 	// fetch replier
 	reply := socialapimodels.NewChannelMessage()
@@ -86,6 +87,8 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
+	// if a user is already subscribed to a post, and also mentioned in a reply
+	// just send mention notification -no need for reply notification.
 	notifiedUsers = filterRepliers(notifiedUsers, mentionedUsers)
 
 	notifierSubscribed := false
@@ -96,7 +99,6 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		n.notify(nc.Id, recipient)
 	}
 
-	// if not subcribed, subscribe the actor to message
 	if !notifierSubscribed {
 		n.subscribe(nc.Id, rn.NotifierId, subscribedAt)
 	}
@@ -210,7 +212,7 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 			return nil, err
 		}
 
-		n.instantNotify(nc.Id, reply.AccountId)
+		n.instantNotify(nc.Id, mentionedUser)
 	}
 
 	return mentionedUserIds, nil
