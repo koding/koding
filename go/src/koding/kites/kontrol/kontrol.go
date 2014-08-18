@@ -1,14 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"koding/kites/kontrol/kontrol"
-	"os"
 
 	"github.com/koding/multiconfig"
 )
 
 func main() {
-	m := multiconfig.NewWithPath(os.Getenv("KONTROL_CONFIG_FILE"))
+	m := multiconfig.New()
 
 	conf := new(kontrol.Config)
 
@@ -17,6 +17,8 @@ func main() {
 	if err := m.Load(conf); err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("Condig loaded with following variables: %+v\n", conf)
 
 	k := kontrol.New(conf)
 	k.Run()
