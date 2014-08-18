@@ -12,8 +12,8 @@ class CommentView extends KDView
     @inputForm = new CommentInputForm delegate: this
       .on 'Focused', @bound 'decorateAsFocused'
       .on 'Blured',  @bound 'resetDecoration'
-      .on 'Submit',  @bound 'handleEnter'
-      .on 'Submit',  @bound 'reply'
+      .on 'SubmitStarted',  @bound 'handleEnter'
+      .on 'SubmitStarted',  @bound 'reply'
 
     {controllerClass} = @getOptions()
 
@@ -41,25 +41,24 @@ class CommentView extends KDView
     @controller.addItem message
 
 
-  handleEnter: (value, timestamp) ->
+  handleEnter: (value, clientRequestId) ->
     return  unless value
 
-    @createFakeItemView value, timestamp
+    @createFakeItemView value, clientRequestId
 
 
   putMessage: (message) -> @controller.addItem message
 
 
-  createFakeItemView: (value, timestamp) ->
+  createFakeItemView: (value, clientRequestId) ->
 
-    fakeData = KD.utils.generateDummyMessage value, timestamp
+    fakeData = KD.utils.generateDummyMessage value
 
     item = @putMessage fakeData
 
     # save it to a map so that we have a reference
     # to it to be deleted.
-    identifier = KD.utils.generateFakeIdentifier timestamp
-    @fakeMessageMap[identifier] = item
+    @fakeMessageMap[clientRequestId] = item
 
 
   replaceFakeItemView: (message) ->
@@ -101,12 +100,11 @@ class CommentView extends KDView
       @listPreviousLink.update()
 
 
-  reply: (value, timestamp) ->
+  reply: (value, clientRequestId) ->
 
     activity        = @getData()
     {appManager}    = KD.singletons
     body            = value
-    clientRequestId = KD.utils.generateFakeIdentifier timestamp
 
     appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
 

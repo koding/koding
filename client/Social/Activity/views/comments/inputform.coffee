@@ -27,7 +27,10 @@ class CommentInputForm extends KDView
 
   enter: (value) ->
 
-    @emit 'Submit', value, (new Date).getTime()
+    timestamp = Date.now()
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
+
+    @emit 'SubmitStarted', value, clientRequestId
 
     @input.setValue ''
     @input.resize()

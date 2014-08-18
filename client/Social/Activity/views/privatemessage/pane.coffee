@@ -60,14 +60,14 @@ class PrivateMessagePane extends MessagePane
   # it to dom. once the response from server
   # comes back, it will replace the fake one
   # with the real one.
-  handleEnter: (value, timestamp) ->
+  handleEnter: (value, clientRequestId) ->
 
     return  unless value
 
     @applyTestPatterns value  if TEST_MODE
     @applyInteractiveResponse value  if INTERACTIVE_MODE
 
-    super value, timestamp
+    super value, clientRequestId
     @input.empty()
 
 

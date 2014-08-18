@@ -15,8 +15,6 @@ class ReplyInputWidget extends ActivityInputWidget
     @input.on "keyup", =>
       @showPreview() if @preview #Updates preview if it exists
 
-    @forwardEvent @input, 'Enter'
-
 
   createSubViews: ->
     { inputViewClass, defaultValue, placeholder } = @getOptions()

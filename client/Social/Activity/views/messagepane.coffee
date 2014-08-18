@@ -51,7 +51,7 @@ class MessagePane extends KDTabPaneView
     return  unless @input
 
     @input
-      .on 'Enter', @bound 'handleEnter'
+      .on 'SubmitStarted',   @bound 'handleEnter'
       .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
 
 
@@ -69,12 +69,12 @@ class MessagePane extends KDTabPaneView
     @listController.removeItem item
 
 
-  handleEnter: (value, timestamp) ->
+  handleEnter: (value, clientRequestId) ->
 
     return  unless value
 
     @input.reset yes
-    @createFakeItemView value, timestamp
+    @createFakeItemView value, clientRequestId
 
 
   putMessage: (message) ->
@@ -84,16 +84,15 @@ class MessagePane extends KDTabPaneView
     @appendMessage message, index
 
 
-  createFakeItemView: (value, timestamp) ->
+  createFakeItemView: (value, clientRequestId) ->
 
-    fakeData = KD.utils.generateDummyMessage value, timestamp
+    fakeData = KD.utils.generateDummyMessage value
 
     item = @putMessage fakeData
 
     # save it to a map so that we have a reference
     # to it to be deleted.
-    identifier = KD.utils.generateFakeIdentifier timestamp
-    @fakeMessageMap[identifier] = item
+    @fakeMessageMap[clientRequestId] = item
 
 
   handleFocus: (focused) -> @glance()  if focused and @active

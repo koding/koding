@@ -59,8 +59,6 @@ class ActivityInputWidget extends KDView
     @input.on "Escape", @bound "reset"
     @input.on "Enter",  @bound "submit"
 
-    @forwardEvent @input, 'Enter'
-
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
         @bugNotification.show()
@@ -76,47 +74,35 @@ class ActivityInputWidget extends KDView
         @unsetClass 'bug-tagged'
         @bugNotification.hide()
 
-    @on "ActivitySubmitted", =>
+    @on "SubmitStarted", =>
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()
 
 
-  submit: (value, timestamp) ->
+  submit: (value) ->
 
     return  if @locked
-    return @reset yes  unless body = @input.getValue().trim()
+    return @reset yes  unless body = value.trim()
 
     activity = @getData()
     {app}    = @getOptions()
+    payload  = @getPayload()
 
-    # fixme for bugs app
-
-    # for token in @input.getTokens()
-    #   feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
-    #   {data, type} = token
-    #   if type is "tag"
-    #     if data instanceof JTag
-    #       tags.push id: data.getId()
-    #       activity?.tags.push data
-    #     else if data.$suggest and data.$suggest not in suggestedTags
-    #       suggestedTags.push data.$suggest
-
-    payload = @getPayload()
+    timestamp = Date.now()
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
 
     @lockSubmit()
 
-    fn = @bound if activity then 'update' else 'create'
+    obj = { body, payload, clientRequestId }
 
-    obj = { body, payload }
+    fn = if activity
+    then @bound 'update'
+    else @bound 'create'
 
-    if timestamp?
-      clientRequestId     = KD.utils.generateFakeIdentifier timestamp
-      obj.clientRequestId = clientRequestId
+    fn(obj, @bound 'submissionCallback')
 
-    fn obj, @bound 'submissionCallback'
-
-    @emit "ActivitySubmitted"
+    @emit 'SubmitStarted', value, clientRequestId
 
 
   submissionCallback: (err, activity) ->
