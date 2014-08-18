@@ -19,149 +19,46 @@ Configuration = (options={}) ->
   githubuser          = options.githubuser     or "koding"
 
   mongo               = "#{prod_simulation_server}:27017/koding"
+  etcd                = "10.0.0.126 : 4001, 10.0.0.127:4001, 10.0.0.128:4001"
 
-  redis               =
-    host : "prod0.1ia3pb.0001.use1.cache.amazonaws.com"
-    port : "6379"
-    db   : 0
-
-  rabbitmq            =
-    host     :    "#{prod_simulation_server}"
-    port     :    5672
-    apiPort  :    15672
-    login    :    "guest"
-    password :    "guest"
-    vhost    :"/"
-
-  mq           =
-    host          : "#{rabbitmq.host}"
-    port          : rabbitmq.port
-    apiAddress    : "#{rabbitmq.host}"
-    apiPort       : "#{rabbitmq.apiPort}"
-    login         : "#{rabbitmq.login}"
-    componentUser : "#{rabbitmq.login}"
-    password      : "#{rabbitmq.password}"
-    heartbeat     : 0
-    vhost         : "#{rabbitmq.vhost}"
-
-  etcd         = "10.0.0.126 : 4001, 10.0.0.127:4001, 10.0.0.128:4001"
-
-  customDomain =
-    public                         : "http://#{hostname}"
-    public_                        : "#{hostname}"
-    local                          : "http://localhost"
-    local_                         : "localhost"
-    port                           : 80
-
-  sendgrid  =
-    username  : "koding"
-    password  : "DEQl7_Dr"
-
-  # email worker config
-  email        =
-    host                           : "#{customDomain.public_}"
-    protocol                       : 'https:'
-    defaultFromMail                : 'hello@koding.com'
-    defaultFromName                : 'koding'
-    username                       : sendgrid.username
-    password                       : sendgrid.password
-    templateRoot                   : "workers/sitemap/files/"
-    forcedRecipient                : undefined
-
-  # KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
-  kontrol             =
-    url               : "https://kontrol.koding.com/kite"
-    port              : 443
-    useTLS            : no
-    certFile          : ""
-    keyFile           : ""
-    publicKeyFile     : "#{projectRoot}/certs/test_kontrol_rsa_public.pem"
-    privateKeyFile    : "#{projectRoot}/certs/test_kontrol_rsa_private.pem"
-
-  broker              =
-    name              : "broker"
-    serviceGenericName: "broker"
-    ip                : ""
-    webProtocol       : "http:"
-    host              : customDomain.public
-    port              : 8008
-    certFile          : ""
-    keyFile           : ""
-    authExchange      : "auth"
-    authAllExchange   : "authAll"
-    failoverUri       : customDomain.public
-
-  # this is for domain settings on environment backend eg. kd.io
-  userSitesDomain     = "#{customDomain.public_}"
-
-  socialQueueName     = "koding-social-#{configName}"
-  logQueueName        = socialQueueName+'log'
-
-  regions             =
-    kodingme          : "#{configName}"
-    vagrant           : "vagrant"
-    sj                : "sj"
-    aws               : "aws"
-    premium           : "vagrant"
-
-  #TODO change these credentials
-  algolia             =
-    appId             : '8KD9RHY1OA'
-    apiKey            : 'e4a8ebe91bf848b67c9ac31a6178c64b'
-    indexSuffix       : ''
-
-  algoliaSecret       =
-    appId             : algolia.appId
-    apiKey            : algolia.apiKey
-    indexSuffix       : algolia.indexSuffix
-    apiSecretKey      : '041427512bcdcd0c7bd4899ec8175f46'
-
-  mixpanel            =
-    token             :"a57181e216d9f713e19d5ce6d6fb6cb3"
-    enabled           : yes
-
-  # postgres is used only by socialapi
-  postgres =
-    host              : "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
-    port              : 5432
-    username          : "socialapplication"
-    password          : "socialapplication"
-    dbname            : "social"
+  redis         = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com",     port:               "6379",                             db:              0                    }
+  rabbitmq      = { host:     "#{prod_simulation_server}",                      port:               5672,                               apiPort:         15672,               login:           "guest",                           password: "guest",             vhost:         "/"                                                 }
+  mq            = { host:     "#{rabbitmq.host}",                               port:               rabbitmq.port,                      apiAddress:      "#{rabbitmq.host}",  apiPort:         "#{rabbitmq.apiPort}",             login:    "#{rabbitmq.login}", componentUser: "#{rabbitmq.login}",                                password:       "#{rabbitmq.password}",                             heartbeat:       0,        vhost:        "#{rabbitmq.vhost}" }
+  customDomain  = { public:   "http://#{hostname}",                             public_:            "#{hostname}",                      local:           "http://localhost",  local_:          "localhost",                       port:     80                   }
+  sendgrid      = { username: "koding",                                         password:           "DEQl7_Dr"                          }
+  email         = { host:     "#{customDomain.public_}",                        protocol:           'https:',                           defaultFromMail: 'hello@koding.com',  defaultFromName: 'koding',                          username: sendgrid.username,   password:      sendgrid.password,                                  templateRoot:   "workers/sitemap/files/",                           forcedRecipient: undefined }
+  kontrol       = { url:      "https://kontrol.koding.com/kite",                port:               443,                                useTLS:          no,                  certFile:        "",                                keyFile:  "",                  publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem", privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  broker        = { name:     "broker",                                         serviceGenericName: "broker",                           ip:              "",                  webProtocol:     "http:",                           host:     customDomain.public, port:          8008,                                               certFile:       "",                                                 keyFile:         "",       authExchange: "auth",             authAllExchange: "authAll", failoverUri: customDomain.public }
+  regions       = { kodingme: "#{configName}",                                  vagrant:            "vagrant",                          sj:              "sj",                aws:             "aws",                             premium:  "vagrant"            }
+  algolia       = { appId:    '8KD9RHY1OA',                                     apiKey:             'e4a8ebe91bf848b67c9ac31a6178c64b', indexSuffix:     ''                   }
+  algoliaSecret = { appId:    algolia.appId,                                    apiKey:             algolia.apiKey,                     indexSuffix:     algolia.indexSuffix, apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  mixpanel      = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3",               enabled:            yes                                 }
+  postgres      = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com", port:               5432,                               username:        "socialapplication", password:        "socialapplication",               dbname:   "social"             }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
   socialapi =
-    # config for ndoe workers
     proxyUrl          : "http://localhost:7000"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
-    # end for node worker configs
-
-    # postgres config
     postgres          : postgres
-    # rabbitmq configuration
     mq                : mq
-    # connection string for redis
     redis             :  url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
     environment       : environment
     region            : region
     hostname          : hostname
-    # config related with the email worker
     email             : email
-    # sitemap's redis DB number, we are setting it not to pollute the cache db
-    sitemap           :
-      redisDB         : 0
-    # algolia is the search engine for autocomplete
+    sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
-    # analytics service config
     mixpanel          : mixpanel
-    limits            :
-      messageBodyMinLen    : 1
-      postThrottleDuration : "15s"
-      postThrottleCount    : "3"
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
+
+  userSitesDomain     = "#{customDomain.public_}"
+  socialQueueName     = "koding-social-#{configName}"
+  logQueueName        = socialQueueName+'log'
 
   KONFIG              =
     environment       : environment
@@ -184,13 +81,7 @@ Configuration = (options={}) ->
     webserver         : {port          : 3000                        , useCacheHeader: no}
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
     mq                : mq
-    emailWorker       :
-      cronInstant     : '*/10 * * * * *'
-      cronDaily       : '0 10 0 * * *'
-      run             : yes
-      forcedRecipient : email.forcedRecipient
-      maxAge          : 3
-
+    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : yes                , forcedRecipient : email.forcedRecipient     , maxAge: 3 }
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
     email             : email
