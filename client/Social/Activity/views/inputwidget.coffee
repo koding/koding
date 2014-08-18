@@ -111,8 +111,8 @@ class ActivityInputWidget extends KDView
     obj = { body, payload }
 
     if timestamp?
-      requestData = KD.utils.generateFakeIdentifier timestamp
-      obj.requestData = requestData
+      clientRequestId     = KD.utils.generateFakeIdentifier timestamp
+      obj.clientRequestId = clientRequestId
 
     fn obj, @bound 'submissionCallback'
 
@@ -128,7 +128,7 @@ class ActivityInputWidget extends KDView
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
 
-  create: ({body, payload, requestData}, callback) ->
+  create: ({body, payload, clientRequestId}, callback) ->
 
     {appManager} = KD.singletons
     {channel}    = @getOptions()
@@ -136,7 +136,7 @@ class ActivityInputWidget extends KDView
     if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
       body += " ##{channel.name} "
 
-    appManager.tell 'Activity', 'post', {body, payload, requestData}, (err, activity) =>
+    appManager.tell 'Activity', 'post', {body, payload, clientRequestId}, (err, activity) =>
 
       callback? err, activity
 

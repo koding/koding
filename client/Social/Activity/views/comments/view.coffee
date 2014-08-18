@@ -66,7 +66,7 @@ class CommentView extends KDView
 
     @putMessage message
 
-    @removeFakeMessage message.requestData
+    @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
@@ -103,12 +103,12 @@ class CommentView extends KDView
 
   reply: (value, timestamp) ->
 
-    activity     = @getData()
-    {appManager} = KD.singletons
-    body         = value
-    requestData  = KD.utils.generateFakeIdentifier timestamp
+    activity        = @getData()
+    {appManager}    = KD.singletons
+    body            = value
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
 
-    appManager.tell 'Activity', 'reply', {activity, body, requestData}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
 
       return KD.showError err  if err
 

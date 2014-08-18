@@ -153,8 +153,8 @@ class PrivateMessagePane extends MessagePane
     # we need to revisit this part.
     # messageAdded & messageRemoved has a race
     # condition problem. ~Umut
-    if data.requestData and not data.isFake
-      fakeItem = @fakeMessageMap[data.requestData]
+    if data.clientRequestId and not data.isFake
+      fakeItem = @fakeMessageMap[data.clientRequestId]
 
       if fakeItem.hasClass 'consequent'
       then item.setClass 'consequent'

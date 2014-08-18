@@ -36,12 +36,12 @@ class ReplyInputWidget extends ActivityInputWidget
   empty: -> @input.empty()
 
 
-  create: ({body, requestData}, callback) ->
+  create: ({body, clientRequestId}, callback) ->
 
     {channel: {id: channelId}}  =  @getOptions()
 
     {appManager} = KD.singletons
-    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body, requestData}, (err, reply) =>
+    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body, clientRequestId}, (err, reply) =>
       return KD.showError err  if err
 
       callback err, reply.first.lastMessage

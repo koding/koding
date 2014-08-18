@@ -59,7 +59,7 @@ class MessagePane extends KDTabPaneView
 
     @putMessage message
 
-    @removeFakeMessage message.requestData
+    @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
