@@ -12,7 +12,7 @@ module.exports = class Emailer
   @send : (options,callback) ->
     {From,To,Subject,HtmlBody,TextBody,ReplyTo,Bcc} = options
     mailOptions =
-      from    : From or email.defaultFromAddress
+      from    : From or email.defaultFromMail
       to      : To
       subject : Subject
 
