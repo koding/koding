@@ -23,7 +23,7 @@ func MustInitBongo(
 	rmqConf := &rabbitmq.Config{
 		Host:     c.Mq.Host,
 		Port:     c.Mq.Port,
-		Username: c.Mq.Username,
+		Username: c.Mq.Login,
 		Password: c.Mq.Password,
 		Vhost:    c.Mq.Vhost,
 	}

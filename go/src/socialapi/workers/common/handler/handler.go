@@ -98,12 +98,12 @@ func (c *CounterByStatus) track() {
 		conf = config.MustGet()
 
 		// don't log if analytics are disabled globally
-		if !conf.Analytics.Enabled {
+		if !conf.Mixpanel.Enabled {
 			return
 		}
 
 		trackers = metrics.InitTrackers(
-			metrics.NewMixpanelTracker(conf.Analytics.MixpanelToken),
+			metrics.NewMixpanelTracker(conf.Mixpanel.Token),
 		)
 	}
 
