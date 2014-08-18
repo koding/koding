@@ -7,10 +7,13 @@ class CommentView extends KDView
 
     super options, data
 
+    @fakeMessageMap = {}
+
     @inputForm = new CommentInputForm delegate: this
       .on 'Focused', @bound 'decorateAsFocused'
       .on 'Blured',  @bound 'resetDecoration'
-      .on 'Submit',  @bound 'reply'
+      .on 'SubmitStarted',  @bound 'handleEnter'
+      .on 'SubmitStarted',  @bound 'reply'
 
     {controllerClass} = @getOptions()
 
@@ -24,9 +27,52 @@ class CommentView extends KDView
 
     @on 'Reply', @inputForm.bound 'setFocus'
 
+    @on 'CommentSavedSuccessfully', @bound 'replaceFakeItemView'
+
     data
-      .on 'AddReply', @controller.bound 'addItem'
+      .on 'AddReply', @bound 'addMessage'
       .on 'RemoveReply', @controller.lazyBound 'removeItem', null
+
+
+  addMessage: (message) ->
+
+    return  if message.account._id is KD.whoami()._id
+
+    @controller.addItem message
+
+
+  handleEnter: (value, clientRequestId) ->
+    return  unless value
+
+    @createFakeItemView value, clientRequestId
+
+
+  putMessage: (message) -> @controller.addItem message
+
+
+  createFakeItemView: (value, clientRequestId) ->
+
+    fakeData = KD.utils.generateDummyMessage value
+
+    item = @putMessage fakeData
+
+    # save it to a map so that we have a reference
+    # to it to be deleted.
+    @fakeMessageMap[clientRequestId] = item
+
+
+  replaceFakeItemView: (message) ->
+
+    @putMessage message
+
+    @removeFakeMessage message.clientRequestId
+
+
+  removeFakeMessage: (identifier) ->
+
+    return  unless item = @fakeMessageMap[identifier]
+
+    @controller.removeItem item
 
 
   listPreviousReplies: (event) ->
@@ -54,14 +100,17 @@ class CommentView extends KDView
       @listPreviousLink.update()
 
 
-  reply: (body, callback = noop) ->
+  reply: (value, clientRequestId) ->
 
-    activity     = @getData()
-    {appManager} = KD.singletons
+    activity        = @getData()
+    {appManager}    = KD.singletons
+    body            = value
 
-    appManager.tell 'Activity', 'reply', {activity, body}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
 
       return KD.showError err  if err
+
+      @emit 'CommentSavedSuccessfully', reply
 
       KD.mixpanel 'Comment activity, success'
 

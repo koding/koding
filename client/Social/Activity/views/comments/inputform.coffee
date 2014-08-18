@@ -27,15 +27,18 @@ class CommentInputForm extends KDView
 
   enter: (value) ->
 
+    timestamp = Date.now()
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
+
+    @emit 'SubmitStarted', value, clientRequestId
+
+    @input.setValue ''
+    @input.resize()
+    @input.setFocus()
+
     kallback = =>
 
-      @emit 'Submit', value
-
       KD.mixpanel 'Comment activity, click', value.length
-
-      @input.setValue ''
-      @input.resize()
-      @input.setFocus()
 
     KD.requireMembership
       callback  : kallback

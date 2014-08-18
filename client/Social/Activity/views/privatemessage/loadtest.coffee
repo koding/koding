@@ -50,11 +50,11 @@ class PrivateMessageLoadTest extends KDObject
       data["#{nick}_#{batchId}"].messages   or= []
 
       data["#{nick}_#{batchId}"].messages.push
-        seenMessage   : message
-        originalMessage : testData[index].body
-        valid     : message is testData[index].body
-        arrival   : 0
-        departure : index*interval+batchId
+        seenMessage     : message
+        originalMessage : testData[index %% 100].body
+        valid           : message is testData[index %% 100].body
+        arrival         : 0
+        departure       : index*interval+batchId
 
     console.log data
 

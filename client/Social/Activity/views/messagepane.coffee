@@ -22,6 +22,9 @@ class MessagePane extends KDTabPaneView
     @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
     @createInputWidget()
+    @bindInputEvents()
+
+    @fakeMessageMap = {}
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -41,6 +44,55 @@ class MessagePane extends KDTabPaneView
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
+
+
+  bindInputEvents: ->
+
+    return  unless @input
+
+    @input
+      .on 'SubmitStarted',   @bound 'handleEnter'
+      .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
+
+
+  replaceFakeItemView: (message) ->
+
+    @putMessage message
+
+    @removeFakeMessage message.clientRequestId
+
+
+  removeFakeMessage: (identifier) ->
+
+    return  unless item = @fakeMessageMap[identifier]
+
+    @listController.removeItem item
+
+
+  handleEnter: (value, clientRequestId) ->
+
+    return  unless value
+
+    @input.reset yes
+    @createFakeItemView value, clientRequestId
+
+
+  putMessage: (message) ->
+
+    {lastToFirst} = @getOptions()
+    index = if lastToFirst then @listController.getItemCount() else 0
+    @appendMessage message, index
+
+
+  createFakeItemView: (value, clientRequestId) ->
+
+    fakeData = KD.utils.generateDummyMessage value
+
+    item = @putMessage fakeData
+
+    # save it to a map so that we have a reference
+    # to it to be deleted.
+    @fakeMessageMap[clientRequestId] = item
 
 
   handleFocus: (focused) -> @glance()  if focused and @active
@@ -109,6 +161,8 @@ class MessagePane extends KDTabPaneView
 
 
   addMessage: (message) ->
+
+    return  if message.account._id is KD.whoami()._id
 
     {lastToFirst} = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
