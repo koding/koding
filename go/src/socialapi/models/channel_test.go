@@ -756,6 +756,57 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
 
+		Convey("existing just one message in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add message to the channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// try to fetch persisted message
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldNotBeNil)
+			So(flm.Body, ShouldEqual, cm.Body)
+		})
+
+		Convey("existing two message in the channel should give last message", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add first message  to the channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// create second message
+			cm2 := createMessageWithTest()
+			cm2.Body = "lastMessage"
+			So(cm2.Create(), ShouldBeNil)
+
+			cml2, err := c.AddMessage(cm2.Id)
+			So(err, ShouldBeNil)
+			So(cml2, ShouldNotBeNil)
+
+			// try to fetch last message
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldNotBeNil)
+			So(flm.Body, ShouldEqual, cm2.Body)
+		})
+
 		/*
 			Convey("non-existing message in channel should give error", func() {
 				// create channel in db
