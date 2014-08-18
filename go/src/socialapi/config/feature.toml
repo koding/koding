@@ -6,11 +6,11 @@ Password= "socialapplication"
 DBName=   "social"
 
 [mq]
-Host=     "localhost"
-Port=     5672
-Username= "guest"
-Password= "guest"
-Vhost=    "/"
+Host     = "localhost"
+Port     = 5672
+Login    = "guest"
+Password = "guest"
+Vhost    = "/"
 
 [redis]
 URL ="localhost:6379"
