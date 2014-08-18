@@ -52,7 +52,7 @@ class MessagePane extends KDTabPaneView
 
     @input
       .on 'Enter', @bound 'handleEnter'
-      .on 'MessageSavedSuccessfully', @bound 'replaceFakeItemView'
+      .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
 
 
   replaceFakeItemView: (message) ->
