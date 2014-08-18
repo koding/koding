@@ -153,10 +153,6 @@ module.exports = class SocialMessage extends Base
     if not data.recipients or data.recipients.length < 1
       return callback message: "You should have at least one recipient"
 
-    console.log data
-    console.log client.connection.delegate.profile
-
-
     doRequest 'initPrivateMessage', client, data, callback
 
   sendPrivateMessageHelper = (client, data, callback) ->
