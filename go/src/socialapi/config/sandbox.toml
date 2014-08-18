@@ -1,55 +1,57 @@
-EventExchangeName = "BrokerMessageBus"
-Mongo             = "10.0.0.137:27017/koding"
-Environment       = "sandbox"
-Region            = "sandbox"
-Uri               = "http://sandbox.koding.io"
-DisableCaching    = false
-
-
 [postgres]
-Host     = "10.0.0.137"
-Port     = 5432
-Username = "socialapplication"
-Password = "socialapplication"
-DBName   = "social"
+Host=     "10.0.0.137"
+Port=     5432
+Username= "socialapplication"
+Password= "socialapplication"
+DBName=   "social"
 
 [mq]
-Host     = "10.0.0.137"
-Port     = 5672
-Username = "guest"
-Password = "guest"
-Vhost    = "/"
+Host=     "10.0.0.137"
+Port=     5672
+Username= "guest"
+Password= "guest"
+Vhost=    "/"
 
 [redis]
-URL    = "10.0.0.137:6379"
-DB     = 0
-# slave one is not used, just here for future ref
-Slave= "172.16.10.17:6379"
+URL = "10.0.0.137:6379"
+DB  = 0
+
+Mongo              = "10.0.0.137:27017/koding"
+
+Environment        = "sandbox"
+
+Region             = "sandbox"
+
+Hostname           = "http://sandbox.koding.io"
+
+[email]
+Host            = "sandbox.koding.io"
+Protocol        = "http:"
+DefaultFromMail = "hello@koding.com"
+DefaultFromName = "Koding"
+ForcedRecipient = "canthefason@gmail.com"
+Username        = "koding"
+Password        = "DEQl7_Dr"
+TemplateRoot    = "go/src/socialapi/workers/emailnotifier/templates/"
+
+[sitemap]
+RedisDB = 1
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "303eb858050b1067bcd704d6cbfb977c"
+ApiSecretKey   = "041427512bcdcd0c7bd4899ec8175f46"
+IndexSuffix    = ".sandbox"
+
+[mixpanel]
+Enabled       = false
+Token         = "113c2731b47a5151f4be44ddd5af0e7a"
 
 [limits]
 MessageBodyMinLen    = 1
 PostThrottleDuration = "15s"
 PostThrottleCount    = 3
 
-
-[emailnotification]
-templateRoot = "go/src/socialapi/workers/emailnotifier/templates/"
-
-[sendgrid]
-Username= "koding"
-Password= "DEQl7_Dr"
-FromName= "Koding"
-FromMail= "hello@koding.com"
-
-[sitemap]
-RedisDB= 1
-
-[algolia]
-AppId          = "DYVV81J2S1"
-ApiKey         = "041427512bcdcd0c7bd4899ec8175f46"
-ReadOnlyApiKey = "303eb858050b1067bcd704d6cbfb977c"
-IndexSuffix    = ".sandbox"
-
-[analytics]
-Enabled       = false
-MixpanelToken = "113c2731b47a5151f4be44ddd5af0e7a"
+EventExchangeName ="BrokerMessageBus"
+DisableCaching    = false
+Debug             = false

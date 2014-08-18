@@ -1,12 +1,6 @@
-EventExchangeName="BrokerMessageBus"
-Mongo="localhost:27017/koding"
-Environment="prod"
-
 [postgres]
 Host=     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
 Port=     5432
-# Username= "postgres"
-# Password= "123123123"
 Username= "socialapplication"
 Password= "socialapplication"
 DBName=   "social"
@@ -18,24 +12,46 @@ Username= "guest"
 Password= "guest"
 Vhost=    "/"
 
-
 [redis]
-URL ="prod0.1ia3pb.0001.use1.cache.amazonaws.com:6379"
-DB  =0
+URL = "prod0.1ia3pb.0001.use1.cache.amazonaws.com:6379"
+DB  = 0
 
+Mongo              = "localhost:27017/koding"
+
+Environment        = "prod"
+
+Region             = "prod"
+
+Hostname           = "http://lvh.me:8090"
+
+[email]
+Host            = "lvh.me:8090"
+Protocol        = "http:"
+DefaultFromMail = "hello@koding.com"
+DefaultFromName = "Koding"
+ForcedRecipient = "canthefason@gmail.com"
+Username        = "koding"
+Password        = "DEQl7_Dr"
+TemplateRoot    = "workers/emailnotifier/templates/"
+
+[sitemap]
+RedisDB = 0
+
+[algolia]
+AppId          = "DYVV81J2S1"
+ApiKey         = "303eb858050b1067bcd704d6cbfb977c"
+ApiSecretKey   = "041427512bcdcd0c7bd4899ec8175f46"
+IndexSuffix    = ".dev"
+
+[mixpanel]
+Enabled       = false
+Token         = "113c2731b47a5151f4be44ddd5af0e7a"
 
 [limits]
-MessageBodyMinLen=1
+MessageBodyMinLen    = 1
+PostThrottleDuration = "10s"
+PostThrottleCount    = 100
 
-[Notification]
-CacheEnabled = false
-
-[emailnotification]
-templateRoot="workers/emailnotifier/templates/"
-
-[sendgrid]
-Username=        "koding"
-Password=        "DEQl7_Dr"
-FromName=        "Koding"
-FromMail=        "hello@koding.com"
-ForcedRecipient= "canthefason@gmail.com"
+EventExchangeName ="BrokerMessageBus"
+DisableCaching    = false
+Debug             = false
