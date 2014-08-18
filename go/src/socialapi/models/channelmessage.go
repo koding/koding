@@ -7,12 +7,12 @@ import (
 	"socialapi/request"
 	"time"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
+	ve "github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
-var mentionRegex = verbalexpressions.New().
+var mentionRegex = ve.New().
 	Find("@").
 	BeginCapture().
 	Word().
