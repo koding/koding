@@ -13,14 +13,36 @@ Configuration = (options={}) ->
   environment         = options.environment    or "prod"
   projectRoot         = options.projectRoot    or "/opt/koding"
   version             = options.tag
+
   tag                 = options.tag
   publicIP            = options.publicIP       or "*"
 
-  # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
   mongo               = "#{prod_simulation_server}:27017/koding"
-  redis               = {host     : "#{prod_simulation_server}:27017/koding"   , port : "6379" }
-  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/feature.toml" }
-  rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
+
+  redis               =
+    host              : "#{prod_simulation_server}:27017/koding"
+    port              : "6379"
+    db                : 0
+
+  rabbitmq            =
+    host              : "#{prod_simulation_server}"
+    port              : 5672
+    apiPort           : 15672
+    login             : "guest"
+    password          : "guest"
+    vhost             : "/"
+
+  mq                  =
+    host              : "#{rabbitmq.host}"
+    port              : rabbitmq.port
+    apiAddress        : "#{rabbitmq.host}"
+    apiPort           : "#{rabbitmq.apiPort}"
+    login             :"#{rabbitmq.login}"
+    componentUser     :"#{rabbitmq.login}"
+    password          : "#{rabbitmq.password}"
+    heartbeat         : 0
+    vhost             : "#{rabbitmq.vhost}"
+
   etcd                = "#{prod_simulation_server}:4001"
 
   customDomain        =
@@ -30,6 +52,20 @@ Configuration = (options={}) ->
     local_            : "localhost"
     port              : 80
 
+  sendgrid            =
+    username: "koding"
+    password: "DEQl7_Dr"
+
+  # email worker config
+  email               =
+    host              : "#{customDomain.public_}"
+    protocol          : 'https:'
+    defaultFromMail   : 'hello@koding.com'
+    defaultFromName   : 'koding'
+    username          : sendgrid.username
+    password          : sendgrid.password
+    templateRoot      : "workers/sitemap/files/"
+    forcedRecipient   : undefined
 
   # KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
   kontrol             =
@@ -54,7 +90,8 @@ Configuration = (options={}) ->
     authAllExchange   : "authAll"
     failoverUri       : customDomain.public
 
-  userSitesDomain     = "#{customDomain.public_}"                 # this is for domain settings on environment backend eg. kd.io
+  # this is for domain settings on environment backend eg. kd.io
+  userSitesDomain     = "#{customDomain.public_}"
 
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
@@ -66,7 +103,64 @@ Configuration = (options={}) ->
     aws               : "aws"
     premium           : "vagrant"
 
+  #TODO change these credentials
+  algolia             =
+    appId             : 'DYVV81J2S1'
+    apiKey            : '303eb858050b1067bcd704d6cbfb977c'
+    indexSuffix       : '.feature'
 
+  algoliaSecret       =
+    appId             : algolia.appId
+    apiKey            : algolia.apiKey
+    indexSuffix       : algolia.indexSuffix
+    apiSecretKey      : '041427512bcdcd0c7bd4899ec8175f46'
+
+  mixpanel            =
+    token             : "a57181e216d9f713e19d5ce6d6fb6cb3"
+    enabled           : no
+
+  # postgres is used only by socialapi
+  postgres =
+    host     : "#{hostname}"
+    port     : 5432
+    username : "socialapplication"
+    password : "socialapplication"
+    dbname   : "social"
+
+  # configuration for socialapi, order will be the same with
+  # ./go/src/socialapi/config/configtypes.go
+  socialapi =
+    # config for ndoe workers
+    proxyUrl          : "http://localhost:7000"
+    configFilePath    : "#{projectRoot}/go/src/socialapi/config/feature.toml"
+    # end for node worker configs
+
+    # postgres config
+    postgres          : postgres
+    # rabbitmq configuration
+    mq                : mq
+    # connection parameters for redis
+    redis             : url: "#{redis.host}:#{redis.port}"
+    mongo             : mongo
+    environment       : environment
+    region            : region
+    hostname          : hostname
+    # config related with the email worker
+    email             : email
+    # sitemap's redis DB number, we are setting it not to pollute the cache db
+    sitemap           :
+      redisDB         : 0
+    # algolia is the search engine for autocomplete
+    algolia           : algoliaSecret
+    # analytics service config
+    mixpanel          : mixpanel
+    limits            :
+      messageBodyMinLen    : 1
+      postThrottleDuration : "15s"
+      postThrottleCount    : "3"
+    eventExchangeName : "BrokerMessageBus"
+    disableCaching    : no
+    debug             : no
 
   KONFIG              =
     environment       : environment
@@ -79,7 +173,7 @@ Configuration = (options={}) ->
     uri               : {address: "#{customDomain.public}:#{customDomain.port}"}
     userSitesDomain   : userSitesDomain
     projectRoot       : projectRoot
-    socialapi         : socialapi        # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
+    socialapi         : socialapi
     mongo             : mongo
     redis             : "#{redis.host}:#{redis.port}"
     misc              : {claimGlobalNamesForUsers: no, updateAllSlugs : no, debugConnectionErrors: yes}
@@ -88,11 +182,17 @@ Configuration = (options={}) ->
 
     webserver         : {port          : 3000                        , useCacheHeader: no}
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
-    mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
+    mq                : mq
+    emailWorker       :
+      cronInstant     : '*/10 * * * * *'
+      cronDaily       : '0 10 0 * * *'
+      run             : yes
+      forcedRecipient : email.forcedRecipient
+      maxAge          : 3
+
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
-    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : email
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
@@ -106,6 +206,7 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: "/^(subscriptions|transactions)/"}
+    sendgrid          : sendgrid
     opsview           : {push          : no                                            , host          : '', bin: null, conf: null}
     github            : {clientId      : "f8e440b796d953ea01e5"                        , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk             : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"            , secret        : "549b7635e1e4385e",request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request",access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access",secret_url: "https://www.odesk.com/services/api/auth?oauth_token=",version: "1.0",signature: "HMAC-SHA1",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -122,7 +223,7 @@ Configuration = (options={}) ->
     embedly           : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
     troubleshoot      : {recipientEmail: "can@koding.com"}
     rollbar           : "71c25e4dc728431b88f82bd3e7a600c9"
-    mixpanel          : "a57181e216d9f713e19d5ce6d6fb6cb3"
+    mixpanel          : mixpanel.token
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -131,10 +232,7 @@ Configuration = (options={}) ->
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
-    algolia: #TODO change these credentials
-      appId: '8KD9RHY1OA'
-      apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
-      indexSuffix: '.feature'
+    algolia           : algolia
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
@@ -149,10 +247,8 @@ Configuration = (options={}) ->
     mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
     appsUri           : "/appsproxy"
-
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-    # logApiUri         : "#{customDomain.public}:4030/xhr"
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
