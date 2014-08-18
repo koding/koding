@@ -7,9 +7,7 @@ valueOf = (arg)->
 if user = valueOf "user"
   ngrok = require 'ngrok'
 
-  [{name:"kontrol", port: 4000},
-   {name:"proxy",   port: 1234},
-   {name:"koding",  port: 8090}].forEach (kite)->
+  [{name:"koding",  port: 8090}].forEach (kite)->
     console.log "--------------------> creating tunnel #{kite.name}-#{user}.ngrok.com"
     ngrok.connect
       authtoken : 'CMY-UsZMWdx586A3tA0U'

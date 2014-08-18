@@ -37,6 +37,8 @@ class MessagePane extends KDTabPaneView
         @listController.getListView().once 'ItemWasAdded', (item) =>
           listView = @listController.getListItems().first.commentBox.controller.getListView()
           listView.on 'ItemWasAdded', @bound 'scrollDown'
+      when 'privatemessage'
+        @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
@@ -48,7 +50,13 @@ class MessagePane extends KDTabPaneView
 
     return  unless @active
 
-    listView = @listController.getListItems().first.commentBox.controller.getListView()
+    {typeConstant} = @getData()
+
+    if item.getDelegate().addSubView
+      listView = item.getDelegate()
+    else
+      listView = item.getDelegate().getListView()
+
     unless @separator
       @separator = new KDView cssClass : 'new-messages'
       listView.addSubView @separator

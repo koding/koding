@@ -24,6 +24,7 @@ type Notifiable interface {
 	GetDefinition() string
 	// used for notification emails
 	GetActivity() string
+	GetMessageId() int64
 }
 
 func fetchNotifiedUsers(contentId int64) ([]int64, error) {

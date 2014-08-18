@@ -419,14 +419,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return
 
-    else if machineItem.type is 'machine'
+    else if machineItem.getData().status.state is Machine.State.Building
 
-      {Running, Stopped} = Machine.State
-
-      unless machine.status.state is Running
-        KD.utils.stopDOMEvent event
-        @machineTree.deselectNode machineItem
-        KD.singletons.mainView.openMachineModal machine, machineItem
+      return
 
 
   handleMachineToggle: (machineItem, event) ->

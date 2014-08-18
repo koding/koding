@@ -4,6 +4,7 @@ type PMNotification struct {
 	TargetId   int64
 	NotifierId int64
 	ListerId   int64
+	MessageId  int64
 }
 
 func (n *PMNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
@@ -51,4 +52,8 @@ func (n *PMNotification) GetDefinition() string {
 
 func (n *PMNotification) GetActivity() string {
 	return "send you a"
+}
+
+func (n *PMNotification) GetMessageId() int64 {
+	return n.MessageId
 }
