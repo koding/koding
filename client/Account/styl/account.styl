@@ -227,6 +227,18 @@ body.account
           margin-top              18px
           fr()
 
+    &.delete-account
+      .delete-account-view
+        line-height               40px
+
+        .kdbutton.delete-account
+          -webkit-transition      -webkit-transform .2s ease
+          -moz-transition         -moz-transform .2s ease
+          transition              transform .2s ease
+
+          &.escape
+            vendor                transform, translateX(-120%)
+
     &.payment-methods
       .payment-method
         height                    62px
