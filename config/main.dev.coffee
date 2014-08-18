@@ -83,26 +83,25 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    presence          : {exchange      : 'services-presence'}
+    mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}"   , apiPort         : "#{rabbitmq.apiPort}"      , login  : "#{rabbitmq.login}", componentUser : "#{rabbitmq.login}", password : "#{rabbitmq.password}", heartbeat : 0, vhost : "#{rabbitmq.vhost}"}
     webserver         : {port          : 3000                        , useCacheHeader: no}
-    authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
-    mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
-    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
-    elasticSearch     : {host          : "#{boot2dockerbox}"         , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
-    social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
+    emailWorker       : {cronInstant   : "*/10 * * * * *"            , cronDaily : "0 10 0 * * *"        , run               : no                   , forcedRecipient : undefined                  , maxAge : 3}
+    elasticSearch     : {host          : "#{boot2dockerbox}"         , port      : 9200                  , enabled           : no                   , queue           : "elasticSearchFeederQueue"}
+    authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"               , authAllExchange : "authAll"}
+    social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : "#{socialQueueName}" , kitePort        : 8765 }
     email             : {host          : "#{customDomain.public_}"   , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     kloud             : {port          : 5500                        , privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "#{kontrol.url}", registerUrl: "#{customDomain.public}/kloud/kite"  }
+    emailConfirmationCheckerWorker     : {enabled: no                , login : "#{rabbitmq.login}"       , queueName: "#{socialQueueName}emailConfirmationCheckerWorker",cronSchedule: "0 * * * * *",usageLimitInMinutes  : 60}
     kontrol           : kontrol
-    newkontrol        : kontrol #deprecate this kontrol is now one.
-    emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
+    newkontrol        : kontrol        #deprecate this kontrol is now one.
     appsproxy         : {port          : 3500 }
     sourcemaps        : {port          : 3526 }
 
     # -- MISC SERVICES --#
-    recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}
-    opsview           : {push          : no                                            , host          : '', bin: null, conf: null}
+    recurly           : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"            , loggedRequests: /^(subscriptions|transactions)/}
+    opsview           : {push          : no                                            , host          : "", bin: null, conf: null}
     github            : {clientId      : "f8e440b796d953ea01e5"                        , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk             : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"            , secret        : "549b7635e1e4385e",request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request",access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access",secret_url: "https://www.odesk.com/services/api/auth?oauth_token=",version: "1.0",signature: "HMAC-SHA1",redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook          : {clientId      : "475071279247628"                             , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27", redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
@@ -114,7 +113,7 @@ Configuration = (options={}) ->
     graphite          : {use           : false                                         , host          : "#{customDomain.host}", port: 2003}
     sessionCookie     : {maxAge        : 1000 * 60 * 60 * 24 * 14                      , secure        : no}
     logLevel          : {neo4jfeeder   : "notice", oskite: "info", terminal: "info"    , kontrolproxy  : "notice", kontroldaemon : "notice",userpresence  : "notice", vmproxy: "notice", graphitefeeder: "notice", sync: "notice", topicModifier : "notice",  postModifier  : "notice", router: "notice", rerouting: "notice", overview: "notice", amqputil: "notice",rabbitMQ: "notice",ldapserver: "notice",broker: "notice"}
-    aws               : {key           : 'AKIAJSUVKX6PD254UGAA'                        , secret        : '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'}
+    aws               : {key           : "AKIAJSUVKX6PD254UGAA"                        , secret        : "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"}
     embedly           : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
     troubleshoot      : {recipientEmail: "can@koding.com"}
     rollbar           : "71c25e4dc728431b88f82bd3e7a600c9"
@@ -402,14 +401,14 @@ Configuration = (options={}) ->
 
       return str
 
-    envvars = ->
+    envvars = (options={})->
+      options.exclude or= []
+
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
-      export KONFIG_JSON='#{KONFIG.JSON}'
-
       """
-      # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+      env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV when key not in options.exclude
       return env
 
     workerList = (separator=" ")->
@@ -446,7 +445,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
         chmod +x ./build-client.coffee
-        ./build-client.coffee --watch false  --verbose
+        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
         git submodule init
         git submodule update
 
@@ -512,6 +511,20 @@ Configuration = (options={}) ->
 
       }
 
+      function printconfig () {
+        if [ "$2" == "" ]; then
+          cat << EOF
+          #{envvars(exclude:["KONFIG_JSON"])}EOF
+        elif [ "$2" == "--json" ]; then
+
+          echo '#{KONFIG.JSON}'
+
+        else
+          echo ""
+        fi
+
+      }
+
       function run () {
         check
         #{projectRoot}/go/build.sh
@@ -543,6 +556,7 @@ Configuration = (options={}) ->
         echo "  run buildservices      : to initialize and start services"
         echo "  run services           : to stop and restart services"
         echo "  run worker             : to list workers"
+        echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]    : to run a single worker"
         echo "  run help               : to show this list"
         echo ""
@@ -666,6 +680,10 @@ Configuration = (options={}) ->
 
         #{installScript}
 
+      elif [ "$1" == "printconfig" ]; then
+
+        printconfig $@
+
       elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
         if [ "$2" == "" ]; then
@@ -676,7 +694,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "cleanup" ]; then
 
-        ./cleanup @$
+        ./cleanup $@
 
       elif [ "$1" == "buildclient" ]; then
 
@@ -727,6 +745,8 @@ Configuration = (options={}) ->
   KONFIG.ENV            = generateEnvVariables   KONFIG
   KONFIG.supervisorConf = generateSupervisorConf KONFIG
   KONFIG.runFile        = generateRunFile        KONFIG
+
+
   return KONFIG
 
 module.exports = Configuration
