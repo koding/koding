@@ -739,3 +739,35 @@ func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
 
 	})
 }
+
+func TestChannelFetchLastMessage(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching last message", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.FetchLastMessage()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		/*
+			Convey("non-existing message in channel should give error", func() {
+				// create channel in db
+				c := createNewChannelWithTest()
+				So(c.Create(), ShouldBeNil)
+
+				flm, err := c.FetchLastMessage()
+				// should give an error but not !!..??
+				So(err, ShouldNotBeNil)
+				So(flm, ShouldEqual, bongo.RecordNotFound)
+			})
+		*/
+
+	})
+}
