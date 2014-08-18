@@ -86,8 +86,6 @@ class MessagePane extends KDTabPaneView
 
   createFakeItemView: (value, timestamp) ->
 
-    console.log "createFakeItemView", {a:this}
-
     fakeData = KD.utils.generateDummyMessage value, timestamp
 
     item = @putMessage fakeData

@@ -39,12 +39,12 @@ class ActivityAppController extends AppController
     socialapi.message.edit {id, body}, callback
 
 
-  reply: ({activity, body}, callback = noop) ->
+  reply: ({activity, body, requestData}, callback = noop) ->
 
     messageId = activity.id
 
     {socialapi} = KD.singletons
-    socialapi.message.reply {body, messageId}, callback
+    socialapi.message.reply {body, messageId, requestData}, callback
 
 
   delete: ({id}, callback) ->

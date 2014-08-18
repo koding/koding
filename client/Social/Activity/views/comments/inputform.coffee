@@ -29,7 +29,7 @@ class CommentInputForm extends KDView
 
     kallback = =>
 
-      @emit 'Submit', value
+      @emit 'Submit', value, (new Date).getTime()
 
       KD.mixpanel 'Comment activity, click', value.length
 

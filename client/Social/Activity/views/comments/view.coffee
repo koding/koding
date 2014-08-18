@@ -54,12 +54,14 @@ class CommentView extends KDView
       @listPreviousLink.update()
 
 
-  reply: (body, callback = noop) ->
+  reply: (value, timestamp) ->
 
     activity     = @getData()
     {appManager} = KD.singletons
+    body         = value
+    requestData  = KD.utils.generateFakeIdentifier timestamp
 
-    appManager.tell 'Activity', 'reply', {activity, body}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, requestData}, (err, reply) =>
 
       return KD.showError err  if err
 
