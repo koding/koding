@@ -54,3 +54,7 @@ func (n *InteractionNotification) GetDefinition() string {
 func (n *InteractionNotification) GetActivity() string {
 	return n.TypeConstant + "d your"
 }
+
+func (n *InteractionNotification) GetMessageId() int64 {
+	return n.TargetId
+}
