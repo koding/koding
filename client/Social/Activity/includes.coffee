@@ -72,6 +72,7 @@ module.exports = [
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
+  "views/inputhelperview.coffee"
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 
@@ -95,11 +96,13 @@ module.exports = [
 
   "views/privatemessage/listitem.coffee"
   "views/privatemessage/modal.coffee"
+  "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
+  "views/privatemessage/loadtest.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

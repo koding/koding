@@ -740,12 +740,15 @@ utils.extend utils,
     now       = new Date timestamp
     isoNow    = now.toISOString()
 
+    account = KD.utils.extend KD.whoami(),
+      constructorName: 'JAccount'
+
     fakeObject         =
       isFake           : yes
       on               : -> this
       watch            : -> this
       body             : body
-      account          : KD.whoami()
+      account          : account
       createdAt        : isoNow
       updatedAt        : isoNow
       repliesCount     : 0

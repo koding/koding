@@ -1,3 +1,9 @@
+process.title = 'koding-appsproxy'
+
+var argv     = require('minimist')(process.argv);
+var newrelic = argv['disable-newrelic'] ? {} : require('newrelic');
+
+
 
 var express    = require('express'),
     config     = require('./conf'),
@@ -9,8 +15,6 @@ var KONFIG     = require('koding-config-manager').load("main."+argv.c);
 var fs         = require('fs');
 var http       = require('http');
 var request    = require('request');
-
-console.log("heoloo")
 
 var app = express();
 

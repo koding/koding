@@ -179,9 +179,17 @@ module.exports = class ComputeProvider extends Base
 
   # Auto create stack operations ###
 
-  @createGroupStack = permit 'create machines', success: (client, callback)->
+  @createGroupStack$ = permit 'create machines',
+
+    success: (client, callback)->
+
+      ComputeProvider.createGroupStack client, callback
+
+
+  @createGroupStack = (client, callback = ->)->
 
     fetchStackTemplate client, (err, res)->
+
       return callback err  if err
 
       { account, user, group, template } = res
@@ -277,3 +285,21 @@ module.exports = class ComputeProvider extends Base
           console.log "RESULT:", results
 
         daisy queue
+
+
+  do ->
+
+    JGroup = require '../group'
+    JGroup.on 'MemberAdded', ({group, member})->
+
+      client =
+        connection :
+          delegate : member
+        context    : group : group.slug
+
+      console.log "Member added, creating default stack..."
+
+      ComputeProvider.createGroupStack client, (err, res)->
+
+        console.log "Create group stack result:", err, res
+

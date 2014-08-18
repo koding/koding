@@ -9,6 +9,8 @@ resurrection.activity.styl
 */
 }
 
+mainTextColor = #3B3B3B
+
 .activity-status-context
   display               none
 
@@ -557,7 +559,7 @@ span.collapsedtext
     > article
       line-height         20px
       font-size           14px
-      color               #575757
+      color               mainTextColor
       font-weight         400
       word-break          break-word
       // to avoid too long posts
@@ -1115,6 +1117,8 @@ span.collapsedtext
     font-weight           500
   a
     color                 logoBg
+    font-weight           600
+    noTextDeco()
   hr
     height                1px
     background            #c4c4c9
@@ -1248,6 +1252,7 @@ span.collapsedtext
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            0
   padding-top           58px
+  borderBox()
 
   .list-previous-link
     size                100% 47px
@@ -1572,11 +1577,12 @@ span.collapsedtext
     position            fixed
     bottom              0
     height              auto
-    width               100%
+    kalc                width, 100% \- 326px
     padding             0 0 30px
     bg                  color white
     margin-top          8px
     margin-bottom       0
+    vendor              transition, width .177s ease
 
     &:before
       content         ""
@@ -1590,12 +1596,13 @@ span.collapsedtext
       border-radius   0
       border          2px solid #eaeaea
 
+#kdmaincontainer.collapsed .reply-input-widget
+  kalc                width, 100% \- 131px
+
+
 .reply-like-tooltip
   p
     text-align              left
-
-
-
 
 /* Temp style for contentdisplay */
 
@@ -2031,3 +2038,4 @@ body.group.members
   .kdautocompletelistitem.active
     color           white
     bg              color logoBg
+

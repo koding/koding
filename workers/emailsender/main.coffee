@@ -1,13 +1,12 @@
 # ~ GG
-
-{argv}    = require 'optimist'
-{CronJob} = require 'cron'
-Bongo     = require 'bongo'
-Broker    = require 'broker'
-htmlify   = require 'koding-htmlify'
-
-Emailer   = require '../social/lib/social/emailer'
-template  = require './templates'
+process.title = 'koding-emailsender'
+{argv}        = require 'optimist'
+{CronJob}     = require 'cron'
+Bongo         = require 'bongo'
+Broker        = require 'broker'
+htmlify       = require 'koding-htmlify'
+Emailer       = require '../social/lib/social/emailer'
+template      = require './templates'
 
 {mq, mongo, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")

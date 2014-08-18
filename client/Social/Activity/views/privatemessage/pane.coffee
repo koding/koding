@@ -1,5 +1,15 @@
 class PrivateMessagePane extends MessagePane
 
+  TEST_MODE        = on
+  INTERACTIVE_MODE = off
+  lastQuestion     = null
+  isFromBot        = (message, callback) ->
+    {_id} = message.account
+    KD.remote.cacheable 'JAccount', _id, (err, {profile})->
+      {nickname} = profile
+      callback nickname in ['kodingbot', 'kbot']
+
+
   constructor: (options = {}, data) ->
 
     options.wrapper     ?= yes
@@ -28,6 +38,7 @@ class PrivateMessagePane extends MessagePane
     @createParticipantsView()
 
     @input = new ReplyInputWidget {channel}
+    @kodingBot = new KodingBot delegate : this
 
     @bindInputEvents()
 
@@ -36,15 +47,15 @@ class PrivateMessagePane extends MessagePane
 
 
   # override this so that it won't
-  # be have to scroll to the top when
+  # have to scroll to the top when
   # a new item is added to list
-  scrollUp: -> return
+  # scrollUp: -> return
 
 
   bindInputEvents: ->
     @input
       .on 'Enter', @bound 'handleEnter'
-      .on 'Submit', @bound 'replaceFakeMessage'
+      .on 'MessageSavedSuccessfully', @bound 'replaceFakeMessage'
 
 
   replaceFakeMessage: (message) ->
@@ -55,7 +66,12 @@ class PrivateMessagePane extends MessagePane
     @messageMap[message.id] = yes
     @prependMessage message, @listController.getItemCount() - 1
 
-    @removeFakeMessage message.requestData  if message.requestData
+    @removeFakeMessage message.requestData
+
+
+
+  parse = (args...) -> args.map (item) -> parseInt item
+
 
   # as soon as the enter key down,
   # we create a fake itemview and put
@@ -63,10 +79,35 @@ class PrivateMessagePane extends MessagePane
   # comes back, it will replace the fake one
   # with the real one.
   handleEnter: (value, timestamp) ->
+
     return  unless value
+
+    @applyTestPatterns value  if TEST_MODE
+    @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     @input.reset yes
     @createFakeItemView value, timestamp
+    @input.empty()
+
+
+  applyTestPatterns: (value) ->
+
+    if value.match /^\/unleashtheloremipsum/
+      [_, interval, batchCount] = value.split " "
+      [interval, batchCount] = parse interval, batchCount
+      PrivateMessageLoadTest.run this, interval, batchCount
+    else if value.match /^\/analyzetheloremipsum/
+      PrivateMessageLoadTest.analyze this
+
+
+  applyInteractiveResponse: (value) ->
+
+    if lastQuestion
+      message = lastQuestion.getData()
+      @kodingBot.process message, value
+
+
+    @setResponseMode off
 
 
   createFakeItemView: (value, timestamp) ->
@@ -102,18 +143,28 @@ class PrivateMessagePane extends MessagePane
   addMessage: (message) ->
 
     return  if @messageMap[message.id]
-
-    @removeFakeMessage message.requestData  if message.requestData
+    return  if message.account._id is KD.whoami()._id
 
     # insert the real message.
     @messageMap[message.id] = yes
-    @prependMessage message, @listController.getItemCount()
+    item = @prependMessage message, @listController.getItemCount()
+
+    isFromBot message, @bound 'setResponseMode'
+
+    return item
 
 
   removeMessage: (message) ->
 
     return  unless @messageMap[message.id]
     super message
+
+  setResponseMode: (mode) ->
+
+    if mode is on
+      lastQuestion = @listController.getListItems().last
+
+    INTERACTIVE_MODE = mode
 
 
   loadMessage: (message) -> @appendMessage message, 0
@@ -142,9 +193,22 @@ class PrivateMessagePane extends MessagePane
 
   messageAdded: (item, index) ->
 
-    @scrollDown()
+    @scrollDown item
     {data} = item
     @messageMap[data.id] = yes
+
+    # TODO: This is a temporary fix,
+    # we need to revisit this part.
+    # messageAdded & messageRemoved has a race
+    # condition problem. ~Umut
+    if data.requestData and not data.isFake
+      fakeItem = @fakeMessageMap[data.requestData]
+
+      if fakeItem.hasClass 'consequent'
+      then item.setClass 'consequent'
+      else item.unsetClass 'consequent'
+
+      return
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
@@ -171,7 +235,7 @@ class PrivateMessagePane extends MessagePane
     # try to remove the same item again.
     return  unless @messageMap[data.id]
 
-    delete @messageMap[data.id]
+    @messageMap[data.id] = no
 
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index]

@@ -72,10 +72,32 @@ class MainView extends KDView
     @addSubView @sidebar = new KDCustomScrollView
       tagName  : 'aside'
       domId    : 'main-sidebar'
+      offscreenIndicatorClassName: 'unread'
+
+    @sidebar.addSubView moreItemsAbove = new KDView
+      cssClass  : 'more-items above hidden'
+      partial   : 'Unread items'
+
+    @sidebar.addSubView moreItemsBelow = new KDView
+      cssClass  : 'more-items below hidden'
+      partial   : 'Unread items'
 
     @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
 
+    @sidebar.on 'OffscreenItemsAbove', ->
+      moreItemsAbove.show()
 
+    @sidebar.on 'NoOffscreenItemsAbove', ->
+      moreItemsAbove.hide()
+
+    @sidebar.on 'OffscreenItemsBelow', ->
+      moreItemsBelow.show()
+
+    @sidebar.on 'NoOffscreenItemsBelow', ->
+      moreItemsBelow.hide()
+
+    KD.singletons.notificationController.on 'ParticipantUpdated', =>
+      @sidebar.updateOffscreenIndicators()
 
   createPanelWrapper:->
 

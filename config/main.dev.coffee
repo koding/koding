@@ -1,5 +1,5 @@
 traverse            = require 'traverse'
-
+fs                  = require 'fs'
 Configuration = (options={}) ->
 
   boot2dockerbox      = "192.168.59.103"
@@ -21,16 +21,16 @@ Configuration = (options={}) ->
   etcd                = "#{boot2dockerbox}:4001"
 
   customDomain        =
-    public            : "http://#{hostname}"
-    public_           : "#{hostname}"
-    local             : "http://localhost"
-    local_            : "localhost"
-    port              : 80
+    public            : "http://koding-#{publicHostname}.ngrok.com"
+    public_           : "koding-#{publicHostname}.ngrok.com"
+    local             : "http://lvh.me"
+    local_            : "lvh.me"
+    port              : 8090
 
 
   # KONTROL DEPLOYMENT IS SEPARATED FROM PROD DEPLOY.
   kontrol             =
-    url               : "http://kontrol-#{publicHostname}.ngrok.com/kite"
+    url               : "#{customDomain.public}/kontrol/kite"
     port              : 4000
     useTLS            : no
     certFile          : ""
@@ -73,7 +73,7 @@ Configuration = (options={}) ->
     publicHostname    : publicHostname
     version           : version
     broker            : broker
-    uri               : {address: "#{customDomain.public}:#{customDomain.port}"}
+    uri               : {address: "#{customDomain.public}"}
     userSitesDomain   : userSitesDomain
     projectRoot       : projectRoot
     socialapi         : socialapi        # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
@@ -88,18 +88,17 @@ Configuration = (options={}) ->
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
     mq                : {host          : "#{rabbitmq.host}"          , port      : rabbitmq.port         , apiAddress        : "#{rabbitmq.host}" , apiPort         : "#{rabbitmq.apiPort}", login:"#{rabbitmq.login}",componentUser:"#{rabbitmq.login}",password: "#{rabbitmq.password}",heartbeat: 0, vhost: "#{rabbitmq.vhost}"}
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
-    elasticSearch     : {host          : "#{boot2dockerbox}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
+    elasticSearch     : {host          : "#{boot2dockerbox}"         , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : {host          : "#{customDomain.public_}"   , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/koding/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
-    boxproxy          : {port          : 8090 }
+    kloud             : {port          : 5500                        , privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "#{kontrol.url}", registerUrl: "#{customDomain.public}/kloud/kite"  }
+    kontrol           : kontrol
+    newkontrol        : kontrol #deprecate this kontrol is now one.
+    emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
     appsproxy         : {port          : 3500 }
     sourcemaps        : {port          : 3526 }
-    kloud             : {port          : 5500, privateKeyFile: kontrol.privateKeyFile, publicKeyFile: kontrol.publicKeyFile, kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
-    emailConfirmationCheckerWorker     : {enabled: no, login : "#{rabbitmq.login}", queueName: socialQueueName+'emailConfirmationCheckerWorker',cronSchedule: '0 * * * * *',usageLimitInMinutes  : 60}
-
-    newkontrol        : kontrol
 
     # -- MISC SERVICES --#
     recurly           : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: /^(subscriptions|transactions)/}
@@ -177,20 +176,19 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env dev -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url http://kontrol-#{publicHostname}.ngrok.com/kite"
+    kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env dev -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
-    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName}"
-    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port}"
-    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName}"
-    boxproxy            : command : "./watch-node #{projectRoot}/servers/boxproxy/boxproxy.js        -c #{configName}"
-    appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port}"
+    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName} --disable-newrelic"
+    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName} --disable-newrelic"
+    appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
     webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
 
@@ -199,8 +197,33 @@ Configuration = (options={}) ->
 
 
 
-    # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
-    # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -235,6 +258,141 @@ Configuration = (options={}) ->
     """ for key,val of KONFIG.workers
     return conf
 
+  nginxConf = """
+
+    worker_processes  1;
+
+    #error_log  logs/error.log;
+    #error_log  logs/error.log  notice;
+    #error_log  logs/error.log  info;
+
+    #pid        logs/nginx.pid;
+
+
+
+    events {
+        worker_connections  1024;
+    }
+    http {
+    upstream webs       { server 127.0.0.1:#{KONFIG.webserver.port}  ;}
+    upstream social     { server 127.0.0.1:#{KONFIG.social.port}     ;}
+    upstream subscribe  { server 127.0.0.1:#{KONFIG.broker.port}     ;}
+    upstream kloud      { server 127.0.0.1:#{KONFIG.kloud.port}      ;}
+    upstream kontrol    { server 127.0.0.1:#{KONFIG.kontrol.port}    ;}
+    upstream appsproxy  { server 127.0.0.1:#{KONFIG.appsproxy.port}  ;}
+    upstream sourcemaps { server 127.0.0.1:#{KONFIG.sourcemaps.port} ;}
+
+    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    server {
+      listen 8090 default_server;
+      listen [::]:8090 default_server ipv6only=on;
+
+      root /usr/share/nginx/html;
+      index index.html index.htm;
+
+      # Make site accessible from http://localhost/
+      server_name localhost;
+
+      server_name #{hostname};
+      location / {
+        proxy_pass            http://webs;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /xhr {
+        proxy_pass            http://social;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /appsproxy {
+        proxy_pass            http://appsproxy;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /sourcemaps {
+        proxy_pass            http://sourcemaps;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+
+      location ~^/kloud/.* {
+        proxy_pass            http://kloud;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location ~^/kontrol/.* {
+        proxy_pass            http://kontrol;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+
+      location ~^/subscribe/.* {
+        proxy_pass http://subscribe;
+
+        proxy_http_version 1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location /websocket {
+        proxy_pass http://subscribe;
+
+        proxy_http_version 1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+    }
+  }
+  """
+  fs.writeFileSync "./.dev.nginx.conf",nginxConf
+
   generateRunFile = (KONFIG) ->
 
     killlist = ->
@@ -254,13 +412,33 @@ Configuration = (options={}) ->
       # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
       return env
 
+    workerList = (separator=" ")->
+      (key for key,val of KONFIG.workers).join separator
+
     workersRunList = ->
       workers = ""
       for key,val of KONFIG.workers
-        workers +="#------------- worker: #{key} -------------#\n"
-        workers +="#{val.command} &>#{projectRoot}/.logs/#{key}.log & \n"
-        workers +="#{key}pid=$! \n"
-        workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
+
+        workers += """
+
+        function worker_daemon_#{key} {
+
+          #------------- worker: #{key} -------------#
+          #{val.command} &>#{projectRoot}/.logs/#{key}.log &
+          #{key}pid=$!
+          echo [#{key}] started with pid: $#{key}pid
+
+
+        }
+
+        function worker_#{key} {
+
+          #------------- worker: #{key} -------------#
+          #{val.command}
+
+        }
+
+        """
       return workers
 
     installScript = """
@@ -300,14 +478,6 @@ Configuration = (options={}) ->
         cake build
         cd #{projectRoot}
 
-        echo '#---> AUTHORIZING THIS COMPUTER TO NGROK (@gokmen) <---#'
-        if grep -q UsZMWdx586A3tA0U "$HOME/.ngrok"; then
-          echo you seem to have correct .ngrok file.
-        else
-          echo 'created ~/.ngrok file'
-          echo auth_token: CMY-UsZMWdx586A3tA0U >> $HOME/.ngrok
-        fi
-
 
         echo
         echo
@@ -333,46 +503,84 @@ Configuration = (options={}) ->
         kill_all
       }
 
+      nginxrun () {
+
+        echo "starting nginx"
+        nginx -s quit
+        nginx -c #{projectRoot}/.dev.nginx.conf
+
+
+      }
+
       function run () {
+        check
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
         cd #{projectRoot}
-        #{workersRunList()}
+
+        nginxrun
+
+        #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
+
         tail -fq ./.logs/*.log
 
       }
 
-      function check (){
+      #{workersRunList()}
 
-        # umuts domain
-        # check if docker is installed
-        # boot2docker is setup
-        # env DOCKER_HOST there etc
-        echo ""
-
-      }
 
       function printHelp (){
 
         echo "Usage: "
         echo ""
-        echo "  run               : to start koding"
-        echo "  run killall       : to kill every process started by run script"
-        echo "  run install       : to compile/install client and "
-        echo "  run buildclient   : to see of specified worker logs only"
-        echo "  run logs          : to see all workers logs"
-        echo "  run log [worker]  : to see of specified worker logs only"
-        echo "  run buildservices : to initialize and start services"
-        echo "  run services      : to stop and restart services"
-        echo "  run help          : to show this list"
+        echo "  run                    : to start koding"
+        echo "  run killall            : to kill every process started by run script"
+        echo "  run install            : to compile/install client and "
+        echo "  run buildclient        : to see of specified worker logs only"
+        echo "  run logs               : to see all workers logs"
+        echo "  run log [worker]       : to see of specified worker logs only"
+        echo "  run buildservices      : to initialize and start services"
+        echo "  run services           : to stop and restart services"
+        echo "  run worker             : to list workers"
+        echo "  run worker [worker]    : to run a single worker"
+        echo "  run help               : to show this list"
         echo ""
 
       }
 
-      function check_service_dependencies () {
+      function check (){
 
-        echo ""
+        check_service_dependencies
+
+        if [ -z "$DOCKER_HOST" ]; then
+          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
+          exit 1
+        fi
+
+        mongo #{mongo} --eval "db.stats()"  # do a simple harmless command of some sort
+
+        RESULT=$?   # returns 0 if mongo eval succeeds
+
+        if [ $RESULT -ne 0 ]; then
+            echo "cant talk to mongodb at #{mongo}, is it not running? exiting."
+            exit 1
+        else
+            echo "mongodb running!"
+        fi
+
+
+      }
+
+      function check_service_dependencies () {
+        echo "checking required services: nginx, docker, mongo..."
+        command -v go           >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
+        command -v docker       >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
+        command -v nginx        >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
+        command -v boot2docker  >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        command -v mongorestore >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
+        command -v node         >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
+        command -v npm          >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
 
       }
 
@@ -437,6 +645,10 @@ Configuration = (options={}) ->
         echo "Starting services: $SERVICES"
         docker start $SERVICES
 
+        echo "starting nginx"
+        nginx -s quit
+        nginx -c `pwd`/.dev.nginx.conf
+
       }
 
 
@@ -489,8 +701,18 @@ Configuration = (options={}) ->
       elif [ "$1" == "help" ]; then
         printHelp
 
+      elif [ "$1" == "worker" ]; then
+
+        if [ "$2" == "" ]; then
+          echo Available workers:
+          echo "-------------------"
+          echo '#{workerList "\n"}'
+        else
+          eval "worker_$2"
+        fi
+
       elif [ "$#" == "0" ]; then
-        check
+
         run
 
       else
@@ -505,7 +727,6 @@ Configuration = (options={}) ->
   KONFIG.ENV            = generateEnvVariables   KONFIG
   KONFIG.supervisorConf = generateSupervisorConf KONFIG
   KONFIG.runFile        = generateRunFile        KONFIG
-
   return KONFIG
 
 module.exports = Configuration

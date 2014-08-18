@@ -1,10 +1,11 @@
 zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
+fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  prod_simulation_server = "10.0.0.5"
+  prod_simulation_server = "10.0.0.137"
 
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
@@ -19,7 +20,7 @@ Configuration = (options={}) ->
   # prod mongo "mongodb://dev:k9lc4G1k32nyD72@172.16.3.9,172.16.3.10,172.16.3.15/koding?replicaSet=koodingrs0&readPreference=primaryPreferred"
   mongo               = "#{prod_simulation_server}:27017/koding"
   redis               = {host     : "#{prod_simulation_server}:27017/koding"   , port : "6379" }
-  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/feature.toml" }
+  socialapi           = {proxyUrl : "http://localhost:7000"       , port : 7000 , clusterSize : 5,     configFilePath : "#{projectRoot}/go/src/socialapi/config/sandbox.toml" }
   rabbitmq            = {host     : "#{prod_simulation_server}"   , port : 5672 , apiPort     : 15672, login          : "guest", password : "guest", vhost:"/"}
   etcd                = "#{prod_simulation_server}:4001"
 
@@ -92,7 +93,7 @@ Configuration = (options={}) ->
     elasticSearch     : {host          : "#{prod_simulation_server}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                 , forcedRecipient : undefined, maxAge: 3}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
-    email             : {host          : "#{customDomain.public}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
+    email             : {host          : "#{customDomain.public_}"    , protocol  : 'http:'               , defaultFromAddress: 'hello@koding.com' }
     newkites          : {useTLS        : no                          , certFile  : ""                    , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
     log               : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy          : {port          : 80 }
@@ -131,10 +132,10 @@ Configuration = (options={}) ->
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol, so it connects to correct version of the kite.
-    algolia: #TODO change these credentials
-      appId: '8KD9RHY1OA'
-      apiKey: 'e4a8ebe91bf848b67c9ac31a6178c64b'
-      indexSuffix: '.feature'
+    algolia:
+      appId: 'DYVV81J2S1'
+      apiKey: '303eb858050b1067bcd704d6cbfb977c'
+      indexSuffix: '.sandbox'
     logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
@@ -225,6 +226,12 @@ Configuration = (options={}) ->
         throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
       else
         return ""
+
+  prodKeys =
+    id_rsa          : fs.readFileSync( "./install/keys/prod.ssh/id_rsa"          ,"utf8")
+    id_rsa_pub      : fs.readFileSync( "./install/keys/prod.ssh/id_rsa.pub"      ,"utf8")
+    authorized_keys : fs.readFileSync( "./install/keys/prod.ssh/authorized_keys" ,"utf8")
+    config          : fs.readFileSync( "./install/keys/prod.ssh/config"          ,"utf8")
 
 
   nginxConf = """
@@ -370,8 +377,14 @@ Configuration = (options={}) ->
 
       function install() {
         touch /root/run.install.start
+
+        echo #{b64z prodKeys.id_rsa}          | base64 --decode | gunzip >/root/.ssh/id_rsa
+        echo #{b64z prodKeys.id_rsa_pub}      | base64 --decode | gunzip >/root/.ssh/id_rsa.pub
+        echo #{b64z prodKeys.authorized_keys} | base64 --decode | gunzip >/root/.ssh/authorized_keys
+        echo #{b64z prodKeys.config}          | base64 --decode | gunzip >/root/.ssh/config
+        chmod 0600 /root/.ssh/id_rsa
         cd /opt
-        git clone --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
+        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
 
         cd /opt/koding
 
@@ -381,8 +394,6 @@ Configuration = (options={}) ->
         echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
         bash #{projectRoot}/machineSettings
 
-        git submodule init
-        git submodule update --recursive
         npm i gulp stylus coffee-script -g
         npm i --unsafe-perm
         /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
@@ -394,6 +405,16 @@ Configuration = (options={}) ->
         mkdir $HOME/.kite
         echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
         cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
+
+        # new relic setup
+        echo deb http://apt.newrelic.com/debian/ newrelic non-free >> /etc/apt/sources.list.d/newrelic.list
+        wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -
+        apt-get update
+        apt-get install newrelic-sysmond
+        nrsysmond-config --set license_key=aa81e308ad9a0d95cf5a90fec9692c80551e8a68
+        /etc/init.d/newrelic-sysmond start
+
+
         touch /root/run.install.end
       }
 
@@ -441,62 +462,6 @@ Configuration = (options={}) ->
         - nginx
 
       write_files:
-        - path : /root/.ssh/id_rsa
-          permissions: '0600'
-          content : |
-            -----BEGIN RSA PRIVATE KEY-----
-            MIIEpAIBAAKCAQEAxJUfKx05K3kymTkgISnFOoh1PY/jJ3dlUnAUE8WqCXlDQi+C
-            FIJO+pKGNNyo8z2fF43iCGfc9h3a0qvhvyWY4f6tkllSBdWLWwV2O8edRJXIwMyu
-            ku8SIXeNg0Qg0+iqZKUZJEnv6MSUcDNejFS0AVz4Dw3pSfLT+xTEWD4j9hM6I8BQ
-            qEYM2wqkyqjjIVS0bGQE0buohLiWymI4J95B5MbKuofo5eAUxkFOA+vTt66RSbWB
-            BAFVg0jIDMJ4bXU28JBO8GXt0N7GkpLRPd1IEjoJ8d0iKghT6KMtwzEWyr2k6Qta
-            3FybcFbjhKJneitK+ln5BXiU917p3cYAG3xRDwIDAQABAoIBACyBKiZDnm7GKHth
-            4HFBmKIwxIIkciO8Nxcbwp/bTyyH5H82bDeibKjzxShwkFtJJxxZBcQrZ23cwm6R
-            dTEmHN+FHdyVFim196+qo+LSxTsCwglMDXW8ZBlpjIMcSGZRNUpFylRZ3NOQtZ5V
-            MuGIR5xLZOlbl+Yi8HTWdcEYiGGsAPemKTaalSAK91ak1kkb0wDpUJU/NK01glSk
-            HqqsUAzmGmd19VLJhRRKNVpGbI+zhJbgl7rn0CynTdJDDtuwYwQZYjxtHDp3/UiW
-            lLkBToe74L7WrNH6ZZgCCFDFx9nUAnbHPEvh6vnN5s+Ce46F69pKWihvBEyH23UT
-            8wzl3IECgYEA7AnHjlK0buZLJr1IQ5YD8vd7LIK7wwHeaPOh+dhZrvn3twfibSRu
-            55ew/2wmd/E5yyzgdDBGQCjPKwfs/2FnPg01KlMObAkGn0KG8j0/NecQdlv9PJgv
-            lriLY7rm5O40aKMevdQ3PinvkS+KTUdbd6GfVyC77zh9HnIhW2xllc8CgYEA1TUg
-            pzKQSwn8fxyKctKFf+4QEogdUPIWLgJCF8kgJGaSAl1r/wwEbQIhF8SeTEL199Cm
-            5uk8w6oGlsNbPgZkF8PBuwFS3x2cbIbC+/HdWZmiPmx96o/pEZ9sWKQyX46nN9es
-            5HqxULgB0m/9AxzAtFZTwV5pBWkXdIwBQuyroMECgYEAwB7JpeddY7Lg0nxYeGJ/
-            fmC/iiAy8evwet5rJbBadxiQ7xJk009HUgvfDleaDCB1WRGC9C9iztAop67A0bEX
-            VqNrdbK612aVVEXTDxKZA6e6d4wyWALLIVO+aQN08juMvuqemAZGnLuHelYGrRX6
-            tioARuum7HS/KmvdCMv293MCgYEAhS8x3aAFaQqs8w52IfIGOPsSiTED9yuy1TzN
-            4qPd8z8rmFSZgPIV1a6N05YcOJFfq1Vo3Tf3oFaW1Rjl52IApqO/Yj0acovByj2I
-            ke/tkOoa4pnNMniBZGPNP7YaTX0EUirlMri+CSlY4gbY61fLvRtsKI/8VMfoQgKv
-            Swoi0EECgYAHjz0jBVfpGLkkYAcaYOMcV4yFxkax4ZiuBMK4TcsrL6/KiietjmdK
-            mxiIASXhNP0ZEEdAHgBr6o3EQHnJksXo7VTTBRcXOSmE7httIRrOC06qAB0kV4Ub
-            qoNO+NWbDkfJB/YtKtRdUtW6QmmdUHowT10TZH24Ig7CdrdrV46X3A==
-            -----END RSA PRIVATE KEY-----
-
-        - path : /root/.ssh/id_rsa.pub
-          content : ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDElR8rHTkreTKZOSAhKcU6iHU9j+Mnd2VScBQTxaoJeUNCL4IUgk76koY03KjzPZ8XjeIIZ9z2HdrSq+G/JZjh/q2SWVIF1YtbBXY7x51ElcjAzK6S7xIhd42DRCDT6KpkpRkkSe/oxJRwM16MVLQBXPgPDelJ8tP7FMRYPiP2EzojwFCoRgzbCqTKqOMhVLRsZATRu6iEuJbKYjgn3kHkxsq6h+jl4BTGQU4D69O3rpFJtYEEAVWDSMgMwnhtdTbwkE7wZe3Q3saSktE93UgSOgnx3SIqCFPooy3DMRbKvaTpC1rcXJtwVuOEomd6K0r6WfkFeJT3XundxgAbfFEP ubuntu@kodingme
-        - path : /root/.ssh/authorized_keys
-          content : |
-
-            # wercker
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCTFF4indUR+kivtLUzJ7DjltGE7e/kqcuE8NKok0s7jfn8Cz3ClqEM5KjxQCCBc5t9VpuNVAPy1xFJnGJs35cBQKL7FAUYK6faq+RpQ+vC2QxLbls/SaMzIPQigcO4NBGjyzR4rUzcCM2zon3y0Q9KaMKU8nQkcFfbyYB98En7S7W04gKskAVeSYZ7xrxIQNyfpmojYzlTUETYLj4kNCbkZFaO1ig4THOi4ZGRvfnfv/8AAFddoTVVUIf6QbHt1P5GfSGyhGcFfFFwGWs/4xJMiTqG/UO2NjPbO0OqR73Lw4ftgm5mjXWvK878RKQwzMcNcGXaNGK71QhS8zo96fl9 wercker / koding / key
-
-            # devrim        --#
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGy37UYYQjRUyBZ1gYERhmOcyRyF0pFvlc+d91VT6iiIituaR+SpGruyj3NSmTZQ8Px8/ebaIJQaV+8v/YyIJXAQoCo2voo/OO2WhVIzv2HUfyzXcomzV40sd8mqZJnNCQYdxkFbUZv26kOzikie0DlCoVstM9P8XAURSszO0llD4f0CKS7Galwql0plccBxJEK9oNWCMp3F6v3EIX6qdL8eUJko7tJDPiyPIuuaixxd4EBE/l2UBGvqG0REoDrBNJ8maKV3CKhw60LYis8EfKFhQg5055doDNxKSDiCMopXrfoiAQKEJ92MBTjs7YwuUDp5s39THbX9bHoyanbVIL devrim@koding.com
-
-            # cihangir      --#
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8u3tdgzNBq51ZNK0zXW1FziMU90drNgvY8uLi/zNOL1QuBwbRMNNGj/1ZyZmY+hV3VdmexA9AxsOofWEyvzUtL/hkJCmYglWGnTtIawOyDqTXi8Wjz4d00WW69zOiQqpAIAah5ejVsq9gpHslBy4amU+ExcxYoMYoz3ozccim++HkovLr9EhctfJuWvoPtrqljg4D9bn10eR0gdKNROxpnHPfX/Ge7NGcYAsvod5GsUI5zOV3lGfqJTKs+N1jxuqPVUKhoDiEimUQ4SoxBDneETdhRCZRVIQV7cwTfgw+kF58DqgTJCbwzyTyl9n7827Qi1Ha38oWhkAK+cB3uUgT cihangir@koding.com
-
-            #-- Sonmez's iMac --#
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDrLvWTozcvXzJkUrMVoTdf2j4zY6dZ7nst9Ro2zXSHlnFtUeRmbYH4cd87LleqkgBRoJ5Wy6Ai9nqH3MJq6XSVWp21xyU4DEmq27+6eVvBHENfdQQPq3imiC7sejwH8Yslx7reVi90/ZSwEEKA6rNOoD0InRN1zUCFWoKMQFY0aw9GAxBeDAStQR3H+Zr8nhaSZw4gySLZ3Ps3j45sAeIMjNk0MUZprTHKjIpz5Ni+5OpT4cxC8Ji2aCC3Xvc8sLndZ7mHWFrM0RuBh2GJ0e8juTBAt7D+IOZi2y41NfQA6LQr1N9DHdBDpMqUjby0jJZsMiwtD7730n0xcoKhSqAr Sonmez's iMac
-
-            #-- Sonmez's MacBook Pro --#
-            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYOpuDUC52QNgoM2O6Ja7SW6zm3Hmpxdu0nUKw6MKDcnKK7dOADRwpDmoPsj/Aw/p9fetjJaacjxlPQwGHCjUcVgk3/zVwi8P4StkKnxHuhRBEj+YeTQ3vaWbJ3Syk2FnjZRSlqi4a7cEiMMjHQAflx3BdeYqO1F7+kB4bsoM/0/NQJkv0UnphFW1y9zk65mi3CTHAyFTU/Tz5LEsBWp35XorwQ+vmJ9OJNNDF3mhOejYkob0s3CbwoL6xaidTD0eT1VBz+ceggpaLP57vG2l6yl1zYSzf5jhBGjM6b9a3NyOO1RjrBpgZ2TfQrPTxTnzTy7V6gmNcv/heiREw7Mpv Sonmez's MacBook Pro
-
-        - path : /root/.ssh/config
-          content : |
-            Host github.com
-              StrictHostKeyChecking no
-
         - path: /root/run.b64z
           content : #{b64z runContents}
         - path: /root/run
