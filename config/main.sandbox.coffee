@@ -23,7 +23,7 @@ Configuration = (options={}) ->
 
   redis         = { host:     "#{prod_simulation_server}:27017/koding", port:               "6379",                             db:                 0                    }
   rabbitmq      = { host:     "#{prod_simulation_server}",              port:               5672,                               apiPort:            15672,               login:           "guest",                           password: "guest",             vhost:         "/"                                                 }
-  mq            = { host:     "#{rabbitmq.host}",                       port:               "#{rabbitmq.port}",                 apiAddress:         "#{rabbitmq.host}",  apiPort:         "#{rabbitmq.apiPort}",             login:    "#{rabbitmq.login}", componentUser: "#{rabbitmq.login}",                                password:       "#{rabbitmq.password}",                             heartbeat:       0,        vhost:        "#{rabbitmq.vhost}" }
+  mq            = { host:     "#{rabbitmq.host}",                       port:               rabbitmq.port,                      apiAddress:         "#{rabbitmq.host}",  apiPort:         "#{rabbitmq.apiPort}",             login:    "#{rabbitmq.login}", componentUser: "#{rabbitmq.login}",                                password:       "#{rabbitmq.password}",                             heartbeat:       0,        vhost:        "#{rabbitmq.vhost}" }
   customDomain  = { public:   "http://#{hostname}",                     public_:            "#{hostname}",                      local:              "http://localhost",  local_:          "localhost",                       port:     80                   }
   sendgrid      = { username: "koding",                                 password:           "DEQl7_Dr"                          }
   email         = { host:     "#{customDomain.public_}",                protocol:           'http:',                            defaultFromAddress: 'hello@koding.com',  defaultFromName: 'Koding',                          username: sendgrid.username,   password:      sendgrid.password,                                  templateRoot:   "workers/sitemap/files/",                           forcedRecipient: undefined }
@@ -116,7 +116,7 @@ Configuration = (options={}) ->
     embedly           : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
     troubleshoot      : {recipientEmail: "can@koding.com"}
     rollbar           : "71c25e4dc728431b88f82bd3e7a600c9"
-    mixpanel          : "a57181e216d9f713e19d5ce6d6fb6cb3"
+    mixpanel          : mixpanel.token
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 

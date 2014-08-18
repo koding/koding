@@ -23,7 +23,7 @@ Configuration = (options={}) ->
 
   redis         = { host:     "#{boot2dockerbox}",                         port:               "6379",                               db:                 0                         }
   rabbitmq      = { host:     "#{boot2dockerbox}",                         port:               5672,                                 apiPort:            15672,                    login:           "guest",                           password: "guest",                  vhost:         "/"                                    }
-  mq            = { host:     "#{rabbitmq.host}",                          port:               "#{rabbitmq.port}",                   apiAddress:         "#{rabbitmq.host}",       apiPort:         "#{rabbitmq.apiPort}",             login:    "#{rabbitmq.login}",      componentUser: "#{rabbitmq.login}",                   password:       "#{rabbitmq.password}",                heartbeat:       0,        vhost:        "#{rabbitmq.vhost}" }
+  mq            = { host:     "#{rabbitmq.host}",                          port:               rabbitmq.port,                        apiAddress:         "#{rabbitmq.host}",       apiPort:         "#{rabbitmq.apiPort}",             login:    "#{rabbitmq.login}",      componentUser: "#{rabbitmq.login}",                   password:       "#{rabbitmq.password}",                heartbeat:       0,        vhost:        "#{rabbitmq.vhost}" }
   customDomain  = { public:   "http://koding-#{publicHostname}.ngrok.com", public_:            "koding-#{publicHostname}.ngrok.com", local:              "http://lvh.me",          local_:          "lvh.me",                          port:     8090                      }
   sendgrid      = { username: "koding",                                    password:           "DEQl7_Dr"                            }
   email         = { host:     "#{customDomain.public_}",                   protocol:           'http:',                              defaultFromAddress: 'hello@koding.com',       defaultFromName: 'koding',                          username: "#{sendgrid.username}",   password:      "#{sendgrid.password}",                templateRoot:   "workers/sitemap/files/",              forcedRecipient: undefined }
@@ -81,7 +81,7 @@ Configuration = (options={}) ->
     webserver         : {port          : 3000                        , useCacheHeader: no}
     authWorker        : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth', authExchange      : "auth"             , authAllExchange : "authAll"}
     mq                : mq
-    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                  , forcedRecipient: email.forcedRecipient,  maxAge: 3
+    emailWorker       : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'        , run               : no                  , forcedRecipient: email.forcedRecipient,  maxAge: 3 }
     elasticSearch     : {host          : "#{boot2dockerbox}" , port      : 9200                  , enabled           : no                 , queue           : "elasticSearchFeederQueue"}
     social            : {port          : 3030                        , login     : "#{rabbitmq.login}"   , queueName         : socialQueueName    , kitePort        : 8765 }
     email             : email
