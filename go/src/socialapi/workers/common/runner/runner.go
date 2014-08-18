@@ -23,17 +23,15 @@ import (
 )
 
 var (
-	flagConfFile = flag.String("c", "", "Configuration profile from file")
-	flagRegion   = flag.String("r", "", "Region name")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
-	flagVersion  = flag.Int("v", 0, "Worker Version")
-
-	flagOutputMetrics = flag.Bool("outputMetrics", false, "Output metrics")
-
-	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
-	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
-	flagKiteProxy      = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
-	flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
+	flagConfFile       *string
+	flagRegion         *string
+	flagDebug          *bool
+	flagVersion        *int
+	flagOutputMetrics  *bool
+	flagKiteInit       *bool
+	flagKiteLocal      *bool
+	flagKiteProxy      *bool
+	flagKiteKontrolURL *string
 )
 
 type Runner struct {
@@ -45,6 +43,7 @@ type Runner struct {
 	Done            chan error
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
+	FlagSet         *flag.FlagSet
 }
 
 func New(name string) *Runner {
@@ -55,11 +54,22 @@ func WrapWithVersion(name string, version *int) string {
 	return fmt.Sprintf("%s:%d", name, *version)
 }
 
+func generateFlagSet() *flag.FlagSet {
+	flagSet := flag.NewFlagSet("Runner", flag.ExitOnError)
+	flagConfFile = flagSet.String("c", "", "Configuration profile from file")
+	flagRegion = flagSet.String("r", "", "Region name")
+	flagDebug = flagSet.Bool("d", false, "Debug mode")
+	flagVersion = flagSet.Int("v", 0, "Worker Version")
+	flagOutputMetrics = flagSet.Bool("outputMetrics", false, "Output metrics")
+	flagKiteInit = flagSet.Bool("kite-init", false, "Init kite system with the worker.")
+	flagKiteLocal = flagSet.Bool("kite-local", false, "Start kite system in local mode.")
+	flagKiteProxy = flagSet.Bool("kite-proxy", false, "Start kite system behind a proxy")
+	flagKiteKontrolURL = flagSet.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
+	return flagSet
+}
 func (r *Runner) Init() error {
-	flag.Parse()
-	if *flagConfFile == "" {
-		return fmt.Errorf("Please define config file with -c Exiting...")
-	}
+	r.FlagSet = generateFlagSet()
+	r.FlagSet.Parse(os.Args[1:])
 
 	return r.InitWithConfigFile(*flagConfFile)
 }
@@ -67,7 +77,7 @@ func (r *Runner) Init() error {
 // InitWithConfigFile used for externally setting config file.
 // This is used for testing purposes, and usage of Init method is encouraged
 func (r *Runner) InitWithConfigFile(flagConfFile string) error {
-	r.Conf = config.MustRead(flagConfFile)
+	r.Conf = config.MustRead(flagConfFile, r.FlagSet)
 	r.Conf.Debug = *flagDebug
 
 	// create logger for our package
