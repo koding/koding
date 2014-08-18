@@ -105,4 +105,13 @@ class IDE.MachineStateModal extends KDModalView
   initalizeMachine: ->
     KD.getSingleton('computeController').build @getData()
 
-  startIDE: -> @destroy()
+  startIDE: ->
+    @destroy()
+
+    KD.getSingleton('computeController').fetchMachines (err, machines) =>
+      return KD.showError "Couldn't fetch your VMs"  if err
+
+      m = machine for machine in machines when machine._id is @getData()._id
+
+      KD.getSingleton('appManager').tell 'IDE', 'mountMachine', m
+      @setData m
