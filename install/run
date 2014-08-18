@@ -24,14 +24,14 @@
 PRJ=/opt/koding       # `pwd`
 BLD=/root/BUILD_DATA        # /BUILD_DATA
 CFG=`cat $BLD/BUILD_CONFIG`
-RGN=`cat $BLD/BUILD_REGION` 
+RGN=`cat $BLD/BUILD_REGION`
 HST=`cat $BLD/BUILD_HOSTNAME`
 SUB="${HST%%.*}"
 
 PBKEY=$PRJ/certs/test_kontrol_rsa_public.pem
 PVKEY=$PRJ/certs/test_kontrol_rsa_private.pem
 GB=$PRJ/go/bin
-SOCIALCONFIG=./go/src/socialapi/config/docker.toml
+SOCIALCONFIG=./go/src/socialapi/config/dev.toml
 
 NAME=mongo              && docker run                 -h $SUB -d --name=$NAME  --entrypoint=mongod  koding/mongo    --dbpath /root/data/db --smallfiles --nojournal
 NAME=postgres           && docker run                 -h $SUB -d --name=$NAME  										  koding/postgres
