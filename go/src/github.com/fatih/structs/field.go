@@ -30,7 +30,6 @@ func (f *Field) Value() interface{} {
 	return f.value.Interface()
 }
 
-// IsEmbedded returns true if the given field is an anonymous field (embedded)
 func (f *Field) IsEmbedded() bool {
 	return f.field.Anonymous
 }
@@ -87,6 +86,18 @@ func (f *Field) Set(val interface{}) error {
 
 	v.Set(given)
 	return nil
+}
+
+// Fields returns a slice of Fields. This is particular handy to get the fields
+// of a nested struct . A struct tag with the content of "-" ignores the
+// checking of that particular field. Example:
+//
+//   // Field is ignored by this package.
+//   Field *http.Request `structs:"-"`
+//
+// It panics if field is not exported or if field's kind is not struct
+func (f *Field) Fields() []*Field {
+	return getFields(f.value)
 }
 
 // Field returns the field from a nested struct. It panics if the nested struct

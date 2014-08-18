@@ -96,6 +96,18 @@ func TestField_Set(t *testing.T) {
 		t.Error(err)
 	}
 
+	// let's set a pointer to struct
+	b := &Bar{
+		E: "gopher",
+		F: 2,
+	}
+
+	f = s.Field("Bar")
+	err = f.Set(b)
+	if err != nil {
+		t.Error(err)
+	}
+
 	// TODO: let's access a non addresable field, which should give an error
 }
 
@@ -255,6 +267,15 @@ func TestField_Field(t *testing.T) {
 	}()
 
 	_ = s.Field("Bar").Field("e")
+}
+
+func TestField_Fields(t *testing.T) {
+	s := newStruct()
+	fields := s.Field("Bar").Fields()
+
+	if len(fields) != 3 {
+		t.Errorf("We expect 3 fields in embedded struct, was: %d", len(fields))
+	}
 }
 
 func TestField_FieldOk(t *testing.T) {

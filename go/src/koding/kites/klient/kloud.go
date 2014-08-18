@@ -17,7 +17,7 @@ type Kloud struct {
 // Kloud returns a new connected kloud instance. The kloud is ready to use.
 // It's connected and will redial if there is any disconnections.
 func NewKloud(k *kite.Kite) (*Kloud, error) {
-	kontrolQuery := protocol.KontrolQuery{
+	kontrolQuery := &protocol.KontrolQuery{
 		Username:    "koding",
 		Environment: "vagrant",
 		Name:        "kloud",
