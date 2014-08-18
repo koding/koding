@@ -807,18 +807,15 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(flm.Body, ShouldEqual, cm2.Body)
 		})
 
-		/*
-			Convey("non-existing message in channel should give error", func() {
-				// create channel in db
-				c := createNewChannelWithTest()
-				So(c.Create(), ShouldBeNil)
+		Convey("non-existing message in channel should be nil", func() {
+			// create channel in db
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
 
-				flm, err := c.FetchLastMessage()
-				// should give an error but not !!..??
-				So(err, ShouldNotBeNil)
-				So(flm, ShouldEqual, bongo.RecordNotFound)
-			})
-		*/
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldBeNil)
+		})
 
 	})
 }
