@@ -138,7 +138,8 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	switch cm.TypeConstant {
 	case socialapimodels.ChannelMessage_TYPE_POST:
-		return n.mentionNotification(cm)
+		_, err := n.CreateMentionNotification(cm)
+		return err
 	case socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
 		return n.privateMessageNotification(cm)
 	default:
@@ -182,37 +183,7 @@ func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessa
 	return nil
 }
 
-// MentionNotification creates mention notifications for the related channel messages
-func (n *Controller) mentionNotification(cm *socialapimodels.ChannelMessage) error {
-	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_POST {
-		return nil
-	}
-
-	mentionedUsers, err := n.CreateMentionNotification(cm)
-	if err != nil {
-		return err
-	}
-
-	if len(mentionedUsers) == 0 {
-		return nil
-	}
-
-	rn := models.NewReplyNotification()
-	rn.TargetId = cm.Id
-	rn.NotifierId = cm.AccountId
-
-	nc, err := models.CreateNotificationContent(rn)
-	if err != nil {
-		return err
-	}
-
-	for _, recipient := range mentionedUsers {
-		n.notify(nc.Id, recipient)
-	}
-
-	return nil
-}
-
+// CreateMentionNotification creates mention notifications for the related channel messages
 func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
