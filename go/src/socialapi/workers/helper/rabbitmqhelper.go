@@ -15,7 +15,7 @@ func createRabbitMqConf(conf *config.Config) *rabbitmq.Config {
 	return &rabbitmq.Config{
 		Host:     conf.Mq.Host,
 		Port:     conf.Mq.Port,
-		Username: conf.Mq.Username,
+		Username: conf.Mq.Login,
 		Password: conf.Mq.Password,
 		Vhost:    conf.Mq.Vhost,
 	}

@@ -31,8 +31,8 @@ func (m *Mailer) SendMail() error {
 	message.AddToName(fullname)
 	message.SetSubject(m.Subject)
 	message.SetHTML(m.Body)
-	message.SetFrom(m.EmailSettings.FromMail)
-	message.SetFromName(m.EmailSettings.FromName)
+	message.SetFrom(m.EmailSettings.DefaultFromMail)
+	message.SetFromName(m.EmailSettings.DefaultFromAddress)
 
 	if err := sg.Send(message); err != nil {
 		return fmt.Errorf("an error occurred while sending notification email to %s", m.UserContact.Username)

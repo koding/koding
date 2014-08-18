@@ -20,7 +20,7 @@ func TestTopicSaved(t *testing.T) {
 
 	defer r.Close()
 
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiKey)
+	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
 	// create message handler
 	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
 

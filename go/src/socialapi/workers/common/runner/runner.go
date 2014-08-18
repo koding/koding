@@ -68,7 +68,7 @@ func (r *Runner) Init() error {
 // This is used for testing purposes, and usage of Init method is encouraged
 func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 	r.Conf = config.MustRead(flagConfFile)
-	r.Conf.FlagDebugMode = *flagDebug
+	r.Conf.Debug = *flagDebug
 
 	// create logger for our package
 	r.Log = helper.CreateLogger(

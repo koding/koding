@@ -32,11 +32,11 @@ func main() {
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
 	es := &models.EmailSettings{
-		Username:        r.Conf.SendGrid.Username,
-		Password:        r.Conf.SendGrid.Password,
-		FromMail:        r.Conf.SendGrid.FromMail,
-		FromName:        r.Conf.SendGrid.FromName,
-		ForcedRecipient: r.Conf.SendGrid.ForcedRecipient,
+		Username:           r.Conf.SendGrid.Username,
+		Password:           r.Conf.SendGrid.Password,
+		DefaultFromMail:    r.Conf.SendGrid.DefaultFromMail,
+		DefaultFromAddress: r.Conf.SendGrid.DefaultFromAddress,
+		ForcedRecipient:    r.Conf.SendGrid.ForcedRecipient,
 	}
 
 	handler, err := emailnotifier.New(

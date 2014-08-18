@@ -87,7 +87,7 @@ func newServer(conf *config.Config) *tigertonic.Server {
 
 	var handler http.Handler
 	handler = tigertonic.WithContext(nsMux, models.Context{})
-	if conf.FlagDebugMode {
+	if conf.Debug {
 		handler = tigertonic.Logged(handler, nil)
 	}
 
