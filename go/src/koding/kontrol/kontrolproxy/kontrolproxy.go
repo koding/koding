@@ -196,7 +196,7 @@ func (p *Proxy) runNewKite() {
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(logLevel)
 
-	query := protocol.KontrolQuery{
+	query := &protocol.KontrolQuery{
 		Username:    "koding-kites",
 		Environment: *flagConfig,
 		Name:        "oskite",

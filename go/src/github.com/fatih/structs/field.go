@@ -30,7 +30,6 @@ func (f *Field) Value() interface{} {
 	return f.value.Interface()
 }
 
-// IsEmbedded returns true if the given field is an anonymous field (embedded)
 func (f *Field) IsEmbedded() bool {
 	return f.field.Anonymous
 }
