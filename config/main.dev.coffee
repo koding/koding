@@ -482,6 +482,20 @@ Configuration = (options={}) ->
 
       }
 
+      chaosmonkey () {
+
+        while [ 1==1 ]; do
+          for i in mongo redis etcd postgres
+            do
+              echo stopping $i
+              docker stop $i
+              echo starting $i
+              docker start $i
+              sleep 10
+            done
+        done
+      }
+
       function printconfig () {
         if [ "$2" == "" ]; then
           cat << EOF
@@ -527,6 +541,7 @@ Configuration = (options={}) ->
         echo "  run buildservices      : to initialize and start services"
         echo "  run services           : to stop and restart services"
         echo "  run worker             : to list workers"
+        echo "  run chaosmonkey        : restart every service randomly to test resilience."
         echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]    : to run a single worker"
         echo "  run help               : to show this list"
@@ -684,6 +699,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "help" ]; then
         printHelp
+
+      elif [ "$1" == "chaosmonkey" ]; then
+        chaosmonkey
 
       elif [ "$1" == "worker" ]; then
 
