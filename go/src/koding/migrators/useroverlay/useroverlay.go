@@ -95,7 +95,14 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 		respond(w, status, message)
 		return
 	}
-
+	if err := vm.LockRBD(); err != nil {
+		respond(w, 412, "RBD cannot be locked")
+	}
+	defer func() {
+		if err := vm.UnlockRBD(); err != nil {
+			log.Error(err.Error())
+		}
+	}()
 	archive, err := exportUserFiles(vm)
 	if err != nil {
 		respond(w, 500, err.Error())
@@ -121,14 +128,6 @@ func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, str
 	if !exists {
 		return vm, 404, "Not found", nil
 	}
-	if err := vm.LockRBD(); err != nil {
-		return vm, 412, "RBD cannot be locked", err
-	}
-	defer func() {
-		if err := vm.UnlockRBD(); err != nil {
-			log.Error(err.Error())
-		}
-	}()
 	return vm, 200, "", nil
 }
 
