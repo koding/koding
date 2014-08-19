@@ -168,7 +168,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} --port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -config-region #{region} -config-machines #{etcd} -config-environment #{environment} -config-mongourl #{KONFIG.mongo} -config-port #{kontrol.port} -config-privatekey #{kontrol.privateKeyFile} -config-publickey #{kontrol.publicKeyFile}"
     kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env dev -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
