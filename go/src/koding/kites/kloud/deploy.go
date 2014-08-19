@@ -209,11 +209,11 @@ func createUserCommand(username string) string {
 	// 3. Add user to sudo group
 	// 4. Add user to sudoers
 	return fmt.Sprintf(`
-adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s && \
-passwd -d %s && \
-gpasswd -a %s sudo  && \
-echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
- `, username, username, username, username, username, username)
+adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%[1]s %[1]s && \
+passwd -d %[1]s && \
+gpasswd -a %[1]s sudo  && \
+echo '%[1]s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%[1]s
+ `, username)
 
 }
 
@@ -239,12 +239,11 @@ func patchConfCommand(username string) string {
 // and creates them if they don't
 func makeDirectoriesCommand(username string) string {
 	return fmt.Sprintf(`
-sudo -u %s mkdir -p /home/%s/Applications && \
-sudo -u %s mkdir -p /home/%s/Backup && \
-sudo -u %s mkdir -p /home/%s/Documents && \
-sudo -u %s mkdir -p /home/%s/Web
-`, username, username, username, username,
-		username, username, username, username)
+sudo -u %[1]s mkdir -p /home/%[1]s/Applications && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Backup && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Documents && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Web
+`, username)
 }
 
 // changeHostname is used to change the remote machines hostname by modifying
