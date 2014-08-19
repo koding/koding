@@ -91,7 +91,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                , privateKeyFile: kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "http://kontrol-#{publicHostname}.ngrok.com/kite"  }
+    kloud                          : {port          : 5500                , privateKeyFile: kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{kontrol.url}" , registerUrl :"#{customDomain.public}/kloud/kite"  }
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -168,8 +168,8 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -config-region #{region} -config-machines #{etcd} -config-environment #{environment} -config-mongourl #{KONFIG.mongo} -config-port #{kontrol.port} -config-privatekey #{kontrol.privateKeyFile} -config-publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env dev -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
+    kontrol             : command : "#{GOBIN}/kontrol -config-region #{region} -config-machines #{etcd} -config-environment #{environment} -config-mongourl #{KONFIG.mongo} -config-port #{kontrol.port} -config-privatekey #{kontrol.privateKeyFile} -config-publickey #{kontrol.publicKeyFile}"
+    kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env #{environment} -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
