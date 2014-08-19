@@ -181,8 +181,9 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 }
 
 func respond(w http.ResponseWriter, code int, body string) {
-	w.WriteHeader(code)
-	io.WriteString(w, body)
+	log.Error("server error: '%s' (%d)", body, code)
+	w.WriteHeader(500)
+	io.WriteString(w, "server error")
 }
 
 func commandError(message string, err error, out []byte) error {
