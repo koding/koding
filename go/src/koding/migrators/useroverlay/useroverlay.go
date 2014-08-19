@@ -5,15 +5,15 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"koding/virt"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"koding/migrators/useroverlay/token"
 
 	"github.com/gorilla/mux"
 	"github.com/koding/logging"
@@ -22,25 +22,35 @@ import (
 
 var (
 	log      = logging.NewLogger("useroverlay")
-	username = flag.String("username", "guest", "basic auth username")
-	password = flag.String("password", "guest", "basic auth password")
+	mode     = flag.String("mode", "serve", "mode can be serve or token")
 	certFile = flag.String("cert", "certs/user_file_exporter_self_signed_cert.pem", "TLS cert file")
 	keyFile  = flag.String("key", "certs/user_file_exporter_self_signed_key.pem", "TLS key file")
+	vm       = flag.String("vm", "", "the vm id")
+	username = flag.String("username", "", "the username")
 )
 
 func main() {
 	flag.Parse()
+	switch *mode {
+	case "serve":
+		serve()
+	case "token":
+		createToken()
+	}
+}
+
+func serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/export-files", exportFiles).Methods("POST")
-	http.Handle("/", basicAuth(r, *username, *password))
+	http.Handle("/", basicAuth(r))
 	if err := http.ListenAndServeTLS(":3000", *certFile, *keyFile, nil); err != nil {
 		log.Error(err.Error())
 	}
 }
 
-func basicAuth(next http.Handler, u, p string) http.Handler {
+func basicAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if ok, err := checkAuth(w, r, u, p); !ok {
+		if ok, err := checkAuth(w, r); !ok {
 			if err != nil {
 				log.Error(err.Error())
 			}
@@ -51,7 +61,7 @@ func basicAuth(next http.Handler, u, p string) http.Handler {
 	})
 }
 
-func checkAuth(w http.ResponseWriter, r *http.Request, u, p string) (bool, error) {
+func checkAuth(w http.ResponseWriter, r *http.Request) (bool, error) {
 	auth := r.Header.Get("Authorization")
 	s := strings.SplitN(auth, " ", 2)
 	if len(s) != 2 {
@@ -68,7 +78,11 @@ func checkAuth(w http.ResponseWriter, r *http.Request, u, p string) (bool, error
 		return false, fmt.Errorf("Invalid authorization header: '%v'", auth)
 	}
 
-	return pair[0] == u && pair[1] == p, nil
+	// validate the password:
+	if pair[1] == token.StringToken(pair[0], r.PostFormValue("vm")) {
+		return true, nil
+	}
+	return false, nil
 }
 
 func exportFiles(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +95,14 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 		respond(w, status, message)
 		return
 	}
-
+	if err := vm.LockRBD(); err != nil {
+		respond(w, 412, "RBD cannot be locked")
+	}
+	defer func() {
+		if err := vm.UnlockRBD(); err != nil {
+			log.Error(err.Error())
+		}
+	}()
 	archive, err := exportUserFiles(vm)
 	if err != nil {
 		respond(w, 500, err.Error())
@@ -94,14 +115,9 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, string, error) {
-	body, err := readBody(r.Body)
-	if err != nil {
-		return nil, 500, "Couldn't read POST data", err
-	}
-
-	id, err := getVmId(body)
-	if err != nil || !bson.IsObjectIdHex(id) {
-		return nil, 400, "Bad input", err
+	id := r.PostFormValue("vm")
+	if !bson.IsObjectIdHex(id) {
+		return nil, 400, "Bad input", nil
 	}
 	vm := &virt.VM{Id: bson.ObjectIdHex(id)}
 
@@ -112,14 +128,6 @@ func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, str
 	if !exists {
 		return vm, 404, "Not found", nil
 	}
-	if err := vm.LockRBD(); err != nil {
-		return vm, 412, "RBD cannot be locked", err
-	}
-	defer func() {
-		if err := vm.UnlockRBD(); err != nil {
-			log.Error(err.Error())
-		}
-	}()
 	return vm, 200, "", nil
 }
 
@@ -173,32 +181,15 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 }
 
 func respond(w http.ResponseWriter, code int, body string) {
-	w.WriteHeader(code)
-	io.WriteString(w, body)
-}
-
-func readBody(b io.ReadCloser) (string, error) {
-	body, err := ioutil.ReadAll(b)
-	if err != nil {
-		return "", err
-	}
-
-	defer b.Close()
-
-	return string(body), nil
-}
-
-func getVmId(q string) (string, error) {
-	query, err := url.ParseQuery(q)
-	if err != nil {
-		return "", err
-	}
-	if len(query["vm"]) > 0 {
-		return query["vm"][0], nil
-	}
-	return "", fmt.Errorf("VM id not provided: '%v'", q)
+	log.Error("server error: '%s' (%d)", body, code)
+	w.WriteHeader(500)
+	io.WriteString(w, "server error")
 }
 
 func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
+}
+
+func createToken() {
+	fmt.Println(token.StringToken(*username, *vm))
 }
