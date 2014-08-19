@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"io"
@@ -15,13 +13,14 @@ import (
 	"strings"
 	"time"
 
+	"koding/migrators/useroverlay/token"
+
 	"github.com/gorilla/mux"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo/bson"
 )
 
 var (
-	Secret   = "0Z/V3rlxm4xULMnSrPPxLMq~Li/J2mNXkeHRIWWCY2GB5QKIBnlXd8j!8TNcN9T0uiESXfMynR0sxfnXUlLQmS9JrLd6LGkw2VYM"
 	log      = logging.NewLogger("useroverlay")
 	mode     = flag.String("mode", "serve", "mode can be serve or token")
 	certFile = flag.String("cert", "certs/user_file_exporter_self_signed_cert.pem", "TLS cert file")
@@ -80,7 +79,7 @@ func checkAuth(w http.ResponseWriter, r *http.Request) (bool, error) {
 	}
 
 	// validate the password:
-	if pair[1] == stringToken(pair[0], r.PostFormValue("vm")) {
+	if pair[1] == token.StringToken(pair[0], r.PostFormValue("vm")) {
 		return true, nil
 	}
 	return false, nil
@@ -192,12 +191,5 @@ func commandError(message string, err error, out []byte) error {
 }
 
 func createToken() {
-	fmt.Println(stringToken(*username, *vm))
-}
-
-func stringToken(username, vm string) string {
-	hasher := sha256.New()
-	hasher.Write([]byte(Secret + username + vm))
-	cs := hex.EncodeToString(hasher.Sum(nil))
-	return cs
+	fmt.Println(token.StringToken(*username, *vm))
 }
