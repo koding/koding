@@ -1,3 +1,8 @@
+Mongo              = "192.168.59.103:27017/koding"
+Environment        = "dev"
+Region             = "dev"
+Hostname           = "http://lvh.me:8090"
+
 [postgres]
 Host=     "192.168.59.103"
 Port=     5432
@@ -15,14 +20,6 @@ Vhost    = "/"
 [redis]
 URL = "192.168.59.103:6379"
 DB  = 0
-
-Mongo              = "192.168.59.103:27017/koding"
-
-Environment        = "dev"
-
-Region             = "dev"
-
-Hostname           = "http://lvh.me:8090"
 
 [email]
 Host            = "lvh.me:8090"

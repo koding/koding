@@ -1,3 +1,8 @@
+Mongo              = "10.0.0.137:27017/koding"
+Environment        = "sandbox"
+Region             = "sandbox"
+Hostname           = "http://sandbox.koding.io"
+
 [postgres]
 Host=     "10.0.0.137"
 Port=     5432
@@ -15,14 +20,6 @@ Vhost    = "/"
 [redis]
 URL = "10.0.0.137:6379"
 DB  = 0
-
-Mongo              = "10.0.0.137:27017/koding"
-
-Environment        = "sandbox"
-
-Region             = "sandbox"
-
-Hostname           = "http://sandbox.koding.io"
 
 [email]
 Host            = "sandbox.koding.io"
