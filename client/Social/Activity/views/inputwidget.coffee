@@ -29,7 +29,7 @@ class ActivityInputWidget extends KDView
       title       : "SEND"
       cssClass    : "solid green small"
       loader      : yes
-      callback    : @bound "submit"
+      callback    : => @submit @input.getValue()
 
     @buttonBar    = new KDCustomHTMLView
       cssClass    : "widget-button-bar"
@@ -74,61 +74,49 @@ class ActivityInputWidget extends KDView
         @unsetClass 'bug-tagged'
         @bugNotification.hide()
 
-    @on "ActivitySubmitted", =>
+    @on "SubmitStarted", =>
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()
 
 
-  submit: (value, timestamp) ->
+  submit: (value) ->
 
     return  if @locked
-    return @reset yes  unless body = @input.getValue().trim()
+    return @reset yes  unless body = value.trim()
 
     activity = @getData()
     {app}    = @getOptions()
+    payload  = @getPayload()
 
-    # fixme for bugs app
-
-    # for token in @input.getTokens()
-    #   feedType     = "bug" if token.data?.title?.toLowerCase() is "bug"
-    #   {data, type} = token
-    #   if type is "tag"
-    #     if data instanceof JTag
-    #       tags.push id: data.getId()
-    #       activity?.tags.push data
-    #     else if data.$suggest and data.$suggest not in suggestedTags
-    #       suggestedTags.push data.$suggest
-
-    payload = @getPayload()
+    timestamp = Date.now()
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
 
     @lockSubmit()
 
-    fn = @bound if activity then 'update' else 'create'
+    obj = { body, payload, clientRequestId }
 
-    obj = { body, payload }
+    fn = if activity
+    then @bound 'update'
+    else @bound 'create'
 
-    if timestamp?
-      requestData = KD.utils.generateFakeIdentifier timestamp
-      obj.requestData = requestData
+    fn(obj, @bound 'submissionCallback')
 
-    fn obj, @bound 'submissionCallback'
-
-    @emit "ActivitySubmitted"
+    @emit 'SubmitStarted', value, clientRequestId
 
 
   submissionCallback: (err, activity) ->
 
-    @reset yes
+    if err
+      @showError err
+      @emit 'SubmitFailed', err
 
-    return @showError err  if err
-
-    @emit 'MessageSavedSuccessfully', activity
+    @emit 'SubmitSucceeded', activity
 
     KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
 
-  create: ({body, payload}, callback) ->
+  create: ({body, payload, clientRequestId}, callback) ->
 
     {appManager} = KD.singletons
     {channel}    = @getOptions()
@@ -136,9 +124,7 @@ class ActivityInputWidget extends KDView
     if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
       body += " ##{channel.name} "
 
-    appManager.tell 'Activity', 'post', {body, payload}, (err, activity) =>
-
-      @reset()  unless err
+    appManager.tell 'Activity', 'post', {body, payload, clientRequestId}, (err, activity) =>
 
       callback? err, activity
 
@@ -169,7 +155,6 @@ class ActivityInputWidget extends KDView
           userMessage: "You are not allowed to edit this post."
         return @showError err, options
 
-      @reset()
       callback()
 
       KD.mixpanel "Status update edit, success"

@@ -735,9 +735,9 @@ utils.extend utils,
 
 
   # Generates a fake SocialMessage object
-  generateDummyMessage: (body, timestamp) ->
+  generateDummyMessage: (body) ->
 
-    now       = new Date timestamp
+    now       = new Date
     isoNow    = now.toISOString()
 
     account = KD.utils.extend KD.whoami(),
@@ -751,6 +751,7 @@ utils.extend utils,
       account          : account
       createdAt        : isoNow
       updatedAt        : isoNow
+      replies          : []
       repliesCount     : 0
       meta             :
         createdAt      : now

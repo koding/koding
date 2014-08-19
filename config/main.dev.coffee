@@ -465,6 +465,14 @@ Configuration = (options={}) ->
         kill_all
       }
 
+      function kill_all () {
+        rm -rf #{projectRoot}/.logs
+        #{killlist()}
+        nginx -s quit
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+      }
+
+
       nginxrun () {
 
         echo "starting nginx"
@@ -629,11 +637,6 @@ Configuration = (options={}) ->
       }
 
 
-      function kill_all () {
-        rm -rf #{projectRoot}/.logs
-        #{killlist()}
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-      }
 
       if [[ "$1" == "killall" ]]; then
 

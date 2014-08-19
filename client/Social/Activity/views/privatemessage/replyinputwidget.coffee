@@ -2,12 +2,11 @@ class ReplyInputWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
+    options.cssClass       = KD.utils.curry 'reply-input-widget', options.cssClass
     options.placeholder    = ''
     options.inputViewClass = ReplyInputView
 
     super options, data
-
-    @setClass 'reply-input-widget'
 
 
   initEvents: ->
@@ -15,8 +14,6 @@ class ReplyInputWidget extends ActivityInputWidget
     @input.on "Enter",  @bound "submit"
     @input.on "keyup", =>
       @showPreview() if @preview #Updates preview if it exists
-
-    @forwardEvent @input, 'Enter'
 
 
   createSubViews: ->
@@ -37,12 +34,12 @@ class ReplyInputWidget extends ActivityInputWidget
   empty: -> @input.empty()
 
 
-  create: ({body, requestData}, callback) ->
+  create: ({body, clientRequestId}, callback) ->
 
     {channel: {id: channelId}}  =  @getOptions()
 
     {appManager} = KD.singletons
-    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body, requestData}, (err, reply) =>
+    appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body, clientRequestId}, (err, reply) =>
       return KD.showError err  if err
 
       callback err, reply.first.lastMessage

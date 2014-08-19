@@ -112,7 +112,7 @@ class ActivityInputView extends KDTokenizedInput
 
     if blockquote
     then @insertNewline()
-    else @emit 'Enter', value, (new Date).getTime()
+    else @emit 'Enter', value
 
 
   insertNewline: ->
