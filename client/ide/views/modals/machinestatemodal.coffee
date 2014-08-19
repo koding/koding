@@ -4,6 +4,8 @@ class IDE.MachineStateModal extends KDModalView
 
     options.cssClass or= 'ide-machine-state'
     options.overlay    = yes
+    options.width      = 440
+    options.height     = 270
 
     super options, data
 
@@ -67,6 +69,7 @@ class IDE.MachineStateModal extends KDModalView
     @button      = new KDButtonView
       title      : 'Turn it on'
       cssClass   : 'turn-on state-button solid green medium'
+      icon       : yes
       callback   : @bound if @state is 'NotInitialized' then 'initalizeMachine' else 'turnOnMachine'
 
     if @state is 'Running'
@@ -81,8 +84,8 @@ class IDE.MachineStateModal extends KDModalView
     @loader = new KDLoaderView
       showLoader : yes
       size       :
-        width    : 48
-        height   : 48
+        width    : 44
+        height   : 44
 
     @container.addSubView @loader
 
@@ -92,9 +95,8 @@ class IDE.MachineStateModal extends KDModalView
       partial  : """
         <p>Free account VMs are shutdown when you leave Koding.</p>
         <a href="#" class="upgrade-link">Upgrade your account to keep it always on</a>
-        <a href="#" class="info-link">
-          More about VMs <span class="more-icon"></span>
-        </a>
+        <a href="#" class="info-link">More about VMs</a>
+        <span class="more-icon"></span>
       """
 
     @addSubView @footer

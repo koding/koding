@@ -631,8 +631,11 @@ body.ide .kddialogview.save-as-dialog
     margin-bottom       30px
   .state-label
     margin              14px 0 22px 0
+    font-size           18px
+    color               #7D7D7D
+    font-weight         600
     strong
-      font-weight       600
+      color             #404040
     .icon
       display           inline-block
       r-sprite          'ide', 'vm-state-stopped'
@@ -647,9 +650,17 @@ body.ide .kddialogview.save-as-dialog
         r-sprite        'ide', 'vm-state-running'
   .kdbutton
     rounded             4px !important
+    bg                  color, #4EA04C !important
+    &.turn-on
+      padding           0 20px
+      .icon
+        r-sprite        'ide', 'turn-on'
+        margin          -2px 8px 0 0 !important
+        padding         0
   .footer
     bg                  color, #DCDCDC
     font-size           14px
+    color               #5E5E5E
     padding             25px 30px
     rounded             0 0 6px 6px
     .upgrade-link
@@ -659,13 +670,14 @@ body.ide .kddialogview.save-as-dialog
     .info-link
       color             #A8A8A8
       font-size         12px
+      text-decoration   none
+      border-bottom     1px solid #A8A8A8
     .more-icon
       display           inline-block
       r-sprite          'ide', 'question-mark'
-      margin-left       12px
-      top               4px
+      margin-left       8px
+      top               5px
       position          relative
-
 
 
 // Collaboration
