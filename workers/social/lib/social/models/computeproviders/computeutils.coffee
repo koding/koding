@@ -133,6 +133,10 @@ fetchStackTemplate = (client, callback)->
 
     { user, group, account } = res
 
+    unless group.stackTemplates?.length
+      console.warn "Failed to fetch stack template for #{group.slug} group"
+      return callback new KodingError "Template not set", "NotFound"
+
     # TODO Make this works with multiple stacks ~ gg
     stackTemplateId = group.stackTemplates[0]
 
