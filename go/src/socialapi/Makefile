@@ -158,6 +158,8 @@ testapi:
 	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./models.test
 
+	@go test config/*.go $(DBG)
+
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@go test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
