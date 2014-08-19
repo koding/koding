@@ -1,9 +1,8 @@
-class IDE.MachineStateModal extends KDModalView
+class IDE.MachineStateModal extends IDE.ModalView
 
   constructor: (options = {}, data) ->
 
     options.cssClass or= 'ide-machine-state'
-    options.overlay    = yes
     options.width      = 440
     options.height     = 270
 
@@ -35,6 +34,8 @@ class IDE.MachineStateModal extends KDModalView
 
       @state = status
       @buildViews()
+
+    @show()
 
   buildViews: ->
     @container.destroySubViews()
