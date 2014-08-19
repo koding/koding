@@ -1,13 +1,11 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
-	"koding/tools/config"
 	"log"
 	"net/url"
 	"os"
@@ -19,50 +17,77 @@ import (
 	"github.com/koding/kloud"
 	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
+	"github.com/koding/multiconfig"
 )
 
-var (
-	flagProfile  = flag.String("c", "", "Configuration profile from file")
-	flagIP       = flag.String("ip", "", "Change public ip")
-	flagPort     = flag.Int("port", 3000, "Change running port")
-	flagRegion   = flag.String("r", "", "Change region")
-	flagEnv      = flag.String("env", "", "Change environment")
-	flagUniqueId = flag.String("id", "", "Start kloud with a uniqueId assignee name")
+// Config defines the configuration that Kloud needs to operate.
+type Config struct {
+	// ---  KLOUD SPECIFIC ---
+	IP          string
+	Port        int
+	Region      string
+	Environment string
+	Id          string
 
-	flagVersion  = flag.Bool("version", false, "Show version and exit")
-	flagDebug    = flag.Bool("debug", false, "Enable debug mode")
-	flagProdMode = flag.Bool("prod", false, "Enable production mode")
+	// Connect to Koding mongodb
+	MongoURL string
 
-	// Deployment related flags
-	flagKontrolURL = flag.String("kontrol-url", "", "Kontrol URL to be connected")
-	flagPublicKey  = flag.String("public-key", "", "Public RSA key of Kontrol")
-	flagPrivateKey = flag.String("private-key", "", "Private RSA key of Kontrol")
+	// --- DEVELOPMENT CONFIG ---
+	// Show version and exit if enabled
+	Version bool
 
-	// Kontrol registiraiton related  flags
-	flagPublic      = flag.Bool("public", false, "Start klient in local environment.")
-	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
-	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
+	// Enable debug log mode
+	DebugMode bool
 
-	// Development related flags
-	flagTest = flag.Bool("test", false, "Activate test mode (Disables VM authentication checks [useful for development], etc ..)")
-)
+	// Enable production mode, operates on production channel
+	ProdMode bool
+
+	// Enable test mode, disabled some authentication checks
+	TestMode bool
+
+	// --- KLIENT DEVELOPMENT ---
+	// KontrolURL to connect and to de deployed with klient
+	KontrolURL string
+
+	// Private key to create kite.key
+	PrivateKey string
+
+	// Public key to create kite.key
+	PublicKey string
+
+	// --- KONTROL CONFIGURATION ---
+	Public      bool   // Try to register with a public ip
+	Proxy       bool   // Try to register behind a koding proxy
+	RegisterURL string // Explicitly register with this given url
+
+	Kontrol KontrolConfig
+}
+
+type KontrolConfig struct {
+	Public      bool   // Try to register with a public ip
+	Proxy       bool   // Try to register behind a koding proxy
+	RegisterURL string // Explicitly register with this given url
+
+}
 
 func main() {
-	flag.Parse()
-	if *flagProfile == "" || *flagRegion == "" {
-		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
-	}
+	conf := new(Config)
 
-	if *flagVersion {
+	// Load the config, it's reads environment variables or from flags
+	multiconfig.New().MustLoad(conf)
+
+	if conf.Version {
 		fmt.Println(kloud.VERSION)
 		os.Exit(0)
 	}
 
-	k := newKite()
+	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
 
-	registerURL := k.RegisterURL(!*flagPublic)
-	if *flagRegisterURL != "" {
-		u, err := url.Parse(*flagRegisterURL)
+	k := newKite(conf)
+
+	registerURL := k.RegisterURL(!conf.Public)
+	if conf.RegisterURL != "" {
+		u, err := url.Parse(conf.RegisterURL)
 		if err != nil {
 			k.Log.Fatal("Couldn't parse register url: %s", err)
 		}
@@ -72,7 +97,7 @@ func main() {
 
 	fmt.Printf("registering with url %+v\n", registerURL)
 
-	if *flagProxy {
+	if conf.Proxy {
 		k.Log.Info("Proxy mode is enabled")
 		// Koding proxies in production only
 		proxyQuery := &protocol.KontrolQuery{
@@ -92,33 +117,31 @@ func main() {
 	k.Run()
 }
 
-func newKite() *kite.Kite {
+func newKite(conf *Config) *kite.Kite {
 	k := kite.New(kloud.NAME, kloud.VERSION)
 	k.Config = kiteconfig.MustGet()
-	k.Config.Port = *flagPort
+	k.Config.Port = conf.Port
 
-	if *flagRegion != "" {
+	if conf.Region != "" {
+		k.Config.Region = conf.Region
 	}
 
-	if *flagEnv != "" {
-		k.Config.Environment = *flagEnv
-	} else {
-		k.Config.Environment = config.MustConfig(*flagProfile).Environment
+	if conf.Environment != "" {
+		k.Config.Environment = conf.Environment
 	}
 
 	id := uniqueId()
-	if *flagUniqueId != "" {
-		id = uniqueId()
+	if conf.Id != "" {
+		id = conf.Id
 	}
 
-	conf := config.MustConfig(*flagProfile)
-	db := mongodb.NewMongoDB(conf.Mongo)
+	db := mongodb.NewMongoDB(conf.MongoURL)
 
 	kodingProvider := &koding.Provider{
-		Log:          newLogger("koding"),
+		Log:          newLogger("koding", conf.DebugMode),
 		AssigneeName: id,
 		Session:      db,
-		Test:         *flagTest,
+		Test:         conf.TestMode,
 	}
 
 	if err := kodingProvider.CleanupOldData(); err != nil {
@@ -126,7 +149,7 @@ func newKite() *kite.Kite {
 	}
 
 	klientFolder := "klient/development/latest"
-	if *flagProdMode {
+	if conf.ProdMode {
 		klientFolder = "klient/production/latest"
 	}
 
@@ -134,8 +157,8 @@ func newKite() *kite.Kite {
 
 	deployer := &KodingDeploy{
 		Kite:              k,
-		Log:               newLogger("kloud-deploy"),
-		KontrolURL:        kontrolURL(),
+		Log:               newLogger("kloud-deploy", conf.DebugMode),
+		KontrolURL:        kontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Bucket:            newBucket("koding-kites", klientFolder),
@@ -143,7 +166,7 @@ func newKite() *kite.Kite {
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
-	kld.Log = newLogger("kloud")
+	kld.Log = newLogger("kloud", conf.DebugMode)
 
 	kld.AddProvider("koding", kodingProvider)
 
@@ -182,13 +205,13 @@ func uniqueId() string {
 	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
 }
 
-func newLogger(name string) logging.Logger {
+func newLogger(name string, debug bool) logging.Logger {
 	log := logging.NewLogger(name)
 	logHandler := logging.NewWriterHandler(os.Stderr)
 	logHandler.Colorize = true
 	log.SetHandler(logHandler)
 
-	if *flagDebug {
+	if debug {
 		log.SetLevel(logging.DEBUG)
 		logHandler.SetLevel(logging.DEBUG)
 	}
@@ -196,22 +219,14 @@ func newLogger(name string) logging.Logger {
 	return log
 }
 
-func kontrolKeys(conf *config.Config) (string, string) {
-	pubKeyPath := *flagPublicKey
-	if *flagPublicKey == "" {
-		pubKeyPath = conf.NewKontrol.PublicKeyFile
-	}
-	pubKey, err := ioutil.ReadFile(pubKeyPath)
+func kontrolKeys(conf *Config) (string, string) {
+	pubKey, err := ioutil.ReadFile(conf.PublicKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	publicKey := string(pubKey)
 
-	privKeyPath := *flagPrivateKey
-	if *flagPublicKey == "" {
-		privKeyPath = conf.NewKontrol.PrivateKeyFile
-	}
-	privKey, err := ioutil.ReadFile(privKeyPath)
+	privKey, err := ioutil.ReadFile(conf.PrivateKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -220,12 +235,12 @@ func kontrolKeys(conf *config.Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL() string {
+func kontrolURL(ownURL string) string {
 	// read kontrolURL from kite.key if it doesn't exist.
 	kontrolURL := kiteconfig.MustGet().KontrolURL
 
-	if *flagKontrolURL != "" {
-		u, err := url.Parse(*flagKontrolURL)
+	if ownURL != "" {
+		u, err := url.Parse(ownURL)
 		if err != nil {
 			log.Fatalln(err)
 		}

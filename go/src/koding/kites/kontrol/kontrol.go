@@ -18,7 +18,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Condig loaded with following variables: %+v\n", conf)
+	fmt.Printf("Kontrol loaded with following variables: %+v\n", conf)
 
 	k := kontrol.New(conf)
 	k.Run()
