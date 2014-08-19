@@ -713,18 +713,109 @@ func TestChannelFetchChannelIdByNameAndGroupName(t *testing.T) {
 			So(fcid, ShouldEqual, 0)
 		})
 
-		/*
-			Convey("non-existing name & groupName should give error", func() {
-				// create channel in db
-				c := createNewChannelWithTest()
-				So(c.Create(), ShouldBeNil)
+		Convey("non-existing name & groupName should give error", func() {
+			// create channel in db
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
 
-				// nameTest & groupNameTest are an arbitrary strings
-				_, err := c.FetchChannelIdByNameAndGroupName("nameTest", "groupNameTest")
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
+			// nameTest & groupNameTest are an arbitrary strings
+			_, err := c.FetchChannelIdByNameAndGroupName("nameTest", "groupNameTest")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
 
-		*/
+		Convey("Existing name & groupName should not give an error", func() {
+			// create channel in db
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// nameTest & groupNameTest are an arbitrary strings
+			fcid, err := c.FetchChannelIdByNameAndGroupName(c.Name, c.GroupName)
+			So(err, ShouldBeNil)
+			So(fcid, ShouldNotBeNil)
+			// Id of the FetchChannelIdByNameAndGroupName shoul equal to id which our created channel
+			So(fcid, ShouldEqual, c.Id)
+		})
+
+	})
+}
+
+func TestChannelFetchLastMessage(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching last message", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.FetchLastMessage()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("existing just one message in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add message to the channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// try to fetch persisted message
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldNotBeNil)
+			So(flm.Body, ShouldEqual, cm.Body)
+		})
+
+		Convey("existing two message in the channel should give last message", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add first message  to the channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// create second message
+			cm2 := createMessageWithTest()
+			cm2.Body = "lastMessage"
+			So(cm2.Create(), ShouldBeNil)
+
+			cml2, err := c.AddMessage(cm2.Id)
+			So(err, ShouldBeNil)
+			So(cml2, ShouldNotBeNil)
+
+			// try to fetch last message
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldNotBeNil)
+			So(flm.Body, ShouldEqual, cm2.Body)
+		})
+
+		Convey("non-existing message in channel should be nil", func() {
+			// create channel in db
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldBeNil)
+		})
+
 	})
 }
