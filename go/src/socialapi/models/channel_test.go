@@ -844,3 +844,46 @@ func TestChannelFetchLastMessage(t *testing.T) {
 
 	})
 }
+
+func TestChannelIsParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while controlling participant is in channel", t, func() {
+
+		Convey("participant in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			ap, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ap, ShouldNotBeNil)
+
+			part, err := c.IsParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(part, ShouldBeTrue)
+		})
+
+		Convey("non-participant in the channel should give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			part, err := c.IsParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(part, ShouldBeFalse)
+		})
+	})
+}
