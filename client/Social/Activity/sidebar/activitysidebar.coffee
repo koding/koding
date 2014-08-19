@@ -386,7 +386,7 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : 'VMs'
+      partial  : 'VMs <a href="/Pricing" class="buy-vm"></a>'
 
     section.addSubView @machineTree.getView()
 
