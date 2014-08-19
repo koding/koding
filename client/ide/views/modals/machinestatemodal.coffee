@@ -70,7 +70,7 @@ class IDE.MachineStateModal extends KDModalView
       title      : 'Turn it on'
       cssClass   : 'turn-on state-button solid green medium'
       icon       : yes
-      callback   : @bound if @state is 'NotInitialized' then 'initalizeMachine' else 'turnOnMachine'
+      callback   : @bound 'turnOnMachine'
 
     if @state is 'Running'
       @button    = new KDButtonView
@@ -102,10 +102,16 @@ class IDE.MachineStateModal extends KDModalView
     @addSubView @footer
 
   turnOnMachine: ->
-    KD.getSingleton('computeController').start @getData()
+    methodName   = 'start'
+    nextState    = 'Starting'
 
-  initalizeMachine: ->
-    KD.getSingleton('computeController').build @getData()
+    if @state is 'NotInitialized'
+      methodName = 'build'
+      nextState  = 'Building'
+
+    KD.getSingleton('computeController')[methodName] @getData()
+    @state = nextState
+    @buildViews()
 
   startIDE: ->
     @destroy()
