@@ -59,15 +59,6 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
-
-	Kontrol KontrolConfig
-}
-
-type KontrolConfig struct {
-	Public      bool   // Try to register with a public ip
-	Proxy       bool   // Try to register behind a koding proxy
-	RegisterURL string // Explicitly register with this given url
-
 }
 
 func main() {
