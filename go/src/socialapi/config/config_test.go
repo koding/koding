@@ -54,7 +54,7 @@ func TestConfigMustRead(t *testing.T) {
 			err := os.Setenv("SOCIAL_API_HOSTNAME", hostname)
 			So(err, ShouldBeNil)
 			aPath := MustRead(testConfigPath)
-			So(aPath.Uri, ShouldEqual, hostname)
+			So(aPath.Hostname, ShouldEqual, hostname)
 		})
 	})
 }
