@@ -16,7 +16,7 @@ class ReplyView extends CommentView
 
   reply: (body, callback = noop) ->
 
-    {channelId}  =  @getOptions()
+    {channelId}  = @getOptions()
     {appManager} = KD.singletons
 
     appManager.tell 'Activity', 'sendPrivateMessage', {channelId, body}, (err, reply) =>
