@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,7 +21,7 @@ func MustGet() *Config {
 	return conf
 }
 
-func createLoader(path string, flagSet *flag.FlagSet) *multiconfig.DefaultLoader {
+func createLoader(path string) (*multiconfig.DefaultLoader, error) {
 	loaders := []multiconfig.Loader{}
 
 	// Choose what while is passed
@@ -47,7 +46,7 @@ func createLoader(path string, flagSet *flag.FlagSet) *multiconfig.DefaultLoader
 // and tries to open and read it into Config struct
 // If file is not there or file is not given, it panics
 // If the given file is not formatted well, panics
-func MustRead(path string, flagSet *flag.FlagSet) *Config {
+func MustRead(path string) *Config {
 	conf = &Config{}
 
 	m := createLoader(path, flagSet)

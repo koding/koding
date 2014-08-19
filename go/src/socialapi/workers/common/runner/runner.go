@@ -102,7 +102,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 	// r.FlagSet.Parse(os.Args[1:])
 	configFile = *flagConfFile
 
-	r.Conf = config.MustRead(configFile, r.FlagSet)
+	r.Conf = config.MustRead(configFile)
 
 	r.Conf.Debug = *flagDebug
 
