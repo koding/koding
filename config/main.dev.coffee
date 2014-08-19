@@ -98,7 +98,7 @@ Configuration = (options={}) ->
     newkontrol                     : kontrol
 
     # -- MISC SERVICES --#
-    recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'            , loggedRequests: "/^(subscriptions|transactions)/"}
+    recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"            , loggedRequests: "/^(subscriptions|transactions)/"}
     sendgrid                       : sendgrid
     opsview                        : {push          : no                                            , host          : '', bin: null, conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                        , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
@@ -112,9 +112,9 @@ Configuration = (options={}) ->
     graphite                       : {use           : false                                         , host          : "#{customDomain.host}", port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                      , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice", oskite: "info", terminal: "info"    , kontrolproxy  : "notice", kontroldaemon : "notice",userpresence  : "notice", vmproxy: "notice", graphitefeeder: "notice", sync: "notice", topicModifier : "notice",  postModifier  : "notice", router: "notice", rerouting: "notice", overview: "notice", amqputil: "notice",rabbitMQ: "notice",ldapserver: "notice",broker: "notice"}
-    aws                            : {key           : 'AKIAJSUVKX6PD254UGAA'                        , secret        : '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'}
-    embedly                        : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
-    troubleshoot                   : {recipientEmail: "can@koding.com"}
+    aws                            : {key           : "AKIAJSUVKX6PD254UGAA"                        , secret        : "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"}
+    embedly                        : {apiKey        : "94991069fb354d4e8fdb825e52d4134a" }
+    troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
 
@@ -362,14 +362,16 @@ Configuration = (options={}) ->
 
       return str
 
-    envvars = ->
+    envvars = (options={})->
+      options.exclude or= []
+
       env = """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
       export KONFIG_JSON='#{KONFIG.JSON}'
 
       """
-      env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
+      env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV when key not in options.exclude
       return env
 
     workerList = (separator=" ")->
@@ -406,7 +408,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
         chmod +x ./build-client.coffee
-        ./build-client.coffee --watch false  --verbose
+        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
         git submodule init
         git submodule update
 
@@ -472,6 +474,20 @@ Configuration = (options={}) ->
 
       }
 
+      function printconfig () {
+        if [ "$2" == "" ]; then
+          cat << EOF
+          #{envvars(exclude:["KONFIG_JSON"])}EOF
+        elif [ "$2" == "--json" ]; then
+
+          echo '#{KONFIG.JSON}'
+
+        else
+          echo ""
+        fi
+
+      }
+
       function run () {
         check
         #{projectRoot}/go/build.sh
@@ -503,6 +519,7 @@ Configuration = (options={}) ->
         echo "  run buildservices      : to initialize and start services"
         echo "  run services           : to stop and restart services"
         echo "  run worker             : to list workers"
+        echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]    : to run a single worker"
         echo "  run help               : to show this list"
         echo ""
@@ -626,6 +643,10 @@ Configuration = (options={}) ->
 
         #{installScript}
 
+      elif [ "$1" == "printconfig" ]; then
+
+        printconfig $@
+
       elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
         if [ "$2" == "" ]; then
@@ -636,7 +657,7 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "cleanup" ]; then
 
-        ./cleanup @$
+        ./cleanup $@
 
       elif [ "$1" == "buildclient" ]; then
 
@@ -687,6 +708,8 @@ Configuration = (options={}) ->
   KONFIG.ENV            = generateEnvVariables   KONFIG
   KONFIG.supervisorConf = generateSupervisorConf KONFIG
   KONFIG.runFile        = generateRunFile        KONFIG
+
+
   return KONFIG
 
 module.exports = Configuration
