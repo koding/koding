@@ -226,7 +226,11 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 disable_root: false
 hostname: %s`
 
-	cloudStr := fmt.Sprintf(cloudConfig, instanceName)
+	// use a simple hostname, previously we were using instanceName which was
+	// is long and more detailed
+	hostname := username
+
+	cloudStr := fmt.Sprintf(cloudConfig, hostname)
 
 	a.Builder.UserData = []byte(cloudStr)
 
