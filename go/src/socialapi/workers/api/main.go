@@ -7,7 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
-	"os"
+
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/api/handlers"
@@ -21,11 +21,6 @@ import (
 )
 
 var (
-	cert = flag.String("cert", "", "certificate pathname")
-	key  = flag.String("key", "", "private key pathname")
-	host = flag.String("host", "0.0.0.0", "listen address")
-	port = flag.String("port", "7000", "listen port")
-
 	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
 
@@ -33,10 +28,6 @@ var (
 )
 
 func init() {
-	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "Usage: example [-cert=<cert>] [-key=<key>] [-config=<config>] [-host=<host>] [-port=<port>]")
-		flag.PrintDefaults()
-	}
 	mux = tigertonic.NewTrieServeMux()
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
@@ -91,7 +82,7 @@ func newServer(conf *config.Config) *tigertonic.Server {
 		handler = tigertonic.Logged(handler, nil)
 	}
 
-	addr := *host + ":" + *port
+	addr := conf.Host + ":" + conf.Port
 	server := tigertonic.NewServer(addr, handler)
 
 	go listener(server)
@@ -99,13 +90,7 @@ func newServer(conf *config.Config) *tigertonic.Server {
 }
 
 func listener(server *tigertonic.Server) {
-	var err error
-	if "" != *cert && "" != *key {
-		err = server.ListenAndServeTLS(*cert, *key)
-	} else {
-		err = server.ListenAndServe()
-	}
-	if nil != err {
+	if err := server.ListenAndServe(); nil != err {
 		panic(err)
 	}
 }

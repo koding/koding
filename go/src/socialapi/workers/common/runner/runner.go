@@ -32,6 +32,9 @@ var (
 	flagKiteLocal      *bool
 	flagKiteProxy      *bool
 	flagKiteKontrolURL *string
+
+	flagHost *string
+	flagPort *string
 )
 
 type Runner struct {
@@ -65,6 +68,11 @@ func generateFlagSet() *flag.FlagSet {
 	flagKiteLocal = flagSet.Bool("kite-local", false, "Start kite system in local mode.")
 	flagKiteProxy = flagSet.Bool("kite-proxy", false, "Start kite system behind a proxy")
 	flagKiteKontrolURL = flagSet.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
+
+	// for socialAPI worker
+	flagHost = flagSet.String("host", "0.0.0.0", "listen address")
+	flagPort = flagSet.String("port", "7000", "listen port")
+
 	return flagSet
 }
 func (r *Runner) Init() error {
@@ -79,6 +87,9 @@ func (r *Runner) Init() error {
 func (r *Runner) InitWithConfigFile(flagConfFile string) error {
 	r.Conf = config.MustRead(flagConfFile, r.FlagSet)
 	r.Conf.Debug = *flagDebug
+
+	r.Conf.Host = *flagHost
+	r.Conf.Port = *flagPort
 
 	// create logger for our package
 	r.Log = helper.CreateLogger(

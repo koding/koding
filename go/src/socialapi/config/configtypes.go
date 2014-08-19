@@ -48,6 +48,10 @@ type (
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
 		Debug             bool   `env:"key=KONFIG_SOCIALAPI_DEBUG 					       		      default=false"`
+
+		// just a temp hack
+		Host string
+		Port string
 	}
 
 	// Postgres holds Postgresql database related configuration
