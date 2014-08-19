@@ -94,6 +94,16 @@ class ActivityAppController extends AppController
     firstFetch = yes
 
 
+  bindModalDestroy: (modal, lastRoute) ->
+
+     {router} = KD.singletons
+
+     modal.once 'KDModalViewDestroyed', ->
+       router.back() if lastRoute is router.visitedRoutes.last
+
+     router.once 'RouteInfoHandled', -> modal?.destroy()
+
+
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
 
 
