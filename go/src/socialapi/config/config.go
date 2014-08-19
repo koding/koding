@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +11,10 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-var conf *Config
+var (
+	conf         *Config
+	ErrExtNotSet = errors.New("file extension not set")
+)
 
 // Returns config, if it is nil, panics
 func MustGet() *Config {
@@ -33,13 +37,17 @@ func createLoader(path string) (*multiconfig.DefaultLoader, error) {
 		loaders = append(loaders, &multiconfig.JSONLoader{Path: path})
 	}
 
+	if len(loaders) == 0 {
+		return nil, ErrExtNotSet
+	}
+
 	loaders = append(loaders,
 		&multiconfig.EnvironmentLoader{},
 	)
 
 	d := &multiconfig.DefaultLoader{}
 	d.Loader = multiconfig.MultiLoader(loaders...)
-	return d
+	return d, nil
 }
 
 // MustRead takes a relative file path
@@ -49,7 +57,11 @@ func createLoader(path string) (*multiconfig.DefaultLoader, error) {
 func MustRead(path string) *Config {
 	conf = &Config{}
 
-	m := createLoader(path, flagSet)
+	m, err := createLoader(path)
+	if err != nil {
+		panic(err)
+	}
+
 	m.MustLoad(conf)
 
 	// we can override Environment property of
