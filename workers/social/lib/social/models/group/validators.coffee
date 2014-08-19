@@ -1,6 +1,7 @@
 {Relationship} = require 'jraphical'
 
 getRoles = (permission, permissionSet)->
+  return []  unless permissionSet
   roles = (perm.role for perm in permissionSet.permissions\
           when permission in perm.permissions)
   roles.push 'admin' # admin can do anything!
