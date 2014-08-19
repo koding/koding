@@ -88,7 +88,6 @@ class ActivityAppController extends AppController
       messages   = socialapi.getPrefetchedData 'navigated'
       KD.utils.defer ->  callback null, messages
     else
-      log id, firstFetch, 'hello'
       socialapi.channel.fetchActivities {id, from, limit}, callback
 
     firstFetch = yes
