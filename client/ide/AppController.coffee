@@ -205,7 +205,8 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
   mountMachineByMachineUId: (machineUId) ->
-    computeController =  KD.getSingleton 'computeController'
+    computeController = KD.getSingleton 'computeController'
+    container         = @getView()
 
     computeController.fetchMachines (err, machines) =>
       return KD.showError 'Something went wrong. Try again.'  if err
@@ -220,11 +221,11 @@ class IDEAppController extends AppController
           @mountMachine machineItem
           computeController.on "stop-#{machineItem._id}", (event) ->
             if event.status is 'Stopped'
-              new IDE.MachineStateModal { state: 'Stopped' }, machineItem
+              new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
         else
-          new IDE.MachineStateModal { state }, machineItem
+          new IDE.MachineStateModal { state, container }, machineItem
       else
-        new IDE.MachineStateModal { state: 'NotFound' } , undefined
+        new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
   collapseSidebar: ->
     panel        = @workspace.getView()
