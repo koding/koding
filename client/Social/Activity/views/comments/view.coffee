@@ -9,29 +9,48 @@ class CommentView extends KDView
 
     @fakeMessageMap = {}
 
-    @inputForm = new CommentInputForm delegate: this
-      .on 'Focused', @bound 'decorateAsFocused'
-      .on 'Blured',  @bound 'resetDecoration'
-      .on 'SubmitStarted',  @bound 'handleEnter'
-      .on 'SubmitStarted',  @bound 'reply'
+    @createInputWidget()
+    @bindInputEvents()
 
     {controllerClass} = @getOptions()
 
     @controller = new controllerClass delegate: this, data
-      .on 'Mention', @inputForm.bound 'mention'
+      .on 'Mention', @input.bound 'mention'
 
     @listPreviousLink = new CommentListPreviousLink
       delegate : @controller
       click    : @bound 'listPreviousReplies'
     , data
 
-    @on 'Reply', @inputForm.bound 'setFocus'
+    @on 'Reply', @input.bound 'setFocus'
 
-    @on 'CommentSavedSuccessfully', @bound 'replaceFakeItemView'
+    @bindDataEvents()
+
+
+  bindDataEvents: ->
+    data = @getData()
 
     data
-      .on 'AddReply', @bound 'addMessage'
+      .on 'AddReply',    @bound 'addMessage'
       .on 'RemoveReply', @controller.lazyBound 'removeItem', null
+
+
+  createInputWidget: ->
+
+    activity = @getData()
+
+    @input = new CommentInputWidget {activity}
+
+
+  bindInputEvents: ->
+
+    return  unless @input
+
+    @input
+      .on 'Focused',         @bound 'decorateAsFocused'
+      .on 'Blured',          @bound 'resetDecoration'
+      .on 'SubmitStarted',   @bound 'handleEnter'
+      .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
 
 
   addMessage: (message) ->
@@ -42,7 +61,10 @@ class CommentView extends KDView
 
 
   handleEnter: (value, clientRequestId) ->
+
     return  unless value
+
+    @input.reset yes
 
     @createFakeItemView value, clientRequestId
 
@@ -100,20 +122,6 @@ class CommentView extends KDView
       @listPreviousLink.update()
 
 
-  reply: (value, clientRequestId) ->
-
-    activity        = @getData()
-    {appManager}    = KD.singletons
-    body            = value
-
-    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
-
-      return KD.showError err  if err
-
-      @emit 'CommentSavedSuccessfully', reply
-
-      KD.mixpanel 'Comment activity, success'
-
   decorateAsPassive: ->
 
     @unsetClass 'active-comment'
@@ -153,7 +161,7 @@ class CommentView extends KDView
 
     @addSubView @listPreviousLink
     @addSubView @controller.getView()
-    @addSubView @inputForm
+    @addSubView @input
 
 
   render: ->
@@ -161,3 +169,4 @@ class CommentView extends KDView
     super
 
     @resetDecoration()
+
