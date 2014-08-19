@@ -111,5 +111,6 @@ helmet.defaults app
 app.use cors()
 
 app.post '/xhr', koding.expressify()
-
+app.get '/xhr',(req,res)->
+  res.send "Socialworker is OK"
 app.listen argv.p

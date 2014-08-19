@@ -228,19 +228,16 @@ Configuration = (options={}) ->
 
     #pid        logs/nginx.pid;
 
-
-
-    events {
-        worker_connections  1024;
-    }
+    events { worker_connections  1024; }
     http {
-    upstream webs       { server 127.0.0.1:#{KONFIG.webserver.port}  ;}
-    upstream social     { server 127.0.0.1:#{KONFIG.social.port}     ;}
-    upstream subscribe  { server 127.0.0.1:#{KONFIG.broker.port}     ;}
-    upstream kloud      { server 127.0.0.1:#{KONFIG.kloud.port}      ;}
-    upstream kontrol    { server 127.0.0.1:#{KONFIG.kontrol.port}    ;}
-    upstream appsproxy  { server 127.0.0.1:#{KONFIG.appsproxy.port}  ;}
-    upstream sourcemaps { server 127.0.0.1:#{KONFIG.sourcemaps.port} ;}
+
+      upstream webs         { server 127.0.0.1:#{KONFIG.webserver.port};}
+      upstream social       { server 127.0.0.1:#{KONFIG.social.port};}
+      upstream subscribe    { server 127.0.0.1:#{KONFIG.broker.port};}
+      upstream kloud        { server 127.0.0.1:#{KONFIG.kloud.port};}
+      upstream kontrol      { server 127.0.0.1:#{KONFIG.kontrol.port};}
+      upstream appsproxy    { server 127.0.0.1:#{KONFIG.appsproxy.port};}
+      upstream sourcemaps   { server 127.0.0.1:#{KONFIG.sourcemaps.port};}
 
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
@@ -348,6 +345,7 @@ Configuration = (options={}) ->
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
+
     }
   }
   """
@@ -473,7 +471,7 @@ Configuration = (options={}) ->
       }
 
 
-      nginxrun () {
+      function nginxrun () {
 
         echo "starting nginx"
         nginx -s quit
@@ -482,7 +480,25 @@ Configuration = (options={}) ->
 
       }
 
-      chaosmonkey () {
+      function testendpoints () {
+
+        EP=("lvh.me:8090/" "lvh.me:8090/xhr" "lvh.me:8090/subscribe/info" "lvh.me:8090/kloud/kite" "lvh.me:8090/kontrol/kite" "lvh.me:8090/appsproxy" "lvh.me:8090/sourcemaps")
+
+        while [ 1==1 ];
+        do
+        for i in "${EP[@]}"
+          do
+
+             curl $i -s -f -o /dev/null || echo "DOWN $i" # | mail -s "Website is down" admin@thesite.com
+
+          done
+        sleep 1
+        done
+      }
+
+
+
+      function chaosmonkey () {
 
         while [ 1==1 ]; do
           for i in mongo redis etcd postgres
@@ -494,6 +510,8 @@ Configuration = (options={}) ->
               sleep 10
             done
         done
+
+        echo now do "run services" again to make sure everything is back to normal..
       }
 
       function printconfig () {
@@ -541,7 +559,8 @@ Configuration = (options={}) ->
         echo "  run buildservices      : to initialize and start services"
         echo "  run services           : to stop and restart services"
         echo "  run worker             : to list workers"
-        echo "  run chaosmonkey        : restart every service randomly to test resilience."
+        echo "  run chaosmonkey        : to restart every service randomly to test resilience."
+        echo "  run testendpoints      : to test every URL endpoint programmatically."
         echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]    : to run a single worker"
         echo "  run help               : to show this list"
@@ -702,6 +721,10 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "chaosmonkey" ]; then
         chaosmonkey
+
+      elif [ "$1" == "testendpoints" ]; then
+        testendpoints
+
 
       elif [ "$1" == "worker" ]; then
 
