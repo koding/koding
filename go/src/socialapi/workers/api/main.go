@@ -2,7 +2,7 @@ package main
 
 import (
 	// _ "expvar"
-	"flag"
+
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
@@ -49,10 +49,6 @@ func main() {
 		return
 	}
 
-	if !flag.Parsed() {
-		flag.Parse()
-	}
-
 	server := newServer(r.Conf)
 	// shutdown server
 	defer server.Close()
@@ -83,6 +79,7 @@ func newServer(conf *config.Config) *tigertonic.Server {
 	}
 
 	addr := conf.Host + ":" + conf.Port
+
 	server := tigertonic.NewServer(addr, handler)
 
 	go listener(server)
