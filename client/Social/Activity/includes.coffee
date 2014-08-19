@@ -80,6 +80,7 @@ module.exports = [
   "views/activitylistitem.coffee"
 
   "views/comments/inputview.coffee"
+  "views/comments/inputwidget.coffee"
   "views/comments/inputform.coffee"
   "views/comments/editform.coffee"
   "views/comments/count.coffee"
