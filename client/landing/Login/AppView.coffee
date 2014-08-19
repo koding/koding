@@ -340,25 +340,26 @@ class LoginView extends JView
     # that'll leak a guest account.
     KD.getSingleton('groupsController').groupChannel?.close()
 
-    KD.remote.api.JUser.convert formData, (err, {account, newToken})=>
+    KD.remote.api.JUser.convert formData, (err, user) =>
 
-      account ?= KD.whoami()
       @registerForm.button.hideLoader()
 
       if err
-
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
 
+        {account, newToken} = user
+        account  ?= KD.whoami()
+
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
 
         Cookies.set 'newRegister', yes
         KD.getSingleton("mainController").swapAccount {
-          account, replacementToken:newToken
+          account, replacementToken: newToken
         }
 
         titleText = unless err then 'You\'re good to go, Enjoy!' \
