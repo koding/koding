@@ -55,21 +55,6 @@ module.exports = [
   "views/tags/TagViews.coffee"
   "views/tags/TagAutoCompleteController.coffee"
 
-  "views/comments/inputform.coffee"
-  "views/comments/editform.coffee"
-  "views/comments/count.coffee"
-  "views/comments/likeview.coffee"
-  "views/comments/listpreviouslink.coffee"
-  "views/comments/view.coffee"
-  "views/comments/replyview.coffee"
-  "views/comments/listviewcontroller.coffee"
-  "views/comments/replylistviewcontroller.coffee"
-  "views/comments/settingsbutton.coffee"
-  "views/comments/deletemodal.coffee"
-  "views/comments/listitemview.coffee"
-  "views/comments/replylistitemview.coffee"
-  "views/comments/timeview.coffee"
-
   "views/inputview.coffee"
   "views/inputwidget.coffee"
   "views/inputhelperview.coffee"
@@ -93,6 +78,21 @@ module.exports = [
 
   # Activity List Items
   "views/activitylistitem.coffee"
+
+  "views/comments/inputform.coffee"
+  "views/comments/editform.coffee"
+  "views/comments/count.coffee"
+  "views/comments/likeview.coffee"
+  "views/comments/listpreviouslink.coffee"
+  "views/comments/view.coffee"
+  "views/comments/replyview.coffee"
+  "views/comments/listviewcontroller.coffee"
+  "views/comments/replylistviewcontroller.coffee"
+  "views/comments/settingsbutton.coffee"
+  "views/comments/deletemodal.coffee"
+  "views/comments/listitemview.coffee"
+  "views/comments/replylistitemview.coffee"
+  "views/comments/timeview.coffee"
 
   "views/privatemessage/listitem.coffee"
   "views/privatemessage/modal.coffee"
