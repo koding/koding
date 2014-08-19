@@ -71,7 +71,7 @@ class ActivityListItemView extends KDListItemView
 
     @editWidget?.destroy()
     @editWidget = new ActivityEditWidget null, @getData()
-    @editWidget.on 'MessageSavedSuccessfully', @bound 'resetEditing'
+    @editWidget.on 'SubmitSucceeded', @bound 'resetEditing'
     @editWidget.input.on 'Escape', @bound 'resetEditing'
     @editWidgetWrapper.addSubView @editWidget, null, yes
     @editWidgetWrapper.show()

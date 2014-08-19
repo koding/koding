@@ -58,7 +58,7 @@ class SocialApiController extends KDController
     # response for pinned messages
     m.unreadRepliesCount = data.unreadRepliesCount
 
-    m.requestData = plain.requestData
+    m.clientRequestId = plain.clientRequestId
 
     m.interactions    = interactions or
       like            :
@@ -365,6 +365,16 @@ class SocialApiController extends KDController
       fnName             : 'sendPrivateMessage'
       validateOptionsWith: ['body', 'channelId']
       mapperFn           : mapPrivateMessages
+
+    initPrivateMessageFromBot : messageRequesterFn
+      fnName                  : 'initPrivateMessage'
+      validateOptionsWith     : ['body', 'recipients']
+      mapperFn                : mapPrivateMessages
+
+    sendPrivateMessageFromBot : messageRequesterFn
+      fnName                  : 'sendPrivateMessageFromBot'
+      validateOptionsWith     : ['body', 'channelId']
+      mapperFn                : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'
