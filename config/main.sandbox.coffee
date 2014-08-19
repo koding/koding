@@ -168,7 +168,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol   -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} --port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+    kontrol             : command : "#{GOBIN}/kontrol   -config-region #{region} -config-machines #{etcd} -config-environment #{environment} -config-mongourl #{KONFIG.mongo} -config-port #{kontrol.port} -config-privatekey #{kontrol.privateKeyFile} -config-publickey #{kontrol.publicKeyFile}"
     kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
