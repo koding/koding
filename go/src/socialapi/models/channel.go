@@ -393,6 +393,8 @@ func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error)
 }
 
 // FetchChannelIdByNameAndGroupName fetchs the first ID of the channel via channel name & group name
+//
+//Tests are done..
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
 	if name == "" {
 		return 0, ErrNameIsNotSet

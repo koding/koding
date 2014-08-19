@@ -796,6 +796,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			cm2.Body = "lastMessage"
 			So(cm2.Create(), ShouldBeNil)
 
+			// add second message to the same channel
 			cml2, err := c.AddMessage(cm2.Id)
 			So(err, ShouldBeNil)
 			So(cml2, ShouldNotBeNil)
@@ -811,6 +812,30 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			// create channel in db
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
+
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldBeNil)
+		})
+
+		Convey("empty message id should be nil", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add message  to channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// after adding message, remove same massage
+			// and message id in the channel should be nil
+			ch, err := c.RemoveMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
 
 			flm, err := c.FetchLastMessage()
 			So(err, ShouldBeNil)
