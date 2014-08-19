@@ -13,7 +13,12 @@ import (
 // FlagLoader satisfies the loader interface. It creates on the fly flags based
 // on the field names and parses them to load into the given pointer of struct
 // s.
-type FlagLoader struct{}
+type FlagLoader struct {
+	// Prefix prepends the prefix to each flag name i.e:
+	// --foo is converted to --prefix-foo.
+	// --foo-bar is converted to --prefix-foo-bar.
+	Prefix string
+}
 
 func (f *FlagLoader) Load(s interface{}) error {
 	strct := structs.New(s)
@@ -22,7 +27,7 @@ func (f *FlagLoader) Load(s interface{}) error {
 	flagSet := flag.NewFlagSet(structName, flag.ExitOnError)
 
 	for _, field := range strct.Fields() {
-		f.processField(flagSet, structName, field)
+		f.processField(flagSet, field.Name(), field)
 	}
 
 	flagSet.Usage = func() {
@@ -37,17 +42,23 @@ func (f *FlagLoader) Load(s interface{}) error {
 	return flagSet.Parse(os.Args[1:])
 }
 
-func (f *FlagLoader) processField(flagSet *flag.FlagSet, prefix string, field *structs.Field) error {
-	fieldName := prefix + "-" + field.Name()
-
+// processField generates a flag based on the given field and fieldName. If a
+// nested struct is detected, a flag for each field of that nested struct is
+// generated too.
+func (f *FlagLoader) processField(flagSet *flag.FlagSet, fieldName string, field *structs.Field) error {
 	switch field.Kind() {
 	case reflect.Struct:
 		for _, ff := range field.Fields() {
-			if err := f.processField(flagSet, fieldName, ff); err != nil {
+			if err := f.processField(flagSet, field.Name()+"-"+ff.Name(), ff); err != nil {
 				return err
 			}
 		}
 	default:
+		// Add custom prefix to the flag if it's set
+		if f.Prefix != "" {
+			fieldName = f.Prefix + "-" + fieldName
+		}
+
 		flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsage(fieldName))
 	}
 
