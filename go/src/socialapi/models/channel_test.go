@@ -852,7 +852,7 @@ func TestChannelIsParticipant(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while controlling participant is in channel", t, func() {
+	Convey("while controlling participant is in the channel or not", t, func() {
 
 		Convey("participant in the channel should not give error", func() {
 			// create channel
@@ -863,6 +863,7 @@ func TestChannelIsParticipant(t *testing.T) {
 			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
+			// add the created account to the channel
 			ap, err := c.AddParticipant(acc.Id)
 			So(err, ShouldBeNil)
 			So(ap, ShouldNotBeNil)
@@ -881,9 +882,38 @@ func TestChannelIsParticipant(t *testing.T) {
 			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
+			// account is created but didn't add to the channel
+			// it means that participant is not in the channel
 			part, err := c.IsParticipant(acc.Id)
 			So(err, ShouldBeNil)
 			So(part, ShouldBeFalse)
 		})
+	})
+}
+
+func TestChannelFetchParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the participants from the channel", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.FetchParticipant(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrIdIsNotSet)
+		})
+
+		Convey("it should have account id", func() {
+			c := NewChannel()
+			c.Id = 123
+			_, err := c.FetchParticipant(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
 	})
 }
