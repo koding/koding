@@ -79,6 +79,7 @@ module.exports = [
   # Activity List Items
   "views/activitylistitem.coffee"
 
+  "views/comments/inputview.coffee"
   "views/comments/inputform.coffee"
   "views/comments/editform.coffee"
   "views/comments/count.coffee"
