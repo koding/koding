@@ -81,9 +81,18 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error " ------ FIX ME ------ @chris @aaron "
-  console.error " there was an uncaught exception", err
-  console.error " ------ FIX ME ------ @chris @aaron "
+  console.error " ------ FIX ME ------ @chris"
+  console.error " there was an uncaught exception", JSON.stringify err,null,2
+  console.error " ------ FIX ME ------ @chris"
+
+
+app.post "/inbound",(req,res)->
+  console.log  "ok"
+  console.log req.body
+  res.send "ok"
+  return
+
+
 
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
@@ -109,6 +118,7 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
+
 
 app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
   {kiteToken, user, groupId} = req.params
