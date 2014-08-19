@@ -50,7 +50,7 @@ reviveClient = (client, callback, revive = yes)->
 
   { connection: { delegate:account }, context: { group } } = client
 
-  if group is "guests" then group = "koding"
+  group = "koding"  if group is "guests"
 
   JGroup = require '../group'
   JGroup.one { slug: group }, (err, groupObj)->
