@@ -747,7 +747,7 @@ func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error)
 	return cp, nil
 }
 
-// IsParticipant controls that the participant is in the channel
+// IsParticipant controls that the participant is in the channel or not
 //
 // Tests are done.
 func (c *Channel) IsParticipant(accountId int64) (bool, error) {
