@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb"
 	"path/filepath"
 	"strings"
 	"time"
@@ -12,9 +13,9 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/sshutil"
 	"github.com/koding/logging"
+	uuid "github.com/nu7hatch/gouuid"
 
 	kiteprotocol "github.com/koding/kite/protocol"
-	"github.com/nu7hatch/gouuid"
 	"github.com/pkg/sftp"
 )
 
@@ -28,6 +29,7 @@ type KodingDeploy struct {
 	KontrolURL        string
 
 	Bucket *Bucket
+	DB     *mongodb.MongoDB
 }
 
 // apacheConfig is used to generate a new apache config file that is deployed
@@ -100,6 +102,11 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	out, err := client.StartCommand(createUserCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Creating user migration script")
+	if err = k.setupMigrateScript(username); err != nil {
 		return nil, err
 	}
 

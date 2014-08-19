@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 	"log"
@@ -129,7 +129,8 @@ func newKite(conf *Config) *kite.Kite {
 		id = conf.Id
 	}
 
-	db := mongodb.NewMongoDB(conf.MongoURL)
+	modelhelper.Initialize(conf.MongoURL)
+	db := modelhelper.Mongo
 
 	kodingProvider := &koding.Provider{
 		Log:          newLogger("koding", conf.DebugMode),
@@ -157,6 +158,7 @@ func newKite(conf *Config) *kite.Kite {
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Bucket:            newBucket("koding-kites", klientFolder),
+		DB:                db,
 	}
 
 	kld := kloud.NewKloud()
