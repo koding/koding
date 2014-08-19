@@ -40,7 +40,11 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         initPrivateMessage:
           (signature Object, Function)
+        initPrivateMessageFromBot:
+          (signature Object, Function)
         sendPrivateMessage:
+          (signature Object, Function)
+        sendPrivateMessageFromBot:
           (signature Object, Function)
         fetchPrivateMessages:
           (signature Object, Function)
@@ -142,24 +146,53 @@ module.exports = class SocialMessage extends Base
     fnName        : 'fetchMessage'
     validate      : ['id']
 
-  @initPrivateMessage = permit 'send private message',
-    success:  (client, data, callback)->
-      unless data.body
-        return callback message: "Message body should be set"
+  initPrivateMessageHelper = (client, data, callback)->
+    unless data.body
+      return callback message: "Message body should be set"
 
-      if not data.recipients or data.recipients.length < 1
-        return callback message: "You should have at least one recipient"
-      doRequest 'initPrivateMessage', client, data, callback
+    if not data.recipients or data.recipients.length < 1
+      return callback message: "You should have at least one recipient"
+
+    doRequest 'initPrivateMessage', client, data, callback
+
+  sendPrivateMessageHelper = (client, data, callback) ->
+    unless data.body
+      return callback message: "Message body should be set"
+
+    unless data.channelId
+      return callback message: "Conversation is not defined"
+
+    doRequest 'sendPrivateMessage', client, data, callback
+
+  fetchBotAccount = (callback) ->
+    JAccount = require '../account'
+    JAccount.one {'profile.nickname': 'kodingbot'}, (err, account)->
+      return callback err if err
+      # todo
+      # create a bot account unless there is an account - SY
+      return callback { message: 'account not found' }  unless account
+      callback err, account
+
+
+  @initPrivateMessage = permit 'send private message',
+    success: initPrivateMessageHelper
 
   @sendPrivateMessage = permit 'send private message',
+    success: sendPrivateMessageHelper
+
+  @initPrivateMessageFromBot = permit 'send private message',
     success: (client, data, callback)->
-      unless data.body
-        return callback message: "Message body should be set"
+      fetchBotAccount (err, account) ->
+        data.recipients = [client.connection.delegate.profile.nickname]
+        client.connection.delegate = account
+        initPrivateMessageHelper client, data, callback
 
-      unless data.channelId
-        return callback message: "Conversation is not defined"
+  @sendPrivateMessageFromBot = permit 'send private message',
+    success: (client, data, callback)->
+      fetchBotAccount (err, account) ->
+        client.connection.delegate = account
+        sendPrivateMessageHelper client, data, callback
 
-      doRequest 'sendPrivateMessage', client, data, callback
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case
