@@ -1,6 +1,15 @@
 package structs
 
-import "reflect"
+import (
+	"errors"
+	"fmt"
+	"reflect"
+)
+
+var (
+	errNotExported = errors.New("field is not exported")
+	errNotSettable = errors.New("field is not settable")
+)
 
 // Field represents a single struct field that encapsulates high level
 // functions around the field.
@@ -21,7 +30,6 @@ func (f *Field) Value() interface{} {
 	return f.value.Interface()
 }
 
-// IsEmbedded returns true if the given field is an anonymous field (embedded)
 func (f *Field) IsEmbedded() bool {
 	return f.field.Anonymous
 }
@@ -43,6 +51,53 @@ func (f *Field) IsZero() bool {
 // Name returns the name of the given field
 func (f *Field) Name() string {
 	return f.field.Name
+}
+
+// Kind returns the fields kind, such as "string", "map", "bool", etc ..
+func (f *Field) Kind() reflect.Kind {
+	return f.value.Kind()
+}
+
+// Set sets the field to given value v. It retuns an error if the field is not
+// settable (not addresable or not exported) or if the given value's type
+// doesn't match the fields type.
+func (f *Field) Set(val interface{}) error {
+	// needed to make the field settable
+	v := reflect.Indirect(f.value)
+
+	if !f.IsExported() {
+		return errNotExported
+	}
+
+	// do we get here? not sure...
+	if !v.CanSet() {
+		return errNotSettable
+	}
+
+	given := reflect.ValueOf(val)
+
+	if given.Kind() == reflect.Ptr {
+		given = given.Elem()
+	}
+
+	if v.Kind() != given.Kind() {
+		return fmt.Errorf("wrong kind: %s want: %s", given.Kind(), v.Kind())
+	}
+
+	v.Set(given)
+	return nil
+}
+
+// Fields returns a slice of Fields. This is particular handy to get the fields
+// of a nested struct . A struct tag with the content of "-" ignores the
+// checking of that particular field. Example:
+//
+//   // Field is ignored by this package.
+//   Field *http.Request `structs:"-"`
+//
+// It panics if field is not exported or if field's kind is not struct
+func (f *Field) Fields() []*Field {
+	return getFields(f.value)
 }
 
 // Field returns the field from a nested struct. It panics if the nested struct

@@ -182,6 +182,23 @@ func MustConfig(profile string) *Config {
 	return conf
 }
 
+// MustEnv is like Env, but panics if the Config cannot be read successfully.
+func MustEnv() *Config {
+	conf, err := Env()
+	if err != nil {
+		panic(err)
+	}
+
+	return conf
+}
+
+// Env reads from the KONFIG_JSON environment variable and intitializes the
+// Config struct
+func Env() (*Config, error) {
+	return readConfig("", "")
+}
+
+// TODO: Fix this shit below where dir and profile is not even used ...
 func MustConfigDir(dir, profile string) *Config {
 	conf, err := readConfig(dir, profile)
 	if err != nil {

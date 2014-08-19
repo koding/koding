@@ -239,9 +239,20 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 }
 
 func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
-	err := validateKiteKey(&r.Kite)
+	if err := validateKiteKey(&r.Kite); err != nil {
+		return err
+	}
+
+	queryKey, err := GetQueryKey(r.Query())
 	if err != nil {
 		return err
+	}
+
+	// Register only if this kite is not already registered.
+	// err == nil means there is no error, so there is a key. there shouldn't be.
+	_, err = k.storage.Get(KitesPrefix + queryKey)
+	if err == nil {
+		return errors.New(fmt.Sprintf("There is a kite already registered with the same settings: %s", queryKey))
 	}
 
 	value := &kontrolprotocol.RegisterValue{
@@ -252,8 +263,7 @@ func (k *Kontrol) register(r *kite.Client, kiteURL string) error {
 	setKey, etcdKey, etcdIDKey := k.makeSetter(&r.Kite, value)
 
 	// Register to etcd.
-	err = setKey()
-	if err != nil {
+	if err = setKey(); err != nil {
 		log.Error("etcd setKey error: %s", err)
 		return errors.New("internal error - register")
 	}

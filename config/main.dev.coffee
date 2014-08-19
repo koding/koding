@@ -175,7 +175,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -c #{configName} -r #{region} -m #{etcd}"
+    kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} --port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
     kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env dev -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
@@ -730,3 +730,7 @@ Configuration = (options={}) ->
   return KONFIG
 
 module.exports = Configuration
+
+
+# -*- mode: coffee -*-
+# vi: set ft=coffee nowrap :

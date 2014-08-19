@@ -1,0 +1,15 @@
+# general
+Region      = "localhost"
+Environment = "dev"
+Port 	    = 4000
+Enabled     = false
+
+#mongodb
+MongoURL = "192.168.59.103:27017/koding"
+
+#etcd
+Machines = ["http://192.168.59.103:4001"]
+
+# signing/generating token
+PrivateKey = "./certs/test_kontrol_rsa_private.pem"
+PublicKey  = "./certs/test_kontrol_rsa_public.pem"

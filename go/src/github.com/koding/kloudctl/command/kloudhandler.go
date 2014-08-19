@@ -58,7 +58,7 @@ func kloudClient() (*kite.Client, error) {
 		return nil, err
 	}
 
-	kloudQuery := protocol.KontrolQuery{
+	kloudQuery := &protocol.KontrolQuery{
 		Username:    query.Username,
 		ID:          query.ID,
 		Hostname:    query.Hostname,
