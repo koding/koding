@@ -21,19 +21,19 @@ Configuration = (options={}) ->
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
 
-  redis               = { host:     "#{prod_simulation_server}:27017/koding" , port:               "6379"                                , db:                 0                    }
-  rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:            15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
-  mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:         "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://#{hostname}"                     , public_:            "#{hostname}"                         , local:              "http://localhost"     , local_:          "localhost"                          , port:     80                   }
+  redis               = { host:     "#{prod_simulation_server}:27017/koding" , port:               "6379"                                , db:              0                    }
+  rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
+  mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  customDomain        = { public:   "http://#{hostname}"                     , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , protocol:           'http:'                               , defaultFromAddress: 'hello@koding.com'     , defaultFromName: 'Koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "https://kontrol.koding.com/kite"        , port:               443                                   , useTLS:             no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
-  broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:                 ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
-  regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:                 "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
-  algolia             = { appId:    'DYVV81J2S1'                             , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:        '.sandbox'           }
-  algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:        algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
+  kontrol             = { url:      "https://kontrol.koding.com/kite"        , port:               443                                   , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
+  regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
+  algolia             = { appId:    'DYVV81J2S1'                             , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.sandbox'           }
+  algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
-  postgres            = { host:     "10.0.0.137"                             , port:               5432                                  , username:           "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -42,7 +42,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/sandbox.toml"
     postgres          : postgres
     mq                : mq
-    redis             :  url: "#{redis.host}:#{redis.port}"
+    redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
     environment       : environment
     region            : region
@@ -71,7 +71,7 @@ Configuration = (options={}) ->
     uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
     userSitesDomain                : userSitesDomain
     projectRoot                    : projectRoot
-    socialapi                      : socialapi        # THIS IS WHERE WEBSERVER & SOCIAL WORKER KNOW HOW TO CONNECT TO SOCIALAPI
+    socialapi                      : socialapi
     mongo                          : mongo
     redis                          : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
@@ -81,7 +81,7 @@ Configuration = (options={}) ->
     webserver                      : {port          : 3000                        , useCacheHeader: no}
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
-    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily: '0 10 0 * * *'               , run               : no                                      , forcedRecipient : email.forcedRecipient                            , maxAge: 3 }
+    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
     elasticSearch                  : {host          : "#{prod_simulation_server}" , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8765 }
     email                          : email
@@ -98,9 +98,9 @@ Configuration = (options={}) ->
     newkontrol                     : kontrol
 
     # -- MISC SERVICES --#
-    recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: /^(subscriptions|transactions)/}
+    recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     sendgrid                       : sendgrid
-    opsview                        : {push          : no                                             , host          : ""                                           , bin: null                                                                             , conf: null}
+    opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
@@ -120,7 +120,7 @@ Configuration = (options={}) ->
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
-    client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+    client                         : {watch: yes , version: version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
@@ -139,17 +139,17 @@ Configuration = (options={}) ->
     apiUri            : "/"
     mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
-    broker            : {uri          : "/subscribe" }
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
+    broker            : {uri          : "/subscribe" }
     github            : {clientId     : "f8e440b796d953ea01e5" }
     newkontrol        : {url          : "#{kontrol.url}"}
-    sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14               , secure: no   }
-    troubleshoot      : {idleTime     : 1000 * 60 * 60                         , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
+    sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -168,9 +168,8 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol   -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -machines #{etcd} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud     -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kloud.port} -publickey #{KONFIG.kloud.publicKeyFile} -privatekey #{KONFIG.kloud.privateKeyFile} -registerurl https://koding.io/kloud"
-
+    kontrol             : command : "#{GOBIN}/kontrol   -c #{configName} -r #{region} -m #{etcd}"
+    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
@@ -223,7 +222,6 @@ Configuration = (options={}) ->
     authorized_keys : fs.readFileSync( "./install/keys/prod.ssh/authorized_keys" ,"utf8")
     config          : fs.readFileSync( "./install/keys/prod.ssh/config"          ,"utf8")
 
-
   nginxConf = """
     upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
     upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
@@ -249,7 +247,6 @@ Configuration = (options={}) ->
       # Make site accessible from http://localhost/
       server_name localhost;
 
-      location /deploy-output.txt {alias /var/log/cloud-init-output.log; }
 
       server_name #{hostname};
       location / {
@@ -373,8 +370,9 @@ Configuration = (options={}) ->
         echo #{b64z prodKeys.authorized_keys} | base64 --decode | gunzip >/root/.ssh/authorized_keys
         echo #{b64z prodKeys.config}          | base64 --decode | gunzip >/root/.ssh/config
         chmod 0600 /root/.ssh/id_rsa
+
         cd /opt
-        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:koding/koding.git koding
+        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:#{options.githubuser}/koding.git koding
 
         cd /opt/koding
 
@@ -441,6 +439,7 @@ Configuration = (options={}) ->
       hostname : #{hostname}
 
       packages:
+        - mc
         - mosh
         - supervisor
         - golang
@@ -450,8 +449,11 @@ Configuration = (options={}) ->
         - graphicsmagick
         - mosh
         - nginx
+        - mongodb-clients
+
 
       write_files:
+
         - path: /root/run.b64z
           content : #{b64z runContents}
         - path: /root/run
@@ -461,7 +463,6 @@ Configuration = (options={}) ->
 
       runcmd:
         - echo 127.0.0.1 `hostname` >> /etc/hosts
-        - echo '{"https://index.docker.io/v1/":{"auth":"ZGV2cmltOm45czQvV2UuTWRqZWNq","email":"devrim@koding.com"}}' > /root/.dockercfg
         - curl http://169.254.169.254/latest/meta-data/instance-id >/root/instance-id
         - curl -s https://get.docker.io/ubuntu/ | sudo sh
         - ln -sf /usr/bin/nodejs /usr/bin/node
@@ -470,7 +471,7 @@ Configuration = (options={}) ->
         - /root/run
         - echo "deploy done."
 
-      final_message: "The system is finally up, after $UPTIME seconds"
+
 
     """
 
