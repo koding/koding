@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/fatih/structs"
@@ -19,12 +20,9 @@ func (f *FlagLoader) Load(s interface{}) error {
 	structName := strct.Name()
 
 	flagSet := flag.NewFlagSet(structName, flag.ExitOnError)
-	// f.SetOutput(ioutil.Discard)
 
 	for _, field := range strct.Fields() {
-		name := field.Name()
-
-		flagSet.Var(newFieldValue(field), flagName(name), flagUsage(name))
+		f.processField(flagSet, structName, field)
 	}
 
 	flagSet.Usage = func() {
@@ -37,6 +35,23 @@ func (f *FlagLoader) Load(s interface{}) error {
 	}
 
 	return flagSet.Parse(os.Args[1:])
+}
+
+func (f *FlagLoader) processField(flagSet *flag.FlagSet, prefix string, field *structs.Field) error {
+	fieldName := prefix + "-" + field.Name()
+
+	switch field.Kind() {
+	case reflect.Struct:
+		for _, ff := range field.Fields() {
+			if err := f.processField(flagSet, fieldName, ff); err != nil {
+				return err
+			}
+		}
+	default:
+		flagSet.Var(newFieldValue(field), flagName(fieldName), flagUsage(fieldName))
+	}
+
+	return nil
 }
 
 // fieldValue satisfies the flag.Value and flag.Getter interfaces

@@ -17,7 +17,7 @@ func NewSitemapSet(files []SitemapFile, rootURL string) *SitemapSet {
 	ss.Sitemaps = make([]ItemDefinition, len(files))
 
 	for i := range files {
-		uri := config.MustGet().Uri
+		uri := config.MustGet().Hostname
 		ss.Sitemaps[i].Location = fmt.Sprintf("%s/sitemap/%s.xml", uri, files[i].Name)
 		if !files[i].UpdatedAt.IsZero() {
 			ss.Sitemaps[i].LastModified = files[i].UpdatedAt.UTC().Format(time.RFC3339)

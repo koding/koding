@@ -1,4 +1,4 @@
-# Multiconfig [![GoDoc](https://godoc.org/github.com/koding/multiconfig?status.svg)](http://godoc.org/github.com/koding/multiconfig) [![Build Status](https://travis-ci.org/koding/multiconfig.svg)](https://travis-ci.org/koding/multiconfig) 
+# Multiconfig [![GoDoc](https://godoc.org/github.com/koding/multiconfig?status.svg)](http://godoc.org/github.com/koding/multiconfig) [![Build Status](https://travis-ci.org/koding/multiconfig.svg?branch=master)](https://travis-ci.org/koding/multiconfig)
 
 Load configuration from multiple sources. Multiconfig makes loading/parsing
 from different configuration sources an easy task. The problem with any app is
@@ -14,7 +14,7 @@ go get github.com/koding/multiconfig
 
 ## Usage and Examples
 
-Lets define and struct that defines our configuration 
+Lets define and struct that defines our configuration
 
 ```go
 type Server struct {
@@ -43,12 +43,12 @@ m.MustLoad(serverConf)    // Panic's if there is any error
 Run your app:
 
 ```sh
-# Loads from config.toml 
-$ app 
+# Loads from config.toml
+$ app
 
 # Override any config easily with environment variables, environment variables
 # are automatically generated in the form of STRUCTNAME_FIELDNAME
-$ SERVER_PORT=4000 SERVER_NAME="koding" app 
+$ SERVER_PORT=4000 SERVER_NAME="koding" app
 
 # Or pass via flag. Flags are also automatically generated based on the field
 # name

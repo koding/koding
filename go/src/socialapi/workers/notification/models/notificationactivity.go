@@ -17,6 +17,9 @@ type NotificationActivity struct {
 	// notification content foreign key
 	NotificationContentId int64 `json:"notificationContentId" sql:"NOT NULL"`
 
+	// message foreign key
+	MessageId int64 `json:"messageId,string"`
+
 	// notifier account foreign key
 	ActorId int64 `json:"actorId,string" sql:"NOT NULL"`
 
@@ -55,6 +58,7 @@ func (a *NotificationActivity) Create() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
 		"actor_id":                a.ActorId,
+		"message_id":              a.MessageId,
 		"obsolete":                false,
 	}
 
@@ -139,6 +143,10 @@ func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 	nc := NewNotificationContent()
 	if err := nc.ById(a.NotificationContentId); err != nil {
 		return nil, err
+	}
+
+	if a.MessageId != 0 {
+		nc.TargetId = a.MessageId
 	}
 
 	return nc, nil

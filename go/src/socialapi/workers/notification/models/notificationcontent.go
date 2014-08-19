@@ -101,6 +101,8 @@ func CreateNotificationContent(i Notifiable) (*NotificationContent, error) {
 	a := NewNotificationActivity()
 	a.NotificationContentId = nc.Id
 	a.ActorId = i.GetActorId()
+	a.MessageId = i.GetMessageId()
+
 	if err := a.Create(); err != nil {
 		return nil, err
 	}

@@ -31,7 +31,7 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 
 	w, err := syslog.Dial("unixgram", syslogPath, syslog.LOG_INFO, "socialapi-metrics")
 	if err != nil {
-		log.Error("err while initing syslog for metrics, metrics wont be in the syslog %s", err.Error())
+		log.Error("Err while initing syslog for metrics, metrics wont be in the syslog %s", err.Error())
 	} else {
 		go metrics.Syslog(metric.Registry, 1e10, w)
 	}

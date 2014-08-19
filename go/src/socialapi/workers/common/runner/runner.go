@@ -23,17 +23,31 @@ import (
 )
 
 var (
-	flagConfFile = flag.String("c", "", "Configuration profile from file")
-	flagRegion   = flag.String("r", "", "Region name")
-	flagDebug    = flag.Bool("d", false, "Debug mode")
-	flagVersion  = flag.Int("v", 0, "Worker Version")
+	// flagConfFile       *string
+	// flagRegion         *string
+	// flagDebug          *bool
+	// flagVersion        *int
+	// flagOutputMetrics  *bool
+	// flagKiteInit       *bool
+	// flagKiteLocal      *bool
+	// flagKiteProxy      *bool
+	// flagKiteKontrolURL *string
 
-	flagOutputMetrics = flag.Bool("outputMetrics", false, "Output metrics")
-
+	// flagHost *string
+	// flagPort *string
+	flagConfFile       = flag.String("c", "", "Configuration profile from file")
+	flagRegion         = flag.String("r", "", "Region name")
+	flagDebug          = flag.Bool("d", false, "Debug mode")
+	flagVersion        = flag.Int("v", 0, "Worker Version")
+	flagOutputMetrics  = flag.Bool("outputMetrics", false, "Output metrics")
 	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
 	flagKiteProxy      = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
 	flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
+
+	// for socialAPI worker
+	flagHost = flag.String("host", "0.0.0.0", "listen address")
+	flagPort = flag.String("port", "7000", "listen port")
 )
 
 type Runner struct {
@@ -45,6 +59,7 @@ type Runner struct {
 	Done            chan error
 	Kite            *kite.Kite
 	Metrics         *metrics.Metrics
+	FlagSet         *flag.FlagSet
 }
 
 func New(name string) *Runner {
@@ -55,20 +70,44 @@ func WrapWithVersion(name string, version *int) string {
 	return fmt.Sprintf("%s:%d", name, *version)
 }
 
-func (r *Runner) Init() error {
-	flag.Parse()
-	if *flagConfFile == "" {
-		return fmt.Errorf("Please define config file with -c Exiting...")
-	}
+func generateFlagSet() *flag.FlagSet {
+	flagSet := flag.NewFlagSet("Runner", flag.ExitOnError)
+	// flagConfFile = flag.String("c", "", "Configuration profile from file")
+	// flagRegion = flag.String("r", "", "Region name")
+	// flagDebug = flag.Bool("d", false, "Debug mode")
+	// flagVersion = flag.Int("v", 0, "Worker Version")
+	// flagOutputMetrics = flag.Bool("outputMetrics", false, "Output metrics")
+	// flagKiteInit = flag.Bool("kite-init", false, "Init kite system with the worker.")
+	// flagKiteLocal = flag.Bool("kite-local", false, "Start kite system in local mode.")
+	// flagKiteProxy = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
+	// flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
 
+	// // for socialAPI worker
+	// flagHost = flag.String("host", "0.0.0.0", "listen address")
+	// flagPort = flag.String("port", "7000", "listen port")
+
+	return flagSet
+}
+func (r *Runner) Init() error {
 	return r.InitWithConfigFile(*flagConfFile)
 }
 
 // InitWithConfigFile used for externally setting config file.
 // This is used for testing purposes, and usage of Init method is encouraged
-func (r *Runner) InitWithConfigFile(flagConfFile string) error {
-	r.Conf = config.MustRead(flagConfFile)
-	r.Conf.FlagDebugMode = *flagDebug
+func (r *Runner) InitWithConfigFile(configFile string) error {
+	// r.FlagSet = generateFlagSet()
+
+	flag.Parse()
+
+	// r.FlagSet.Parse(os.Args[1:])
+	configFile = *flagConfFile
+
+	r.Conf = config.MustRead(configFile, r.FlagSet)
+
+	r.Conf.Debug = *flagDebug
+
+	r.Conf.Host = *flagHost
+	r.Conf.Port = *flagPort
 
 	// create logger for our package
 	r.Log = helper.CreateLogger(

@@ -1,12 +1,14 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
-	"github.com/BurntSushi/toml"
+	"github.com/koding/multiconfig"
 )
 
 var conf *Config
@@ -20,15 +22,36 @@ func MustGet() *Config {
 	return conf
 }
 
+func createLoader(path string, flagSet *flag.FlagSet) *multiconfig.DefaultLoader {
+	loaders := []multiconfig.Loader{}
+
+	// Choose what while is passed
+	if strings.HasSuffix(path, "toml") {
+		loaders = append(loaders, &multiconfig.TOMLLoader{Path: path})
+	}
+
+	if strings.HasSuffix(path, "json") {
+		loaders = append(loaders, &multiconfig.JSONLoader{Path: path})
+	}
+
+	loaders = append(loaders,
+		&multiconfig.EnvironmentLoader{},
+	)
+
+	d := &multiconfig.DefaultLoader{}
+	d.Loader = multiconfig.MultiLoader(loaders...)
+	return d
+}
+
 // MustRead takes a relative file path
 // and tries to open and read it into Config struct
 // If file is not there or file is not given, it panics
-// If the given file is not formatted well panics
-func MustRead(path string) *Config {
+// If the given file is not formatted well, panics
+func MustRead(path string, flagSet *flag.FlagSet) *Config {
+	conf = &Config{}
 
-	if _, err := toml.DecodeFile(mustGetConfigPath(path), &conf); err != nil {
-		panic(err)
-	}
+	m := createLoader(path, flagSet)
+	m.MustLoad(conf)
 
 	// we can override Environment property of
 	//the config from env variable
@@ -36,12 +59,12 @@ func MustRead(path string) *Config {
 	getStringEnvVar(&conf.Environment, "SOCIAL_API_ENV")
 
 	// set URI for webserver
-	getStringEnvVar(&conf.Uri, "SOCIAL_API_HOSTNAME")
+	getStringEnvVar(&conf.Hostname, "SOCIAL_API_HOSTNAME")
 
 	// set host for rabbitMQ
 	getStringEnvVar(&conf.Mq.Host, "RABBITMQ_HOST")
 	getIntEnvVar(&conf.Mq.Port, "RABBITMQ_PORT")
-	getStringEnvVar(&conf.Mq.Username, "RABBITMQ_USERNAME")
+	getStringEnvVar(&conf.Mq.Login, "RABBITMQ_USERNAME")
 	getStringEnvVar(&conf.Mq.Password, "RABBITMQ_PASSWORD")
 
 	// set redis url

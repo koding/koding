@@ -79,6 +79,8 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
 	}
 
+	// TODO: this does more than "check mail settings", it adds to daily
+	// digest if user has it enabled, cut this function into two
 	if !n.checkMailSettings(uc, activity, nc) {
 		return nil
 	}

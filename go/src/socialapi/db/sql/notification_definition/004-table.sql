@@ -42,6 +42,7 @@ DROP TABLE IF EXISTS "notification"."notification_activity";
 CREATE TABLE "notification"."notification_activity" (
     "id" bigint NOT NULL DEFAULT nextval('notification.notification_activity_id_seq'::regclass),
     "actor_id" bigint NOT NULL,
+    "message_id" bigint NOT NULL,
     "notification_content_id" bigint NOT NULL,
     "obsolete" bool NOT NULL,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now()

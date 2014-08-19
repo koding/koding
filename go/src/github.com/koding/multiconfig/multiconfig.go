@@ -96,8 +96,9 @@ func fieldSet(field *structs.Field, v string) error {
 	case reflect.String:
 		field.Set(v)
 	case reflect.Slice:
+		// TODO add other typed slice support
 		if _, ok := field.Value().([]string); !ok {
-			errors.New("can't set on non string slices")
+			return errors.New("can't set on non string slices")
 		}
 
 		if err := field.Set(strings.Split(v, ",")); err != nil {
