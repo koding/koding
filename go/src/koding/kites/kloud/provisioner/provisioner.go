@@ -8,6 +8,9 @@ import (
 	"github.com/mitchellh/packer/packer"
 )
 
+// Must be in current dir
+var TemplateDir = "website/"
+
 var shellProvisioner = map[string]interface{}{
 	"type": "shell",
 	"inline": []string{
@@ -20,6 +23,35 @@ var shellProvisioner = map[string]interface{}{
 		"wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv",
 		// Install programming language runtimes/compilers
 		"sudo apt-get install -y erlang ghc swi-prolog clisp ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go",
+
+		// This is needed for file provisioner which doesn't have sudo access,
+		// we need to copy it to tmp
+		"mkdir -p /tmp/userdata/Web",
+
+		// Create our user home directory layout, is going to copied later to
+		// /home/username and chowned to the users permission. We can't copy
+		// them directly to /tmp because it's get purged once the machine is
+		// destroyed and during the ami creation
+		"sudo mkdir -p /opt/koding/userdata/",
+		"sudo mkdir -p /opt/koding/userdata/Web",
+		"sudo mkdir -p /opt/koding/userdata/Applications",
+		"sudo mkdir -p /opt/koding/userdata/Backup",
+		"sudo mkdir -p /opt/koding/userdata/Documents",
+	},
+}
+
+var fileProvisioner = map[string]interface{}{
+	"type":        "file",
+	"source":      TemplateDir,
+	"destination": "/tmp/userdata/Web",
+}
+
+var copyProvisioner = map[string]interface{}{
+	"type": "shell",
+	"inline": []string{
+		// Now copy back from tmp to userdata/web because file provisioner
+		// doesn't have access
+		"sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
 	},
 }
 
@@ -27,6 +59,22 @@ var shellProvisioner = map[string]interface{}{
 // Marshaled and injected directly into packer.ParseTemplate()
 var RawData = []interface{}{
 	shellProvisioner,
+	fileProvisioner,
+	copyProvisioner,
+}
+
+// PackerRawData returns a dynamically created packer raw data
+func PackerRawData(templateDir string) []interface{} {
+	data := []interface{}{}
+	data = append(data, shellProvisioner)
+
+	// replace template dir
+	if templateDir != "" {
+		fileProvisioner["source"] = templateDir
+	}
+	data = append(data, fileProvisioner)
+	data = append(data, copyProvisioner)
+	return data
 }
 
 // PackerTemplate is ready to used and unmarshalled packer.Template. This is
@@ -37,6 +85,10 @@ var PackerTemplate = packer.Template{
 		{
 			Type:      "shell",
 			RawConfig: shellProvisioner,
+		},
+		{
+			Type:      "file",
+			RawConfig: fileProvisioner,
 		},
 	},
 }

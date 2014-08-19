@@ -160,8 +160,16 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Making user's default directories")
-	out, err = client.StartCommand(makeDirectoriesCommand(username))
+	out, err = client.StartCommand(fmt.Sprintf("cp -r /opt/koding/userdata/* /home/%s/ && rm -rf /opt/koding/userdata ", username))
 	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Chowning user's default directories")
+	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /home/%[1]s/", username))
+	if err != nil {
+		fmt.Println("out", out)
 		return nil, err
 	}
 
@@ -180,6 +188,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	log("Restarting apache2 with new config")
 	out, err = client.StartCommand("service apache2 restart")
 	if err != nil {
+		fmt.Println("out", out)
 		return nil, err
 	}
 
@@ -235,8 +244,9 @@ func patchConfCommand(username string) string {
 	)
 }
 
-// makeDirectoriesCommand ensures that all the user's default folders exist
-// and creates them if they don't
+// makeDirectoriesCommand ensures that all the user's default folders exist and
+// creates them if they don't. This is not used right now, instead we use our
+// AMI which already has all those.
 func makeDirectoriesCommand(username string) string {
 	return fmt.Sprintf(`
 sudo -u %[1]s mkdir -p /home/%[1]s/Applications && \
