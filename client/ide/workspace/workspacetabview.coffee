@@ -16,8 +16,8 @@ class IDE.WorkspaceTabView extends JView
       delegate      : this
 
   createTabView: ->
-    TabViewClas = @getOption('tabViewClass') or ApplicationTabView
-    @tabView    = new TabViewClas
+    TabViewClass = @getOption('tabViewClass') or ApplicationTabView
+    @tabView     = new TabViewClass
       tabHandleContainer        : @holderView
       closeAppWhenAllTabsClosed : no
 
