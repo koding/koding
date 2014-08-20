@@ -115,10 +115,10 @@ class IDEAppController extends AppController
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
 
-  splitTabView: (type = 'vertical') ->
+  splitTabView: (type = 'vertical', ideViewOptions) ->
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
-    newIDEView     = new IDE.IDEView
+    newIDEView     = new IDE.IDEView ideViewOptions
     @activeTabView = null
 
     ideView.detach()
