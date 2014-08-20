@@ -25,6 +25,13 @@ ff02::2 ip6-allrouters`
 <VirtualHost *:{{.ApachePort}}>
   ServerAdmin webmaster@localhost
 
+  # Rewrite scheme to ws otherwise apache can't do a websocket proxy
+  RewriteEngine on
+  RewriteCond %{HTTP:UPGRADE} ^WebSocket$ [NC]
+  RewriteCond %{HTTP:CONNECTION} ^Upgrade$ [NC]
+  RewriteRule .* ws://localhost:3000%{REQUEST_URI} [P]
+
+  # Proxy /kite path to our klient kite 
   ProxyRequests Off
   ProxyPass /kite http://localhost:{{.KitePort}}/kite keepalive=On
   ProxyPassReverse /kite http://localhost:{{.KitePort}}/kite

@@ -27,6 +27,7 @@ var shellProvisioner = map[string]interface{}{
 		// Load apache modules, those are needed to enable reverse proxy kites
 		// and execute cgi scripts
 		"sudo a2enmod cgi",
+		"sudo a2enmod rewrite",
 		"sudo a2enmod proxy",
 		"sudo a2enmod proxy_http",
 		"sudo a2enmod proxy_wstunnel",
