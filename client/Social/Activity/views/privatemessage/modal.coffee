@@ -82,6 +82,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
       router.handleRoute "/Activity/Message/#{channel.id}"
 
+      KD.singletons.windowController.revertKeyView @autoComplete.getView()
       @destroy()
 
 

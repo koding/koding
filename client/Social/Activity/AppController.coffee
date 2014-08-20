@@ -4,6 +4,15 @@ class ActivityAppController extends AppController
   KD.registerAppClass this,
     name         : 'Activity'
     searchRoute  : '/Activity?q=:text:'
+    commands     :
+      'next tab'     : 'goToNextTab'
+      'previous tab' : 'goToPreviousTab'
+    keyBindings: [
+      { command: 'next tab',      binding: 'alt+]',    global: yes }
+      { command: 'next tab',      binding: 'alt+down', global: yes }
+      { command: 'previous tab',  binding: 'alt+up',   global: yes }
+      { command: 'previous tab',  binding: 'alt+[',    global: yes }
+    ]
 
   firstFetch = yes
 
@@ -79,11 +88,34 @@ class ActivityAppController extends AppController
       messages   = socialapi.getPrefetchedData 'navigated'
       KD.utils.defer ->  callback null, messages
     else
-      log id, firstFetch, 'hello'
       socialapi.channel.fetchActivities {id, from, limit}, callback
 
     firstFetch = yes
 
+
+  bindModalDestroy: (modal, lastRoute) ->
+
+     {router} = KD.singletons
+
+     modal.once 'KDModalViewDestroyed', ->
+       router.back() if lastRoute is router.visitedRoutes.last
+
+     router.once 'RouteInfoHandled', -> modal?.destroy()
+
+
+  getActiveChannel: -> @getView().sidebar.selectedItem.getData()
+
+
+  goToNextTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openNext()
+
+
+  goToPreviousTab: (event) ->
+
+    KD.utils.stopDOMEvent event
+    @getView().openPrev()
 
   #
   # LEGACY
