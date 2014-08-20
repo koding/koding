@@ -26,7 +26,7 @@ for vm in "${vm_names[@]}"; do
 done
 echo
 index=''
-while [[ ! $index =~ ^[0-9]+$ ]]; do
+while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
   echo -n "Which vm would you like to migrate? (0-$count) "
   read index
 done
