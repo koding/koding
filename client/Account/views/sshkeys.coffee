@@ -27,19 +27,19 @@ class AccountSshKeyListController extends AccountListViewController
       @instantiateListItems keys
       @hideLazyLoader()
 
-  loadView:->
-    super
-    @getView().parent.addSubView addButton = new KDButtonView
-      style     : "solid green small account-header-button"
-      title     : ""
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "plus"
-      callback  : =>
-        unless @newItem
-          @newItem = true
-          @addItem {key: '', title: ''}, 0
-          @getListView().items.first.swapSwappable hideDelete: yes
+      @addButton?.destroy()
+
+      @addButton = new KDButtonView
+        cssClass  : 'account-add-big-btn'
+        title     : 'Add new SSH key'
+        icon      : yes
+        callback  : =>
+          unless @newItem
+            @newItem = true
+            @addItem {key: '', title: ''}, 0
+            @getListView().items.first.swapSwappable hideDelete: yes
+            
+      @getListView().addSubView @addButton, '', yes 
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
