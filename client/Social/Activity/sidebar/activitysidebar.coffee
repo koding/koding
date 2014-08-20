@@ -486,6 +486,9 @@ class ActivitySidebar extends KDCustomHTMLView
           limit : 5
         , callback
 
+    if KD.singletons.mainController.isFeatureDisabled 'threads'
+      @sections.conversations.hide()
+
 
   addMessages: ->
 
