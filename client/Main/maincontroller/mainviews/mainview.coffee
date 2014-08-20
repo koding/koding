@@ -69,9 +69,11 @@ class MainView extends KDView
 
     @setClass 'with-sidebar'
 
-    @addSubView @sidebar = new KDCustomScrollView
+    @addSubView @aside = new KDCustomHTMLView
       tagName  : 'aside'
       domId    : 'main-sidebar'
+
+    @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
 
     @sidebar.addSubView moreItemsAbove = new KDView
