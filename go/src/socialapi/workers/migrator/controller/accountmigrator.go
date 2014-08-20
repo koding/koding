@@ -28,7 +28,7 @@ func (mwc *Controller) migrateAllAccounts() error {
 		)
 		if err != nil {
 			errCount++
-			mwc.log.Error("Error occurred for account %s: %s", oldAccount.Id.Hex())
+			mwc.log.Error("Error occurred for account %s: %s", oldAccount.Id.Hex(), err)
 			return nil
 		}
 
