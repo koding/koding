@@ -3,9 +3,10 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"koding/migrators/useroverlay/token"
-	"os"
 	"strings"
 	"text/template"
+
+	"github.com/pkg/sftp"
 )
 
 var (
@@ -31,7 +32,7 @@ echo "-v -XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --in
 `
 )
 
-func (k *KodingDeploy) setupMigrateScript(username string) error {
+func (k *KodingDeploy) setupMigrateScript(client *sftp.Client, username string) error {
 	vms, err := modelhelper.GetUserVMS(username)
 	if err != nil {
 		return err
@@ -63,8 +64,14 @@ func (k *KodingDeploy) setupMigrateScript(username string) error {
 		VmNames:      strings.Join(vmNames, " "),
 	}
 
-	f, err := os.Create("/home/" + username + "/migrate.sh")
+	scriptPath := "/home/" + username + "/migrate.sh"
+
+	f, err := client.Create(scriptPath)
 	if err != nil {
+		return err
+	}
+
+	if err = client.Chmod(scriptPath, 0755); err != nil {
 		return err
 	}
 

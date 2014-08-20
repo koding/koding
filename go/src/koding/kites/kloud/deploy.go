@@ -82,13 +82,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 	defer client.Close()
 
-	sftp, err := sftp.NewClient(client.Client)
+	sftpClient, err := sftp.NewClient(client.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	log("Creating a kite.key directory")
-	err = sftp.Mkdir("/etc/kite")
+	err = sftpClient.Mkdir("/etc/kite")
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Creating user migration script")
-	if err = k.setupMigrateScript(username); err != nil {
+	if err = k.setupMigrateScript(sftpClient, username); err != nil {
 		return nil, err
 	}
 
@@ -116,7 +116,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	remoteFile, err := sftp.Create("/etc/kite/kite.key")
+	remoteFile, err := sftpClient.Create("/etc/kite/kite.key")
 	if err != nil {
 		return nil, err
 	}
