@@ -25,7 +25,6 @@ ff02::2 ip6-allrouters`
 <VirtualHost *:{{.ApachePort}}>
   ServerAdmin webmaster@localhost
 
-  ProxyPreserveHost On
   ProxyRequests Off
   ProxyPass /kite http://localhost:{{.KitePort}}/kite keepalive=On
   ProxyPassReverse /kite http://localhost:{{.KitePort}}/kite
