@@ -402,9 +402,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
-
-
-
     if KD.userMachines.length
     then @listMachines KD.userMachines
     else @fetchMachines @bound 'listMachines'
@@ -412,12 +409,18 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleMachineItemClick: (machineItem, event) ->
 
-    machine = machineItem.getData()
+    machine  = machineItem.getData()
+    {status} = machine
+    {Building, Running} = Machine.State
 
     if event.target.nodeName is 'SPAN'
 
-      KD.utils.stopDOMEvent event
-      KD.singletons.mainView.openMachineModal machine, machineItem
+      if status.state is Running
+        KD.utils.stopDOMEvent event
+        KD.singletons.mainView.openMachineModal machine, machineItem
+      else
+        return
+
 
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
