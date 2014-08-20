@@ -22,12 +22,14 @@ class CommentListItemView extends KDListItemView
     @likeView.hide()
     @replyView?.hide()
 
-    @form = new CommentEditForm delegate: this, @getData()
-    @formWrapper.addSubView @form
+    activity   = @getData()
+    @editInput = new CommentInputEditWidget {}, activity
+
+    @formWrapper.addSubView @editInput
     @formWrapper.show()
 
-    @form
-      .once 'Submit', @bound 'hideEditForm'
+    @editInput
+      .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
 
 
@@ -38,10 +40,10 @@ class CommentListItemView extends KDListItemView
     @menuWrapper.show()
     @likeView.show()
     @replyView?.show()
-    @form.destroy()
+    @editInput.destroy()
     @body.show()
     @editInfo.show()  if updatedAt > createdAt
-    @form.hide()
+    @editInput.hide()
 
 
   showDeleteModal: ->
