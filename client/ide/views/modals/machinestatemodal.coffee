@@ -125,3 +125,5 @@ class IDE.MachineStateModal extends IDE.ModalView
 
       KD.getSingleton('appManager').tell 'IDE', 'mountMachine', m
       @setData m
+
+      @emit 'IDEBecameReady'
