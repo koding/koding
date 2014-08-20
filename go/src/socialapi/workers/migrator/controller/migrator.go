@@ -91,7 +91,7 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		cm.InitialChannelId = channelId
-		if err := insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
+		if err := mwc.insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
 			handleError(su, err)
 			return nil
 		}
@@ -144,9 +144,9 @@ func (mwc *Controller) migrateAllPosts() error {
 	return nil
 }
 
-func insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
+func (mwc *Controller) insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
 
-	if err := prepareMessageAccount(cm, accountOldId); err != nil {
+	if err := mwc.prepareMessageAccount(cm, accountOldId); err != nil {
 		return err
 	}
 
@@ -193,7 +193,7 @@ func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su 
 		reply := mapCommentToChannelMessage(comment)
 		reply.InitialChannelId = parentMessage.InitialChannelId
 		// insert as channel message
-		if err := insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
+		if err := mwc.insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
 			return fmt.Errorf("comment cannot be inserted %s", err)
 		}
 
@@ -228,15 +228,14 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 		return fmt.Errorf("likes cannot be fetched %s", err)
 	}
 	for _, r := range rels {
-		a := models.NewAccount()
-		a.OldId = r.TargetId.Hex()
-		if err := a.FetchOrCreate(); err != nil {
-			mwc.log.Error("interactor account could not found: %s", err)
+		id, err := mwc.AccountIdByOldId(r.TargetId.Hex())
+		if err != nil {
+			mwc.log.Error("interactor account %s could not found: %s", r.TargetId.Hex(), err)
 			continue
 		}
 		i := models.NewInteraction()
 		i.MessageId = cm.Id
-		i.AccountId = a.Id
+		i.AccountId = id
 		i.TypeConstant = models.Interaction_TYPE_LIKE
 		i.CreatedAt = r.TimeStamp
 		if err := i.CreateRaw(); err != nil {
@@ -247,8 +246,8 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 	return nil
 }
 
-func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
-	id, err := models.AccountIdByOldId(accountOldId, "")
+func (mwc *Controller) prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
+	id, err := mwc.AccountIdByOldId(accountOldId)
 	if err != nil {
 		return fmt.Errorf("account could not found: %s", err)
 	}
