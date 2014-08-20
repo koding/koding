@@ -11,6 +11,7 @@ import (
 	"socialapi/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo/bson"
 )
@@ -74,6 +75,11 @@ func (mwc *Controller) migrateAllPosts() error {
 		su := post.(*mongomodels.StatusUpdate)
 		channelId, err := mwc.fetchGroupChannelId(su.Group)
 		if err != nil {
+			if err == bongo.RecordNotFound {
+				handleError(su, err)
+				return nil
+			}
+
 			return err
 		}
 
@@ -85,7 +91,7 @@ func (mwc *Controller) migrateAllPosts() error {
 		}
 
 		cm.InitialChannelId = channelId
-		if err := insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
+		if err := mwc.insertChannelMessage(cm, su.OriginId.Hex()); err != nil {
 			handleError(su, err)
 			return nil
 		}
@@ -138,9 +144,9 @@ func (mwc *Controller) migrateAllPosts() error {
 	return nil
 }
 
-func insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
+func (mwc *Controller) insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
 
-	if err := prepareMessageAccount(cm, accountOldId); err != nil {
+	if err := mwc.prepareMessageAccount(cm, accountOldId); err != nil {
 		return err
 	}
 
@@ -187,7 +193,7 @@ func (mwc *Controller) migrateComments(parentMessage *models.ChannelMessage, su 
 		reply := mapCommentToChannelMessage(comment)
 		reply.InitialChannelId = parentMessage.InitialChannelId
 		// insert as channel message
-		if err := insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
+		if err := mwc.insertChannelMessage(reply, comment.OriginId.Hex()); err != nil {
 			return fmt.Errorf("comment cannot be inserted %s", err)
 		}
 
@@ -222,15 +228,14 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 		return fmt.Errorf("likes cannot be fetched %s", err)
 	}
 	for _, r := range rels {
-		a := models.NewAccount()
-		a.OldId = r.TargetId.Hex()
-		if err := a.FetchOrCreate(); err != nil {
-			mwc.log.Error("interactor account could not found: %s", err)
+		id, err := mwc.AccountIdByOldId(r.TargetId.Hex())
+		if err != nil {
+			mwc.log.Error("interactor account %s could not found: %s", r.TargetId.Hex(), err)
 			continue
 		}
 		i := models.NewInteraction()
 		i.MessageId = cm.Id
-		i.AccountId = a.Id
+		i.AccountId = id
 		i.TypeConstant = models.Interaction_TYPE_LIKE
 		i.CreatedAt = r.TimeStamp
 		if err := i.CreateRaw(); err != nil {
@@ -241,8 +246,8 @@ func (mwc *Controller) migrateLikes(cm *models.ChannelMessage, oldId bson.Object
 	return nil
 }
 
-func prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
-	id, err := models.AccountIdByOldId(accountOldId, "")
+func (mwc *Controller) prepareMessageAccount(cm *models.ChannelMessage, accountOldId string) error {
+	id, err := mwc.AccountIdByOldId(accountOldId)
 	if err != nil {
 		return fmt.Errorf("account could not found: %s", err)
 	}
@@ -265,6 +270,25 @@ func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 	}
 
 	return channelId, nil
+}
+
+func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
+	id := models.FetchAccountIdByOldId(oldId)
+	if id != 0 {
+		return id, nil
+	}
+
+	acc, err := modelhelper.GetAccountById(oldId)
+	if err != nil {
+		return 0, fmt.Errorf("Participant account %s cannot be fetched: %s", oldId, err)
+	}
+
+	id, err = models.AccountIdByOldId(oldId, acc.Profile.Nickname)
+	if err != nil {
+		mwc.log.Warning("Could not update cache for %s: %s", oldId, err)
+	}
+
+	return id, nil
 }
 
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
@@ -319,12 +343,20 @@ func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
 }
 
 func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) {
+	// default setter
+	cm.UpdatedAt = meta.ModifiedAt
+
+	// i am not sure if it is possible but i do not trust current mongo data :)
+	if meta.ModifiedAt.Before(meta.CreatedAt) {
+		cm.UpdatedAt = cm.CreatedAt
+		return
+	}
+
+	// if modified at value is within 1 second limits of created at value
 	lowerLimit := cm.CreatedAt.Add(-time.Second)
 	upperLimit := cm.CreatedAt.Add(time.Second)
 	if meta.ModifiedAt.After(lowerLimit) && meta.ModifiedAt.Before(upperLimit) {
 		cm.UpdatedAt = cm.CreatedAt
-	} else {
-		cm.UpdatedAt = meta.ModifiedAt
 	}
 }
 

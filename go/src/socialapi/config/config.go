@@ -7,7 +7,9 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-var conf *Config
+var (
+	conf *Config
+)
 
 // Returns config, if it is nil, panics
 func MustGet() *Config {
