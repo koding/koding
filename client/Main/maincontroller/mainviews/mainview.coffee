@@ -115,7 +115,7 @@ class MainView extends KDView
 
   createAccountArea:->
 
-    @addSubView @accountArea = new KDCustomHTMLView
+    @aside.addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
     if KD.isLoggedIn()
