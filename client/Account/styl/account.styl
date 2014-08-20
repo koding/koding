@@ -239,6 +239,90 @@ body.account
           &.escape
             vendor                transform, translateX(-120%)
 
+    &.credentials
+
+      &.form-open
+        ul.credentials
+          display                 none
+
+        .account-add-big-btn
+          display                 none
+
+      &.share-open
+        .credential-item:not(.sharing-item)
+          display                 none
+
+        .sharing-item
+          margin-bottom           24px
+
+      form
+        margin-right              -17px
+
+        .formline
+          width                   25%
+          min-width               179px
+          fl()
+
+          &.owner
+            margin-top            31px
+
+            .kdlabel
+              margin              0 7px 0 0
+              line-height         27px
+              fl()
+
+        .button-field
+          width                   auto
+          clear                   none
+          margin-top              25px
+          fr()
+
+      .credential-item
+        size                      100%, auto
+        padding                   23px 0
+        margin                    0
+        border-bottom             1px solid #DEDEDE
+
+        .kdview
+          height                  auto
+
+        .credential-info
+          font-size               14px
+          line-height             19px
+          fl()
+
+          h4
+            font-weight           600
+            margin                0 0 1px
+            padding               0
+            color                 #4C4C4C
+
+          p
+            font-weight           400
+            color                 #7B7B7B
+
+        .buttons
+          fr()
+
+          .kdbutton
+            display               block
+            margin                10px 0 0 16px
+            background            transparent
+            border                none
+            fr()
+
+            &.share
+              r-sprite            'app', 'share-gray-16'
+
+            &.show
+              r-sprite            'app', 'zoomin-gray-16'
+
+            &.participants
+              r-sprite            'app', 'users-gray-16'
+
+            &.delete
+              r-sprite            'app', 'delete-gray-16'
+
     &.koding-keys
       .no-item-found
         padding                   0

@@ -22,7 +22,6 @@ class AccountCredentialListController extends AccountListViewController
         KodingError : "Failed to fetch credentials, try again later."
 
       @instantiateListItems credentials
-      log credentials
 
   loadView:->
 
@@ -41,25 +40,24 @@ class AccountCredentialListController extends AccountListViewController
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
-    view.parent.addSubView addButton = new KDButtonView
-      style     : "solid green small account-header-button"
-      iconClass : "plus"
-      iconOnly  : yes
+    view.parent.prepend addButton = new KDButtonView
+      cssClass  : 'account-add-big-btn'
+      title     : 'Add new credential'
+      icon      : yes
       callback  : =>
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
           y           : addButton.getY() + 35
-          x           : addButton.getX() - 142
+          x           : addButton.getX() + addButton.getWidth() / 2
           width       : 200
-          arrow       :
-            margin    : -4
-            placement : "top"
         , providerList
 
   showShareCredentialFormFor: (credential)->
 
     view = @getView().parent
     view.form?.destroy()
+
+    view.setClass 'share-open'
 
     view.form           = new KDFormViewWithFields
       cssClass          : "form-view"
@@ -86,7 +84,12 @@ class AccountCredentialListController extends AccountListViewController
         Cancel          :
           type          : "cancel"
           style         : "solid medium"
-          callback      : -> view.form.destroy()
+          callback      : =>
+            view.form.destroy()
+
+            @getView().emit 'sharingFormDestroyed'
+            view.unsetClass 'share-open'
+
 
       callback          : (data)=>
 
@@ -105,6 +108,8 @@ class AccountCredentialListController extends AccountListViewController
         credential.shareWith { target, owner }, (err)=>
 
           Save.hideLoader()
+          view.emit 'sharingFormDestroyed'
+          view.unsetClass 'share-open'
 
           unless KD.showError err
             view.form.destroy()
@@ -147,9 +152,16 @@ class AccountCredentialListController extends AccountListViewController
     view = @getView().parent
     view.form?.destroy()
 
+    view.setClass "form-open"
+
     view.form = ComputeController.UI.generateAddCredentialFormFor provider
-    view.form.on "Cancel", -> view.form.destroy()
+    view.form.on "Cancel", ->
+      view.unsetClass "form-open"
+      view.form.destroy()
+
+
     view.form.on "CredentialAdded", (credential)=>
+      view.unsetClass "form-open"
       credential.owner = yes
       view.form.destroy()
       @addItem credential
@@ -185,7 +197,11 @@ class AccountCredentialList extends KDListView
   shareItem: (item)->
 
     credential = item.getData()
+
     @emit "ShowShareCredentialFormFor", credential
+    item.setClass 'sharing-item'
+
+    @on 'sharingFormDestroyed', -> item.unsetClass 'sharing-item'
 
   showItemParticipants: (item)->
 
@@ -222,40 +238,42 @@ class AccountCredentialListItem extends KDListItemView
   JView.mixin @prototype
 
   constructor: (options = {}, data)->
-    options.cssClass = KD.utils.curry "credential-item", options.cssClass
+    options.cssClass = KD.utils.curry "credential-item clearfix", options.cssClass
     super options, data
 
     delegate  = @getDelegate()
     { owner } = @getData()
 
     @deleteButton = new KDButtonView
-      title    : "Delete"
-      cssClass : "solid small red"
+      iconOnly : yes
+      cssClass : "delete"
       callback : => delegate.deleteItem this
 
     @shareButton = new KDButtonView
-      title    : "Share"
-      cssClass : "solid small green"
+      iconOnly : yes
+      cssClass : "share"
       disabled : !owner
       callback : => delegate.shareItem this
 
     @showCredentialButton = new KDButtonView
-      title    : "Show Content"
-      cssClass : "solid small green"
+      iconOnly : yes
+      cssClass : "show"
       disabled : !owner
       callback : => delegate.showItemContent this
 
     @participantsButton = new KDButtonView
-      title    : "Show Participants"
-      cssClass : "solid small green"
+      iconOnly : yes
+      cssClass : "participants"
       disabled : !owner
       callback : => delegate.showItemParticipants this
 
   pistachio:->
     """
-     {h1{#(title)}} {span{#(provider)}}
-     <div class='buttons'>
+    <div class='credential-info'>
+      {h4{#(title)}} {p{#(provider)}}
+    </div>
+    <div class='buttons'>
       {{> @showCredentialButton}}{{> @deleteButton}}
       {{> @shareButton}}{{> @participantsButton}}
-     </div>
+    </div>
     """
