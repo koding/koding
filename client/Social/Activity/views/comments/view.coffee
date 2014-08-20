@@ -15,7 +15,6 @@ class CommentView extends KDView
     {controllerClass} = @getOptions()
 
     @controller = new controllerClass delegate: this, data
-      .on 'Mention', @input.bound 'mention'
 
     @listPreviousLink = new CommentListPreviousLink
       delegate : @controller
@@ -24,7 +23,19 @@ class CommentView extends KDView
 
     @on 'Reply', @input.bound 'setFocus'
 
+    @bindMentionEvents()
     @bindDataEvents()
+
+
+  bindMentionEvents: ->
+
+    @on 'MentionHappened', @input.bound 'mention'
+
+    @on 'MouseEnterHappenedOnMention', (item) =>
+      @input.disableSetPlaceholder()
+
+    @on 'MouseLeaveHappenedOnMention', (item) =>
+      @input.enableSetPlaceholder()
 
 
   bindDataEvents: ->

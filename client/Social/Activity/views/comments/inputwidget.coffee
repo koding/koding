@@ -38,6 +38,9 @@ class CommentInputWidget extends ActivityInputWidget
   unlockSubmit: -> @locked = no
 
 
+  setFocus: -> @input.focus()
+
+
   create: ({body, clientRequestId}, callback) ->
 
     { activity } = @getOptions()
@@ -67,15 +70,27 @@ class CommentInputWidget extends ActivityInputWidget
 
     value = @input.getValue()
 
+    @input.unsetClass 'placeholder'
+
     @input.setContent \
       if value.indexOf("@#{username}") >= 0 then value
-      else if value.length is 0 then "@#{username} "
-      else "#{value} @#{username} "
+      else if value.length is 0 then "@#{username}&nbsp;"
+      else "#{value} @#{username}&nbsp;"
 
     @setFocus()
 
 
-  setFocus: -> @input.focus()
+  # this is a fix for input view's placeholder
+  # flickering when you are already inside of
+  # the input box and click to mention. ~Umut
+  realSetPlaceholder = CommentInputView::realSetPlaceholder
+  disableSetPlaceholder: ->
+    realSetPlaceholder    = @input.setPlaceholder
+    @input.setPlaceholder = noop
+
+
+  enableSetPlaceholder: ->
+    @input.setPlaceholder = realSetPlaceholder
 
 
   viewAppended: ->

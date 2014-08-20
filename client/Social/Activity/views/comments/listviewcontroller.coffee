@@ -7,10 +7,17 @@ class CommentListViewController extends KDListViewController
       dataPath            : 'id'
       itemClass           : CommentListItemView
       itemOptions         :
-        delegate          : this
         activity          : data
 
     super options, data
+
+    commentView = @getDelegate()
+
+    @getListView().on 'ItemWasAdded', (item) ->
+      commentView.forwardEvent item, 'MentionStarted'
+      commentView.forwardEvent item, 'MentionHappened'
+      commentView.forwardEvent item, 'MouseEnterHappenedOnMention'
+      commentView.forwardEvent item, 'MouseLeaveHappenedOnMention'
 
 
   instantiateListItems: (items) ->

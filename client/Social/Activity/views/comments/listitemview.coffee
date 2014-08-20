@@ -56,22 +56,27 @@ class CommentListItemView extends KDListItemView
 
     return @replyView = new KDView tagName: 'span'  if KD.isMyPost @getData()
 
-    @replyView = new CustomLinkView
-      cssClass : 'action-link reply-link'
-      title    : 'Mention'
-      click    : @bound 'reply'
+    @replyView   = new CustomLinkView
+      cssClass   : 'action-link reply-link'
+      title      : 'Mention'
+      bind       : 'mouseenter mouseleave'
+      click      : @bound 'reply'
+      mouseenter : => @emit 'MouseEnterHappenedOnMention', this
+      mouseleave : => @emit 'MouseLeaveHappenedOnMention', this
 
 
   reply: (event) ->
 
     KD.utils.stopDOMEvent event
 
+    @emit "MentionStarted", this
+
     {account: {constructorName, _id}} = @getData()
     KD.remote.cacheable constructorName, _id, (err, account) =>
 
       return KD.showError err  if err
 
-      @getDelegate().emit 'Mention', account.profile.nickname
+      @emit 'MentionHappened', account.profile.nickname
 
 
   addMenu: ->
