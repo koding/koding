@@ -809,12 +809,18 @@ body.pricing
       line-height      42px
 
   .formline
-    padding            0 17px 0 0
+    padding            0
     margin             0 0 16px
     borderBox()
 
     .input-wrapper
       margin           0
+
+    &.section-header
+      width            100%
+      clear            both
+      margin-bottom    21px
+      margin-top       21px
 
     &.button-field
       clear            both
@@ -823,6 +829,24 @@ body.pricing
 
       .kdbutton
         margin-left    6px
+
+      .to-left
+        margin-left    0
+
+    .kdheaderview
+      display          block
+      font-size        14px
+      line-height      19px
+      size             auto, auto
+      color            #4C4C4C
+      margin           0
+      padding          0
+      border           none
+      font-weight      600
+
+      span
+        margin         0
+        padding        0
 
   .kdlabel
     font-size            14px
@@ -870,6 +894,42 @@ body.pricing
       .kdbutton
         width            100%
         margin-bottom    16px
+
+  .payment-method-entry-form
+    background           #fff
+    width                auto
+    margin               250px auto 0
+    padding              36px 20px 26px 36px
+    rounded              3px
+    max-width            520px
+
+    .formline
+      width              50%
+      padding-right      17px
+      fl()
+
+      &.cardstate
+        width            25%
+
+      &.cardcountry
+        width            25%
+
+      &.cardmonth
+        width            16.6%
+
+      &.cardyear
+        width            16.6%
+
+      &.cardcv
+        width            16.6%
+
+    .section-header
+      width              100%
+
+    .button-field
+      width              100%
+
+
 
 // /* Pricing sign-in - register */
 // section.pricing-sign-in
