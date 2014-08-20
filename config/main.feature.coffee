@@ -227,11 +227,9 @@ Configuration = (options={}) ->
     upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
     upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
     upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
+    upstream kontrol   { server 127.0.0.1:#{kontrol.port}          ;}
     upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
     upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-
-    # TBD @arslan -> make kontrol kite horizontally scalable then enable;
-    # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
 
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
@@ -276,15 +274,6 @@ Configuration = (options={}) ->
         proxy_connect_timeout 1;
       }
 
-
-      location /kloud {
-        proxy_pass            http://kloud;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
       # TBD. ADD WEBSOCKET SUPPORT HERE
 
       location ~^/subscribe/.* {
@@ -310,6 +299,30 @@ Configuration = (options={}) ->
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location ~^/kontrol/.* {
+        proxy_pass            http://kontrol;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location ~^/kloud/.* {
+        proxy_pass            http://kloud;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
     }
