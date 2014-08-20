@@ -30,10 +30,21 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
-const (
-	// Port to bind apache to by default
-	apachePort = 80
-)
+// apacheConfig is used to generate a new apache config file that is deployed
+// to remote machine
+type apacheConfig struct {
+	// Defines the base apache running port, should be 80 or 443
+	ApachePort int
+
+	// Defines the running kite port, like 3000
+	KitePort int
+}
+
+// defaultApacheConfig contains a default apache config
+var defaultApacheConfig = &apacheConfig{
+	ApachePort: 80,
+	KitePort:   3000,
+}
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	data, err := r.Context.Get("buildArtifact")
@@ -174,7 +185,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Tweaking apache config")
-	if err := changeApacheConf(client, apachePort); err != nil {
+	if err := changeApacheConf(client, defaultApacheConfig); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +197,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	log("Restarting apache2 with new config")
-	out, err = client.StartCommand("service apache2 restart")
+	out, err = client.StartCommand("a2enmod cgi && service apache2 restart")
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
@@ -290,14 +301,14 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 // changeApacheConf is used to change apache's default configuration
 // so that it listens on the port of our choice and serves /var/www
 // rather than /var/www/html (/var/www is symlinked to user's ~/Web)
-func changeApacheConf(client *sshutil.SSHClient, port int) error {
+func changeApacheConf(client *sshutil.SSHClient, conf *apacheConfig) error {
 	apacheFile, err := client.Create("/etc/apache2/sites-available/000-default.conf")
 	if err != nil {
 		return err
 	}
 
 	// Write conf file
-	if err := apacheTemplate.Execute(apacheFile, port); err != nil {
+	if err := apacheTemplate.Execute(apacheFile, conf); err != nil {
 		return err
 	}
 
@@ -307,5 +318,5 @@ func changeApacheConf(client *sshutil.SSHClient, port int) error {
 	}
 
 	// Write /etc/apache2/ports.conf file
-	return apachePortsTemplate.Execute(apachePortsFile, port)
+	return apachePortsTemplate.Execute(apachePortsFile, conf)
 }

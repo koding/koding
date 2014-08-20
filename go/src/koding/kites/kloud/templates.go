@@ -22,8 +22,13 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters`
 
 	apache = `
-<VirtualHost *:{{.}}>
+<VirtualHost *:{{.ApachePort}}>
   ServerAdmin webmaster@localhost
+
+  ProxyPreserveHost On
+  ProxyRequests Off
+  ProxyPass /kite http://localhost:{{.KitePort}}/kite keepalive=On
+  ProxyPassReverse /kite http://localhost:{{.KitePort}}/kite
 
   DocumentRoot /var/www
   <Directory />
@@ -57,6 +62,6 @@ ff02::2 ip6-allrouters`
 `
 
 	apachePorts = `
-Listen {{.}}
+Listen {{.ApachePort}}
 `
 )
