@@ -7,18 +7,6 @@ Pricing stylesheet
 pricing.styl
 */
 }
-body.pricing.flow
-
-  #main-header
-    shadow              none
-    top                 13px
-    padding-left        11px
-
-    .inner-container
-      background        transparent
-
-      >*:not(#koding-logo)
-        hidden()
 
 body.pricing
 
@@ -763,6 +751,125 @@ body.pricing
     rounded           50%
     display           block
     vendor            transform, translateX(-50%) translateY(-50%)
+
+.pricing-breadcrumb
+  size                100%, 480px
+  background          #323232
+  abs                 0px 0 0 0px
+
+  ul
+    display           block
+    size              100%, auto
+    text-align        center
+    color             #7f7f80
+    padding-top       200px
+
+    li
+      display         inline-block
+      margin          0 16px
+      opacity         .6
+      position        relative
+
+      &:after
+        content       ''
+        display       block
+        rounded       50%
+        size          6px, 6px
+        background    #7f7f80
+        abs           -32px 0 0 50%
+        margin-left   -3px
+
+      &.active
+        color         #fff
+        opacity       1
+
+        &:after
+          background  #fff
+
+        & ~ li
+          opacity     1
+
+  section
+    display           none
+
+.pricing-breadcrumb:not(.hidden) ~ .payment-workflow
+  border-top          1px solid transparent
+
+  .kdbutton.solid // Move these to fw [BC]
+    rounded           3px
+
+    &.green
+      background      #61C17F
+
+    &.red
+      background       #D75B5B
+
+    &.medium
+      height           40px
+      line-height      42px
+
+  .formline
+    padding            0 17px 0 0
+    margin             0 0 16px
+    borderBox()
+
+    .input-wrapper
+      margin           0
+
+    &.button-field
+      clear            both
+      border           none
+      margin-top       6px
+
+      .kdbutton
+        margin-left    6px
+
+  .kdlabel
+    font-size            14px
+    color                #8D8D8D
+    float                none
+    line-height          19px
+    margin               0 0 7px
+    font-weight          200
+
+  .kdinput.text
+    rounded              3px
+    background           transparent
+    border               1px solid #C9C9C9
+    padding              8px 13px 10px
+    font-size            14px
+    line-height          19px
+    color                #4C4C4C
+    font-weight          600
+    opacity              .99
+    margin               0
+
+  .placeholder-helper
+    top                  12px
+
+    &.out
+      top                -15px
+
+  h3.pricing-title
+    font-size            16px
+    color                #222
+    line-height          21px
+    margin               0 0 24px
+    font-weight          400
+
+  section
+    background           #fff
+    width                auto
+    margin               250px auto 0
+    padding              36px
+    rounded              3px
+
+    &.pricing-sign-in
+      max-width          330px
+
+      .kdbutton
+        width            100%
+        margin-bottom    16px
 
 // /* Pricing sign-in - register */
 // section.pricing-sign-in
