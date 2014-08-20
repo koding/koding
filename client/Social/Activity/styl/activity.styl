@@ -784,6 +784,12 @@ span.collapsedtext
         line-height       20px
         opacity           .99
 
+        &.edited p:after
+          content       ' (edited)'
+          display       inline
+          font-size     12px
+          color         #999
+
         p
           a
             color         inherit
@@ -824,14 +830,15 @@ span.collapsedtext
       time
         display           none //TEMP
 
-      .edit-comment-wrapper
+      .edit-comment-box
         margin            6px 0
 
-        textarea
+        .input-view
+          padding-left    0
+
+        div[contenteditable=true]
           rounded         6px
-          border          1px solid #dfdfdf
           background      #fff
-          font-size       12px
           color           #4c4c4c
           line-height     18px
           padding         10px

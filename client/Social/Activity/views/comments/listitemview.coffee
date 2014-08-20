@@ -18,7 +18,7 @@ class CommentListItemView extends KDListItemView
 
     @menuWrapper.hide()
     @body.hide()
-    @editInfo.hide()
+    @body.unsetClass 'edited'
     @likeView.hide()
     @replyView?.hide()
 
@@ -42,7 +42,7 @@ class CommentListItemView extends KDListItemView
     @replyView?.show()
     @editInput.destroy()
     @body.show()
-    @editInfo.show()  if updatedAt > createdAt
+    @body.setClass 'edited'  if updatedAt > createdAt
     @editInput.hide()
 
 
@@ -140,12 +140,7 @@ class CommentListItemView extends KDListItemView
 
     @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
 
-    @editInfo   = new JCustomHTMLView
-      tagName   : 'span'
-      cssClass  : 'hidden edited'
-      pistachio : 'edited'
-
-    @editInfo.show()  if updatedAt > createdAt
+    @body.setClass 'edited'  if updatedAt > createdAt
 
     # if deleterId? and deleterId isnt origin.id
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
@@ -183,7 +178,6 @@ class CommentListItemView extends KDListItemView
     {{> @author}}
     {{> @body}}
     {{> @formWrapper}}
-    {{> @editInfo}}
     {{> @menuWrapper}}
     {{> @likeView}}
     {{> @replyView}}
