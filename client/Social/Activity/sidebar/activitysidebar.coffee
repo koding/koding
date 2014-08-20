@@ -465,6 +465,9 @@ class ActivitySidebar extends KDCustomHTMLView
           limit : 5
         , callback
 
+    if KD.singletons.mainController.isFeatureDisabled 'channels'
+      @sections.followedTopics.hide()
+
 
 
 
