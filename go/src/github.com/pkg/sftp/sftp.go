@@ -165,6 +165,10 @@ func (u *unexpectedIdErr) Error() string {
 	return fmt.Sprintf("sftp: unexpected id: want %v, got %v", u.want, u.got)
 }
 
+func unimplementedSeekWhence(whence int) error {
+	return fmt.Errorf("sftp: unimplemented seek whence %v", whence)
+}
+
 type StatusError struct {
 	Code      uint32
 	msg, lang string

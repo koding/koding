@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb"
 	"path/filepath"
 	"strings"
 	"time"
@@ -12,9 +13,9 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/sshutil"
 	"github.com/koding/logging"
+	uuid "github.com/nu7hatch/gouuid"
 
 	kiteprotocol "github.com/koding/kite/protocol"
-	"github.com/nu7hatch/gouuid"
 	"github.com/pkg/sftp"
 )
 
@@ -28,6 +29,7 @@ type KodingDeploy struct {
 	KontrolURL        string
 
 	Bucket *Bucket
+	DB     *mongodb.MongoDB
 }
 
 // apacheConfig is used to generate a new apache config file that is deployed
@@ -80,13 +82,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 	defer client.Close()
 
-	sftp, err := sftp.NewClient(client.Client)
+	sftpClient, err := sftp.NewClient(client.Client)
 	if err != nil {
 		return nil, err
 	}
 
 	log("Creating a kite.key directory")
-	err = sftp.Mkdir("/etc/kite")
+	err = sftpClient.Mkdir("/etc/kite")
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +105,18 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Creating user migration script")
+	if err = k.setupMigrateScript(sftpClient, username); err != nil {
+		return nil, err
+	}
+
 	log("Creating a key with kontrolURL: " + k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
 		return nil, err
 	}
 
-	remoteFile, err := sftp.Create("/etc/kite/kite.key")
+	remoteFile, err := sftpClient.Create("/etc/kite/kite.key")
 	if err != nil {
 		return nil, err
 	}

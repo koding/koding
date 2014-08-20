@@ -139,13 +139,12 @@ func (c *Client) ReadDir(p string) ([]os.FileInfo, error) {
 				var filename string
 				filename, data = unmarshalString(data)
 				_, data = unmarshalString(data) // discard longname
-				var attr *attr
+				var attr *FileStat
 				attr, data = unmarshalAttrs(data)
 				if filename == "." || filename == ".." {
 					continue
 				}
-				attr.name = path.Base(filename)
-				attrs = append(attrs, attr)
+				attrs = append(attrs, fileInfoFromStat(attr, path.Base(filename)) )
 			}
 		case ssh_FXP_STATUS:
 			// TODO(dfc) scope warning!
@@ -216,8 +215,7 @@ func (c *Client) Lstat(p string) (os.FileInfo, error) {
 			return nil, &unexpectedIdErr{id, sid}
 		}
 		attr, _ := unmarshalAttrs(data)
-		attr.name = path.Base(p)
-		return attr, nil
+		return fileInfoFromStat(attr, path.Base(p)), nil
 	case ssh_FXP_STATUS:
 		return nil, unmarshalStatus(id, data)
 	default:
@@ -225,15 +223,14 @@ func (c *Client) Lstat(p string) (os.FileInfo, error) {
 	}
 }
 
-// Chtimes changes the access and modification times of the named file.
-func (c *Client) Chtimes(path string, atime time.Time, mtime time.Time) error {
+// setstat is a convience wrapper to allow for changing of various parts of the file descriptor.
+func (c *Client) setstat(path string, flags uint32, attrs interface{} ) error {
 	type packet struct {
-		Type  byte
-		Id    uint32
-		Path  string
+		Type byte
+		Id uint32
+		Path string
 		Flags uint32
-		Atime uint32
-		Mtime uint32
+		Attrs interface{}
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -242,9 +239,8 @@ func (c *Client) Chtimes(path string, atime time.Time, mtime time.Time) error {
 		Type:  ssh_FXP_SETSTAT,
 		Id:    id,
 		Path:  path,
-		Flags: ssh_FILEXFER_ATTR_ACMODTIME,
-		Atime: uint32(atime.Unix()),
-		Mtime: uint32(mtime.Unix()),
+		Flags: flags,
+		Attrs: attrs,
 	})
 	if err != nil {
 		return err
@@ -255,6 +251,39 @@ func (c *Client) Chtimes(path string, atime time.Time, mtime time.Time) error {
 	default:
 		return unimplementedPacketErr(typ)
 	}
+}
+
+// Chtimes changes the access and modification times of the named file.
+func (c *Client) Chtimes(path string, atime time.Time, mtime time.Time) error {
+	type times struct {
+		Atime uint32
+		Mtime uint32
+	}
+	attrs := times{uint32(atime.Unix()), uint32(mtime.Unix())}
+	return c.setstat(path, ssh_FILEXFER_ATTR_ACMODTIME, attrs)
+}
+
+// Chown changes the user and group owners of the named file.
+func (c *Client) Chown(path string, uid, gid int) error {
+	type owner struct {
+		Uid uint32
+		Gid uint32
+	}
+	attrs := owner{uint32(uid), uint32(gid)}
+	return c.setstat(path, ssh_FILEXFER_ATTR_UIDGID, attrs)	
+}
+
+// Chmod changes the permissions of the named file.
+func (c *Client) Chmod(path string, mode os.FileMode) error {
+	return c.setstat(path, ssh_FILEXFER_ATTR_PERMISSIONS, uint32(mode))
+}
+
+// Truncate sets the size of the named file. Although it may be safely assumed
+// that if the size is less than its current size it will be truncated to fit, 
+// the SFTP protocol does not specify what behavior the server should do when setting
+// size greater than the current size.
+func (c *Client) Truncate(path string, size int64) error {
+	return c.setstat(path, ssh_FILEXFER_ATTR_SIZE, uint64(size))
 }
 
 // Open opens the named file for reading. If successful, methods on the
@@ -374,7 +403,7 @@ func (c *Client) close(handle string) error {
 	}
 }
 
-func (c *Client) fstat(handle string) (*attr, error) {
+func (c *Client) fstat(handle string) (*FileStat, error) {
 	type packet struct {
 		Type   byte
 		Id     uint32
@@ -606,11 +635,11 @@ func (f *File) Read(b []byte) (int, error) {
 // Stat returns the FileInfo structure describing file. If there is an
 // error.
 func (f *File) Stat() (os.FileInfo, error) {
-	fi, err := f.c.fstat(f.handle)
-	if err == nil {
-		fi.name = path.Base(f.path)
+	fs, err := f.c.fstat(f.handle)
+	if err != nil {
+		return nil, err
 	}
-	return fi, err
+	return fileInfoFromStat(fs, path.Base(f.path)), nil
 }
 
 // clamp writes to less than 32k
@@ -631,6 +660,45 @@ func (f *File) Write(b []byte) (int, error) {
 		b = b[n:]
 	}
 	return written, nil
+}
+
+// Seek implements io.Seeker by setting the client offset for the next Read or
+// Write. It returns the next offset read. Seeking before or after the end of
+// the file is undefined. Seeking relative to the end calls Stat.
+func (f *File) Seek(offset int64, whence int) (int64, error) {
+	switch whence {
+	case os.SEEK_SET:
+		f.offset = uint64(offset)
+	case os.SEEK_CUR:
+		f.offset = uint64(int64(f.offset) + offset)
+	case os.SEEK_END:
+		fi, err := f.Stat()
+		if err != nil {
+			return int64(f.offset), err
+		}
+		f.offset = uint64(fi.Size() + offset)
+	default:
+		return int64(f.offset), unimplementedSeekWhence(whence)
+	}
+	return int64(f.offset), nil
+}
+
+// Chown changes the uid/gid of the current file.
+func (f *File) Chown(uid, gid int) error {
+	return f.c.Chown(f.path, uid, gid)
+}
+
+// Chmod changes the permissions of the current file.
+func (f *File) Chmod(mode os.FileMode) error {
+	return f.c.Chmod(f.path, mode)
+}
+
+// Truncate sets the size of the current file. Although it may be safely assumed
+// that if the size is less than its current size it will be truncated to fit, 
+// the SFTP protocol does not specify what behavior the server should do when setting
+// size greater than the current size.
+func (f *File) Truncate(size int64) error {
+	return f.c.Truncate(f.path, size)
 }
 
 func min(a, b int) int {
