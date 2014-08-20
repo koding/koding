@@ -343,12 +343,20 @@ func mapCommentToChannelMessage(c *mongomodels.Comment) *models.ChannelMessage {
 }
 
 func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) {
+	// default setter
+	cm.UpdatedAt = meta.ModifiedAt
+
+	// i am not sure if it is possible but i do not trust current mongo data :)
+	if meta.ModifiedAt.Before(meta.CreatedAt) {
+		cm.UpdatedAt = cm.CreatedAt
+		return
+	}
+
+	// if modified at value is within 1 second limits of created at value
 	lowerLimit := cm.CreatedAt.Add(-time.Second)
 	upperLimit := cm.CreatedAt.Add(time.Second)
 	if meta.ModifiedAt.After(lowerLimit) && meta.ModifiedAt.Before(upperLimit) {
 		cm.UpdatedAt = cm.CreatedAt
-	} else {
-		cm.UpdatedAt = meta.ModifiedAt
 	}
 }
 
