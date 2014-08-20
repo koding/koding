@@ -26,7 +26,7 @@ func NewFlag(name, synopsis string) *Flag {
 
 	// global subcommand flags
 	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
-	flagSet.StringVar(&flagKloudQuery, "kontrol-query", "/koding/vagrant/kloud", "Define first three query keys in username/environment/kitename format ...")
+	flagSet.StringVar(&flagKloudQuery, "kontrol-query", "/koding/dev/kloud", "Define first three query keys in username/environment/kitename format ...")
 
 	f := &Flag{
 		name:     name,

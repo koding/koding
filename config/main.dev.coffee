@@ -168,8 +168,8 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol -config-region #{region} -config-machines #{etcd} -config-environment #{environment} -config-mongourl #{KONFIG.mongo} -config-port #{kontrol.port} -config-privatekey #{kontrol.privateKeyFile} -config-publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud                      -c #{configName} -r #{region} -env #{environment} -port #{KONFIG.kloud.port} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile} -kontrol-url #{kontrol.url}  -register-url #{KONFIG.kloud.registerUrl}"
+    kontrol             : command : "#{GOBIN}/kontrol                    -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+    kloud               : command : "#{GOBIN}/kloud                      -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
     broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
@@ -479,6 +479,19 @@ Configuration = (options={}) ->
 
 
       }
+
+      function checkrunfile () {
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
+            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            sleep 1
+            ./configure
+            ./run install
+            ./run services
+            ./run $@
+            exit 1;
+        fi
+      }
+
 
       function testendpoints () {
 

@@ -964,6 +964,31 @@ func TestChannelFetchParticipant(t *testing.T) {
 				So(fp.ChannelId, ShouldNotEqual, c.Id)
 			})
 		*/
+	})
+}
 
+func TestChannelgetAccountId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while getting account id", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should have creator id", func() {
+			c := NewChannel()
+			c.CreatorId = 123
+			ac, err := c.getAccountId()
+			So(err, ShouldBeNil)
+			So(c.CreatorId, ShouldEqual, ac)
+		})
 	})
 }

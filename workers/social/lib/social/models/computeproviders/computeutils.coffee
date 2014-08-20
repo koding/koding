@@ -50,6 +50,8 @@ reviveClient = (client, callback, revive = yes)->
 
   { connection: { delegate:account }, context: { group } } = client
 
+  group = "koding"  if group is "guests"
+
   JGroup = require '../group'
   JGroup.one { slug: group }, (err, groupObj)->
 
@@ -132,6 +134,10 @@ fetchStackTemplate = (client, callback)->
     return callback err  if err
 
     { user, group, account } = res
+
+    unless group.stackTemplates?.length
+      console.warn "Failed to fetch stack template for #{group.slug} group"
+      return callback new KodingError "Template not set", "NotFound"
 
     # TODO Make this works with multiple stacks ~ gg
     stackTemplateId = group.stackTemplates[0]

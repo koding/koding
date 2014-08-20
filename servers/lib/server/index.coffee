@@ -86,11 +86,11 @@ process.on 'uncaughtException', (err) ->
   console.error " ------ FIX ME ------ @chris"
 
 
-app.post "/inbound",(req,res)->
-  console.log  "ok"
-  console.log req.body
-  res.send "ok"
-  return
+# app.post "/inbound",(req,res)->
+#   console.log  "ok"
+#   console.log req.body
+#   res.send "ok"
+#   return
 
 
 
