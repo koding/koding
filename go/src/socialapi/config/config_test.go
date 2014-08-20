@@ -32,7 +32,7 @@ func TestConfigMustRead(t *testing.T) {
 			So(a.Environment, ShouldEqual, env)
 		})
 		Convey("setting socialapi hostname should override config", func() {
-			err := os.Setenv("SOCIAL_API_HOSTNAME", hostname)
+			err := os.Setenv("KONFIG_SOCIALAPI_HOSTNAME", hostname)
 			So(err, ShouldBeNil)
 			aPath := MustRead(testConfigPath)
 			So(aPath.Hostname, ShouldEqual, hostname)
