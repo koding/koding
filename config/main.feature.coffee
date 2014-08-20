@@ -10,8 +10,8 @@ Configuration = (options={}) ->
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
-  configName          = options.configName     or "prod"
-  environment         = options.environment    or "prod"
+  configName          = options.configName     or "feature"
+  environment         = options.environment    or "feature"
   projectRoot         = options.projectRoot    or "/opt/koding"
   version             = options.tag
   tag                 = options.tag
