@@ -11,6 +11,7 @@ import (
 	"socialapi/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"labix.org/v2/mgo/bson"
 )
@@ -74,6 +75,11 @@ func (mwc *Controller) migrateAllPosts() error {
 		su := post.(*mongomodels.StatusUpdate)
 		channelId, err := mwc.fetchGroupChannelId(su.Group)
 		if err != nil {
+			if err == bongo.RecordNotFound {
+				handleError(su, err)
+				return nil
+			}
+
 			return err
 		}
 
