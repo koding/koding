@@ -144,6 +144,7 @@ func (tp *TemplateParser) buildMailContent(contentType string, currentDate strin
 		CurrentDate: currentDate,
 		Unsubscribe: &UnsubscribeContent{
 			Token:       tp.UserContact.Token,
+			ShowLink:    contentType != "daily", // do not show link for daily emails
 			ContentType: contentType,
 			Recipient:   url.QueryEscape(tp.UserContact.Email),
 		},
