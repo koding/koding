@@ -1,7 +1,7 @@
 package config
 
 import (
-	"flag"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,7 +11,10 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-var conf *Config
+var (
+	conf         *Config
+	ErrExtNotSet = errors.New("file extension not set")
+)
 
 // Returns config, if it is nil, panics
 func MustGet() *Config {
@@ -22,7 +25,7 @@ func MustGet() *Config {
 	return conf
 }
 
-func createLoader(path string, flagSet *flag.FlagSet) *multiconfig.DefaultLoader {
+func createLoader(path string) (*multiconfig.DefaultLoader, error) {
 	loaders := []multiconfig.Loader{}
 
 	// Choose what while is passed
@@ -34,23 +37,31 @@ func createLoader(path string, flagSet *flag.FlagSet) *multiconfig.DefaultLoader
 		loaders = append(loaders, &multiconfig.JSONLoader{Path: path})
 	}
 
+	if len(loaders) == 0 {
+		return nil, ErrExtNotSet
+	}
+
 	loaders = append(loaders,
 		&multiconfig.EnvironmentLoader{},
 	)
 
 	d := &multiconfig.DefaultLoader{}
 	d.Loader = multiconfig.MultiLoader(loaders...)
-	return d
+	return d, nil
 }
 
 // MustRead takes a relative file path
 // and tries to open and read it into Config struct
 // If file is not there or file is not given, it panics
 // If the given file is not formatted well, panics
-func MustRead(path string, flagSet *flag.FlagSet) *Config {
+func MustRead(path string) *Config {
 	conf = &Config{}
 
-	m := createLoader(path, flagSet)
+	m, err := createLoader(path)
+	if err != nil {
+		panic(err)
+	}
+
 	m.MustLoad(conf)
 
 	// we can override Environment property of

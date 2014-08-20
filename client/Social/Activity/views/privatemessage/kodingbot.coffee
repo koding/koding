@@ -1,34 +1,49 @@
 class KodingBot extends KDObject
 
+  CHANNEL_ID = null
+
+  constructor: ->
+
+    super
+
+    CHANNEL_ID = @getDelegate().getData().id
+
+  updateProfile = (key, value, callback) ->
+    me = KD.whoami()
+    oldValue = me.profile[key]
+    # do not do anything if current firstname and lastname is same
+    return if oldValue is value
+
+    options = {}
+    options["profile.#{key}"] = value
+
+    me.modify options, (err)->
+      return notify err.message  if err
+      callback()
+
   questionMap =
     'Name?' :
       fn    : (firstName)->
-        me = KD.whoami()
-        {profile:{firstName:oldFirstName}} = me
-        # do not do anything if current firstname and lastname is same
-        return if oldFirstName is firstName
-
-        me.modify {
-          "profile.firstName" : firstName
-        }, (err)->
-          return notify err.message  if err
-          new KDNotificationView title : "Nice to meet you #{firstName}! What is your last name?"
+        updateProfile 'firstName', firstName, =>
+          KD.singletons.socialapi.message.sendPrivateMessage
+            channelId : CHANNEL_ID
+            body : "Nice to meet you #{firstName}! What is your last name?"
+          , log
 
     'Last name?' :
       fn    : (lastName)->
-        me = KD.whoami()
-        {profile:{lastName:oldLastName}} = me
-        # do not do anything if current firstname and lastname is same
-        return if oldLastName is lastName
+        updateProfile 'lastName', lastName, ->
+          KD.singletons.socialapi.message.sendPrivateMessage
+            channelId : CHANNEL_ID
+            body : "Great, Welcome #{KD.utils.getFullnameFromAccount KD.whoami()}!"
+          , log
 
-        me.modify {
-          "profile.lastName" : lastName
-        }, (err)->
-          return notify err.message  if err
-          new KDNotificationView title : "Alright last name is set..."
+    # 'Password?' :
+    #   fn    : (lastName)->
+    #     updateProfile 'firstName', firstname, ->
+    #       new KDNotificationView title : "Alright last name is set..."
 
   process : (question, answer) ->
-
     if questionMap[question.body]
       {fn} = questionMap[question.body]
       fn answer

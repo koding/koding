@@ -8,7 +8,7 @@ import (
 	"socialapi/models"
 	"strings"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
+	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 	"labix.org/v2/mgo/bson"
 )
@@ -27,7 +27,7 @@ func (mwc *Controller) migrateAllTags() error {
 
 	migrateTag := func(tag interface{}) error {
 		oldTag := tag.(*mongomodels.Tag)
-		channelId, err := createTagChannel(oldTag)
+		channelId, err := mwc.createTagChannel(oldTag)
 		if err != nil {
 			handleError(oldTag, err)
 			return nil
@@ -61,8 +61,8 @@ func (mwc *Controller) migrateAllTags() error {
 	return nil
 }
 
-func createTagChannel(t *mongomodels.Tag) (int64, error) {
-	creatorId, err := fetchTagCreatorId(t)
+func (mwc *Controller) createTagChannel(t *mongomodels.Tag) (int64, error) {
+	creatorId, err := mwc.fetchTagCreatorId(t)
 	if err != nil {
 		return 0, err
 	}
@@ -92,7 +92,7 @@ func createTagChannel(t *mongomodels.Tag) (int64, error) {
 	return c.Id, nil
 }
 
-func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
+func (mwc *Controller) fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
 	s := modelhelper.Selector{
 		"sourceId": t.Id,
 		"as":       "related",
@@ -101,12 +101,8 @@ func fetchTagCreatorId(t *mongomodels.Tag) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("Tag creator cannot be fetched: %s", err)
 	}
-	id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
-	if err != nil {
-		return 0, fmt.Errorf("Tag creator cannot be created: %s", err)
-	}
 
-	return id, nil
+	return mwc.AccountIdByOldId(r.TargetId.Hex())
 }
 
 func (mwc *Controller) createTagFollowers(t *mongomodels.Tag, channelId int64) error {
@@ -128,9 +124,9 @@ func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channel
 			return nil
 		}
 		// fetch follower
-		id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
+		id, err := mwc.AccountIdByOldId(r.TargetId.Hex())
 		if err != nil {
-			mwc.log.Error("Participant account cannot be fetched: %s", err)
+			mwc.log.Error("Participant account %s cannot be fetched: %s", r.TargetId.Hex(), err)
 			return nil
 		}
 

@@ -33,7 +33,7 @@ func CreatePrivateMessageUser(nickname string) {
 }
 
 func TestPrivateMesssage(t *testing.T) {
-	mm := config.MustRead(*flagConfFile, nil).Mongo
+	mm := config.MustRead(*flagConfFile).Mongo
 	modelhelper.Initialize(mm)
 	defer modelhelper.Close()
 	CreatePrivateMessageUser("devrim")

@@ -79,7 +79,7 @@ func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, er
 	}
 
 	// find group owner
-	creatorId, err := fetchGroupOwnerId(group)
+	creatorId, err := mwc.fetchGroupOwnerId(group)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (mwc *Controller) createGroupMembers(g *mongomodels.Group, channelId int64)
 	return mwc.createChannelParticipants(s, channelId)
 }
 
-func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
+func (mwc *Controller) fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 	// fetch owner relationship
 	s := modelhelper.Selector{
 		"targetName": "JAccount",
@@ -115,12 +115,7 @@ func fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 		return 0, err
 	}
 
-	id, err := models.AccountIdByOldId(r.TargetId.Hex(), "")
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
+	return mwc.AccountIdByOldId(r.TargetId.Hex())
 }
 
 func completeGroupMigration(g *mongomodels.Group, channelId int64) error {
