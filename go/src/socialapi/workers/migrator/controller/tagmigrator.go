@@ -8,7 +8,7 @@ import (
 	"socialapi/models"
 	"strings"
 
-	"github.com/VerbalExpressions/GoVerbalExpressions"
+	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 	"github.com/koding/bongo"
 	"labix.org/v2/mgo/bson"
 )
