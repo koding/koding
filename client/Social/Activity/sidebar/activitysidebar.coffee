@@ -507,3 +507,6 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
+
+    if KD.singletons.mainController.isFeatureDisabled 'private-messages'
+      @sections.messages.hide()
