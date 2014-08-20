@@ -480,6 +480,19 @@ Configuration = (options={}) ->
 
       }
 
+      function checkrunfile () {
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
+            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            sleep 1
+            ./configure
+            ./run install
+            ./run services
+            ./run $@
+            exit 1;
+        fi
+      }
+
+
       function testendpoints () {
 
         EP=("lvh.me:8090/" "lvh.me:8090/xhr" "lvh.me:8090/subscribe/info" "lvh.me:8090/kloud/kite" "lvh.me:8090/kontrol/kite" "lvh.me:8090/appsproxy" "lvh.me:8090/sourcemaps")
