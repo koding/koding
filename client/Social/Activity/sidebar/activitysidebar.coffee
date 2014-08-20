@@ -327,6 +327,14 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
+    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
+
+      @addSubView new CustomLinkView
+        title    : 'Activity'
+        cssClass : 'kdlistitemview-sidebar-item activity'
+        href     : '/Activity/Public'
+        icon     : {}
+
 
   listMachines: (machines) ->
 
