@@ -25,9 +25,12 @@ for vm in "${vm_names[@]}"; do
   let counter=counter+1
 done
 echo
-echo -n "Which vm would you like to migrate? (0-$count) "
-read index
-echo $out
+index=''
+while [[ ! $index =~ ^[0-9]+$ ]]; do
+  echo -n "Which vm would you like to migrate? (0-$count) "
+  read index
+done
+out="${vm_names[$index]}.tgz"
 echo "-v -XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com/export-files" | xargs curl > $out
 `
 )
