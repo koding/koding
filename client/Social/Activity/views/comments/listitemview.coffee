@@ -18,16 +18,18 @@ class CommentListItemView extends KDListItemView
 
     @menuWrapper.hide()
     @body.hide()
-    @editInfo.hide()
+    @body.unsetClass 'edited'
     @likeView.hide()
     @replyView?.hide()
 
-    @form = new CommentEditForm delegate: this, @getData()
-    @formWrapper.addSubView @form
+    activity   = @getData()
+    @editInput = new CommentInputEditWidget {}, activity
+
+    @formWrapper.addSubView @editInput
     @formWrapper.show()
 
-    @form
-      .once 'Submit', @bound 'hideEditForm'
+    @editInput
+      .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
 
 
@@ -38,10 +40,10 @@ class CommentListItemView extends KDListItemView
     @menuWrapper.show()
     @likeView.show()
     @replyView?.show()
-    @form.destroy()
+    @editInput.destroy()
     @body.show()
-    @editInfo.show()  if updatedAt > createdAt
-    @form.hide()
+    @body.setClass 'edited'  if updatedAt > createdAt
+    @editInput.hide()
 
 
   showDeleteModal: ->
@@ -56,22 +58,27 @@ class CommentListItemView extends KDListItemView
 
     return @replyView = new KDView tagName: 'span'  if KD.isMyPost @getData()
 
-    @replyView = new CustomLinkView
-      cssClass : 'action-link reply-link'
-      title    : 'Mention'
-      click    : @bound 'reply'
+    @replyView   = new CustomLinkView
+      cssClass   : 'action-link reply-link'
+      title      : 'Mention'
+      bind       : 'mouseenter mouseleave'
+      click      : @bound 'reply'
+      mouseenter : => @emit 'MouseEnterHappenedOnMention', this
+      mouseleave : => @emit 'MouseLeaveHappenedOnMention', this
 
 
   reply: (event) ->
 
     KD.utils.stopDOMEvent event
 
+    @emit "MentionStarted", this
+
     {account: {constructorName, _id}} = @getData()
     KD.remote.cacheable constructorName, _id, (err, account) =>
 
       return KD.showError err  if err
 
-      @getDelegate().emit 'Mention', account.profile.nickname
+      @emit 'MentionHappened', account.profile.nickname
 
 
   addMenu: ->
@@ -133,12 +140,7 @@ class CommentListItemView extends KDListItemView
 
     @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
 
-    @editInfo   = new JCustomHTMLView
-      tagName   : 'span'
-      cssClass  : 'hidden edited'
-      pistachio : 'edited'
-
-    @editInfo.show()  if updatedAt > createdAt
+    @body.setClass 'edited'  if updatedAt > createdAt
 
     # if deleterId? and deleterId isnt origin.id
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
@@ -176,7 +178,6 @@ class CommentListItemView extends KDListItemView
     {{> @author}}
     {{> @body}}
     {{> @formWrapper}}
-    {{> @editInfo}}
     {{> @menuWrapper}}
     {{> @likeView}}
     {{> @replyView}}

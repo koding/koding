@@ -140,13 +140,16 @@ class ActivityInputView extends KDTokenizedInput
 
     super
 
-    return @utils.selectEnd()  if value = @getValue()
+    {childNodes} = @getEditableElement()
+    lastChild    = childNodes[childNodes.length - 1]
+
+    return @utils.selectEnd lastChild  if value = @getValue()
 
     content = @prefixDefaultTokens()
     return  unless content
 
     @setContent content
-    {childNodes} = @getEditableElement()
+
     @utils.selectEnd childNodes[childNodes.length - 1]
 
 
