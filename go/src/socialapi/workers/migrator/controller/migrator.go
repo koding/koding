@@ -273,6 +273,25 @@ func (mwc *Controller) fetchGroupChannelId(groupName string) (int64, error) {
 	return channelId, nil
 }
 
+func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
+	id := models.FetchAccountIdByOldId(oldId)
+	if id != 0 {
+		return id, nil
+	}
+
+	acc, err := modelhelper.GetAccountById(oldId)
+	if err != nil {
+		return 0, fmt.Errorf("Participant account %s cannot be fetched: %s", oldId, err)
+	}
+
+	id, err = models.AccountIdByOldId(oldId, acc.Profile.Nickname)
+	if err != nil {
+		mwc.log.Warning("Could not update cache for %s: %s", oldId, err)
+	}
+
+	return id, nil
+}
+
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
 	cm.Slug = su.Slug
