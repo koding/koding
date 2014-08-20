@@ -49,6 +49,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
+    return pane
+
   createEditor: (file, content, callback = noop) ->
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
