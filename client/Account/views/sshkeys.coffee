@@ -29,7 +29,7 @@ class AccountSshKeyListController extends AccountListViewController
 
       @addButton?.destroy()
 
-      @getListView().prepend @addButton = new KDButtonView
+      @addButton = new KDButtonView
         cssClass  : 'account-add-big-btn'
         title     : 'Add new SSH key'
         icon      : yes
@@ -38,6 +38,8 @@ class AccountSshKeyListController extends AccountListViewController
             @newItem = true
             @addItem {key: '', title: ''}, 0
             @getListView().items.first.swapSwappable hideDelete: yes
+            
+      @getListView().addSubView @addButton, '', yes 
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
