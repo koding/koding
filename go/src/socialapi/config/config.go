@@ -49,5 +49,5 @@ func (e *EnvJSONLoader) Load(s interface{}) error {
 		return nil
 	}
 
-	return json.Unmarshal([]byte{v}, s)
+	return json.Unmarshal([]byte(v), s)
 }
