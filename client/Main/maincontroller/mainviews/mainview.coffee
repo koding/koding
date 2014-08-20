@@ -73,6 +73,10 @@ class MainView extends KDView
       tagName  : 'aside'
       domId    : 'main-sidebar'
 
+    @aside.addSubView new KDCustomHTMLView
+      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
+      partial   : "<a href='/'><figure></figure></a>"
+
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
 
