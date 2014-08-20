@@ -374,7 +374,7 @@ class IDEAppController extends AppController
           ace.setSyntax value
 
   getActivePaneView: ->
-    return @activeTabView.getActivePane().getSubViews().first
+    return @activeTabView.getActivePane()?.getSubViews().first
 
   saveFile: ->
     @getActivePaneView().emit 'SaveRequested'
