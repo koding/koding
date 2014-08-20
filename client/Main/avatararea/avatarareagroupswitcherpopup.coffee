@@ -149,10 +149,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new CustomLinkView
       tagName    : 'a'
-      partial    : 'System health check'
-      click      : (event)=>
-        new TroubleshootModal
-        @hide()
+      title      : 'Koding University'
+      href       : 'http://learn.koding.com'
+      target     : '_blank'
 
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"
