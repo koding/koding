@@ -327,6 +327,14 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
+    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
+
+      @addSubView new CustomLinkView
+        title    : 'Activity'
+        cssClass : 'kdlistitemview-sidebar-item activity'
+        href     : '/Activity/Public'
+        icon     : {}
+
 
   listMachines: (machines) ->
 
@@ -394,9 +402,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
-
-
-
     if KD.userMachines.length
     then @listMachines KD.userMachines
     else @fetchMachines @bound 'listMachines'
@@ -404,12 +409,18 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleMachineItemClick: (machineItem, event) ->
 
-    machine = machineItem.getData()
+    machine  = machineItem.getData()
+    {status} = machine
+    {Building, Running} = Machine.State
 
     if event.target.nodeName is 'SPAN'
 
-      KD.utils.stopDOMEvent event
-      KD.singletons.mainView.openMachineModal machine, machineItem
+      if status.state is Running
+        KD.utils.stopDOMEvent event
+        KD.singletons.mainView.openMachineModal machine, machineItem
+      else
+        return
+
 
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
@@ -454,6 +465,9 @@ class ActivitySidebar extends KDCustomHTMLView
           limit : 5
         , callback
 
+    if KD.singletons.mainController.isFeatureDisabled 'channels'
+      @sections.followedTopics.hide()
+
 
 
 
@@ -471,6 +485,9 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
         , callback
+
+    if KD.singletons.mainController.isFeatureDisabled 'threads'
+      @sections.conversations.hide()
 
 
   addMessages: ->
@@ -490,3 +507,6 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
+
+    if KD.singletons.mainController.isFeatureDisabled 'private-messages'
+      @sections.messages.hide()
