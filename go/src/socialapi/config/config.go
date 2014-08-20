@@ -1,9 +1,8 @@
 package config
 
 import (
-	"fmt"
+	"encoding/json"
 	"os"
-	"strconv"
 
 	"github.com/koding/multiconfig"
 )
@@ -38,20 +37,17 @@ func MustRead(path string) *Config {
 	return conf
 }
 
-func getStringEnvVar(field *string, envVarName string) {
-	env := os.Getenv(envVarName)
-	if env != "" {
-		*field = env
-	}
+type EnvJSONLoader struct {
+	Name string
 }
 
-func getIntEnvVar(field *int, envVarName string) {
-	env := os.Getenv(envVarName)
-	if env != "" {
-		value, err := strconv.Atoi(env)
-		if err != nil {
-			panic(fmt.Errorf("couldn't parse env variable: %s", envVarName))
-		}
-		*field = value
+func (e *EnvJSONLoader) Load(s interface{}) error {
+	v := os.Getenv(e.Name)
+	if v == "" {
+		// we are ignoring this case when the config is not set
+		// reading a Specific Env key is not mandatory
+		return nil
 	}
+
+	return json.Unmarshal([]byte{v}, s)
 }
