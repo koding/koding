@@ -990,5 +990,13 @@ func TestChannelgetAccountId(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(c.CreatorId, ShouldEqual, ac)
 		})
+
+		Convey("it should get id of creator", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			ac, err := c.getAccountId()
+			So(err, ShouldBeNil)
+			So(c.CreatorId, ShouldEqual, ac)
+		})
 	})
 }

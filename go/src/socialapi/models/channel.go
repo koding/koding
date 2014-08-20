@@ -716,7 +716,7 @@ func (c *Channel) getAccountId() (int64, error) {
 	}
 
 	if c.Id == 0 {
-		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	cn := NewChannel()
