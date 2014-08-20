@@ -329,10 +329,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
     unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
 
-      @addSubView new CustomLinkView
+      @addSubView @activityLink = new CustomLinkView
         title    : 'Activity'
         cssClass : 'kdlistitemview-sidebar-item activity'
         href     : '/Activity/Public'
+        click    : -> @setClass 'selected'
         icon     : {}
 
 
@@ -412,6 +413,8 @@ class ActivitySidebar extends KDCustomHTMLView
     machine  = machineItem.getData()
     {status} = machine
     {Building, Running} = Machine.State
+
+    @activityLink?.unsetClass 'selected'
 
     if event.target.nodeName is 'SPAN'
 
