@@ -19,12 +19,26 @@ class MainViewController extends KDViewController
     appManager           = KD.singleton 'appManager'
     windowController     = KD.singleton 'windowController'
     display              = KD.singleton 'display'
+    mainController       = KD.singleton 'mainController'
 
     mainView.on 'MainTabPaneShown', (pane) =>
       @mainTabPaneChanged mainView, pane
 
     appManager.on 'AppIsBeingShown', (controller) =>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
+
+      # todo:
+      # remove this part once mmvp becomes mvp - SY
+      {name} = controller.getOptions()
+      switch name
+        when 'IDE'
+          mainView.activitySidebar?.deselectAllItems()
+          mainView.activitySidebar?.activityLink?.unsetClass 'selected'
+        when 'Activity'
+          mainView.activitySidebar?.activityLink?.setClass 'selected'
+          mainView.activitySidebar?.machineTree?.deselectAllNodes()
+
+
 
     display.on 'ContentDisplayWantsToBeShown', do =>
       type = null
