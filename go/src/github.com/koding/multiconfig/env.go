@@ -12,14 +12,27 @@ import (
 // EnvironmentLoader satisifies the loader interface. It loads the
 // configuration from the environment variables in the form of
 // STRUCTNAME_FIELDNAME.
-type EnvironmentLoader struct{}
+type EnvironmentLoader struct {
+	// Prefix prepends given string to every environment variable
+	// {STRUCTNAME}_FIELDNAME will be {PREFIX}_FIELDNAME
+	Prefix string
+}
+
+func (e *EnvironmentLoader) getPrefix(s *structs.Struct) string {
+	if e.Prefix != "" {
+		return e.Prefix
+	}
+
+	return s.Name()
+}
 
 func (e *EnvironmentLoader) Load(s interface{}) error {
 	strct := structs.New(s)
-	strctName := strct.Name()
+
+	prefix := e.getPrefix(strct)
 
 	for _, field := range strct.Fields() {
-		if err := e.processField(strctName, field); err != nil {
+		if err := e.processField(prefix, field); err != nil {
 			return err
 		}
 	}
@@ -56,10 +69,11 @@ func (e *EnvironmentLoader) processField(prefix string, field *structs.Field) er
 // PrintEnvs prints the generated environment variables to the std out.
 func (e *EnvironmentLoader) PrintEnvs(s interface{}) {
 	strct := structs.New(s)
-	strctName := strct.Name()
+
+	prefix := e.getPrefix(strct)
 
 	for _, field := range strct.Fields() {
-		e.printField(strctName, field)
+		e.printField(prefix, field)
 	}
 }
 
