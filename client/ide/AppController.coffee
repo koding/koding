@@ -105,6 +105,8 @@ class IDEAppController extends AppController
 
         appView.emit 'KeyViewIsSet'
 
+        @createInitialView()
+
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
@@ -204,6 +206,36 @@ class IDEAppController extends AppController
     filesPane    = panel.getPaneByName 'filesPane'
     filesPane.emit 'MachineUnmountRequested', machineData
 
+  createInitialView: ->
+    KD.utils.defer =>
+      @splitTabView 'horizontal', createNewEditor: no
+      @getMountedMachine (err, machine) =>
+        {state} = machine.status
+        return unless machine
+
+        if state in [ 'Stopped', 'NotInitialized', 'Terminated' ]
+          tabView      = @activeTabView
+          terminalView = new KDCustomHTMLView partial: IDE.terminalSplashMarkup
+          terminalPane = tabView.parent.createPane_ terminalView, { name: 'Terminal' }
+
+          KD.utils.defer =>
+            @machineStateModal.once 'IDEBecameReady', =>
+              tabView.removePane_ terminalPane
+              @createNewTerminal @machineStateModal.getData()
+        else
+          @createNewTerminal machine
+
+  getMountedMachine: (callback = noop) ->
+    KD.getSingleton('computeController').fetchMachines (err, machines) =>
+      if err
+        KD.showError "Couldn't fetch your VMs"
+        return callback err, null
+
+      KD.utils.defer =>
+        machine = m for m in machines when m.uid is @mountedMachineUId
+
+        callback null, machine
+
   mountMachineByMachineUId: (machineUId) ->
     computeController = KD.getSingleton 'computeController'
     container         = @getView()
@@ -221,11 +253,11 @@ class IDEAppController extends AppController
           @mountMachine machineItem
           computeController.on "stop-#{machineItem._id}", (event) ->
             if event.status is 'Stopped'
-              new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
+              @machineStateModal = new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
         else
-          new IDE.MachineStateModal { state, container }, machineItem
+          @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
       else
-        new IDE.MachineStateModal { state: 'NotFound', container } , undefined
+        @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
   collapseSidebar: ->
     panel        = @workspace.getView()
