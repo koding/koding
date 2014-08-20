@@ -614,8 +614,8 @@ func EnsurePinnedActivityChannel(accountId int64, groupName string) (*Channel, e
 	return c, nil
 }
 
-// CanOpen function is a function that permissions for channels
-// group channel 'CanOpened' by everyone
+// CanOpen checks permissions for channels
+// group channels can be opened by everyone
 // But private message channel just CanOpened by participant
 //
 // Tests are done.
