@@ -3,7 +3,6 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getTitle     = require './../title'
-  getSidebar   = require './sidebar'
 
 
   {
@@ -28,7 +27,7 @@ module.exports = (options, callback)->
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    #{KONFIG.getConfigScriptTag {entryPoint, roles:['guest'], permissions:[]}}
+    #{KONFIG.getConfigScriptTag {entryPoint, roles:['member'], permissions:[]}}
     <script>KD.isLoggedInOnLoad=true;</script>
     #{scripts}
     </body>
