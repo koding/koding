@@ -55,6 +55,9 @@ type Config struct {
 	// Public key to create kite.key
 	PublicKey string
 
+	// Contains the users home directory to be added into a image
+	TemplateDir string
+
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
@@ -133,6 +136,7 @@ func newKite(conf *Config) *kite.Kite {
 		AssigneeName: id,
 		Session:      db,
 		Test:         conf.TestMode,
+		TemplateDir:  conf.TemplateDir,
 	}
 
 	if err := kodingProvider.CleanupOldData(); err != nil {

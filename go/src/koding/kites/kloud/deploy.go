@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"path/filepath"
 	"strings"
 	"time"
@@ -31,21 +30,21 @@ type KodingDeploy struct {
 	Bucket *Bucket
 }
 
-var (
-	t = template.Must(template.New("hosts").Parse(hosts))
+// apacheConfig is used to generate a new apache config file that is deployed
+// to remote machine
+type apacheConfig struct {
+	// Defines the base apache running port, should be 80 or 443
+	ApachePort int
 
-	// default ubuntu /etc/hosts file which is used to replace with our custom
-	// hostname later
-	hosts = `127.0.0.1       localhost
-127.0.1.1       {{.}} {{.}}
+	// Defines the running kite port, like 3000
+	KitePort int
+}
 
-# The following lines are desirable for IPv6 capable hosts
-::1     ip6-localhost ip6-loopback
-fe00::0 ip6-localnet
-ff00::0 ip6-mcastprefix
-ff02::1 ip6-allnodes
-ff02::2 ip6-allrouters`
-)
+// defaultApacheConfig contains a default apache config
+var defaultApacheConfig = &apacheConfig{
+	ApachePort: 80,
+	KitePort:   3000,
+}
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	data, err := r.Context.Get("buildArtifact")
@@ -171,6 +170,39 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Making user's default directories")
+	out, err = client.StartCommand(fmt.Sprintf("cp -r /opt/koding/userdata/* /home/%s/ && rm -rf /opt/koding/userdata ", username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Chowning user's default directories")
+	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /home/%[1]s/", username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Tweaking apache config")
+	if err := changeApacheConf(client, defaultApacheConfig); err != nil {
+		return nil, err
+	}
+
+	log("Setting up users' Web/ directory to be served by apache")
+	out, err = client.StartCommand(webSetupCommand(username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Restarting apache2 with new config")
+	out, err = client.StartCommand("a2enmod cgi && service apache2 restart")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	// TODO: enable this later in production, currently it's just slowing down
@@ -197,12 +229,20 @@ func createUserCommand(username string) string {
 	// 3. Add user to sudo group
 	// 4. Add user to sudoers
 	return fmt.Sprintf(`
-adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%s %s && \
-passwd -d %s && \
-gpasswd -a %s sudo  && \
-echo '%s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%s
- `, username, username, username, username, username, username)
+adduser --shell /bin/bash --gecos 'koding user' --disabled-password --home /home/%[1]s %[1]s && \
+passwd -d %[1]s && \
+gpasswd -a %[1]s sudo  && \
+echo '%[1]s    ALL = NOPASSWD: ALL' > /etc/sudoers.d/%[1]s
+ `, username)
 
+}
+
+// webSetupCommand generates a bash command configuring apache for a given user
+func webSetupCommand(username string) string {
+	return fmt.Sprintf(`
+rm -rf /var/www; \
+ln -s /home/%s/Web /var/www
+`, username)
 }
 
 // Build the klient.conf patching command
@@ -215,6 +255,18 @@ func patchConfCommand(username string) string {
 	)
 }
 
+// makeDirectoriesCommand ensures that all the user's default folders exist and
+// creates them if they don't. This is not used right now, instead we use our
+// AMI which already has all those.
+func makeDirectoriesCommand(username string) string {
+	return fmt.Sprintf(`
+sudo -u %[1]s mkdir -p /home/%[1]s/Applications && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Backup && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Documents && \
+sudo -u %[1]s mkdir -p /home/%[1]s/Web
+`, username)
+}
+
 // changeHostname is used to change the remote machines hostname by modifying
 // their /etc/host and /etc/hostname files.
 func changeHostname(client *sshutil.SSHClient, hostname string) error {
@@ -223,7 +275,7 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 		return err
 	}
 
-	if err := t.Execute(hostFile, hostname); err != nil {
+	if err := hostsTemplate.Execute(hostFile, hostname); err != nil {
 		return err
 	}
 
@@ -244,4 +296,27 @@ func changeHostname(client *sshutil.SSHClient, hostname string) error {
 	}
 
 	return nil
+}
+
+// changeApacheConf is used to change apache's default configuration
+// so that it listens on the port of our choice and serves /var/www
+// rather than /var/www/html (/var/www is symlinked to user's ~/Web)
+func changeApacheConf(client *sshutil.SSHClient, conf *apacheConfig) error {
+	apacheFile, err := client.Create("/etc/apache2/sites-available/000-default.conf")
+	if err != nil {
+		return err
+	}
+
+	// Write conf file
+	if err := apacheTemplate.Execute(apacheFile, conf); err != nil {
+		return err
+	}
+
+	apachePortsFile, err := client.Create("/etc/apache2/ports.conf")
+	if err != nil {
+		return err
+	}
+
+	// Write /etc/apache2/ports.conf file
+	return apachePortsTemplate.Execute(apachePortsFile, conf)
 }
