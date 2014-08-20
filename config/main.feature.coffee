@@ -10,8 +10,8 @@ Configuration = (options={}) ->
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
-  configName          = options.configName     or "prod"
-  environment         = options.environment    or "prod"
+  configName          = options.configName     or "feature"
+  environment         = options.environment    or "feature"
   projectRoot         = options.projectRoot    or "/opt/koding"
   version             = options.tag
   tag                 = options.tag
@@ -21,13 +21,13 @@ Configuration = (options={}) ->
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
 
-  redis               = { host:     "#{prod_simulation_server}:27017/koding" , port:               "6379"                                , db:              0                    }
+  redis               = { host:     "#{prod_simulation_server}"              , port:               6379                                  , db:              0                    }
   rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "http://#{hostname}"                     , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "https://kontrol.koding.com/kite"        , port:               443                                   , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "#{customDomain.public_}/kontrol/kite"   , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                             , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.feature'           }
@@ -91,7 +91,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{"reads from kite.key by default."}"  }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -168,8 +168,9 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol   -c #{configName} -r #{region} -m #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
+    kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
+    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
+
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
@@ -226,11 +227,9 @@ Configuration = (options={}) ->
     upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
     upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
     upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
+    upstream kontrol   { server 127.0.0.1:#{kontrol.port}          ;}
     upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
     upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-
-    # TBD @arslan -> make kontrol kite horizontally scalable then enable;
-    # upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
 
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
@@ -275,15 +274,6 @@ Configuration = (options={}) ->
         proxy_connect_timeout 1;
       }
 
-
-      location /kloud {
-        proxy_pass            http://kloud;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
       # TBD. ADD WEBSOCKET SUPPORT HERE
 
       location ~^/subscribe/.* {
@@ -309,6 +299,30 @@ Configuration = (options={}) ->
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location ~^/kontrol/.* {
+        proxy_pass            http://kontrol;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location ~^/kloud/.* {
+        proxy_pass            http://kloud;
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      "upgrade";
+        proxy_set_header      Host            $host;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
       }
     }
