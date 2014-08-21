@@ -94,8 +94,14 @@ func (k *Kloud) newLogger(name string) logging.Logger {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider interface{}) {
+func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
+	_, ok := k.providers[providerName]
+	if ok {
+		NewError(ErrProviderAvailable)
+	}
+
 	k.providers[providerName] = provider
+	return nil
 }
 
 // Builder returns the builder for the given provideName
