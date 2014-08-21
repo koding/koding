@@ -136,6 +136,10 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : /^[0-9]{3,4}$/
           messages        :
             regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
+      captchaHeader       :
+        itemClass         : KDHeaderView
+        title             : 'Captcha'
+        cssClass          : 'section-header'
       captcha             :
         itemClass         : KDCustomHTMLView
         domId             : "recaptcha"
@@ -185,7 +189,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
     @updateDescription()
 
-    # @addCaptcha()
+    @addCaptcha()
 
   addCaptcha:->
 

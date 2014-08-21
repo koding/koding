@@ -767,7 +767,6 @@ body.pricing
     li
       display         inline-block
       margin          0 16px
-      opacity         .6
       position        relative
 
       &:after
@@ -781,13 +780,12 @@ body.pricing
 
       &.active
         color         #fff
-        opacity       1
 
         &:after
           background  #fff
 
         & ~ li
-          opacity     1
+          opacity     .4
 
   section
     display           none
@@ -881,6 +879,29 @@ body.pricing
     margin               0 0 24px
     font-weight          400
 
+  h6.pricing-subtitle
+    font-size            14px
+    color                #3b3b3b
+    margin               0 0 24px
+
+  .pricing-title ~ .pricing-subtitle
+    margin-top          -12px
+
+  h6.mini-title
+    display             block
+    font-size           14px
+    line-height         19px
+    size                auto, auto
+    color               #4C4C4C
+    margin              0
+    padding             0
+    border              none
+    font-weight         600
+
+    span
+      margin            0
+      padding           0
+
   section
     background           #fff
     width                auto
@@ -895,11 +916,37 @@ body.pricing
         width            100%
         margin-bottom    16px
 
+  .plan-upgrade-confirm-form
+    background           #fff
+    width                auto
+    margin               250px auto 0
+    padding              36px 36px 36px 36px
+    rounded              3px
+    max-width            520px
+
+    .generic-plan-view
+      padding            23px 0
+      border-bottom      1px solid #dedede
+      margin-bottom      24px
+      font-size          14px
+      line-height        19px
+
+      h4
+        font-weight      600
+        color            #61C17F
+
+      .price
+        color            #7b7b7b
+        margin           1px 0 0
+
+      &.old-plan h4
+        color            #D75B5B
+
   .payment-method-entry-form
     background           #fff
     width                auto
     margin               250px auto 0
-    padding              36px 20px 26px 36px
+    padding              36px 20px 36px 36px
     rounded              3px
     max-width            520px
 
@@ -922,6 +969,61 @@ body.pricing
 
       &.cardcv
         width            16.6%
+
+      &.captcha
+        width            100%
+        border           none
+
+        .recaptchatable
+          border            none !important
+          tr
+            height          auto
+
+          td
+            padding         0 !important
+            margin          0 !important
+
+          td.recaptcha_image_cell
+          td.recaptcha_image_cell ~ td
+            padding         0 20px 16px 0 !important
+
+        .recaptcha_input_area
+          padding           0 !important
+          margin            0 !important
+
+        #recaptcha_response_field
+          rounded           3px
+          background        transparent
+          border            1px solid #C9C9C9 !important
+          padding           8px 13px 10px
+          font-size         14px
+          line-height       19px
+          color             #4C4C4C
+          font-weight       600
+          opacity           .99
+          margin            0
+          height            auto
+          outline           none
+          borderBox()
+
+          &::-webkit-input-placeholder
+            color           #93979a
+            font-weight     300
+          &:-moz-placeholder
+            color           #93979a
+            font-weight     300
+
+          &:hover
+            border          1px solid #aaa !important
+
+          &:focus
+            border          1px solid rgba(125,190,241,1) !important
+            shadow          0 0 3px rgba(125,190,241,.7)
+
+            &::-webkit-input-placeholder
+              opacity       0.5
+            &:-moz-placeholder
+              opacity       0.5
 
     .section-header
       width              100%
