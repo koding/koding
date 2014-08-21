@@ -172,8 +172,8 @@ Configuration = (options={}) ->
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/kontrol                    -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
     kloud               : command : "#{GOBIN}/kloud                      -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
-    broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
-    rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
+    broker              : command : "#{GOBIN}/fresh -r koding/broker     -a \"-c #{configName}\""
+    rerouting           : command : "#{GOBIN}/fresh -r koding/rerouting  -a \"-c #{configName}\""
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
@@ -187,7 +187,7 @@ Configuration = (options={}) ->
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-    guestCleaner        : command : "#{GOBIN}/rerun koding/workers/guestcleanerworker -c #{configName}"
+    guestCleaner        : command : "#{GOBIN}/fresh -r koding/workers/guestcleanerworker -a \"-c #{configName}\""
 
 
 
