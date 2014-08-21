@@ -244,13 +244,32 @@ hostname: %s`
 		return nil, err
 	}
 
-	// Add user specific tag to make simplfying easier
+	// Add user specific tag to make it easier  simplfying easier
 	a.Log.Info("Adding user tag '%s' to the instance '%s'", username, artifact.InstanceId)
 	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
 	return artifact, nil
+}
+
+// Remove the instance if something goes wrong
+func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	if artifact == nil {
+		return errors.New("artifact is passed nil")
+	}
+
+	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {

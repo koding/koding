@@ -89,6 +89,10 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	return doClient.Build(dropletName)
 }
 
+func (p *Provider) Cancel(opts *protocol.Machine) error {
+	return nil
+}
+
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	doClient, err := p.NewClient(opts)
 	if err != nil {

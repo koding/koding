@@ -50,6 +50,7 @@ node_modules/.bin
 sftp-config.json
 sftp-config.json
 v8.log
+tmp
 
 website/default.html
 website/index.html
