@@ -12,8 +12,8 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/goamz/goamz/aws"
-	"github.com/goamz/goamz/route53"
+	// "github.com/goamz/goamz/aws"
+	// "github.com/goamz/goamz/route53"
 	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
@@ -21,7 +21,9 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
 
 	"koding/kites/kloud/provisioner"
@@ -258,15 +260,14 @@ hostname: %s`
 	/////// ROUTE 53 /////////////////
 
 	a.Log.Info("Creating Route53 instance")
-	dns, err := route53.NewRoute53(
+	dns := route53.New(
 		aws.Auth{
 			AccessKey: a.Creds.AccessKey,
 			SecretKey: a.Creds.SecretKey,
 		},
+
+		aws.Regions[DefaultRegion],
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
 	hostedZones, err := dns.ListHostedZones("", 100)
@@ -275,38 +276,40 @@ hostname: %s`
 	}
 
 	var zoneId string
-	for _, anotherHostedZones := range hostedZones.HostedZones {
-		for _, hostedZone := range anotherHostedZones.HostedZone {
-			if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
-				continue
-			}
-
-			zoneId = CleanZoneID(hostedZone.Id)
+	for _, hostedZone := range hostedZones.HostedZones {
+		if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
+			continue
 		}
+
+		zoneId = route53.CleanZoneID(hostedZone.ID)
 	}
 
 	if zoneId == "" {
-		return nil, fmt.Errorf("Hosted zone with the name '%s' doesn't exist", DefaultHostedZone)
+		return nil, fmt.Errorf("Hosted zone with the name '%s' doesn't exist", "koding.io")
 	}
 
 	change := &route53.ChangeResourceRecordSetsRequest{
-		Xmlns:  "https://route53.amazonaws.com/doc/2013-04-01/",
-		Action: "CREATE",
-		Name:   username + "." + DefaultHostedZone,
-		Type:   "A",
-		TTL:    "300",
-		Value:  artifact.IpAddress,
+		Comment: "User domain for " + username,
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Name:    username + "." + DefaultHostedZone,
+					Type:    "A",
+					TTL:     300,
+					Records: []string{artifact.IpAddress},
+				},
+			},
+		},
 	}
 
 	a.Log.Info("Creating a new record with following data: %+v", change)
-
-	changeResp, err := dns.ChangeResourceRecordSet(change, zoneId)
+	_, err = dns.ChangeResourceRecordSets(zoneId, change)
 	if err != nil {
 		return nil, err
 	}
 
 	///// ROUTE 53 /////////////////
-
 	return artifact, nil
 }
 
