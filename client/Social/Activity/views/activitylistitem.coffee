@@ -14,6 +14,7 @@ class ActivityListItemView extends KDListItemView
 
     data   = @getData()
     list   = @getDelegate()
+
     origin =
       constructorName : data.account.constructorName
       id              : data.account._id
@@ -73,9 +74,14 @@ class ActivityListItemView extends KDListItemView
     @editWidget = new ActivityEditWidget null, @getData()
     @editWidget.on 'SubmitSucceeded', @bound 'resetEditing'
     @editWidget.input.on 'Escape', @bound 'resetEditing'
+
+    KD.utils.defer @editWidget.bound 'focus'
+
     @editWidgetWrapper.addSubView @editWidget, null, yes
     @editWidgetWrapper.show()
+
     @setClass 'editing'
+    @unsetClass 'edited'
 
 
   resetEditing : ->
@@ -83,6 +89,10 @@ class ActivityListItemView extends KDListItemView
     @editWidget.destroy()
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
+
+    { createdAt, updatedAt } = @getData().meta
+
+    @setClass 'edited'  if updatedAt > createdAt
 
 
   delete: ->
@@ -210,6 +220,10 @@ class ActivityListItemView extends KDListItemView
     JView::viewAppended.call this
 
     @setAnchors()
+
+    { updatedAt, createdAt } = @getData().meta
+
+    @setClass 'edited'  if updatedAt > createdAt
 
     @utils.defer =>
       if @getData().link?.link_url? isnt ''
