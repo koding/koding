@@ -47,3 +47,10 @@ func GetTag(s Selector, o Options) (*models.Tag, error) {
 
 	return tag, Mongo.Run("jTags", query)
 }
+
+func UpdateTagPartial(selector, options Selector) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, options)
+	}
+	return Mongo.Run("jTags", query)
+}
