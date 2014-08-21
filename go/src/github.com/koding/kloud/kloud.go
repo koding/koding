@@ -119,6 +119,21 @@ func (k *Kloud) Builder(providerName string) (protocol.Builder, error) {
 	return builder, nil
 }
 
+// Canceller returns the canceller for the given provideName
+func (k *Kloud) Canceller(providerName string) (protocol.Canceller, error) {
+	provider, ok := k.providers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	canceller, ok := provider.(protocol.Canceller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	return canceller, nil
+}
+
 // Controller returns the controller for the given provideName
 func (k *Kloud) Controller(providerName string) (protocol.Controller, error) {
 	provider, ok := k.providers[providerName]

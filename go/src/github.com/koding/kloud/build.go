@@ -120,19 +120,24 @@ meta data     : %# v
 
 	b.Log.Info("[controller] building machine with following data: %s", buildInfo)
 
+	var artifact *protocol.Artifact
+
 	// Start the canceller for the build if something goes wrong. Like deleting
 	// the terminate.
 	defer func() {
-		if err != nil {
-			b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'", c.MachineId)
-			err := c.Builder.Cancel(machOptions)
-			if err != nil {
-				b.Log.Info("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
-			}
+		if err == nil || c.Canceller == nil {
+			return
+		}
+
+		b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'",
+			c.MachineId)
+
+		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
+			b.Log.Info("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
 		}
 	}()
 
-	artifact, err := c.Builder.Build(machOptions)
+	artifact, err = c.Builder.Build(machOptions)
 	if err != nil {
 		return nil, err
 	}

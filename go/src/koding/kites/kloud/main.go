@@ -165,6 +165,9 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
+	// check if our provider
+	var _ kloudprotocol.Builder = kodingProvider
+
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
