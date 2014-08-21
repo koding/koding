@@ -18,6 +18,7 @@ type Controller struct {
 	ProviderName string              `json:"-"`
 	Controller   protocol.Controller `json:"-"`
 	Builder      protocol.Builder    `json:"-"`
+	Canceller    protocol.Canceller  `json:"-"`
 	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
 	Username     string              `json:"-"`
@@ -163,6 +164,12 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			Builder:      builder,
 			Machine:      machine,
 			CurrenState:  machine.State,
+		}
+
+		// check if the provider
+		canceller, err := k.Canceller(machine.Provider)
+		if err == nil {
+			c.Canceller = canceller
 		}
 
 		// execute our limiter interface if the provider supports it
