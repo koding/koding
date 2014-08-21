@@ -24,6 +24,12 @@ func (mwc *Controller) migrateAllTags() error {
 	handleError := func(t *mongomodels.Tag, err error) {
 		mwc.log.Error("an error occured for tag %s: %s", t.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"_id": t.Id}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialApiChannelId": -1, "error": err.Error()}}
+		if err := modelhelper.UpdateTagPartial(s, o); err != nil {
+			mwc.log.Warning("Could not update tag document: %s", err)
+		}
 	}
 
 	migrateTag := func(tag interface{}) error {

@@ -20,6 +20,12 @@ func (mwc *Controller) migrateAllGroups() error {
 	handleError := func(g *mongomodels.Group, err error) {
 		mwc.log.Error("an error occured for group %s: %s", g.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"slug": g.Slug}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialApiChannelId": -1, "error": err.Error()}}
+		if err := modelhelper.UpdateGroupPartial(s, o); err != nil {
+			mwc.log.Warning("Could not update group document: %s", err)
+		}
 	}
 
 	migrateGroup := func(group interface{}) error {

@@ -70,6 +70,12 @@ func (mwc *Controller) migrateAllPosts() error {
 	handleError := func(su *mongomodels.StatusUpdate, err error) {
 		mwc.log.Error("an error occured for %s: %s", su.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"_id": su.Id}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialMessageId": -1, "error": err.Error()}}
+		if err := modelhelper.UpdateStatusUpdatePartial(s, o); err != nil {
+			mwc.log.Warning("Could not update status update document: %s", err)
+		}
 	}
 
 	migratePost := func(post interface{}) error {
