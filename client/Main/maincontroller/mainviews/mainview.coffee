@@ -69,9 +69,15 @@ class MainView extends KDView
 
     @setClass 'with-sidebar'
 
-    @addSubView @sidebar = new KDCustomScrollView
+    @addSubView @aside = new KDCustomHTMLView
       tagName  : 'aside'
       domId    : 'main-sidebar'
+
+    @aside.addSubView new KDCustomHTMLView
+      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
+      partial   : "<a href='/'><figure></figure></a>"
+
+    @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'
 
     @sidebar.addSubView moreItemsAbove = new KDView
@@ -113,7 +119,7 @@ class MainView extends KDView
 
   createAccountArea:->
 
-    @addSubView @accountArea = new KDCustomHTMLView
+    @aside.addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
     if KD.isLoggedIn()

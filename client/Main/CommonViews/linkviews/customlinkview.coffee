@@ -21,7 +21,7 @@ class CustomLinkView extends KDCustomHTMLView
 
     if options.icon
       options.icon.tagName  = 'span'
-      options.icon.cssClass = KD.utils.curry "icon", options.icon.cssClass
+      options.icon.cssClass = KD.utils.curry 'icon', options.icon.cssClass
 
       @icon = new KDCustomHTMLView options.icon
 

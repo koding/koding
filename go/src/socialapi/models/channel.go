@@ -710,6 +710,10 @@ func (c *Channel) isExempt() (bool, error) {
 	return false, nil
 }
 
+// getAccountId checks the channel that has a creator id or not
+// and returns id of creator of the channel
+//
+// Tests are done
 func (c *Channel) getAccountId() (int64, error) {
 	if c.CreatorId != 0 {
 		return c.CreatorId, nil

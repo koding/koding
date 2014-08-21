@@ -49,13 +49,14 @@ module.exports = (options = {}, callback)->
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userMachines=#{userMachines}</script>
     <script>KD.userAccount=#{userAccount}</script>
+    <script>KD.currentGroup=#{currentGroup}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
     <script>
       KD.utils.defer(function () {
-        KD.currentGroup = KD.remote.revive(#{currentGroup});
-        KD.userAccount = KD.remote.revive(#{userAccount});
+        KD.currentGroup = KD.remote.revive(KD.currentGroup);
+        KD.userAccount = KD.remote.revive(KD.userAccount);
       });
     </script>
 

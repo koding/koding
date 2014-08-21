@@ -20,11 +20,25 @@ sidebarSelectedBg = #15171A
   bg              color #323232
   top             0
   left            0
-  styleScrollBars()
   fix()
 
   > main > div:last-child
     margin-bottom     60px
+
+  > .kdcustomscrollview
+    width              100%
+    kalc              height, 100% \- 107px
+    styleScrollBars()
+
+  .logo-wrapper
+    size              100% 47px
+    bg                color #262626
+    padding           13px 0 0 23px
+    borderBox()
+    a
+      margin          0
+      display         block
+      r-sprite        app logo-full
 
   .more-items
     size              238px 20px
@@ -68,6 +82,7 @@ sidebarSelectedBg = #15171A
   cursor          pointer
   top             50%
   fix()
+  hidden()
   &:after
     abs()
     top           4px
@@ -247,9 +262,15 @@ sidebarSelectedBg = #15171A
         &.running > figure
           r-sprite    app new-nav-vm-green
         > .progressbar-container
-          height      2px
+          size        100% 3px
           background  none
           border      none
+          abs         0 0 0px 0px
+          rounded     0 0 3px 3px
+          .bar
+            background  #4BA148
+            border      none
+            shadow      none
 
 
   > section
@@ -305,6 +326,20 @@ sidebarSelectedBg = #15171A
       .profile
       .ttag
         text-decoration underline
+    &.activity
+      font-size       14px
+      padding-left    30px
+      margin-top      13px
+      line-height     18px
+      span.icon
+        display       block
+        width         16px
+        height        16px
+        bg            color #222
+        abs           7px 0 0 7px
+        r-sprite      app new-nav-activity
+
+
 
     cite.count
       size            auto 20px

@@ -936,34 +936,32 @@ func TestChannelFetchParticipant(t *testing.T) {
 			So(fp.ChannelId, ShouldEqual, c.Id)
 		})
 
-		/*
-			Convey("non-participant in the channel should give error", func() {
-				// create channel
-				c := createNewChannelWithTest()
-				So(c.Create(), ShouldBeNil)
+		Convey("non-participant in the channel's status should be left after removing from channel ", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
 
-				// create account
-				acc := createAccountWithTest()
-				So(acc.Create(), ShouldBeNil)
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
 
-				// add account to the channel
-				ap, err := c.AddParticipant(acc.Id)
-				So(err, ShouldBeNil)
-				So(ap, ShouldNotBeNil)
+			// add account to the channel
+			ap, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ap, ShouldNotBeNil)
 
-				err = c.RemoveParticipant(acc.Id)
-				So(err, ShouldBeNil)
+			// remove participant from the channel
+			err = c.RemoveParticipant(acc.Id)
+			So(err, ShouldBeNil)
 
-				// account and channel are created in db
-				// but account is not added the to the channel
-				// so it should not give us required info.
-				fp, err := c.FetchParticipant(acc.Id)
-				So(err, ShouldBeNil)
-				So(fp, ShouldBeNil)
-				So(fp.AccountId, ShouldNotEqual, acc.Id)
-				So(fp.ChannelId, ShouldNotEqual, c.Id)
-			})
-		*/
+			// after adding and removing the user to/from channel
+			// status constant should be LEFT from the channel
+			// not deleted! frmo the channel
+			fp, err := c.FetchParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(fp, ShouldNotBeNil)
+			So(fp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_LEFT)
+		})
 	})
 }
 

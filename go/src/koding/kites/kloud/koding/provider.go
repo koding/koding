@@ -51,6 +51,9 @@ type Provider struct {
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
 	Test bool
+
+	// Contains the users home directory to be added into a image
+	TemplateDir string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -195,7 +198,9 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		a.Log.Error(err.Error())
 		// Image doesn't exist so try it
 		a.Log.Info("AMI named '%s' does not exist, building it now", amiName)
-		image, err = a.CreateImage(provisioner.RawData)
+		a.Log.Info("Using templates from directory: %s", p.TemplateDir)
+
+		image, err = a.CreateImage(provisioner.PackerRawData(p.TemplateDir))
 		if err != nil {
 			return nil, err
 		}

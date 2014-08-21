@@ -6,7 +6,6 @@ module.exports = (options, callback)->
   fetchScripts = require './../scriptblock'
   getGraphMeta = require './../graphmeta'
   getTitle     = require './../title'
-  getSidebar   = require './sidebar'
 
   {
     account, slug, title, content, body,

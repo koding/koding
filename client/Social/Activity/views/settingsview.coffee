@@ -31,21 +31,21 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   addFollowActionMenu: ->
 
-    {pin, unpin} = KD.singletons.socialapi.channel
-    post = @getData()
+    # {pin, unpin} = KD.singletons.socialapi.channel
+    # post = @getData()
 
-    unless post.isFollowed
-      title = 'Follow Post'
-      fn    = pin
-    else
-      title = 'Unfollow Post'
-      fn    = unpin
+    # unless post.isFollowed
+    #   title = 'Follow Post'
+    #   fn    = pin
+    # else
+    #   title = 'Unfollow Post'
+    #   fn    = unpin
 
-    @addMenuItem title, ->
-      messageId = post.getId()
-      fn {messageId}, (err)->
-        return KD.showError err  if err
-        post.isFollowed = not post.isFollowed
+    # @addMenuItem title, ->
+    #   messageId = post.getId()
+    #   fn {messageId}, (err)->
+    #     return KD.showError err  if err
+    #     post.isFollowed = not post.isFollowed
 
     return @menu
 

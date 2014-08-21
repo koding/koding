@@ -164,6 +164,15 @@ func AccountIdByOldId(oldId, nick string) (int64, error) {
 	return a.Id, nil
 }
 
+func FetchAccountIdByOldId(oldId string) int64 {
+	id, ok := oldAccountCache[oldId]
+	if !ok {
+		return 0
+	}
+
+	return id
+}
+
 ////// SecretNames /////
 
 func SecretNamesByChannelId(channelId int64) ([]string, error) {

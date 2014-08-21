@@ -75,6 +75,9 @@ class ActivityInputWidget extends KDView
         @bugNotification.hide()
 
     @on "SubmitStarted", =>
+
+      @hidePreview()  if @preview
+
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()

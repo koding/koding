@@ -642,6 +642,7 @@ span.collapsedtext
   .comment-container
     overflow              visible
 
+
     > .listview-wrapper
       overflow            visible
 
@@ -651,23 +652,33 @@ span.collapsedtext
         > .kdlistview
           overflow        visible
 
+    .avatarview
+      abs               0px 0 0 0px
+      display           block
+      z-index           2
+
+      img
+        display         block
+
+    .comment-input-widget
+      margin-top          0
+
     .item-add-comment-box
       position            relative
       padding-left        50px
       borderBox()
 
-      .avatarview
-        abs               0px 0 0 0px
-        display           block
-        z-index           2
+      &.placeholder
+        > div
+          color         #BABABA
+          &:hover
+            color         #9a9a9a
+            border-color  #EAEAEA
 
-        img
-          display         block
-
-      textarea
+      > div
+        font-weight       300
         background        #fff
         width             100%
-        height            38px
         min-height        38px
         rounded           3px
         border            2px solid #EAEAEA
@@ -773,6 +784,12 @@ span.collapsedtext
         line-height       20px
         opacity           .99
 
+        &.edited p:after
+          content       ' (edited)'
+          display       inline
+          font-size     12px
+          color         #999
+
         p
           a
             color         inherit
@@ -813,14 +830,15 @@ span.collapsedtext
       time
         display           none //TEMP
 
-      .edit-comment-wrapper
+      .edit-comment-box
         margin            6px 0
 
-        textarea
+        .input-view
+          padding-left    0
+
+        div[contenteditable=true]
           rounded         6px
-          border          1px solid #dfdfdf
           background      #fff
-          font-size       12px
           color           #4c4c4c
           line-height     18px
           padding         10px

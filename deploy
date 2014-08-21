@@ -51,6 +51,8 @@ if argv.deploy
 
         options.hostname      = "#{options.config}--#{options.version.replace(/\./g,'-')}"
 
+        cf_service_mode       = 1
+
         switch options.config
             when "feature"
                 domain            = "koding.io"
@@ -63,6 +65,7 @@ if argv.deploy
                 subdomain         = "sandbox"
                 options.hostname  = "sandbox.koding.io"
                 fulldomain        = "sandbox.koding.io"
+                cf_service_mode   = 0
 
         KONFIG = require("./config/main.#{options.config}.coffee")
             hostname   : options.hostname
@@ -117,7 +120,7 @@ if argv.deploy
                                         type : "A"
                                         name : subdomain
                                         content : IP
-                                        service_mode : 1 #cloudflare enabled.
+                                        service_mode : cf_service_mode
                                     ,(err,res)->
 
                                         log "testing instance..."
@@ -230,4 +233,3 @@ if argv.deploy
 #                 cf.deleteDomainRecord "koding.io",i.rec_id,-> log "deleted #{i.name}"
 #             else
 #                 log "not deleted:#{i.name}"
-
