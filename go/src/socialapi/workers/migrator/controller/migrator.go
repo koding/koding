@@ -33,34 +33,29 @@ func New(log logging.Logger) (*Controller, error) {
 	return wc, nil
 }
 
-func (mwc *Controller) Start() error {
-	if err := mwc.migrateAllAccounts(); err != nil {
 		return err
 	}
 
-	if err := mwc.migrateAllGroups(); err != nil {
-		return err
-	}
 
-	if err := mwc.migrateAllTags(); err != nil {
-		return err
-	}
 
-	if err := mwc.migrateAllPosts(); err != nil {
-		return err
-	}
+func (mwc *Controller) Start() {
+	mwc.migrateAllAccounts()
 
-	return nil
+	mwc.migrateAllGroups()
+
+	mwc.migrateAllTags()
+
+	mwc.migrateAllPosts()
 }
 
-func (mwc *Controller) migrateAllPosts() error {
+func (mwc *Controller) migrateAllPosts() {
 	mwc.log.Notice("Post migration started")
 	s := modelhelper.Selector{
 		"socialMessageId": modelhelper.Selector{"$exists": false},
 	}
 	kodingChannel, err := mwc.createGroupChannel("koding")
 	if err != nil {
-		return fmt.Errorf("Koding channel cannot be created: %s", err)
+		panic(fmt.Sprintf("Koding channel cannot be created: %s", err))
 	}
 	kodingChannelId = kodingChannel.Id
 
@@ -147,8 +142,6 @@ func (mwc *Controller) migrateAllPosts() error {
 	}
 
 	mwc.log.Notice("Post migration completed for %d status updates with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {

@@ -20,7 +20,7 @@ func (mwc *Controller) handleAccountError(oldAccount *mongomodels.Account, err e
 	}
 }
 
-func (mwc *Controller) migrateAllAccounts() error {
+func (mwc *Controller) migrateAllAccounts() {
 	mwc.log.Notice("Account migration started")
 	successCount := 0
 
@@ -67,6 +67,4 @@ func (mwc *Controller) migrateAllAccounts() error {
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Account migration completed for %d account with %d errors", successCount, errAccountCount)
-
-	return nil
 }

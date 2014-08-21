@@ -13,7 +13,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func (mwc *Controller) migrateAllTags() error {
+func (mwc *Controller) migrateAllTags() {
 	mwc.log.Notice("Tag migration started")
 	s := modelhelper.Selector{
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
@@ -64,8 +64,6 @@ func (mwc *Controller) migrateAllTags() error {
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Tag migration completed for %d tags with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) createTagChannel(t *mongomodels.Tag) (int64, error) {

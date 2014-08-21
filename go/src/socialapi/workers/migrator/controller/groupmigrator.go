@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (mwc *Controller) migrateAllGroups() error {
+func (mwc *Controller) migrateAllGroups() {
 	mwc.log.Notice("Group migration started")
 	s := modelhelper.Selector{
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
@@ -64,8 +64,6 @@ func (mwc *Controller) migrateAllGroups() error {
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Group migration completed for %d groups with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
