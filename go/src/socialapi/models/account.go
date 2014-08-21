@@ -27,11 +27,11 @@ type Account struct {
 
 func (a *Account) FetchOrCreate() error {
 	if a.OldId == "" {
-		return errors.New("old id is not set")
+		return ErrOldIdIsNotSet
 	}
 
 	if strings.Contains(a.Nick, "guest-") {
-		return errors.New("guests are not allowed")
+		return ErrGuestsAreNotAllowed
 	}
 
 	selector := map[string]interface{}{
@@ -48,7 +48,7 @@ func (a *Account) FetchOrCreate() error {
 	// first check if the err is not found err
 	if err == bongo.RecordNotFound {
 		if a.Nick == "" {
-			return errors.New("nick is not set")
+			return ErrNickIsNotSet
 		}
 
 		if err := a.Create(); err != nil {

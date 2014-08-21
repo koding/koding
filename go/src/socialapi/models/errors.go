@@ -6,6 +6,9 @@ var (
 	ErrMessageAlreadyInTheChannel = errors.New("message is already in the channel")
 	ErrIdIsNotSet                 = errors.New("Id is not set")
 	ErrAccountIdIsNotSet          = errors.New("account id is not set")
+	ErrOldIdIsNotSet              = errors.New("old id is not set")
+	ErrNickIsNotSet               = errors.New("nick is not set")
+	ErrGuestsAreNotAllowed        = errors.New("guests are not allowed")
 
 	ErrMessageIdIsNotSet       = errors.New("message id is not set")
 	ErrMessageIsNotSet         = errors.New("message is not set")

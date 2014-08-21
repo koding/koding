@@ -67,6 +67,8 @@ const (
 
 // NewChannel inits channel
 // fills required constants what necessary is as default
+//
+// Tests are done
 func NewChannel() *Channel {
 	return &Channel{
 		Name:            "channel_" + RandomName(),
@@ -79,6 +81,8 @@ func NewChannel() *Channel {
 // NewPrivateMessageChannel takes the creator id and group name of the channel as arguments
 // sets required content of the channel
 // and sets constants as 'private'
+//
+// Tests are done
 func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
@@ -92,6 +96,8 @@ func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 
 // Create creates a channel in db
 // some fields of the channel must be filled (should not be empty)
+//
+// Tests are done..
 func (c *Channel) Create() error {
 	if c.Name == "" || c.GroupName == "" || c.TypeConstant == "" || c.CreatorId == 0 {
 		return fmt.Errorf("Validation failed %s - %s - %s - %d", c.Name, c.GroupName, c.TypeConstant, c.CreatorId)
@@ -161,6 +167,8 @@ func (c *Channel) CreateRaw() error {
 // AddParticipant adds a user(participant) to the channel
 // if account is already in the channel,
 // it won't add again user to channel as participant
+//
+// Tests are done.
 func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -216,6 +224,8 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 
 // RemoveParticipant removes the user(participant) from the channel
 // if user is already removed from the channel, don't need to do anything
+//
+// Tests are done.
 func (c *Channel) RemoveParticipant(participantId int64) error {
 	if c.Id == 0 {
 		return ErrChannelIdIsNotSet
@@ -349,7 +359,9 @@ func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageLis
 // RemoveMessage removes the message from the channel
 // if message is already removed from the channel, it will not remove again  when we try to remove it
 //
-// TODO do not return channelmessagelist from delete function
+// Tests are done.
+//
+// TODO do not return channelmessagelist from delete function !!
 func (c *Channel) RemoveMessage(messageId int64) (*ChannelMessageList, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -393,6 +405,8 @@ func (c *Channel) FetchMessageList(messageId int64) (*ChannelMessageList, error)
 }
 
 // FetchChannelIdByNameAndGroupName fetchs the first ID of the channel via channel name & group name
+//
+// Tests are done..
 func (c *Channel) FetchChannelIdByNameAndGroupName(name, groupName string) (int64, error) {
 	if name == "" {
 		return 0, ErrNameIsNotSet
@@ -519,6 +533,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 
 // FetchLastMessage fetch the last message of the channel from DB
 // sorts the messages, then fetch the message which added last
+//
+// Tests are done.
 func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
@@ -602,6 +618,11 @@ func EnsurePinnedActivityChannel(accountId int64, groupName string) (*Channel, e
 	return c, nil
 }
 
+// CanOpen checks permissions for channels
+// group channels can be opened by everyone
+// But private message channel just CanOpened by participant
+//
+// Tests are done.
 func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	if c.Id == 0 {
 		return false, ErrChannelIdIsNotSet
@@ -693,13 +714,17 @@ func (c *Channel) isExempt() (bool, error) {
 	return false, nil
 }
 
+// getAccountId checks the channel that has a creator id or not
+// and returns id of creator of the channel
+//
+// Tests are done
 func (c *Channel) getAccountId() (int64, error) {
 	if c.CreatorId != 0 {
 		return c.CreatorId, nil
 	}
 
 	if c.Id == 0 {
-		return 0, fmt.Errorf("couldnt find accountId from content %+v", c)
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	cn := NewChannel()
@@ -711,6 +736,11 @@ func (c *Channel) getAccountId() (int64, error) {
 
 }
 
+// FetchParticipant simply fetch the participants from the channel
+// if participant leaves from the channel
+// just marking status constant as LEFT
+//
+// Tests are done
 func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error) {
 	if c.Id == 0 {
 		return nil, ErrIdIsNotSet
@@ -730,6 +760,9 @@ func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error)
 	return cp, nil
 }
 
+// IsParticipant controls that the participant is in the channel or not
+//
+// Tests are done.
 func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.Id

@@ -796,6 +796,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			cm2.Body = "lastMessage"
 			So(cm2.Create(), ShouldBeNil)
 
+			// add second message to the same channel
 			cml2, err := c.AddMessage(cm2.Id)
 			So(err, ShouldBeNil)
 			So(cml2, ShouldNotBeNil)
@@ -817,5 +818,183 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(flm, ShouldBeNil)
 		})
 
+		Convey("empty message id should be nil", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			cm := createMessageWithTest()
+			So(cm.Create(), ShouldBeNil)
+
+			// add message  to channel
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			// after adding message, remove same massage
+			// and message id in the channel should be nil
+			ch, err := c.RemoveMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
+
+			flm, err := c.FetchLastMessage()
+			So(err, ShouldBeNil)
+			So(flm, ShouldBeNil)
+		})
+
+	})
+}
+
+func TestChannelIsParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while controlling participant is in the channel or not", t, func() {
+
+		Convey("participant in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// add the created account to the channel
+			ap, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ap, ShouldNotBeNil)
+
+			part, err := c.IsParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(part, ShouldBeTrue)
+		})
+
+		Convey("non-participant in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// account is created but didn't add to the channel
+			// it means that participant is not in the channel
+			part, err := c.IsParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(part, ShouldBeFalse)
+		})
+	})
+}
+
+func TestChannelFetchParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the participants from the channel", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.FetchParticipant(123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrIdIsNotSet)
+		})
+
+		Convey("it should have account id", func() {
+			c := NewChannel()
+			c.Id = 123
+			_, err := c.FetchParticipant(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
+		Convey("participant in the channel should not give error", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// add account to the channel
+			ap, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ap, ShouldNotBeNil)
+
+			fp, err := c.FetchParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(fp, ShouldNotBeNil)
+			So(fp.AccountId, ShouldEqual, acc.Id)
+			So(fp.ChannelId, ShouldEqual, c.Id)
+		})
+
+		Convey("non-participant in the channel's status should be left after removing from channel ", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// add account to the channel
+			ap, err := c.AddParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ap, ShouldNotBeNil)
+			//
+			// remove participant from the channel
+			err = c.RemoveParticipant(acc.Id)
+			So(err, ShouldBeNil)
+
+			// after adding and removing the user to/from channel
+			// status constant should be LEFT from the channel
+			// not deleted! frmo the channel
+			fp, err := c.FetchParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(fp, ShouldNotBeNil)
+			So(fp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_LEFT)
+		})
+	})
+}
+
+func TestChannelgetAccountId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while getting account id", t, func() {
+
+		Convey("it should have channel id", func() {
+			c := NewChannel()
+			_, err := c.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should have creator id", func() {
+			c := NewChannel()
+			c.CreatorId = 123
+			ac, err := c.getAccountId()
+			So(err, ShouldBeNil)
+			So(c.CreatorId, ShouldEqual, ac)
+		})
+
+		Convey("it should get id of creator", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			ac, err := c.getAccountId()
+			So(err, ShouldBeNil)
+			So(c.CreatorId, ShouldEqual, ac)
+		})
 	})
 }
