@@ -165,7 +165,10 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
-	kld.AddProvider("koding", kodingProvider)
+	err := kld.AddProvider("koding", kodingProvider)
+	if err != nil {
+		panic(err)
+	}
 
 	injectDeploy := func(r *kite.Request) (interface{}, error) {
 		d := kloudprotocol.ProviderDeploy{
