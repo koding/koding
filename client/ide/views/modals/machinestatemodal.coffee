@@ -42,7 +42,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @createStateLabel()
 
-    if @state in ['Stopped', 'Running', 'NotInitialized', 'Terminated']
+    if @state in ['Stopped', 'Running', 'NotInitialized', 'Terminated', 'Unknown']
       @createStateButton()
     else if @state in [ 'Starting', 'Building', 'Stopping' ]
       @createLoading()
@@ -58,6 +58,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       Building       : 'is building now.'
       NotInitialized : 'is turned off.'
       Terminated     : 'is turned off.'
+      Unknown        : 'is turned off.'
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
     @label     = new KDCustomHTMLView
@@ -107,7 +108,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     methodName   = 'start'
     nextState    = 'Starting'
 
-    if @state is 'NotInitialized'
+    if @state in [ 'NotInitialized', 'Terminated', 'Unknown' ]
       methodName = 'build'
       nextState  = 'Building'
 
