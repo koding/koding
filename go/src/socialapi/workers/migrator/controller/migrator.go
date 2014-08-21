@@ -13,8 +13,11 @@ import (
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/robfig/cron"
 	"labix.org/v2/mgo/bson"
 )
+
+const SCHEDULE = "0 */5 * * * *"
 
 var (
 	ErrMigrated     = errors.New("already migrated")
@@ -22,7 +25,8 @@ var (
 )
 
 type Controller struct {
-	log logging.Logger
+	log     logging.Logger
+	cronJob *cron.Cron
 }
 
 func New(log logging.Logger) (*Controller, error) {
@@ -33,10 +37,20 @@ func New(log logging.Logger) (*Controller, error) {
 	return wc, nil
 }
 
+func (mwc *Controller) Schedule() error {
+	mwc.cronJob = cron.New()
+	err := mwc.cronJob.AddFunc(SCHEDULE, mwc.Start)
+	if err != nil {
 		return err
 	}
+	mwc.cronJob.Start()
 
+	return nil
+}
 
+func (mwc *Controller) Shutdown() {
+	mwc.cronJob.Stop()
+}
 
 func (mwc *Controller) Start() {
 	mwc.migrateAllAccounts()
