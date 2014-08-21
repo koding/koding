@@ -873,7 +873,7 @@ func TestChannelIsParticipant(t *testing.T) {
 			So(part, ShouldBeTrue)
 		})
 
-		Convey("non-participant in the channel should give error", func() {
+		Convey("non-participant in the channel should not give error", func() {
 			// create channel
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)

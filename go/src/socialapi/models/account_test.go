@@ -57,7 +57,7 @@ func TestAccountFetchOrCreate(t *testing.T) {
 			So(err, ShouldEqual, ErrGuestsAreNotAllowed)
 		})
 
-		Convey("it should not have error if required structs is exist", func() {
+		Convey("it should not have error if required fields are exist", func() {
 			a := NewAccount()
 			a.OldId = "oldIdOfAccount"
 			a.Nick = "WhatANick"
