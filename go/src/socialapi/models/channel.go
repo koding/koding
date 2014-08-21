@@ -67,6 +67,8 @@ const (
 
 // NewChannel inits channel
 // fills required constants what necessary is as default
+//
+// Tests are done
 func NewChannel() *Channel {
 	return &Channel{
 		Name:            "channel_" + RandomName(),
@@ -79,6 +81,8 @@ func NewChannel() *Channel {
 // NewPrivateMessageChannel takes the creator id and group name of the channel as arguments
 // sets required content of the channel
 // and sets constants as 'private'
+//
+// Tests are done
 func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
@@ -732,6 +736,11 @@ func (c *Channel) getAccountId() (int64, error) {
 
 }
 
+// FetchParticipant simply fetch the participants from the channel
+// if participant leaves from the channel
+// just marking status constant as LEFT
+//
+// Tests are done
 func (c *Channel) FetchParticipant(accountId int64) (*ChannelParticipant, error) {
 	if c.Id == 0 {
 		return nil, ErrIdIsNotSet

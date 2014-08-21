@@ -949,7 +949,7 @@ func TestChannelFetchParticipant(t *testing.T) {
 			ap, err := c.AddParticipant(acc.Id)
 			So(err, ShouldBeNil)
 			So(ap, ShouldNotBeNil)
-
+			//
 			// remove participant from the channel
 			err = c.RemoveParticipant(acc.Id)
 			So(err, ShouldBeNil)
