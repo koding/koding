@@ -497,6 +497,12 @@ span.collapsedtext
   padding-left              56px
   borderBox()
 
+  &.edited article > p:after
+    content       ' (edited)'
+    display       inline
+    font-size     11px
+    color         #ccc
+
   .activity-content-wrapper
     // background              #fff
     // rounded                 6px 6px 0 0
@@ -787,8 +793,8 @@ span.collapsedtext
         &.edited p:after
           content       ' (edited)'
           display       inline
-          font-size     12px
-          color         #999
+          font-size     11px
+          color         #ccc
 
         p
           a
