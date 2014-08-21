@@ -225,7 +225,7 @@ func addBlockDeviceParams(prename string, params map[string]string, blockdevices
 			params[prefix+"Ebs.Encrypted"] = "true"
 		}
 		if k.NoDevice {
-			params[prefix+"NoDevice"] = "true"
+			params[prefix+"NoDevice"] = ""
 		}
 	}
 }
@@ -273,27 +273,29 @@ type RunInstancesResp struct {
 //
 // See http://goo.gl/OCH8a for more details.
 type Instance struct {
-	InstanceId         string        `xml:"instanceId"`
-	InstanceType       string        `xml:"instanceType"`
-	ImageId            string        `xml:"imageId"`
-	PrivateDNSName     string        `xml:"privateDnsName"`
-	DNSName            string        `xml:"dnsName"`
-	KeyName            string        `xml:"keyName"`
-	AMILaunchIndex     int           `xml:"amiLaunchIndex"`
-	Hypervisor         string        `xml:"hypervisor"`
-	VirtType           string        `xml:"virtualizationType"`
-	Monitoring         string        `xml:"monitoring>state"`
-	AvailZone          string        `xml:"placement>availabilityZone"`
-	PlacementGroupName string        `xml:"placement>groupName"`
-	State              InstanceState `xml:"instanceState"`
-	Tags               []Tag         `xml:"tagSet>item"`
-	VpcId              string        `xml:"vpcId"`
-	SubnetId           string        `xml:"subnetId"`
-	IamInstanceProfile string        `xml:"iamInstanceProfile"`
-	PrivateIpAddress   string        `xml:"privateIpAddress"`
-	PublicIpAddress    string        `xml:"ipAddress"`
-	Architecture       string        `xml:"architecture"`
-	LaunchTime         time.Time     `xml:"launchTime"`
+	InstanceId         string          `xml:"instanceId"`
+	InstanceType       string          `xml:"instanceType"`
+	ImageId            string          `xml:"imageId"`
+	PrivateDNSName     string          `xml:"privateDnsName"`
+	DNSName            string          `xml:"dnsName"`
+	KeyName            string          `xml:"keyName"`
+	AMILaunchIndex     int             `xml:"amiLaunchIndex"`
+	Hypervisor         string          `xml:"hypervisor"`
+	VirtType           string          `xml:"virtualizationType"`
+	Monitoring         string          `xml:"monitoring>state"`
+	AvailZone          string          `xml:"placement>availabilityZone"`
+	PlacementGroupName string          `xml:"placement>groupName"`
+	State              InstanceState   `xml:"instanceState"`
+	Tags               []Tag           `xml:"tagSet>item"`
+	VpcId              string          `xml:"vpcId"`
+	SubnetId           string          `xml:"subnetId"`
+	IamInstanceProfile string          `xml:"iamInstanceProfile"`
+	PrivateIpAddress   string          `xml:"privateIpAddress"`
+	PublicIpAddress    string          `xml:"ipAddress"`
+	Architecture       string          `xml:"architecture"`
+	LaunchTime         time.Time       `xml:"launchTime"`
+	SourceDestCheck    bool            `xml:"sourceDestCheck"`
+	SecurityGroups     []SecurityGroup `xml:"groupSet>item"`
 }
 
 // RunInstances starts new instances in EC2.
@@ -476,6 +478,12 @@ type SpotLaunchSpec struct {
 	BlockDevices       []BlockDeviceMapping `xml:"blockDeviceMapping>item"`
 }
 
+type SpotStatus struct {
+	Code       string `xml:"code"`
+	UpdateTime string `xml:"updateTime"`
+	Message    string `xml:"message"`
+}
+
 type SpotRequestResult struct {
 	SpotRequestId  string         `xml:"spotInstanceRequestId"`
 	SpotPrice      string         `xml:"spotPrice"`
@@ -483,6 +491,7 @@ type SpotRequestResult struct {
 	AvailZone      string         `xml:"launchedAvailabilityZone"`
 	InstanceId     string         `xml:"instanceId"`
 	State          string         `xml:"state"`
+	Status         SpotStatus     `xml:"status"`
 	SpotLaunchSpec SpotLaunchSpec `xml:"launchSpecification"`
 	CreateTime     string         `xml:"createTime"`
 	Tags           []Tag          `xml:"tagSet>item"`
@@ -933,6 +942,20 @@ func (ec2 *EC2) AllocateAddress(options *AllocateAddress) (resp *AllocateAddress
 func (ec2 *EC2) ReleaseAddress(id string) (resp *SimpleResp, err error) {
 	params := makeParams("ReleaseAddress")
 	params["AllocationId"] = id
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Release an Elastic IP (Public)
+func (ec2 *EC2) ReleasePublicAddress(publicIp string) (resp *SimpleResp, err error) {
+	params := makeParams("ReleaseAddress")
+	params["PublicIp"] = publicIp
 
 	resp = &SimpleResp{}
 	err = ec2.query(params, resp)
@@ -1818,6 +1841,29 @@ func (ec2 *EC2) CreateTags(resourceIds []string, tags []Tag) (resp *SimpleResp, 
 	return resp, nil
 }
 
+type TagsResp struct {
+	RequestId string        `xml:"requestId"`
+	Tags      []ResourceTag `xml:"tagSet>item"`
+}
+
+type ResourceTag struct {
+	Tag
+	ResourceId   string `xml:"resourceId"`
+	ResourceType string `xml:"resourceType"`
+}
+
+func (ec2 *EC2) Tags(filter *Filter) (*TagsResp, error) {
+	params := makeParams("DescribeTags")
+	filter.addParams(params)
+
+	resp := &TagsResp{}
+	if err := ec2.query(params, resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 // Response to a StartInstances request.
 //
 // See http://goo.gl/awKeF for more details.
@@ -1893,6 +1939,8 @@ type ModifyInstance struct {
 	SourceDestCheck       bool
 	SriovNetSupport       bool
 	UserData              []byte
+
+	SetSourceDestCheck bool
 }
 
 // Response to a ModifyInstanceAttribute request.
@@ -1937,8 +1985,12 @@ func (ec2 *EC2) ModifyInstance(instId string, options *ModifyInstance) (resp *Mo
 		params["Ramdisk.Value"] = options.RamdiskId
 	}
 
-	if options.SourceDestCheck {
-		params["SourceDestCheck.Value"] = "true"
+	if options.SourceDestCheck || options.SetSourceDestCheck {
+		if options.SourceDestCheck {
+			params["SourceDestCheck.Value"] = "true"
+		} else {
+			params["SourceDestCheck.Value"] = "false"
+		}
 	}
 
 	if options.SriovNetSupport {
@@ -1982,6 +2034,27 @@ type CreateVpc struct {
 type CreateVpcResp struct {
 	RequestId string `xml:"requestId"`
 	VPC       VPC    `xml:"vpc"`
+}
+
+// The ModifyVpcAttribute request parameters.
+//
+// See http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/index.html?ApiReference-query-DescribeVpcAttribute.html for more details.
+type ModifyVpcAttribute struct {
+	EnableDnsSupport   bool
+	EnableDnsHostnames bool
+
+	SetEnableDnsSupport   bool
+	SetEnableDnsHostnames bool
+}
+
+// Response to a DescribeVpcAttribute request.
+//
+// See http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/index.html?ApiReference-query-DescribeVpcAttribute.html for more details.
+type VpcAttributeResp struct {
+	RequestId          string `xml:"requestId"`
+	VpcId              string `xml:"vpcId"`
+	EnableDnsSupport   bool   `xml:"enableDnsSupport>value"`
+	EnableDnsHostnames bool   `xml:"enableDnsHostnames>value"`
 }
 
 // CreateInternetGateway request parameters.
@@ -2084,10 +2157,18 @@ type InternetGatewayAttachment struct {
 
 // Routing Table
 type RouteTable struct {
-	RouteTableId string  `xml:"routeTableId"`
-	VpcId        string  `xml:"vpcId"`
-	Routes       []Route `xml:"routeSet>item"`
-	Tags         []Tag   `xml:"tagSet>item"`
+	RouteTableId string                  `xml:"routeTableId"`
+	VpcId        string                  `xml:"vpcId"`
+	Associations []RouteTableAssociation `xml:"associationSet>item"`
+	Routes       []Route                 `xml:"routeSet>item"`
+	Tags         []Tag                   `xml:"tagSet>item"`
+}
+
+type RouteTableAssociation struct {
+	AssociationId string `xml:"routeTableAssociationId"`
+	RouteTableId  string `xml:"routeTableId"`
+	SubnetId      string `xml:"subnetId"`
+	Main          bool   `xml:"main"`
 }
 
 type Route struct {
@@ -2176,6 +2257,49 @@ func (ec2 *EC2) DescribeVpcs(ids []string, filter *Filter) (resp *VpcsResp, err 
 	}
 
 	return
+}
+
+// VpcAttribute describes an attribute of a VPC.
+// You can specify only one attribute at a time.
+// Valid attributes are:
+//    enableDnsSupport | enableDnsHostnames
+//
+// See http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/index.html?ApiReference-query-DescribeVpcAttribute.html for more details.
+func (ec2 *EC2) VpcAttribute(vpcId, attribute string) (resp *VpcAttributeResp, err error) {
+	params := makeParams("DescribeVpcAttribute")
+	params["VpcId"] = vpcId
+	params["Attribute"] = attribute
+
+	resp = &VpcAttributeResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// ModifyVpcAttribute modifies the specified attribute of the specified VPC.
+//
+// See http://docs.amazonwebservices.com/AWSEC2/latest/APIReference/index.html?ApiReference-query-ModifyVpcAttribute.html for more details.
+func (ec2 *EC2) ModifyVpcAttribute(vpcId string, options *ModifyVpcAttribute) (*SimpleResp, error) {
+	params := makeParams("ModifyVpcAttribute")
+
+	params["VpcId"] = vpcId
+
+	if options.SetEnableDnsSupport {
+		params["EnableDnsSupport.Value"] = strconv.FormatBool(options.EnableDnsSupport)
+	}
+
+	if options.SetEnableDnsHostnames {
+		params["EnableDnsHostnames.Value"] = strconv.FormatBool(options.EnableDnsHostnames)
+	}
+
+	resp := &SimpleResp{}
+	if err := ec2.query(params, resp); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 // Create a new subnet.
@@ -2370,7 +2494,7 @@ func (ec2 *EC2) DisassociateRouteTable(id string) (*SimpleResp, error) {
 
 // Re-associate a routing table.
 func (ec2 *EC2) ReassociateRouteTable(id, routeTableId string) (*ReassociateRouteTableResp, error) {
-	params := makeParams("ReassociateRouteTable")
+	params := makeParams("ReplaceRouteTableAssociation")
 	params["AssociationId"] = id
 	params["RouteTableId"] = routeTableId
 

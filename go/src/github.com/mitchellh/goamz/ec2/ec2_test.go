@@ -266,6 +266,9 @@ func (s *S) TestRequestSpotInstancesExample(c *C) {
 	c.Assert(resp.SpotRequestResults[0].SpotPrice, Equals, "0.5")
 	c.Assert(resp.SpotRequestResults[0].State, Equals, "open")
 	c.Assert(resp.SpotRequestResults[0].SpotLaunchSpec.ImageId, Equals, "ami-1a2b3c4d")
+	c.Assert(resp.SpotRequestResults[0].Status.Code, Equals, "pending-evaluation")
+	c.Assert(resp.SpotRequestResults[0].Status.UpdateTime, Equals, "2008-05-07T12:51:50.000Z")
+	c.Assert(resp.SpotRequestResults[0].Status.Message, Equals, "Your Spot request has been submitted for review, and is pending evaluation.")
 }
 
 func (s *S) TestCancelSpotRequestsExample(c *C) {
@@ -334,6 +337,9 @@ func (s *S) TestDescribeSpotRequestsExample(c *C) {
 	c.Assert(resp.SpotRequestResults[0].State, Equals, "active")
 	c.Assert(resp.SpotRequestResults[0].SpotPrice, Equals, "0.5")
 	c.Assert(resp.SpotRequestResults[0].SpotLaunchSpec.ImageId, Equals, "ami-1a2b3c4d")
+	c.Assert(resp.SpotRequestResults[0].Status.Code, Equals, "fulfilled")
+	c.Assert(resp.SpotRequestResults[0].Status.UpdateTime, Equals, "2008-05-07T12:51:50.000Z")
+	c.Assert(resp.SpotRequestResults[0].Status.Message, Equals, "Your Spot request is fulfilled.")
 }
 
 func (s *S) TestDescribeInstancesExample1(c *C) {

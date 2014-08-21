@@ -6,13 +6,16 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/klient/usage"
 	"strconv"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/route53"
 	"github.com/koding/kite"
-	aws "github.com/koding/kloud/api/amazon"
+	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -29,6 +32,7 @@ var (
 	DefaultAMI          = "ami-864d84ee" // Ubuntu 14.04 EBS backed, amd64, HVM
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
+	DefaultHostedZone   = "koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -75,7 +79,8 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 	var err error
 
 	machine.Builder["region"] = DefaultRegion
-	a.Amazon, err = aws.New(kodingCredential, machine.Builder)
+
+	a.Amazon, err = amazonClient.New(kodingCredential, machine.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
@@ -250,7 +255,67 @@ hostname: %s`
 		return nil, err
 	}
 
+	/////// ROUTE 53 /////////////////
+
+	a.Log.Info("Creating Route53 instance")
+	dns, err := route53.NewRoute53(
+		aws.Auth{
+			AccessKey: a.Creds.AccessKey,
+			SecretKey: a.Creds.SecretKey,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
+	hostedZones, err := dns.ListHostedZones("", 100)
+	if err != nil {
+		return nil, err
+	}
+
+	var zoneId string
+	for _, anotherHostedZones := range hostedZones.HostedZones {
+		for _, hostedZone := range anotherHostedZones.HostedZone {
+			if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
+				continue
+			}
+
+			zoneId = CleanZoneID(hostedZone.Id)
+		}
+	}
+
+	if zoneId == "" {
+		return nil, fmt.Errorf("Hosted zone with the name '%s' doesn't exist", DefaultHostedZone)
+	}
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Xmlns:  "https://route53.amazonaws.com/doc/2013-04-01/",
+		Action: "CREATE",
+		Name:   username + "." + DefaultHostedZone,
+		Type:   "A",
+		TTL:    "300",
+		Value:  artifact.IpAddress,
+	}
+
+	a.Log.Info("Creating a new record with following data: %+v", change)
+
+	changeResp, err := dns.ChangeResourceRecordSet(change, zoneId)
+	if err != nil {
+		return nil, err
+	}
+
+	///// ROUTE 53 /////////////////
+
 	return artifact, nil
+}
+
+// CleanZoneID is used to remove the leading /hostedzone/
+func CleanZoneID(ID string) string {
+	if strings.HasPrefix(ID, "/hostedzone/") {
+		ID = strings.TrimPrefix(ID, "/hostedzone/")
+	}
+	return ID
 }
 
 // Remove the instance if something goes wrong
@@ -264,6 +329,8 @@ func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) e
 		return errors.New("artifact is passed nil")
 	}
 
+	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
+		opts.MachineId, artifact.InstanceId)
 	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
 	if err != nil {
 		return err

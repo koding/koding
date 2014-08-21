@@ -210,6 +210,29 @@ func (b *Bucket) GetResponse(path string) (*http.Response, error) {
 	panic("unreachable")
 }
 
+func (b *Bucket) Head(path string) (*http.Response, error) {
+	req := &request{
+		method: "HEAD",
+		bucket: b.Name,
+		path:   path,
+	}
+	err := b.S3.prepare(req)
+	if err != nil {
+		return nil, err
+	}
+	for attempt := attempts.Start(); attempt.Next(); {
+		resp, err := b.S3.run(req, nil)
+		if shouldRetry(err) && attempt.HasNext() {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		return resp, nil
+	}
+	panic("unreachable")
+}
+
 // Put inserts an object into the S3 bucket.
 //
 // See http://goo.gl/FEBPD for details.
@@ -270,6 +293,42 @@ func (b *Bucket) PutReaderHeader(path string, r io.Reader, length int64, customH
 		payload: r,
 	}
 	return b.S3.query(req, nil)
+}
+
+/*
+Copy - copy objects inside bucket
+*/
+func (b *Bucket) Copy(oldPath, newPath string, perm ACL) error {
+	if !strings.HasPrefix(oldPath, "/") {
+		oldPath = "/" + oldPath
+	}
+
+	req := &request{
+		method: "PUT",
+		bucket: b.Name,
+		path:   newPath,
+		headers: map[string][]string{
+			"x-amz-copy-source": {amazonEscape("/" + b.Name + oldPath)},
+			"x-amz-acl":         {string(perm)},
+		},
+	}
+
+	err := b.S3.prepare(req)
+	if err != nil {
+		return err
+	}
+
+	for attempt := attempts.Start(); attempt.Next(); {
+		_, err = b.S3.run(req, nil)
+		if shouldRetry(err) && attempt.HasNext() {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	panic("unreachable")
 }
 
 // Del removes an object from the S3 bucket.
@@ -518,7 +577,7 @@ func (b *Bucket) URL(path string) string {
 	if err != nil {
 		panic(err)
 	}
-	u, err := req.url()
+	u, err := req.url(true)
 	if err != nil {
 		panic(err)
 	}
@@ -538,7 +597,7 @@ func (b *Bucket) SignedURL(path string, expires time.Time) string {
 	if err != nil {
 		panic(err)
 	}
-	u, err := req.url()
+	u, err := req.url(true)
 	if err != nil {
 		panic(err)
 	}
@@ -557,13 +616,56 @@ type request struct {
 	prepared bool
 }
 
-func (req *request) url() (*url.URL, error) {
+// amazonShouldEscape returns true if byte should be escaped
+func amazonShouldEscape(c byte) bool {
+	return !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+		(c >= '0' && c <= '9') || c == '_' || c == '-' || c == '~' || c == '.' || c == '/' || c == ':')
+}
+
+// amazonEscape does uri escaping exactly as Amazon does
+func amazonEscape(s string) string {
+	hexCount := 0
+
+	for i := 0; i < len(s); i++ {
+		if amazonShouldEscape(s[i]) {
+			hexCount++
+		}
+	}
+
+	if hexCount == 0 {
+		return s
+	}
+
+	t := make([]byte, len(s)+2*hexCount)
+	j := 0
+	for i := 0; i < len(s); i++ {
+		if c := s[i]; amazonShouldEscape(c) {
+			t[j] = '%'
+			t[j+1] = "0123456789ABCDEF"[c>>4]
+			t[j+2] = "0123456789ABCDEF"[c&15]
+			j += 3
+		} else {
+			t[j] = s[i]
+			j++
+		}
+	}
+	return string(t)
+}
+
+// url returns url to resource, either full (with host/scheme) or
+// partial for HTTP request
+func (req *request) url(full bool) (*url.URL, error) {
 	u, err := url.Parse(req.baseurl)
 	if err != nil {
 		return nil, fmt.Errorf("bad S3 endpoint URL %q: %v", req.baseurl, err)
 	}
+
+	u.Opaque = amazonEscape(req.path)
+	if full {
+		u.Opaque = "//" + u.Host + u.Opaque
+	}
 	u.RawQuery = req.params.Encode()
-	u.Path = req.path
+
 	return u, nil
 }
 
@@ -648,7 +750,7 @@ func (s3 *S3) prepare(req *request) error {
 	}
 	req.headers["Host"] = []string{u.Host}
 	req.headers["Date"] = []string{time.Now().In(time.UTC).Format(time.RFC1123)}
-	sign(s3.Auth, req.method, req.signpath, req.params, req.headers)
+	sign(s3.Auth, req.method, amazonEscape(req.signpath), req.params, req.headers)
 	return nil
 }
 
@@ -660,7 +762,7 @@ func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
 		log.Printf("Running S3 request: %#v", req)
 	}
 
-	u, err := req.url()
+	u, err := req.url(false)
 	if err != nil {
 		return nil, err
 	}
