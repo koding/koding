@@ -54,6 +54,7 @@ func (mwc *Controller) Start() error {
 }
 
 func (mwc *Controller) migrateAllPosts() error {
+	mwc.log.Notice("Post migration started")
 	s := modelhelper.Selector{
 		"socialMessageId": modelhelper.Selector{"$exists": false},
 	}

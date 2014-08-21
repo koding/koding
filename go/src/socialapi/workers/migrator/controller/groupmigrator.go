@@ -9,6 +9,7 @@ import (
 )
 
 func (mwc *Controller) migrateAllGroups() error {
+	mwc.log.Notice("Group migration started")
 	s := modelhelper.Selector{
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
 	}

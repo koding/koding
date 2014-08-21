@@ -14,6 +14,7 @@ import (
 )
 
 func (mwc *Controller) migrateAllTags() error {
+	mwc.log.Notice("Tag migration started")
 	s := modelhelper.Selector{
 		"socialApiChannelId": modelhelper.Selector{"$exists": false},
 	}
