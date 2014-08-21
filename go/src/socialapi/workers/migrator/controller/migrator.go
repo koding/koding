@@ -293,8 +293,10 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
-	cm.Slug = su.Slug
 	cm.Body = su.Body // for now do not modify tags
+	if err := migrateSlug(cm, su.Slug); err != nil {
+		return nil, err
+	}
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.CreatedAt = su.Meta.CreatedAt
 	payload, err := mapEmbeddedLink(su.Link)
@@ -306,6 +308,20 @@ func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.Chan
 	prepareMessageMetaDates(cm, &su.Meta)
 
 	return cm, nil
+}
+
+func migrateSlug(cm *models.ChannelMessage, slug string) error {
+	if len(slug) > 100 {
+		if _, err := models.Slugify(cm); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	cm.Slug = slug
+
+	return nil
 }
 
 func mapEmbeddedLink(link map[string]interface{}) (map[string]*string, error) {
