@@ -8,8 +8,19 @@ import (
 	"strconv"
 )
 
+var errAccountCount = 0
+
+func (mwc *Controller) handleAccountError(oldAccount *mongomodels.Account, err error) {
+	errAccountCount++
+	mwc.log.Error("Error occurred for account %s: %s", oldAccount.Id.Hex(), err)
+	s := modelhelper.Selector{"_id": oldAccount.Id}
+	o := modelhelper.Selector{"$set": modelhelper.Selector{"socialApiId": -1, "error": err.Error()}}
+	if err := modelhelper.UpdateAccount(s, o); err != nil {
+		mwc.log.Warning("Could not update account document: %s", err)
+	}
+}
+
 func (mwc *Controller) migrateAllAccounts() error {
-	errCount := 0
 	successCount := 0
 
 	s := modelhelper.Selector{
@@ -27,15 +38,14 @@ func (mwc *Controller) migrateAllAccounts() error {
 			oldAccount.Profile.Nickname,
 		)
 		if err != nil {
-			errCount++
-			mwc.log.Error("Error occurred for account %s: %s", oldAccount.Id.Hex(), err)
+			mwc.handleAccountError(oldAccount, err)
 			return nil
 		}
 
 		s := modelhelper.Selector{"_id": oldAccount.Id}
 		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialApiId": strconv.FormatInt(id, 10)}}
 		if err := modelhelper.UpdateAccount(s, o); err != nil {
-			errCount++
+			errAccountCount++
 			mwc.log.Warning("Could not update account document: %s", err)
 			return nil
 		}
@@ -55,7 +65,7 @@ func (mwc *Controller) migrateAllAccounts() error {
 
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
-	mwc.log.Notice("Account migration completed for %d account with %d errors", successCount, errCount)
+	mwc.log.Notice("Account migration completed for %d account with %d errors", successCount, errAccountCount)
 
 	return nil
 }
