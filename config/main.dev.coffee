@@ -116,6 +116,7 @@ Configuration = (options={}) ->
     embedly                        : {apiKey        : "94991069fb354d4e8fdb825e52d4134a" }
     troubleshoot                   : {recipientEmail: "can@koding.com" }
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
+    recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
     mixpanel                       : mixpanel.token
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
@@ -150,6 +151,7 @@ Configuration = (options={}) ->
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
+    recaptcha         : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
