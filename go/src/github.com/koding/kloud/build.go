@@ -53,6 +53,7 @@ func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
 	// start our build process in async way
 	go b.start(r, c)
 
+	// but let the user know thay they can track us via the given event id
 	return ControlResult{
 		EventId: c.Eventer.Id(),
 		State:   machinestate.Building,
@@ -63,12 +64,16 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 	b.idlock.Get(c.MachineId).Lock()
 	defer b.idlock.Get(c.MachineId).Unlock()
 
+	// This is executed as the final step which stops the eventer and updates
+	// the state in the storage.
 	defer func() {
 		status := machinestate.Running
 		msg := "Build is finished successfully."
 
 		if err != nil {
-			b.Log.Error("[controller] building machine for id '%s' failed: %s.", c.MachineId, err.Error())
+			b.Log.Error("[controller] building machine for id '%s' failed: %s.",
+				c.MachineId, err.Error())
+
 			status = c.CurrenState
 			msg = err.Error()
 		} else {
@@ -114,6 +119,19 @@ meta data     : %# v
 	)
 
 	b.Log.Info("[controller] building machine with following data: %s", buildInfo)
+
+	// Start the canceller for the build if something goes wrong. Like deleting
+	// the terminate.
+	defer func() {
+		if err != nil {
+			b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'", c.MachineId)
+			err := c.Builder.Cancel(machOptions)
+			if err != nil {
+				b.Log.Info("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
+			}
+		}
+	}()
+
 	artifact, err := c.Builder.Build(machOptions)
 	if err != nil {
 		return nil, err

@@ -15,7 +15,13 @@ type Limiter interface {
 
 // Builder creates and provision a single image or machine for a given Provider.
 type Builder interface {
+	// Build the machine and creates an artifact that can be pass to other
+	// methods
 	Build(*Machine) (*Artifact, error)
+
+	// Cancel is called if there is an error in build process. This is helpful
+	// to cleanup the build process and leftovers.
+	Cancel(*Machine) error
 }
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
