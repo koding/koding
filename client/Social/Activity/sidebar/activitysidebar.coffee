@@ -354,16 +354,16 @@ class ActivitySidebar extends KDCustomHTMLView
         type     : 'workspace'
         href     : "/IDE/VM/#{machine.uid}"
         parentId : id
-      treeData.push
-        id       : "#{id}-apps"
-        title    : 'Apps'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'App Store'
-        type     : 'app'
-        href     : '/Apps'
-        parentId : id
+      # treeData.push
+      #   id       : "#{id}-apps"
+      #   title    : 'Apps'
+      #   type     : 'title'
+      #   parentId : id
+      # treeData.push
+      #   title    : 'App Store'
+      #   type     : 'app'
+      #   href     : '/Apps'
+      #   parentId : id
 
 
     @machineTree.addNode data for data in treeData
