@@ -145,7 +145,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("account id is not set")
+		return ErrAccountIdIsNotSet
 	}
 
 	if err := a.ById(a.Id); err != nil {
@@ -171,7 +171,7 @@ func (a *Account) MarkAsTroll() error {
 
 func (a *Account) UnMarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("account id is not set")
+		return ErrAccountIdIsNotSet
 	}
 
 	if err := a.ById(a.Id); err != nil {
