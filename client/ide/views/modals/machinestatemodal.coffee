@@ -105,16 +105,20 @@ class IDE.MachineStateModal extends IDE.ModalView
     @addSubView @footer
 
   turnOnMachine: ->
-    methodName   = 'start'
-    nextState    = 'Starting'
+    computeController = KD.getSingleton 'computeController'
+    computeController.fetchMachines (err) =>
+      return KD.showError "Couldn't fetch machines"  if err
 
-    if @state in [ 'NotInitialized', 'Terminated', 'Unknown' ]
-      methodName = 'build'
-      nextState  = 'Building'
+      methodName   = 'start'
+      nextState    = 'Starting'
 
-    KD.getSingleton('computeController')[methodName] @getData()
-    @state = nextState
-    @buildViews()
+      if @state in [ 'NotInitialized', 'Terminated', 'Unknown' ]
+        methodName = 'build'
+        nextState  = 'Building'
+
+      computeController[methodName] @getData()
+      @state = nextState
+      @buildViews()
 
   startIDE: ->
     @destroy()
