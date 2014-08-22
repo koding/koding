@@ -108,7 +108,7 @@ var RequestSpotInstancesExample = `
       <state>open</state>
       <status>
         <code>pending-evaluation</code>
-        <updateTime>YYYY-MM-DDTHH:MM:SS.000Z</updateTime>
+        <updateTime>2008-05-07T12:51:50.000Z</updateTime>
         <message>Your Spot request has been submitted for review, and is pending evaluation.</message>
       </status>
       <availabilityZoneGroup>MyAzGroup</availabilityZoneGroup>
@@ -147,7 +147,7 @@ var DescribeSpotRequestsExample = `
       <state>active</state>
       <status>
         <code>fulfilled</code>
-        <updateTime>YYYY-MM-DDTHH:MM:SS.000Z</updateTime>
+        <updateTime>2008-05-07T12:51:50.000Z</updateTime>
         <message>Your Spot request is fulfilled.</message>
       </status>
       <launchSpecification>

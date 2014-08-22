@@ -95,3 +95,23 @@ var DescribeAutoScalingGroupsExample = `
   </ResponseMetadata>
 </DescribeAutoScalingGroupsResponse>
 `
+
+var DeleteLaunchConfigurationExample = `<DeleteLaunchConfigurationResponse xmlns="http://autoscaling.amazonaws.com/doc/2011-01-01/">
+  <ResponseMetadata>
+    <RequestId>7347261f-97df-11e2-8756-35eEXAMPLE</RequestId>
+  </ResponseMetadata>
+</DeleteLaunchConfigurationResponse>`
+
+var DeleteAutoScalingGroupExample = `<DeleteAutoScalingGroupResponse xmlns="http://autoscaling.amazonaws.com/doc/2011-01-01/">
+  <ResponseMetadata>
+    <RequestId>70a76d42-9665-11e2-9fdf-211deEXAMPLE</RequestId>
+  </ResponseMetadata>
+</DeleteAutoScalingGroupResponse>`
+
+var UpdateAutoScalingGroupExample = `
+<UpdateAutoScalingGroupResponse xmlns="http://autoscaling.amazonaws.com/doc/2011-01-01/">
+  <ResponseMetadata>
+    <RequestId>adafead0-ab8a-11e2-ba13-ab0ccEXAMPLE</RequestId>
+  </ResponseMetadata>
+</UpdateAutoScalingGroupResponse>
+`

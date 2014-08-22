@@ -109,13 +109,17 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
 	})
 
-	return &protocol.Machine{
+	m := &protocol.Machine{
 		MachineId:  id,
 		Provider:   machine.Provider,
 		Builder:    machine.Meta,
 		Credential: credential.Meta,
 		State:      machine.State(),
-	}, nil
+	}
+
+	m.CurrentData.IpAddress = machine.IpAddress
+
+	return m, nil
 }
 
 func (p *Provider) checkUser(username string, users []models.Permissions) error {

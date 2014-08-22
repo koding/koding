@@ -40,6 +40,7 @@ func (s *S) TestListTopicsOK(c *C) {
 	c.Assert(req.URL.Path, Equals, "/")
 	c.Assert(req.Header["Date"], Not(Equals), "")
 
+	c.Assert(resp.Topics[0].SNS, Equals, s.sns)
 	c.Assert(resp.ResponseMetadata.RequestId, Equals, "bd10b26c-e30e-11e0-ba29-93c3aca2f103")
 	c.Assert(err, IsNil)
 }
@@ -54,6 +55,7 @@ func (s *S) TestCreateTopic(c *C) {
 	c.Assert(req.URL.Path, Equals, "/")
 	c.Assert(req.Header["Date"], Not(Equals), "")
 
+	c.Assert(resp.Topic.SNS, Equals, s.sns)
 	c.Assert(resp.Topic.TopicArn, Equals, "arn:aws:sns:us-east-1:123456789012:My-Topic")
 	c.Assert(resp.ResponseMetadata.RequestId, Equals, "a8dec8b3-33a4-11df-8963-01868b7c937a")
 	c.Assert(err, IsNil)
@@ -62,8 +64,8 @@ func (s *S) TestCreateTopic(c *C) {
 func (s *S) TestDeleteTopic(c *C) {
 	testServer.Response(200, nil, TestDeleteTopicXmlOK)
 
-	t := sns.Topic{nil, "arn:aws:sns:us-east-1:123456789012:My-Topic"}
-	resp, err := s.sns.DeleteTopic(t)
+	t := sns.Topic{s.sns, "arn:aws:sns:us-east-1:123456789012:My-Topic"}
+	resp, err := t.Delete()
 	req := testServer.WaitRequest()
 
 	c.Assert(req.Method, Equals, "GET")
@@ -115,7 +117,14 @@ func (s *S) TestGetTopicAttributes(c *C) {
 func (s *S) TestPublish(c *C) {
 	testServer.Response(200, nil, TestPublishXmlOK)
 
-	pubOpt := &sns.PublishOpt{"foobar", "", "subject", "arn:aws:sns:us-east-1:123456789012:My-Topic"}
+	pubOpt := &sns.PublishOpt{
+		Message:          "foobar",
+		MessageStructure: "",
+		Subject:          "subject",
+		TopicArn:         "arn:aws:sns:us-east-1:123456789012:My-Topic",
+		TargetArn:        "arn:aws:sns:us-east-1:123456789012:My-Other-Topic",
+	}
+
 	resp, err := s.sns.Publish(pubOpt)
 	req := testServer.WaitRequest()
 
