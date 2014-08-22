@@ -1,3 +1,10 @@
+# this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
+# once we merged two sidebars into one
+# activity sidebar became the mainsidebar
+# and unfortunately we have too mcuh goin on here right now.
+# vm menu and activity menu should be separated,
+# needs a little refactor. - SY
+
 class ActivitySidebar extends KDCustomHTMLView
 
 
