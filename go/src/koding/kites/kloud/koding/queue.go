@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	CheckInterval = time.Second * 2
+	CheckInterval = time.Second * 30
 )
 
 func (p *Provider) RunChecker() {
