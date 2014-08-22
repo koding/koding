@@ -395,7 +395,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : 'VMs <a href="/Pricing" class="buy-vm"></a>'
+      partial  : 'VMs'
+
+    header.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'buy-vm'
+      click    : @bound 'createBuyNewMachineModal'
 
     section.addSubView @machineTree.getView()
 
@@ -513,3 +518,22 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+  createBuyNewMachineModal: ->
+    modal = new BuyMachineModal
+    modal.once 'MachineCreated', (newMachine) =>
+      @fetchMachines (machines) =>
+        jMachines = []
+        tree      = @machineTree
+        jMachines.push machine.data for machine in machines
+
+        tree.removeAllNodes()
+        @listMachines jMachines
+
+        for node, i in tree.indexedNodes
+          if node.data?._id is newMachine._id
+            index = i
+
+        if index
+          tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
+          KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"

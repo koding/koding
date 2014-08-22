@@ -105,6 +105,8 @@ module.exports = [
   "views/privatemessage/replyinputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
 
+  "views/buymachinemodal.coffee"
+
   "styl/activity.styl"
   "styl/activity.responsive.styl"
 ]
