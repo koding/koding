@@ -234,6 +234,9 @@ hostname: %s`
 		},
 	}
 
+	// TODO: Check if it's exist before we create, if yes change the domain
+	// name
+
 	a.Log.Info("Creating a new record with following data: %+v", change)
 	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
 	if err != nil {
