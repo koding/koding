@@ -33,6 +33,9 @@ func (h *handler) xhrSend(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	h.sessionsMux.Lock()
+	defer h.sessionsMux.Unlock()
 	if sess, ok := h.sessions[sessionID]; !ok {
 		http.NotFound(rw, req)
 	} else {
