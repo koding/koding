@@ -9,7 +9,6 @@ import (
 
 	"koding/db/mongodb"
 	"koding/kites/klient/usage"
-	"koding/kites/kloud/provisioner"
 
 	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
@@ -26,8 +25,7 @@ import (
 )
 
 var (
-	// DefaultAMI = "ami-80778be8" // Ubuntu 14.0.4 EBS backed, amd64,  PV
-	DefaultAMI          = "ami-864d84ee" // Ubuntu 14.04 EBS backed, amd64, HVM
+	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
 	DefaultHostedZone   = "koding.io"
@@ -168,55 +166,6 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
-	// IMAGE BUILDER
-	amiName, err := provisioner.Ami()
-	if err != nil {
-		return nil, fmt.Errorf("Could not get generated AMI name: %s", err)
-	}
-
-	// Build type needed for backer
-	a.ImageBuilder.Type = "amazon-ebs"
-
-	// SSH username
-	a.ImageBuilder.SshUsername = "ubuntu"
-
-	// Name of AMI to build if needed
-	a.ImageBuilder.AmiName = amiName
-
-	// Use this ami as a "foundation"
-	a.ImageBuilder.SourceAmi = DefaultAMI
-
-	// Region we're building in
-	a.ImageBuilder.Region = a.Builder.Region
-
-	// Build AMI for this instance type
-	// Doesn't need VPC, etc ... and AMI can be used for t2.micro
-	// plus the build is faster
-	a.ImageBuilder.InstanceType = "m3.medium"
-
-	// Credentials
-	a.ImageBuilder.AccessKey = a.Creds.AccessKey
-	a.ImageBuilder.SecretKey = a.Creds.SecretKey
-
-	a.Log.Info("Checking if AMI named '%s' exists", amiName)
-	image, err := a.ImageByName(amiName)
-	if err != nil {
-		a.Log.Error(err.Error())
-		// Image doesn't exist so try it
-		a.Log.Info("AMI named '%s' does not exist, building it now", amiName)
-		a.Log.Info("Using templates from directory: %s", p.TemplateDir)
-
-		image, err = a.CreateImage(provisioner.PackerRawData(p.TemplateDir))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// INSTANCE BUILDER
-
-	// Get or build if needed AMI image
-	a.Builder.SourceAmi = image.Id
-
 	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
 
@@ -231,6 +180,15 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
+
+	a.Log.Info("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+	image, err := a.ImageByTag(DefaultCustomAMITag)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use this ami id, which is going to be a stable one
+	a.Builder.SourceAmi = image.Id
 
 	cloudConfig := `
 #cloud-config
