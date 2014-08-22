@@ -18,11 +18,11 @@ class ActivitySettingsView extends KDCustomHTMLView
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
 
-    if @getOptions().disableFollow    \
-      and not KD.isMyPost(@getData()) \
-      and not KD.checkFlag('super-admin')
-        @hide()
-        return
+    followDisabled = @getOptions().disableFollow
+    myPost         = KD.isMyPost @getData()
+    iAmAdmin       = KD.checkFlag 'super-admin'
+
+    return @hide()  if followDisabled or (not myPost and not iAmAdmin)
 
     activityController = KD.getSingleton('activityController')
 

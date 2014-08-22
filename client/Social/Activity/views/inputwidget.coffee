@@ -158,7 +158,11 @@ class ActivityInputWidget extends KDView
           userMessage: "You are not allowed to edit this post."
         return @showError err, options
 
-      callback()
+      activity.body = body
+      activity.meta.updatedAt = new Date
+      activity.emit 'update'
+
+      callback err, activity
 
       KD.mixpanel "Status update edit, success"
 
