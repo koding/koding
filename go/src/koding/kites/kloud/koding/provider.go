@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	DefaultCustomAMI    = "koding-stable" // Our own AMI, create via packer
+	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
 	DefaultHostedZone   = "koding.io"
@@ -166,15 +166,6 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
-	a.Log.Info("Checking if AMI named '%s' exists", DefaultCustomAMI)
-	image, err := a.ImageByName(DefaultCustomAMI)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get or build if needed AMI image
-	a.Builder.SourceAmi = image.Id
-
 	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
 
@@ -189,6 +180,15 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
+
+	a.Log.Info("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+	image, err := a.ImageByTag(DefaultCustomAMITag)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use this ami id, which is going to be a stable one
+	a.Builder.SourceAmi = image.Id
 
 	cloudConfig := `
 #cloud-config
