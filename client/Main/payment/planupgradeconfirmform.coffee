@@ -16,6 +16,7 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
         cancel      :
           title     : "CANCEL"
           style     : "solid medium light-gray"
+          cssClass  : 'to-left'
           callback  : => @emit 'Cancel'
 
   viewAppended: ->

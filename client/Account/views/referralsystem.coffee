@@ -48,7 +48,7 @@ class AccountReferralSystemListController extends AccountListViewController
     #       linkView    : getYourReferrerCode
 
     wrapper.addSubView redeem = new KDButtonView
-        cssClass  : 'account-add-big-btn'
+        cssClass  : 'add-big-btn'
         title     : 'Redeem your VM space'
         icon      : yes
         callback  : => @showRedeemReferralPointModal()

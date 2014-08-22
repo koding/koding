@@ -25,7 +25,7 @@ class ExistingAccountForm extends JView
 
     @registerButton = new KDButtonView
       title    : 'Register'
-      cssClass : 'solid green fr'
+      cssClass : 'solid gray medium'
       callback : -> KD.singletons.router.handleRoute '/Register'
 
     super
@@ -36,7 +36,6 @@ class ExistingAccountForm extends JView
       <h3 class="pricing-title">Sign in or create an account to proceed with your checkout</h3>
       <div class="form-wrapper">
         {{> @loginForm}}
-        <span class="divider">or</span>
         {{> @registerButton }}
       </div>
     </section>

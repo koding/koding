@@ -10,8 +10,12 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
       expiresMonth  %= 12
 
     fields =
+      cardHolderHeader    :
+        itemClass         : KDHeaderView
+        title             : 'Card holder\'s'
+        cssClass          : 'section-header'
       cardFirstName       :
-        placeholder       : 'First name'
+        label             : 'First name'
         defaultValue      : KD.whoami().profile.firstName
         validate          :
           notifications   : yes
@@ -22,20 +26,71 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             required      : 'First name is required!'
         keyup             : @bound 'updateDescription'
         cssClass          : "card-name"
-        nextElementFlat   :
-          cardLastName    :
-            placeholder   : 'Last name'
-            defaultValue  : KD.whoami().profile.lastName
-            validate      :
-              notifications: yes
-              event       : "blur"
-              rules       :
-                required  : yes
-              messages    :
-                required  : 'Last name is required!'
-
+      cardLastName        :
+        label             : 'Last name'
+        defaultValue      : KD.whoami().profile.lastName
+        validate          :
+          notifications   : yes
+          event           : "blur"
+          rules           :
+            required      : yes
+          messages        :
+            required      : 'Last name is required!'
+      cardAddress1        :
+        label             : 'Address'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            maxLength     : 50
+          messages        :
+            maxLength     : 'Address should be less than 50 characters long!'
+      cardCity            :
+        label             : 'City'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            maxLength     : 50
+          messages        :
+            maxLength     : 'City should be less than 50 letters long!'
+      cardZipcode         :
+        label             : 'Zipcode'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^$|^[A-Za-z\d]+(?:[-|\s][A-Za-z\d]+)?$/
+            maxLength     : 10
+          messages        :
+            maxLength     : 'Zipcode should be less than 10 digits long!'
+            regExp        : 'Not a valid zipcode'
+      cardState           :
+        label             : 'State'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[A-Za-z]{2}$/
+            maxLength     : 2
+          messages        :
+            regExp        : 'State should be 2 letters! (eg: CA)'
+      cardCountry         :
+        label             : 'Country'
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : /^[A-Za-z]{2}$/
+            maxLength     : 2
+          messages        :
+            regExp        : 'Country should be 2 letters! (eg: US)'
+      cardHeader          :
+        itemClass         : KDHeaderView
+        title             : 'Credit card\'s'
+        cssClass          : 'section-header'
       cardNumber          :
-        placeholder       : 'Credit card number'
+        label             : 'Number'
         blur              : ->
           @oldValue = @getValue()
           @setValue @oldValue.replace /\s|-/g, ''
@@ -49,9 +104,8 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             maxLength     : 16
           messages        :
             maxLength     : 'Credit card number should be 12 to 16 digits long!'
-
       cardMonth           :
-        placeholder       : "MM"
+        label             : 'Month'
         maxLength         : 2
         validate          :
           notifications   : yes
@@ -60,22 +114,21 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             maxLength     : 2
           messages        :
             regExp        : "Expiration month should be 2 digits and between 01 to 12"
-        nextElementFlat   :
-          cardYear        :
-            placeholder   : "YY"
-            maxLength     : 2
-            validate      :
-              notifications: yes
-              event       : 'blur'
-              rules       :
-                regExp    : do ->
-                  twoDigitsYear = (new Date).getFullYear()%100
-                  yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
-                  return ///#{yearOptions}///
-              messages    :
-                regExp    : "Expiration year should be between #{twoDigitsYear = (new Date).getFullYear()%100} to #{twoDigitsYear+14}"
+      cardYear            :
+        label             : 'Year'
+        maxLength         : 2
+        validate          :
+          notifications   : yes
+          event           : 'blur'
+          rules           :
+            regExp        : do ->
+              twoDigitsYear = (new Date).getFullYear()%100
+              yearOptions   = [twoDigitsYear...twoDigitsYear+15].join '|'
+              return ///#{yearOptions}///
+          messages        :
+            regExp        : "Expiration year should be between #{twoDigitsYear = (new Date).getFullYear()%100} to #{twoDigitsYear+14}"
       cardCV              :
-        placeholder       : 'CVC'
+        label             : 'CVC'
         validate          :
           notifications   : yes
           event           : 'blur'
@@ -83,62 +136,16 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
             regExp        : /^[0-9]{3,4}$/
           messages        :
             regExp        : 'Card verification code (CVC) should be a 3 or 4-digit number!'
-      cardAddress1        :
-        placeholder       : 'Address'
-        validate          :
-          notifications   : yes
-          event           : 'blur'
-          rules           :
-            maxLength     : 50
-          messages        :
-            maxLength     : 'Address should be less than 50 characters long!'
-      cardCity            :
-        placeholder       : 'City'
-        validate          :
-          notifications   : yes
-          event           : 'blur'
-          rules           :
-            maxLength     : 50
-          messages        :
-            maxLength     : 'City should be less than 50 letters long!'
-        nextElementFlat   :
-          cardState       :
-            placeholder   : 'State'
-            validate      :
-              notifications : yes
-              event       : 'blur'
-              rules       :
-                regExp    : /^[A-Za-z]{2}$/
-                maxLength : 2
-              messages    :
-                regExp    : 'State should be 2 letters! (eg: CA)'
-      cardZipcode         :
-        placeholder       : 'Zipcode'
-        validate          :
-          notifications   : yes
-          event           : 'blur'
-          rules           :
-            regExp        : /^$|^[A-Za-z\d]+(?:[-|\s][A-Za-z\d]+)?$/
-            maxLength     : 10
-          messages        :
-            maxLength     : 'Zipcode should be less than 10 digits long!'
-            regExp        : 'Not a valid zipcode'
-      cardCountry         :
-        placeholder       : 'Country'
-        validate          :
-          notifications   : yes
-          event           : 'blur'
-          rules           :
-            regExp        : /^[A-Za-z]{2}$/
-            maxLength     : 2
-          messages        :
-            regExp        : 'Country should be 2 letters! (eg: US)'
+      captchaHeader       :
+        itemClass         : KDHeaderView
+        title             : 'Captcha'
+        cssClass          : 'section-header'
       captcha             :
         itemClass         : KDCustomHTMLView
         domId             : "recaptcha"
 
     super
-      cssClass              : KD.utils.curry 'payment-method-entry-form', options.cssClass
+      cssClass              : KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
       name                  : 'method'
       fields                : fields
       callback              : (formData) =>

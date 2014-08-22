@@ -123,11 +123,12 @@ class FormWorkflow extends KDView
 
   addLoader:->
     @addSubView @loader = new KDLoaderView
-      size          :
-        width       : 60
-        height      : 60
-      loaderOptions :
-        color       : "#1aaf5d"
+      loaderOptions         :
+        shape               : 'spiral'
+        color               : '#a4a4a4'
+      size                  :
+        width               : 40
+        height              : 40
 
   showLoader:-> @loader.show()
   hideLoader:-> @loader.hide()

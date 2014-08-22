@@ -3,7 +3,7 @@ class PaymentFormModal extends KDModalView
   constructor: (options = {}, data = {}) ->
 
     options.title    or= 'Billing information'
-    options.width    or= 779
+    options.width    or= 576
     options.height   or= 'auto'
     options.cssClass or= 'payments-modal'
     # options.theme      = 'resurrection'
