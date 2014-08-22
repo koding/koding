@@ -519,16 +519,14 @@ class ActivitySidebar extends KDCustomHTMLView
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
 
-  createBuyNewMachineModal: ->
-    modal = new BuyMachineModal
-    modal.once 'MachineCreated', (newMachine) =>
-      @fetchMachines (machines) =>
-        jMachines = []
-        tree      = @machineTree
-        jMachines.push machine.data for machine in machines
 
-        tree.removeAllNodes()
-        @listMachines jMachines
+  createBuyNewMachineModal: ->
+
+    modal = new BuyMachineModal
+
+    modal.once 'MachineCreated', (newMachine) =>
+      @updateMachineTree =>
+        tree = @machineTree
 
         for node, i in tree.indexedNodes
           if node.data?._id is newMachine._id
@@ -537,3 +535,15 @@ class ActivitySidebar extends KDCustomHTMLView
         if index
           tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
           KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
+
+
+  updateMachineTree: (callback = noop) ->
+
+    @fetchMachines (machines) =>
+      jMachines = []
+      tree      = @machineTree
+      jMachines.push machine.data for machine in machines
+
+      tree.removeAllNodes()
+      @listMachines jMachines
+      callback()
