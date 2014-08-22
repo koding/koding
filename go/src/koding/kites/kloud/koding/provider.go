@@ -21,7 +21,6 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
@@ -60,6 +59,9 @@ type Provider struct {
 
 	// Contains the users home directory to be added into a image
 	TemplateDir string
+
+	// DNS is used to create/update domain recors
+	DNS *DNS
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -258,34 +260,8 @@ hostname: %s`
 	}
 
 	/////// ROUTE 53 /////////////////
-
-	a.Log.Info("Creating Route53 instance")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: a.Creds.AccessKey,
-			SecretKey: a.Creds.SecretKey,
-		},
-
-		aws.Regions[DefaultRegion],
-	)
-
-	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
-	hostedZones, err := dns.ListHostedZones("", 100)
-	if err != nil {
+	if err := p.InitDNS(opts); err != nil {
 		return nil, err
-	}
-
-	var zoneId string
-	for _, hostedZone := range hostedZones.HostedZones {
-		if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
-			continue
-		}
-
-		zoneId = route53.CleanZoneID(hostedZone.ID)
-	}
-
-	if zoneId == "" {
-		return nil, fmt.Errorf("Hosted zone with the name '%s' doesn't exist", "koding.io")
 	}
 
 	change := &route53.ChangeResourceRecordSetsRequest{
@@ -304,7 +280,7 @@ hostname: %s`
 	}
 
 	a.Log.Info("Creating a new record with following data: %+v", change)
-	_, err = dns.ChangeResourceRecordSets(zoneId, change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
 	if err != nil {
 		return nil, err
 	}
@@ -356,33 +332,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	/////// ROUTE 53 /////////////////
 	username := opts.Builder["username"].(string)
 
-	a.Log.Info("Creating Route53 instance")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: a.Creds.AccessKey,
-			SecretKey: a.Creds.SecretKey,
-		},
-
-		aws.Regions[DefaultRegion],
-	)
-
-	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
-	hostedZones, err := dns.ListHostedZones("", 100)
-	if err != nil {
+	if err := p.InitDNS(opts); err != nil {
 		return nil, err
-	}
-
-	var zoneId string
-	for _, hostedZone := range hostedZones.HostedZones {
-		if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
-			continue
-		}
-
-		zoneId = route53.CleanZoneID(hostedZone.ID)
-	}
-
-	if zoneId == "" {
-		return nil, fmt.Errorf("Hosted zone with the name '%s' doesn't exist", "koding.io")
 	}
 
 	change := &route53.ChangeResourceRecordSetsRequest{
@@ -409,8 +360,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		},
 	}
 
-	a.Log.Info("Updating a new record with following data: %+v", change)
-	_, err = dns.ChangeResourceRecordSets(zoneId, change)
+	a.Log.Info("Creating a new record with following data: %+v", change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
 	if err != nil {
 		return nil, err
 	}
@@ -452,33 +403,8 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	/////// ROUTE 53 /////////////////
 	username := opts.Builder["username"].(string)
 
-	a.Log.Info("Creating Route53 instance")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: a.Creds.AccessKey,
-			SecretKey: a.Creds.SecretKey,
-		},
-
-		aws.Regions[DefaultRegion],
-	)
-
-	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
-	hostedZones, err := dns.ListHostedZones("", 100)
-	if err != nil {
+	if err := p.InitDNS(opts); err != nil {
 		return err
-	}
-
-	var zoneId string
-	for _, hostedZone := range hostedZones.HostedZones {
-		if !strings.Contains(hostedZone.Name, DefaultHostedZone) {
-			continue
-		}
-
-		zoneId = route53.CleanZoneID(hostedZone.ID)
-	}
-
-	if zoneId == "" {
-		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", "koding.io")
 	}
 
 	change := &route53.ChangeResourceRecordSetsRequest{
@@ -496,8 +422,9 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		},
 	}
 
-	a.Log.Info("Deleting record with following data: %+v", change)
-	_, err = dns.ChangeResourceRecordSets(zoneId, change)
+	a.Log.Info("Destroying user domain '%s' with following data: %+v",
+		username+"."+DefaultHostedZone, change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
 	if err != nil {
 		return err
 	}
