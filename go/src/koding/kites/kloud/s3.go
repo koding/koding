@@ -28,8 +28,6 @@ func (b *Bucket) LatestDeb() (string, error) {
 		return "", fmt.Errorf("No .deb binary available for %s", b.Folder)
 	}
 
-	fmt.Printf("l.Contents %+v\n", l.Contents)
-
 	for _, content := range l.Contents {
 		if strings.HasSuffix(content.Key, "deb") {
 			return content.Key, nil
