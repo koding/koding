@@ -122,6 +122,11 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 
 	m.CurrentData.IpAddress = machine.IpAddress
 
+	// this can be used by other providers if there is a need.
+	if _, ok := m.Builder["username"]; !ok {
+		m.Builder["username"] = username
+	}
+
 	return m, nil
 }
 

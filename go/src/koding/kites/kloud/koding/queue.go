@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/kloud/eventer"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 var (
 	CheckInterval   = time.Second * 10
-	FreeUserTimeout = time.Minute * 15
+	FreeUserTimeout = time.Minute * 30
 )
 
 func (p *Provider) RunChecker() {
@@ -31,6 +32,7 @@ func (p *Provider) RunChecker() {
 			// p.Log.Info("[%s] getting usage", machine.Id.Hex())
 
 			go func() {
+				// release the lock from mongodb after we are done
 				defer p.ResetAssignee(machine.Id.Hex())
 
 				m, err := p.Get(machine.Id.Hex(), "kloud")
@@ -38,7 +40,7 @@ func (p *Provider) RunChecker() {
 					p.Log.Error("[%s] couldn't fetch klient instance: %s", machine.Id.Hex(), err)
 					return
 				}
-				// release the lock from mongodb after we are done
+				m.Eventer = &eventer.Events{}
 
 				klient, err := p.Klient(machine.QueryString)
 				if err != nil {
@@ -56,7 +58,7 @@ func (p *Provider) RunChecker() {
 					machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
 
 				if usg.InactiveDuration >= FreeUserTimeout {
-					p.Log.Info("[%s] stopping machine %s", m.MachineId)
+					p.Log.Info("[%s] stopping machine", m.MachineId)
 
 					err := p.Stop(m)
 					if err != nil {

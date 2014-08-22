@@ -151,11 +151,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		// this can be used by other providers if there is a need.
-		if _, ok := machine.Builder["username"]; !ok {
-			machine.Builder["username"] = r.Username
-		}
-
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
