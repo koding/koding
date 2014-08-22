@@ -213,7 +213,7 @@ class IDEAppController extends AppController
         {state} = machine.status
         return unless machine
 
-        if state in [ 'Stopped', 'NotInitialized', 'Terminated' ]
+        if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           tabView      = @activeTabView
           terminalView = new KDCustomHTMLView partial: IDE.terminalSplashMarkup
           terminalPane = tabView.parent.createPane_ terminalView, { name: 'Terminal' }
