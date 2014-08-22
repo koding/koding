@@ -249,18 +249,20 @@ class IDEAppController extends AppController
       # TODO: DRY. Make the logic below more readable and clear.
       if machineItem
         {state} = machineItem.status
+        machineId = machineItem._id
 
         if state is 'Running'
           @mountMachine machineItem
-          machineId = machineItem._id
-          computeController.on "stop-#{machineId}", (event) ->
-            if event.status is 'Stopped'
-              @machineStateModal = new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
-          computeController.on "destroy-#{machineId}", (event) ->
-            if event.status is 'Terminated'
-              @machineStateModal = new IDE.MachineStateModal { state: 'Terminated', container }, machineItem
         else
           @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
+
+        computeController.on "stop-#{machineId}", (event) ->
+          if event.status is 'Stopped'
+            @machineStateModal = new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
+
+        computeController.on "destroy-#{machineId}", (event) ->
+          if event.status is 'Terminated'
+            @machineStateModal = new IDE.MachineStateModal { state: 'Terminated', container }, machineItem
       else
         @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
