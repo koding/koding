@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/protocol"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -28,14 +27,17 @@ func (p *Provider) RunChecker() {
 
 		iter := c.Find(runningMachines).Batch(50).Iter()
 		for iter.Next(&machine) {
-			fmt.Printf("machineid %+v\n", machine.Id)
+			// p.Log.Info("[%s] getting usage", machine.Id.Hex())
 
-			if out, err := p.sendPing(machine.QueryString); err != nil {
-				p.Log.Error("[%s] couldn't send ping to klient: %s", machine.Id.Hex(), err)
-			} else {
-				p.Log.Info("[%s] sent 'ping', received '%s'", machine.Id.Hex(), out)
+			klient, err := p.Klient(machine.QueryString)
+			if err != nil {
+				p.Log.Error("[%s] couldn't create klient instance: %s", machine.Id.Hex(), err)
+				continue
 			}
 
+			if err := klient.Usage(); err != nil {
+				p.Log.Error("[%s] couldn't get usage to klient: %s", machine.Id.Hex(), err)
+			}
 		}
 
 		return iter.Close()
@@ -46,27 +48,6 @@ func (p *Provider) RunChecker() {
 			p.Log.Error("Checker err: %v", err)
 		}
 	}
-}
-
-func (p *Provider) sendPing(queryString string) (string, error) {
-	query, _ := protocol.KiteFromString(queryString)
-
-	kites, err := p.Kite.GetKites(query.Query())
-	if err != nil {
-		return "", err
-	}
-
-	remoteKlient := kites[0]
-	if err := remoteKlient.Dial(); err != nil {
-		return "", err
-	}
-
-	resp, err := remoteKlient.Tell("kite.ping")
-	if err != nil {
-		return "", err
-	}
-
-	return resp.String()
 }
 
 func (p *Provider) Report(r *kite.Request) (interface{}, error) {

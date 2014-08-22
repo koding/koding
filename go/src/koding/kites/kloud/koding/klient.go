@@ -1,7 +1,8 @@
-package main
+package koding
 
 import (
 	"fmt"
+	"koding/kites/klient/usage"
 	"time"
 
 	"github.com/koding/kite"
@@ -16,7 +17,7 @@ type Klient struct {
 // Klient returns a new connected klient instance to the given queryString. The
 // klient is ready to use. It's connected and will redial if there is any
 // disconnections.
-func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
+func (p *Provider) Klient(queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -24,11 +25,11 @@ func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
 
 	timeout := time.After(time.Minute)
 
-	k.Log.Info("Querying for Klient: %s", queryString)
+	p.Log.Debug("Querying for Klient: %s", queryString)
 	for {
 		select {
 		case <-time.Tick(time.Second * 2):
-			kites, err := k.Kite.GetKites(query.Query())
+			kites, err := p.Kite.GetKites(query.Query())
 			if err != nil {
 				// still not up, try again until the kite is ready
 				continue
@@ -53,15 +54,38 @@ func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.
 // A nil error means a successfull pong result.
+func (k *Klient) Usage() error {
+	resp, err := k.client.Tell("klient.usage")
+	if err != nil {
+		return err
+	}
+
+	var usg usage.Usage
+	if err := resp.Unmarshal(&usg); err != nil {
+		return err
+	}
+
+	fmt.Printf("usage %+v\n", usg)
+
+	return nil
+}
+
+// Ping checks if the given klient response with "pong" to the "ping" we send.
+// A nil error means a successfull pong result.
 func (k *Klient) Ping() error {
 	resp, err := k.client.Tell("kite.ping")
 	if err != nil {
 		return err
 	}
 
-	if resp.MustString() == "pong" {
+	out, err := resp.String()
+	if err != nil {
+		return err
+	}
+
+	if out == "pong" {
 		return nil
 	}
 
-	return fmt.Errorf("wrong response %s", resp.MustString())
+	return fmt.Errorf("wrong response %s", out)
 }
