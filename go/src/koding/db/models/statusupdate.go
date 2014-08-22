@@ -15,7 +15,7 @@ type StatusUpdate struct {
 	Counts          Count                    `bson:"counts"`
 	Attachments     []map[string]interface{} `bson:"attachments"`
 	Link            map[string]interface{}   `bson:"link,omitempty"`
-	MigrationStatus string                   `bson:"migrationStatus,omitempty"`
+	Migration       string                   `bson:"migration,omitempty"`
 	SocialMessageId int64                    `bson:"socialMessageId,omitempty"`
 }
 

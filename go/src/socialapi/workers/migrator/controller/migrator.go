@@ -65,7 +65,7 @@ func (mwc *Controller) Start() {
 func (mwc *Controller) migrateAllPosts() {
 	mwc.log.Notice("Post migration started")
 	s := modelhelper.Selector{
-		"socialMessageId": modelhelper.Selector{"$exists": false},
+		"migration": modelhelper.Selector{"$exists": false},
 	}
 	kodingChannel, err := mwc.createGroupChannel("koding")
 	if err != nil {
@@ -81,7 +81,7 @@ func (mwc *Controller) migrateAllPosts() {
 		errCount++
 
 		s := modelhelper.Selector{"_id": su.Id}
-		o := modelhelper.Selector{"$set": modelhelper.Selector{"socialMessageId": -1, "error": err.Error()}}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationFailed, "error": err.Error()}}
 		if err := modelhelper.UpdateStatusUpdatePartial(s, o); err != nil {
 			mwc.log.Warning("Could not update status update document: %s", err)
 		}
@@ -97,6 +97,13 @@ func (mwc *Controller) migrateAllPosts() {
 			}
 
 			return err
+		}
+
+		if su.SocialMessageId > 0 {
+			s := modelhelper.Selector{"_id": su.Id}
+			o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationCompleted}}
+			modelhelper.UpdateStatusUpdatePartial(s, o)
+			return nil
 		}
 
 		// create channel message
@@ -392,6 +399,7 @@ func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) 
 
 func completePostMigration(su *mongomodels.StatusUpdate, cm *models.ChannelMessage) error {
 	su.SocialMessageId = cm.Id
+	su.Migration = MigrationCompleted
 
 	return modelhelper.UpdateStatusUpdate(su)
 }
