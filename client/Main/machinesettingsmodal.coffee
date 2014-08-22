@@ -141,7 +141,9 @@ class MachineSettingsModal extends KDModalViewWithForms
     advanced.addSubView new CustomLinkView
       title    : 'Open a Terminal for this machine'
       cssClass : 'open-terminal-link'
-      click    : -> new TerminalModal { machine }
+      click    : (event) ->
+        KD.utils.stopDOMEvent event
+        new TerminalModal { machine }
 
     label.on 'click', @bound 'toggleAdvancedSettings'
 
