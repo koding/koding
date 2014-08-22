@@ -133,6 +133,7 @@ func newKite(conf *Config) *kite.Kite {
 	db := modelhelper.Mongo
 
 	kodingProvider := &koding.Provider{
+		Kite:         k,
 		Log:          newLogger("koding", conf.DebugMode),
 		AssigneeName: id,
 		Session:      db,
@@ -143,6 +144,8 @@ func newKite(conf *Config) *kite.Kite {
 	if err := kodingProvider.CleanupOldData(); err != nil {
 		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
 	}
+
+	go kodingProvider.RunChecker()
 
 	klientFolder := "klient/development/latest"
 	if conf.ProdMode {

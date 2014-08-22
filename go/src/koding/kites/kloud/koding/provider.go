@@ -9,6 +9,7 @@ import (
 
 	"koding/db/mongodb"
 
+	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
@@ -39,6 +40,7 @@ const (
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
+	Kite         *kite.Kite
 	Session      *mongodb.MongoDB
 	AssigneeName string
 	Log          logging.Logger
