@@ -1,6 +1,8 @@
 -- Run this part in postgres database
 CREATE ROLE social;
 
+ALTER USER postgres WITH PASSWORD 'postgres';
+
 CREATE USER socialapplication PASSWORD 'socialapplication';
 
 GRANT social TO socialapplication;
