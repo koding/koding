@@ -623,3 +623,82 @@ h3.sidebar-title
   &:hover
     a
       color         sidebarGray
+
+
+// buy-machine-modal
+.buy-machine-modal
+  &.loading
+    .kdloader
+      margin          105px 0 0 90px
+
+  .kdbutton
+    padding           0 20px !important
+    rounded           4px !important
+    bg                color, #4EA04C !important
+    &:focus
+      vendor          box-shadow, none !important
+    &.create-machine
+      margin          20px 0 0 136px !important
+
+  .modal-arrow
+    position          relative
+    top               41px
+    left              -21px
+
+  .add-vm-box
+    size               220px, 227px
+    padding            25px 35px 0
+    color              #50595a
+    rounded            2px
+    borderBox()
+    fl()
+
+    &~.add-vm-box
+      margin-left      18px
+
+    &.passive
+      opacity          .3
+
+    &.selected
+      shadow           inset 0 0 0 3px rgba(17, 175, 94, .4)
+
+
+    h3
+      line-height      24px
+      display          block
+      border-bottom    1px solid #d7dcdf
+      font-size        16px
+      font-weight      500
+      padding          6px 0 12px
+
+      cite
+        display        inline-block
+        size           24px, 24px
+        line-height    24px
+        text-align     center
+        color          #fff
+        background     #646c6d
+        rounded        50%
+        font-size      12px
+        font-weight    200
+        margin         0 0 0 6px
+
+    ul
+      margin           20px 0 0
+      font-weight      200
+      line-height      34px
+      font-size        14px
+
+      strong
+        font-weight    500
+        font-size      16px
+
+  h5.coming-soon-title
+    display            block
+    abs                0px 0px 0 0
+    size               476px, 100%
+    text-align         center
+    line-height        227px
+    font-size          22px
+    color              rgba(80, 89, 90, 0.5)
+    font-weight        400
