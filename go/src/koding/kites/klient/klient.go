@@ -11,7 +11,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -56,7 +55,7 @@ func main() {
 	k.PreHandleFunc(usg.Counter)
 
 	// this provides us to get the current usage whenever we want
-	k.HandleFunc("klient.usage", usg.Current)
+	k.HandleFunc(usage.MethodName, usg.Current)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
@@ -106,19 +105,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-
-	go func() {
-		kloud, err := NewKloud(k)
-		if err != nil {
-			k.Log.Warning(err.Error())
-		}
-
-		for _ = range time.Tick(time.Second * 5) {
-			err := kloud.Report()
-			fmt.Printf("err %+v\n", err)
-		}
-
-	}()
 
 	k.Run()
 }
