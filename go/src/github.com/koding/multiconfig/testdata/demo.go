@@ -1,8 +1,10 @@
+// main package demonstrates the usage of the multiconfig package
 package main
 
 import "github.com/koding/multiconfig"
 
 type (
+	// Server holds supported types by the multiconfig package
 	Server struct {
 		Name     string
 		Port     int
@@ -11,7 +13,7 @@ type (
 		Postgres Postgres
 	}
 
-	// Postgres holds Postgresql database related configuration
+	// Postgres is here for embedded struct feature
 	Postgres struct {
 		Enabled           bool
 		Port              int
