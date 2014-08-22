@@ -30,7 +30,7 @@ class BuyMachineModal extends KDModalView
       @loader.destroy()
       @unsetClass 'loading'
 
-      instances.forEach (instance) => @createItem instance
+      instances.forEach @bound 'createItem'
       @createBuyButton()
 
 
