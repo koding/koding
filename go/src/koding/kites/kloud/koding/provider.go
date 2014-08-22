@@ -3,17 +3,14 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"koding/db/mongodb"
-	"koding/kites/klient/usage"
 	"strconv"
 	"strings"
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/db/mongodb"
+	"koding/kites/klient/usage"
+	"koding/kites/kloud/provisioner"
 
-	// "github.com/goamz/goamz/aws"
-	// "github.com/goamz/goamz/route53"
 	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
@@ -24,8 +21,8 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
-
-	"koding/kites/kloud/provisioner"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
