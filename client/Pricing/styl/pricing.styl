@@ -18,6 +18,7 @@ body.pricing
   max-width             100%
   padding               0
   font-family           openSansFamily
+  border-top            1px solid transparent
 
   //Commons
 
@@ -421,21 +422,6 @@ body.pricing
         &.always-on
           r-sprite       "pricing", "always-on-icon"
 
-
-
-  // .payment-workflow
-  //   min-height            600px
-
-  //   .kdview.kdloader
-  //     top                 160px
-  //     left                50%
-  //     margin              0 0 0 -20px
-  //     z-index             10
-  //     abs()
-
-  //   .kdbutton .kdloader
-  //     margin              0
-
   h3.pricing-title
     text-align          center
     display             block
@@ -752,6 +738,9 @@ body.pricing
     display           block
     vendor            transform, translateX(-50%) translateY(-50%)
 
+.content-area-pane.pricing
+  min-height          480px
+
 .pricing-breadcrumb
   size                100%, 480px
   background          #323232
@@ -792,6 +781,13 @@ body.pricing
 
 .pricing-breadcrumb:not(.hidden) ~ .payment-workflow
   border-top          1px solid transparent
+
+  > .kdloader
+    abs               400px 0 0 50%
+    vendor            transform, translateX(-50%)
+    width             auto
+    height            auto
+    z-index           20
 
   .kdbutton.solid // Move these to fw [BC]
     rounded           3px
@@ -916,11 +912,27 @@ body.pricing
         width            100%
         margin-bottom    16px
 
+  .pricing-payment-choice
+    background           #fff
+    width                auto
+    margin               250px auto 0
+    padding              36px
+    rounded              3px
+    max-width            520px
+    min-height           300px
+
+    .payment-method
+      cursor             pointer
+      padding-left       13px
+
+      &:hover
+        background       #f8f8f8
+
   .plan-upgrade-confirm-form
     background           #fff
     width                auto
     margin               250px auto 0
-    padding              36px 36px 36px 36px
+    padding              36px
     rounded              3px
     max-width            520px
 
@@ -1032,641 +1044,33 @@ body.pricing
       width              100%
 
 
-
-// /* Pricing sign-in - register */
-// section.pricing-sign-in
-//   kalc                padding-left, \(100% \- 1030px\)/2
-//   kalc                padding-right, \(100% \- 1030px\)/2
-//   margin-bottom       56px
-
-//   .form-wrapper
-//     width               720px
-//     margin              0 auto
-
-//   .pricing-title
-//     margin-bottom     54px !important
-
-//   .kdformview
-//     size              521px, 49px
-//     borderBox()
-//     fl()
-
-//     &~.kdformview
-//       width           418px
-
-//     >div
-//       overflow        visible
-//       fl()
-
-//       >div
-//         bg            color, #fff
-//         size          auto, auto
-//         margin        0
-//         rounded       6px
-//         margin-right  8px
-
-//     .kdinput
-//       width           200px
-
-//       &[name="email"]
-//         width         310px
-//         text-align    center
-
-//     .kdbutton
-//       size            98px, 42px
-//       line-height     42px
-//       font-size       14px
-//       margin          1px 0 0 2px
-//       rounded         6px
-//       background      #1aaf5d
-
-//       .button-title
-//         line-height   inherit
-//         font-size     inherit
-
-//     .formline
-//       margin          0
-//       padding         0
-
-//   .kdbutton
-//     size            98px, 42px
-//     line-height     42px
-//     font-size       14px
-//     margin          1px 0 0 2px
-//     rounded         6px
-//     background      #1aaf5d
-
-//     .button-title
-//       line-height   inherit
-//       font-size     inherit
-
-//   .divider
-//     size              91px, 44px
-//     line-height       44px
-//     text-align        center
-//     font-size         14px
-//     color             #666666
-//     fl()
-
-// /* Pricing - choose a payment method */
-// .pricing-payment-choice
-//   .billing-link
-//     pre:first-child
-//       font-size       26px
-//       text-align      center
-//       margin-left     0
-//       margin-bottom   20px
-
-//   .payment-methods
-//     max-width         810px
-//     margin            0 auto
-
-//   .payment-method
-//     size            384px, 251px
-//     rounded         12px
-//     background      #fff
-//     padding-top     91px
-//     margin          0 0 42px 42px
-//     cursor          pointer
-//     -webkit-transition -webkit-transform .1s ease \,
-//                               box-shadow .1s ease
-//     -moz-transition    -moz-transform .1s ease \,
-//                            box-shadow .1s ease
-//     borderBox()
-//     fl()
-
-//     &:hover
-//       vendor        transform, scale(1.02) translateY(-2px)
-//       shadow        0 2px 4px rgba(0, 0, 0, .2)
-
-//     &:nth-of-type(2n-1)
-//       margin-left   0
-
-//     &:not(.new):before
-//       content       ""
-//       abs           43px 0 0 0px
-//       size          100%, 48px
-//       background    #b4b4b4
-
-//     &:not(.new):after
-//       content       ""
-//       abs           49px 5px 0 0
-//       rounded       12px
-//       bg            color, #828282
-
-//     &.new
-//       color         #858585
-//       background    #f2f2f2
-//       font-size     17px
-//       font-weight   400
-//       text-align    center
-//       padding-top   138px
-//       position      relative
-
-//       &:after
-//         content     ""
-//         r-sprite    "pricing", "plus"
-//         display     block
-//         abs         96px 0 0 50%
-//         vendor      transform, translateX(-50%)
-
-//     &.american-express:after
-//       r-sprite      "pricing", "amex"
-
-//     &.cirrus:after
-//       r-sprite      "pricing", "cirrus"
-
-//     &.discover:after
-//       r-sprite      "pricing", "discover"
-
-//     &.mastercard:after
-//       r-sprite      "pricing", "mastercard"
-
-//     &.paypal:after
-//       r-sprite      "pricing", "paypal"
-
-//     &.visa:after
-//       r-sprite      "pricing", "visa"
-
-//     .billing-link
-//       margin        46px 0 0
-
-//     pre
-//       font-family   "Courier"
-//       font-size     16px
-//       font-weight   400
-//       margin        0 0 14px 40px
-
-// /* Pricing add payment method form */
-// .payment-method-entry-form
-//   size                538px, auto
-//   rounded             12px
-//   padding             28px
-//   bg                  color, #fff
-//   margin              50px auto
-//   borderBox()
-
-//   .input-wrapper
-//     margin-bottom     16px
-
-//   input.kdinput.text
-//   textarea.kdinput.text
-//     background        #fff
-//     color             #4c555f
-
-
-//   .formline
-//     clear             both
-
-//     &.card-name
-//       .input-wrapper
-//         size          231px, auto
-//         fl()
-//         &:nth-child(2)
-//           margin-left 20px
-
-//     &.cardcity
-//       fl()
-//       .input-wrapper
-//         size          231px, auto
-//         fl()
-//         &:nth-child(2)
-//           margin-left 20px
-
-//         .kdinput
-//           text-align  center
-
-//     &.cardnumber
-//       span.icon
-//         top             6px
-//         right           6px
-//         size            60px 38px
-//         z-index         1
-//         abs()
-//         &.visa
-//           r-sprite      pricing visa
-//         &.mastercard
-//           r-sprite      pricing mastercard
-//         &.discover
-//           r-sprite      pricing discover
-//         &.cirrus
-//           r-sprite      pricing cirrus
-//         &.amex
-//           r-sprite      pricing amex
-
-//     &.cardmonth
-//       fl()
-//       .input-wrapper
-//         size          63px, auto
-//         fl()
-//         &:nth-child(2)
-//           margin-left 20px
-
-//     &.cardcv
-//       clear           none
-//       fr()
-//       .input-wrapper
-//         size          63px, auto
-//         .kdinput
-//           text-align  center
-
-//     &.cardcity
-//       fl()
-//       .input-wrapper
-//         size          397px, auto
-//         fl()
-//         &:nth-child(2)
-//           margin-left 20px
-//           width       65px
-
-//         .kdinput
-//           text-align  left
-
-
-// /* Confirm payment */
-// .plan-upgrade-confirm-form
-//   .generic-plan-view
-//   .coupon-options
-//     size              auto, auto
-//     max-width         805px
-//     padding           22px 30px
-//     rounded           8px
-//     background        #fff
-//     margin            0 auto 2px
-//     color             #666
-//     borderBox()
-
-//   .generic-plan-view
-//     h4
-//       font-size       16px
-//       font-weight     400
-//       display         block
-
-//     div
-//       font-size       14px
-//       font-weight     200
-//       margin          4px 360px 0 0
-//       display         block
-//       line-height     17px
-
-//     .price
-//       abs             50% 31px 0 0
-//       vendor          transform, translateY(-50%)
-//       font-size       20px
-//       font-weight     500
-
-//     &.old-plan
-//       margin-bottom   28px
-//       background      #d7d7d7
-
-//   .mini-title
-//     display         block
-//     max-width       796px
-//     margin          16px auto
-//     font-size       15px
-//     color           #666
-//     font-weight     500
-
-//   .coupon-options
-//     .kdlabel.select-gift
-//       size            auto, auto
-//       clear           none
-//       font-size       16px
-//       font-weight     400
-//       fl()
-
-//     fieldset
-//       fr()
-
-//       .kd-radio-holder
-//         position        relative
-//         height          26px
-//         line-height     27px
-//         font-size       14px
-//         font-weight     200
-//         margin-left     44px
-//         fl()
-
-//         input[type=radio]
-//           visibility    hidden
-
-//         &:before
-//           content       ""
-//           display       block
-//           abs           0px 0 0 -16px
-//           size          26px, 26px
-//           border        1px solid #a7a7a7
-//           shadow        inset 0 0 0 4px #fff
-//           rounded       100%
-
-//         &.active:before
-//           background    #1aaf5d
-
-//   .total-wrapper
-//     size                auto, auto
-//     max-width           805px
-//     padding             0 8px
-//     margin              14px auto 0
-//     text-align          right
-//     font-size           16px
-//     color               #666
-//     font-weight         200
-//     line-height         36px
-//     borderBox()
-
-//     label
-//       color             #666
-//       margin-right      6px
-
-//     span
-//       display           inline-block
-//       min-width         70px
-
-//     .discount
-//       padding-right     12px
-
-//     .subtotal
-//       display           inline-block
-//       font-weight       400
-//       padding           0 12px 0 38px
-//       border-top        1px solid #c8c8c8
-
-//   .button-field
-//     size                auto, auto
-//     max-width           805px
-//     margin              14px auto 50px
-
-//     .kdbutton.light-gray
-//       fl()
-
-// .pricing-final
-//   padding               10px
-//   text-align            center
-
-//   .error-icon
-//     display             block
-//     margin              62px auto 0
-//     r-sprite            "pricing" "error"
-
-//   .check-icon
-//     display             block
-//     margin              62px auto 0
-//     r-sprite            "pricing" "check"
-
-
-//   h3.pricing-title
-//     margin-top          25px !important
-
-//   h6.pricing-subtitle
-//     margin-bottom       0 !important
-//     line-height         1.4
-//     a
-//       color             #F13A18
-
-//   .kdbutton.solid
-//     margin              40px 0 0
-
-// /* Pricing - Create group form */
-// .kdformview.pricing-create-group
-//   size              auto, auto
-//   max-width         550px
-//   padding           22px 30px
-//   rounded           8px
-//   background        #fff
-//   margin            44px auto 0
-//   color             #666
-//   border            1px solid #c7c7c7
-//   borderBox()
-
-//   .input-wrapper
-//     margin-bottom     16px
-
-//   .kdinput.text
-//     size              100%, 50px !important
-//     border            1px solid #bcbcbc
-//     background        #fff !important
-//     color             #4c555f !important
-//     font-size         14px !important
-//     min-width         0 !important
-//     borderBox()
-
-//   .kdlabel
-//     min-width         120px
-//     margin-top        0
-//     margin-right      22px
-//     line-height       50px
-//     color             #969696
-//     font-size         14px
-//     font-weight       400
-
-//   .formline
-//     &.slug
-//     &.visibility
-//       line-height     30px
-
-//       .kdlabel
-//         line-height   30px
-
-
-// /* Recaptcha */
-// #recaptcha
-//   .recaptchatable
-//     border            none !important
-//     tr
-//       height          auto
-
-//     td
-//       padding         0 !important
-//       margin          0 !important
-
-//     td.recaptcha_image_cell
-//     td.recaptcha_image_cell ~ td
-//       padding         0 20px 16px 0 !important
-
-//   .recaptcha_input_area
-//     padding           0 !important
-//     margin            0 !important
-
-//   #recaptcha_response_field
-//     background        #fff
-//     color             #4c555f
-//     height            auto
-//     line-height       22px
-//     border            1px solid #d7d7d7 !important
-//     rounded           6px
-//     padding           10px 14px
-//     color             #3E4F55
-//     font-size         16px
-//     font-weight       300
-//     outline           none
-//     borderBox()
-
-//     &::-webkit-input-placeholder
-//       color           #93979a
-//       font-weight     300
-//     &:-moz-placeholder
-//       color           #93979a
-//       font-weight     300
-
-//     &:hover
-//       border          1px solid #aaa !important
-
-//     &:focus
-//       border          1px solid rgba(125,190,241,1) !important
-//       shadow          0 0 3px rgba(125,190,241,.7)
-
-//       &::-webkit-input-placeholder
-//         opacity       0.5
-//       &:-moz-placeholder
-//         opacity       0.5
-
-//   a //Hope this will work :( [bc]
-//     color             #d7d7d7
-//     noTextDeco()
-//     font-size         12px
-
-// /* Create a new VM modal (Environments) */
-// .kdmodal.create-vm
-//   .kdmodal-content
-//     h2
-//       font-size       16px
-//       color           rgba(102, 102, 102, .5)
-
-//   .kdlistitemview-vm-product
-//     padding           14px 0 0
-//     margin            14px 0 0
-//     line-height       26px
-//     border-top        1px solid #eee
-//     color             #666
-//     borderBox()
-
-//     h3
-//       fl()
-
-//     .kdbutton
-//       fr()
-
-//   .plan-upgrade-confirm-form
-//     h3
-//       margin          14px 0 0
-//       font-size       16px
-//       font-weight     200
-//       color           rgba(102, 102, 102, .5)
-
-//     p
-//       font-size       14px
-//       color           #666
-
-//     .generic-plan-view
-//       margin          18px 0 0
-//       padding         18px
-//       background      #efefef
-
-//       .price
-//         right         18px
-
-//   .formline.button-field
-//     height            auto !important
-
-
-//   .kdbutton.buy-packs
-//     display           block
-//     margin            34px auto 0
-
-// /* Pricing Breadcrumb */
-// .pricing-breadcrumb
-//   size                100%, auto
-//   background          #2d3b3e
-//   color               #a4a5a7
-//   font-size           14px
-//   font-weight         400
-//   kalc                padding-left, \(100% \- 1096px\)\/2
-//   borderBox()
-
-//   ul
-//     fl()
-//     margin              40px 0
-
-//     li
-//       size              138px, 100px
-//       rounded           8px
-//       text-align        center
-//       line-height       144px
-//       position          relative
-//       opacity           .4
-//       fl()
-
-//       &:after
-//         content         ""
-//         display         block
-//         size            14px, 14px
-//         background      #888
-//         rounded         50%
-//         abs             25px 0 0 62px
-
-//       &.active
-//         color           #dddee3
-//         background      #232e30
-//         opacity         1
-
-//         &:after
-//           background    #07b65b
-
-//         &~li
-//           opacity       1
-
-//           &:after
-//             background  #1e282a
-//             opacity     1
-
-//     &.logged-in
-//       li.login
-//         display       none
-
-//   &.team
-//     .details
-//       display         block !important
-//       visibility      visible !important
-
-//   section
-//     size              142px, auto
-//     abs               50% 0 0
-//     kalc              right, \(100% \- 1096px\)\/2
-//     vendor            transform, translateY(-50%)
-//     padding           0 0 0 22px
-//     border-left       2px solid #404e51
-//     color             #dddee3
-//     font-size         14px
-//     line-height       17px
-//     fr()
-
-//     &:before
-//       content         ""
-//       abs             50% 188px 0 0
-//       vendor          transform, translateY(-50%)
-//       r-sprite        "pricing", "shopping-bag"
-
-//     h4
-//       font-size       inherit
-//       color           #00b757
-//       margin          0 0 6px
-
-//     span
-//       display         block
-
-//     .products
-//       font-size       12px
-//       opacity         .9
-
-//     .price
-//       font-size       12px
-//       color           #a4a5a7
-
-//     .checkout-button
-//       display         inline-block
-//       margin          6px 0 0 !important
-//       rounded         4px !important
-
+.pricing-final
+  border-top          1px solid transparent
+  background          #fff
+  width               auto
+  margin              250px auto 0
+  padding             36px
+  rounded             3px
+  max-width           330px
+  min-height          300px
+  z-index             20
+  text-align          center
+
+  .check-icon
+    display           block
+    size              48px, 48px
+    rounded           50%
+    border            1px solid #61c17f
+    margin            0 auto 24px
+
+    &:after
+      content         ''
+      display         block
+      r-sprite        "pricing" "check"
+      margin          11px 0 0 4px
+
+  .kdbutton.solid.medium
+    margin-top        24px
 
 @media only screen and (min-width : 320px) and (max-width : 568px)
   .content-page.pricing

@@ -41,7 +41,7 @@ class AccountCredentialListController extends AccountListViewController
           @showAddCredentialFormFor provider
 
     view.parent.prepend addButton = new KDButtonView
-      cssClass  : 'account-add-big-btn'
+      cssClass  : 'add-big-btn'
       title     : 'Add new credential'
       icon      : yes
       callback  : =>
