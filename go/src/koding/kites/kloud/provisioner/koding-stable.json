@@ -7,10 +7,10 @@
     "builders": [
         {
             "access_key": "{{user `aws_access_key`}}",
-            "ami_name": "koding-latest {{timestamp}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
             "instance_type": "m3.medium",
             "region": "us-east-1",
-            "secret_key": "{{user `aws_secret_key`}}",
             "source_ami": "ami-864d84ee",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs"

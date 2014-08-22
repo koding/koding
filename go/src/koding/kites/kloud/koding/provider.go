@@ -25,9 +25,7 @@ import (
 )
 
 var (
-	// DefaultAMI = "ami-80778be8" // Ubuntu 14.0.4 EBS backed, amd64,  PV
-	DefaultBaseAMI      = "ami-864d84ee"  // Ubuntu 14.04 EBS backed, amd64, HVM
-	DefaultCustomAMI    = "koding-stable" // Our own AMI based on default
+	DefaultCustomAMI    = "koding-stable" // Our own AMI, create via packer
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
 	DefaultHostedZone   = "koding.io"
