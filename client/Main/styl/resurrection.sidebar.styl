@@ -126,10 +126,13 @@ sidebarSelectedBg = #15171A
   padding             1px 16px
   borderBox()
 
-  li + ul.kdlistview-main-nav.expanded
+  li.selected + ul.kdlistview-main-nav.expanded
     bg                color sidebarSelectedBg
     padding-bottom    8px
     rounded           0 0 4px 4px
+
+  li + ul.kdlistview-main-nav.expanded
+    padding-bottom    8px
 
   li.kdlistitemview-main-nav
     z-index           1
@@ -156,7 +159,7 @@ sidebarSelectedBg = #15171A
         abs           8px 0 0 8px
         borderBox()
 
-    &.expanded.has-sub-items
+    &.expanded.selected.has-sub-items
       bg              color sidebarSelectedBg
       rounded         4px 4px 0 0
       cite

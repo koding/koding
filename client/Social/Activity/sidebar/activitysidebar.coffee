@@ -433,15 +433,16 @@ class ActivitySidebar extends KDCustomHTMLView
       if status.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
-      else
-        return
-
+      else return
 
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
       @handleMachineToggle machineItem, event
 
     else if machineItem.type in ['app', 'workspace']
+
+      @machineTree.deselectNode machineItem
+      @machineTree.selectNode @machineTree.nodes[machineItem.getData().parentId]
 
       return
 
