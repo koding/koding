@@ -52,22 +52,19 @@ func (p *Provider) Klient(queryString string) (*Klient, error) {
 
 }
 
-// Ping checks if the given klient response with "pong" to the "ping" we send.
-// A nil error means a successfull pong result.
-func (k *Klient) Usage() error {
-	resp, err := k.client.Tell("klient.usage")
+// Usage calls the usage method of remote and get's the result back
+func (k *Klient) Usage() (*usage.Usage, error) {
+	resp, err := k.client.Tell(usage.MethodName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	var usg usage.Usage
+	var usg *usage.Usage
 	if err := resp.Unmarshal(&usg); err != nil {
-		return err
+		return nil, err
 	}
 
-	fmt.Printf("usage %+v\n", usg)
-
-	return nil
+	return usg, nil
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.

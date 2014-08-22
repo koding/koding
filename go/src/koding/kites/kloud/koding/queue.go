@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	CheckInterval = time.Second * 30
+	CheckInterval   = time.Second * 10
+	FreeUserTimeout = time.Minute * 15
 )
 
 func (p *Provider) RunChecker() {
@@ -29,15 +30,41 @@ func (p *Provider) RunChecker() {
 		for iter.Next(&machine) {
 			// p.Log.Info("[%s] getting usage", machine.Id.Hex())
 
-			klient, err := p.Klient(machine.QueryString)
-			if err != nil {
-				p.Log.Error("[%s] couldn't create klient instance: %s", machine.Id.Hex(), err)
-				continue
-			}
+			go func() {
+				defer p.ResetAssignee(machine.Id.Hex())
 
-			if err := klient.Usage(); err != nil {
-				p.Log.Error("[%s] couldn't get usage to klient: %s", machine.Id.Hex(), err)
-			}
+				m, err := p.Get(machine.Id.Hex(), "kloud")
+				if err != nil {
+					p.Log.Error("[%s] couldn't fetch klient instance: %s", machine.Id.Hex(), err)
+					return
+				}
+				// release the lock from mongodb after we are done
+
+				klient, err := p.Klient(machine.QueryString)
+				if err != nil {
+					p.Log.Error("[%s] couldn't create klient instance: %s", machine.Id.Hex(), err)
+					return
+				}
+
+				usg, err := klient.Usage()
+				if err != nil {
+					p.Log.Error("[%s] couldn't get usage to klient: %s", machine.Id.Hex(), err)
+					return
+				}
+
+				p.Log.Info("[%s] remote machine with ip %s' is inactive for: %s",
+					machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
+
+				if usg.InactiveDuration >= FreeUserTimeout {
+					p.Log.Info("[%s] stopping machine %s", m.MachineId)
+
+					err := p.Stop(m)
+					if err != nil {
+						p.Log.Info("[%s] couldn't stop machine %s", m.MachineId)
+					}
+				}
+			}()
+
 		}
 
 		return iter.Close()

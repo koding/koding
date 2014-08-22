@@ -98,9 +98,12 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
-	// check for user permissions
-	if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
-		return nil, err
+	// do not check for kloud or if test mode is enabled
+	if username != "kloud" {
+		// check for user permissions
+		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
+			return nil, err
+		}
 	}
 
 	credential := &Credential{}
