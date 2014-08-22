@@ -4,6 +4,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -93,6 +94,7 @@ func TestAccountFetchAccountById(t *testing.T) {
 		})
 
 		Convey("it should have error if record is not found", func() {
+			// init account
 			a := NewAccount()
 			a.OldId = "oldIdOfAccount"
 			a.Nick = "WhatANick"
@@ -100,6 +102,40 @@ func TestAccountFetchAccountById(t *testing.T) {
 			// this account id is not exist
 			_, err := FetchAccountById(12345)
 			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+
+		})
+
+	})
+}
+
+func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching Old Ids by account ids", t, func() {
+		Convey("it should have account id more than zero", func() {
+			acc := []int64{}
+			foi, err := FetchOldIdsByAccountIds(acc)
+			So(err, ShouldBeNil)
+			So(foi, ShouldBeEmpty)
+		})
+
+		Convey("it should not have error if account is exist in db", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+			// we created slice to send to FetchOldIdsByAccountIds as argument
+			idd := []int64{acc.Id}
+
+			// FetchOldIdsByAccountIds returns as slice
+			foi, err := FetchOldIdsByAccountIds(idd)
+			So(err, ShouldBeNil)
+			// used shouldcontain because foi is a slice
+			So(foi, ShouldContain, acc.OldId)
 
 		})
 
