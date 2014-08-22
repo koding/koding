@@ -96,11 +96,12 @@ func TestAccountFetchAccountById(t *testing.T) {
 		Convey("it should have error if record is not found", func() {
 			// init account
 			a := NewAccount()
+			a.Id = 12345
 			a.OldId = "oldIdOfAccount"
 			a.Nick = "WhatANick"
 
 			// this account id is not exist
-			_, err := FetchAccountById(12345)
+			_, err := FetchAccountById(a.Id)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 
@@ -136,6 +137,28 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 			So(err, ShouldBeNil)
 			// used shouldcontain because foi is a slice
 			So(foi, ShouldContain, acc.OldId)
+
+		})
+
+		Convey("it should append successfully", func() {
+			acc1 := NewAccount()
+			acc1.Id = 1
+			acc1.OldId = "11"
+			acc1.Nick = "acc1"
+			So(acc1.Create(), ShouldBeNil)
+
+			acc2 := NewAccount()
+			acc2.Id = 2
+			acc2.OldId = "22"
+			acc2.Nick = "acc2"
+			So(acc2.Create(), ShouldBeNil)
+
+			idd := []int64{acc1.Id, acc2.Id}
+			old := []string{acc1.OldId, acc2.OldId}
+
+			foi, err := FetchOldIdsByAccountIds(idd)
+			So(err, ShouldBeNil)
+			So(foi[1], ShouldEqual, old[1])
 
 		})
 

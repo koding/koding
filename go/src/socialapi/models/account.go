@@ -237,6 +237,9 @@ func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 	return channelIds, nil
 }
 
+// FetchAccountById gives all information about account by id of account
+//
+// Tests are done.
 func FetchAccountById(accountId int64) (*Account, error) {
 	a := NewAccount()
 	if err := a.ById(accountId); err != nil {
@@ -262,6 +265,7 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	for _, account := range accounts {
+		// The append built-in function appends elements to the end of a slice
 		oldIds = append(oldIds, account.OldId)
 	}
 
