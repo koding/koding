@@ -85,7 +85,7 @@ deploy:
           git config --global user.email "wercker@koding.com"
           git config --global user.name "wercker-build-box"
           git fetch --tags
-          ./deploy --deploy --config=sandbox
+          ./deploy --deploy --config=$CONFIG
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
