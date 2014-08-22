@@ -251,7 +251,7 @@ hostname: %s`
 	}
 
 	// Add user specific tag to make it easier  simplfying easier
-	a.Log.Info("Adding user tag '%s' to the instance '%s'", username, artifact.InstanceId)
+	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, artifact.InstanceId)
 	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
@@ -261,13 +261,15 @@ hostname: %s`
 		return nil, err
 	}
 
+	domainName := username + "." + DefaultHostedZone
+
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Create user domain for " + username,
 		Changes: []route53.Change{
 			route53.Change{
 				Action: "CREATE",
 				Record: route53.ResourceRecordSet{
-					Name:    username + "." + DefaultHostedZone,
+					Name:    domainName,
 					Type:    "A",
 					TTL:     300,
 					Records: []string{artifact.IpAddress},
@@ -279,6 +281,11 @@ hostname: %s`
 	a.Log.Info("Creating a new record with following data: %+v", change)
 	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
 	if err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
 
