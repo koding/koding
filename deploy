@@ -123,28 +123,28 @@ if argv.deploy
                                         service_mode : cf_service_mode
                                     ,(err,res)->
 
-                                        log "testing instance..."
+                                        # log "testing instance..."
                                         _IP = "koding:1q2w3e4r@#{IP}"
                                         _fulldomain = "koding:1q2w3e4r@#{fulldomain}"
 
-                                        _ti = 0
-                                        _t = setInterval ->
-                                            Deploy.deployTest tests(_IP,_fulldomain),(err,res)->
-                                                if res._allpassed
-                                                    clearInterval _t
-                                                    log res
-                                                    log "------------------------------------------------------------------"
-                                                    log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
-                                                    log "------------------------------------------------------------------"
-                                                    log "URL: #{PublicDnsName} "
-                                                    log "------------------------------------------------------------------"
-                                                    log "URL: #{subdomain}.#{domain}         IP: #{IP}"
-                                                    log "------------------------------------------------------------------"
-                                                else
-                                                    _ti++
-                                                    log "building #{fulldomain}: #{_ti*5} secs elapsed..."
+                                        # _ti = 0
+                                        # _t = setInterval ->
+                                        #     Deploy.deployTest tests(_IP,_fulldomain),(err,res)->
+                                        #         if res._allpassed
+                                        #             clearInterval _t
+                                        log res
+                                        log "------------------------------------------------------------------"
+                                        log "Deployment complete, give it 5 minutes... (depends on the boxtype)"
+                                        log "------------------------------------------------------------------"
+                                        log "URL: #{PublicDnsName} "
+                                        log "------------------------------------------------------------------"
+                                        log "URL: #{subdomain}.#{domain}         IP: #{IP}"
+                                        log "------------------------------------------------------------------"
+                                        #         else
+                                        #             _ti++
+                                        #             log "building #{fulldomain}: #{_ti*5} secs elapsed..."
 
-                                        ,5000
+                                        # ,5000
                                         # log arguments
 
 
