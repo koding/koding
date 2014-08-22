@@ -1,3 +1,5 @@
+// This package is not used anymore, however it's just for here because it's
+// contains examples for how to integrate packer into a Go application
 package provisioner
 
 import (
