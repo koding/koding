@@ -51,6 +51,7 @@ var DescribeLoadBalancersExample = `
                 <Protocol>HTTP</Protocol>
                 <LoadBalancerPort>80</LoadBalancerPort>
                 <InstanceProtocol>HTTP</InstanceProtocol>
+                <SSLCertificateId>needToAddASSLCertToYourAWSAccount</SSLCertificateId>
                 <InstancePort>80</InstancePort>
               </Listener>
             </member>
@@ -118,6 +119,23 @@ var DeregisterInstancesFromLoadBalancerExample = `
 </ResponseMetadata>
 </DeregisterInstancesFromLoadBalancerResponse>
 `
+
+// http://docs.aws.amazon.com/ElasticLoadBalancing/latest/APIReference/API_ConfigureHealthCheck.html
+var ConfigureHealthCheckExample = `
+<ConfigureHealthCheckResponse xmlns="http://elasticloadbalancing.amazonaws.com/doc/2012-06-01/">
+<ConfigureHealthCheckResult>
+    <HealthCheck>
+      <Interval>30</Interval>
+      <Target>HTTP:80/ping</Target>
+      <HealthyThreshold>2</HealthyThreshold>
+      <Timeout>3</Timeout>
+      <UnhealthyThreshold>2</UnhealthyThreshold>
+    </HealthCheck>
+</ConfigureHealthCheckResult>
+<ResponseMetadata>
+    <RequestId>83c88b9d-12b7-11e3-8b82-87b12EXAMPLE</RequestId>
+</ResponseMetadata>
+</ConfigureHealthCheckResponse>`
 
 // http://goo.gl/cGNxfj
 var DescribeInstanceHealthExample = `

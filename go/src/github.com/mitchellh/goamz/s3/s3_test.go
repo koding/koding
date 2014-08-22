@@ -115,6 +115,21 @@ func (s *S) TestGet(c *C) {
 	c.Assert(string(data), Equals, "content")
 }
 
+func (s *S) TestHead(c *C) {
+	testServer.Response(200, nil, "")
+	b := s.s3.Bucket("bucket")
+	resp, err := b.Head("name")
+	req := testServer.WaitRequest()
+	c.Assert(req.Method, Equals, "HEAD")
+	c.Assert(req.URL.Path, Equals, "/bucket/name")
+	c.Assert(req.Header["Date"], Not(Equals), "")
+
+	c.Assert(err, IsNil)
+	body, err := ioutil.ReadAll(resp.Body)
+	c.Assert(err, IsNil)
+	c.Assert(len(body), Equals, 0)
+}
+
 func (s *S) TestURL(c *C) {
 	testServer.Response(200, nil, "content")
 
@@ -257,6 +272,42 @@ func (s *S) TestPutReaderHeader(c *C) {
 	c.Assert(req.Header["X-Amz-Acl"], DeepEquals, []string{"private"})
 }
 
+func (s *S) TestCopy(c *C) {
+	testServer.Response(200, nil, "")
+
+	b := s.s3.Bucket("bucket")
+	err := b.Copy(
+		"old/file",
+		"new/file",
+		s3.Private,
+	)
+	c.Assert(err, IsNil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Method, Equals, "PUT")
+	c.Assert(req.URL.Path, Equals, "/bucket/new/file")
+	c.Assert(req.Header["X-Amz-Copy-Source"], DeepEquals, []string{"/bucket/old/file"})
+	c.Assert(req.Header["X-Amz-Acl"], DeepEquals, []string{"private"})
+}
+
+func (s *S) TestPlusInURL(c *C) {
+	testServer.Response(200, nil, "")
+
+	b := s.s3.Bucket("bucket")
+	err := b.Copy(
+		"dir/old+f?le",
+		"dir/new+f?le",
+		s3.Private,
+	)
+	c.Assert(err, IsNil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Method, Equals, "PUT")
+	c.Assert(req.RequestURI, Equals, "/bucket/dir/new%2Bf%3Fle")
+	c.Assert(req.Header["X-Amz-Copy-Source"], DeepEquals, []string{"/bucket/dir/old%2Bf%3Fle"})
+	c.Assert(req.Header["X-Amz-Acl"], DeepEquals, []string{"private"})
+}
+
 // DelObject docs: http://goo.gl/APeTt
 
 func (s *S) TestDelObject(c *C) {
@@ -375,4 +426,10 @@ func (s *S) TestGetKey(c *C) {
 	c.Assert(key.LastModified, Equals, GetKeyHeaderDump["Last-Modified"])
 	c.Assert(key.Size, Equals, int64(434234))
 	c.Assert(key.ETag, Equals, GetKeyHeaderDump["ETag"])
+}
+
+func (s *S) TestUnescapedColon(c *C) {
+	b := s.s3.Bucket("bucket")
+	u := b.URL("foo:bar")
+	c.Assert(u, Equals, "http://localhost:4444/bucket/foo:bar")
 }

@@ -72,6 +72,12 @@ type Machine struct {
 	// afterwards from the eventer hub.
 	Eventer eventer.Eventer
 
+	// CurrentData contains machines current data. This is needed sometimes to
+	// update old records, etcc.
+	CurrentData struct {
+		IpAddress string
+	}
+
 	// State defines the machines current state
 	State machinestate.State
 }
