@@ -184,8 +184,8 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have creator id as account id", func() {
 			// create account
-			acc := NewAccount()
-			acc.Id = 1111
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
@@ -195,17 +195,20 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 		Convey("it should have channel name as required", func() {
 			// create account
 			acc := NewAccount()
-			acc.Id = 1111
+			acc.Id = 1
+			acc.OldId = "11"
+			acc.Nick = "acc1"
+			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
-			So(cff.Name, ShouldEqual, "1111-FollowingFeedChannel")
+			So(cff.Name, ShouldEqual, "1-FollowingFeedChannel")
 		})
 
 		Convey("it should have group name as Channel_KODING_NAME", func() {
 			// create account
-			acc := NewAccount()
-			acc.Id = 1111
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
@@ -214,8 +217,8 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have purpose as Following Feed for me", func() {
 			// create account
-			acc := NewAccount()
-			acc.Id = 1111
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
@@ -224,8 +227,8 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have type constant as Channel_TYPE_FOLLOWERS", func() {
 			// create account
-			acc := NewAccount()
-			acc.Id = 1111
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
