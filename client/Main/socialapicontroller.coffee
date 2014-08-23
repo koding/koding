@@ -12,7 +12,7 @@ class SocialApiController extends KDController
     return [] unless KD.socialApiData
 
     data = if dataPath is 'navigated'
-    then KD.socialApiData[dataPath].messageList
+    then KD.socialApiData[dataPath].data.messageList
     else KD.socialApiData[dataPath]
 
     return [] unless data
@@ -65,11 +65,6 @@ class SocialApiController extends KDController
         actorsCount   : 0
         actorsPreview : []
         isInteracted  : no
-
-    m.meta      =
-      createdAt : new Date createdAt
-      deletedAt : new Date deletedAt
-      updatedAt : new Date updatedAt
 
     if payload
       m.link       =

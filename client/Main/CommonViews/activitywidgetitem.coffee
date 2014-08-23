@@ -11,7 +11,7 @@ class ActivityWidgetItem extends JView
       delegate : @commentBox.commentList
     , data
 
-    @timeAgo = new KDTimeAgoView null, data.meta.createdAt
+    @timeAgo = new KDTimeAgoView null, data.createdAt
 
   createAuthor: ->
     {avatarWidth, avatarHeight} = @getOptions()

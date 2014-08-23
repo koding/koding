@@ -37,7 +37,7 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
-	buildMessageQuery := query
+	buildMessageQuery := query.Clone()
 
 	accountId, err := request.GetURIInt64(u, "id")
 	if err != nil {

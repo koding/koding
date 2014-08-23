@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/request"
 	"strings"
@@ -107,9 +106,7 @@ func (a *Account) Unfollow(targetId int64) (*Account, error) {
 func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 	followerIds := make([]int64, 0)
 	if a.Id == 0 {
-		return nil, errors.New(
-			"account id is not set for FetchFollowerChannelIds function ",
-		)
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
@@ -127,7 +124,7 @@ func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("account id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c := NewChannel()
@@ -197,7 +194,7 @@ func (a *Account) UnMarkAsTroll() error {
 
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("account id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c := NewChannel()
@@ -249,6 +246,9 @@ func FetchAccountById(accountId int64) (*Account, error) {
 	return a, nil
 }
 
+// FetchOldIdsByAccountIds takes slice as parameter
+//
+// Tests are done
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	oldIds := make([]string, 0)
 

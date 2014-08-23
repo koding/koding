@@ -116,7 +116,7 @@ class CommentView extends KDView
 
     {appManager} = KD.singletons
     activity     = @getData()
-    from         = activity.replies[0].meta.createdAt.toISOString()
+    from         = activity.replies.first.createdAt
     limit        = 10
 
     appManager.tell 'Activity', 'listReplies', {activity, from, limit}, (err, replies) =>

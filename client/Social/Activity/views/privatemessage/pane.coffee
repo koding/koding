@@ -134,7 +134,7 @@ class PrivateMessagePane extends MessagePane
     first         = @listController.getItemsOrdered().first
     return  unless first
 
-    from         = first.getData().meta.createdAt.toISOString()
+    from         = first.getData().createdAt
 
     @fetch {from, limit: 10}, (err, items = []) =>
       @listController.hideLazyLoader()

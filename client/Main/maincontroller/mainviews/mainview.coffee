@@ -19,17 +19,13 @@ class MainView extends KDView
     @bindTransitionEnd()
     @createHeader()
 
-    if KD.isLoggedInOnLoad
-    then @createSidebar()
-    else mainController.once 'accountChanged.to.loggedIn', @bound 'createSidebar'
+    if KD.isLoggedInOnLoad then @createSidebar()
 
     @createPanelWrapper()
     @createMainTabView()
 
     mainController.ready =>
-      if KD.isLoggedInOnLoad
-      then @createAccountArea()
-      else mainController.once 'accountChanged.to.loggedIn', @bound 'createAccountArea'
+      if KD.isLoggedInOnLoad then @createAccountArea()
 
       @setStickyNotification()
       @emit 'ready'

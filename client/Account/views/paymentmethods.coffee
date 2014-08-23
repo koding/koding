@@ -50,7 +50,7 @@ class AccountPaymentMethodsListController extends AccountListViewController
 
       @addButton?.destroy()
       @getListView().prepend @addButton = new KDButtonView
-        cssClass  : 'account-add-big-btn'
+        cssClass  : 'add-big-btn'
         title     : 'Add new payment method'
         icon      : yes
         callback  : => @showModal()

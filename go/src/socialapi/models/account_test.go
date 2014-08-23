@@ -164,3 +164,23 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 
 	})
 }
+
+func TestAccountCreateFollowingFeedChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while creating feed channel", t, func() {
+		Convey("it should have account id", func() {
+			// create account
+			acc := NewAccount()
+
+			_, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
+	})
+}
