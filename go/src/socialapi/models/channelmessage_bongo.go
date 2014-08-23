@@ -18,6 +18,7 @@ func (c *ChannelMessage) BeforeCreate() error {
 
 func (c *ChannelMessage) BeforeUpdate() error {
 	c.DeletedAt = ZeroDate()
+	c.UpdatedAt = time.Now().UTC()
 
 	return c.MarkIfExempt()
 }
