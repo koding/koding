@@ -95,6 +95,16 @@ func (r *Route53) query(method, path string, req, resp interface{}) error {
 		if err := enc.EncodeElement(req, start); err != nil {
 			return err
 		}
+
+		// This is really a sadness, but can't think of a better way to
+		// do this for now in Go's constructs.
+		replace := "<ResourceRecords><ResourceRecord></ResourceRecord></ResourceRecords>"
+		if strings.Contains(bodyBuf.String(), replace) {
+			var newBuf bytes.Buffer
+			newBuf.WriteString(strings.Replace(bodyBuf.String(), replace, "", -1))
+			bodyBuf = &newBuf
+		}
+
 		body = bodyBuf
 	}
 
@@ -259,10 +269,29 @@ type ChangeResourceRecordSetsResponse struct {
 
 func (r *Route53) ChangeResourceRecordSets(zone string,
 	req *ChangeResourceRecordSetsRequest) (*ChangeResourceRecordSetsResponse, error) {
+	// This is really sad, but we have to format this differently
+	// for Route53 to make them happy.
+	reqCopy := *req
+	for i, change := range reqCopy.Changes {
+		if len(change.Record.Records) > 1 {
+			var buf bytes.Buffer
+			for _, r := range change.Record.Records {
+				buf.WriteString(fmt.Sprintf(
+					"<ResourceRecord><Value>%s</Value></ResourceRecord>",
+					r))
+			}
+
+			change.Record.Records = nil
+			change.Record.RecordsXML = fmt.Sprintf(
+				"<ResourceRecords>%s</ResourceRecords>", buf.String())
+			reqCopy.Changes[i] = change
+		}
+	}
+
 	zone = CleanZoneID(zone)
 	out := &ChangeResourceRecordSetsResponse{}
 	if err := r.query("POST", fmt.Sprintf("/%s/hostedzone/%s/rrset", APIVersion,
-		zone), req, out); err != nil {
+		zone), reqCopy, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -288,13 +317,15 @@ type ResourceRecordSet struct {
 	Name          string       `xml:"Name"`
 	Type          string       `xml:"Type"`
 	TTL           int          `xml:"TTL"`
-	Records       []string     `xml:"ResourceRecords>ResourceRecord>Value"`
+	Records       []string     `xml:"ResourceRecords>ResourceRecord>Value,omitempty"`
 	SetIdentifier string       `xml:"SetIdentifier,omitempty"`
 	Weight        int          `xml:"Weight,omitempty"`
 	HealthCheckId string       `xml:"HealthCheckId,omitempty"`
 	Region        string       `xml:"Region,omitempty"`
 	Failover      string       `xml:"Failover,omitempty"`
 	AliasTarget   *AliasTarget `xml:"AliasTarget,omitempty"`
+
+	RecordsXML string `xml:",innerxml"`
 }
 
 func (r *Route53) ListResourceRecordSets(zone string, lopts *ListOpts) (*ListResourceRecordSetsResponse, error) {
