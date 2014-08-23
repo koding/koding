@@ -109,14 +109,13 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
-		MachineId:  id,
-		Provider:   machine.Provider,
-		Builder:    machine.Meta,
-		Credential: credential.Meta,
-		State:      machine.State(),
+		MachineId:   id,
+		Provider:    machine.Provider,
+		Builder:     machine.Meta,
+		Credential:  credential.Meta,
+		State:       machine.State(),
+		CurrentData: machine,
 	}
-
-	m.CurrentData.IpAddress = machine.IpAddress
 
 	// this can be used by other providers if there is a need.
 	if _, ok := m.Builder["username"]; !ok {

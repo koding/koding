@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dchest/validator"
 	"github.com/koding/kloud/protocol"
+	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
 )
@@ -12,6 +14,69 @@ import (
 type DNS struct {
 	Route53 *route53.Route53
 	ZoneId  string
+	Log     logging.Logger
+}
+
+func (d *DNS) DeleteDomain(domain, ip string) error {
+	if !validator.IsValidDomain(domain) {
+		return fmt.Errorf("deleting: domain name is not valid: %s", domain)
+	}
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Deleting domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{ip}, // needs old ip
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Deleting domain name: %s which was associated to ip %s %s",
+		domain, ip)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DNS) CreateDomain(domain, ip string) error {
+	if !validator.IsValidDomain(domain) {
+		return fmt.Errorf("creating: domain name is not valid: %s", domain)
+	}
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Creating domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{ip},
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Creating domain name: %s to be associated with ip: %s",
+		domain, ip)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) InitDNS(opts *protocol.Machine) error {
@@ -53,6 +118,10 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", "koding.io")
 	}
 
-	p.DNS = &DNS{Route53: dns, ZoneId: zoneId}
+	p.DNS = &DNS{
+		Route53: dns,
+		ZoneId:  zoneId,
+		Log:     p.Log,
+	}
 	return nil
 }

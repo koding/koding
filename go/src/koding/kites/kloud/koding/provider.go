@@ -17,7 +17,6 @@ import (
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -103,6 +102,11 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	username := opts.Builder["username"].(string)
 
 	instanceName := opts.Builder["instanceName"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
@@ -218,30 +222,11 @@ hostname: %s`
 		return nil, err
 	}
 
-	domainName := username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
 
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Create user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Name:    domainName,
-					Type:    "A",
-					TTL:     300,
-					Records: []string{artifact.IpAddress},
-				},
-			},
-		},
-	}
-
-	// TODO: Check if it's exist before we create, if yes change the domain
-	// name
-
-	a.Log.Info("Creating a new record with following data: %+v", change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
-	if err != nil {
+	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
 		return nil, err
+
 	}
 
 	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
@@ -293,40 +278,26 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	/////// ROUTE 53 /////////////////
-	username := opts.Builder["username"].(string)
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
+	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
 	}
 
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Update user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    username + "." + DefaultHostedZone,
-					TTL:     300,
-					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
-				},
-			},
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Name:    username + "." + DefaultHostedZone,
-					Type:    "A",
-					TTL:     300,
-					Records: []string{artifact.IpAddress},
-				},
-			},
-		},
+	username := opts.Builder["username"].(string)
+
+	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+
+	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
+		return nil, err
 	}
 
-	a.Log.Info("Creating a new record with following data: %+v", change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
-	if err != nil {
+	a.Log.Info("Updating user domain tag '%s' of instance '%s'", domainName, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
 
@@ -341,7 +312,32 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	return a.Stop()
+	err = a.Stop()
+	if err != nil {
+		return err
+	}
+
+	/////// ROUTE 53 /////////////////
+	username := opts.Builder["username"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
+
+	if err := p.InitDNS(opts); err != nil {
+		return err
+	}
+
+	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+
+	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
+		return err
+	}
+
+	///// ROUTE 53 /////////////////
+
+	return nil
 }
 
 func (p *Provider) Restart(opts *protocol.Machine) error {
@@ -365,31 +361,21 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	}
 
 	/////// ROUTE 53 /////////////////
+
 	username := opts.Builder["username"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
 	if err := p.InitDNS(opts); err != nil {
 		return err
 	}
 
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Update user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    username + "." + DefaultHostedZone,
-					TTL:     300,
-					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
-				},
-			},
-		},
-	}
+	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
 
-	a.Log.Info("Destroying user domain '%s' with following data: %+v",
-		username+"."+DefaultHostedZone, change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
-	if err != nil {
+	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
 		return err
 	}
 

@@ -73,10 +73,9 @@ type Machine struct {
 	Eventer eventer.Eventer
 
 	// CurrentData contains machines current data. This is needed sometimes to
-	// update old records, etcc.
-	CurrentData struct {
-		IpAddress string
-	}
+	// update old records, creating domains based on pre defined labels,  etcc.
+	// Basically put a
+	CurrentData interface{}
 
 	// State defines the machines current state
 	State machinestate.State

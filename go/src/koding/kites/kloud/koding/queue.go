@@ -72,13 +72,14 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
-		MachineId:  machine.Id.Hex(),
-		Provider:   machine.Provider,
-		Builder:    machine.Meta,
-		Credential: credential.Meta,
-		State:      machine.State(),
+		MachineId:   machine.Id.Hex(),
+		Provider:    machine.Provider,
+		Builder:     machine.Meta,
+		Credential:  credential.Meta,
+		State:       machine.State(),
+		CurrentData: machine,
 	}
-	m.CurrentData.IpAddress = machine.IpAddress
+
 	m.Builder["username"] = "kloud"
 
 	// add a fake eventer, meanse we are not reporting anyone and prevent also
