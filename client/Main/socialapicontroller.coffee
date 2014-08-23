@@ -12,7 +12,7 @@ class SocialApiController extends KDController
     return [] unless KD.socialApiData
 
     data = if dataPath is 'navigated'
-    then KD.socialApiData[dataPath].messageList
+    then KD.socialApiData[dataPath].data.messageList
     else KD.socialApiData[dataPath]
 
     return [] unless data
