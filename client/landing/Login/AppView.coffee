@@ -375,14 +375,9 @@ class LoginView extends JView
         return location.reload()  unless KD.remote.isConnected()
 
         @headBanner.hide()
-        #could not joined to the group. Directing to Koding
-        window.location.href= "/" if err
 
-        KD.utils.wait 1000, =>
-          @registerForm.reset()
-          @registerForm.button.hideLoader()
-          @hide()
-          location.replace('/')
+        window.location.href= '/'
+
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
