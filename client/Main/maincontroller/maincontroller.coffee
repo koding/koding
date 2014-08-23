@@ -195,6 +195,7 @@ class MainController extends KDController
 
     if replacementToken and replacementToken isnt Cookies.get 'clientId'
       Cookies.set 'clientId', replacementToken, { maxAge, secure }
+      window.location.href= '/'
 
     if account
       @accountChanged account
