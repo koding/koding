@@ -78,8 +78,8 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 				"$or": []bson.M{
 					bson.M{"assignee.name": nil},
 					bson.M{"$and": []bson.M{
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(time.Minute * 10)}},
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(-time.Second * 30)}},
+						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(time.Minute * 10)}},
+						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)}},
 					}},
 				},
 			}).Apply(change, &machine)

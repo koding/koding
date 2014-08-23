@@ -91,7 +91,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] request for method: '%s' with id: %+v", r.Method, args.MachineId)
+		k.Log.Info("[controller] new call for '%s' method with id: %+v", r.Method, args.MachineId)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -169,7 +169,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
-			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
+			k.Log.Debug("[controller] limiter is enabled for provider: %s", machine.Provider)
 			err := limiter.Limit(c.Machine, r.Method)
 			if err != nil {
 				return nil, err

@@ -11,6 +11,7 @@ import (
 
 type Machine struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
+	Label       string        `bson:"label"`
 	QueryString string        `bson:"queryString"`
 	IpAddress   string        `bson:"ipAddress"`
 	Assignee    struct {

@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 8
+	FreeUserTimeout = time.Minute * 5
 )
 
 // RunChecker runs the checker everny given interval time. It fetches a single
@@ -26,6 +26,8 @@ func (p *Provider) RunChecker(interval time.Duration) {
 			if err != mgo.ErrNotFound {
 				p.Log.Error("FetchOne err: %v", err)
 			}
+
+			p.Log.Info("checker no machines available to check: %s", err.Error())
 
 			// move one with the next one
 			continue
@@ -103,20 +105,18 @@ func (p *Provider) FetchOne() (*Machine, error) {
 		// check only machines that are running and belongs to koding provider
 		// which are not assigned to anyone yet
 		egligibleMachines := bson.M{
-			"provider":     "koding",
-			"status.state": "Running",
-			"$or": []bson.M{
-				{"assignee.name": nil},
-				{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(time.Minute)}},
-			},
+			"provider":            "koding",
+			"status.state":        "Running",
+			"assignee.name":       nil,
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(time.Second * 10)},
 		}
 
 		// once we found something, lock it by modifing the assignee.name.
 		change := mgo.Change{
 			Update: bson.M{
 				"$set": bson.M{
-					"assignee.name": p.Assignee(),
-					"assignee.time": time.Now(),
+					"assignee.name":       p.Assignee(),
+					"assignee.assignedAt": time.Now().UTC(),
 				},
 			},
 			ReturnNew: true,

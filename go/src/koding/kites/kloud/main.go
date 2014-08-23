@@ -125,7 +125,7 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	id := uniqueId()
+	id := uniqueId(k.Config.Port)
 	if conf.Id != "" {
 		id = conf.Id
 	}
@@ -200,7 +200,7 @@ func newKite(conf *Config) *kite.Kite {
 	return k
 }
 
-func uniqueId() string {
+func uniqueId(port int) string {
 	// TODO: add a unique identifier, for letting multiple version of the same
 	// worker work on the same hostname.
 	hostname, err := os.Hostname()
@@ -208,7 +208,7 @@ func uniqueId() string {
 		panic(err) // we should not let it start
 	}
 
-	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+	return fmt.Sprintf("%s-%s-%d", kloud.NAME, hostname, port)
 }
 
 func newLogger(name string, debug bool) logging.Logger {
