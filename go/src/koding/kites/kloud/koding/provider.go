@@ -224,9 +224,13 @@ hostname: %s`
 
 	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
 
+	// Check if the record exist, if not return an error
+	if _, err := p.DNS.Domain(domainName); err != nil && err != ErrNoRecord {
+		return nil, err
+	}
+
 	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
 		return nil, err
-
 	}
 
 	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
