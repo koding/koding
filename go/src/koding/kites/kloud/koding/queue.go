@@ -19,10 +19,14 @@ var (
 func (p *Provider) RunChecker(interval time.Duration) {
 	for _ = range time.Tick(interval) {
 		machine, err := p.FetchOne()
-		// do not show an error if the query didn't find anything, that
-		// means there is no such a document, which we don't care
-		if err != nil && err != mgo.ErrNotFound {
-			p.Log.Error("FetchOne err: %v", err)
+		if err != nil {
+			// do not show an error if the query didn't find anything, that
+			// means there is no such a document, which we don't care
+			if err != mgo.ErrNotFound {
+				p.Log.Error("FetchOne err: %v", err)
+			}
+
+			// move one with the next one
 			continue
 		}
 
