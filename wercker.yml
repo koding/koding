@@ -16,6 +16,7 @@ build:
     - script:
         name: npm install
         code: |
+          npm set registry https://registry.npmjs.org/
           npm install || :
     - script:
         name: configure build
