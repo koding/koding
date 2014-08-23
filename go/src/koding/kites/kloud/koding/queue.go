@@ -114,7 +114,9 @@ func (p *Provider) FetchOne() (*Machine, error) {
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 10)},
 		}
 
-		// once we found something, lock it by modifing the assignee.name.
+		// once we found something, lock it by modifing the assignee.name. Also
+		// create a new timestamp (assignee.assignedAt) which is needed for
+		// several cases like (explained above and below)
 		change := mgo.Change{
 			Update: bson.M{
 				"$set": bson.M{
@@ -125,7 +127,10 @@ func (p *Provider) FetchOne() (*Machine, error) {
 			ReturnNew: true,
 		}
 
-		_, err := c.Find(egligibleMachines).Apply(change, &machine)
+		// We sort according to the latest assignment date, which let's us pick
+		// always the oldest one instead of random/first. Returning an error
+		// means there is no document that matches our criterias.
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(change, &machine)
 		if err != nil {
 			return err
 		}
