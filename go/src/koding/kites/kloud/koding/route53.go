@@ -40,7 +40,7 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 		},
 	}
 
-	d.Log.Info("Deleting domain name: %s which was associated to following ips: %v",
+	d.Log.Info("deleting domain name: %s which was associated to following ips: %v",
 		domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
@@ -71,7 +71,7 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 		},
 	}
 
-	d.Log.Info("Creating domain name: %s to be associated with following ips: %v",
+	d.Log.Info("creating domain name: %s to be associated with following ips: %v",
 		domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
@@ -92,7 +92,7 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 		Name: domain,
 	}
 
-	d.Log.Info("Checking domain name: %s", domain)
+	d.Log.Info("fetching domain record for name: %s", domain)
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {
@@ -126,7 +126,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		return err
 	}
 
-	a.Log.Info("Creating Route53 instance")
+	a.Log.Debug("creating Route53 instance")
 	dns := route53.New(
 		aws.Auth{
 			AccessKey: a.Creds.AccessKey,
@@ -135,7 +135,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		aws.Regions[DefaultRegion],
 	)
 
-	a.Log.Info("Searching for hosted zone: %s", DefaultHostedZone)
+	a.Log.Debug("searching for hosted zone: %s", DefaultHostedZone)
 	hostedZones, err := dns.ListHostedZones("", 100)
 	if err != nil {
 		return err

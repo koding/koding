@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -93,7 +92,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (artifact *protocol.Artifact, err error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -206,14 +205,26 @@ hostname: %s`
 
 	a.Builder.UserData = []byte(cloudStr)
 
-	artifact, err := a.Build(instanceName)
+	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
 
+	// cleanup build if something goes wrong here
+	defer func() {
+		if err != nil {
+			p.Log.Warning("Cleaning up instance for machine id: %s. Terminating instance: %s",
+				opts.MachineId, buildArtifact.InstanceId)
+
+			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
+				p.Log.Warning("Cleaning up instance failed: %v", err)
+			}
+		}
+	}()
+
 	// Add user specific tag to make it easier  simplfying easier
-	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
+	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
@@ -234,12 +245,23 @@ hostname: %s`
 		}
 	}
 
-	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
+	if err := p.DNS.CreateDomain(domainName, buildArtifact.IpAddress); err != nil {
 		return nil, err
 	}
 
-	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
+	defer func() {
+		if err != nil {
+			p.Log.Warning("Cleaning up domain record for machine id: %s. Deleting domain record: %s",
+				opts.MachineId, domainName)
+			if err := p.DNS.DeleteDomain(domainName, buildArtifact.IpAddress); err != nil {
+				p.Log.Warning("Cleaning up domain failed: %v", err)
+			}
+
+		}
+	}()
+
+	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
 
@@ -256,21 +278,31 @@ func CleanZoneID(ID string) string {
 }
 
 // Remove the instance if something goes wrong
+// TODO: remove this after we moved deploy.go into cloud-init
 func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
 	}
 
-	if artifact == nil {
-		return errors.New("artifact is passed nil")
-	}
-
 	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
 		opts.MachineId, artifact.InstanceId)
 	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
 	if err != nil {
+		p.Log.Warning("Cleaning up instance failed: %v", err)
+	}
+
+	if err := p.InitDNS(opts); err != nil {
 		return err
+	}
+
+	username := opts.Builder["username"].(string)
+	machineData := opts.CurrentData.(*Machine)
+
+	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+
+	if err := p.DNS.DeleteDomain(domainName, artifact.IpAddress); err != nil {
+		p.Log.Warning("Cleaning up domain failed: %v", err)
 	}
 
 	return nil

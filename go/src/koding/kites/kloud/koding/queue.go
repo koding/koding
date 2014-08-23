@@ -59,7 +59,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		return err
 	}
 
-	p.Log.Info("[%s] machine with ip %s is inactive since %s",
+	p.Log.Info("[%s] machine with ip %s is inactive for %s",
 		machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
 
 	// It still have plenty of time to work, do not stop it
