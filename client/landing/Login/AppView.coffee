@@ -413,41 +413,44 @@ class LoginView extends JView
       # prevent user from seeing the main wiev
       KD.utils.setPreferredDomain account if account
 
-      mainController = KD.getSingleton('mainController')
-      mainView       = mainController.mainViewController.getView()
-      mainView.show()
-      mainView.$().css "opacity", 1
+      # this implementation below needs to be handled in the server (express)
+      # otherwise it makes the login experience slower
+      # or we can do it after login is performed and page is reloaded
+      # - SY
 
-      firstRoute = KD.getSingleton("router").visitedRoutes.first
+      window.location.replace '/'
 
-      if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
-        firstRoute = "/Activity"
 
-      @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
-      @appStorage.fetchValue "redirectTo", (redirectTo) =>
-        if redirectTo
-          firstRoute = "/#{redirectTo}"
-          @appStorage.unsetKey "redirectTo", (err) ->
-            warn "Failed to reset redirectTo", err  if err
+      # firstRoute = KD.getSingleton('router').visitedRoutes.first
 
-        KD.getSingleton('appManager').quitAll()
-        KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
-        KD.getSingleton('groupsController').on 'GroupChanged', =>
-          @headBanner?.hide()
-          @loginForm.reset()
+      # if firstRoute and /^\/(?:Reset|Register|Confirm|R)\//.test firstRoute
+      #   firstRoute = '/'
 
-        new KDNotificationView
-          cssClass  : "login"
-          title     : "<span></span>Happy Koding!"
-          # content   : "Successfully logged in."
-          duration  : 2000
-        @loginForm.reset()
+      # @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+      # @appStorage.fetchValue "redirectTo", (redirectTo) =>
+      #   if redirectTo
+      #     firstRoute = "/#{redirectTo}"
+      #     @appStorage.unsetKey "redirectTo", (err) ->
+      #       warn "Failed to reset redirectTo", err  if err
 
-        KD.mixpanel "Login, success"
-        if redirectTo
-          window.location.reload()
-        else
-          window.location.replace '/Activity'
+      #   KD.getSingleton('appManager').quitAll()
+      #   KD.getSingleton('router').handleRoute firstRoute or '/Activity', {replaceState: yes, entryPoint}
+      #   KD.getSingleton('groupsController').on 'GroupChanged', =>
+      #     @headBanner?.hide()
+      #     @loginForm.reset()
+
+      #   new KDNotificationView
+      #     cssClass  : "login"
+      #     title     : "<span></span>Happy Koding!"
+      #     # content   : "Successfully logged in."
+      #     duration  : 2000
+      #   @loginForm.reset()
+
+      #   KD.mixpanel "Login, success"
+      #   if redirectTo
+      #     window.location.reload()
+      #   else
+      #     window.location.replace '/Activity'
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
