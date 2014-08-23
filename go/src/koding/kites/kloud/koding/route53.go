@@ -17,7 +17,7 @@ type DNS struct {
 	Log     logging.Logger
 }
 
-func (d *DNS) DeleteDomain(domain, ip string) error {
+func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 	if !validator.IsValidDomain(domain) {
 		return fmt.Errorf("deleting: domain name is not valid: %s", domain)
 	}
@@ -31,14 +31,14 @@ func (d *DNS) DeleteDomain(domain, ip string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: []string{ip}, // needs old ip
+					Records: ips, // needs old ip
 				},
 			},
 		},
 	}
 
-	d.Log.Info("Deleting domain name: %s which was associated to ip %s %s",
-		domain, ip)
+	d.Log.Info("Deleting domain name: %s which was associated to following ips: %v",
+		domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -48,7 +48,7 @@ func (d *DNS) DeleteDomain(domain, ip string) error {
 	return nil
 }
 
-func (d *DNS) CreateDomain(domain, ip string) error {
+func (d *DNS) CreateDomain(domain string, ips ...string) error {
 	if !validator.IsValidDomain(domain) {
 		return fmt.Errorf("creating: domain name is not valid: %s", domain)
 	}
@@ -62,14 +62,14 @@ func (d *DNS) CreateDomain(domain, ip string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: []string{ip},
+					Records: ips,
 				},
 			},
 		},
 	}
 
-	d.Log.Info("Creating domain name: %s to be associated with ip: %s",
-		domain, ip)
+	d.Log.Info("Creating domain name: %s to be associated with following ips: %v",
+		domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -77,6 +77,27 @@ func (d *DNS) CreateDomain(domain, ip string) error {
 	}
 
 	return nil
+}
+
+// Domain retrieves the record set for the given domain name
+func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
+	if !validator.IsValidDomain(domain) {
+		return route53.ResourceRecordSet{}, fmt.Errorf("creating: domain name is not valid: %s", domain)
+	}
+
+	lopts := &route53.ListOpts{
+		Name: domain,
+		Type: "A",
+	}
+
+	d.Log.Info("Checking domain name: %s", domain)
+
+	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
+	if err != nil {
+		return route53.ResourceRecordSet{}, err
+	}
+
+	return resp.Records[0], nil
 }
 
 func (p *Provider) InitDNS(opts *protocol.Machine) error {
