@@ -10,7 +10,8 @@ import (
 
 // Klient represents a remote klient instance
 type Klient struct {
-	client *kite.Client
+	client   *kite.Client
+	username string
 }
 
 // Klient returns a new connected klient instance to the given queryString. The
@@ -35,7 +36,8 @@ func (p *Provider) Connect(queryString string) (*Klient, error) {
 
 	// klient connection is ready now
 	return &Klient{
-		client: remoteKite,
+		client:   remoteKite,
+		username: remoteKite.Username,
 	}, nil
 
 }

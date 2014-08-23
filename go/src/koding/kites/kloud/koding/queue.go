@@ -80,11 +80,14 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		CurrentData: machine,
 	}
 
-	m.Builder["username"] = "kloud"
+	m.Builder["username"] = klient.username
 
 	// add a fake eventer, meanse we are not reporting anyone and prevent also
 	// panicing the code when someone try to call the eventer
 	m.Eventer = &eventer.Events{}
+
+	// mark it as stopping
+	p.UpdateState(machine.Id.Hex(), machinestate.Stopping)
 
 	// stop the machine
 	err = p.Stop(m)
