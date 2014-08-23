@@ -9,6 +9,7 @@ module.exports = [
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
+  "libs/emojify.js",
 
 
   # --- Application ---
