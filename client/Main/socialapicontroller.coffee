@@ -66,11 +66,6 @@ class SocialApiController extends KDController
         actorsPreview : []
         isInteracted  : no
 
-    m.meta      =
-      createdAt : new Date createdAt
-      deletedAt : new Date deletedAt
-      updatedAt : new Date updatedAt
-
     if payload
       m.link       =
         link_url   : payload.link_url

@@ -10,6 +10,24 @@ class CommentListItemView extends KDListItemView
 
     (KD.singleton 'mainController').on 'AccountChanged', @bound 'addMenu'
 
+    @initDataEvents()
+
+
+  initDataEvents: ->
+
+    data = @getData()
+
+    data.on 'update', @bound 'handleUpdate'
+
+
+  handleUpdate: ->
+
+    { updatedAt, createdAt } = @getData()
+
+    if updatedAt > createdAt
+    then @body.setClass 'edited'
+    else @body.unsetClass 'edited'
+
 
   click: (event) -> KD.utils.showMoreClickHandler event
 
@@ -35,14 +53,13 @@ class CommentListItemView extends KDListItemView
 
   hideEditForm: ->
 
-    {meta: {createdAt, updatedAt}} = @getData()
+    { createdAt, updatedAt } = @getData()
 
     @menuWrapper.show()
     @likeView.show()
     @replyView?.show()
     @editInput.destroy()
     @body.show()
-    @body.setClass 'edited'  if updatedAt > createdAt
     @editInput.hide()
 
 
@@ -157,7 +174,7 @@ class CommentListItemView extends KDListItemView
 
   # updateTemplate: (force = no) ->
 
-  #   {meta: {createdAt, deletedAt}} = @getData()
+  #   { createdAt, deletedAt } = @getData()
 
   #   if deletedAt > createdAt
   #     {type} = @getOptions()

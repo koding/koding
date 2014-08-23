@@ -14,7 +14,7 @@ class ContentDisplayMeta extends KDView
     name = KD.utils.getFullnameFromAccount account, yes
 
     dom = $ """
-      <div>In #{activity.group} by <a href="#">#{name}</a> <time class='timeago' datetime="#{new Date(activity.meta.createdAt).format 'isoUtcDateTime'}"></time></div>
+      <div>In #{activity.group} by <a href="#">#{name}</a> <time class='timeago' datetime="#{activity.createdAt}"></time></div>
     """
     dom.find("time.timeago").timeago()
     dom
