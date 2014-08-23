@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
 )
+
+var ErrNoRecord = errors.New("no records available")
 
 type DNS struct {
 	Route53 *route53.Route53
@@ -87,7 +90,6 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 
 	lopts := &route53.ListOpts{
 		Name: domain,
-		Type: "A",
 	}
 
 	d.Log.Info("Checking domain name: %s", domain)
@@ -96,6 +98,19 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 	if err != nil {
 		return route53.ResourceRecordSet{}, err
 	}
+
+	if len(resp.Records) == 0 {
+		return route53.ResourceRecordSet{}, ErrNoRecord
+	}
+
+	for _, r := range resp.Records {
+		fmt.Printf("r.Name %+v\n", r.Name)
+
+		fmt.Printf("r. %+v\n", r.Records)
+
+	}
+
+	fmt.Printf("resp %+v\n", resp)
 
 	return resp.Records[0], nil
 }
