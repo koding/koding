@@ -92,7 +92,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.Machine) (artifact *protocol.Artifact, err error) {
+func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Artifact, err error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -266,7 +266,7 @@ hostname: %s`
 	}
 
 	///// ROUTE 53 /////////////////
-	return artifact, nil
+	return buildArtifact, nil
 }
 
 // CleanZoneID is used to remove the leading /hostedzone/

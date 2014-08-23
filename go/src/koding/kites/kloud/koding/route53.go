@@ -104,15 +104,13 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 	}
 
 	for _, r := range resp.Records {
-		fmt.Printf("r.Name %+v\n", r.Name)
-
-		fmt.Printf("r. %+v\n", r.Records)
+		if strings.Contains(r.Name, domain) {
+			return r, nil
+		}
 
 	}
 
-	fmt.Printf("resp %+v\n", resp)
-
-	return resp.Records[0], nil
+	return route53.ResourceRecordSet{}, ErrNoRecord
 }
 
 func (p *Provider) InitDNS(opts *protocol.Machine) error {
