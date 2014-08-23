@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"time"
 
 	"github.com/koding/kloud/eventer"
@@ -31,12 +32,16 @@ func (p *Provider) RunChecker(interval time.Duration) {
 		}
 
 		if err := p.CheckUsage(machine); err != nil {
-			p.Log.Error("CheckUsage err: %v", err)
+			p.Log.Warning("check usage of kite err: %v", err)
 		}
 	}
 }
 
 func (p *Provider) CheckUsage(machine *Machine) error {
+	if machine == nil {
+		return errors.New("machine is nil")
+	}
+
 	// release the lock from mongodb after we are done
 	defer p.ResetAssignee(machine.Id.Hex())
 
@@ -52,7 +57,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		return err
 	}
 
-	p.Log.Info("[%s] machine with ip %s is inactive since  %s",
+	p.Log.Info("[%s] machine with ip %s is inactive since %s",
 		machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
 
 	// It still have plenty of time to work, do not stop it
