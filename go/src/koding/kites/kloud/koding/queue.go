@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 5
+	FreeUserTimeout = time.Minute * 30
 )
 
 // RunChecker runs the checker everny given interval time. It fetches a single
@@ -103,12 +103,14 @@ func (p *Provider) FetchOne() (*Machine, error) {
 	machine := &Machine{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that are running and belongs to koding provider
-		// which are not assigned to anyone yet
+		// which are not assigned to anyone yet. We also check the date to not
+		// pick up fresh documents. That means documents that are proccessed
+		// and put into the DB will not selected until 10 seconds pass.
 		egligibleMachines := bson.M{
 			"provider":            "koding",
 			"status.state":        "Running",
 			"assignee.name":       nil,
-			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(time.Second * 10)},
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 10)},
 		}
 
 		// once we found something, lock it by modifing the assignee.name.

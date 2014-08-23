@@ -39,8 +39,8 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	change := mgo.Change{
 		Update: bson.M{
 			"$set": bson.M{
-				"assignee.name": p.Assignee(),
-				"assignee.time": time.Now(),
+				"assignee.name":       p.Assignee(),
+				"assignee.assignedAt": time.Now().UTC(),
 			},
 		},
 		ReturnNew: true,
@@ -196,7 +196,7 @@ func (p *Provider) UpdateState(id string, state machinestate.State) error {
 			bson.M{
 				"$set": bson.M{
 					"status.state":      state.String(),
-					"status.modifiedAt": time.Now(),
+					"status.modifiedAt": time.Now().UTC(),
 				},
 			},
 		)
