@@ -192,6 +192,16 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 			So(cff.CreatorId, ShouldEqual, acc.Id)
 		})
 
+		Convey("it should have channel name as required", func() {
+			// create account
+			acc := NewAccount()
+			acc.Id = 1111
+
+			cff, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldBeNil)
+			So(cff.Name, ShouldEqual, "1111-FollowingFeedChannel")
+		})
+
 		Convey("it should have group name as Channel_KODING_NAME", func() {
 			// create account
 			acc := NewAccount()
@@ -221,5 +231,6 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cff.TypeConstant, ShouldEqual, Channel_TYPE_FOLLOWERS)
 		})
+
 	})
 }
