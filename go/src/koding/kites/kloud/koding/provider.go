@@ -191,6 +191,7 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	cloudConfig := `
 #cloud-config
 disable_root: false
+disable-ec2-metadata: true
 hostname: %s`
 
 	// use a simple hostname, previously we were using instanceName which was

@@ -106,11 +106,7 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		}
 	}
 
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	p.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
-	})
+	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
 		MachineId:  id,
@@ -128,6 +124,16 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	}
 
 	return m, nil
+}
+
+func (p *Provider) GetCredential(publicKey string) *Credential {
+	credential := &Credential{}
+	// we neglect errors because credential is optional
+	p.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": publicKey}).One(credential)
+	})
+
+	return credential
 }
 
 func (p *Provider) checkUser(username string, users []models.Permissions) error {

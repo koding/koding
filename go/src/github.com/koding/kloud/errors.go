@@ -39,11 +39,11 @@ const (
 
 var errors = map[int]string{
 	// Machine errors
+	ErrMachineIdMissing:      "Machine id is missing.",
 	ErrMachineInitialized:    "Machine is already initialized and prepared.",
 	ErrMachineNotInitialized: "Machine is not initialized.",
 	ErrMachineUnknownState:   "Machine is in unknown state. Please contact support.",
 	ErrMachineIsBuilding:     "Machine is being build. Hold on.",
-	ErrMachineIdMissing:      "Machine id is missing.",
 	ErrMachineTerminating:    "Machine is terminated.",
 	ErrMachineNotFound:       "Machine is not found",
 	ErrMachinePendingEvent:   "Machine has a pending event going on",

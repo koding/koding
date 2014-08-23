@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -145,7 +146,7 @@ func newKite(conf *Config) *kite.Kite {
 		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
 	}
 
-	go kodingProvider.RunChecker()
+	go kodingProvider.RunChecker(time.Second * 10)
 
 	klientFolder := "klient/development/latest"
 	if conf.ProdMode {
@@ -195,7 +196,6 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("report", kodingProvider.Report)
 
 	return k
 }

@@ -3,7 +3,6 @@ package koding
 import (
 	"fmt"
 	"koding/kites/klient/usage"
-	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
@@ -17,39 +16,32 @@ type Klient struct {
 // Klient returns a new connected klient instance to the given queryString. The
 // klient is ready to use. It's connected and will redial if there is any
 // disconnections.
-func (p *Provider) Klient(queryString string) (*Klient, error) {
+func (p *Provider) Connect(queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
 	}
 
-	timeout := time.After(time.Minute)
-
 	p.Log.Debug("Querying for Klient: %s", queryString)
-	for {
-		select {
-		case <-time.Tick(time.Second * 2):
-			kites, err := p.Kite.GetKites(query.Query())
-			if err != nil {
-				// still not up, try again until the kite is ready
-				continue
-			}
-
-			remoteKite := kites[0]
-
-			if err := remoteKite.Dial(); err != nil {
-				return nil, err
-			}
-
-			// klient connection is ready now
-			return &Klient{
-				client: remoteKite,
-			}, nil
-		case <-timeout:
-			return nil, fmt.Errorf("timeout while connection for kite")
-		}
+	kites, err := p.Kite.GetKites(query.Query())
+	if err != nil {
+		return nil, err
 	}
 
+	remoteKite := kites[0]
+	if err := remoteKite.Dial(); err != nil {
+		return nil, err
+	}
+
+	// klient connection is ready now
+	return &Klient{
+		client: remoteKite,
+	}, nil
+
+}
+
+func (k *Klient) Close() {
+	k.client.Close()
 }
 
 // Usage calls the usage method of remote and get's the result back
