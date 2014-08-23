@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 30
+	FreeUserTimeout = time.Minute * 15
 )
 
 // RunChecker runs the checker everny given interval time. It fetches a single
@@ -24,10 +24,10 @@ func (p *Provider) RunChecker(interval time.Duration) {
 			// do not show an error if the query didn't find anything, that
 			// means there is no such a document, which we don't care
 			if err != mgo.ErrNotFound {
-				p.Log.Error("FetchOne err: %v", err)
+				p.Log.Warning("FetchOne err: %v", err)
 			}
 
-			p.Log.Info("checker no machines available to check: %s", err.Error())
+			p.Log.Debug("checker no machines available to check: %s", err.Error())
 
 			// move one with the next one
 			continue
