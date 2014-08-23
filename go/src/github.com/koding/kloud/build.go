@@ -91,10 +91,11 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 	}()
 
 	machOptions := &protocol.Machine{
-		MachineId:  c.MachineId,
-		Eventer:    c.Eventer,
-		Credential: c.Machine.Credential,
-		Builder:    c.Machine.Builder,
+		MachineId:   c.MachineId,
+		Eventer:     c.Eventer,
+		Credential:  c.Machine.Credential,
+		Builder:     c.Machine.Builder,
+		CurrentData: c.Machine.CurrentData,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. MachineId: %+v",
