@@ -62,7 +62,7 @@ class ActivityListItemView extends KDListItemView
     else
       new KDCustomHTMLView
 
-    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+    @timeAgoView = new KDTimeAgoView {}, @getData().createdAt
 
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
@@ -82,6 +82,7 @@ class ActivityListItemView extends KDListItemView
 
     @setClass 'editing'
     @unsetClass 'edited'
+
 
 
   resetEditing : ->
@@ -221,7 +222,7 @@ class ActivityListItemView extends KDListItemView
 
     @setAnchors()
 
-    { updatedAt, createdAt } = @getData().meta
+    { updatedAt, createdAt } = @getData()
 
     @setClass 'edited'  if updatedAt > createdAt
 
@@ -247,3 +248,4 @@ class ActivityListItemView extends KDListItemView
     </div>
     {{> @commentBox}}
     """
+

@@ -277,7 +277,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless last
 
-    from         = last.getData().meta.createdAt.toISOString()
+    from         = last.getData().createdAt
 
     @fetch {from}, (err, items = []) =>
       @listController.hideLazyLoader()

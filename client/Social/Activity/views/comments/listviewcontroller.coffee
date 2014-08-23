@@ -22,7 +22,7 @@ class CommentListViewController extends KDListViewController
 
   instantiateListItems: (items) ->
 
-    super items.sort (a, b) -> a.meta.createdAt - b.meta.createdAt
+    super items.sort (a, b) -> a.createdAt - b.createdAt
 
 
   addItem: (item, index) ->

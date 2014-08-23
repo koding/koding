@@ -35,7 +35,7 @@ class CommentListItemView extends KDListItemView
 
   hideEditForm: ->
 
-    {meta: {createdAt, updatedAt}} = @getData()
+    { createdAt, updatedAt } = @getData()
 
     @menuWrapper.show()
     @likeView.show()
@@ -157,7 +157,7 @@ class CommentListItemView extends KDListItemView
 
   # updateTemplate: (force = no) ->
 
-  #   {meta: {createdAt, deletedAt}} = @getData()
+  #   { createdAt, deletedAt } = @getData()
 
   #   if deletedAt > createdAt
   #     {type} = @getOptions()

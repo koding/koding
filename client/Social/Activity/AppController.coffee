@@ -162,6 +162,6 @@ class ActivityAppController extends AppController
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0
-        lastOne = activities.last.meta.createdAt
+        lastOne = activities.last.createdAt
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities
