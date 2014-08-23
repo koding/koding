@@ -97,7 +97,7 @@ class AppDetailsView extends KDScrollView
 
     {icns, identifier, version, authorNick} = app.manifest
 
-    @updatedTimeAgo = new KDTimeAgoView {}, @getData().meta.createdAt
+    @updatedTimeAgo = new KDTimeAgoView {}, @getData().createdAt
 
     @slideShow = new KDCustomHTMLView
       tagName   : "ul"

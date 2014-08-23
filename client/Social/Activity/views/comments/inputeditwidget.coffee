@@ -42,7 +42,6 @@ class CommentInputEditWidget extends CommentInputWidget
       return KD.showError err  if err
 
       data.body = body
-      data.meta.updatedAt = new Date
       data.emit 'update'
 
 

@@ -73,9 +73,9 @@ class PricingAppView extends KDView
 
   showGroupCreationFailed: ->
 
-    @addSubView @sorry = new KDCustomHTMLView
+    @addSubView @sorry = new KDView
       name     : "thanks"
-      cssClass : "pricing-final"
+      cssClass : "pricing-final payment-workflow"
       partial  :
         """
         <i class="error-icon"></i>
@@ -100,8 +100,8 @@ class PricingAppView extends KDView
       if loggedIn then "Now it’s time, time to start Koding!"
       else "Go to your inbox to complete your registration"
 
-    @addSubView @thankYou = new KDCustomHTMLView
-      cssClass : "pricing-final"
+    @addSubView @thankYou = new KDView
+      cssClass : "pricing-final payment-workflow"
       partial  :
         """
         <i class="check-icon"></i>
@@ -122,8 +122,8 @@ class PricingAppView extends KDView
 
     planCodes = Object.keys subscription.quantities
 
-    @addSubView @thankYou = new KDCustomHTMLView
-      cssClass : "pricing-final"
+    @addSubView @thankYou = new KDView
+      cssClass : "pricing-final payment-workflow"
       partial  :
         """
         <i class="check-icon"></i>

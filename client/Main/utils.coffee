@@ -753,9 +753,6 @@ utils.extend utils,
       updatedAt        : isoNow
       replies          : []
       repliesCount     : 0
-      meta             :
-        createdAt      : now
-        updatedAt      : now
       interactions     :
         like           :
           isInteracted : no

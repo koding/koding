@@ -2,17 +2,17 @@ class Machine extends KDObject
 
   @State = {
 
-    "NotInitialized"  # Initial state, machine instance does not exists
-    "Building"        # Build started machine instance creating...
-    "Starting"        # Machine is booting...
-    "Running"         # Machine is physically running
-    "Stopping"        # Machine is turning off...
-    "Stopped"         # Machine is turned off
-    "Rebooting"       # Machine is rebooting...
-    "Terminating"     # Machine is getting destroyed...
-    "Terminated"      # Machine is destroyed, not exists anymore
-    "Unknown"         # Machine is in an unknown state
-                      # needs to solved manually
+    'NotInitialized'  # Initial state, machine instance does not exists
+    'Building'        # Build started machine instance is being created...
+    'Starting'        # Machine is booting...
+    'Running'         # Machine is physically running
+    'Stopping'        # Machine is turning off...
+    'Stopped'         # Machine is turned off
+    'Rebooting'       # Machine is rebooting...
+    'Terminating'     # Machine is being destroyed...
+    'Terminated'      # Machine is destroyed, does not exist anymore
+    'Unknown'         # Machine is in an unknown state
+                      # needs to be resolved manually
   }
 
 
@@ -20,7 +20,8 @@ class Machine extends KDObject
 
     { machine, stack } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
-      throw new Error 'Data should be a JMachine instance'
+      error 'Data should be a JMachine instance'
+      # throw new Error 'Data should be a JMachine instance'
 
     delete options.machine
     delete options.stack
