@@ -225,8 +225,13 @@ hostname: %s`
 	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
 
 	// Check if the record exist, if not return an error
-	if _, err := p.DNS.Domain(domainName); err != nil && err != ErrNoRecord {
+	record, err := p.DNS.Domain(domainName)
+	if err != nil && err != ErrNoRecord {
 		return nil, err
+	} else {
+		if strings.Contains(record.Name, domainName) {
+			return nil, fmt.Errorf("domain %s already exists", domainName)
+		}
 	}
 
 	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
