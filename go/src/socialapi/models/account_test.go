@@ -118,7 +118,7 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 	defer r.Close()
 
 	Convey("while fetching Old Ids by account ids", t, func() {
-		Convey("it should have account id more than zero", func() {
+		Convey("it should have account id (ids of length) more than zero", func() {
 			acc := []int64{}
 			foi, err := FetchOldIdsByAccountIds(acc)
 			So(err, ShouldBeNil)
@@ -182,5 +182,44 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 			So(err, ShouldEqual, ErrAccountIdIsNotSet)
 		})
 
+		Convey("it should have creator id as account id", func() {
+			// create account
+			acc := NewAccount()
+			acc.Id = 1111
+
+			cff, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldBeNil)
+			So(cff.CreatorId, ShouldEqual, acc.Id)
+		})
+
+		Convey("it should have group name as Channel_KODING_NAME", func() {
+			// create account
+			acc := NewAccount()
+			acc.Id = 1111
+
+			cff, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldBeNil)
+			So(cff.GroupName, ShouldEqual, Channel_KODING_NAME)
+		})
+
+		Convey("it should have purpose as Following Feed for me", func() {
+			// create account
+			acc := NewAccount()
+			acc.Id = 1111
+
+			cff, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldBeNil)
+			So(cff.Purpose, ShouldEqual, "Following Feed for Me")
+		})
+
+		Convey("it should have type constant as Channel_TYPE_FOLLOWERS", func() {
+			// create account
+			acc := NewAccount()
+			acc.Id = 1111
+
+			cff, err := acc.CreateFollowingFeedChannel()
+			So(err, ShouldBeNil)
+			So(cff.TypeConstant, ShouldEqual, Channel_TYPE_FOLLOWERS)
+		})
 	})
 }
