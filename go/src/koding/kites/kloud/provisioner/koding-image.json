@@ -1,0 +1,54 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+        "template_dir": "website/"
+    },
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
+            "instance_type": "m3.medium",
+            "region": "us-east-1",
+            "source_ami": "ami-864d84ee",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 30",
+                "sudo apt-get update",
+                "sudo apt-get install -y ubuntu-standard ubuntu-minimal htop git net-tools aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo emacs mc iotop iftop software-properties-common python-fcgi ruby-fcgi",
+                "wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv",
+                "sudo apt-get install -y erlang ghc swi-prolog clisp ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go",
+                "sudo a2enmod cgi",
+                "sudo a2enmod rewrite",
+                "sudo a2enmod proxy",
+                "sudo a2enmod proxy_http",
+                "sudo a2enmod proxy_wstunnel",
+                "sudo a2enmod proxy_fcgi",
+                "mkdir -p /tmp/userdata/Web",
+                "sudo mkdir -p /opt/koding/userdata/",
+                "sudo mkdir -p /opt/koding/userdata/Web",
+                "sudo mkdir -p /opt/koding/userdata/Applications",
+                "sudo mkdir -p /opt/koding/userdata/Backup",
+                "sudo mkdir -p /opt/koding/userdata/Documents"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "{{user `template_dir`}}",
+            "destination": "/tmp/userdata/Web"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/"
+            ]
+        }
+    ]
+}

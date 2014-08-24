@@ -93,6 +93,7 @@ func makeParams(action string) map[string]string {
 type Listener struct {
 	InstancePort     int64  `xml:"member>Listener>InstancePort"`
 	InstanceProtocol string `xml:"member>Listener>InstanceProtocol"`
+	SSLCertificateId string `xml:"member>Listener>SSLCertificateId"`
 	LoadBalancerPort int64  `xml:"member>Listener>LoadBalancerPort"`
 	Protocol         string `xml:"member>Listener>Protocol"`
 }
@@ -155,6 +156,7 @@ func (elb *ELB) CreateLoadBalancer(options *CreateLoadBalancer) (resp *CreateLoa
 		params["Listeners.member."+strconv.Itoa(i+1)+".InstancePort"] = strconv.FormatInt(v.InstancePort, 10)
 		params["Listeners.member."+strconv.Itoa(i+1)+".Protocol"] = v.Protocol
 		params["Listeners.member."+strconv.Itoa(i+1)+".InstanceProtocol"] = v.InstanceProtocol
+		params["Listeners.member."+strconv.Itoa(i+1)+".SSLCertificateId"] = v.SSLCertificateId
 	}
 
 	if options.Internal {
@@ -204,9 +206,12 @@ type LoadBalancer struct {
 	LoadBalancerName  string             `xml:"member>LoadBalancerName"`
 	Listeners         []Listener         `xml:"member>ListenerDescriptions"`
 	Instances         []Instance         `xml:"member>Instances"`
+	HealthCheck       HealthCheck        `xml:"member>HealthCheck"`
 	AvailabilityZones []AvailabilityZone `xml:"member>AvailabilityZones"`
 	Scheme            string             `xml:"member>Scheme"`
 	DNSName           string             `xml:"member>DNSName"`
+	SecurityGroups    []string           `xml:"member>SecurityGroups>member"`
+	Subnets           []string           `xml:"member>Subnets>member"`
 }
 
 // DescribeLoadBalancer request params
@@ -292,6 +297,48 @@ func (elb *ELB) DeregisterInstancesFromLoadBalancer(options *DeregisterInstances
 	}
 
 	resp = &DeregisterInstancesFromLoadBalancerResp{}
+
+	err = elb.query(params, resp)
+
+	if err != nil {
+		resp = nil
+	}
+
+	return
+}
+
+// ----------------------------------------------------------------------------
+// Health Checks
+
+type HealthCheck struct {
+	HealthyThreshold   int64  `xml:"HealthyThreshold"`
+	UnhealthyThreshold int64  `xml:"UnhealthyThreshold"`
+	Interval           int64  `xml:"Interval"`
+	Target             string `xml:"Target"`
+	Timeout            int64  `xml:"Timeout"`
+}
+
+type ConfigureHealthCheck struct {
+	LoadBalancerName string
+	Check            HealthCheck
+}
+
+type ConfigureHealthCheckResp struct {
+	Check     HealthCheck `xml:"ConfigureHealthCheckResult>HealthCheck"`
+	RequestId string      `xml:"ResponseMetadata>RequestId"`
+}
+
+func (elb *ELB) ConfigureHealthCheck(options *ConfigureHealthCheck) (resp *ConfigureHealthCheckResp, err error) {
+	params := makeParams("ConfigureHealthCheck")
+
+	params["LoadBalancerName"] = options.LoadBalancerName
+	params["HealthCheck.HealthyThreshold"] = strconv.Itoa(int(options.Check.HealthyThreshold))
+	params["HealthCheck.UnhealthyThreshold"] = strconv.Itoa(int(options.Check.UnhealthyThreshold))
+	params["HealthCheck.Interval"] = strconv.Itoa(int(options.Check.Interval))
+	params["HealthCheck.Target"] = options.Check.Target
+	params["HealthCheck.Timeout"] = strconv.Itoa(int(options.Check.Timeout))
+
+	resp = &ConfigureHealthCheckResp{}
 
 	err = elb.query(params, resp)
 

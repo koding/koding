@@ -33,6 +33,25 @@ type Region struct {
 	IAMEndpoint          string
 	ELBEndpoint          string
 	AutoScalingEndpoint  string
+	RdsEndpoint          string
+	Route53Endpoint      string
+}
+
+var USGovWest = Region{
+	"us-gov-west-1",
+	"https://ec2.us-gov-west-1.amazonaws.com",
+	"https://s3-fips-us-gov-west-1.amazonaws.com",
+	"",
+	true,
+	true,
+	"",
+	"https://sns.us-gov-west-1.amazonaws.com",
+	"https://sqs.us-gov-west-1.amazonaws.com",
+	"https://iam.us-gov.amazonaws.com",
+	"https://elasticloadbalancing.us-gov-west-1.amazonaws.com",
+	"https://autoscaling.us-gov-west-1.amazonaws.com",
+	"https://rds.us-gov-west-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var USEast = Region{
@@ -48,6 +67,8 @@ var USEast = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.us-east-1.amazonaws.com",
 	"https://autoscaling.us-east-1.amazonaws.com",
+	"https://rds.us-east-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var USWest = Region{
@@ -63,6 +84,8 @@ var USWest = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.us-west-1.amazonaws.com",
 	"https://autoscaling.us-west-1.amazonaws.com",
+	"https://rds.us-west-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var USWest2 = Region{
@@ -78,6 +101,8 @@ var USWest2 = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.us-west-2.amazonaws.com",
 	"https://autoscaling.us-west-2.amazonaws.com",
+	"https://rds.us-west-2.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var EUWest = Region{
@@ -93,6 +118,8 @@ var EUWest = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.eu-west-1.amazonaws.com",
 	"https://autoscaling.eu-west-1.amazonaws.com",
+	"https://rds.eu-west-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var APSoutheast = Region{
@@ -108,6 +135,8 @@ var APSoutheast = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.ap-southeast-1.amazonaws.com",
 	"https://autoscaling.ap-southeast-1.amazonaws.com",
+	"https://rds.ap-southeast-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var APSoutheast2 = Region{
@@ -123,6 +152,8 @@ var APSoutheast2 = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.ap-southeast-2.amazonaws.com",
 	"https://autoscaling.ap-southeast-2.amazonaws.com",
+	"https://rds.ap-southeast-2.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var APNortheast = Region{
@@ -138,6 +169,8 @@ var APNortheast = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.ap-northeast-1.amazonaws.com",
 	"https://autoscaling.ap-northeast-1.amazonaws.com",
+	"https://rds.ap-northeast-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var SAEast = Region{
@@ -153,6 +186,8 @@ var SAEast = Region{
 	"https://iam.amazonaws.com",
 	"https://elasticloadbalancing.sa-east-1.amazonaws.com",
 	"https://autoscaling.sa-east-1.amazonaws.com",
+	"https://rds.sa-east-1.amazonaws.com",
+	"https://route53.amazonaws.com",
 }
 
 var Regions = map[string]Region{
@@ -164,6 +199,7 @@ var Regions = map[string]Region{
 	USWest.Name:       USWest,
 	USWest2.Name:      USWest2,
 	SAEast.Name:       SAEast,
+	USGovWest.Name:    USGovWest,
 }
 
 type Auth struct {
@@ -264,6 +300,7 @@ func GetAuth(accessKey string, secretKey string) (auth Auth, err error) {
 
 // EnvAuth creates an Auth based on environment information.
 // The AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment
+// For accounts that require a security token, it is read from AWS_SECURITY_TOKEN
 // variables are used.
 func EnvAuth() (auth Auth, err error) {
 	auth.AccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
@@ -275,6 +312,9 @@ func EnvAuth() (auth Auth, err error) {
 	if auth.SecretKey == "" {
 		auth.SecretKey = os.Getenv("AWS_SECRET_KEY")
 	}
+
+	auth.Token = os.Getenv("AWS_SECURITY_TOKEN")
+
 	if auth.AccessKey == "" {
 		err = errors.New("AWS_ACCESS_KEY_ID or AWS_ACCESS_KEY not found in environment")
 	}

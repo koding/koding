@@ -159,7 +159,6 @@ class ActivityInputWidget extends KDView
         return @showError err, options
 
       activity.body = body
-      activity.meta.updatedAt = new Date
       activity.emit 'update'
 
       callback err, activity
@@ -211,19 +210,7 @@ class ActivityInputWidget extends KDView
 
     return unless value = @input.getValue().trim()
 
-    data            =
-      on            : -> return this
-      watch         : -> return this
-      account       : { _id : KD.whoami().getId(), constructorName : "JAccount"}
-      body          : value
-      typeConstant  : 'post'
-      replies       : []
-      interactions  :
-        like        :
-          actorsCount : 0
-          actorsPreview : []
-      meta          :
-        createdAt   : new Date
+    data = KD.utils.generateDummyMessage value
 
     @preview?.destroy()
     @addSubView @preview = new ActivityListItemView cssClass: 'preview', data

@@ -26,6 +26,7 @@ func (e *EnvironmentLoader) getPrefix(s *structs.Struct) string {
 	return s.Name()
 }
 
+// Load loads the source into the config defined by struct s
 func (e *EnvironmentLoader) Load(s interface{}) error {
 	strct := structs.New(s)
 

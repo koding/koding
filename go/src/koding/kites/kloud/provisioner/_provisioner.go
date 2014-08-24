@@ -1,3 +1,5 @@
+// This package is not used anymore, however it's just for here because it's
+// contains examples for how to integrate packer into a Go application
 package provisioner
 
 import (
@@ -135,3 +137,33 @@ func Checksum() (string, error) {
 func hex32(x uint32) string {
 	return fmt.Sprintf("%08x", x)
 }
+
+// // IMAGE BUILDER
+// amiName, err := provisioner.Ami()
+// if err != nil {
+// 	return nil, fmt.Errorf("Could not get generated AMI name: %s", err)
+// }
+//
+// // Build type needed for backer
+// a.ImageBuilder.Type = "amazon-ebs"
+//
+// // SSH username
+// a.ImageBuilder.SshUsername = "ubuntu"
+//
+// // Name of AMI to build if needed
+// a.ImageBuilder.AmiName = amiName
+//
+// // Use this ami as a "foundation"
+// a.ImageBuilder.SourceAmi = DefaultBaseAMI
+//
+// // Region we're building in
+// a.ImageBuilder.Region = a.Builder.Region
+//
+// // Build AMI for this instance type
+// // Doesn't need VPC, etc ... and AMI can be used for t2.micro
+// // plus the build is faster
+// a.ImageBuilder.InstanceType = "m3.medium"
+//
+// // Credentials
+// a.ImageBuilder.AccessKey = a.Creds.AccessKey
+// a.ImageBuilder.SecretKey = a.Creds.SecretKey

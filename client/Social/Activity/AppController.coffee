@@ -80,12 +80,20 @@ class ActivityAppController extends AppController
   fetch: ({channelId, from, limit}, callback = noop) ->
 
     id = channelId
-    {socialapi} = KD.singletons
+    {socialapi, router} = KD.singletons
     {socialApiChannelId} = KD.getGroup()
     id ?= socialApiChannelId
+    prefetchedItems = socialapi.getPrefetchedData 'navigated'
 
-    if firstFetch and socialapi.getPrefetchedData('navigated').length > 0
-      messages   = socialapi.getPrefetchedData 'navigated'
+    isCorrectPath = ->
+      {section, name, slug} = KD.socialApiData.navigated
+      routeToLookUp  = "#{name}/#{section}"
+      routeToLookUp += "/#{slug}"  if slug and slug isnt '/'
+
+      return router.getCurrentPath().search(routeToLookUp) > 0
+
+    if firstFetch and prefetchedItems.length > 0 and isCorrectPath()
+      messages = socialapi.getPrefetchedData 'navigated'
       KD.utils.defer ->  callback null, messages
     else
       socialapi.channel.fetchActivities {id, from, limit}, callback
@@ -154,6 +162,6 @@ class ActivityAppController extends AppController
       return @emit "activitiesCouldntBeFetched", err  if err
 
       if activities?.length > 0
-        lastOne = activities.last.meta.createdAt
+        lastOne = activities.last.createdAt
         @profileLastTo = (new Date(lastOne)).getTime()
       callback err, activities

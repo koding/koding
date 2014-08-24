@@ -11,7 +11,10 @@ import (
 )
 
 var (
-	ErrPathNotSet   = errors.New("config path is not set")
+	// ErrPathNotSet states that given path to file loader is empty
+	ErrPathNotSet = errors.New("config path is not set")
+
+	// ErrFileNotFound states that given file is not exists
 	ErrFileNotFound = errors.New("config file not found")
 )
 
@@ -21,6 +24,7 @@ type TOMLLoader struct {
 	Path string
 }
 
+// Load loads the source into the config defined by struct s
 func (t *TOMLLoader) Load(s interface{}) error {
 	filePath, err := getConfigPath(t.Path)
 	if err != nil {
@@ -40,6 +44,7 @@ type JSONLoader struct {
 	Path string
 }
 
+// Load loads the source into the config defined by struct s
 func (j *JSONLoader) Load(s interface{}) error {
 	filePath, err := getConfigPath(j.Path)
 	if err != nil {

@@ -1,3 +1,10 @@
+# this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
+# once we merged two sidebars into one
+# activity sidebar became the mainsidebar
+# and unfortunately we have too mcuh goin on here right now.
+# vm menu and activity menu should be separated,
+# needs a little refactor. - SY
+
 class ActivitySidebar extends KDCustomHTMLView
 
 
@@ -354,16 +361,16 @@ class ActivitySidebar extends KDCustomHTMLView
         type     : 'workspace'
         href     : "/IDE/VM/#{machine.uid}"
         parentId : id
-      treeData.push
-        id       : "#{id}-apps"
-        title    : 'Apps'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'App Store'
-        type     : 'app'
-        href     : '/Apps'
-        parentId : id
+      # treeData.push
+      #   id       : "#{id}-apps"
+      #   title    : 'Apps'
+      #   type     : 'title'
+      #   parentId : id
+      # treeData.push
+      #   title    : 'App Store'
+      #   type     : 'app'
+      #   href     : '/Apps'
+      #   parentId : id
 
 
     @machineTree.addNode data for data in treeData
@@ -395,7 +402,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : 'VMs <a href="/Pricing" class="buy-vm"></a>'
+      partial  : 'VMs'
+
+    header.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'buy-vm'
+      click    : @bound 'createBuyNewMachineModal'
 
     section.addSubView @machineTree.getView()
 
@@ -404,9 +416,10 @@ class ActivitySidebar extends KDCustomHTMLView
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-    then @listMachines KD.userMachines
-    else @fetchMachines @bound 'listMachines'
-
+      @listMachines KD.userMachines
+      @updateMachineTree()
+    else
+      @fetchMachines @bound 'listMachines'
 
   handleMachineItemClick: (machineItem, event) ->
 
@@ -421,15 +434,16 @@ class ActivitySidebar extends KDCustomHTMLView
       if status.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
-      else
-        return
-
+      else return
 
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
       @handleMachineToggle machineItem, event
 
     else if machineItem.type in ['app', 'workspace']
+
+      @machineTree.deselectNode machineItem
+      @machineTree.selectNode @machineTree.nodes[machineItem.getData().parentId]
 
       return
 
@@ -513,3 +527,32 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  createBuyNewMachineModal: ->
+
+    modal = new BuyMachineModal
+
+    modal.once 'MachineCreated', (newMachine) =>
+      @updateMachineTree =>
+        tree = @machineTree
+
+        for node, i in tree.indexedNodes
+          if node.data?._id is newMachine._id
+            index = i
+
+        if index
+          tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
+          KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
+
+
+  updateMachineTree: (callback = noop) ->
+
+    @fetchMachines (machines) =>
+      jMachines = []
+      tree      = @machineTree
+      jMachines.push machine.data for machine in machines
+
+      tree.removeAllNodes()
+      @listMachines jMachines
+      callback()

@@ -71,6 +71,6 @@ class BugReportController extends AppController
   # # Store first & last cache activity timestamp.
   # extractMessageTimeStamps: (messages)->
   #   return  if messages.length is 0
-  #   from = new Date(messages.last.meta.createdAt).getTime()
-  #   to   = new Date(messages.first.meta.createdAt).getTime()
+  #   from = new Date(messages.last.createdAt).getTime()
+  #   to   = new Date(messages.first.createdAt).getTime()
   #   @setLastTimestamps to, from #from, to
