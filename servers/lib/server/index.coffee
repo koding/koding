@@ -210,11 +210,19 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.send 200, authTemplate data
 
+app.post "/:name?/Register", (req, res) ->
+  { JUser } = koding.models
+  context = { group: 'koding' }
+  koding.fetchClient req.cookies.clientId, context, (client) ->
+    JUser.convert client, req.body, (err, result) ->
+      return res.send 403, err  if err
+      res.cookie 'clientId', result.newToken
+      res.send 200, 'ok'
+
 app.post "/:name?/Login", (req, res) ->
   { JUser } = koding.models
   { username, password } = req.body
   { clientId } = req.cookies
-  # res.send 200, 'ok'
 
   JUser.login clientId, { username, password }, (err, response) ->
     return res.send 403, err  if err
@@ -460,4 +468,5 @@ console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pi
 #       than the stack trace.
 app.use (err, req, res, next) ->
   console.error err
+  console.error err.stack
   res.send 500, error_500()
