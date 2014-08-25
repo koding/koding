@@ -238,39 +238,42 @@ hostname: %s`
 		return nil, err
 	}
 
-	domainName := machineData.Label + "." + username + "." + p.HostedZone
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return nil, err
+	}
 
 	// Check if the record exist, if not return an error
-	record, err := p.DNS.Domain(domainName)
+	record, err := p.DNS.Domain(machineData.Domain)
 	if err != nil && err != ErrNoRecord {
 		return nil, err
 	} else {
-		if strings.Contains(record.Name, domainName) {
-			return nil, fmt.Errorf("domain %s already exists", domainName)
+		if strings.Contains(record.Name, machineData.Domain) {
+			return nil, fmt.Errorf("domain %s already exists", machineData.Domain)
 		}
 	}
 
-	if err := p.DNS.CreateDomain(domainName, buildArtifact.IpAddress); err != nil {
+	if err := p.DNS.CreateDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
 		return nil, err
 	}
 
 	defer func() {
 		if err != nil {
 			p.Log.Warning("Cleaning up domain record for machine id: %s. Deleting domain record: %s",
-				opts.MachineId, domainName)
-			if err := p.DNS.DeleteDomain(domainName, buildArtifact.IpAddress); err != nil {
+				opts.MachineId, machineData.Domain)
+			if err := p.DNS.DeleteDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
 				p.Log.Warning("Cleaning up domain failed: %v", err)
 			}
 
 		}
 	}()
 
-	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", domainName); err != nil {
+	a.Log.Info("Adding user domain tag '%s' to the instance '%s'",
+		machineData.Domain, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err
 	}
 
-	buildArtifact.DomainName = domainName
+	buildArtifact.DomainName = machineData.Domain
 
 	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
@@ -306,9 +309,11 @@ func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) e
 	username := opts.Builder["username"].(string)
 	machineData := opts.CurrentData.(*Machine)
 
-	domainName := machineData.Label + "." + username + "." + p.HostedZone
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
+	}
 
-	if err := p.DNS.DeleteDomain(domainName, artifact.IpAddress); err != nil {
+	if err := p.DNS.DeleteDomain(machineData.Domain, artifact.IpAddress); err != nil {
 		p.Log.Warning("Cleaning up domain failed: %v", err)
 	}
 
@@ -338,18 +343,22 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	username := opts.Builder["username"].(string)
 
-	domainName := machineData.Label + "." + username + "." + p.HostedZone
-
-	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
 		return nil, err
 	}
 
-	a.Log.Info("Updating user domain tag '%s' of instance '%s'", domainName, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
+	if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
 		return nil, err
 	}
 
-	artifact.DomainName = domainName
+	a.Log.Info("Updating user domain tag '%s' of instance '%s'",
+		machineData.Domain, artifact.InstanceId)
+
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+		return nil, err
+	}
+
+	artifact.DomainName = machineData.Domain
 
 	///// ROUTE 53 /////////////////
 
@@ -379,9 +388,11 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + p.HostedZone
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
+	}
 
-	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
+	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}
 
@@ -423,11 +434,13 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + p.HostedZone
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
+	}
 
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
-	_, err = p.DNS.Domain(domainName)
+	_, err = p.DNS.Domain(machineData.Domain)
 	if err == ErrNoRecord {
 		return nil
 	}
@@ -437,7 +450,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
+	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}
 
