@@ -82,7 +82,8 @@ if basicAuth
 
 process.on 'uncaughtException', (err) ->
   console.error " ------ FIX ME ------ @chris"
-  console.error " there was an uncaught exception", JSON.stringify err,null,2
+  console.error " there was an uncaught exception", err
+  console.error err.stack
   console.error " ------ FIX ME ------ @chris"
 
 
@@ -208,6 +209,25 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 401, authTemplate err.message
       else
         res.send 200, authTemplate data
+
+app.post "/:name?/Register", (req, res) ->
+  { JUser } = koding.models
+  context = { group: 'koding' }
+  koding.fetchClient req.cookies.clientId, context, (client) ->
+    JUser.convert client, req.body, (err, result) ->
+      return res.send 403, err  if err
+      res.cookie 'clientId', result.newToken
+      res.send 200, 'ok'
+
+app.post "/:name?/Login", (req, res) ->
+  { JUser } = koding.models
+  { username, password } = req.body
+  { clientId } = req.cookies
+
+  JUser.login clientId, { username, password }, (err, response) ->
+    return res.send 403, err  if err
+    res.cookie 'clientId', response.replacementToken
+    res.send 200, 'ok'
 
 
 app.all "/:name?/Logout", (req, res)->
@@ -446,4 +466,7 @@ console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pi
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
-app.use (err, req, res, next) -> res.send 500, error_500()
+app.use (err, req, res, next) ->
+  console.error err
+  console.error err.stack
+  res.send 500, error_500()
