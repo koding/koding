@@ -20,10 +20,13 @@ class NavigationMachineItem extends JView
 
     super options, data
 
-    @machine = @getData()
-    @progress = new KDProgressBarView
+    @machine   = @getData()
+
+    @label     = new KDCustomHTMLView
+      partial  : @alias
+
+    @progress  = new KDProgressBarView
       cssClass : 'hidden'
-      # initial  : Math.floor Math.random() * 100
 
     { computeController } = KD.singletons
 
@@ -53,7 +56,9 @@ class NavigationMachineItem extends JView
 
   pistachio:->
 
-    """
-    <figure></figure>#{@alias}<span></span>
-    {{> @progress}}
+    return """
+      <figure></figure>
+      {{> @label}}
+      <span></span>
+      {{> @progress}}
     """
