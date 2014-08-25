@@ -118,12 +118,14 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	case "build":
 		data["queryString"] = s.Data["queryString"]
 		data["ipAddress"] = s.Data["ipAddress"]
+		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
 	case "info":
 		data["meta.instanceName"] = s.Data["instanceName"]
 	case "start":
 		data["ipAddress"] = s.Data["ipAddress"]
+		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
 	default:
