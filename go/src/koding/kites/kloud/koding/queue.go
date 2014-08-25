@@ -193,7 +193,12 @@ func (p *Provider) CleanQueue(timeout time.Duration) error {
 			return err
 		}
 
-		p.Log.Info("[checker] cleaned up %d documents", info.Updated)
+		// only show if there is something, that will prevent spamming the
+		// output with the same content over and over
+		if info.Updated != 0 {
+			p.Log.Info("[checker] cleaned up %d documents", info.Updated)
+		}
+
 		return nil
 	}
 
