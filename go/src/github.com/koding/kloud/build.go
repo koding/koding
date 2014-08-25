@@ -75,7 +75,7 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 				c.MachineId, err.Error())
 
 			status = c.CurrenState
-			msg = err.Error()
+			msg = "Building failed. Please contact support."
 		} else {
 			b.Log.Info("[controller] building machine for id '%s' is successfull. Instance name: %s",
 				c.MachineId, c.Machine.Builder["instanceName"].(string))

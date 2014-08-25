@@ -343,7 +343,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 				r.Method, err.Error(), c.CurrenState)
 
 			status = c.CurrenState
-			msg = err.Error()
+			msg = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
 		}
