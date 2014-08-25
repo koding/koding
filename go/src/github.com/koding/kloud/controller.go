@@ -336,7 +336,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		machOptions := c.Machine
 		machOptions.Eventer = c.Eventer
 
-		k.Log.Info("[controller] running method %s with mach options %v", r.Method, machOptions)
+		k.Log.Debug("[controller] running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[controller] %s failed: %s. Machine state did't change and is set to '%s' now.",

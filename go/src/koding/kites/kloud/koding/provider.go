@@ -416,6 +416,18 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 
 	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
 
+	// Check if the record exist, it can be deleted via stop, therefore just
+	// return lazily
+	_, err = p.DNS.Domain(domainName)
+	if err == ErrNoRecord {
+		return nil
+	}
+
+	// If it's something else just return it
+	if err != nil {
+		return err
+	}
+
 	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
 		return err
 	}

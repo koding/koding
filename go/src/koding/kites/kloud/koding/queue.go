@@ -37,7 +37,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 
 		if err := p.CheckUsage(machine); err != nil {
 			if err == kite.ErrNoKitesAvailable {
-				p.Log.Warning("[%s] can't check machine (%s). klient kite is down, waiting...",
+				p.Log.Warning("[%s] can't check machine (%s). klient kite is not running, waiting...",
 					machine.Id.Hex(), machine.IpAddress)
 			} else {
 				p.Log.Warning("check usage of kite err: %v", err)
