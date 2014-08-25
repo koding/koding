@@ -57,7 +57,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : yes
 
-
+  userSitesDomain     = "#{customDomain.public_}"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
