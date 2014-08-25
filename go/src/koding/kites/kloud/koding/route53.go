@@ -21,10 +21,6 @@ type DNS struct {
 }
 
 func (d *DNS) DeleteDomain(domain string, ips ...string) error {
-	if !validator.IsValidDomain(domain) {
-		return fmt.Errorf("deleting: domain name is not valid: %s", domain)
-	}
-
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",
 		Changes: []route53.Change{
@@ -52,10 +48,6 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 }
 
 func (d *DNS) CreateDomain(domain string, ips ...string) error {
-	if !validator.IsValidDomain(domain) {
-		return fmt.Errorf("creating: domain name is not valid: %s", domain)
-	}
-
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Creating domain",
 		Changes: []route53.Change{
@@ -84,10 +76,6 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 
 // Domain retrieves the record set for the given domain name
 func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
-	if !validator.IsValidDomain(domain) {
-		return route53.ResourceRecordSet{}, fmt.Errorf("creating: domain name is not valid: %s", domain)
-	}
-
 	lopts := &route53.ListOpts{
 		Name: domain,
 	}
@@ -159,5 +147,26 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		ZoneId:  zoneId,
 		Log:     p.Log,
 	}
+	return nil
+}
+
+func validateDomain(domain, username, hostedZone string) error {
+	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
+	if f == domain {
+		return fmt.Errorf("Domain is invalid '%s'", domain)
+	}
+
+	if !strings.Contains(domain, username) {
+		return fmt.Errorf("Domain doesn't contain username '%s'", username)
+	}
+
+	if !strings.Contains(domain, hostedZone) {
+		return fmt.Errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
+	}
+
+	if !validator.IsValidDomain(domain) {
+		return fmt.Errorf("Domain is invalid '%s'", domain)
+	}
+
 	return nil
 }
