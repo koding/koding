@@ -178,7 +178,6 @@ module.exports = {
   fetchJAccountByKiteUserNameAndKey
   serve
   serveHome
-  serveDownHome
   isLoggedIn
   getAlias
   addReferralCode
