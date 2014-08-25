@@ -33,54 +33,31 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
-	// we use findAndModify() to get a unique lock from the DB. That means only
-	// one instance should be responsible for this action. We will update the
-	// assignee if none else is doing stuff with it.
-	change := mgo.Change{
-		Update: bson.M{
-			"$set": bson.M{
-				"assignee.inProgress": true,
-				"assignee.assignedAt": time.Now().UTC(),
-			},
-		},
-		ReturnNew: true,
-	}
-
 	machine := &Machine{}
 	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		// If Find() is successful the Update() above will be applied
-		// (which set's us as assignee). If not, it means someone else is
-		// working on this document and we should return with an error. The
-		// whole process is Atomic and a single transaction.
+		// we use findAndModify() to get a unique lock from the DB. That means only
+		// one instance should be responsible for this action. We will update the
+		// assignee if none else is doing stuff with it.
+		change := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.inProgress": true,
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
+			ReturnNew: true,
+		}
 
-		// Now we query for our document. There are two cases:
-
-		// 1.) assigne.inProgress is false: A false inProgress means that
-		// nobody has picked it up yet and we are good to go.
-
-		// 2.) assigne.inProgress is not nil: kloud might crash during the time
-		// it has selected the document but couldn't unset assigne.inProgress
-		// to false. If kloud doesn't start (because it cleans documents that
-		// belongs to himself at start), assigne.inProgress will be always
-		// true. If that instance nevers starts assigne will not changed ever.
-
-		// Therefore we are going to check if it was assigned 10 minutes ago
-		// and reassign again. However, we also add an additional check which
-		// will prevent multiple readers update the same document. If one is
-		// able to query the document the Update() above will update the
-		// assignedAt to current date, but the next one will be not able to
-		// query it because the second additional date is not valid anymore.
+		// if Find() is successful the Update() above will be applied (which
+		// set's us as assignee by marking the inProgress to true). If not, it
+		// means someone else is working on this document and we should return
+		// with an error. The whole process is atomic and a single transaction.
 		_, err := c.Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
-				"$or": []bson.M{
-					bson.M{"assignee.inProgress": false},
-					bson.M{"$and": []bson.M{
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(time.Minute * 10)}},
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)}},
-					}},
-				},
-			}).Apply(change, &machine)
+				"assignee.inProgress": false,
+			},
+		).Apply(change, &machine)
 		return err
 	})
 
