@@ -256,7 +256,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 
 		Convey("it should have account in db", func() {
 			acc := NewAccount()
-			acc.Id = 1122
+			acc.Id = 112233
 
 			err := acc.UnMarkAsTroll()
 			So(err, ShouldNotBeNil)
@@ -273,7 +273,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 			So(err.Error(), ShouldContainSubstring, "account is not a troll")
 		})
 
-		Convey("it should not have error if troll is mark as not troll", func() {
+		Convey("it should not have error if troll is mark as not a troll", func() {
 			// create account
 			acc := createAccountWithTest()
 			acc.IsTroll = true
@@ -282,5 +282,24 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 			err := acc.UnMarkAsTroll()
 			So(err, ShouldBeNil)
 		})
+	})
+}
+
+func TestAccountMarkAsTroll(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while marking account as troll", t, func() {
+		Convey("it should have account id", func() {
+			acc := NewAccount()
+
+			err := acc.MarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
 	})
 }
