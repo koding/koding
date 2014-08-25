@@ -301,5 +301,25 @@ func TestAccountMarkAsTroll(t *testing.T) {
 			So(err, ShouldEqual, ErrAccountIdIsNotSet)
 		})
 
+		Convey("it should have account in db", func() {
+			acc := NewAccount()
+			acc.Id = 1122312
+
+			err := acc.MarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("it should have error if account is already troll", func() {
+			// create account
+			acc := createAccountWithTest()
+			acc.IsTroll = true
+			So(acc.Create(), ShouldBeNil)
+
+			err := acc.MarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "account is already a troll")
+		})
+
 	})
 }
