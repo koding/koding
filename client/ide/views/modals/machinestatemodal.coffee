@@ -39,6 +39,11 @@ class IDE.MachineStateModal extends IDE.ModalView
     computeController.on "start-#{@machineId}", stateUpdater
     computeController.on "build-#{@machineId}", stateUpdater
 
+    computeController.on "error-#{@machineId}", ({task, err})=>
+
+      @_error = err.message  if err.message?
+      stateUpdater { status: Unknown }
+
     @show()
 
   buildViews: ->
@@ -51,6 +56,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     else if @state in [ Starting, Building, Stopping ]
       @createLoading()
 
+    @createError()
     @createFooter()  unless @footer
 
   createStateLabel: ->
@@ -107,6 +113,16 @@ class IDE.MachineStateModal extends IDE.ModalView
       """
 
     @addSubView @footer
+
+  createError: ->
+    return  unless @_error
+
+    @errorMessage = new KDCustomHTMLView
+      cssClass : 'error-message'
+      partial  : """Failed to change state: #{@_error}"""
+
+    @container.addSubView @errorMessage
+    @_error = null
 
   turnOnMachine: ->
     computeController = KD.getSingleton 'computeController'
