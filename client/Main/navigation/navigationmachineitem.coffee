@@ -54,6 +54,14 @@ class NavigationMachineItem extends JView
         @setClass status.toLowerCase()
 
 
+    @machine.on 'MachineDomainUpdated', @bound 'updateLabel'
+
+
+  updateLabel: ->
+
+    @label.updatePartial @machine.getName()
+
+
   pistachio:->
 
     return """
