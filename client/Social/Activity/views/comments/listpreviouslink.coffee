@@ -2,9 +2,11 @@ class CommentListPreviousLink extends CustomLinkView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'list-previous-link', options.cssClass
+    options.cssClass = KD.utils.curry 'hidden list-previous-link', options.cssClass
 
     super options, data
+
+    @update()
 
 
   update: ->
@@ -12,8 +14,9 @@ class CommentListPreviousLink extends CustomLinkView
     {replies, repliesCount} = @getData()
     {linkCopy}              = @getOptions()
 
-    listedCount = @getDelegate().getItemCount() or replies.length
-    count       = Math.min (repliesCount - listedCount), 10
+    listedCount  = @getDelegate().getItemCount()
+    listedCount ?= replies.length
+    count        = Math.min (repliesCount - listedCount), 10
 
     partial = if linkCopy then linkCopy
     else if listedCount + count < repliesCount
@@ -21,7 +24,8 @@ class CommentListPreviousLink extends CustomLinkView
     else "Show previous #{count} repl#{if count is 1 then 'y' else 'ies'}"
 
     if count > 0
-    then @updatePartial partial
+      @updatePartial partial
+      @show()
     else
       @emit 'ReachedToTheBeginning'
       @hide()

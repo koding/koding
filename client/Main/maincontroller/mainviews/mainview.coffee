@@ -208,7 +208,7 @@ class MainView extends KDView
     @appSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
-      domId               : "main-tab-view"
+      domId               : 'main-tab-view'
       listenToFinder      : yes
       delegate            : this
       slidingPanes        : no
