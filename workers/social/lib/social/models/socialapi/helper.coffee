@@ -33,7 +33,7 @@ requester = ({fnName, validate, guestAccess})->
       if errs.length > 0
         msg = "#{errs.join(', ')} fields are required for #{fnName}"
         return callback { message: msg }
-
+    client.guestAccess = yes if guestAccess
     doRequest fnName, client, options, callback
 
 ensureGroupChannel = (client, callback)->
@@ -51,15 +51,17 @@ doRequest = (funcName, client, options, callback)->
     {connection:{delegate}} = client
     {profile:{nickname}}    = delegate
 
+    options.groupChannelId  = group.socialApiChannelId
+    options.groupName       = group.slug
+    options.accountNickname = nickname
+    options.showExempt    or= delegate.isExempt
+
+    if nickname.indexOf("guest-") >= 0 and client.guestAccess
+      return bareRequest funcName, options, callback
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
 
-      options.groupChannelId  = group.socialApiChannelId
-      options.groupName       = group.slug
-      options.accountId       = socialApiId
-      options.accountNickname = nickname
-      options.showExempt    or= delegate.isExempt
-
+      options.accountId = socialApiId
       bareRequest funcName, options, callback
 
 bareRequest = (funcName, options, callback)->
