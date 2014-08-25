@@ -137,8 +137,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : null
+    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"

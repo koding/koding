@@ -324,9 +324,16 @@ Team Koding
     else
       process.nextTick -> callback null, loginId
 
-  @login = secure (client, credentials, callback)->
-    {username: loginId, password} = credentials
+  @login$ = secure (client, credentials, callback) ->
     {sessionToken: clientId, connection} = client
+    @login clientId, credentials, (err, response) ->
+      return callback err  if err
+      connection.delegate = response.account
+      callback null, response
+
+
+  @login = (clientId, credentials, callback)->
+    { username: loginId, password } = credentials
 
     @normalizeLoginId loginId, (err, username) ->
       return callback err  if err
@@ -362,7 +369,7 @@ Team Koding
               logAndReturnLoginError username, 'Access denied!', callback
             else
               JSessionHistory.create {username}, ->
-                afterLogin connection, user, clientId, session, callback
+                afterLogin user, clientId, session, callback
 
   @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client
@@ -422,7 +429,7 @@ Team Koding
     else
       callback null
 
-  afterLogin = (connection, user, clientId, session, callback)->
+  afterLogin = (user, clientId, session, callback)->
     user.fetchOwnAccount (err, account)->
       if err then return callback err
       checkLoginConstraints user, account, (err)->
@@ -441,7 +448,6 @@ Team Koding
               return callback err  if err
               user.update { $set: lastLoginDate: new Date }, (err) ->
                 return callback err  if err
-                connection.delegate = account
                 JAccount.emit "AccountAuthenticated", account
                 # This should be called after login and this
                 # is not correct place to do it, FIXME GG
