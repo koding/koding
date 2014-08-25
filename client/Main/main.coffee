@@ -1,4 +1,8 @@
 do ->
+  unless KD.config.mainUri?
+    KD.config.mainUri = window.location.origin
+    KD.config.apiUri  = window.location.origin
+
   status           = new Status
   mainController   = new MainController
   currentNotif     = null
