@@ -17,9 +17,6 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	}
 
 	query := request.GetQuery(u)
-	if query.AccountId == 0 {
-		return response.NewBadRequest(errors.New("account id is not set"))
-	}
 
 	c, err := models.ChannelById(channelId)
 	if err != nil {
