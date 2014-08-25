@@ -46,7 +46,6 @@ app        = express()
   fetchJAccountByKiteUserNameAndKey
   serve
   serveHome
-  serveDownHome
   isLoggedIn
   getAlias
   addReferralCode
