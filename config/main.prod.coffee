@@ -428,8 +428,8 @@ Configuration = (options={}) ->
       function services() {
         touch /root/run.services.start
         cd #{projectRoot}/install/docker-mongo
-        docker build -t koding_localbuild/mongo .
-        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
+        docker build -t koding/mongo .
+        docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
         node #{projectRoot}/scripts/permission-updater  -c #{configName} --hard >/dev/null
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
