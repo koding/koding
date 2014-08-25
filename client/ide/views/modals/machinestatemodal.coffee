@@ -1,5 +1,10 @@
 class IDE.MachineStateModal extends IDE.ModalView
 
+  {
+    Stopped, Running, NotInitialized, Terminated, Unknown,
+    Starting, Building, Stopping, Rebooting, Terminating
+  } = Machine.State
+
   constructor: (options = {}, data) ->
 
     options.cssClass or= 'ide-machine-state'
@@ -21,19 +26,18 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @buildViews()
 
-    KD.getSingleton('computeController').on "start-#{@machineId}", (event) =>
+    computeController = KD.getSingleton 'computeController'
+
+    stateUpdater = (event) =>
+
       {status} = event
-      return if status is @state
+      return  if status is @state
 
       @state = status
       @buildViews()
 
-    KD.getSingleton('computeController').on "build-#{@machineId}", (event) =>
-      {status} = event
-      return if status is @state
-
-      @state = status
-      @buildViews()
+    computeController.on "start-#{@machineId}", stateUpdater
+    computeController.on "build-#{@machineId}", stateUpdater
 
     @show()
 
@@ -42,9 +46,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @createStateLabel()
 
-    if @state in ['Stopped', 'Running', 'NotInitialized', 'Terminated', 'Unknown']
+    if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
       @createStateButton()
-    else if @state in [ 'Starting', 'Building', 'Stopping' ]
+    else if @state in [ Starting, Building, Stopping ]
       @createLoading()
 
     @createFooter()  unless @footer
@@ -112,7 +116,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       methodName   = 'start'
       nextState    = 'Starting'
 
-      if @state in [ 'NotInitialized', 'Terminated', 'Unknown' ]
+      if @state in [ NotInitialized, Terminated, Unknown ]
         methodName = 'build'
         nextState  = 'Building'
 
