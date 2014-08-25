@@ -228,6 +228,11 @@ hostname: %s`
 		return nil, err
 	}
 
+	a.Log.Info("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
+		return nil, err
+	}
+
 	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
