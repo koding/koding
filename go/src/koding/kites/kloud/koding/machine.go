@@ -16,7 +16,7 @@ type Machine struct {
 	QueryString string        `bson:"queryString"`
 	IpAddress   string        `bson:"ipAddress"`
 	Assignee    struct {
-		Name       string    `bson:"name"`
+		InProgress bool      `bson:"inProgress"`
 		AssignedAt time.Time `bson:"assignedAt"`
 	} `bson:"assignee"`
 	Status struct {

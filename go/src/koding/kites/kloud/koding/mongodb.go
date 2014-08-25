@@ -39,7 +39,7 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	change := mgo.Change{
 		Update: bson.M{
 			"$set": bson.M{
-				"assignee.name":       p.Assignee(),
+				"assignee.inProgress": true,
 				"assignee.assignedAt": time.Now().UTC(),
 			},
 		},
@@ -55,28 +55,26 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 
 		// Now we query for our document. There are two cases:
 
-		// 1.) assigne.name is nil: A nil assignee means that nobody has
-		// picked it up yet and we are good to go.
+		// 1.) assigne.inProgress is false: A false inProgress means that
+		// nobody has picked it up yet and we are good to go.
 
-		// 2.) assigne.name is not nil: kloud might crash during the time
-		// it has selected the document but couldn't unset assigne.name to
-		// nil. If kloud doesn't start (because it cleans documents that
-		// belongs to himself at start), assigne.name will be always
-		// non-nil. If that instance nevers starts assigne will not changed
-		// ever.
+		// 2.) assigne.inProgress is not nil: kloud might crash during the time
+		// it has selected the document but couldn't unset assigne.inProgress
+		// to false. If kloud doesn't start (because it cleans documents that
+		// belongs to himself at start), assigne.inProgress will be always
+		// true. If that instance nevers starts assigne will not changed ever.
 
-		// Therefore we are going to check if it was assigned 10 minutes
-		// ago and reassign again. However, we also add an additional check
-		// which will prevent multiple readers update the same document. If
-		// one is able to query the document the Update() above will update
-		// the assignedAt to current date, but the next one will be not
-		// able to query it because the second additional date is not valid
-		// anymore.
+		// Therefore we are going to check if it was assigned 10 minutes ago
+		// and reassign again. However, we also add an additional check which
+		// will prevent multiple readers update the same document. If one is
+		// able to query the document the Update() above will update the
+		// assignedAt to current date, but the next one will be not able to
+		// query it because the second additional date is not valid anymore.
 		_, err := c.Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
 				"$or": []bson.M{
-					bson.M{"assignee.name": nil},
+					bson.M{"assignee.inProgress": false},
 					bson.M{"$and": []bson.M{
 						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(time.Minute * 10)}},
 						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)}},
@@ -207,20 +205,7 @@ func (p *Provider) ResetAssignee(id string) error {
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{"assignee.name": nil}},
+			bson.M{"$set": bson.M{"assignee.inProgress": false}},
 		)
-	})
-}
-
-// CleanupOldData cleans up the assigne name that was bound to this kloud but
-// didn't get unset. This happens when the kloud instance crashes before it
-// could unset the assigne.name
-func (p *Provider) CleanupOldData() error {
-	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		_, err := c.UpdateAll(
-			bson.M{"assignee.name": p.Assignee()},
-			bson.M{"$set": bson.M{"assignee.name": nil}},
-		)
-		return err
 	})
 }

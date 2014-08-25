@@ -142,11 +142,8 @@ func newKite(conf *Config) *kite.Kite {
 		TemplateDir:  conf.TemplateDir,
 	}
 
-	if err := kodingProvider.CleanupOldData(); err != nil {
-		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
-	}
-
 	go kodingProvider.RunChecker(time.Second * 10)
+	go kodingProvider.RunCleaner(time.Minute)
 
 	klientFolder := "klient/development/latest"
 	if conf.ProdMode {

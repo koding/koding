@@ -14,6 +14,7 @@ import (
 
 var (
 	FreeUserTimeout = time.Minute * 15
+	CleanUpTimeout  = time.Minute
 )
 
 // RunChecker runs the checker every given interval time. It fetches a single
@@ -36,7 +37,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 
 		if err := p.CheckUsage(machine); err != nil {
 			if err == kite.ErrNoKitesAvailable {
-				p.Log.Warning("[%s] can't check machine [%s]. klient kite is down, waiting...",
+				p.Log.Warning("[%s] can't check machine (%s). klient kite is down, waiting...",
 					machine.Id.Hex(), machine.IpAddress)
 			} else {
 				p.Log.Warning("check usage of kite err: %v", err)
@@ -45,6 +46,19 @@ func (p *Provider) RunChecker(interval time.Duration) {
 	}
 }
 
+// RunCleaner runs the cleaner for the given timeout duration. It cleans
+// up/resets machine documents.
+func (p *Provider) RunCleaner(interval time.Duration) {
+	for _ = range time.Tick(interval) {
+		if err := p.CleanQueue(CleanUpTimeout); err != nil {
+			p.Log.Warning("Cleaning queue: %s", err)
+		}
+	}
+}
+
+// CheckUsage checks a single machine usages patterns and applies certain
+// restrictions (if any available). For example it could stop a machine after a
+// certain inactivity time.
 func (p *Provider) CheckUsage(machine *Machine) error {
 	if machine == nil {
 		return errors.New("machine is nil")
@@ -59,6 +73,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	}
 	defer klient.Close()
 
+	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
 	if err != nil {
 		p.Log.Error("[%s] couldn't get usage to klient: %s", machine.Id.Hex(), err)
@@ -73,10 +88,10 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		return nil
 	}
 
-	// populare a protocol.Machine instance that is needed for the Stop()
-	// method
 	credential := p.GetCredential(machine.Credential)
 
+	// populare a protocol.Machine instance that is needed for the Stop()
+	// method
 	m := &protocol.Machine{
 		MachineId:   machine.Id.Hex(),
 		Provider:    machine.Provider,
@@ -88,14 +103,14 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 
 	m.Builder["username"] = klient.username
 
-	// add a fake eventer, meanse we are not reporting anyone and prevent also
-	// panicing the code when someone try to call the eventer
+	// add a fake eventer, means we are not reporting anyone and prevent also
+	// panicing when someone try to call the eventer
 	m.Eventer = &eventer.Events{}
 
-	// mark it as stopping
+	// mark our state as stopping so otherws know what we are doing
 	p.UpdateState(machine.Id.Hex(), machinestate.Stopping)
 
-	// stop the machine
+	// Hasta la vista, baby!
 	err = p.Stop(m)
 	if err != nil {
 		return err
@@ -120,7 +135,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 		egligibleMachines := bson.M{
 			"provider":            "koding",
 			"status.state":        "Running",
-			"assignee.name":       nil,
+			"assignee.inProgress": false,
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
 		}
 
@@ -130,7 +145,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 		change := mgo.Change{
 			Update: bson.M{
 				"$set": bson.M{
-					"assignee.name":       p.Assignee(),
+					"assignee.inProgress": true,
 					"assignee.assignedAt": time.Now().UTC(),
 				},
 			},
@@ -153,4 +168,34 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 	}
 
 	return machine, nil
+}
+
+// CleanQueue resets documents that where locked by workers who died and left
+// the documents untouched/unlocked. These documents are *ghost* documents,
+// because they have an assignee that is not nil no worker will pick it up. The
+// given timeout specifies
+func (p *Provider) CleanQueue(timeout time.Duration) error {
+	query := func(c *mgo.Collection) error {
+		// machines that can't be updated because they seems to be in progress
+		ghostMachines := bson.M{
+			"assignee.inProgress": true,
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-timeout)},
+		}
+
+		cleanMachines := bson.M{
+			"assignee.inProgress": false,
+			"assignee.assignedAt": time.Now().UTC(),
+		}
+
+		// reset all machines
+		info, err := c.UpdateAll(ghostMachines, bson.M{"$set": cleanMachines})
+		if err != nil {
+			return err
+		}
+
+		p.Log.Info("[checker] cleaned up %d documents", info.Updated)
+		return nil
+	}
+
+	return p.Session.Run("jMachines", query)
 }
