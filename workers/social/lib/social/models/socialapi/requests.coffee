@@ -32,7 +32,7 @@ createChannel = (data, callback)->
   post url, data, callback
 
 fetchChannelActivities = (data, callback)->
-  if not data.channelId or not data.accountId
+  if not data.channelId
     return callback { message: "Request is not valid for fetching activities"}
   url = "/channel/#{data.channelId}/history"
   get url, data, callback
