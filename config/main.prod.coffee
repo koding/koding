@@ -7,6 +7,7 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "localhost"
 
+  hostedZone          = options.hostedZone     or "koding.io"
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"

@@ -9,7 +9,7 @@ class NavigationMachineItem extends JView
   constructor:(options = {}, data)->
 
     machine            = data
-    @alias             = machine.label
+    @alias             = machine.getName()
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
@@ -20,10 +20,13 @@ class NavigationMachineItem extends JView
 
     super options, data
 
-    @machine = @getData()
-    @progress = new KDProgressBarView
+    @machine   = @getData()
+
+    @label     = new KDCustomHTMLView
+      partial  : @alias
+
+    @progress  = new KDProgressBarView
       cssClass : 'hidden'
-      # initial  : Math.floor Math.random() * 100
 
     { computeController } = KD.singletons
 
@@ -51,9 +54,19 @@ class NavigationMachineItem extends JView
         @setClass status.toLowerCase()
 
 
+    @machine.on 'MachineDomainUpdated', @bound 'updateLabel'
+
+
+  updateLabel: ->
+
+    @label.updatePartial @machine.getName()
+
+
   pistachio:->
 
-    """
-    <figure></figure>#{@alias}<span></span>
-    {{> @progress}}
+    return """
+      <figure></figure>
+      {{> @label}}
+      <span></span>
+      {{> @progress}}
     """
