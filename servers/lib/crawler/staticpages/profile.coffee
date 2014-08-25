@@ -1,6 +1,5 @@
 { getProfile } = require '../helpers'
 { getAvatarImageUrl }      = require './activity'
-{ getDock }                = require './feed'
 
 module.exports = (account, statusUpdates)=>
   getGraphMeta = require './graphmeta'
@@ -36,7 +35,6 @@ putContent = (account, statusUpdates)=>
   content  =
     """
     <div id="kdmaincontainer" class="kdview">
-      #{getDock()}
       <section id="main-panel-wrapper" class="kdview">
         <div id="main-tab-view" class="kdview kdscrollview kdtabview">
           <div class="kdview kdtabpaneview content-display clearfix content-display-wrapper content-page active">
