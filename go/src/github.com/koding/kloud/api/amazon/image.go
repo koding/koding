@@ -47,7 +47,7 @@ func (a *Amazon) ImageByTag(tagValue string) (*ec2.Image, error) {
 	f := ec2.NewFilter()
 
 	// Only with the name we want
-	f.Add("tag-value", tagValue)
+	f.Add("tag:Name", tagValue)
 
 	resp, err := a.Client.Images([]string{}, f)
 	if err != nil {

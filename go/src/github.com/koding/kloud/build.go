@@ -75,7 +75,7 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 				c.MachineId, err.Error())
 
 			status = c.CurrenState
-			msg = err.Error()
+			msg = "Building failed. Please contact support."
 		} else {
 			b.Log.Info("[controller] building machine for id '%s' is successfull. Instance name: %s",
 				c.MachineId, c.Machine.Builder["instanceName"].(string))
@@ -91,10 +91,11 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 	}()
 
 	machOptions := &protocol.Machine{
-		MachineId:  c.MachineId,
-		Eventer:    c.Eventer,
-		Credential: c.Machine.Credential,
-		Builder:    c.Machine.Builder,
+		MachineId:   c.MachineId,
+		Eventer:     c.Eventer,
+		Credential:  c.Machine.Credential,
+		Builder:     c.Machine.Builder,
+		CurrentData: c.Machine.CurrentData,
 	}
 
 	msg := fmt.Sprintf("Building process started. Provider '%s'. MachineId: %+v",
@@ -122,25 +123,11 @@ meta data     : %# v
 
 	var artifact *protocol.Artifact
 
-	// Start the canceller for the build if something goes wrong. Like deleting
-	// the terminate.
-	defer func() {
-		if err == nil || c.Canceller == nil {
-			return
-		}
-
-		b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'",
-			c.MachineId)
-
-		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
-			b.Log.Info("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
-		}
-	}()
-
 	artifact, err = c.Builder.Build(machOptions)
 	if err != nil {
 		return nil, err
 	}
+
 	if artifact == nil {
 		return nil, NewError(ErrBadResponse)
 	}
@@ -154,6 +141,21 @@ meta data     : %# v
 	c.Machine.Builder["instanceName"] = artifact.InstanceName
 
 	r.Context.Set("buildArtifact", artifact)
+
+	// Start the canceller for the build if something goes wrong. Like deleting
+	// the terminate.
+	defer func() {
+		if err == nil || c.Canceller == nil {
+			return
+		}
+
+		b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'",
+			c.MachineId)
+
+		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
+			b.Log.Debug("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
+		}
+	}()
 
 	deployArtifact, err := b.deployer.ServeKite(r)
 	if err != nil {

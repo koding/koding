@@ -65,7 +65,7 @@ func TestHandler_WebSocketTerminationByServer(t *testing.T) {
 		t.Errorf("Open frame expected, got '%s' and error '%v', expected '%s' without error", msg, err, `c[1024,"some close message"]`)
 	}
 	_, msg, err = conn.ReadMessage()
-	if err != io.EOF {
+	if err != io.ErrUnexpectedEOF {
 		t.Errorf("Expected '%v', got '%v'", io.EOF, err)
 	}
 }

@@ -508,3 +508,6 @@ Configuration = (options={}) ->
   return KONFIG
 
 module.exports = Configuration
+
+# -*- mode: coffee -*-
+# vi: set ft=coffee nowrap :

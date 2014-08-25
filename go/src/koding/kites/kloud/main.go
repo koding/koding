@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -124,7 +125,7 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	id := uniqueId()
+	id := uniqueId(k.Config.Port)
 	if conf.Id != "" {
 		id = conf.Id
 	}
@@ -133,6 +134,7 @@ func newKite(conf *Config) *kite.Kite {
 	db := modelhelper.Mongo
 
 	kodingProvider := &koding.Provider{
+		Kite:         k,
 		Log:          newLogger("koding", conf.DebugMode),
 		AssigneeName: id,
 		Session:      db,
@@ -140,9 +142,8 @@ func newKite(conf *Config) *kite.Kite {
 		TemplateDir:  conf.TemplateDir,
 	}
 
-	if err := kodingProvider.CleanupOldData(); err != nil {
-		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
-	}
+	go kodingProvider.RunChecker(time.Second * 10)
+	go kodingProvider.RunCleaner(time.Minute)
 
 	klientFolder := "klient/development/latest"
 	if conf.ProdMode {
@@ -192,12 +193,11 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("report", kodingProvider.Report)
 
 	return k
 }
 
-func uniqueId() string {
+func uniqueId(port int) string {
 	// TODO: add a unique identifier, for letting multiple version of the same
 	// worker work on the same hostname.
 	hostname, err := os.Hostname()
@@ -205,7 +205,7 @@ func uniqueId() string {
 		panic(err) // we should not let it start
 	}
 
-	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+	return fmt.Sprintf("%s-%s-%d", kloud.NAME, hostname, port)
 }
 
 func newLogger(name string, debug bool) logging.Logger {
