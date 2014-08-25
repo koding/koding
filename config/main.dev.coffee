@@ -57,7 +57,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : yes
 
-  userSitesDomain     = "#{customDomain.public_}"
+
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -71,6 +71,7 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : {address: "#{customDomain.public}"}
     userSitesDomain                : userSitesDomain
+    hostedZone                     : hostedZone
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
@@ -136,6 +137,7 @@ Configuration = (options={}) ->
     version           : version
     resourceName      : socialQueueName
     userSitesDomain   : userSitesDomain
+    hostedZone        : hostedZone
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : null
