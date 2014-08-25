@@ -207,7 +207,6 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.send 200, authTemplate data
 
-<<<<<<< HEAD
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
@@ -227,9 +226,6 @@ app.post "/:name?/Login", (req, res) ->
     res.cookie 'clientId', response.replacementToken
     res.send 200, 'ok'
 
-
-=======
->>>>>>> bongo: be more robust in the face of failure
 app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 301, '/'
