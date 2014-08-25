@@ -9,7 +9,7 @@ class NavigationMachineItem extends JView
   constructor:(options = {}, data)->
 
     machine            = data
-    @alias             = machine.label
+    @alias             = machine.getName()
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
