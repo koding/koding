@@ -110,6 +110,10 @@ type Artifact struct {
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 
+	// DomainName defines the current domain record that is bound to the given
+	// IpAddress
+	DomainName string
+
 	// Username defines the username to which the machine belongs.
 	Username string
 

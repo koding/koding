@@ -254,6 +254,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 			Type: "start",
 			Data: map[string]interface{}{
 				"ipAddress":    resp.IpAddress,
+				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
 			},

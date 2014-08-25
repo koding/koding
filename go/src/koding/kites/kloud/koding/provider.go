@@ -265,6 +265,8 @@ hostname: %s`
 		return nil, err
 	}
 
+	buildArtifact.DomainName = domainName
+
 	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
 }
@@ -341,6 +343,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
+
+	artifact.DomainName = domainName
 
 	///// ROUTE 53 /////////////////
 
