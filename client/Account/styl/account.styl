@@ -42,61 +42,66 @@ body.account
   .settings-list-wrapper
 
     .kdbutton.solid // Move these to fw [BC]
-      rounded             3px
+      rounded                   3px
 
       &.green
-        background        #61C17F
+        background              #61C17F
 
       &.red
-        background        #D75B5B
+        background              #D75B5B
 
       &.medium
-        height            40px
-        line-height       42px
+        height                  40px
+        line-height             42px
 
     form
+      margin-right              -17px
+
       .formline
-        padding            0 17px 0 0
-        margin             0 0 16px
+        padding                 0 17px 0 0
+        margin                  0 0 16px
         borderBox()
 
         .input-wrapper
-          margin           0
+          margin                0
 
         &.button-field
-          clear            both
-          border           none
-          margin-top       6px
+          clear                 both
+          border                none
+          margin-top            6px
+
+          .kdbutton
+            margin-left         6px
 
     .kdlabel
-      font-size            14px
-      color                #8D8D8D
-      float                none
-      line-height          19px
-      margin               0 0 7px
-      font-weight          200
+      font-size                 14px
+      color                     #8D8D8D
+      float                     none
+      line-height               19px
+      margin                    0 0 7px
+      font-weight               200
 
     .kdinput.text
-      rounded              3px
-      background           #fff
-      border               1px solid #C9C9C9
-      padding              8px 13px 10px
-      font-size            14px
-      line-height          19px
-      color                #4C4C4C
-      font-weight          600
-      opacity              .99
-      margin               0
+      rounded                   3px
+      background                #fff
+      border                    1px solid #C9C9C9
+      padding                   8px 13px 10px
+      font-size                 14px
+      line-height               19px
+      color                     #4C4C4C
+      font-weight               600
+      opacity                   .99
+      margin                    0
 
     .lazy-loader
-      text-align          center
-      padding             40px 0
+      text-align                center
+      padding                   40px 0
 
     .no-item-found
-      color               #878787
-      font-size           14px
-      padding             24px 0
-      text-align          center
+      color                     #878787
+      font-size                 14px
+      padding                   24px 0
+      text-align                center
 
     &.user-profile
       .account-avatar-area
@@ -158,6 +163,7 @@ body.account
             width                 100%
             clear                 both
             margin-bottom         21px
+            margin-top            21px
 
           &.button-field
             width                 100%
@@ -198,64 +204,130 @@ body.account
           margin-top              18px
           fr()
 
-    &.payment-methods
-      .add-method-btn
-        size                      100%, 40px
-        border                    1px dashed #D0D0D0
-        background                #fff
-        rounded                   3px
-        margin                    0 0 16px 0
-        padding                   0
+    &.delete-account
+      .delete-account-view
         line-height               40px
 
-        .button-title
-          font-size               14px
-          line-height             inherit
-          font-weight             600
-          color                   #878787
-          opacity                 .99
+        .kdbutton.delete-account
+          -webkit-transition      -webkit-transform .2s ease
+          -moz-transition         -moz-transform .2s ease
+          transition              transform .2s ease
 
-        .icon
-          padding                 0
-          margin                  0 12px 0 0
-          display                 inline-block
-          float                   none
-          r-sprite                'account', 'plus-10'
+          &.escape
+            vendor                transform, translateX(-120%)
 
+    &.credentials
 
-      .payment-method
-        height                    62px
-        border-bottom             1px solid #DEDEDE
-        line-height               19px
-        font-size                 14px
-        padding                   13px 0 0
-        borderBox()
+      &.form-open
+        ul.credentials
+          display                 none
 
-        .billing-link
+        .account-add-big-btn
+          display                 none
+
+      &.share-open
+        .credential-item:not(.sharing-item)
+          display                 none
+
+        .sharing-item
+          margin-bottom           24px
+
+      form
+        margin-right              -17px
+
+        .formline
+          width                   25%
+          min-width               179px
           fl()
 
-        .card-type
-          color                   #7B7B7B
-          opacity                 .99
+          &.owner
+            margin-top            31px
 
-        pre
-          color                   #4C4C4C
-          font-weight             600
-          opacity                 .99
+            .kdlabel
+              margin              0 7px 0 0
+              line-height         27px
+              fl()
 
-        .payment-method-controls
+        .button-field
+          width                   auto
+          clear                   none
+          margin-top              25px
           fr()
 
-          a
+      .credential-item
+        size                      100%, auto
+        padding                   23px 0
+        margin                    0
+        border-bottom             1px solid #DEDEDE
+
+        .kdview
+          height                  auto
+
+        .credential-info
+          font-size               14px
+          line-height             19px
+          fl()
+
+          h4
+            font-weight           600
+            margin                0 0 1px
+            padding               0
+            color                 #4C4C4C
+
+          p
+            font-weight           400
+            color                 #7B7B7B
+
+        .buttons
+          fr()
+
+          .kdbutton
             display               block
             margin                10px 0 0 16px
+            background            transparent
+            border                none
             fr()
 
-            &.edit
-              r-sprite            'app', 'edit-gray-16'
+            &.share
+              r-sprite            'app', 'share-gray-16'
 
-            &.remove
+            &.show
+              r-sprite            'app', 'zoomin-gray-16'
+
+            &.participants
+              r-sprite            'app', 'users-gray-16'
+
+            &.delete
               r-sprite            'app', 'delete-gray-16'
+
+    &.koding-keys
+      .no-item-found
+        padding                   0
+        text-align                left
+        line-height               19px
+        color                     #000
+
+        h2
+          font-weight             600
+          color                   #D75B5B
+          display                 block
+          padding                 16px
+          border                  1px solid #D75B5B
+          rounded                 3px
+          margin-bottom           24px
+
+        code
+          display                 block
+          background              #efefef
+          padding                 16px
+          margin                  8px 0
+          color                   #323232
+          rounded                 3px
+          font-family             "SourceCodePro"
+
+          a
+            color                 #323232
+
 
     &.your-subscriptions
 
@@ -344,3 +416,165 @@ body.account
        display                    block
        margin                     0
        padding                    0
+
+
+.kdmodal.payments-modal
+  .kdmodal-content
+    overflow-x          hidden
+
+  .payment-method-entry-form
+
+    .kdbutton.solid
+      rounded           3px
+
+      &.green
+        background      #61C17F
+
+      &.red
+        background       #D75B5B
+
+      &.medium
+        height           40px
+        line-height      42px
+
+    .formline
+      padding            0
+      margin             0 0 16px
+      borderBox()
+
+      .input-wrapper
+        margin           0
+
+      &.section-header
+        width            100%
+        clear            both
+        margin-bottom    21px
+        margin-top       21px
+
+      &.button-field
+        clear            both
+        border           none
+        margin-top       6px
+
+        .kdbutton
+          margin-left    6px
+
+        .to-left
+          margin-left    0
+
+      .kdheaderview
+        display          block
+        font-size        14px
+        line-height      19px
+        size             auto, auto
+        color            #4C4C4C
+        margin           0
+        padding          0
+        border           none
+        font-weight      600
+
+        span
+          margin         0
+          padding        0
+
+    .kdlabel
+      font-size            14px
+      color                #8D8D8D
+      float                none
+      line-height          19px
+      margin               0 0 7px
+      font-weight          200
+
+    .kdinput.text
+      rounded              3px
+      background           transparent
+      border               1px solid #C9C9C9
+      padding              8px 13px 10px
+      font-size            14px
+      line-height          19px
+      color                #4C4C4C
+      font-weight          600
+      opacity              .99
+      margin               0
+
+
+    .formline
+      width              50%
+      padding-right      17px
+      fl()
+
+      &.cardstate
+        width            25%
+
+      &.cardcountry
+        width            25%
+
+      &.cardmonth
+        width            16.6%
+
+      &.cardyear
+        width            16.6%
+
+      &.cardcv
+        width            16.6%
+
+      &.captcha
+        width            100%
+        border           none
+
+        .recaptchatable
+          border            none !important
+          tr
+            height          auto
+
+          td
+            padding         0 !important
+            margin          0 !important
+
+          td.recaptcha_image_cell
+          td.recaptcha_image_cell ~ td
+            padding         0 20px 16px 0 !important
+
+        .recaptcha_input_area
+          padding           0 !important
+          margin            0 !important
+
+        #recaptcha_response_field
+          rounded           3px
+          background        transparent
+          border            1px solid #C9C9C9 !important
+          padding           8px 13px 10px
+          font-size         14px
+          line-height       19px
+          color             #4C4C4C
+          font-weight       600
+          opacity           .99
+          margin            0
+          height            auto
+          outline           none
+          borderBox()
+
+          &::-webkit-input-placeholder
+            color           #93979a
+            font-weight     300
+          &:-moz-placeholder
+            color           #93979a
+            font-weight     300
+
+          &:hover
+            border          1px solid #aaa !important
+
+          &:focus
+            border          1px solid rgba(125,190,241,1) !important
+            shadow          0 0 3px rgba(125,190,241,.7)
+
+            &::-webkit-input-placeholder
+              opacity       0.5
+            &:-moz-placeholder
+              opacity       0.5
+
+    .section-header
+      width              100%
+
+    .button-field
+      width              100%

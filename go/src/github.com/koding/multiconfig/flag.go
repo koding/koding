@@ -20,6 +20,7 @@ type FlagLoader struct {
 	Prefix string
 }
 
+// Load loads the source into the config defined by struct s
 func (f *FlagLoader) Load(s interface{}) error {
 	strct := structs.New(s)
 	structName := strct.Name()

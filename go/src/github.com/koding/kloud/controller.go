@@ -18,6 +18,7 @@ type Controller struct {
 	ProviderName string              `json:"-"`
 	Controller   protocol.Controller `json:"-"`
 	Builder      protocol.Builder    `json:"-"`
+	Canceller    protocol.Canceller  `json:"-"`
 	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
 	Username     string              `json:"-"`
@@ -165,10 +166,16 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			CurrenState:  machine.State,
 		}
 
+		// check if the provider
+		canceller, err := k.Canceller(machine.Provider)
+		if err == nil {
+			c.Canceller = canceller
+		}
+
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
 			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
-			err := limiter.Limit(c.GetMachine(), r.Method)
+			err := limiter.Limit(c.Machine, r.Method)
 			if err != nil {
 				return nil, err
 			}
@@ -178,15 +185,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// run forrest run...!
 		return control(r, c)
 	})
-}
-
-func (c *Controller) GetMachine() *protocol.Machine {
-	return &protocol.Machine{
-		MachineId:  c.MachineId,
-		Credential: c.Machine.Credential,
-		Builder:    c.Machine.Builder,
-		Eventer:    c.Eventer,
-	}
 }
 
 // methodHas checks if the method exist for the given methods
@@ -215,7 +213,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 		}, nil
 	}
 
-	machOptions := c.GetMachine()
+	machOptions := c.Machine
 
 	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use
 	machOptions.Eventer = &eventer.Events{}
@@ -340,7 +338,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 
-		machOptions := c.GetMachine()
+		machOptions := c.Machine
+		machOptions.Eventer = c.Eventer
 
 		k.Log.Info("[controller] running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)

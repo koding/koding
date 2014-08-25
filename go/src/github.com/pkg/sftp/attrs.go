@@ -17,62 +17,93 @@ const (
 	ssh_FILEXFER_ATTR_EXTENDED    = 0x80000000
 )
 
-type attr struct {
-	name  string
-	size  uint64
-	mode  os.FileMode
+// fileInfo is an artificial type designed to satisfy os.FileInfo.
+type fileInfo struct {
+	name string
+	size int64
+	mode os.FileMode
 	mtime time.Time
+	sys interface{}
 }
 
 // Name returns the base name of the file.
-func (a *attr) Name() string { return a.name }
+func (fi *fileInfo) Name() string { return fi.name }
 
 // Size returns the length in bytes for regular files; system-dependent for others.
-func (a *attr) Size() int64 { return int64(a.size) }
+func (fi *fileInfo) Size() int64 { return fi.size }
 
 // Mode returns file mode bits.
-func (a *attr) Mode() os.FileMode { return a.mode }
+func (fi *fileInfo) Mode() os.FileMode { return fi.mode }
 
 // ModTime returns the last modification time of the file.
-func (a *attr) ModTime() time.Time { return a.mtime }
+func (fi *fileInfo) ModTime() time.Time { return fi.mtime }
 
 // IsDir returns true if the file is a directory.
-func (a *attr) IsDir() bool { return a.Mode().IsDir() }
+func (fi *fileInfo) IsDir() bool { return fi.Mode().IsDir() }
 
-func (a *attr) Sys() interface{} { return a }
+func (fi *fileInfo) Sys() interface{} { return fi.sys }
 
-func unmarshalAttrs(b []byte) (*attr, []byte) {
+// FileStat holds the original unmarshalled values from a call to READDIR or *STAT.
+// It is exported for the purposes of accessing the raw values via os.FileInfo.Sys()
+type FileStat struct {
+	Size  uint64
+	Mode  uint32
+	Mtime uint32
+	Atime uint32
+	Uid uint32
+	Gid uint32
+	Extended []StatExtended
+}
+
+type StatExtended struct {
+	ExtType string
+	ExtData string
+}
+
+func fileInfoFromStat(st *FileStat, name string) os.FileInfo {
+	fs := &fileInfo{
+		name: name,
+		size: int64(st.Size),
+		mode: toFileMode(st.Mode),
+		mtime: time.Unix(int64(st.Mtime), 0),
+		sys: st,
+	}
+	return fs
+}
+
+func unmarshalAttrs(b []byte) (*FileStat, []byte) {
 	flags, b := unmarshalUint32(b)
-	var a attr
+	var fs FileStat
 	if flags&ssh_FILEXFER_ATTR_SIZE == ssh_FILEXFER_ATTR_SIZE {
-		a.size, b = unmarshalUint64(b)
+		fs.Size, b = unmarshalUint64(b)
 	}
 	if flags&ssh_FILEXFER_ATTR_UIDGID == ssh_FILEXFER_ATTR_UIDGID {
-		_, b = unmarshalUint32(b) // discarded
+		fs.Uid, b = unmarshalUint32(b)
 	}
 	if flags&ssh_FILEXFER_ATTR_UIDGID == ssh_FILEXFER_ATTR_UIDGID {
-		_, b = unmarshalUint32(b) // discarded
+		fs.Gid, b = unmarshalUint32(b)
 	}
 	if flags&ssh_FILEXFER_ATTR_PERMISSIONS == ssh_FILEXFER_ATTR_PERMISSIONS {
-		var mode uint32
-		mode, b = unmarshalUint32(b)
-		a.mode = toFileMode(mode)
+		fs.Mode, b = unmarshalUint32(b)
 	}
 	if flags&ssh_FILEXFER_ATTR_ACMODTIME == ssh_FILEXFER_ATTR_ACMODTIME {
-		var mtime uint32
-		_, b = unmarshalUint32(b) // discarded
-		mtime, b = unmarshalUint32(b)
-		a.mtime = time.Unix(int64(mtime), 0)
+		fs.Atime, b = unmarshalUint32(b)
+		fs.Mtime, b = unmarshalUint32(b)
 	}
 	if flags&ssh_FILEXFER_ATTR_EXTENDED == ssh_FILEXFER_ATTR_EXTENDED {
 		var count uint32
 		count, b = unmarshalUint32(b)
+		ext := make([]StatExtended,count,count)
 		for i := uint32(0); i < count; i++ {
-			_, b = unmarshalString(b)
-			_, b = unmarshalString(b)
+			var typ string
+			var data string
+			typ, b = unmarshalString(b)
+			data, b = unmarshalString(b)
+			ext[i] = StatExtended{typ,data}
 		}
+		fs.Extended = ext
 	}
-	return &a, b
+	return &fs, b
 }
 
 // toFileMode converts sftp filemode bits to the os.FileMode specification

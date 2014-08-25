@@ -82,7 +82,7 @@ class KodingRouter extends KDRouter
       then status_404()
       else status_301 target
 
-  getDefaultRoute: -> if KD.isLoggedIn() then '/Activity' else '/Home'
+  getDefaultRoute: -> if KD.isLoggedIn() then '/IDE' else '/Home'
 
   setPageTitle: (title = 'Koding') -> document.title = Encoder.htmlDecode title
 

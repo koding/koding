@@ -132,20 +132,26 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Account'
         @hide()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : 'Environments'
-      click      : (event)=>
-        KD.utils.stopDOMEvent event
-        KD.getSingleton("router").handleRoute "/Environments"
-        @hide()
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   partial    : 'Environments'
+    #   click      : (event)=>
+    #     KD.utils.stopDOMEvent event
+    #     KD.getSingleton("router").handleRoute "/Environments"
+    #     @hide()
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
+    # @avatarPopupContent.addSubView new KDCustomHTMLView
+    #   tagName    : 'a'
+    #   partial    : 'System health check'
+    #   click      : (event)=>
+    #     new TroubleshootModal
+    #     @hide()
+
+    @avatarPopupContent.addSubView new CustomLinkView
       tagName    : 'a'
-      partial    : 'System health check'
-      click      : (event)=>
-        new TroubleshootModal
-        @hide()
+      title      : 'Koding University'
+      href       : 'http://learn.koding.com'
+      target     : '_blank'
 
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"

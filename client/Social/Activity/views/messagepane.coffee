@@ -231,7 +231,7 @@ class MessagePane extends KDTabPaneView
     if @input
       @input.focus()
     else
-      @listController.getListItems().first?.commentBox.inputForm.input.setFocus()
+      @listController.getListItems().first?.commentBox.input.focus()
 
 
   populate: ->
@@ -277,7 +277,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless last
 
-    from         = last.getData().meta.createdAt.toISOString()
+    from         = last.getData().createdAt
 
     @fetch {from}, (err, items = []) =>
       @listController.hideLazyLoader()

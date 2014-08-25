@@ -57,6 +57,12 @@ func (k *Kloud) initializeProviders() {
 	// digitalocean logs trendemenous amount of log, disable it
 	log.SetOutput(ioutil.Discard)
 
+	// be sure they they satisfy the builder interface, makes it easy to catch
+	// it on compile time :)
+	var _ protocol.Builder = &digitalocean.Provider{}
+	var _ protocol.Builder = &amazon.Provider{}
+	var _ protocol.Builder = &openstack.Provider{}
+
 	k.AddProvider("digitalocean", &digitalocean.Provider{
 		Log: k.newLogger("digitalocean"),
 	})
@@ -88,8 +94,14 @@ func (k *Kloud) newLogger(name string) logging.Logger {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider interface{}) {
+func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
+	_, ok := k.providers[providerName]
+	if ok {
+		NewError(ErrProviderAvailable)
+	}
+
 	k.providers[providerName] = provider
+	return nil
 }
 
 // Builder returns the builder for the given provideName
@@ -105,6 +117,21 @@ func (k *Kloud) Builder(providerName string) (protocol.Builder, error) {
 	}
 
 	return builder, nil
+}
+
+// Canceller returns the canceller for the given provideName
+func (k *Kloud) Canceller(providerName string) (protocol.Canceller, error) {
+	provider, ok := k.providers[providerName]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	canceller, ok := provider.(protocol.Canceller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	return canceller, nil
 }
 
 // Controller returns the controller for the given provideName

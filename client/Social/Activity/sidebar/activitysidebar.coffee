@@ -1,3 +1,10 @@
+# this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
+# once we merged two sidebars into one
+# activity sidebar became the mainsidebar
+# and unfortunately we have too mcuh goin on here right now.
+# vm menu and activity menu should be separated,
+# needs a little refactor. - SY
+
 class ActivitySidebar extends KDCustomHTMLView
 
 
@@ -327,6 +334,15 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
+    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
+
+      @addSubView @activityLink = new CustomLinkView
+        title    : 'Activity'
+        cssClass : 'kdlistitemview-sidebar-item activity'
+        href     : '/Activity/Public'
+        click    : -> @setClass 'selected'
+        icon     : {}
+
 
   listMachines: (machines) ->
 
@@ -345,16 +361,16 @@ class ActivitySidebar extends KDCustomHTMLView
         type     : 'workspace'
         href     : "/IDE/VM/#{machine.uid}"
         parentId : id
-      treeData.push
-        id       : "#{id}-apps"
-        title    : 'Apps'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'App Store'
-        type     : 'app'
-        href     : '/Apps'
-        parentId : id
+      # treeData.push
+      #   id       : "#{id}-apps"
+      #   title    : 'Apps'
+      #   type     : 'title'
+      #   parentId : id
+      # treeData.push
+      #   title    : 'App Store'
+      #   type     : 'app'
+      #   href     : '/Apps'
+      #   parentId : id
 
 
     @machineTree.addNode data for data in treeData
@@ -386,7 +402,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : 'VMs <a href="/Pricing" class="buy-vm"></a>'
+      partial  : 'VMs'
+
+    header.addSubView new KDCustomHTMLView
+      tagName  : 'a'
+      cssClass : 'buy-vm'
+      click    : @bound 'createBuyNewMachineModal'
 
     section.addSubView @machineTree.getView()
 
@@ -394,28 +415,35 @@ class ActivitySidebar extends KDCustomHTMLView
 
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
-
-
-
     if KD.userMachines.length
-    then @listMachines KD.userMachines
-    else @fetchMachines @bound 'listMachines'
-
+      @listMachines KD.userMachines
+      @updateMachineTree()
+    else
+      @fetchMachines @bound 'listMachines'
 
   handleMachineItemClick: (machineItem, event) ->
 
-    machine = machineItem.getData()
+    machine  = machineItem.getData()
+    {status} = machine
+    {Building, Running} = Machine.State
+
+    @activityLink?.unsetClass 'selected'
 
     if event.target.nodeName is 'SPAN'
 
-      KD.utils.stopDOMEvent event
-      KD.singletons.mainView.openMachineModal machine, machineItem
+      if status.state is Running
+        KD.utils.stopDOMEvent event
+        KD.singletons.mainView.openMachineModal machine, machineItem
+      else return
 
     else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
 
       @handleMachineToggle machineItem, event
 
     else if machineItem.type in ['app', 'workspace']
+
+      @machineTree.deselectNode machineItem
+      @machineTree.selectNode @machineTree.nodes[machineItem.getData().parentId]
 
       return
 
@@ -454,6 +482,9 @@ class ActivitySidebar extends KDCustomHTMLView
           limit : 5
         , callback
 
+    if KD.singletons.mainController.isFeatureDisabled 'channels'
+      @sections.followedTopics.hide()
+
 
 
 
@@ -471,6 +502,9 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.channel.fetchPinnedMessages
           limit : 5
         , callback
+
+    if KD.singletons.mainController.isFeatureDisabled 'threads'
+      @sections.conversations.hide()
 
 
   addMessages: ->
@@ -490,3 +524,35 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
+
+    if KD.singletons.mainController.isFeatureDisabled 'private-messages'
+      @sections.messages.hide()
+
+
+  createBuyNewMachineModal: ->
+
+    modal = new BuyMachineModal
+
+    modal.once 'MachineCreated', (newMachine) =>
+      @updateMachineTree =>
+        tree = @machineTree
+
+        for node, i in tree.indexedNodes
+          if node.data?._id is newMachine._id
+            index = i
+
+        if index
+          tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
+          KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
+
+
+  updateMachineTree: (callback = noop) ->
+
+    @fetchMachines (machines) =>
+      jMachines = []
+      tree      = @machineTree
+      jMachines.push machine.data for machine in machines
+
+      tree.removeAllNodes()
+      @listMachines jMachines
+      callback()

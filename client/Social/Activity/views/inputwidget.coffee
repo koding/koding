@@ -75,6 +75,9 @@ class ActivityInputWidget extends KDView
         @bugNotification.hide()
 
     @on "SubmitStarted", =>
+
+      @hidePreview()  if @preview
+
       @unsetClass "bug-tagged"
       @bugNotification.once 'transitionend', =>
         @bugNotification.hide()
@@ -155,7 +158,10 @@ class ActivityInputWidget extends KDView
           userMessage: "You are not allowed to edit this post."
         return @showError err, options
 
-      callback()
+      activity.body = body
+      activity.emit 'update'
+
+      callback err, activity
 
       KD.mixpanel "Status update edit, success"
 
@@ -204,19 +210,7 @@ class ActivityInputWidget extends KDView
 
     return unless value = @input.getValue().trim()
 
-    data            =
-      on            : -> return this
-      watch         : -> return this
-      account       : { _id : KD.whoami().getId(), constructorName : "JAccount"}
-      body          : value
-      typeConstant  : 'post'
-      replies       : []
-      interactions  :
-        like        :
-          actorsCount : 0
-          actorsPreview : []
-      meta          :
-        createdAt   : new Date
+    data = KD.utils.generateDummyMessage value
 
     @preview?.destroy()
     @addSubView @preview = new ActivityListItemView cssClass: 'preview', data

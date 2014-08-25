@@ -2,7 +2,7 @@ class ActivityListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
     options.type               = 'activity'
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
@@ -12,24 +12,36 @@ class ActivityListItemView extends KDListItemView
 
     super options, data
 
-    data   = @getData()
-    list   = @getDelegate()
+    @createSubViews()
+    @initViewEvents()
+    @initDataEvents()
+
+    {_id, constructorName} = data.account
+    KD.remote.cacheable constructorName, _id, (err, account) =>
+
+
+  createSubViews: ->
+
+    data    = @getData()
+    list    = @getDelegate()
+    options = @getOptions()
+
     origin =
       constructorName : data.account.constructorName
       id              : data.account._id
 
-    @avatar = new AvatarView
-      size       :
-        width    : 37
-        height   : 37
-      cssClass   : 'author-avatar'
-      origin     : origin
+    @avatar    = new AvatarView
+      size     :
+        width  : 37
+        height : 37
+      cssClass : 'author-avatar'
+      origin   : origin
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass, activitySettings: {disableFollow}} = @getOptions()
+    {commentViewClass, activitySettings: {disableFollow}} = options
 
-    @commentBox = new commentViewClass options.commentSettings, data
+    @commentBox  = new commentViewClass options.commentSettings, data
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
@@ -39,13 +51,6 @@ class ActivityListItemView extends KDListItemView
       itemView      : this
       disableFollow : disableFollow
     , data
-
-    @settingsButton.on 'ActivityIsDeleted',     @bound 'delete'
-    data.on 'PostIsDeleted',                    @bound 'delete'
-    @settingsButton.on 'ActivityEditIsClicked', @bound 'showEditWidget'
-
-    data.watch 'repliesCount', (count) =>
-      @commentBox.decorateCommentedState() if count >= 0
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
@@ -61,10 +66,36 @@ class ActivityListItemView extends KDListItemView
     else
       new KDCustomHTMLView
 
-    @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
+    @timeAgoView = new KDTimeAgoView {}, @getData().createdAt
 
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
+
+
+  initViewEvents: ->
+
+    @settingsButton.on 'ActivityIsDeleted',     @bound 'delete'
+    @settingsButton.on 'ActivityEditIsClicked', @bound 'showEditWidget'
+
+
+  initDataEvents: ->
+
+    data = @getData()
+
+    data.on 'PostIsDeleted', @bound 'delete'
+    data.on 'update',        @bound 'handleUpdate'
+
+    data.watch 'repliesCount', (count) =>
+      @commentBox.decorateCommentedState() if count >= 0
+
+
+  handleUpdate: (fields) ->
+
+    { createdAt, updatedAt } = @getData()
+
+    if updatedAt > createdAt
+    then @setClass 'edited'
+    else @unsetClass 'edited'
 
 
   showEditWidget : ->
@@ -73,9 +104,15 @@ class ActivityListItemView extends KDListItemView
     @editWidget = new ActivityEditWidget null, @getData()
     @editWidget.on 'SubmitSucceeded', @bound 'resetEditing'
     @editWidget.input.on 'Escape', @bound 'resetEditing'
+
+    KD.utils.defer @editWidget.bound 'focus'
+
     @editWidgetWrapper.addSubView @editWidget, null, yes
     @editWidgetWrapper.show()
+
     @setClass 'editing'
+    @unsetClass 'edited'
+
 
 
   resetEditing : ->
@@ -211,6 +248,10 @@ class ActivityListItemView extends KDListItemView
 
     @setAnchors()
 
+    { updatedAt, createdAt } = @getData()
+
+    @setClass 'edited'  if updatedAt > createdAt
+
     @utils.defer =>
       if @getData().link?.link_url? isnt ''
       then @embedBox.show()
@@ -233,3 +274,4 @@ class ActivityListItemView extends KDListItemView
     </div>
     {{> @commentBox}}
     """
+

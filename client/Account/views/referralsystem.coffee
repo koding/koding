@@ -47,9 +47,11 @@ class AccountReferralSystemListController extends AccountListViewController
     #     appManager.tell "Account", "showReferrerModal",
     #       linkView    : getYourReferrerCode
 
-    wrapper.addSubView redeem = new CustomLinkView
-      title : "Redeem your VM space"
-      click : => @showRedeemReferralPointModal()
+    wrapper.addSubView redeem = new KDButtonView
+        cssClass  : 'add-big-btn'
+        title     : 'Redeem your VM space'
+        icon      : yes
+        callback  : => @showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView
 

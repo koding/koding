@@ -13,10 +13,11 @@ class PaymentChoiceForm extends KDView
 
   setPaymentMethods: (paymentMethods) ->
 
-    @paymentMethodsContainer.addSubView new KDCustomHTMLView
-      cssClass : "new payment-method"
-      partial  : "Add a Payment method"
-      click    : @lazyBound "emit", "PaymentMethodNotChosen"
+    @paymentMethodsContainer.addSubView new KDButtonView
+      cssClass  : 'add-big-btn'
+      title     : 'Add new payment method'
+      icon      : yes
+      callback  : @lazyBound "emit", "PaymentMethodNotChosen"
 
     { preferredPaymentMethod, methods, appStorage } = paymentMethods
     for method in methods

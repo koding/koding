@@ -18,11 +18,11 @@ class ActivitySettingsView extends KDCustomHTMLView
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
 
-    if @getOptions().disableFollow    \
-      and not KD.isMyPost(@getData()) \
-      and not KD.checkFlag('super-admin')
-        @hide()
-        return
+    followDisabled = @getOptions().disableFollow
+    myPost         = KD.isMyPost @getData()
+    iAmAdmin       = KD.checkFlag 'super-admin'
+
+    return @hide()  if followDisabled or (not myPost and not iAmAdmin)
 
     activityController = KD.getSingleton('activityController')
 
@@ -31,21 +31,21 @@ class ActivitySettingsView extends KDCustomHTMLView
 
   addFollowActionMenu: ->
 
-    {pin, unpin} = KD.singletons.socialapi.channel
-    post = @getData()
+    # {pin, unpin} = KD.singletons.socialapi.channel
+    # post = @getData()
 
-    unless post.isFollowed
-      title = 'Follow Post'
-      fn    = pin
-    else
-      title = 'Unfollow Post'
-      fn    = unpin
+    # unless post.isFollowed
+    #   title = 'Follow Post'
+    #   fn    = pin
+    # else
+    #   title = 'Unfollow Post'
+    #   fn    = unpin
 
-    @addMenuItem title, ->
-      messageId = post.getId()
-      fn {messageId}, (err)->
-        return KD.showError err  if err
-        post.isFollowed = not post.isFollowed
+    # @addMenuItem title, ->
+    #   messageId = post.getId()
+    #   fn {messageId}, (err)->
+    #     return KD.showError err  if err
+    #     post.isFollowed = not post.isFollowed
 
     return @menu
 

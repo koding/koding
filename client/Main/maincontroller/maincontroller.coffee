@@ -75,6 +75,27 @@ class MainController extends KDController
 
     @forwardEvents KD.remote, ['disconnected', 'reconnected']
 
+
+  isFeatureDisabled: (name) ->
+
+    return no  if KD.checkFlag 'super-admin'
+    return no  unless name
+
+    {roles}            = KD.config
+    {disabledFeatures} = KD.getGroup()
+
+    return no  unless disabledFeatures
+
+    role = 'member'    if 'member'    in roles
+    role = 'moderator' if 'moderator' in roles
+    role = 'admin'     if 'admin'     in roles
+
+    return yes  if name in disabledFeatures[role]
+
+    return no
+
+
+
   accountChanged:(account, firstLoad = no)->
     account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
     KD.userAccount = account
@@ -174,6 +195,7 @@ class MainController extends KDController
 
     if replacementToken and replacementToken isnt Cookies.get 'clientId'
       Cookies.set 'clientId', replacementToken, { maxAge, secure }
+      window.location.href= '/'
 
     if account
       @accountChanged account

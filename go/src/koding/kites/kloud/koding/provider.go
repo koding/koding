@@ -3,32 +3,32 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"koding/db/mongodb"
-	"koding/kites/klient/usage"
 	"strconv"
+	"strings"
 	"time"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/db/mongodb"
+	"koding/kites/klient/usage"
 
 	"github.com/koding/kite"
-	aws "github.com/koding/kloud/api/amazon"
+	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
+	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
-
-	"koding/kites/kloud/provisioner"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
-	// DefaultAMI = "ami-80778be8" // Ubuntu 14.0.4 EBS backed, amd64,  PV
-	DefaultAMI          = "ami-864d84ee" // Ubuntu 14.04 EBS backed, amd64, HVM
+	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
+	DefaultHostedZone   = "koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -51,6 +51,12 @@ type Provider struct {
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
 	Test bool
+
+	// Contains the users home directory to be added into a image
+	TemplateDir string
+
+	// DNS is used to create/update domain recors
+	DNS *DNS
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -72,7 +78,8 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 	var err error
 
 	machine.Builder["region"] = DefaultRegion
-	a.Amazon, err = aws.New(kodingCredential, machine.Builder)
+
+	a.Amazon, err = amazonClient.New(kodingCredential, machine.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
@@ -159,53 +166,6 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
-	// IMAGE BUILDER
-	amiName, err := provisioner.Ami()
-	if err != nil {
-		return nil, fmt.Errorf("Could not get generated AMI name: %s", err)
-	}
-
-	// Build type needed for backer
-	a.ImageBuilder.Type = "amazon-ebs"
-
-	// SSH username
-	a.ImageBuilder.SshUsername = "ubuntu"
-
-	// Name of AMI to build if needed
-	a.ImageBuilder.AmiName = amiName
-
-	// Use this ami as a "foundation"
-	a.ImageBuilder.SourceAmi = DefaultAMI
-
-	// Region we're building in
-	a.ImageBuilder.Region = a.Builder.Region
-
-	// Build AMI for this instance type
-	// Doesn't need VPC, etc ... and AMI can be used for t2.micro
-	// plus the build is faster
-	a.ImageBuilder.InstanceType = "m3.medium"
-
-	// Credentials
-	a.ImageBuilder.AccessKey = a.Creds.AccessKey
-	a.ImageBuilder.SecretKey = a.Creds.SecretKey
-
-	a.Log.Info("Checking if AMI named '%s' exists", amiName)
-	image, err := a.ImageByName(amiName)
-	if err != nil {
-		a.Log.Error(err.Error())
-		// Image doesn't exist so try it
-		a.Log.Info("AMI named '%s' does not exist, building it now", amiName)
-		image, err = a.CreateImage(provisioner.RawData)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// INSTANCE BUILDER
-
-	// Get or build if needed AMI image
-	a.Builder.SourceAmi = image.Id
-
 	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
 
@@ -220,6 +180,15 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
+
+	a.Log.Info("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+	image, err := a.ImageByTag(DefaultCustomAMITag)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use this ami id, which is going to be a stable one
+	a.Builder.SourceAmi = image.Id
 
 	cloudConfig := `
 #cloud-config
@@ -239,13 +208,76 @@ hostname: %s`
 		return nil, err
 	}
 
-	// Add user specific tag to make simplfying easier
-	a.Log.Info("Adding user tag '%s' to the instance '%s'", username, artifact.InstanceId)
+	// Add user specific tag to make it easier  simplfying easier
+	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, artifact.InstanceId)
 	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
+	/////// ROUTE 53 /////////////////
+	if err := p.InitDNS(opts); err != nil {
+		return nil, err
+	}
+
+	domainName := username + "." + DefaultHostedZone
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Create user domain for " + username,
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Name:    domainName,
+					Type:    "A",
+					TTL:     300,
+					Records: []string{artifact.IpAddress},
+				},
+			},
+		},
+	}
+
+	a.Log.Info("Creating a new record with following data: %+v", change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
+		return nil, err
+	}
+
+	///// ROUTE 53 /////////////////
 	return artifact, nil
+}
+
+// CleanZoneID is used to remove the leading /hostedzone/
+func CleanZoneID(ID string) string {
+	if strings.HasPrefix(ID, "/hostedzone/") {
+		ID = strings.TrimPrefix(ID, "/hostedzone/")
+	}
+	return ID
+}
+
+// Remove the instance if something goes wrong
+func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return err
+	}
+
+	if artifact == nil {
+		return errors.New("artifact is passed nil")
+	}
+
+	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
+		opts.MachineId, artifact.InstanceId)
+	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
@@ -254,7 +286,51 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return a.Start()
+	artifact, err := a.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	/////// ROUTE 53 /////////////////
+	username := opts.Builder["username"].(string)
+
+	if err := p.InitDNS(opts); err != nil {
+		return nil, err
+	}
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Update user domain for " + username,
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    username + "." + DefaultHostedZone,
+					TTL:     300,
+					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
+				},
+			},
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Name:    username + "." + DefaultHostedZone,
+					Type:    "A",
+					TTL:     300,
+					Records: []string{artifact.IpAddress},
+				},
+			},
+		},
+	}
+
+	a.Log.Info("Creating a new record with following data: %+v", change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
+	if err != nil {
+		return nil, err
+	}
+
+	///// ROUTE 53 /////////////////
+
+	return artifact, nil
 }
 
 func (p *Provider) Stop(opts *protocol.Machine) error {
@@ -281,7 +357,42 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	return a.Destroy()
+	err = a.Destroy()
+	if err != nil {
+		return err
+	}
+
+	/////// ROUTE 53 /////////////////
+	username := opts.Builder["username"].(string)
+
+	if err := p.InitDNS(opts); err != nil {
+		return err
+	}
+
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Update user domain for " + username,
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    username + "." + DefaultHostedZone,
+					TTL:     300,
+					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
+				},
+			},
+		},
+	}
+
+	a.Log.Info("Destroying user domain '%s' with following data: %+v",
+		username+"."+DefaultHostedZone, change)
+	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	///// ROUTE 53 /////////////////
+	return nil
 }
 
 func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {

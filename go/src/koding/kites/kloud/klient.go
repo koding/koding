@@ -6,7 +6,6 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud"
 )
 
 // Klient represents a remote klient instance
@@ -37,15 +36,8 @@ func (k *KodingDeploy) Klient(queryString string) (*Klient, error) {
 
 			remoteKite := kites[0]
 
-			connected, err := remoteKite.DialForever()
-			if err != nil {
+			if err := remoteKite.Dial(); err != nil {
 				return nil, err
-			}
-
-			select {
-			case <-connected:
-			case <-time.After(time.Minute):
-				return nil, kloud.NewError(kloud.ErrNoKiteConnection)
 			}
 
 			// klient connection is ready now

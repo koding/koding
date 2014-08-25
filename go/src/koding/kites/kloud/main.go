@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 	"log"
@@ -54,6 +54,9 @@ type Config struct {
 
 	// Public key to create kite.key
 	PublicKey string
+
+	// Contains the users home directory to be added into a image
+	TemplateDir string
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -126,13 +129,15 @@ func newKite(conf *Config) *kite.Kite {
 		id = conf.Id
 	}
 
-	db := mongodb.NewMongoDB(conf.MongoURL)
+	modelhelper.Initialize(conf.MongoURL)
+	db := modelhelper.Mongo
 
 	kodingProvider := &koding.Provider{
 		Log:          newLogger("koding", conf.DebugMode),
 		AssigneeName: id,
 		Session:      db,
 		Test:         conf.TestMode,
+		TemplateDir:  conf.TemplateDir,
 	}
 
 	if err := kodingProvider.CleanupOldData(); err != nil {
@@ -153,13 +158,20 @@ func newKite(conf *Config) *kite.Kite {
 		KontrolPrivateKey: privateKey,
 		KontrolPublicKey:  publicKey,
 		Bucket:            newBucket("koding-kites", klientFolder),
+		DB:                db,
 	}
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
-	kld.AddProvider("koding", kodingProvider)
+	// check if our provider
+	var _ kloudprotocol.Builder = kodingProvider
+
+	err := kld.AddProvider("koding", kodingProvider)
+	if err != nil {
+		panic(err)
+	}
 
 	injectDeploy := func(r *kite.Request) (interface{}, error) {
 		d := kloudprotocol.ProviderDeploy{

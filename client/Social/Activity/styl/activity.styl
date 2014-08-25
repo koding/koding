@@ -434,17 +434,17 @@ div.kdtooltip.activity-helper
 
 
   &.edit-widget
-    margin            0
-    padding           12px
+    margin            12px 0
 
-    .input-view >div
-      padding         11px
-      border          1px solid #e9e9e9
-      rounded         0
+    .input-view > div
+      padding         5px
+      border          2px solid #e9e9e9
+      rounded         3px
       font-size       14px
       line-height     19px
       color           #4c4c4c
       opacity         .99
+      min-height      inherit
 
 
 span.collapsedtext
@@ -496,6 +496,14 @@ span.collapsedtext
 .activity-item
   padding-left              56px
   borderBox()
+
+  &.edited article > p:after
+  &.edited article > pre:after
+    content       ' (edited)'
+    display       inline
+    font-family   openSansFamily
+    font-size     11px
+    color         #ccc
 
   .activity-content-wrapper
     // background              #fff
@@ -642,6 +650,7 @@ span.collapsedtext
   .comment-container
     overflow              visible
 
+
     > .listview-wrapper
       overflow            visible
 
@@ -651,23 +660,33 @@ span.collapsedtext
         > .kdlistview
           overflow        visible
 
+    .avatarview
+      abs               0px 0 0 0px
+      display           block
+      z-index           2
+
+      img
+        display         block
+
+    .comment-input-widget
+      margin-top          0
+
     .item-add-comment-box
       position            relative
       padding-left        50px
       borderBox()
 
-      .avatarview
-        abs               0px 0 0 0px
-        display           block
-        z-index           2
+      &.placeholder
+        > div
+          color         #BABABA
+          &:hover
+            color         #9a9a9a
+            border-color  #EAEAEA
 
-        img
-          display         block
-
-      textarea
+      > div
+        font-weight       300
         background        #fff
         width             100%
-        height            38px
         min-height        38px
         rounded           3px
         border            2px solid #EAEAEA
@@ -773,6 +792,12 @@ span.collapsedtext
         line-height       20px
         opacity           .99
 
+        &.edited p:after
+          content       ' (edited)'
+          display       inline
+          font-size     11px
+          color         #ccc
+
         p
           a
             color         inherit
@@ -813,18 +838,20 @@ span.collapsedtext
       time
         display           none //TEMP
 
-      .edit-comment-wrapper
+      .edit-comment-box
         margin            6px 0
 
-        textarea
-          rounded         6px
-          border          1px solid #dfdfdf
+        .input-view
+          padding-left    0
+
+        div[contenteditable=true]
+          rounded         3px
           background      #fff
-          font-size       12px
           color           #4c4c4c
           line-height     18px
-          padding         10px
+          padding         5px
           shadow          none
+          borderBox()
 
         .cancel-description
           font-size       12px
