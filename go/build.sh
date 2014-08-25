@@ -29,6 +29,7 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/graphitefeeder
+  koding/workers/guestcleanerworker
   socialapi/workers/api
   github.com/skelterjohn/rerun
 )

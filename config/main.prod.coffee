@@ -170,31 +170,170 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
+    kontrol           :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/kontrol  \
+        -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+      nginx             :
+        ports           : ["#{kontrol.port}"]
+        websocket       : yes
+        locations       : ["~^/kontrol/.*"]
 
-    broker              : command : "#{GOBIN}/broker    -c #{configName}"
-    rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
-    cron                : command : "#{GOBIN}/cron      -c #{configName}"
-    kloud               : command : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
+    kloud               :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/kloud     -c #{configName} -env prod -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -register-url https://koding.io/kloud"
+      nginx             :
+        ports           : ["#{KONFIG.kloud.port}"]
+        websocket       : yes
+        locations       : ["~^/kloud/.*"]
 
-    socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
-    dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
-    notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
-    popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
-    populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
-    pinnedpost          : command : "#{GOBIN}/pinnedpost         -c #{socialapi.configFilePath}"
-    realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
-    sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
-    sitemapgenerator    : command : "#{GOBIN}/sitemapgenerator   -c #{socialapi.configFilePath}"
-    emailnotifier       : command : "#{GOBIN}/emailnotifier      -c #{socialapi.configFilePath}"
-    topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
-    trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
+    # ngrokProxy          :
+    #   group             : "environment"
+    #   supervisord       :
+    #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
 
-    appsproxy           : command : "node   #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
-    authworker          : command : "coffee #{projectRoot}/workers/auth/lib/auth/main.coffee      -c #{configName}"
-    socialworker        : command : "coffee #{projectRoot}/workers/social/lib/social/main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
-    sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
-    emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
-    webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+    # reverseProxy        :
+    #   group             : "environment"
+    #   supervisord       :
+    #     command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+
+    broker              :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerun koding/broker -c #{configName}"
+      nginx             :
+        websocket       : yes
+        locations       : ["/websocket", "~^/subscribe/.*"]
+        ports           : ["#{KONFIG.broker.port}"]
+
+    rerouting           :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerouting -c #{configName}"
+
+    authworker          :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+
+    sourcemaps          :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.sourcemaps.port}"]
+
+    emailsender         :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+
+    appsproxy           :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
+      nginx             :
+        ports           : ["#{KONFIG.appsproxy.port}"]
+
+    webserver           :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.webserver.port}"]
+        locations       : ["/"]
+
+    socialworker        :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+      nginx             :
+        ports           : ["#{KONFIG.social.port}"]
+        locations       : ["/xhr"]
+
+    guestCleaner        :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerun koding/workers/guestcleanerworker -c #{configName}"
+
+    emailsender         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
+      nginx             :
+        ports           : []
+        websocket       : no
+
+    # clientWatcher       :
+    #   group             : "webserver"
+    #   supervisord       :
+    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+
+
+
+    # Social API workers
+    socialapi           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
+
+    dailyemailnotifier  :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+
+    notification        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+
+    popularpost         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+
+    populartopic        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+
+    pinnedpost          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+
+    realtime            :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
+
+    sitemapfeeder       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+
+    sitemapgenerator    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+
+    emailnotifier       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/emailnotifier -c #{socialapi.configFilePath}"
+
+    topicfeed           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+
+    trollmode           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
+
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
@@ -228,132 +367,20 @@ Configuration = (options={}) ->
       return _b64.toString('base64')
     else
       if strict
+        console.trace()
         throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
       else
         return ""
 
   prodKeys =
-    id_rsa     : fs.readFileSync("./install/keys/id_rsa","utf8")
-    id_rsa_pub : fs.readFileSync("./install/keys/id_rsa.pub","utf8")
-
-
-  nginxConf = """
-    upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
-    upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
-    upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
-    upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
-    upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-    upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
-
-    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
-
-    # TBD ssl_config
-
-    server {
-      listen 80 default_server;
-      listen [::]:80 default_server ipv6only=on;
-      listen 443;
-
-      root /usr/share/nginx/html;
-      index index.html index.htm;
-
-      # Make site accessible from http://localhost/
-      server_name localhost;
-
-
-      server_name #{hostname};
-      location / {
-        proxy_pass            http://webs;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /xhr {
-        proxy_pass            http://social;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /appsproxy {
-        proxy_pass            http://appsproxy;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-
-      location /kloud {
-        proxy_pass            http://kloud;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /kontrol {
-        proxy_pass            http://kontrol;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-
-      # TBD. ADD WEBSOCKET SUPPORT HERE
-
-      location ~^/subscribe/.* {
-        proxy_pass http://subscribe;
-
-        proxy_http_version 1.1;
-        proxy_set_header      Upgrade    $http_upgrade;
-        proxy_set_header      Connection "upgrade";
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /websocket {
-        proxy_pass http://subscribe;
-
-        proxy_http_version 1.1;
-        proxy_set_header      Upgrade         $http_upgrade;
-        proxy_set_header      Connection      "upgrade";
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-    }
-  """
-
-  generateEnvVariables = (KONFIG)->
-    conf = {}
-    travis = traverse(KONFIG)
-    travis.paths().forEach (path) -> conf["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
-    return conf
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa","utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub","utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys","utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config","utf8")
 
 
   generateSupervisorConf = (KONFIG)->
-    supervisorEnvironmentStr = "HOME='/root',GOPATH='#{projectRoot}/go',GOBIN='#{projectRoot}/go/bin',KONFIG_JSON='#{KONFIG.JSON}'"
-    # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
-    conf = """
-      [supervisord]
-      environment=#{supervisorEnvironmentStr}\n"""
-      # """[inet_http_server]
-      # port=localhost:9001\n\n"""
-    conf +="""
-      [program:#{key}]
-      command=#{val.command}\n
-    """ for key,val of KONFIG.workers
-    return conf
+    return (require "../deployment/supervisord.coffee").create KONFIG
 
   generateRunFile = (KONFIG) ->
     envvars = ->
@@ -556,17 +583,18 @@ Configuration = (options={}) ->
 
 
 
-
-  machineSettings = """
+  machineSettings = ->
+    return """
         \n
-        echo '#{b64z nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
+        echo '#{b64z KONFIG.nginxConf}'               | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
         echo "nginx configured."
         echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
         echo "supervisor configured."
-  """
+    """
 
-
-  KONFIG.machineSettings = b64z machineSettings
+  KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
+  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers
+  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
 
   return KONFIG
