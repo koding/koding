@@ -81,6 +81,10 @@ func main() {
 
 	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
 
+	if conf.HostedZone == "" {
+		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
+	}
+
 	k := newKite(conf)
 
 	registerURL := k.RegisterURL(!conf.Public)

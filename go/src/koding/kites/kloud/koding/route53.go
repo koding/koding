@@ -133,12 +133,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		aws.Regions[DefaultRegion],
 	)
 
-	hostedZone := DefaultHostedZone
-	if p.HostedZone != "" {
-		hostedZone = p.HostedZone
-	}
-
-	a.Log.Info("Searching for hosted zone: %s", hostedZone)
+	a.Log.Info("Searching for hosted zone: %s", p.HostedZone)
 	hostedZones, err := dns.ListHostedZones("", 100)
 	if err != nil {
 		return err
@@ -146,7 +141,9 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 
 	var zoneId string
 	for _, h := range hostedZones.HostedZones {
-		if !strings.Contains(h.Name, hostedZone) {
+		// the "." point is here because hosteded zones are listed as
+		// "dev.koding.io." , "koding.io." and so on
+		if !strings.HasSuffix(h.Name, p.HostedZone+".") {
 			continue
 		}
 
@@ -154,7 +151,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 	}
 
 	if zoneId == "" {
-		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", hostedZone)
+		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", p.HostedZone)
 	}
 
 	p.DNS = &DNS{

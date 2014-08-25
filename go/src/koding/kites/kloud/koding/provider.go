@@ -23,7 +23,6 @@ var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
-	DefaultHostedZone   = "dev.koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -234,7 +233,7 @@ hostname: %s`
 		return nil, err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	// Check if the record exist, if not return an error
 	record, err := p.DNS.Domain(domainName)
@@ -300,7 +299,7 @@ func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) e
 	username := opts.Builder["username"].(string)
 	machineData := opts.CurrentData.(*Machine)
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.DeleteDomain(domainName, artifact.IpAddress); err != nil {
 		p.Log.Warning("Cleaning up domain failed: %v", err)
@@ -332,7 +331,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	username := opts.Builder["username"].(string)
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
 		return nil, err
@@ -371,7 +370,7 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
 		return err
@@ -415,7 +414,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
