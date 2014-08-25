@@ -256,9 +256,10 @@ class MachineSettingsModal extends KDModalViewWithForms
     domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
     domain = @modalTabs.forms.Settings.inputs.domain.getValue() + domainSuffix
 
-    @machine.jMachine.setDomain domain, (err)=>
+    @machine.jMachine.setDomain domain, (err) =>
       unless err
         @machine.jMachine.domain = domain
         @machine.updateLocalData()
-      new KDNotificationView title : err?.message or "Domain settings updated"
+        @machine.emit 'MachineDomainUpdated'
 
+      new KDNotificationView title : err?.message or 'Domain settings updated'
