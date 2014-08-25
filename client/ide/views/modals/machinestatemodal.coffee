@@ -1,5 +1,10 @@
 class IDE.MachineStateModal extends IDE.ModalView
 
+  {
+    Stopped, Running, NotInitialized, Terminated, Unknown,
+    Starting, Building, Stopping, Rebooting, Terminating
+  } = Machine.State
+
   constructor: (options = {}, data) ->
 
     options.cssClass or= 'ide-machine-state'
@@ -21,19 +26,23 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @buildViews()
 
-    KD.getSingleton('computeController').on "start-#{@machineId}", (event) =>
+    computeController = KD.getSingleton 'computeController'
+
+    stateUpdater = (event) =>
+
       {status} = event
-      return if status is @state
+      return  if status is @state
 
       @state = status
       @buildViews()
 
-    KD.getSingleton('computeController').on "build-#{@machineId}", (event) =>
-      {status} = event
-      return if status is @state
+    computeController.on "start-#{@machineId}", stateUpdater
+    computeController.on "build-#{@machineId}", stateUpdater
 
-      @state = status
-      @buildViews()
+    computeController.on "error-#{@machineId}", ({task, err})=>
+
+      @_error = err.message  if err.message?
+      stateUpdater { status: Unknown }
 
     @show()
 
@@ -42,11 +51,12 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @createStateLabel()
 
-    if @state in ['Stopped', 'Running', 'NotInitialized', 'Terminated', 'Unknown']
+    if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
       @createStateButton()
-    else if @state in [ 'Starting', 'Building', 'Stopping' ]
+    else if @state in [ Starting, Building, Stopping ]
       @createLoading()
 
+    @createError()
     @createFooter()  unless @footer
 
   createStateLabel: ->
@@ -104,6 +114,16 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @addSubView @footer
 
+  createError: ->
+    return  unless @_error
+
+    @errorMessage = new KDCustomHTMLView
+      cssClass : 'error-message'
+      partial  : """Failed to change state: #{@_error}"""
+
+    @container.addSubView @errorMessage
+    @_error = null
+
   turnOnMachine: ->
     computeController = KD.getSingleton 'computeController'
     computeController.fetchMachines (err) =>
@@ -112,7 +132,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       methodName   = 'start'
       nextState    = 'Starting'
 
-      if @state in [ 'NotInitialized', 'Terminated', 'Unknown' ]
+      if @state in [ NotInitialized, Terminated, Unknown ]
         methodName = 'build'
         nextState  = 'Building'
 
