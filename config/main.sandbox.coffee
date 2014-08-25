@@ -168,34 +168,154 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol   -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -machines #{etcd} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud     -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kloud.port} -publickey #{KONFIG.kloud.publicKeyFile} -privatekey #{KONFIG.kloud.privateKeyFile} -registerurl https://koding.io/kloud"
+    kontrol             :
+      group             : "environment"
+      supervisord       :
+        command : "#{GOBIN}/kontrol   -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -machines #{etcd} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+      nginx             :
+        ports           : ["#{kontrol.port}"]
+        websocket       : yes
+        locations       : ["~^/kontrol/.*"]
 
-    broker              : command : "#{GOBIN}/broker    -c #{configName}"
-    rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
-    reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+    kloud               :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/kloud     -region #{region} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{KONFIG.kloud.port} -publickey #{KONFIG.kloud.publicKeyFile} -privatekey #{KONFIG.kloud.privateKeyFile} -registerurl https://koding.io/kloud"
+      nginx             :
+        ports           : ["#{KONFIG.kloud.port}"]
+        websocket       : yes
+        locations       : ["~^/kloud/.*"]
 
-    socialapi           : command : "#{GOBIN}/api                -c #{socialapi.configFilePath}"
+    # ngrokProxy          :
+    #   group             : "environment"
+    #   supervisord       :
+    #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
 
-    authworker          : command : "coffee #{projectRoot}/workers/auth/lib/auth/main.coffee      -c #{configName}"
-    sourcemaps          : command : "coffee #{projectRoot}/servers/sourcemaps/main.coffee         -c #{configName} -p #{KONFIG.sourcemaps.port}"
-    emailsender         : command : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
-    appsproxy           : command : "node   #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
-    webserver           : command : "coffee #{projectRoot}/servers/lib/server/index.coffee        -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-    socialworker        : command : "coffee #{projectRoot}/workers/social/lib/social/main.coffee  -c #{configName} -p #{KONFIG.social.port}      -r #{region} --disable-newrelic --kite-port=13020"
+    # reverseProxy        :
+    #   group             : "environment"
+    #   supervisord       :
+    #     command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+
+    broker              :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/broker    -c #{configName}"
+      nginx             :
+        websocket       : yes
+        locations       : ["/websocket", "~^/subscribe/.*"]
+        ports           : ["#{KONFIG.broker.port}"]
+
+    rerouting           :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerouting -c #{configName}"
+
+    authworker          :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+
+    sourcemaps          :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.sourcemaps.port}"]
+
+    emailsender         :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+
+    appsproxy           :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.appsproxy.port}"]
+
+    webserver           :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.webserver.port}"]
+        locations       : ["/"]
+
+    socialworker        :
+      group             : "webserver"
+      supervisord       :
+        command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+      nginx             :
+        ports           : ["#{KONFIG.social.port}"]
+        locations       : ["/xhr"]
+
+    guestCleaner        :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
 
-    dailyemailnotifier  : command : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
-    notification        : command : "#{GOBIN}/notification       -c #{socialapi.configFilePath}"
-    popularpost         : command : "#{GOBIN}/popularpost        -c #{socialapi.configFilePath}"
-    populartopic        : command : "#{GOBIN}/populartopic       -c #{socialapi.configFilePath}"
-    pinnedpost          : command : "#{GOBIN}/pinnedpost         -c #{socialapi.configFilePath}"
-    realtime            : command : "#{GOBIN}/realtime           -c #{socialapi.configFilePath}"
-    sitemapfeeder       : command : "#{GOBIN}/sitemapfeeder      -c #{socialapi.configFilePath}"
-    sitemapgenerator    : command : "#{GOBIN}/sitemapgenerator   -c #{socialapi.configFilePath}"
-    emailnotifier       : command : "#{GOBIN}/emailnotifier      -c #{socialapi.configFilePath}"
-    topicfeed           : command : "#{GOBIN}/topicfeed          -c #{socialapi.configFilePath}"
-    trollmode           : command : "#{GOBIN}/trollmode          -c #{socialapi.configFilePath}"
+    # Social API workers
+    socialapi           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
+
+    dailyemailnotifier  :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+
+    notification        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/notification -c #{socialapi.configFilePath}"
+
+    popularpost         :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/popularpost -c #{socialapi.configFilePath}"
+
+    populartopic        :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/populartopic -c #{socialapi.configFilePath}"
+
+    pinnedpost          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/pinnedpost -c #{socialapi.configFilePath}"
+
+    realtime            :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
+
+    sitemapfeeder       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapfeeder -c #{socialapi.configFilePath}"
+
+    sitemapgenerator    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
+
+    emailnotifier       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/emailnotifier -c #{socialapi.configFilePath}"
+
+    topicfeed           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicfeed -c #{socialapi.configFilePath}"
+
+    trollmode           :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
 
   #-------------------------------------------------------------------------#
@@ -363,16 +483,19 @@ Configuration = (options={}) ->
 
     return run
 
-  machineSettings = """
+  machineSettings = ->
+    return """
         \n
-        echo '#{b64z nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
+        echo '#{b64z KONFIG.nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
         echo "nginx configured."
         echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
         echo "supervisor configured."
-  """
+    """
 
 
-  KONFIG.machineSettings = b64z machineSettings
+  KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
+  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers
+  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
 
   return KONFIG

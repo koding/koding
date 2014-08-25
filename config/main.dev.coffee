@@ -37,8 +37,12 @@ Configuration = (options={}) ->
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
+  socialapiProxy      =
+    hostname          : "localhost"
+    port              : "7000"
+
   socialapi =
-    proxyUrl          : "http://localhost:7000"
+    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
@@ -168,25 +172,105 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
-    kontrol             : command : "#{GOBIN}/kontrol                    -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud                      -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
-    broker              : command : "#{GOBIN}/rerun koding/broker        -c #{configName}"
-    rerouting           : command : "#{GOBIN}/rerun koding/rerouting     -c #{configName}"
-    reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+    kontrol             :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/kontrol  \
+        -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+      nginx             :
+        ports           : ["#{kontrol.port}"]
+        websocket       : yes
+        locations       : ["~^/kontrol/.*"]
 
-    socialapi           : command : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+    kloud               :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/kloud  -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
+      nginx             :
+        ports           : ["#{KONFIG.kloud.port}"]
+        websocket       : yes
+        locations       : ["~^/kloud/.*"]
 
-    authworker          : command : "./watch-node #{projectRoot}/workers/auth/index.js               -c #{configName} --disable-newrelic"
-    sourcemaps          : command : "./watch-node #{projectRoot}/servers/sourcemaps/index.js         -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-    emailsender         : command : "./watch-node #{projectRoot}/workers/emailsender/index.js        -c #{configName} --disable-newrelic"
-    appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
-    webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
-    socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+    ngrokProxy          :
+      group             : "environment"
+      supervisord       :
+        command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
 
-    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
-    ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-    guestCleaner        : command : "#{GOBIN}/rerun koding/workers/guestcleanerworker -c #{configName}"
+    reverseProxy        :
+      group             : "environment"
+      supervisord       :
+        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
+    broker              :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerun koding/broker -c #{configName}"
+      nginx             :
+        websocket       : yes
+        locations       : ["/websocket", "~^/subscribe/.*"]
+        ports           : ["#{KONFIG.broker.port}"]
+
+    rerouting           :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/rerun koding/rerouting -c #{configName}"
+
+    authworker          :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+
+    sourcemaps          :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.sourcemaps.port}"]
+
+    emailsender         :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+
+    appsproxy           :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.appsproxy.port}"]
+
+    webserver           :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+      nginx             :
+        ports           : ["#{KONFIG.webserver.port}"]
+        locations       : ["/"]
+
+    socialworker        :
+      group             : "webserver"
+      supervisord       :
+        command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+      nginx             :
+        ports           : ["#{KONFIG.social.port}"]
+        locations       : ["/xhr"]
+
+    guestCleaner        :
+      group             : "webserver"
+      supervisord       :
+        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+
+    clientWatcher       :
+      group             : "webserver"
+      supervisord       :
+        command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+
+    socialapi:
+      group             : "socialapi"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      nginx             :
+        ports           : ["#{socialapiProxy.port}"]
 
 
   #-------------------------------------------------------------------------#
@@ -609,9 +693,12 @@ Configuration = (options={}) ->
       """
     return run
 
-  KONFIG.ENV            = generateEnvVariables   KONFIG
-  KONFIG.supervisorConf = generateSupervisorConf KONFIG
+  KONFIG.ENV            = (require "../deployment/envvar.coffee").create KONFIG
+  KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
+  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG.workers
   KONFIG.runFile        = generateRunFile        KONFIG
+
+  fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
 
 
   return KONFIG
