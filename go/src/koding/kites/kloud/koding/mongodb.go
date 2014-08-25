@@ -2,7 +2,6 @@ package koding
 
 import (
 	"fmt"
-	"koding/db/models"
 	"time"
 
 	"github.com/koding/kloud"
@@ -73,8 +72,8 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
-	// do not check for kloud or if test mode is enabled
-	if username != "kloud" {
+	// do not check for admin users, or if test mode is enabled
+	if !isAdmin(username) {
 		// check for user permissions
 		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
 			return nil, err
@@ -108,30 +107,6 @@ func (p *Provider) GetCredential(publicKey string) *Credential {
 	})
 
 	return credential
-}
-
-func (p *Provider) checkUser(username string, users []models.Permissions) error {
-	var user *models.User
-	err := p.Session.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).One(&user)
-	})
-
-	if err == mgo.ErrNotFound {
-		return fmt.Errorf("permission denied. username not found: %s", username)
-	}
-
-	if err != nil {
-		return fmt.Errorf("permission denied. username lookup error: %v", err)
-	}
-
-	// check if the incoming user is in the list of permitted user list
-	for _, u := range users {
-		if user.ObjectId == u.Id {
-			return nil // ok he/she is good to go!
-		}
-	}
-
-	return fmt.Errorf("permission denied. user %s is not in the list of permitted users", username)
 }
 
 func (p *Provider) Update(id string, s *kloud.StorageData) error {
