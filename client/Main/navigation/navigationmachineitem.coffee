@@ -13,7 +13,7 @@ class NavigationMachineItem extends JView
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
-    options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
+    options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
       href             : path
       title            : "Open IDE for #{@alias}"

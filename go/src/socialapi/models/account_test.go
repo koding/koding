@@ -237,3 +237,21 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 	})
 }
+
+func TestAccountUnMarkAsTroll(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while unmarking as troll", t, func() {
+		Convey("it should have account id", func() {
+			acc := NewAccount()
+
+			err := acc.UnMarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+	})
+}

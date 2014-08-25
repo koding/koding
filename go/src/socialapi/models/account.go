@@ -192,6 +192,7 @@ func (a *Account) UnMarkAsTroll() error {
 	return nil
 }
 
+// Tests are done.
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, ErrAccountIdIsNotSet
