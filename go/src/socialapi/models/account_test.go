@@ -262,5 +262,25 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
+
+		Convey("it should have error if not troll", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			err := acc.UnMarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "account is not a troll")
+		})
+
+		Convey("it should not have error if troll is mark as not troll", func() {
+			// create account
+			acc := createAccountWithTest()
+			acc.IsTroll = true
+			So(acc.Create(), ShouldBeNil)
+
+			err := acc.UnMarkAsTroll()
+			So(err, ShouldBeNil)
+		})
 	})
 }
