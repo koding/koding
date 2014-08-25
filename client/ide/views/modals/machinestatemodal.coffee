@@ -87,8 +87,8 @@ class IDE.MachineStateModal extends IDE.ModalView
     @loader = new KDLoaderView
       showLoader : yes
       size       :
-        width    : 44
-        height   : 44
+        width    : 40
+        height   : 40
 
     @container.addSubView @loader
 
