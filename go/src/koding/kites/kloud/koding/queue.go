@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/koding/kite"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -15,11 +16,11 @@ var (
 	FreeUserTimeout = time.Minute * 15
 )
 
-// RunChecker runs the checker everny given interval time. It fetches a single
+// RunChecker runs the checker every given interval time. It fetches a single
 // document.
 func (p *Provider) RunChecker(interval time.Duration) {
 	for _ = range time.Tick(interval) {
-		machine, err := p.FetchOne()
+		machine, err := p.FetchOne(interval)
 		if err != nil {
 			// do not show an error if the query didn't find anything, that
 			// means there is no such a document, which we don't care
@@ -34,7 +35,12 @@ func (p *Provider) RunChecker(interval time.Duration) {
 		}
 
 		if err := p.CheckUsage(machine); err != nil {
-			p.Log.Warning("check usage of kite err: %v", err)
+			if err == kite.ErrNoKitesAvailable {
+				p.Log.Warning("[%s] can't check machine [%s]. klient kite is down, waiting...",
+					machine.Id.Hex(), machine.IpAddress)
+			} else {
+				p.Log.Warning("check usage of kite err: %v", err)
+			}
 		}
 	}
 }
@@ -103,18 +109,19 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 // locked and cannot be retrieved from others anymore. After finishin work with
 // this document ResetAssignee needs to be called that it's unlocked again and
 // can be fetcy by others.
-func (p *Provider) FetchOne() (*Machine, error) {
+func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 	machine := &Machine{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that are running and belongs to koding provider
 		// which are not assigned to anyone yet. We also check the date to not
 		// pick up fresh documents. That means documents that are proccessed
-		// and put into the DB will not selected until 10 seconds pass.
+		// and put into the DB will not selected until the interval has been
+		// passed. The interval is the same as checkers interval.
 		egligibleMachines := bson.M{
 			"provider":            "koding",
 			"status.state":        "Running",
 			"assignee.name":       nil,
-			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 10)},
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
 		}
 
 		// once we found something, lock it by modifing the assignee.name. Also
