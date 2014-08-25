@@ -253,5 +253,14 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrAccountIdIsNotSet)
 		})
+
+		Convey("it should have account in db", func() {
+			acc := NewAccount()
+			acc.Id = 1122
+
+			err := acc.UnMarkAsTroll()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
 	})
 }
