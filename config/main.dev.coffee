@@ -7,6 +7,7 @@ Configuration = (options={}) ->
 
   boot2dockerbox      = "192.168.59.103"
 
+  hostedZone          = options.hostedZone     or "local.koding.io"
   hostname            = options.hostname       or "lvh.me:8090"
   publicHostname      = options.publicHostname or process.env.USER
   region              = options.region         or "dev"
@@ -171,7 +172,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/kontrol                    -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
-    kloud               : command : "#{GOBIN}/kloud                      -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
+    kloud               : command : "#{GOBIN}/kloud                      -hostedzone #{hostedZone}-region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
     broker              : command : "#{GOBIN}/fresh -r koding/broker     -a \"-c #{configName}\""
     rerouting           : command : "#{GOBIN}/fresh -r koding/rerouting  -a \"-c #{configName}\""
     reverseProxy        : command : "#{GOBIN}/reverseproxy               -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
