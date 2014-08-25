@@ -2,10 +2,10 @@
 {uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
 
 
-getAvatarImageUrl = (hash, avatar)->
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=37&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+getAvatarImageUrl = (hash, avatar, size = 37)->
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=#{size}&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=37&height=37&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=#{size}&height=#{size}&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
   return imgURL
 
 createAvatarImage = (hash, avatar)=>
@@ -76,10 +76,10 @@ getActivityContent = (activityContent)->
         </article>
         <div class="kdview activity-actions comment-header">
           <span class="logged-in action-container">
-            <a class="custom-link-view" href="#">
+            <a class="custom-link-view" href="/Register">
               <span class="title" data-paths="title" id="el-41">Comment</span>
             </a>
-            <a class="custom-link-view count" href="#">
+            <a class="custom-link-view count" href="/Register">
               <span data-paths="repliesCount" id="el-42">#{commentCount}</span>
             </a>
           </span>
