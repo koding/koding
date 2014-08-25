@@ -321,5 +321,16 @@ func TestAccountMarkAsTroll(t *testing.T) {
 			So(err.Error(), ShouldContainSubstring, "account is already a troll")
 		})
 
+		Convey("it should not have error if non-troll account is marked as troll", func() {
+			// create account
+			acc := createAccountWithTest()
+			acc.IsTroll = false
+			So(acc.Create(), ShouldBeNil)
+
+			err := acc.MarkAsTroll()
+			So(err, ShouldBeNil)
+			So(acc.IsTroll, ShouldEqual, true)
+		})
+
 	})
 }
