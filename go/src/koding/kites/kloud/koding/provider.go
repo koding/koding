@@ -23,7 +23,6 @@ var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
-	DefaultHostedZone   = "koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -52,7 +51,8 @@ type Provider struct {
 	TemplateDir string
 
 	// DNS is used to create/update domain recors
-	DNS *DNS
+	DNS        *DNS
+	HostedZone string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -228,12 +228,17 @@ hostname: %s`
 		return nil, err
 	}
 
+	a.Log.Info("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
+		return nil, err
+	}
+
 	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	// Check if the record exist, if not return an error
 	record, err := p.DNS.Domain(domainName)
@@ -264,6 +269,8 @@ hostname: %s`
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
+
+	buildArtifact.DomainName = domainName
 
 	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
@@ -299,7 +306,7 @@ func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) e
 	username := opts.Builder["username"].(string)
 	machineData := opts.CurrentData.(*Machine)
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.DeleteDomain(domainName, artifact.IpAddress); err != nil {
 		p.Log.Warning("Cleaning up domain failed: %v", err)
@@ -331,7 +338,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	username := opts.Builder["username"].(string)
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.CreateDomain(domainName, artifact.IpAddress); err != nil {
 		return nil, err
@@ -341,6 +348,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
 		return nil, err
 	}
+
+	artifact.DomainName = domainName
 
 	///// ROUTE 53 /////////////////
 
@@ -370,7 +379,7 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	if err := p.DNS.DeleteDomain(domainName, machineData.IpAddress); err != nil {
 		return err
@@ -414,7 +423,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	domainName := machineData.Label + "." + username + "." + DefaultHostedZone
+	domainName := machineData.Label + "." + username + "." + p.HostedZone
 
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily

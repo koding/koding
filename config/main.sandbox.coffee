@@ -7,6 +7,7 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.137"
 
+  hostedZone          = options.hostedZone     or "svm.koding.io"
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
@@ -117,7 +118,7 @@ Configuration = (options={}) ->
     troubleshoot                   : {recipientEmail: "can@koding.com"}
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
-    recapthcha                     : '6LcF9vgSAAAAAOTEx2iMgeJ5HQSyysPyKzUYPNjF'
+    recapthcha                     : '6LfZL_kSAAAAAIrbAbnMPt9ri79pyHUZ0-QqB6Iz'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -151,7 +152,7 @@ Configuration = (options={}) ->
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LcF9vgSAAAAACeSHac-T9GitKb5ibaBexvnnrVZ'
+    recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -171,7 +172,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
+    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -hostedzone #{hostedZone} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
 
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"

@@ -170,6 +170,7 @@ meta data     : %# v
 
 	storageData := map[string]interface{}{
 		"ipAddress":    artifact.IpAddress,
+		"domainName":   artifact.DomainName,
 		"instanceId":   artifact.InstanceId,
 		"instanceName": artifact.InstanceName,
 	}

@@ -46,6 +46,9 @@ type Config struct {
 	// Enable test mode, disabled some authentication checks
 	TestMode bool
 
+	// Defines the base domain for domain creation
+	HostedZone string
+
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string
@@ -77,6 +80,10 @@ func main() {
 	}
 
 	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
+
+	if conf.HostedZone == "" {
+		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
+	}
 
 	k := newKite(conf)
 
@@ -140,6 +147,7 @@ func newKite(conf *Config) *kite.Kite {
 		Session:      db,
 		Test:         conf.TestMode,
 		TemplateDir:  conf.TemplateDir,
+		HostedZone:   conf.HostedZone,
 	}
 
 	go kodingProvider.RunChecker(time.Second * 10)
