@@ -133,13 +133,16 @@ module.exports = class SocialChannel extends Base
   @byName = secureRequest
     fnName  : 'channelByName'
     validate: ["name"]
+    guestAccess : yes
 
   # searchTopics - search topics for autocompletion
   @searchTopics          = secureRequest fnName: 'searchTopics'
 
   # fetchProfileFeed - lists all activities of an account
   # within a specified group
-  @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
+  @fetchProfileFeed      = secureRequest
+    fnName: 'fetchProfileFeed'
+    guestAccess: yes
 
   # fetchPopularTopics - lists group specific popular topics
   # it can be daily, weekly, monthly
@@ -199,6 +202,7 @@ module.exports = class SocialChannel extends Base
     {connection:{delegate}} = client
     options.showExempt = delegate.checkFlag "super-admin"
     options.channelId = options.id
+    client.guestAccess = yes
     doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->

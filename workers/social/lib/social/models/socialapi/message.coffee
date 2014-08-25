@@ -118,6 +118,7 @@ module.exports = class SocialMessage extends Base
   @bySlug = secureRequest
     fnName  : 'messageBySlug'
     validate: ["slug"]
+    guestAccess: yes
 
   @listReplies = secureRequest
     fnName   : 'listReplies'

@@ -24,7 +24,7 @@ permittedRequest = (opts)->
   return permit permissionName,
     success: requester opts
 
-requester = ({fnName, validate})->
+requester = ({fnName, validate, guestAccess})->
   return (client, options = {}, callback)->
     if validate?.length > 0
       errs = []
