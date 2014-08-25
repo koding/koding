@@ -117,7 +117,7 @@ Configuration = (options={}) ->
     troubleshoot                   : {recipientEmail: "can@koding.com"}
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
-    recapthcha                     : '6LcF9vgSAAAAAOTEx2iMgeJ5HQSyysPyKzUYPNjF'
+    recapthcha                     : '6LfZL_kSAAAAAIrbAbnMPt9ri79pyHUZ0-QqB6Iz'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -151,7 +151,7 @@ Configuration = (options={}) ->
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LcF9vgSAAAAACeSHac-T9GitKb5ibaBexvnnrVZ'
+    recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
