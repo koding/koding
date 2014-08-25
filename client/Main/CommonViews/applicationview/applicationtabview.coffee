@@ -12,20 +12,22 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
-    appManager = KD.getSingleton "appManager"
+    appManager        = KD.getSingleton "appManager"
 
     @on "PaneAdded", (pane) =>
       @tabHandleContainer.repositionPlusHandle @handles
+      tabView = this
 
       pane.on "KDTabPaneDestroy", ->
         # -1 because the pane is still there but will be destroyed after this event
-        if @panes.length - 1 is 0
+        if tabView.panes.length - 1 is 0
+
           if options.closeAppWhenAllTabsClosed
             appManager.quit appManager.getFrontApp()
 
-          @emit "AllTabsClosed"
+          tabView.emit "AllTabsClosed"
 
-        @tabHandleContainer.repositionPlusHandle @handles
+        tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
       {tabHandle}  = pane
       {plusHandle} = @getOptions().tabHandleContainer
