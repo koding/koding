@@ -23,7 +23,7 @@ var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
-	DefaultHostedZone   = "koding.io"
+	DefaultHostedZone   = "dev.koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -52,7 +52,8 @@ type Provider struct {
 	TemplateDir string
 
 	// DNS is used to create/update domain recors
-	DNS *DNS
+	DNS        *DNS
+	HostedZone string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {

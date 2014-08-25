@@ -46,6 +46,9 @@ type Config struct {
 	// Enable test mode, disabled some authentication checks
 	TestMode bool
 
+	// Defines the base domain for domain creation
+	HostedZone string
+
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string
@@ -140,6 +143,7 @@ func newKite(conf *Config) *kite.Kite {
 		Session:      db,
 		Test:         conf.TestMode,
 		TemplateDir:  conf.TemplateDir,
+		HostedZone:   conf.HostedZone,
 	}
 
 	go kodingProvider.RunChecker(time.Second * 10)
