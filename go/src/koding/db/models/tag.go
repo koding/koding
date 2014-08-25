@@ -12,6 +12,7 @@ type Tag struct {
 	Category           string        `bson:"category"`
 	Meta               Meta          `bson:"meta"`
 	SocialApiChannelId int64         `bson:"socialApiChannelId"`
+	Migration          string        `bson:"migration,omitempty"`
 }
 
 type TagCount struct {

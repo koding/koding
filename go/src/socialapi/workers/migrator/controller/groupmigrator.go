@@ -8,9 +8,10 @@ import (
 	"strconv"
 )
 
-func (mwc *Controller) migrateAllGroups() error {
+func (mwc *Controller) migrateAllGroups() {
+	mwc.log.Notice("Group migration started")
 	s := modelhelper.Selector{
-		"socialApiChannelId": modelhelper.Selector{"$exists": false},
+		"migration": modelhelper.Selector{"$exists": false},
 	}
 
 	errCount := 0
@@ -19,10 +20,22 @@ func (mwc *Controller) migrateAllGroups() error {
 	handleError := func(g *mongomodels.Group, err error) {
 		mwc.log.Error("an error occured for group %s: %s", g.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"slug": g.Slug}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationFailed, "error": err.Error()}}
+		if err := modelhelper.UpdateGroupPartial(s, o); err != nil {
+			mwc.log.Warning("Could not update group document: %s", err)
+		}
 	}
 
 	migrateGroup := func(group interface{}) error {
 		oldGroup := group.(*mongomodels.Group)
+		if oldGroup.SocialApiChannelId != "" {
+			s := modelhelper.Selector{"slug": oldGroup.Slug}
+			o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationCompleted}}
+			modelhelper.UpdateGroupPartial(s, o)
+			return nil
+		}
 		c, err := mwc.createGroupChannel(oldGroup.Slug)
 		if err != nil {
 			handleError(oldGroup, err)
@@ -57,8 +70,6 @@ func (mwc *Controller) migrateAllGroups() error {
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Group migration completed for %d groups with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
@@ -120,6 +131,7 @@ func (mwc *Controller) fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 
 func completeGroupMigration(g *mongomodels.Group, channelId int64) error {
 	g.SocialApiChannelId = strconv.FormatInt(channelId, 10)
+	g.Migration = MigrationCompleted
 
 	return modelhelper.UpdateGroup(g)
 }

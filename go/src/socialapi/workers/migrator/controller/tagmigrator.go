@@ -13,9 +13,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func (mwc *Controller) migrateAllTags() error {
+func (mwc *Controller) migrateAllTags() {
+	mwc.log.Notice("Tag migration started")
 	s := modelhelper.Selector{
-		"socialApiChannelId": modelhelper.Selector{"$exists": false},
+		"migration": modelhelper.Selector{"$exists": false},
 	}
 	errCount := 0
 	successCount := 0
@@ -23,10 +24,23 @@ func (mwc *Controller) migrateAllTags() error {
 	handleError := func(t *mongomodels.Tag, err error) {
 		mwc.log.Error("an error occured for tag %s: %s", t.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"_id": t.Id}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationFailed, "error": err.Error()}}
+		if err := modelhelper.UpdateTagPartial(s, o); err != nil {
+			mwc.log.Warning("Could not update tag document: %s", err)
+		}
 	}
 
 	migrateTag := func(tag interface{}) error {
 		oldTag := tag.(*mongomodels.Tag)
+		if oldTag.SocialApiChannelId > 0 {
+			s := modelhelper.Selector{"_id": oldTag.Id}
+			o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationCompleted}}
+			modelhelper.UpdateTagPartial(s, o)
+			return nil
+		}
+
 		channelId, err := mwc.createTagChannel(oldTag)
 		if err != nil {
 			handleError(oldTag, err)
@@ -57,8 +71,6 @@ func (mwc *Controller) migrateAllTags() error {
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
 	mwc.log.Notice("Tag migration completed for %d tags with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) createTagChannel(t *mongomodels.Tag) (int64, error) {
@@ -234,6 +246,7 @@ func updateBody(cm *models.ChannelMessage, tags map[string]string) error {
 
 func completeTagMigration(tag *mongomodels.Tag, channelId int64) error {
 	tag.SocialApiChannelId = channelId
+	tag.Migration = MigrationCompleted
 
 	return modelhelper.UpdateTag(tag)
 }
