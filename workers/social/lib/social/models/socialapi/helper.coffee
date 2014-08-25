@@ -45,8 +45,13 @@ ensureGroupChannel = (client, callback)->
       callback null, socialApiChannelId
 
 doRequest = (funcName, client, options, callback)->
+  removeGuestPermission = ->
+    delete client.guestAccess
+
   fetchGroup client, (err, group)->
-    return callback err if err
+    if err
+      removeGuestPermission()
+      return callback err
 
     {connection:{delegate}} = client
     {profile:{nickname}}    = delegate
@@ -57,6 +62,7 @@ doRequest = (funcName, client, options, callback)->
     options.showExempt    or= delegate.isExempt
 
     if nickname.indexOf("guest-") >= 0 and client.guestAccess
+      removeGuestPermission()
       return bareRequest funcName, options, callback
     delegate.createSocialApiId (err, socialApiId)->
       return callback err if err
