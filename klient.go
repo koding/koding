@@ -133,6 +133,10 @@ func main() {
 		registerURL = u
 	}
 
+	if registerURL == nil {
+		panic("register url is nil")
+	}
+
 	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
 	if *flagProxy {
 		// Koding proxies in production only
