@@ -226,132 +226,20 @@ Configuration = (options={}) ->
       return _b64.toString('base64')
     else
       if strict
+        console.trace()
         throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
       else
         return ""
 
   prodKeys =
-    id_rsa     : fs.readFileSync("./install/keys/id_rsa","utf8")
-    id_rsa_pub : fs.readFileSync("./install/keys/id_rsa.pub","utf8")
-
-
-  nginxConf = """
-    upstream webs      { server 127.0.0.1:#{KONFIG.webserver.port} ;}
-    upstream social    { server 127.0.0.1:#{KONFIG.social.port}    ;}
-    upstream subscribe { server 127.0.0.1:#{KONFIG.broker.port}    ;}
-    upstream kloud     { server 127.0.0.1:#{KONFIG.kloud.port}     ;}
-    upstream appsproxy { server 127.0.0.1:#{KONFIG.appsproxy.port} ;}
-    upstream kontrol     {server 127.0.0.1:#{kontrol.port};}
-
-    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
-
-    # TBD ssl_config
-
-    server {
-      listen 80 default_server;
-      listen [::]:80 default_server ipv6only=on;
-      listen 443;
-
-      root /usr/share/nginx/html;
-      index index.html index.htm;
-
-      # Make site accessible from http://localhost/
-      server_name localhost;
-
-
-      server_name #{hostname};
-      location / {
-        proxy_pass            http://webs;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /xhr {
-        proxy_pass            http://social;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /appsproxy {
-        proxy_pass            http://appsproxy;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-
-      location /kloud {
-        proxy_pass            http://kloud;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /kontrol {
-        proxy_pass            http://kontrol;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-
-      # TBD. ADD WEBSOCKET SUPPORT HERE
-
-      location ~^/subscribe/.* {
-        proxy_pass http://subscribe;
-
-        proxy_http_version 1.1;
-        proxy_set_header      Upgrade    $http_upgrade;
-        proxy_set_header      Connection "upgrade";
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      location /websocket {
-        proxy_pass http://subscribe;
-
-        proxy_http_version 1.1;
-        proxy_set_header      Upgrade         $http_upgrade;
-        proxy_set_header      Connection      "upgrade";
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-    }
-  """
-
-  generateEnvVariables = (KONFIG)->
-    conf = {}
-    travis = traverse(KONFIG)
-    travis.paths().forEach (path) -> conf["KONFIG_#{path.join("_")}".toUpperCase()] = travis.get(path) unless typeof travis.get(path) is 'object'
-    return conf
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa","utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub","utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys","utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config","utf8")
 
 
   generateSupervisorConf = (KONFIG)->
-    supervisorEnvironmentStr = "HOME='/root',GOPATH='#{projectRoot}/go',GOBIN='#{projectRoot}/go/bin',KONFIG_JSON='#{KONFIG.JSON}'"
-    # supervisorEnvironmentStr += "#{key}='#{val}'," for key,val of KONFIG.ENV
-    conf = """
-      [supervisord]
-      environment=#{supervisorEnvironmentStr}\n"""
-      # """[inet_http_server]
-      # port=localhost:9001\n\n"""
-    conf +="""
-      [program:#{key}]
-      command=#{val.command}\n
-    """ for key,val of KONFIG.workers
-    return conf
+    return (require "../deployment/supervisord.coffee").create KONFIG
 
   generateRunFile = (KONFIG) ->
     envvars = ->
