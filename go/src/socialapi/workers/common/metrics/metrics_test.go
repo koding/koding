@@ -5,11 +5,14 @@ import (
 	"testing"
 )
 
-func initTrackers() *Trackers {
-	trackers := InitTrackers(
-		NewMixpanelTracker("113c2731b47a5151f4be44ddd5af0e7a"),
-	)
+type FakeTracker struct{}
 
+func (t *FakeTracker) Track(string, Prop) error {
+	return nil
+}
+
+func initTrackers() *Trackers {
+	trackers := InitTrackers(&FakeTracker{})
 	return trackers
 }
 
