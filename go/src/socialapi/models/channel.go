@@ -632,10 +632,6 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return false, ErrCreatorIdIsNotSet
 	}
 
-	if accountId == 0 {
-		return false, ErrAccountIdIsNotSet
-	}
-
 	// see only your pinned posts
 	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
 		if c.CreatorId == accountId {
@@ -643,6 +639,16 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		}
 
 		return false, nil
+	}
+
+	// when it is public channel, its content is accessible by guests
+	if c.PrivacyConstant == Channel_PRIVACY_PUBLIC {
+		return true, nil
+	}
+
+	// check account id when the channel is private
+	if accountId == 0 {
+		return false, ErrAccountIdIsNotSet
 	}
 
 	// check if user is a participant
