@@ -8,9 +8,6 @@ services:
 build:
   steps:
     - script:
-        name: psuedo build
-        code: echo foo bar baz
-    - script:
         name: initialize submodules
         code: git submodule update --init --recursive
     - script:
@@ -33,19 +30,6 @@ build:
           make configure
           make install
           make build
-    - script:
-        name: create postgresql tables
-        cwd: go/src/socialapi/db/sql
-        code: definition/create-wercker.sh .
-    - script:
-        name: test social api
-        code: |
-          sudo -E scripts/wercker/init-socialapi.sh
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-          cd go/src/socialapi
-          make testapi
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
@@ -55,37 +39,13 @@ build:
         icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 deploy:
   steps:
-    - script:
-        name: create $HOME/.ssh directory
-        code: mkdir -p $HOME/.ssh
-    - create-file:
-        name: write private key
-        filename: $HOME/.ssh/id_rsa
-        content: $KEY_PRIVATE
-        overwrite: true
-        hide-from-log: true
-    - create-file:
-        name: write public key
-        filename: $HOME/.ssh/id_rsa.pub
-        content: $KEY_PUBLIC
-        overwrite: true
-        hide-from-log: false
-    - create-file:
-        name: create ssh configuration
-        filename: $HOME/.ssh/config
-        content: |-
-          Host github.com
-            User git
-            IdentityFile ~/.ssh/id_rsa
-    - script:
-        name: deploy
-        code: |
-          chmod 600 $HOME/.ssh/id_rsa
-          chmod 644 $HOME/.ssh/id_rsa.pub
-          git config --global user.email "wercker@koding.com"
-          git config --global user.name "wercker-build-box"
-          git fetch --tags
-          ./deploy --deploy --config=sandbox
+    - mrono/elastic-beanstalk-deploy:
+        key: $AMAZON_KEY
+        secret: $AMAZON_SECRET_KEY
+        app_name: koding
+        env_name: koding-alpha-web-10
+        region: us-east-1
+
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
