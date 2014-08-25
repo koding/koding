@@ -31,36 +31,40 @@ class IDE.FileFinder extends KDCustomHTMLView
   search: (text) ->
     return @clearSearch()  if text is ''
 
-    vmController    = KD.getSingleton 'vmController'
     rootPath        = "/home/#{KD.nick()}/"
     @isSearchActive = yes
     @lastTerm       = text
+    command         = "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'"
+    appManager      = KD.getSingleton 'appManager'
 
-    vmController.run "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'", (err, res) =>
-      return @showWarning 'An error occured, please try again.' if err
-      return @showWarning 'No files found'  unless res.stdout
+    appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
+      machine.getBaseKite().exec({ command }).then (res) =>
+        @machine = machine
 
-      @clearSearch()
+        return @showWarning 'An error occured, please try again.' if res.stderr
+        return @showWarning 'No files found'  unless res.stdout
 
-      files = res.stdout.split '\n'
-      items = []
+        @clearSearch()
 
-      items.push path: file  for file in files when file
+        files = res.stdout.split '\n'
+        items = []
 
-      listOptions        =
-        itemChildClass   : IDE.FileFinderItem
-        itemChildOptions :
-          cssClass       : 'file-item'
-        scrollView       : no
-        keyNav           : yes
-        wrapper          : no
+        items.push path: file  for file in files when file
 
-      @listController = new KDListViewController listOptions, { items }
-      @listController.getView().on 'ItemWasAdded', (item) =>
-        item.once 'viewAppended', =>
-          item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
+        listOptions        =
+          itemChildClass   : IDE.FileFinderItem
+          itemChildOptions :
+            cssClass       : 'file-item'
+          scrollView       : no
+          keyNav           : yes
+          wrapper          : no
 
-      @content.addSubView @listController.getView()
+        @listController = new KDListViewController listOptions, { items }
+        @listController.getView().on 'ItemWasAdded', (item) =>
+          item.once 'viewAppended', =>
+            item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
+
+        @content.addSubView @listController.getView()
 
   handleNavigation: (direction) ->
     lc = @listController
@@ -96,7 +100,8 @@ class IDE.FileFinder extends KDCustomHTMLView
     @isSearchActive = no
 
   openFile: (path) ->
-    file = FSHelper.createFileInstance { path }
+
+    file = FSHelper.createFileInstance { path, @machine }
 
     file.fetchContents (err, contents) =>
       return @showWarning 'An error occured, please try again.'  if err
