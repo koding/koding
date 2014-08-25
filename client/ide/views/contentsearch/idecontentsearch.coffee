@@ -58,7 +58,6 @@ class IDE.ContentSearch extends KDModalViewWithForms
   search: ->
     @warningView.hide()
 
-    vmController    = KD.getSingleton 'vmController'
     @searchText     = Encoder.XSSEncode @findInput.getValue()
     @rootPath       = Encoder.XSSEncode @whereInput.getValue()
     isCaseSensitive = @caseToggle.getValue()
@@ -94,13 +93,16 @@ class IDE.ContentSearch extends KDModalViewWithForms
     flags.splice flags.indexOf('-i'), 1  if isCaseSensitive
     flags.splice flags.indexOf('-w'), 1  unless isWholeWord
 
-    query = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{searchText}' \"#{@escapeShell @rootPath}\""
+    command = "grep #{flags.join ' '} #{exclureDirs} --include=#{include} '#{searchText}' \"#{@escapeShell @rootPath}\""
 
-    vmController.run query, (err, res) =>
-      if (err or res.stderr) and not res.stdout
-        return @showWarning 'Something went wrong, please try again.', yes
+    appManager = KD.getSingleton 'appManager'
+    appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
+      machine.getBaseKite().exec({ command }).then (res) =>
+        @machine = machine
 
-      @formatOutput res.stdout, @bound 'createResultsView'
+        return @showWarning 'Something went wrong, please try again.', yes  if res.stderr
+
+        @formatOutput res.stdout, @bound 'createResultsView'
 
   escapeRegExp: (str) ->
     str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
@@ -158,7 +160,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
   createResultsView: (result, stats) ->
     {searchText}    = this
     isCaseSensitive = @caseToggle.getValue()
-    resultsView     = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive }
+    resultsView     = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive, @machine }
 
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()

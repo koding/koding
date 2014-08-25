@@ -7,7 +7,7 @@ class IDE.ContentSearchResultView extends KDScrollView
 
     super options, data
 
-    {result, stats, searchText, isCaseSensitive} = options
+    {result, stats, searchText, isCaseSensitive, @machine} = options
 
     for fileName, lines of result
       @addSubView new KDCustomHTMLView
@@ -43,7 +43,7 @@ class IDE.ContentSearchResultView extends KDScrollView
 
     path       = target.getAttribute 'data-file-path'
     lineNumber = target.getAttribute 'data-line-number'
-    file       = FSHelper.createFileInstance { path }
+    file       = FSHelper.createFileInstance { path, @machine }
 
     file.fetchContents (err, contents) ->
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
