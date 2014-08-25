@@ -14,7 +14,7 @@ import (
 
 var (
 	FreeUserTimeout = time.Minute * 15
-	CleanUpTimeout  = time.Minute
+	CleanUpTimeout  = time.Minute * 10
 )
 
 // RunChecker runs the checker every given interval time. It fetches a single
