@@ -97,14 +97,12 @@ serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
 
-
-serveHome = (req, res, next)->
+serveHome = (req, res, next) ->
   {JGroup} = bongoModels = koding.models
   isCustomPreview = req.cookies["custom-partials-preview-mode"]
   {generateFakeClient}   = require "./client"
 
   generateFakeClient req, res, (err, client)->
-
     if err or not client
       console.error err
       return next()
@@ -113,8 +111,8 @@ serveHome = (req, res, next)->
         res.send 500, error_500()
         return console.error err
 
-      {loggedIn, loggedOut} = JGroup.render
       {params}              = req
+      {loggedIn, loggedOut} = JGroup.render
       fn                    = if state then loggedIn else loggedOut
       options = { client, account,
                   bongoModels, params,
@@ -180,6 +178,7 @@ module.exports = {
   fetchJAccountByKiteUserNameAndKey
   serve
   serveHome
+  serveDownHome
   isLoggedIn
   getAlias
   addReferralCode

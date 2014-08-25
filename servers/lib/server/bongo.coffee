@@ -7,7 +7,7 @@ Broker   = require 'broker'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 {projectRoot, webserver, mongoReplSet} = KONFIG
 
-mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
+mongo = "mongodb://#{KONFIG.mongo}"
 
 module.exports = koding = new Bongo {
   mongo: mongoReplSet or mongo
