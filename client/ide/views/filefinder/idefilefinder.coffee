@@ -38,33 +38,39 @@ class IDE.FileFinder extends KDCustomHTMLView
     appManager      = KD.getSingleton 'appManager'
 
     appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
-      machine.getBaseKite().exec({ command }).then (res) =>
-        @machine = machine
+      machine.getBaseKite().exec({ command })
+      .then  (res) => @parseResponse machine, res
+      .catch (err) =>
+        @showWarning 'An error occured, please try again.'
+        warn err
 
-        return @showWarning 'An error occured, please try again.' if res.stderr
-        return @showWarning 'No files found'  unless res.stdout
+  parseResponse: (machine, res) =>
+    return @showWarning 'An error occured, please try again.' if res.stderr
+    return @showWarning 'No files found'  unless res.stdout
 
-        @clearSearch()
+    @machine = machine
 
-        files = res.stdout.split '\n'
-        items = []
+    @clearSearch()
 
-        items.push path: file  for file in files when file
+    files = res.stdout.split '\n'
+    items = []
 
-        listOptions        =
-          itemChildClass   : IDE.FileFinderItem
-          itemChildOptions :
-            cssClass       : 'file-item'
-          scrollView       : no
-          keyNav           : yes
-          wrapper          : no
+    items.push path: file  for file in files when file
 
-        @listController = new KDListViewController listOptions, { items }
-        @listController.getView().on 'ItemWasAdded', (item) =>
-          item.once 'viewAppended', =>
-            item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
+    listOptions        =
+      itemChildClass   : IDE.FileFinderItem
+      itemChildOptions :
+        cssClass       : 'file-item'
+      scrollView       : no
+      keyNav           : yes
+      wrapper          : no
 
-        @content.addSubView @listController.getView()
+    @listController = new KDListViewController listOptions, { items }
+    @listController.getView().on 'ItemWasAdded', (item) =>
+      item.once 'viewAppended', =>
+        item.child.on 'FileNeedsToBeOpened', @bound 'openFile'
+
+    @content.addSubView @listController.getView()
 
   handleNavigation: (direction) ->
     lc = @listController

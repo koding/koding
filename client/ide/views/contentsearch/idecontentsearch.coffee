@@ -97,12 +97,11 @@ class IDE.ContentSearch extends KDModalViewWithForms
 
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
-      machine.getBaseKite().exec({ command }).then (res) =>
-        @machine = machine
-
-        return @showWarning 'Something went wrong, please try again.', yes  if res.stderr
-
-        @formatOutput res.stdout, @bound 'createResultsView'
+      machine.getBaseKite().exec({ command })
+      .then  (res) => @formatOutput machine, res.stdout, @bound 'createResultsView'
+      .catch (err) =>
+        @showWarning 'Something went wrong, please try again.'
+        warn err
 
   escapeRegExp: (str) ->
     str.replace /([.*+?\^${}()|\[\]\/\\])/g, '\\$1'
@@ -113,7 +112,11 @@ class IDE.ContentSearch extends KDModalViewWithForms
   grepEscapeRegExp: (str) ->
     str.replace /[[\]{}()*+?.,\\^$|#\s"']/g, '\\$&'
 
-  formatOutput: (output, callback = noop) ->
+  formatOutput: (machine, output, callback = noop) ->
+    return @showWarning 'Something went wrong, please try again.', yes  if output.stderr
+
+    @machine = machine
+
     # Regexes
     mainLineRegex           = /^:?([\s\S]+):(\d+):([\s\S]*)$/
     contextLineRegex        = /^([\s\S]+)\-(\d+)\-([\s\S]*)$/
