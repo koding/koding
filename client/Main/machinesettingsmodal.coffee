@@ -38,6 +38,12 @@ class MachineSettingsModal extends KDModalViewWithForms
                   title     : 'Save'
                   cssClass  : 'solid compact green hidden fl'
                   callback  : @bound 'linkDomain'
+                Loader      :
+                  itemClass : KDLoaderView
+                  cssClass  : 'domain-loader'
+                  size      :
+                    width   : 20
+                    height  : 20
                 # toggleLink  :
                 #   itemClass : KDToggleButton
                 #   cssClass  : 'solid compact clear fr subdomain-toggler'
@@ -260,6 +266,9 @@ class MachineSettingsModal extends KDModalViewWithForms
     unless KD.utils.domainWithTLDPattern.test domain
       return new KDNotificationView title: 'Invalid domain name'
 
+    {Save, Loader} = @modalTabs.forms.Settings.inputs
+    Save.hide()
+    Loader.show()
 
     KD.getSingleton('computeController').setDomain @machine, domain, (err, res) =>
       if err
@@ -270,4 +279,5 @@ class MachineSettingsModal extends KDModalViewWithForms
         @machine.updateLocalData()
         title = 'Domain settings updated'
 
+      Loader.hide()
       new KDNotificationView { title }
