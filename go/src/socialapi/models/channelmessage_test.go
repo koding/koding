@@ -343,8 +343,7 @@ func TestChannelMessageGetAccountId(t *testing.T) {
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 
-		Convey("it should not have error if channel & account are exist in DB", func() {
-
+		Convey("it should not have error if channel & account are exist", func() {
 			cm := NewChannelMessage()
 			cm.Id = 2454
 			cm.AccountId = 4353
@@ -352,6 +351,34 @@ func TestChannelMessageGetAccountId(t *testing.T) {
 			gid, err := cm.getAccountId()
 			So(err, ShouldBeNil)
 			So(gid, ShouldEqual, cm.AccountId)
+		})
+
+	})
+}
+
+func TestChannelMessageBodyLenCheck(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while checing body length", t, func() {
+		Convey("it should have error if body length is zero", func() {
+			cm := createMessageWithTest()
+			cm.Body = ""
+
+			err := bodyLenCheck(cm.Body)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "message body length should be greater than")
+		})
+
+		Convey("it should not have error if length of body is greater than zero ", func() {
+			cm := createMessageWithTest()
+			cm.Body = "message"
+
+			err := bodyLenCheck(cm.Body)
+			So(err, ShouldBeNil)
 		})
 
 	})
