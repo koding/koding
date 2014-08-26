@@ -7,7 +7,6 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "localhost"
 
-  hostedZone          = options.hostedZone     or "koding.io"
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
@@ -71,7 +70,6 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
     userSitesDomain                : userSitesDomain
-    hostedZone                     : hostedZone
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
@@ -137,7 +135,6 @@ Configuration = (options={}) ->
     version           : version
     resourceName      : socialQueueName
     userSitesDomain   : userSitesDomain
-    hostedZone        : hostedZone
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : "/"
