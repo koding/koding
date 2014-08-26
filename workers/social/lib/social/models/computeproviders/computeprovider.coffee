@@ -305,3 +305,27 @@ module.exports = class ComputeProvider extends Base
           console.log "Create group stack failed for #{nickname}:", err
 
 
+    JAccount = require '../account'
+    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
+
+      return  unless oldUsername and username
+      return  unless isRegistration
+
+      oldDomain = "#{oldUsername}.#{KONFIG.userSitesDomain}"
+
+      JMachine = require './machine'
+      JMachine.one domain: ///#{oldDomain}$///, (err, machine)->
+
+        if err? or not machine
+          console.log "Failed to find machine for #{username}", err
+
+        else
+
+          newDomain = "#{machine.uid}.#{username}.#{KONFIG.userSitesDomain}"
+          machine.update $set: domain: newDomain, (err)->
+            unless err
+              console.log """Machine domain updated for #{username}
+                             from *.#{oldDomain} to #{newDomain}"""
+            else
+              console.log "Failed to update machine domain for #{username}", err
+
