@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"strings"
 
 	"github.com/streadway/amqp"
 )
@@ -22,7 +21,7 @@ func CreateConnection(conf *config.Config, component string) *amqp.Connection {
 		Scheme:   "amqp",
 		Host:     conf.Mq.Host,
 		Port:     conf.Mq.Port,
-		Username: strings.Replace(conf.Mq.ComponentUser, "<component>", component, 1),
+		Username: conf.Mq.Login,
 		Password: conf.Mq.Password,
 		Vhost:    conf.Mq.Vhost,
 	}.String())
