@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/request"
 	"strings"
@@ -107,9 +106,7 @@ func (a *Account) Unfollow(targetId int64) (*Account, error) {
 func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 	followerIds := make([]int64, 0)
 	if a.Id == 0 {
-		return nil, errors.New(
-			"account id is not set for FetchFollowerChannelIds function ",
-		)
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
@@ -127,7 +124,7 @@ func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("account id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c := NewChannel()
@@ -145,7 +142,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("account id is not set")
+		return ErrAccountIdIsNotSet
 	}
 
 	if err := a.ById(a.Id); err != nil {
@@ -171,7 +168,7 @@ func (a *Account) MarkAsTroll() error {
 
 func (a *Account) UnMarkAsTroll() error {
 	if a.Id == 0 {
-		return errors.New("account id is not set")
+		return ErrAccountIdIsNotSet
 	}
 
 	if err := a.ById(a.Id); err != nil {
@@ -195,9 +192,10 @@ func (a *Account) UnMarkAsTroll() error {
 	return nil
 }
 
+// Tests are done.
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
-		return nil, errors.New("account id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	c := NewChannel()
@@ -237,6 +235,9 @@ func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 	return channelIds, nil
 }
 
+// FetchAccountById gives all information about account by id of account
+//
+// Tests are done.
 func FetchAccountById(accountId int64) (*Account, error) {
 	a := NewAccount()
 	if err := a.ById(accountId); err != nil {
@@ -246,6 +247,9 @@ func FetchAccountById(accountId int64) (*Account, error) {
 	return a, nil
 }
 
+// FetchOldIdsByAccountIds takes slice as parameter
+//
+// Tests are done
 func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	oldIds := make([]string, 0)
 
@@ -262,6 +266,7 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	for _, account := range accounts {
+		// The append built-in function appends elements to the end of a slice
 		oldIds = append(oldIds, account.OldId)
 	}
 
