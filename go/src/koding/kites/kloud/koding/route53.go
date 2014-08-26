@@ -230,7 +230,7 @@ type domainSet struct {
 	NewDomain string
 }
 
-func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{}, error) {
+func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response interface{}, err error) {
 	defer p.ResetAssignee(c.MachineId) // reset assignee after we are done
 
 	args := &domainSet{}
@@ -240,14 +240,22 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{},
 
 	c.Eventer = &eventer.Events{}
 
-	machineData, ok := c.Machine.CurrentData.(*Machine)
-	if !ok {
-		p.Log.Error("Could not update domain. Machine data is malformed: %v", c.Machine)
-		return nil, fmt.Errorf("machine data is malformed. Please contact support.")
-	}
-
 	if args.NewDomain == "" {
 		return nil, fmt.Errorf("newDomain argument is empty")
+	}
+
+	defer func() {
+		if err != nil {
+			p.Log.Error("Could not update domain. err: %s", err)
+
+			//  change it that we don't leak information
+			err = errors.New("Could not set domain. Please contact support")
+		}
+	}()
+
+	machineData, ok := c.Machine.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("machine data is malformed %v", c.Machine.CurrentData)
 	}
 
 	if err := p.InitDNS(c.Machine); err != nil {
