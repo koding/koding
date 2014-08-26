@@ -24,6 +24,7 @@ type Account struct {
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 }
 
+// Tests are done.
 func (a *Account) FetchOrCreate() error {
 	if a.OldId == "" {
 		return ErrOldIdIsNotSet
@@ -77,6 +78,8 @@ func (a *Account) FetchChannels(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// TO-DO
+// Control functions and remove ?
 func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
 	if err == nil {
@@ -94,6 +97,8 @@ func (a *Account) Follow(targetId int64) (*ChannelParticipant, error) {
 	return nil, err
 }
 
+// TO-DO
+// Control functions and remove ?
 func (a *Account) Unfollow(targetId int64) (*Account, error) {
 	c, err := a.FetchChannel(Channel_TYPE_FOLLOWERS)
 	if err != nil {
@@ -122,6 +127,12 @@ func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 	return participants, nil
 }
 
+// FetchChannel fetchs the channel of the account
+//
+// Channel_TYPE_GROUP as parameter returns error , in the tests!!!!
+// TO-DO, other types dont return error
+//
+// Tests are done
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
 		return nil, ErrAccountIdIsNotSet
