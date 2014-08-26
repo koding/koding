@@ -277,7 +277,7 @@ class MachineSettingsModal extends KDModalViewWithForms
       else
         @machine.jMachine.domain = domain
         @machine.updateLocalData()
-        title = 'Domain settings updated'
+        title = 'Domain name updated'
 
       Loader.hide()
       new KDNotificationView { title }
