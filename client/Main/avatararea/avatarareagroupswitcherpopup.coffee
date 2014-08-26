@@ -132,6 +132,16 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         router.handleRoute '/Account'
         @hide()
 
+
+    @avatarPopupContent.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/Optout'
+      cssClass   : 'bottom-separator'
+      partial    : 'Use "old" Koding'
+      click      : (event)=>
+        Cookies.set 'useOldKoding', 'true'
+        location.reload()
+
     # @avatarPopupContent.addSubView new KDCustomHTMLView
     #   tagName    : 'a'
     #   partial    : 'Environments'
