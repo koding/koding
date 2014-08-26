@@ -254,6 +254,10 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{},
 		return nil, err
 	}
 
+	if err := validateDomain(args.NewDomain, r.Username, p.HostedZone); err != nil {
+		return nil, err
+	}
+
 	if err := p.DNS.Rename(machineData.Domain, args.NewDomain, machineData.IpAddress); err != nil {
 		return nil, err
 	}
