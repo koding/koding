@@ -442,3 +442,7 @@ class ComputeController extends KDController
               closeManually : no
             }
 
+  setDomain: (machine, newDomain, callback = noop) ->
+
+    @kloud.setDomain { machineId: machine._id, newDomain }
+    .nodeify callback
