@@ -238,6 +238,10 @@ app.post "/:name?/Login", (req, res) ->
       res.cookie 'clientId', response.replacementToken
       res.send 200, 'ok'
 
+app.post '/:name?/Optout', (req, res) ->
+  res.cookie 'useOldKoding', 'true'
+  res.redirect 301, '/'
+
 app.all "/:name?/Logout", (req, res)->
   if req.method is 'POST'
     res.clearCookie 'clientId'
