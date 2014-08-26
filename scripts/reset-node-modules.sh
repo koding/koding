@@ -1,6 +1,6 @@
 #!/bin/bash
 DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
-NODE_MODULES=$DIR/../node_modules
+NODE_MODULES=$DIR/node_modules
 MATCHES=$(ls "$NODE_MODULES"_koding)
 
 for i in $MATCHES; do
