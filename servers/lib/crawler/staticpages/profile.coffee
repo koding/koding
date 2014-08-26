@@ -55,7 +55,7 @@ putContent = (account, statusUpdates)=>
     <div class='kdview kdtabpaneview content-display clearfix content-display-wrapper content-page active'>
       <div class="kdview member content-display">
         <aside class="kdview app-sidebar clearfix">
-          <main>
+          <main itemscope itemtype="http://schema.org/Person">
             <a class="avatarview" href="/#{profile.nickname}" style="background-image: none; background-size: 143px 143px;">
               <img class="" width="143" height="143" src="#{imgURL}" style="opacity: 1;">
             </a>
@@ -68,7 +68,7 @@ putContent = (account, statusUpdates)=>
         <nav class="member-tabs"><a class="active" href="#">Posts</a></nav>
         <div class="app-content">
           <div class="kdview kdtabpaneview statuses clearfix active">
-            <div class="kdview kdlistview kdlistview-default activity-related">
+            <div class="kdview kdlistview kdlistview-default activity-related" itemscope itemtype="http://schema.org/UserComments">
               #{statusUpdates}
             </div>
           </div>
