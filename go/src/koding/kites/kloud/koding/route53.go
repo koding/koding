@@ -20,6 +20,42 @@ type DNS struct {
 	Log     logging.Logger
 }
 
+func (d *DNS) Update(domain string, oldIP, newIP string) error {
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Updating a domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{oldIP}, // needs old ip
+				},
+			},
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{newIP},
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Updating domain name: %s which from following ip: %v to %v",
+		domain, oldIP, newIP)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",

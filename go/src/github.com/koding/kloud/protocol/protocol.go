@@ -29,7 +29,7 @@ type Canceller interface {
 	Cancel(*Machine, *Artifact) error
 }
 
-// Provider manages a machine, it's start/stop/destroy/restart a machine.
+// Controller manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
 	Start(*Machine) (*Artifact, error)
