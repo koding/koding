@@ -8,7 +8,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 {mq, projectRoot, authWorker} = KONFIG
 
-mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"
+mongo = "mongodb://#{KONFIG.mongo}"
 
 mqOptions = extend {}, mq
 mqOptions.login = authWorker.login if authWorker?.login?

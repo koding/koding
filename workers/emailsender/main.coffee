@@ -12,7 +12,7 @@ template      = require './templates'
   require('koding-config-manager').load("main.#{argv.c}")
 
 if 'string' is typeof mongo
-  mongo = "mongodb://#{mongo}?auto_reconnect"
+  mongo = "mongodb://#{mongo}"
 
 broker = new Broker mq
 
