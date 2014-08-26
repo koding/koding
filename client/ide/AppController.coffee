@@ -432,7 +432,9 @@ class IDEAppController extends AppController
 
     if FSHelper.isPublicPath file.path
       # FIXME: Take care of https.
-      @createNewBrowser KD.getPublicURLOfPath FSHelper.getFullPath file
+      prefix      = "[#{@mountedMachineUId}]/home/#{KD.nick()}/Web/"
+      [temp, src] = file.path.split prefix
+      @createNewBrowser "#{@mountedMachine.domain}/#{src}"
     else
       @notify 'File needs to be under ~/Web folder to preview.', 'error'
 
