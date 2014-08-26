@@ -256,14 +256,12 @@ class AccountEditUsername extends JView
         testPath     : "account-email-edit"
         click        : =>
           KD.whoami().fetchFromUser "email", (err, email)=>
-            if err
-              notify err.message
-            else
-              KD.remote.api.JPasswordRecovery.recoverPassword email, (err)=>
-                message = "Email confirmation mail is sent"
-                if err then message = err.message else @verifyEmail.hide()
+            return notify err.message if err
 
-                notify message
+            KD.remote.api.JPasswordRecovery.resendVerification nickname, (err)=>
+              @verifyEmail.hide()
+              return KD.showError err if err
+              notify "We've sent you a confirmation mail."
 
     @addSubView @verifyEmail = new KDCustomHTMLView o
 

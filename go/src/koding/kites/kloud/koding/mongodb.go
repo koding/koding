@@ -128,6 +128,8 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
+	case "domain":
+		data["domain"] = s.Data["domainName"]
 	default:
 		return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 	}
