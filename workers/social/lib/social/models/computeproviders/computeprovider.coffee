@@ -282,7 +282,8 @@ module.exports = class ComputeProvider extends Base
         queue.push ->
 
           callback null, stack
-          # console.log "RESULT:", results
+          # `results` keeps track of the all operation
+          # if needed return with callback.
 
         daisy queue
 
