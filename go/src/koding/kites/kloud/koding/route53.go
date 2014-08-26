@@ -258,6 +258,15 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{},
 		return nil, err
 	}
 
+	if err := p.Update(c.MachineId, &kloud.StorageData{
+		Type: "domain",
+		Data: map[string]interface{}{
+			"domainName": args.NewDomain,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
 	return fmt.Sprintf("Domain is updated to %s", args.NewDomain), nil
 }
 
