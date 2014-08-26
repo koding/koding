@@ -7,7 +7,6 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.137"
 
-  hostedZone          = options.hostedZone     or "svm.koding.io"
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
@@ -57,7 +56,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : yes
 
-  userSitesDomain     = "#{customDomain.public_}"
+  userSitesDomain     = "svm.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -71,7 +70,6 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
     userSitesDomain                : userSitesDomain
-    hostedZone                     : hostedZone
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
@@ -137,7 +135,6 @@ Configuration = (options={}) ->
     version           : version
     resourceName      : socialQueueName
     userSitesDomain   : userSitesDomain
-    hostedZone        : hostedZone
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : "/"
@@ -174,7 +171,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -hostedzone #{hostedZone} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
+    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -hostedzone #{userSitesDomain} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
 
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
