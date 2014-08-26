@@ -332,7 +332,7 @@ module.exports = class JReferral extends jraphical.Message
           JReferralCampaign.isCampaignValid (err, { isValid, campaign: campaign_ })->
             return console.error err if err
             if not isValid
-              return console.info "Campaign is not valid, not giving any space"
+              return # console.info "Campaign is not valid, not giving any space"
             campaign = campaign_
             queue.next()
         ->

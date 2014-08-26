@@ -166,7 +166,6 @@ fetchStackTemplate = (client, callback)->
         if err or count > 0
           return callback new KodingError "Template in use", "InUse", err
 
-        console.log "Good to go #{user.username} with #{template.title}"
         res.template = template
         callback null, res
 

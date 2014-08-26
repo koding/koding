@@ -282,7 +282,7 @@ module.exports = class ComputeProvider extends Base
         queue.push ->
 
           callback null, stack
-          console.log "RESULT:", results
+          # console.log "RESULT:", results
 
         daisy queue
 
@@ -297,9 +297,7 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      console.log "Member added, creating default stack..."
-
       ComputeProvider.createGroupStack client, (err, res)->
 
-        console.log "Create group stack result:", err, res
+        console.log "Create group stack failed:", {member, err}  if err?
 
