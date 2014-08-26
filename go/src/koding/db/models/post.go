@@ -22,17 +22,17 @@ type Post struct {
 
 func (p *Post) ConvertToStatusUpdate() *StatusUpdate {
 	return &StatusUpdate{
-		Id:              p.Id,
-		Slug:            p.Slug,
-		Body:            p.Body,
-		OriginId:        p.OriginId,
-		OriginType:      p.OriginType,
-		Meta:            p.Meta,
-		RepliesCount:    p.RepliesCount,
-		Group:           p.Group,
-		Counts:          p.Counts,
-		Attachments:     p.Attachments,
-		Link:            p.Link,
-		MigrationStatus: p.MigrationStatus,
+		Id:           p.Id,
+		Slug:         p.Slug,
+		Body:         p.Body,
+		OriginId:     p.OriginId,
+		OriginType:   p.OriginType,
+		Meta:         p.Meta,
+		RepliesCount: p.RepliesCount,
+		Group:        p.Group,
+		Counts:       p.Counts,
+		Attachments:  p.Attachments,
+		Link:         p.Link,
+		Migration:    p.MigrationStatus,
 	}
 }

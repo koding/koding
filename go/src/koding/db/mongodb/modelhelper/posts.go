@@ -30,6 +30,14 @@ func UpdatePost(p *models.Post, postType string) error {
 	return runQuery(postType, query)
 }
 
+func UpdateStatusUpdatePartial(selector, options Selector) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, options)
+	}
+
+	return Mongo.Run("jNewStatusUpdates", query)
+}
+
 func DeletePostById(id string, postType string) error {
 	query := deleteByIdQuery(id)
 	return runQuery(postType, query)

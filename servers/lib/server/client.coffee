@@ -78,6 +78,7 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
       delegate  : null
       groupName : 'koding'
 
+
   return callback null, fakeClient unless clientId?
 
   bongo.models.JSession.fetchSession clientId, (err, { session })->

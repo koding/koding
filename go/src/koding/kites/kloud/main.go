@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -45,6 +46,9 @@ type Config struct {
 	// Enable test mode, disabled some authentication checks
 	TestMode bool
 
+	// Defines the base domain for domain creation
+	HostedZone string
+
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string
@@ -76,6 +80,10 @@ func main() {
 	}
 
 	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
+
+	if conf.HostedZone == "" {
+		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
+	}
 
 	k := newKite(conf)
 
@@ -124,7 +132,7 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	id := uniqueId()
+	id := uniqueId(k.Config.Port)
 	if conf.Id != "" {
 		id = conf.Id
 	}
@@ -133,16 +141,17 @@ func newKite(conf *Config) *kite.Kite {
 	db := modelhelper.Mongo
 
 	kodingProvider := &koding.Provider{
+		Kite:         k,
 		Log:          newLogger("koding", conf.DebugMode),
 		AssigneeName: id,
 		Session:      db,
 		Test:         conf.TestMode,
 		TemplateDir:  conf.TemplateDir,
+		HostedZone:   conf.HostedZone,
 	}
 
-	if err := kodingProvider.CleanupOldData(); err != nil {
-		k.Log.Warning("Cleaning up mongodb err: %s", err.Error())
-	}
+	go kodingProvider.RunChecker(time.Second * 10)
+	go kodingProvider.RunCleaner(time.Minute)
 
 	klientFolder := "klient/development/latest"
 	if conf.ProdMode {
@@ -165,7 +174,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
-	// check if our provider
+	// be sure it compiles correctly,
 	var _ kloudprotocol.Builder = kodingProvider
 
 	err := kld.AddProvider("koding", kodingProvider)
@@ -192,12 +201,17 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("report", kodingProvider.Report)
+	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
+		// let's use the helper function which is doing a lot of things on
+		// behalf of us, like document locking, getting the machine document,
+		// and so on..
+		return kld.ControlFunc(kodingProvider.DomainSet).ServeKite(r)
+	})
 
 	return k
 }
 
-func uniqueId() string {
+func uniqueId(port int) string {
 	// TODO: add a unique identifier, for letting multiple version of the same
 	// worker work on the same hostname.
 	hostname, err := os.Hostname()
@@ -205,7 +219,7 @@ func uniqueId() string {
 		panic(err) // we should not let it start
 	}
 
-	return fmt.Sprintf("%s-%s", kloud.NAME, hostname)
+	return fmt.Sprintf("%s-%s-%d", kloud.NAME, hostname, port)
 }
 
 func newLogger(name string, debug bool) logging.Logger {

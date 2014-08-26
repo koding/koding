@@ -2,7 +2,6 @@ package koding
 
 import (
 	"fmt"
-	"koding/db/models"
 	"time"
 
 	"github.com/koding/kloud"
@@ -33,56 +32,31 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
-	// we use findAndModify() to get a unique lock from the DB. That means only
-	// one instance should be responsible for this action. We will update the
-	// assignee if none else is doing stuff with it.
-	change := mgo.Change{
-		Update: bson.M{
-			"$set": bson.M{
-				"assignee.name": p.Assignee(),
-				"assignee.time": time.Now(),
-			},
-		},
-		ReturnNew: true,
-	}
-
 	machine := &Machine{}
 	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		// If Find() is successful the Update() above will be applied
-		// (which set's us as assignee). If not, it means someone else is
-		// working on this document and we should return with an error. The
-		// whole process is Atomic and a single transaction.
+		// we use findAndModify() to get a unique lock from the DB. That means only
+		// one instance should be responsible for this action. We will update the
+		// assignee if none else is doing stuff with it.
+		change := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.inProgress": true,
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
+			ReturnNew: true,
+		}
 
-		// Now we query for our document. There are two cases:
-
-		// 1.) assigne.name is nil: A nil assignee means that nobody has
-		// picked it up yet and we are good to go.
-
-		// 2.) assigne.name is not nil: kloud might crash during the time
-		// it has selected the document but couldn't unset assigne.name to
-		// nil. If kloud doesn't start (because it cleans documents that
-		// belongs to himself at start), assigne.name will be always
-		// non-nil. If that instance nevers starts assigne will not changed
-		// ever.
-
-		// Therefore we are going to check if it was assigned 10 minutes
-		// ago and reassign again. However, we also add an additional check
-		// which will prevent multiple readers update the same document. If
-		// one is able to query the document the Update() above will update
-		// the assignedAt to current date, but the next one will be not
-		// able to query it because the second additional date is not valid
-		// anymore.
+		// if Find() is successful the Update() above will be applied (which
+		// set's us as assignee by marking the inProgress to true). If not, it
+		// means someone else is working on this document and we should return
+		// with an error. The whole process is atomic and a single transaction.
 		_, err := c.Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
-				"$or": []bson.M{
-					bson.M{"assignee.name": nil},
-					bson.M{"$and": []bson.M{
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(time.Minute * 10)}},
-						bson.M{"assignee.assignedAt": bson.M{"$lt": time.Now().Add(-time.Second * 30)}},
-					}},
-				},
-			}).Apply(change, &machine)
+				"assignee.inProgress": false,
+			},
+		).Apply(change, &machine)
 		return err
 	})
 
@@ -98,52 +72,41 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
-	// check for user permissions
-	if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
-		return nil, err
+	// do not check for admin users, or if test mode is enabled
+	if !isAdmin(username) {
+		// check for user permissions
+		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
+			return nil, err
+		}
 	}
 
-	credential := &Credential{}
-	// we neglect errors because credential is optional
-	p.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"publicKey": machine.Credential}).One(credential)
-	})
+	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
-		MachineId:  id,
-		Provider:   machine.Provider,
-		Builder:    machine.Meta,
-		Credential: credential.Meta,
-		State:      machine.State(),
+		MachineId:   id,
+		Provider:    machine.Provider,
+		Builder:     machine.Meta,
+		Credential:  credential.Meta,
+		State:       machine.State(),
+		CurrentData: machine,
 	}
 
-	m.CurrentData.IpAddress = machine.IpAddress
+	// this can be used by other providers if there is a need.
+	if _, ok := m.Builder["username"]; !ok {
+		m.Builder["username"] = username
+	}
 
 	return m, nil
 }
 
-func (p *Provider) checkUser(username string, users []models.Permissions) error {
-	var user *models.User
-	err := p.Session.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).One(&user)
+func (p *Provider) GetCredential(publicKey string) *Credential {
+	credential := &Credential{}
+	// we neglect errors because credential is optional
+	p.Session.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": publicKey}).One(credential)
 	})
 
-	if err == mgo.ErrNotFound {
-		return fmt.Errorf("permission denied. username not found: %s", username)
-	}
-
-	if err != nil {
-		return fmt.Errorf("permission denied. username lookup error: %v", err)
-	}
-
-	// check if the incoming user is in the list of permitted user list
-	for _, u := range users {
-		if user.ObjectId == u.Id {
-			return nil // ok he/she is good to go!
-		}
-	}
-
-	return fmt.Errorf("permission denied. user %s is not in the list of permitted users", username)
+	return credential
 }
 
 func (p *Provider) Update(id string, s *kloud.StorageData) error {
@@ -155,14 +118,18 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	case "build":
 		data["queryString"] = s.Data["queryString"]
 		data["ipAddress"] = s.Data["ipAddress"]
+		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
 	case "info":
 		data["meta.instanceName"] = s.Data["instanceName"]
 	case "start":
 		data["ipAddress"] = s.Data["ipAddress"]
+		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
+	case "domain":
+		data["domain"] = s.Data["domainName"]
 	default:
 		return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 	}
@@ -182,7 +149,7 @@ func (p *Provider) UpdateState(id string, state machinestate.State) error {
 			bson.M{
 				"$set": bson.M{
 					"status.state":      state.String(),
-					"status.modifiedAt": time.Now(),
+					"status.modifiedAt": time.Now().UTC(),
 				},
 			},
 		)
@@ -194,20 +161,7 @@ func (p *Provider) ResetAssignee(id string) error {
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{"assignee.name": nil}},
+			bson.M{"$set": bson.M{"assignee.inProgress": false}},
 		)
-	})
-}
-
-// CleanupOldData cleans up the assigne name that was bound to this kloud but
-// didn't get unset. This happens when the kloud instance crashes before it
-// could unset the assigne.name
-func (p *Provider) CleanupOldData() error {
-	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		_, err := c.UpdateAll(
-			bson.M{"assignee.name": p.Assignee()},
-			bson.M{"$set": bson.M{"assignee.name": nil}},
-		)
-		return err
 	})
 }

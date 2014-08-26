@@ -13,17 +13,20 @@ class NavigationMachineItem extends JView
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
-    options.cssClass   = "vm #{machine.status.state.toLowerCase()}"
+    options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
       href             : path
       title            : "Open IDE for #{@alias}"
 
     super options, data
 
-    @machine = @getData()
-    @progress = new KDProgressBarView
+    @machine   = @getData()
+
+    @label     = new KDCustomHTMLView
+      partial  : @alias
+
+    @progress  = new KDProgressBarView
       cssClass : 'hidden'
-      # initial  : Math.floor Math.random() * 100
 
     { computeController } = KD.singletons
 
@@ -53,7 +56,9 @@ class NavigationMachineItem extends JView
 
   pistachio:->
 
-    """
-    <figure></figure>#{@alias}<span></span>
-    {{> @progress}}
+    return """
+      <figure></figure>
+      {{> @label}}
+      <span></span>
+      {{> @progress}}
     """

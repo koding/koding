@@ -29,7 +29,7 @@ type Canceller interface {
 	Cancel(*Machine, *Artifact) error
 }
 
-// Provider manages a machine, it's start/stop/destroy/restart a machine.
+// Controller manages a machine, it's start/stop/destroy/restart a machine.
 type Controller interface {
 	// Start starts the machine
 	Start(*Machine) (*Artifact, error)
@@ -73,10 +73,9 @@ type Machine struct {
 	Eventer eventer.Eventer
 
 	// CurrentData contains machines current data. This is needed sometimes to
-	// update old records, etcc.
-	CurrentData struct {
-		IpAddress string
-	}
+	// update old records, creating domains based on pre defined labels,  etcc.
+	// Basically put a
+	CurrentData interface{}
 
 	// State defines the machines current state
 	State machinestate.State
@@ -110,6 +109,10 @@ type Artifact struct {
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
+
+	// DomainName defines the current domain record that is bound to the given
+	// IpAddress
+	DomainName string
 
 	// Username defines the username to which the machine belongs.
 	Username string

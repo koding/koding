@@ -20,7 +20,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
 {mq, email, social, mongoReplSet} = KONFIG
 
-mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"  if 'string' is typeof KONFIG.mongo
+mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
 mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?

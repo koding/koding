@@ -13,8 +13,11 @@ import (
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/robfig/cron"
 	"labix.org/v2/mgo/bson"
 )
+
+const SCHEDULE = "0 */5 * * * *"
 
 var (
 	ErrMigrated     = errors.New("already migrated")
@@ -22,7 +25,8 @@ var (
 )
 
 type Controller struct {
-	log logging.Logger
+	log     logging.Logger
+	cronJob *cron.Cron
 }
 
 func New(log logging.Logger) (*Controller, error) {
@@ -33,33 +37,39 @@ func New(log logging.Logger) (*Controller, error) {
 	return wc, nil
 }
 
-func (mwc *Controller) Start() error {
-	if err := mwc.migrateAllAccounts(); err != nil {
+func (mwc *Controller) Schedule() error {
+	mwc.cronJob = cron.New()
+	err := mwc.cronJob.AddFunc(SCHEDULE, mwc.Start)
+	if err != nil {
 		return err
 	}
-
-	if err := mwc.migrateAllGroups(); err != nil {
-		return err
-	}
-
-	if err := mwc.migrateAllTags(); err != nil {
-		return err
-	}
-
-	if err := mwc.migrateAllPosts(); err != nil {
-		return err
-	}
+	mwc.cronJob.Start()
 
 	return nil
 }
 
-func (mwc *Controller) migrateAllPosts() error {
+func (mwc *Controller) Shutdown() {
+	mwc.cronJob.Stop()
+}
+
+func (mwc *Controller) Start() {
+	mwc.migrateAllAccounts()
+
+	mwc.migrateAllGroups()
+
+	mwc.migrateAllTags()
+
+	mwc.migrateAllPosts()
+}
+
+func (mwc *Controller) migrateAllPosts() {
+	mwc.log.Notice("Post migration started")
 	s := modelhelper.Selector{
-		"socialMessageId": modelhelper.Selector{"$exists": false},
+		"migration": modelhelper.Selector{"$exists": false},
 	}
 	kodingChannel, err := mwc.createGroupChannel("koding")
 	if err != nil {
-		return fmt.Errorf("Koding channel cannot be created: %s", err)
+		panic(fmt.Sprintf("Koding channel cannot be created: %s", err))
 	}
 	kodingChannelId = kodingChannel.Id
 
@@ -69,6 +79,12 @@ func (mwc *Controller) migrateAllPosts() error {
 	handleError := func(su *mongomodels.StatusUpdate, err error) {
 		mwc.log.Error("an error occured for %s: %s", su.Id.Hex(), err)
 		errCount++
+
+		s := modelhelper.Selector{"_id": su.Id}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationFailed, "error": err.Error()}}
+		if err := modelhelper.UpdateStatusUpdatePartial(s, o); err != nil {
+			mwc.log.Warning("Could not update status update document: %s", err)
+		}
 	}
 
 	migratePost := func(post interface{}) error {
@@ -81,6 +97,13 @@ func (mwc *Controller) migrateAllPosts() error {
 			}
 
 			return err
+		}
+
+		if su.SocialMessageId > 0 {
+			s := modelhelper.Selector{"_id": su.Id}
+			o := modelhelper.Selector{"$set": modelhelper.Selector{"migration": MigrationCompleted}}
+			modelhelper.UpdateStatusUpdatePartial(s, o)
+			return nil
 		}
 
 		// create channel message
@@ -140,8 +163,6 @@ func (mwc *Controller) migrateAllPosts() error {
 	}
 
 	mwc.log.Notice("Post migration completed for %d status updates with %d errors", successCount, errCount)
-
-	return nil
 }
 
 func (mwc *Controller) insertChannelMessage(cm *models.ChannelMessage, accountOldId string) error {
@@ -293,8 +314,10 @@ func (mwc *Controller) AccountIdByOldId(oldId string) (int64, error) {
 
 func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.ChannelMessage, error) {
 	cm := models.NewChannelMessage()
-	cm.Slug = su.Slug
 	cm.Body = su.Body // for now do not modify tags
+	if err := migrateSlug(cm, su.Slug); err != nil {
+		return nil, err
+	}
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.CreatedAt = su.Meta.CreatedAt
 	payload, err := mapEmbeddedLink(su.Link)
@@ -306,6 +329,20 @@ func mapStatusUpdateToChannelMessage(su *mongomodels.StatusUpdate) (*models.Chan
 	prepareMessageMetaDates(cm, &su.Meta)
 
 	return cm, nil
+}
+
+func migrateSlug(cm *models.ChannelMessage, slug string) error {
+	if len(slug) > 100 {
+		if _, err := models.Slugify(cm); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	cm.Slug = slug
+
+	return nil
 }
 
 func mapEmbeddedLink(link map[string]interface{}) (map[string]*string, error) {
@@ -362,6 +399,7 @@ func prepareMessageMetaDates(cm *models.ChannelMessage, meta *mongomodels.Meta) 
 
 func completePostMigration(su *mongomodels.StatusUpdate, cm *models.ChannelMessage) error {
 	su.SocialMessageId = cm.Id
+	su.Migration = MigrationCompleted
 
 	return modelhelper.UpdateStatusUpdate(su)
 }

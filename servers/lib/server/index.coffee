@@ -74,16 +74,15 @@ app.configure ->
   app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
 
-# disable express default header
-app.disable 'x-powered-by'
-
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
   console.error " ------ FIX ME ------ @chris"
-  console.error " there was an uncaught exception", JSON.stringify err,null,2
+  console.error " there was an uncaught exception", err
+  console.error err.stack
   console.error " ------ FIX ME ------ @chris"
+  process.exit 1
 
 
 # app.post "/inbound",(req,res)->
@@ -91,8 +90,6 @@ process.on 'uncaughtException', (err) ->
 #   console.log req.body
 #   res.send "ok"
 #   return
-
-
 
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
@@ -209,6 +206,24 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.send 200, authTemplate data
 
+app.post "/:name?/Register", (req, res) ->
+  { JUser } = koding.models
+  context = { group: 'koding' }
+  koding.fetchClient req.cookies.clientId, context, (client) ->
+    JUser.convert client, req.body, (err, result) ->
+      return res.send 403, err  if err
+      res.cookie 'clientId', result.newToken
+      res.send 200, 'ok'
+
+app.post "/:name?/Login", (req, res) ->
+  { JUser } = koding.models
+  { username, password } = req.body
+  { clientId } = req.cookies
+
+  JUser.login clientId, { username, password }, (err, response) ->
+    return res.send 403, err  if err
+    res.cookie 'clientId', response.replacementToken
+    res.send 200, 'ok'
 
 app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
@@ -408,19 +423,19 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 # Main Handler for Koding.com
 #
 app.get "/", (req, res, next)->
-  console.log new Date(), "global handler /"
-  # Handle crawler request
+  console.log Date(), "global handler /"
+  # User requests
   #
   if req.query._escaped_fragment_?
     staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
     return Crawler.crawl koding, {req, res, slug}
-
-  # User requests
+  # Handle crawler request
   #
   else
     serveHome req, res, next
+
 
 # Forwards to /
 #
@@ -446,4 +461,8 @@ console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pi
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
-app.use (err, req, res, next) -> res.send 500, error_500()
+app.use (err, req, res, next) ->
+  console.error "request error"
+  console.error err
+  console.error err.stack
+  res.send 500, error_500()

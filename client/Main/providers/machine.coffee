@@ -51,7 +51,9 @@ class Machine extends KDObject
       @status, @uid, @domain, @queryString } = @jMachine
 
   getName: ->
-    @label or @ipAddress or @uid or "one of #{KD.nick()}'s machine"
+    {uid, label, ipAddress} = this
+
+    return label or ipAddress or uid or "one of #{KD.nick()}'s machine"
 
 
   getBaseKite: (createIfNotExists = yes)->

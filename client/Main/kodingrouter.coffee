@@ -160,7 +160,6 @@ class KodingRouter extends KDRouter
           else onError()
 
   clear: (route, replaceState = yes) ->
-
     unless route
       {entryPoint} = KD.config
       route = if KD.isLoggedIn() and KD.isGroup() and not KD.isKoding()

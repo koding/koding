@@ -1,14 +1,12 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"koding/db/mongodb"
-	"koding/kites/klient/usage"
 
 	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
@@ -18,17 +16,13 @@ import (
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/mitchellh/goamz/route53"
 	"github.com/mitchellh/mapstructure"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 )
 
 var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
-	DefaultHostedZone   = "koding.io"
 
 	kodingCredential = map[string]interface{}{
 		"access_key": "AKIAI6IUMWKF3F4426CA",
@@ -43,6 +37,7 @@ const (
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
+	Kite         *kite.Kite
 	Session      *mongodb.MongoDB
 	AssigneeName string
 	Log          logging.Logger
@@ -56,7 +51,8 @@ type Provider struct {
 	TemplateDir string
 
 	// DNS is used to create/update domain recors
-	DNS *DNS
+	DNS        *DNS
+	HostedZone string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -96,7 +92,7 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Artifact, err error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -105,6 +101,11 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	username := opts.Builder["username"].(string)
 
 	instanceName := opts.Builder["instanceName"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
@@ -193,6 +194,7 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	cloudConfig := `
 #cloud-config
 disable_root: false
+disable-ec2-metadata: true
 hostname: %s`
 
 	// use a simple hostname, previously we were using instanceName which was
@@ -203,14 +205,31 @@ hostname: %s`
 
 	a.Builder.UserData = []byte(cloudStr)
 
-	artifact, err := a.Build(instanceName)
+	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
 
+	// cleanup build if something goes wrong here
+	defer func() {
+		if err != nil {
+			p.Log.Warning("Cleaning up instance for machine id: %s. Terminating instance: %s",
+				opts.MachineId, buildArtifact.InstanceId)
+
+			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
+				p.Log.Warning("Cleaning up instance failed: %v", err)
+			}
+		}
+	}()
+
 	// Add user specific tag to make it easier  simplfying easier
-	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-user", username); err != nil {
+	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-user", username); err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
 		return nil, err
 	}
 
@@ -219,36 +238,45 @@ hostname: %s`
 		return nil, err
 	}
 
-	domainName := username + "." + DefaultHostedZone
-
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Create user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Name:    domainName,
-					Type:    "A",
-					TTL:     300,
-					Records: []string{artifact.IpAddress},
-				},
-			},
-		},
-	}
-
-	a.Log.Info("Creating a new record with following data: %+v", change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
-	if err != nil {
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
 		return nil, err
 	}
 
-	a.Log.Info("Adding user domain tag '%s' to the instance '%s'", domainName, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", domainName); err != nil {
+	// Check if the record exist, if not return an error
+	record, err := p.DNS.Domain(machineData.Domain)
+	if err != nil && err != ErrNoRecord {
+		return nil, err
+	} else {
+		if strings.Contains(record.Name, machineData.Domain) {
+			return nil, fmt.Errorf("domain %s already exists", machineData.Domain)
+		}
+	}
+
+	if err := p.DNS.CreateDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err != nil {
+			p.Log.Warning("Cleaning up domain record for machine id: %s. Deleting domain record: %s",
+				opts.MachineId, machineData.Domain)
+			if err := p.DNS.DeleteDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
+				p.Log.Warning("Cleaning up domain failed: %v", err)
+			}
+
+		}
+	}()
+
+	a.Log.Info("Adding user domain tag '%s' to the instance '%s'",
+		machineData.Domain, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+		return nil, err
+	}
+
+	buildArtifact.DomainName = machineData.Domain
 
 	///// ROUTE 53 /////////////////
-	return artifact, nil
+	return buildArtifact, nil
 }
 
 // CleanZoneID is used to remove the leading /hostedzone/
@@ -260,21 +288,33 @@ func CleanZoneID(ID string) string {
 }
 
 // Remove the instance if something goes wrong
+// TODO: remove this after we moved deploy.go into cloud-init
 func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return err
 	}
 
-	if artifact == nil {
-		return errors.New("artifact is passed nil")
-	}
-
 	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
 		opts.MachineId, artifact.InstanceId)
 	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
 	if err != nil {
+		p.Log.Warning("Cleaning up instance failed: %v", err)
+	}
+
+	if err := p.InitDNS(opts); err != nil {
 		return err
+	}
+
+	username := opts.Builder["username"].(string)
+	machineData := opts.CurrentData.(*Machine)
+
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
+	}
+
+	if err := p.DNS.DeleteDomain(machineData.Domain, artifact.IpAddress); err != nil {
+		p.Log.Warning("Cleaning up domain failed: %v", err)
 	}
 
 	return nil
@@ -291,42 +331,34 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	/////// ROUTE 53 /////////////////
-	username := opts.Builder["username"].(string)
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
+	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
 	}
 
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Update user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    username + "." + DefaultHostedZone,
-					TTL:     300,
-					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
-				},
-			},
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Name:    username + "." + DefaultHostedZone,
-					Type:    "A",
-					TTL:     300,
-					Records: []string{artifact.IpAddress},
-				},
-			},
-		},
-	}
+	username := opts.Builder["username"].(string)
 
-	a.Log.Info("Creating a new record with following data: %+v", change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
-	if err != nil {
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
 		return nil, err
 	}
+
+	if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("Updating user domain tag '%s' of instance '%s'",
+		machineData.Domain, artifact.InstanceId)
+
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+		return nil, err
+	}
+
+	artifact.DomainName = machineData.Domain
 
 	///// ROUTE 53 /////////////////
 
@@ -339,7 +371,34 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	return a.Stop()
+	err = a.Stop()
+	if err != nil {
+		return err
+	}
+
+	/////// ROUTE 53 /////////////////
+	username := opts.Builder["username"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
+
+	if err := p.InitDNS(opts); err != nil {
+		return err
+	}
+
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
+	}
+
+	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
+		return err
+	}
+
+	///// ROUTE 53 /////////////////
+
+	return nil
 }
 
 func (p *Provider) Restart(opts *protocol.Machine) error {
@@ -363,31 +422,35 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	}
 
 	/////// ROUTE 53 /////////////////
+
 	username := opts.Builder["username"].(string)
+
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
 
 	if err := p.InitDNS(opts); err != nil {
 		return err
 	}
 
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Update user domain for " + username,
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    username + "." + DefaultHostedZone,
-					TTL:     300,
-					Records: []string{opts.CurrentData.IpAddress}, // needs old ip
-				},
-			},
-		},
+	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+		return err
 	}
 
-	a.Log.Info("Destroying user domain '%s' with following data: %+v",
-		username+"."+DefaultHostedZone, change)
-	_, err = p.DNS.Route53.ChangeResourceRecordSets(p.DNS.ZoneId, change)
+	// Check if the record exist, it can be deleted via stop, therefore just
+	// return lazily
+	_, err = p.DNS.Domain(machineData.Domain)
+	if err == ErrNoRecord {
+		return nil
+	}
+
+	// If it's something else just return it
 	if err != nil {
+		return err
+	}
+
+	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}
 
@@ -402,44 +465,4 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 	}
 
 	return a.Info()
-}
-
-func (p *Provider) Report(r *kite.Request) (interface{}, error) {
-	var usg usage.Usage
-	err := r.Args.One().Unmarshal(&usg)
-	if err != nil {
-		return nil, err
-	}
-
-	m := &Machine{}
-	err = p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"queryString": r.Client.Kite.String()}).One(&m)
-	})
-	if err != nil {
-		p.Log.Warning("Couldn't find %v, however this kite is still reporting to us. Needs to be fixed: %s",
-			r.Client.Kite, err.Error())
-		return nil, errors.New("can't update report - 1")
-	}
-
-	machine, err := p.Get(m.Id.Hex(), r.Username)
-	if err != nil {
-		return nil, err
-	}
-	// release the lock from mongodb after we are done
-	defer p.ResetAssignee(machine.MachineId)
-
-	fmt.Printf("usage: %+v\n", usg)
-	if usg.InactiveDuration >= time.Minute*30 {
-		p.Log.Info("Stopping machine %s", machine.MachineId)
-
-		err := p.Stop(machine)
-		if err != nil {
-			return nil, err
-		}
-
-		return "machine is stopped", nil
-	}
-
-	p.Log.Info("Machine '%s' is good to go", r.Client.Kite.ID)
-	return true, nil
 }

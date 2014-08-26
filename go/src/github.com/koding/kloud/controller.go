@@ -91,7 +91,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] request for method: '%s' with id: %+v", r.Method, args.MachineId)
+		k.Log.Info("[controller] new call for '%s' method with id: %+v", r.Method, args.MachineId)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -151,11 +151,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		// this can be used by other providers if there is a need.
-		if _, ok := machine.Builder["username"]; !ok {
-			machine.Builder["username"] = r.Username
-		}
-
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
@@ -174,7 +169,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
-			k.Log.Info("[controller] limiter is enabled for provider: %s", machine.Provider)
+			k.Log.Debug("[controller] limiter is enabled for provider: %s", machine.Provider)
 			err := limiter.Limit(c.Machine, r.Method)
 			if err != nil {
 				return nil, err
@@ -259,6 +254,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 			Type: "start",
 			Data: map[string]interface{}{
 				"ipAddress":    resp.IpAddress,
+				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
 			},
@@ -341,14 +337,14 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		machOptions := c.Machine
 		machOptions.Eventer = c.Eventer
 
-		k.Log.Info("[controller] running method %s with mach options %v", r.Method, machOptions)
+		k.Log.Debug("[controller] running method %s with mach options %v", r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[controller] %s failed: %s. Machine state did't change and is set to '%s' now.",
 				r.Method, err.Error(), c.CurrenState)
 
 			status = c.CurrenState
-			msg = err.Error()
+			msg = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
 		}

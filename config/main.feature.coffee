@@ -56,7 +56,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
 
-  userSitesDomain     = "#{customDomain.public_}"
+  userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -137,8 +137,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : null
+    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -171,7 +171,7 @@ Configuration = (options={}) ->
 
   KONFIG.workers =
     kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
-    kloud               : command : "#{GOBIN}/kloud   -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
+    kloud               : command : "#{GOBIN}/kloud   -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
 
     broker              : command : "#{GOBIN}/broker    -c #{configName}"
     rerouting           : command : "#{GOBIN}/rerouting -c #{configName}"
@@ -431,22 +431,22 @@ Configuration = (options={}) ->
 
         # Build Mongo service
         cd #{projectRoot}/install/docker-mongo
-        docker build -t koding_localbuild/mongo .
+        docker build -t koding/mongo .
 
         # Build rabbitMQ service
         cd #{projectRoot}/install/docker-rabbitmq
-        docker build -t koding_localbuild/rabbitmq .
+        docker build -t koding/rabbitmq .
 
 
         #build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
-        docker build -t koding_localbuild/postgres .
+        docker build -t koding/postgres .
 
-        docker run -d -p 27017:27017              --name=mongo    koding_localbuild/mongo --dbpath /data/db --smallfiles --nojournal
-        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding_localbuild/rabbitmq
+        docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq koding/rabbitmq
 
         docker run -d -p 6379:6379                --name=redis    redis
-        docker run -d -p 5432:5432                --name=postgres koding_localbuild/postgres
+        docker run -d -p 5432:5432                --name=postgres koding/postgres
         docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{prod_simulation_server}:7001 -addr #{prod_simulation_server}:4001
 
         cd #{projectRoot}/install/docker-mongo

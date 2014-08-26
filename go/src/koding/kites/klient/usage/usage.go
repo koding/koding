@@ -6,6 +6,8 @@ import (
 	"github.com/koding/kite"
 )
 
+var MethodName = "klient.usage"
+
 // Plan defines the environment on which klient is going to act and work. A
 // plan has limitations. Those limitiations are different for different plan
 // kinds.
@@ -45,6 +47,11 @@ func NewUsage() *Usage {
 
 // Counter resets the current usage and counts the incoming calls.
 func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
+	// Do not count usage itself
+	if r.Method == MethodName {
+		return nil, nil
+	}
+
 	// reset the latest activity
 	u.latestActivity = time.Now()
 	u.InactiveDuration = 0

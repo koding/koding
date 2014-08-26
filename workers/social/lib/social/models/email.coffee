@@ -99,6 +99,7 @@ module.exports = class JMail extends Model
 
     JMail.some selector, options, (err, mails)->
       return callback err  if err
+      return unless mails?.length > 0
 
       emailsToCheck = (mail.email  for mail in mails when not mail.force)
 

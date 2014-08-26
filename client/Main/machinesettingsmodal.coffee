@@ -38,6 +38,12 @@ class MachineSettingsModal extends KDModalViewWithForms
                   title     : 'Save'
                   cssClass  : 'solid compact green hidden fl'
                   callback  : @bound 'linkDomain'
+                Loader      :
+                  itemClass : KDLoaderView
+                  cssClass  : 'domain-loader'
+                  size      :
+                    width   : 20
+                    height  : 20
                 # toggleLink  :
                 #   itemClass : KDToggleButton
                 #   cssClass  : 'solid compact clear fr subdomain-toggler'
@@ -254,11 +260,24 @@ class MachineSettingsModal extends KDModalViewWithForms
   linkDomain: ->
 
     domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
-    domain = @modalTabs.forms.Settings.inputs.domain.getValue() + domainSuffix
+    domainValue  = @modalTabs.forms.Settings.inputs.domain.getValue()
+    domain       = "#{domainValue}#{domainSuffix}"
 
-    @machine.jMachine.setDomain domain, (err)=>
-      unless err
+    unless KD.utils.domainWithTLDPattern.test domain
+      return new KDNotificationView title: 'Invalid domain name'
+
+    {Save, Loader} = @modalTabs.forms.Settings.inputs
+    Save.hide()
+    Loader.show()
+
+    KD.getSingleton('computeController').setDomain @machine, domain, (err, res) =>
+      if err
+        title = 'An error occured, please try again.'
+        warn err
+      else
         @machine.jMachine.domain = domain
         @machine.updateLocalData()
-      new KDNotificationView title : err?.message or "Domain settings updated"
+        title = 'Domain name updated'
 
+      Loader.hide()
+      new KDNotificationView { title }

@@ -11,10 +11,12 @@ import (
 
 type Machine struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
+	Label       string        `bson:"label"`
+	Domain      string        `bson:"domain"`
 	QueryString string        `bson:"queryString"`
 	IpAddress   string        `bson:"ipAddress"`
 	Assignee    struct {
-		Name       string    `bson:"name"`
+		InProgress bool      `bson:"inProgress"`
 		AssignedAt time.Time `bson:"assignedAt"`
 	} `bson:"assignee"`
 	Status struct {

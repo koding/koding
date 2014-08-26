@@ -177,7 +177,10 @@ class ComputeController extends KDController
             else
               @eventListener.triggerState machine, status: Machine.State.Unknown
 
-      warn "info err:", err, this
+      @emit "error", { task, err, machine }
+      @emit "error-#{machine._id}", { task, err, machine }
+
+      warn "#{task} failed:", err, this
 
 
   destroy: (machine)->
@@ -305,6 +308,10 @@ class ComputeController extends KDController
       (@errorHandler call, 'info', machine) err
 
 
+  # Utils beyond this point
+  #
+
+
   requireMachine: (options = {}, callback = noop)-> @ready =>
 
     {app} = options
@@ -336,9 +343,6 @@ class ComputeController extends KDController
           @storage.setValue identifier, machine.uid
 
         callback err, machine
-
-
-
 
 
   @reviveProvisioner = (machine, callback)->
@@ -438,3 +442,7 @@ class ComputeController extends KDController
               closeManually : no
             }
 
+  setDomain: (machine, newDomain, callback = noop) ->
+
+    @kloud.setDomain { machineId: machine._id, newDomain }
+    .nodeify callback
