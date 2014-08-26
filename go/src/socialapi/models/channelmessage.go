@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/config"
 	"socialapi/request"
@@ -216,7 +215,7 @@ func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, err
 
 func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
 	if c.Id == 0 {
-		return nil, errors.New("Channel message id is not set")
+		return nil, ErrChannelMessageIdIsNotSet
 	}
 	container := NewChannelMessageContainer()
 	container.Message = c
@@ -335,7 +334,7 @@ func (c *ChannelMessage) FetchMessageIds(q *request.Query) ([]int64, error) {
 // checks if message is in the channel or not
 func (c *ChannelMessage) BySlug(query *request.Query) error {
 	if query.Slug == "" {
-		return errors.New("slug is not set")
+		return ErrSlugIsNotSet
 	}
 
 	// fetch message itself
@@ -363,7 +362,7 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 	}
 
 	if channel.Id == 0 {
-		return errors.New("channel is not found")
+		return ErrChannelIsNotSet
 	}
 
 	// check if message is in the channel

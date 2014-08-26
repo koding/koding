@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -314,5 +315,44 @@ func TestChannelMessageUpdate(t *testing.T) {
 func TestChannelMessageGetTableName(t *testing.T) {
 	Convey("while testing TableName()", t, func() {
 		So(NewChannelMessage().TableName(), ShouldEqual, ChannelMessageTableName)
+	})
+}
+
+func TestChannelMessageGetAccountId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while getting account id ", t, func() {
+		Convey("it should have channel id", func() {
+			cm := NewChannelMessage()
+
+			_, err := cm.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+		})
+
+		Convey("it should have error if account is not set", func() {
+			cm := NewChannelMessage()
+			cm.Id = 13531
+
+			_, err := cm.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("it should not have error if channel & account are exist in DB", func() {
+
+			cm := NewChannelMessage()
+			cm.Id = 2454
+			cm.AccountId = 4353
+
+			gid, err := cm.getAccountId()
+			So(err, ShouldBeNil)
+			So(gid, ShouldEqual, cm.AccountId)
+		})
+
 	})
 }
