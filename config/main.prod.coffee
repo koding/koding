@@ -7,7 +7,6 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "localhost"
 
-  hostedZone          = options.hostedZone     or "koding.io"
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
@@ -57,7 +56,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
 
-  userSitesDomain     = "#{customDomain.public_}"
+  userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -138,8 +137,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : "https://koding.com"
+    mainUri           : "https://koding.com"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
     appsUri           : "https://rest.kd.io"
