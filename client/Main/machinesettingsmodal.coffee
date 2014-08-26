@@ -260,10 +260,14 @@ class MachineSettingsModal extends KDModalViewWithForms
     unless KD.utils.domainWithTLDPattern.test domain
       return new KDNotificationView title: 'Invalid domain name'
 
-    @machine.jMachine.setDomain domain, (err) =>
-      unless err
+
+    KD.getSingleton('computeController').setDomain @machine, domain, (err, res) =>
+      if err
+        title = 'An error occured, please try again.'
+        warn err
+      else
         @machine.jMachine.domain = domain
         @machine.updateLocalData()
-        @machine.emit 'MachineDomainUpdated'
+        title = 'Domain settings updated'
 
-      new KDNotificationView title : err?.message or 'Domain settings updated'
+      new KDNotificationView { title }
