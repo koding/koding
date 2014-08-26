@@ -51,10 +51,7 @@ class Machine extends KDObject
       @status, @uid, @domain, @queryString } = @jMachine
 
   getName: ->
-    {domain, uid, label, ipAddress} = this
-
-    if domain.indexOf(uid) is -1 # is domain updated
-      return domain.split('.').first
+    {uid, label, ipAddress} = this
 
     return label or ipAddress or uid or "one of #{KD.nick()}'s machine"
 
