@@ -300,5 +300,8 @@ module.exports = class ComputeProvider extends Base
 
       ComputeProvider.createGroupStack client, (err, res)->
 
-        console.log "Create group stack failed:", {member, err}  if err?
+        if err?
+          {nickname} = member.profile
+          console.log "Create group stack failed for #{nickname}:", err
+
 
