@@ -174,7 +174,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Storage = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
-	// check if our provider
+	// be sure it compiles correctly,
 	var _ kloudprotocol.Builder = kodingProvider
 
 	err := kld.AddProvider("koding", kodingProvider)
@@ -201,6 +201,12 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
+		// let's use the helper function which is doing a lot of things on
+		// behalf of us, like document locking, getting the machine document,
+		// and so on..
+		return kld.ControlFunc(kodingProvider.DomainSet).ServeKite(r)
+	})
 
 	return k
 }

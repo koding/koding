@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/dchest/validator"
+	"github.com/koding/kite"
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
@@ -18,6 +21,79 @@ type DNS struct {
 	Route53 *route53.Route53
 	ZoneId  string
 	Log     logging.Logger
+}
+
+// Rename changes the domain from oldDomain to newDomain in a single transaction
+func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Renaming domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    oldDomain,
+					TTL:     300,
+					Records: []string{currentIP},
+				},
+			},
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    newDomain,
+					TTL:     300,
+					Records: []string{currentIP},
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Update changes the domains ip from oldIP to newIP in a single transaction
+func (d *DNS) Update(domain string, oldIP, newIP string) error {
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Updating a domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{oldIP}, // needs old ip
+				},
+			},
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     300,
+					Records: []string{newIP},
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Updating domain %s IP from %v to %v",
+		domain, oldIP, newIP)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *DNS) DeleteDomain(domain string, ips ...string) error {
@@ -148,6 +224,62 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		Log:     p.Log,
 	}
 	return nil
+}
+
+type domainSet struct {
+	NewDomain string
+}
+
+func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response interface{}, err error) {
+	defer p.ResetAssignee(c.MachineId) // reset assignee after we are done
+
+	args := &domainSet{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	c.Eventer = &eventer.Events{}
+
+	if args.NewDomain == "" {
+		return nil, fmt.Errorf("newDomain argument is empty")
+	}
+
+	defer func() {
+		if err != nil {
+			p.Log.Error("Could not update domain. err: %s", err)
+
+			//  change it that we don't leak information
+			err = errors.New("Could not set domain. Please contact support")
+		}
+	}()
+
+	machineData, ok := c.Machine.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("machine data is malformed %v", c.Machine.CurrentData)
+	}
+
+	if err := p.InitDNS(c.Machine); err != nil {
+		return nil, err
+	}
+
+	if err := validateDomain(args.NewDomain, r.Username, p.HostedZone); err != nil {
+		return nil, err
+	}
+
+	if err := p.DNS.Rename(machineData.Domain, args.NewDomain, machineData.IpAddress); err != nil {
+		return nil, err
+	}
+
+	if err := p.Update(c.MachineId, &kloud.StorageData{
+		Type: "domain",
+		Data: map[string]interface{}{
+			"domainName": args.NewDomain,
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func validateDomain(domain, username, hostedZone string) error {
