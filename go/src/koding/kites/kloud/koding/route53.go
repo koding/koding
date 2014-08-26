@@ -279,7 +279,7 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response int
 		return nil, err
 	}
 
-	return fmt.Sprintf("Domain is updated to %s", args.NewDomain), nil
+	return true, nil
 }
 
 func validateDomain(domain, username, hostedZone string) error {
