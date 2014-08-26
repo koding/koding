@@ -109,6 +109,7 @@ module.exports = [
   "views/tests/loadtest.coffee"
   "views/tests/privatemessageloadtest.coffee"
   "views/tests/activityloadtest.coffee"
+  "views/tests/commentloadtest.coffee"
 
   "styl/activity.styl"
   "styl/activity.responsive.styl"

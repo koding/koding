@@ -1,11 +1,15 @@
 class CommentView extends KDView
 
+  TEST_MODE = on
+
   constructor: (options = {}, data) ->
 
     options.cssClass            = KD.utils.curry 'comment-container', options.cssClass
     options.controllerClass   or= CommentListViewController
 
     super options, data
+
+    @TEST_CLASS = CommentLoadTest
 
     @fakeMessageMap = {}
 
@@ -75,9 +79,14 @@ class CommentView extends KDView
 
     return  unless value
 
+    @applyTestPatterns value  if TEST_MODE is on
+
     @input.reset yes
 
     @createFakeItemView value, clientRequestId
+
+
+  applyTestPatterns: (value) -> MessagePane::applyTestPatterns.call this, value
 
 
   putMessage: (message) -> @controller.addItem message
