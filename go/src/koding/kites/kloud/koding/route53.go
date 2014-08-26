@@ -23,6 +23,43 @@ type DNS struct {
 	Log     logging.Logger
 }
 
+// Rename changes the domain from oldDomain to newDomain in a single transaction
+func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Renaming domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "DELETE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    oldDomain,
+					TTL:     300,
+					Records: []string{currentIP},
+				},
+			},
+			route53.Change{
+				Action: "CREATE",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    newDomain,
+					TTL:     300,
+					Records: []string{currentIP},
+				},
+			},
+		},
+	}
+
+	d.Log.Info("Updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
+
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Update changes the domains ip from oldIP to newIP in a single transaction
 func (d *DNS) Update(domain string, oldIP, newIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Updating a domain",
@@ -48,7 +85,7 @@ func (d *DNS) Update(domain string, oldIP, newIP string) error {
 		},
 	}
 
-	d.Log.Info("Updating domain name: %s which from following ip: %v to %v",
+	d.Log.Info("Updating domain %s IP from %v to %v",
 		domain, oldIP, newIP)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
@@ -203,10 +240,6 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{},
 
 	c.Eventer = &eventer.Events{}
 
-	if err := p.InitDNS(c.Machine); err != nil {
-		return nil, err
-	}
-
 	machineData, ok := c.Machine.CurrentData.(*Machine)
 	if !ok {
 		p.Log.Error("Could not update domain. Machine data is malformed: %v", c.Machine)
@@ -217,13 +250,11 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{},
 		return nil, fmt.Errorf("newDomain argument is empty")
 	}
 
-	// delete old domain
-	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
+	if err := p.InitDNS(c.Machine); err != nil {
 		return nil, err
 	}
 
-	// and create the new one
-	if err := p.DNS.CreateDomain(args.NewDomain, machineData.IpAddress); err != nil {
+	if err := p.DNS.Rename(machineData.Domain, args.NewDomain, machineData.IpAddress); err != nil {
 		return nil, err
 	}
 
