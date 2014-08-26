@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/dchest/validator"
+	"github.com/koding/kite"
+	"github.com/koding/kloud"
+	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
@@ -184,6 +187,47 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		Log:     p.Log,
 	}
 	return nil
+}
+
+type domainSet struct {
+	NewDomain string
+}
+
+func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (interface{}, error) {
+	defer p.ResetAssignee(c.MachineId) // reset assignee after we are done
+
+	args := &domainSet{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	c.Eventer = &eventer.Events{}
+
+	if err := p.InitDNS(c.Machine); err != nil {
+		return nil, err
+	}
+
+	machineData, ok := c.Machine.CurrentData.(*Machine)
+	if !ok {
+		p.Log.Error("Could not update domain. Machine data is malformed: %v", c.Machine)
+		return nil, fmt.Errorf("machine data is malformed. Please contact support.")
+	}
+
+	if args.NewDomain == "" {
+		return nil, fmt.Errorf("newDomain argument is empty")
+	}
+
+	// delete old domain
+	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
+		return nil, err
+	}
+
+	// and create the new one
+	if err := p.DNS.CreateDomain(args.NewDomain, machineData.IpAddress); err != nil {
+		return nil, err
+	}
+
+	return fmt.Sprintf("Domain is updated to %s", args.NewDomain), nil
 }
 
 func validateDomain(domain, username, hostedZone string) error {
