@@ -137,8 +137,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : "https://koding.com"
+    mainUri           : "https://koding.com"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
     appsUri           : "https://rest.kd.io"
