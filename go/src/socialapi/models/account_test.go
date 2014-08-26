@@ -334,3 +334,48 @@ func TestAccountMarkAsTroll(t *testing.T) {
 
 	})
 }
+
+func TestAccountFetchChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching channel", t, func() {
+		Convey("it should have account id", func() {
+			acc := NewAccount()
+
+			_, err := acc.FetchChannel("ChannelType")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+		})
+
+		Convey("it should have error if channel is not exist", func() {
+			acc := NewAccount()
+			acc.Id = 35135
+
+			_, err := acc.FetchChannel(Channel_TYPE_GROUP)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("it should not have error if channel type is exist", func() {
+
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			c.TypeConstant = Channel_TYPE_TOPIC
+			So(c.Create(), ShouldBeNil)
+
+			cha, err := acc.FetchChannel(Channel_TYPE_TOPIC)
+			So(err, ShouldBeNil)
+			So(cha.TypeConstant, ShouldEqual, c.TypeConstant)
+		})
+
+	})
+}

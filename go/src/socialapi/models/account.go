@@ -122,6 +122,12 @@ func (a *Account) FetchFollowerIds(q *request.Query) ([]int64, error) {
 	return participants, nil
 }
 
+// FetchChannel fetchs the channel of the account
+//
+// Channel_TYPE_GROUP as parameter returns error , in the tests!!!!
+// TO-DO, other types dont return error
+//
+// Tests are done
 func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	if a.Id == 0 {
 		return nil, ErrAccountIdIsNotSet
