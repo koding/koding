@@ -100,8 +100,11 @@ createUsers = (users)->
       if   nextUser = users.shift()
       then createUser nextUser, createHelper
       else
-        console.log "\nALL DONE."
-        process.exit 0
+
+        setTimeout ->
+          console.log "\nALL DONE."
+          process.exit 0
+        , 5000
 
 
 csv = require 'csv'
@@ -137,3 +140,4 @@ try
 catch e
 
   console.log "Failed to parse team.csv", e
+  process.exit 0
