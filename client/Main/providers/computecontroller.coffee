@@ -442,3 +442,8 @@ class ComputeController extends KDController
               closeManually : no
             }
 
+  setDomain: (machine, newDomain, callback = noop) ->
+
+    @kloud.setDomain { machineId: machine._id, newDomain }
+    .then  (res) => callback null, res
+    .catch (err) => callback err, null
