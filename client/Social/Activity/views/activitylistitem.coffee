@@ -2,7 +2,7 @@ class ActivityListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.type               = 'activity'
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
@@ -26,9 +26,14 @@ class ActivityListItemView extends KDListItemView
     list    = @getDelegate()
     options = @getOptions()
 
-    origin =
-      constructorName : data.account.constructorName
-      id              : data.account._id
+    {_id, constructorName} = data.account
+
+    return  unless _id and constructorName
+
+    origin = {
+      constructorName : constructorName
+      id              : _id
+    }
 
     @avatar    = new AvatarView
       size     :

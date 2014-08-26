@@ -17,6 +17,8 @@ class PrivateMessagePane extends MessagePane
 
     super options, data
 
+    @TEST_CLASS = PrivateMessageLoadTest
+
     channel = @getData()
 
     @listPreviousLink = new ReplyPreviousLink
@@ -64,21 +66,10 @@ class PrivateMessagePane extends MessagePane
 
     return  unless value
 
-    @applyTestPatterns value  if TEST_MODE
     @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     super value, clientRequestId
     @input.empty()
-
-
-  applyTestPatterns: (value) ->
-
-    if value.match /^\/unleashtheloremipsum/
-      [_, interval, batchCount] = value.split " "
-      [interval, batchCount] = parse interval, batchCount
-      PrivateMessageLoadTest.run this, interval, batchCount
-    else if value.match /^\/analyzetheloremipsum/
-      PrivateMessageLoadTest.analyze this
 
 
   applyInteractiveResponse: (value) ->

@@ -1,5 +1,7 @@
 class MessagePane extends KDTabPaneView
 
+  TEST_MODE  = on
+
   constructor: (options = {}, data) ->
 
     options.type    or= ''
@@ -8,6 +10,8 @@ class MessagePane extends KDTabPaneView
     options.lastToFirst ?= no
 
     super options, data
+
+    @TEST_CLASS = ActivityLoadTest
 
     @lastScrollTops =
       window        : 0
@@ -73,8 +77,21 @@ class MessagePane extends KDTabPaneView
 
     return  unless value
 
+    @applyTestPatterns value  if TEST_MODE is on
+
     @input.reset yes
     @createFakeItemView value, clientRequestId
+
+  parse = (args...) -> args.map (item) -> parseInt item
+
+  applyTestPatterns: (value) ->
+
+    if value.match /^\/unleashtheloremipsum/
+      [_, interval, batchCount] = value.split " "
+      [interval, batchCount] = parse interval, batchCount
+      @TEST_CLASS.run this, interval, batchCount
+    else if value.match /^\/analyzetheloremipsum/
+      @TEST_CLASS.analyze this
 
 
   putMessage: (message) ->
@@ -211,6 +228,7 @@ class MessagePane extends KDTabPaneView
     app  = appManager.get 'Activity'
     item = app.getView().sidebar.selectedItem
 
+
     return  unless item?.count
     # no need to send updatelastSeenTime or glance when checking publicfeeds
     return  if name is 'public'
@@ -295,3 +313,4 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
