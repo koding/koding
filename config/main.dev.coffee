@@ -187,7 +187,7 @@ Configuration = (options={}) ->
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-    guestCleaner        : command : "#{GOBIN}/fresh -r koding/workers/guestcleanerworker -a \"-c #{configName}\""
+    guestCleaner        : command : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
 
 
