@@ -222,8 +222,10 @@ class IDEAppController extends AppController
             @machineStateModal.once 'IDEBecameReady', =>
               tabView.removePane_ terminalPane
               @createNewTerminal @machineStateModal.getData()
+              @setActiveTabView @ideViews.first.tabView
         else
           @createNewTerminal machine
+          @setActiveTabView @ideViews.first.tabView
 
   getMountedMachine: (callback = noop) ->
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
