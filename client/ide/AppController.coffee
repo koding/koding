@@ -232,9 +232,9 @@ class IDEAppController extends AppController
         return callback err, null
 
       KD.utils.defer =>
-        machine = m for m in machines when m.uid is @mountedMachineUId
+        @mountedMachine = m for m in machines when m.uid is @mountedMachineUId
 
-        callback null, machine
+        callback null, @mountedMachine
 
   mountMachineByMachineUId: (machineUId) ->
     computeController = KD.getSingleton 'computeController'
