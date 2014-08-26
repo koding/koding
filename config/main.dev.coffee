@@ -686,6 +686,13 @@ Configuration = (options={}) ->
       }
 
 
+      function importusers () {
+
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/user-importer
+
+      }
+
 
       if [[ "$1" == "killall" ]]; then
 
@@ -720,6 +727,7 @@ Configuration = (options={}) ->
         services
 
       elif [ "$1" == "buildservices" ]; then
+
         check_service_dependencies
 
         read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
@@ -730,6 +738,7 @@ Configuration = (options={}) ->
         fi
 
         build_services
+        importusers
 
       elif [ "$1" == "help" ]; then
         printHelp
@@ -740,6 +749,8 @@ Configuration = (options={}) ->
       elif [ "$1" == "testendpoints" ]; then
         testendpoints
 
+      elif [ "$1" == "importusers" ]; then
+        importusers
 
       elif [ "$1" == "worker" ]; then
 
