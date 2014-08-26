@@ -226,6 +226,10 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.send 200, authTemplate data
 
 
+app.post "/:name?/Optin", (req, res)->
+  res.clearCookie 'useNewKoding'
+  res.redirect 301, '/'
+
 app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'
   res.redirect 301, '/'
