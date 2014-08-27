@@ -32,6 +32,17 @@ func run() bool {
 		fatal(err)
 	}
 
+	go func() {
+		cmd.Wait()
+		select {
+		case <-changeChannel:
+		default:
+			stopChannel <- true
+			closeChannel <- true
+		}
+
+	}()
+
 	go io.Copy(appLogWriter{}, stderr)
 	go io.Copy(appLogWriter{}, stdout)
 
