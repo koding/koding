@@ -1,0 +1,83 @@
+comment-bg           = #f6f6f6
+comment-border-color = rgba(40,40,40,.06)
+avatar-border-color  = rgb(238,238,238)
+light-green          = #87a03b
+orange               = #f08501
+
+linkColor1           = #ff9200
+finderSelectedColor1 = #31575F
+finderSelectedColor2 = #DC911D
+
+neueFamily           = 'Helvetica Neue', Helvetica, Arial, sans-serif
+proximaFamily        = 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+openSansFamily       = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+monoFamily           = 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+logoFamily           = 'Ubuntu','Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+asapFamily           = 'Asap', 'Helvetica Neue', Helvetica, sans-serif
+logoBg               = #1aaf5d
+headerBg             = #2e3537
+homeHeaderBg         = #e3e3e3
+headerLinkColor      = #3e4446
+bgColor              = #202527
+teamworkColor        = #f2c500
+socialColor          = #2d97de
+footerLinkColor      = #a8a8a8
+footerBg             = #222627
+emphasized           = #242a2c
+
+r-sprite(folder, name)
+  sprite(folder, name)
+  hidpi = s("(min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 1.5dppx)");
+  @media hidpi
+    sprite(folder+"@2x", name, false)
+    background-size sprite-dimensions(folder+"@2x", name)
+
+borderize(color)
+  noTextDeco()
+  color           color
+  border-bottom   1px solid color
+
+vCenter()
+  top             50%
+  vendor          transform, translateY(-50%)
+  size            100% auto
+  abs()
+
+fadeIn()
+  opacity         0
+  vendor          transition, opacity .177s ease
+  &.in
+    opacity       1
+
+leftTransition()
+  transition left .3s linear
+
+widthTransition()
+  transition width .3s linear
+
+greenLink()
+  // font-family         Droid
+  color               light-green
+  font-size           11px
+  text-decoration     none
+  &:hover
+    color             dark-green
+    text-decoration   underline
+
+noAnim()
+  vendor                transition, none!important
+
+styleScrollBars()
+
+  &.has-vertical
+    padding-right       0
+
+  .kdview.kdscrolltrack
+    bg                  color transparent
+    overflow            visible
+    .kdscrollthumb
+      bg                color rgba(255,255,255,.15)
+      margin            0 4px
+      width             7px
+      rounded           6px
+
