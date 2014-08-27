@@ -11,7 +11,7 @@
             "ami_name": "koding-latest-{{timestamp}}",
             "instance_type": "m3.medium",
             "region": "us-east-1",
-            "source_ami": "ami-864d84ee",
+            "source_ami": "ami-680fd500",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs"
         }
