@@ -60,6 +60,9 @@ KD.extend
       ,
         username  : 'nitin'
         title     : 'Chief Business Officer'
+      ,
+        username  : 'rsbrown'
+        title     : 'VP of Engineering'
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
