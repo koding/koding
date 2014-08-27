@@ -63,6 +63,9 @@ KD.extend
       ,
         username  : 'rsbrown'
         title     : 'VP of Engineering'
+      ,
+        username  : 'alice'
+        title     : 'Chef de Cuisine'
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
