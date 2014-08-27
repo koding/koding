@@ -61,13 +61,6 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region } = options
     return (kite = @getCachedKite name, correlationName)?
 
-  fetchVmInfo: (correlationName) ->
-    new Promise (resolve, reject) ->
-      KD.remote.api.JVM.fetchVmInfo correlationName, (err, info) =>
-        return reject err                              if err
-        return reject new Error "VM info not found!"   unless info?
-        resolve info
-
   getWhoParams: (kiteName, correlationName) ->
     if kiteName in ['oskite', 'terminal']
       return vmName: correlationName
