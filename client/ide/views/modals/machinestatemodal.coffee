@@ -29,26 +29,32 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController = KD.getSingleton 'computeController'
 
-    stateUpdater = (event) =>
+    computeController.on "start-#{@machineId}", @bound 'updateStatus'
+    computeController.on "build-#{@machineId}", @bound 'updateStatus'
+    computeController.on "error-#{@machineId}", ({task, err}) =>
+      @_error = err.message  if err.message?
+      @updateStatus { status: Unknown }
 
-      {status} = event
+    @show()
 
-      return  if status is @state
+
+  updateStatus: (event) ->
+
+    {status, percentage} = event
+
+    if status is @state
+      @progressBar.updateBar Math.max percentage, 10
+    else
+      @state = status
+
+      if percentage is 100
+        @progressBar.updateBar 100
+        KD.utils.wait 500, @bound 'buildViews'
+      else
+        @buildViews()
 
       @prepareIDE()  if status is Running
 
-      @state = status
-      @buildViews()
-
-    computeController.on "start-#{@machineId}", stateUpdater
-    computeController.on "build-#{@machineId}", stateUpdater
-
-    computeController.on "error-#{@machineId}", ({task, err})=>
-
-      @_error = err.message  if err.message?
-      stateUpdater { status: Unknown }
-
-    @show()
 
   buildInitial:->
 
@@ -71,9 +77,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Stopping ]
-      @createLoading()
+      @createProgressBar()
 
     @createError()
+
 
   createStateLabel: (customState)->
 
@@ -97,7 +104,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @container.addSubView @label
 
+
   createStateButton: ->
+
     @button      = new KDButtonView
       title      : 'Turn it on'
       cssClass   : 'turn-on state-button solid green medium'
@@ -112,7 +121,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @container.addSubView @button
 
+
   createLoading: ->
+
     @loader = new KDLoaderView
       showLoader : yes
       size       :
@@ -121,7 +132,17 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @container.addSubView @loader
 
+
+  createProgressBar: ->
+
+    @progressBar = new KDProgressBarView
+      initial    : 10
+
+    @container.addSubView @progressBar
+
+
   createFooter: ->
+
     @footer    = new KDCustomHTMLView
       cssClass : 'footer'
       partial  : """
@@ -133,7 +154,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @addSubView @footer
 
+
   createError: ->
+
     return  unless @_error
 
     @errorMessage = new KDCustomHTMLView
@@ -143,7 +166,9 @@ class IDE.MachineStateModal extends IDE.ModalView
     @container.addSubView @errorMessage
     @_error = null
 
+
   turnOnMachine: ->
+
     computeController = KD.getSingleton 'computeController'
     computeController.fetchMachines (err) =>
       return KD.showError "Couldn't fetch machines"  if err
@@ -158,6 +183,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       computeController[methodName] @machine
       @state = nextState
       @buildViews()
+
 
   startIDE: -> @destroy()
 
@@ -174,4 +200,3 @@ class IDE.MachineStateModal extends IDE.ModalView
       @setData m
 
       @emit 'IDEBecameReady'
-
