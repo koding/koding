@@ -22,6 +22,7 @@ func watchFolder(path string) {
 				if isWatchedFile(ev.Name) {
 					watcherLog("sending event %s", ev)
 					startChannel <- ev.String()
+					changeChannel <- struct{}{}
 				}
 			case err := <-watcher.Error:
 				watcherLog("error: %s", err)
