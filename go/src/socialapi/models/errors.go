@@ -25,7 +25,7 @@ var (
 	ErrChannelParticipantIsNotSet             = errors.New("channel participant is not set")
 	ErrCannotAddNewParticipantToPinnedChannel = errors.New("you can not add any participants to pinned activity channel")
 
-	ErrChannelMessageIdIsNotSet = errors.New("Channel message id is not set")
+	ErrChannelMessageIdIsNotSet = errors.New("channel message id is not set")
 
 	ErrNameIsNotSet       = errors.New("name is not set")
 	ErrGroupNameIsNotSet  = errors.New("group name is not set")

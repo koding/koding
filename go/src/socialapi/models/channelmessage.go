@@ -106,6 +106,7 @@ func (c *ChannelMessage) isExempt() (bool, error) {
 	return false, nil
 }
 
+// Tests are done
 func (c *ChannelMessage) getAccountId() (int64, error) {
 	if c.AccountId != 0 {
 		return c.AccountId, nil
@@ -123,6 +124,7 @@ func (c *ChannelMessage) getAccountId() (int64, error) {
 	return cm.AccountId, nil
 }
 
+// Tests are done
 func bodyLenCheck(body string) error {
 	if len(body) < config.MustGet().Limits.MessageBodyMinLen {
 		return fmt.Errorf("message body length should be greater than %d, yours is %d ", config.MustGet().Limits.MessageBodyMinLen, len(body))

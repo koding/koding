@@ -363,7 +363,7 @@ func TestChannelMessageBodyLenCheck(t *testing.T) {
 	}
 	defer r.Close()
 
-	Convey("while checing body length", t, func() {
+	Convey("while checking body length", t, func() {
 		Convey("it should have error if body length is zero", func() {
 			cm := createMessageWithTest()
 			cm.Body = ""
@@ -381,5 +381,33 @@ func TestChannelMessageBodyLenCheck(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+	})
+}
+
+func TestChannelMessageBuildEmptyMessageContainer(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while building empty message container", t, func() {
+		Convey("it should have channel message id", func() {
+			c := NewChannelMessage()
+
+			_, err := c.BuildEmptyMessageContainer()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
+		})
+
+		Convey("it should not have error if chanel is exist", func() {
+			// create message
+			c := createMessageWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			bem, err := c.BuildEmptyMessageContainer()
+			So(err, ShouldBeNil)
+			So(bem.Message, ShouldEqual, c)
+		})
 	})
 }
