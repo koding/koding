@@ -6,7 +6,7 @@
 KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
 
 jraphical = require 'jraphical'
-module.exports = class JDomain extends jraphical.Module
+module.exports = class JProposedDomain extends jraphical.Module
 
   DomainManager      = require 'domainer'
   Validators         = require './group/validators'
@@ -204,11 +204,11 @@ module.exports = class JDomain extends jraphical.Module
     domainData = { proposedDomain: domain, group }
     domainData.hostnameAlias = hostnameAlias  if hostnameAlias?
 
-    JStack = require './stack'
-    JStack.getStack account, stack, (err, stack)=>
+    JComputeStack = require './stack'
+    JComputeStack.getStack account, stack, (err, stack)=>
       return callback err  if err?
 
-      domain = new JDomain domainData
+      domain = new JProposedDomain domainData
       domain.save (err)->
         return callback err  if err
 
@@ -221,7 +221,7 @@ module.exports = class JDomain extends jraphical.Module
 
   checkExistence = (domain, callback)->
 
-    JDomain.count { domain }, (err, count)->
+    JProposedDomain.count { domain }, (err, count)->
 
       return callback err  if err
 
@@ -255,7 +255,7 @@ module.exports = class JDomain extends jraphical.Module
       resolveDomain domain, (err)->
         return callback err  if err
 
-        JDomain.createDomain {
+        JProposedDomain.createDomain {
           domain, group, stack
           account: delegate
         }, callback
@@ -269,7 +269,7 @@ module.exports = class JDomain extends jraphical.Module
 
     domains.forEach (domain) ->
 
-      JDomain.createDomain {
+      JProposedDomain.createDomain {
         domain, account, group, stack
         hostnameAlias : [ hostnameAlias ]
       }, (err, domain)->

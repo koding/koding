@@ -97,7 +97,7 @@ class CloneStackModal extends KDModalView
     @newDomains = []
     isValidated = yes
 
-    KD.remote.api.JDomain.fetchDomains (err, domains) =>
+    KD.remote.api.JProposedDomain.fetchDomains (err, domains) =>
       return @notify "Unable to fetch your domains"  if err
 
       userDomains.push domain.domain  for domain in domains
@@ -135,7 +135,7 @@ class CloneStackModal extends KDModalView
       newName = @newDomains[index]
       domainList.push newName
       @queue.push =>
-        KD.remote.api.JDomain.createDomain { domain: newName, stack: @stack.getId() }, (err, res) =>
+        KD.remote.api.JProposedDomain.createDomain { domain: newName, stack: @stack.getId() }, (err, res) =>
           if err
             @notify "Unable to create your domain"
             @queue.error()
@@ -182,7 +182,7 @@ class CloneStackModal extends KDModalView
       @destroy()
 
   createStack: (callback = noop) ->
-    # KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>
+    # KD.remote.api.JComputeStack.createStack @getOptions().meta, (err, @stack) =>
     #   return @notify "Failed to create a new stack. Try again later!"  if err
 
     callback()

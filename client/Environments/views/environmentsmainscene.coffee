@@ -37,7 +37,7 @@ class EnvironmentsMainScene extends KDView
 
   createNewStack: (meta, modal)->
 
-    KD.remote.api.JStack.create meta, (err, stack)=>
+    KD.remote.api.JComputeStack.create meta, (err, stack)=>
 
       title = "Failed to create a new stack. Try again later!"
       return new KDNotificationView { title }  if err?

@@ -326,7 +326,7 @@ module.exports = class JAccount extends jraphical.Module
 
       domain        :
         as          : 'owner'
-        targetType  : 'JDomain'
+        targetType  : 'JProposedDomain'
 
       proxyFilter   :
         as          : 'owner'
