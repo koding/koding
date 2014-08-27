@@ -43,7 +43,7 @@ class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      KD.remote.api.JStack.some {}, (err, stacks = [])=>
+      KD.remote.api.JComputeStack.some {}, (err, stacks = [])=>
 
         if err?
           cb err  for cb in queue

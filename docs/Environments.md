@@ -78,7 +78,7 @@ explanation of each part below:
     In the Koding Backend (social worker) we have following models in DB:
 
 
-      - **JStack**
+      - **JComputeStack**
 
         Stack model, which is a packed storage for followings:
 
@@ -93,7 +93,7 @@ explanation of each part below:
 
       - **JStackTemplate**
 
-        It's the template version of `JStack`, basically its using as data
+        It's the template version of `JComputeStack`, basically its using as data
         source to create new stacks. It has one extra field (`connections`) to
         keep track relations between domains with machine, rules with domains
         etc.

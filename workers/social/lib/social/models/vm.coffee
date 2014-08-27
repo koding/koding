@@ -333,7 +333,7 @@ module.exports = class JVM extends Module
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, type, groupSlug, planCode, stackId, subscriptionCode}, callback)->
     JGroup = require './group'
-    JStack = require './stack'
+    JComputeStack = require './stack'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
       return callback new Error "Group not found"  unless group
@@ -802,8 +802,8 @@ module.exports = class JVM extends Module
             # New account found
             webHome       = username
 
-            JStack = require './stack'
-            JStack.getStackId {user:username, group}, (err, stack)=>
+            JComputeStack = require './stack'
+            JComputeStack.getStackId {user:username, group}, (err, stack)=>
 
               if err then warn "Failed to get stack:", err
 

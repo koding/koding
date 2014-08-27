@@ -182,7 +182,7 @@ class CloneStackModal extends KDModalView
       @destroy()
 
   createStack: (callback = noop) ->
-    # KD.remote.api.JStack.createStack @getOptions().meta, (err, @stack) =>
+    # KD.remote.api.JComputeStack.createStack @getOptions().meta, (err, @stack) =>
     #   return @notify "Failed to create a new stack. Try again later!"  if err
 
     callback()
