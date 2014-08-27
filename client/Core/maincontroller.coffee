@@ -276,9 +276,7 @@ class MainController extends KDController
 
   startCachingAssets:->
 
-    KD.utils.defer ->
-
-      KD.singletons.appManager.require 'Login'
+    KD.singletons.appManager.require 'Login', ->
 
       images = [
         '/a/images/city.jpg'

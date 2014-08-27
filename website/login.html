@@ -1,0 +1,24 @@
+<form method="POST" action="/Login" onsubmit="try{submitForm(this)}catch(_){console.log(_)};return false">
+<label>Username: <input type="text" name="username"></label>
+<label>Password: <input type="password" name="password"></label>
+<button type="submit">submit</button>
+</form>
+<script src="./coffee-script.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+<script type="text/coffeescript">
+
+window.submitForm = (form) ->
+  $.ajax
+    url               : form.action
+    data              : { username: form.username.value, password: form.password.value }
+    type              : "POST"
+    dataType          : 'json'
+    xhrFields         :
+      withCredentials : yes
+    success           : -> location.replace '/'
+    error             : (xhr) ->
+      err = try $.parseJSON xhr.responseText
+      alert err.message  if err?
+  no
+
+</script>
