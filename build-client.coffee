@@ -89,14 +89,20 @@ class Builder
 
   buildFramework:->
 
-    cmd = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
-    exec cmd, (err, stdout, stderr)->
+    buildLoggedInFramework  = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
+    buildLoggedOutFramework = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/out/  --entryPath=../entry.coffee"
+    exec buildLoggedInFramework, (err, stdout, stderr)->
       console.log """
       ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
        To use watcher for Framework use following command in different tab:
-       $ #{cmd.replace 'compile ', ''}
+       $ #{buildLoggedInFramework.replace 'compile ', ''}
       ---------------------------------------------------------------------------------------------
       """
+
+      # exec buildLoggedOutFramework, (err, stdout, stderr)->
+      #   console.log """
+      #   ----------------------------- KD FRAMEWORK LOGGEDOUT COMPILED -------------------------------
+      #   """
 
   buildClient: (options) ->
 
