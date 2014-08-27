@@ -40,17 +40,17 @@ class MainViewController extends KDViewController
 
 
 
-    display.on 'ContentDisplayWantsToBeShown', do =>
+    display?.on 'ContentDisplayWantsToBeShown', do =>
       type = null
       (view) => @setBodyClass type  if type = view.getOption 'type'
 
     windowController.on 'ScrollHappened', @bound 'handleScroll'
 
-    if KD.config.environment isnt 'production'
-      window.addEventListener 'click', (event) =>
-        if event.metaKey and event.altKey
-          logViewByElement event.target
-      , yes
+    # if KD.config?.environment isnt 'production'
+    #   window.addEventListener 'click', (event) =>
+    #     if event.metaKey and event.altKey
+    #       logViewByElement event.target
+    #   , yes
 
 
   loadView:(mainView)->
@@ -69,7 +69,7 @@ class MainViewController extends KDViewController
     lastScroll    = 0
     currentHeight = 0
 
-    _.throttle (event) ->
+    KD.utils.throttle (event) ->
 
       el = document.body
       {scrollHeight, scrollTop} = el
