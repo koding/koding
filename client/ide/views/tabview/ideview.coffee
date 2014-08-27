@@ -33,7 +33,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @once 'viewAppended', => KD.utils.wait 300, =>
       @createEditor()  if @getOption 'createNewEditor'
-      @showShortcutsOnce()
 
   createPane_: (view, paneOptions, paneData) ->
     unless view or paneOptions
@@ -202,14 +201,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
         if pane.view.getValue() is ''
           @tabView.removePane pane
-
-  showShortcutsOnce: ->
-    @appStorage = KD.getSingleton('appStorageController').storage 'IDE', '1.0.0'
-    @appStorage.fetchStorage (storage) =>
-      isShortcutsShown = @appStorage.getValue 'isShortcutsShown'
-      unless isShortcutsShown
-        @createShortcutsView()
-        @appStorage.setValue 'isShortcutsShown', yes
 
   getPlusMenuItems: ->
     return {
