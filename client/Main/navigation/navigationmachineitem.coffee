@@ -9,7 +9,7 @@ class NavigationMachineItem extends JView
   constructor:(options = {}, data)->
 
     machine            = data
-    @alias             = machine.getName()
+    @alias             = machine.label
     path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
 
     options.tagName    = 'a'
@@ -52,14 +52,6 @@ class NavigationMachineItem extends JView
 
         @unsetClass stateClasses
         @setClass status.toLowerCase()
-
-
-    @machine.on 'MachineDomainUpdated', @bound 'updateLabel'
-
-
-  updateLabel: ->
-
-    @label.updatePartial @machine.getName()
 
 
   pistachio:->

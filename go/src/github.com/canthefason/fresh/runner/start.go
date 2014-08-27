@@ -10,13 +10,15 @@ import (
 )
 
 var (
-	startChannel chan string
-	stopChannel  chan bool
-	mainLog      logFunc
-	watcherLog   logFunc
-	runnerLog    logFunc
-	buildLog     logFunc
-	appLog       logFunc
+	startChannel  chan string
+	stopChannel   chan bool
+	closeChannel  chan bool
+	changeChannel chan struct{}
+	mainLog       logFunc
+	watcherLog    logFunc
+	runnerLog     logFunc
+	buildLog      logFunc
+	appLog        logFunc
 )
 
 func flushEvents() {
@@ -40,12 +42,13 @@ func start() {
 		for {
 			loopIndex++
 			mainLog("Waiting (loop %d)...", loopIndex)
-			eventName := <-startChannel
+			// eventName := <-startChannel
+			<-startChannel
 
-			mainLog("receiving first event %s", eventName)
-			mainLog("sleeping for %d milliseconds", buildDelay)
+			// mainLog("receiving first event %s", eventName)
+			// mainLog("sleeping for %d milliseconds", buildDelay)
 			time.Sleep(buildDelay * time.Millisecond)
-			mainLog("flushing events")
+			// mainLog("flushing events")
 
 			flushEvents()
 
@@ -78,6 +81,8 @@ func start() {
 func init() {
 	startChannel = make(chan string, 1000)
 	stopChannel = make(chan bool)
+	closeChannel = make(chan bool)
+	changeChannel = make(chan struct{})
 }
 
 func initLogFuncs() {
@@ -123,5 +128,5 @@ func Start() {
 	start()
 	startChannel <- "/"
 
-	<-make(chan int)
+	<-closeChannel
 }
