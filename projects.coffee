@@ -167,6 +167,18 @@ bundles           =
     style         : "website/a/css/koding.css"
     script        : "website/a/js/koding.js"
 
+  # out for a while - SY
+  # KodingOut       :
+  #   projects      : [
+  #                    'Core'
+  #                    'Home'
+  #                    'Login'
+  #                    'PostOperations'
+  #                   ]
+
+  #   style         : "website/a/out/css/koding.css"
+  #   script        : "website/a/out/js/koding.js"
+
   TeamworkBundle  :
     projects      : ['Viewer', 'Teamwork', 'DevTools']
     style         : "website/a/css/__teamwork.css"
