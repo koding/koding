@@ -189,6 +189,8 @@ class ComputeController extends KDController
 
     ComputeController.UI.askFor 'destroy', machine, =>
 
+      machine.getBaseKite( createIfExists = no ).disconnect()
+
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
