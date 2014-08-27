@@ -66,6 +66,9 @@ KD.extend
       ,
         username  : 'alice'
         title     : 'Chef de Cuisine'
+      ]
+
+    # suspended     : []
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
@@ -85,14 +88,11 @@ KD.extend
       #   username  : 'pablostanley'
       #   title     : 'Illustrator'
       # ,
-      #   username  : 'aleksey-m'
-      #   title     : 'System Administrator'
-      ]
-
-    # suspended     : []
-
       #   username  : 'kiwigeraint'
       #   title     : 'Director of Infrastructure'
+      # ,
+      #   username  : 'leventyalcin'
+      #   title     : 'DevOps'
       # ,
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
