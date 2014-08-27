@@ -161,13 +161,13 @@ class Builder
     # registering app names to KD.config
     # so that we know all the available apps
     # before even loading their sources
-    fs.writeFileSync "#{__dirname}/client/Main/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
+    fs.writeFileSync "#{__dirname}/client/Core/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
 
     # this registers routes just before application runs
     # this is not the best place to put this
     # assuming to refactor this at some point
     # by switching to a task manager - SY
-    fs.writeFileSync "#{__dirname}/client/Main/__generatedroutes__.coffee" , @getRoutes(), "utf8"
+    fs.writeFileSync "#{__dirname}/client/Core/__generatedroutes__.coffee" , @getRoutes(), "utf8"
 
     @compileChanged options, true
 
