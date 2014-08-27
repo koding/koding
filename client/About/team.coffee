@@ -31,9 +31,6 @@ KD.extend
         username  : 'szkl'
         title     : 'DevOps'
       ,
-        username  : 'leventyalcin'
-        title     : 'DevOps'
-      ,
         username  : 'burakcan'
         title     : 'CSS Wizard'
       ,
@@ -60,9 +57,9 @@ KD.extend
       ,
         username  : 'didemacet'
         title     : 'QA'
-      # ,
-      #   username  : 'gniting'
-      #   title     : 'BizDev'
+      ,
+        username  : 'nitin'
+        title     : 'Chief Business Officer'
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
