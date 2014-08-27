@@ -34,6 +34,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    "#{algolia.appId}"                          , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"          , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                         , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -95,7 +96,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                , privateKeyFile: kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{kontrol.url}" , registerUrl :"#{customDomain.public}/kloud/kite"  }
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -243,7 +244,7 @@ Configuration = (options={}) ->
     webserver           :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
+        command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         ports           : ["#{KONFIG.webserver.port}"]
         locations       : ["/"]
@@ -251,7 +252,7 @@ Configuration = (options={}) ->
     socialworker        :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+        command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         ports           : ["#{KONFIG.social.port}"]
         locations       : ["/xhr"]

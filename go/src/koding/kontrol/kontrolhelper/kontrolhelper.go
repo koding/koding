@@ -33,7 +33,7 @@ func CreateAmqpConnection(conf *config.Config) *amqp.Connection {
 		Scheme:   "amqp",
 		Host:     conf.Mq.Host,
 		Port:     conf.Mq.Port,
-		Username: conf.Mq.ComponentUser,
+		Username: conf.Mq.Login,
 		Password: conf.Mq.Password,
 		Vhost:    conf.Mq.Vhost,
 	}
