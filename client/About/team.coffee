@@ -28,9 +28,6 @@ KD.extend
         username  : 'cihangirsavas'
         title     : 'Software Engineer'
       ,
-        username  : 'kiwigeraint'
-        title     : 'Director of Infrastructure'
-      ,
         username  : 'szkl'
         title     : 'DevOps'
       ,
@@ -91,6 +88,9 @@ KD.extend
 
     # suspended     : []
 
+      #   username  : 'kiwigeraint'
+      #   title     : 'Director of Infrastructure'
+      # ,
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
       # ,
