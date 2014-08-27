@@ -105,6 +105,10 @@ module.exports = class JMachine extends Module
 
       meta              : Object
 
+      assignee          :
+        inProgress      : Boolean
+        assignedAt      : Date
+
 
   @create = (data)->
 
@@ -120,6 +124,11 @@ module.exports = class JMachine extends Module
 
     data.uid = "u#{user[0]}#{group[0]}#{provider[0]}#{(require 'hat')(32)}"
     data.createdAt = new Date()
+
+    data.assignee  =
+      inProgress   : no
+      assignedAt   : data.createdAt
+
     data.status  =
       state      : "NotInitialized"
       modifiedAt : data.createdAt
