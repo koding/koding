@@ -6,9 +6,18 @@ class ActivityLikeLink extends CustomLinkView
 
     super options, data
 
+    { @isInteracted } = data.interactions.like
+
     data
-      .on 'LikeAdded', @bound 'update'
+      .on 'LikeAdded',   @bound 'update'
       .on 'LikeRemoved', @bound 'update'
+      .on 'LikeChanged', @bound 'setLikeState'
+
+
+  setLikeState: (state) ->
+    @isInteracted = state
+
+    @setTemplate @pistachio()
 
 
   click: (event) ->
@@ -22,7 +31,12 @@ class ActivityLikeLink extends CustomLinkView
     {isInteracted} = data.interactions.like
     {like, unlike} = KD.singletons.socialapi.message
 
-    fn = if isInteracted then unlike else like
+    data.emit 'LikeChanged', not isInteracted
+
+    fn = if isInteracted
+    then unlike
+    else like
+
     fn {id}, (err) =>
       @locked = no
       @showError err  if err
@@ -30,12 +44,13 @@ class ActivityLikeLink extends CustomLinkView
 
   update: ->
 
+    { @isInteracted } = @getData().interactions.like
+
     @setTemplate @pistachio()
 
-    if @getData().interactions.like.isInteracted
+    if @isInteracted
       @trackLike()
       @setClass 'liked'
-
     else
       @trackUnlike()
       @unsetClass 'liked'
@@ -60,6 +75,6 @@ class ActivityLikeLink extends CustomLinkView
 
   pistachio: ->
 
-    {isInteracted} = @getData().interactions.like
+    "#{if @isInteracted then "Unlike" else "Like"}"
 
-    "#{if isInteracted then "Unlike" else "Like"}"
+
