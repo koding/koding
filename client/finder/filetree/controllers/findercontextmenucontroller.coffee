@@ -204,11 +204,11 @@ class NFinderContextMenuController extends KDController
       Refresh                     :
         action                    : 'refresh'
         separator                 : yes
-      'Unmount VM'                :
-        action                    : 'unmountVm'
-      'Open terminal'             :
-        action                    : 'openMachineTerminal'
-        separator                 : yes
+      # 'Unmount VM'                :
+      #   action                    : 'unmountVm'
+      # 'Open terminal'             :
+      #   action                    : 'openMachineTerminal'
+      #   separator                 : yes
       Expand                      :
         action                    : 'expand'
         separator                 : yes
@@ -222,8 +222,8 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
-      'Upload file...'            :
-        action                    : 'upload'
+      # 'Upload file...'            :
+      #   action                    : 'upload'
 
     if fileView.expanded
     then delete items.Expand
