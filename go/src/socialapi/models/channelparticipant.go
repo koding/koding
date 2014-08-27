@@ -310,7 +310,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 
 func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	if c.ChannelId == 0 {
-		return 0, errors.New("channel Id is not set")
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	return c.Count("channel_id = ? and status_constant = ?", c.ChannelId, ChannelParticipant_STATUS_ACTIVE)

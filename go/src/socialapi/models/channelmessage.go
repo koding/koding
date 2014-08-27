@@ -215,6 +215,7 @@ func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, err
 	return true, nil
 }
 
+// Tests are done.
 func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelMessageIdIsNotSet

@@ -66,3 +66,42 @@ func TestChannelParticipantBeforeUpdate(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelParticipantIsParticipant(t *testing.T) {
+	Convey("While testing is participant", t, func() {
+		Convey("it should have channel id", func() {
+			cp := NewChannelParticipant()
+
+			ip, err := cp.IsParticipant(1123)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+			So(ip, ShouldEqual, false)
+		})
+
+		Convey("it should return false if account is not exist", func() {
+			cp := NewChannelParticipant()
+			cp.ChannelId = 120
+
+			ip, err := cp.IsParticipant(112345)
+			So(err, ShouldBeNil)
+			So(ip, ShouldEqual, false)
+		})
+
+		Convey("it should not have error if account is exist", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+			So(cp.Create(), ShouldBeNil)
+
+			_, err := c.AddParticipant(acc.Id)
+
+			ip, err := cp.IsParticipant(acc.Id)
+			So(err, ShouldBeNil)
+			So(ip, ShouldEqual, true)
+		})
+	})
+}
