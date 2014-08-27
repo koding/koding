@@ -14,17 +14,18 @@ class IDE.MachineStateModal extends IDE.ModalView
     super options, data
 
     @addSubView @container = new KDCustomHTMLView cssClass: 'content-container'
+    @machine = @getData()
 
-    unless data
+    unless @machine
       @state = options.state
       return @buildViews()
 
-    {jMachine}   = data
+    {jMachine}   = @machine
     @machineName = jMachine.label
     @machineId   = jMachine._id
-    {@state}     = data.status
+    {@state}     = @machine.status
 
-    @buildViews()
+    @buildInitial()
 
     computeController = KD.getSingleton 'computeController'
 
@@ -46,6 +47,19 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @show()
 
+  buildInitial:->
+
+    @container.destroySubViews()
+
+    @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
+    @createLoading()
+    @createFooter()
+
+    KD.getSingleton 'computeController'
+      .info @machine
+      .then => @buildViews()
+
+
   buildViews: ->
     @container.destroySubViews()
 
@@ -57,9 +71,9 @@ class IDE.MachineStateModal extends IDE.ModalView
       @createLoading()
 
     @createError()
-    @createFooter()  unless @footer
 
-  createStateLabel: ->
+  createStateLabel: (customState)->
+
     stateTexts       =
       Stopped        : 'is turned off.'
       Starting       : 'is starting now.'
@@ -71,9 +85,11 @@ class IDE.MachineStateModal extends IDE.ModalView
       Unknown        : 'is turned off.'
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
+    stateText = customState or "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+
     @label     = new KDCustomHTMLView
       tagName  : 'p'
-      partial  : "<span class='icon'></span><strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+      partial  : "<span class='icon'></span>#{stateText}"
       cssClass : "state-label #{@state.toLowerCase()}"
 
     @container.addSubView @label
@@ -136,7 +152,7 @@ class IDE.MachineStateModal extends IDE.ModalView
         methodName = 'build'
         nextState  = 'Building'
 
-      computeController[methodName] @getData()
+      computeController[methodName] @machine
       @state = nextState
       @buildViews()
 
@@ -146,9 +162,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
       return KD.showError "Couldn't fetch your VMs"  if err
 
-      m = machine for machine in machines when machine._id is @getData()._id
+      m = machine for machine in machines when machine._id is @machine._id
 
       KD.getSingleton('appManager').tell 'IDE', 'mountMachine', m
+      @machine = m
       @setData m
 
       @emit 'IDEBecameReady'
