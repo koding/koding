@@ -39,7 +39,7 @@ utils.extend utils,
     if options.crop
       endpoint = "crop"
 
-    fullurl = "#{KD.config.mainUri}/-/image/cache?" +
+    fullurl = "/-/image/cache?" +
               "endpoint=#{endpoint or ''}&" +
               "grow=#{options.grow}&" +
               "width=#{options.width}&" +
