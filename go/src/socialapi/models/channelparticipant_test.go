@@ -162,3 +162,38 @@ func TestChannelParticipantFetchParticipantCount(t *testing.T) {
 	})
 
 }
+
+func TestChannelParticipantgetAccountId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While getting account id", t, func() {
+		Convey("it should have channel id", func() {
+			cp := NewChannelParticipant()
+
+			gai, err := cp.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+			So(gai, ShouldEqual, 0)
+		})
+
+		Convey("it should return account id if account is exist", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.Id = 1201
+			cp.AccountId = acc.Id
+
+			gai, err := cp.getAccountId()
+			So(err, ShouldBeNil)
+			So(gai, ShouldEqual, acc.Id)
+		})
+
+	})
+
+}
