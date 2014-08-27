@@ -94,7 +94,7 @@ module.exports.create = (workers)->
     # start server
     server {
       # do not add hostname here!
-      listen 8080;
+      listen 80;
       root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {

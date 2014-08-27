@@ -30,7 +30,7 @@ Configuration = (options={}) ->
   customDomain        = { public:   "http://#{hostname}"                             , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "#{publicHostname}/kontrol"                      , port:               443                                   , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "#{publicHostname}/kontrol"                      , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    '8KD9RHY1OA'                                     , apiKey:             'e4a8ebe91bf848b67c9ac31a6178c64b'    , indexSuffix:     ''                   }
@@ -41,8 +41,12 @@ Configuration = (options={}) ->
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
+  socialapiProxy      =
+    hostname          : "localhost"
+    port              : "7000"
+
   socialapi =
-    proxyUrl          : "http://localhost:7000"
+    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
     postgres          : postgres
     mq                : mq
@@ -262,14 +266,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
-    emailsender         :
-      group             : "socialapi"
-      supervisord       :
-        command         : "coffee #{projectRoot}/workers/emailsender/main.coffee        -c #{configName}"
-      nginx             :
-        ports           : []
-        websocket       : no
-
     # clientWatcher       :
     #   group             : "webserver"
     #   supervisord       :
@@ -282,6 +278,8 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
+      nginx             :
+        ports           : ["#{socialapiProxy.port}"]
 
     dailyemailnotifier  :
       group             : "socialapi"

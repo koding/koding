@@ -38,8 +38,12 @@ Configuration = (options={}) ->
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
+  socialapiProxy      =
+    hostname          : "localhost"
+    port              : "7000"
+
   socialapi =
-    proxyUrl          : "http://localhost:7000"
+    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/sandbox.toml"
     postgres          : postgres
     mq                : mq
@@ -265,6 +269,8 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
+      nginx             :
+        ports           : ["#{socialapiProxy.port}"]
 
     dailyemailnotifier  :
       group             : "socialapi"
