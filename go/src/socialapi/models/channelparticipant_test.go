@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -177,6 +178,16 @@ func TestChannelParticipantgetAccountId(t *testing.T) {
 			gai, err := cp.getAccountId()
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+			So(gai, ShouldEqual, 0)
+		})
+
+		Convey("it should have error if account is not exist", func() {
+			cp := NewChannelParticipant()
+			cp.Id = 123145
+
+			gai, err := cp.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
 			So(gai, ShouldEqual, 0)
 		})
 

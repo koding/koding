@@ -385,6 +385,7 @@ func (c *ChannelParticipant) isExempt() (bool, error) {
 	return false, nil
 }
 
+// Tests are done.
 func (c *ChannelParticipant) getAccountId() (int64, error) {
 	if c.AccountId != 0 {
 		return c.AccountId, nil
