@@ -233,6 +233,11 @@ hostname: %s`
 		return nil, err
 	}
 
+	a.Log.Info("Adding machineId tag '%s' to the instance '%s'", opts.MachineId, buildArtifact.InstanceId)
+	if err := a.AddTag(buildArtifact.InstanceId, "koding-machineId", opts.MachineId); err != nil {
+		return nil, err
+	}
+
 	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
