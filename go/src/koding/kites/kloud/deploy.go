@@ -61,7 +61,6 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
-	// hostname := artifact.InstanceName
 	privateKey := artifact.SSHPrivateKey
 	sshusername := artifact.SSHUsername
 
@@ -102,6 +101,11 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	out, err := client.StartCommand(createUserCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Changing hostname to " + username)
+	if err := changeHostname(client, username); err != nil {
 		return nil, err
 	}
 
@@ -152,6 +156,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 
 	log("Installing klient deb on the machine")
 	out, err = client.StartCommand("dpkg -i /tmp/klient-latest.deb")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Chowning klient directory")
+	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /opt/kite/klient", username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err

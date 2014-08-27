@@ -42,8 +42,18 @@ func (mc *MailerContainer) PrepareContainer() error {
 	switch mc.Content.TypeConstant {
 	case models.NotificationContent_TYPE_PM:
 		target, err = fetchChannelTarget(mc.Content.TargetId)
+		mc.Message = target.Body
+	case models.NotificationContent_TYPE_COMMENT:
+		target, err = fetchMessageTarget(mc.Activity.MessageId)
+		if err != nil {
+			return err
+		}
+		mc.Message = target.Body
+		target, err = fetchMessageParent(mc.Activity.MessageId)
+
 	default:
 		target, err = fetchMessageTarget(mc.Content.TargetId)
+		mc.Message = target.Body
 	}
 
 	if err != nil {
@@ -53,7 +63,6 @@ func (mc *MailerContainer) PrepareContainer() error {
 	mc.prepareGroup(target)
 	mc.prepareSlug(target)
 	mc.prepareObjectType(target)
-	mc.Message = mc.fetchContentBody(target)
 	contentType.SetActorId(target.AccountId)
 	contentType.SetListerId(mc.AccountId)
 
@@ -85,6 +94,13 @@ func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
 	}
 
 	return target, nil
+}
+
+func fetchMessageParent(messageId int64) (*socialmodels.ChannelMessage, error) {
+	mr := socialmodels.NewMessageReply()
+	mr.ReplyId = messageId
+
+	return mr.FetchParent()
 }
 
 func (mc *MailerContainer) validateContainer() error {
@@ -133,19 +149,6 @@ func (mc *MailerContainer) prepareObjectType(cm *socialmodels.ChannelMessage) {
 		mc.ObjectType = "comment"
 	case socialmodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
 		mc.ObjectType = "private message"
-	}
-}
-
-func (mc *MailerContainer) fetchContentBody(cm *socialmodels.ChannelMessage) string {
-	if cm == nil {
-		return ""
-	}
-
-	switch mc.Content.TypeConstant {
-	case models.NotificationContent_TYPE_COMMENT:
-		return fetchLastReplyBody(cm.Id)
-	default:
-		return cm.Body
 	}
 }
 

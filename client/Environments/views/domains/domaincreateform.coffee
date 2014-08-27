@@ -69,7 +69,7 @@ class DomainCreateForm extends KDCustomHTMLView
 
     @hideError()
 
-    @createJDomain domain, (err, domain)=>
+    @createJProposedDomain domain, (err, domain)=>
       createButton.hideLoader()
       if err
         @showError err.message
@@ -92,7 +92,7 @@ class DomainCreateForm extends KDCustomHTMLView
     domain = Encoder.XSSEncode \
       "#{domain}.#{KD.nick()}.#{KD.config.userSitesDomain}"
 
-    @createJDomain domain, (err, domain)=>
+    @createJProposedDomain domain, (err, domain)=>
       createButton.hideLoader()
       return @handleDomainCreationError err  if err
 
@@ -108,13 +108,13 @@ class DomainCreateForm extends KDCustomHTMLView
       else
         @showError err.message or "An unknown error occured. Please try again later.", @subdomainForm
 
-  createJDomain:(domain, callback) ->
+  createJProposedDomain:(domain, callback) ->
 
     {stack} = @getData()
     stack   = stack?._id
 
-    { JDomain } = KD.remote.api
-    JDomain.createDomain { domain, stack }, callback
+    { JProposedDomain } = KD.remote.api
+    JProposedDomain.createDomain { domain, stack }, callback
 
   showSuccess:(domain, view = @subdomainForm) ->
 

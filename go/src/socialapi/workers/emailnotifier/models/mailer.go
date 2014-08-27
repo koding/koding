@@ -35,7 +35,7 @@ func (m *Mailer) SendMail() error {
 	message.SetFromName(m.EmailSettings.DefaultFromName)
 
 	if err := sg.Send(message); err != nil {
-		return fmt.Errorf("an error occurred while sending notification email to %s", m.UserContact.Username)
+		return fmt.Errorf("an error occurred while sending notification email to %s: %s", m.UserContact.Username, err)
 	}
 
 	return nil

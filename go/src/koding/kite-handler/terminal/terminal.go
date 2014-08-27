@@ -171,6 +171,15 @@ func Connect(r *kite.Request) (interface{}, error) {
 				n++
 			}
 
+			// this is only used for koding's own purpose to count wheter an
+			// input was called or not. There is probably better ways, like
+			// exposing messageCounter variable and check it. However this just
+			// works now.
+			if val, err := r.Context.Get("resetFunc"); err == nil {
+				resetFunc := val.(func())
+				resetFunc()
+			}
+
 			// Rate limiting...
 			if server.throttling {
 				s := time.Now().Unix()

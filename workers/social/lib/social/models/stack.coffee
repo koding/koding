@@ -1,5 +1,5 @@
 jraphical = require 'jraphical'
-module.exports = class JStack extends jraphical.Module
+module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
 
@@ -93,7 +93,7 @@ module.exports = class JStack extends jraphical.Module
 
   @getStack = (account, _id, callback)->
 
-    JStack.one { _id, originId : account.getId() }, (err, stackObj)->
+    JComputeStack.one { _id, originId : account.getId() }, (err, stackObj)->
       if err? or not stackObj?
         return callback new KodingError "A valid stack id required"
       callback null, stackObj
@@ -110,7 +110,7 @@ module.exports = class JStack extends jraphical.Module
 
 
   ###*
-   * JStack::create wrapper for client requests
+   * JComputeStack::create wrapper for client requests
    * @param  {Mixed}    client
    * @param  {Object}   data
    * @param  {Function} callback
@@ -122,11 +122,11 @@ module.exports = class JStack extends jraphical.Module
     data.groupSlug = client.context.group
     delete data.baseStackId
 
-    JStack.create data, callback
+    JComputeStack.create data, callback
 
 
   ###*
-   * JStack::create
+   * JComputeStack::create
    * @param  {Object}   data
    * @param  {Function} callback
    * @return {void}
@@ -136,7 +136,7 @@ module.exports = class JStack extends jraphical.Module
     { account, groupSlug, config, title, baseStackId } = data
     originId = account.getId()
 
-    stack = new JStack {
+    stack = new JComputeStack {
       title, config, originId, baseStackId,
       group: groupSlug
     }
@@ -162,7 +162,7 @@ module.exports = class JStack extends jraphical.Module
 
       selector = @getSelector selector, delegate
 
-      JStack.some selector, options, (err, _stacks)->
+      JComputeStack.some selector, options, (err, _stacks)->
 
         if err
 
@@ -192,7 +192,7 @@ module.exports = class JStack extends jraphical.Module
 
   revive: (callback)->
 
-    JDomain  = require "./domain"
+    JProposedDomain = require "./domain"
     JMachine = require "./computeproviders/machine"
 
     queue    = []
@@ -206,7 +206,7 @@ module.exports = class JStack extends jraphical.Module
         queue.next()
 
     (@domains ? []).forEach (domainId)->
-      queue.push -> JDomain.one _id: domainId, (err, domain)->
+      queue.push -> JProposedDomain.one _id: domainId, (err, domain)->
         if not err? and domain
           domains.push domain
         queue.next()
@@ -233,13 +233,13 @@ module.exports = class JStack extends jraphical.Module
       # TODO Implement delete methods.
       @update $set: status: "Terminating"
 
-      JDomain  = require "./domain"
+      JProposedDomain  = require "./domain"
       JMachine = require "./computeproviders/machine"
 
       { delegate } = client.connection
 
       @domains?.forEach (_id)->
-        JDomain.one {_id}, (err, domain)->
+        JProposedDomain.one {_id}, (err, domain)->
           if not err? and domain?
             domain.remove (err)->
               if err then console.error \
