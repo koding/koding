@@ -88,7 +88,8 @@
     "validator": "0.2.0",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "compress-buffer":"*"
   },
   "devDependencies": {
     "which": "^1.0.5"

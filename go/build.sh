@@ -32,7 +32,8 @@ services=(
   github.com/skelterjohn/rerun
 )
 
-go install -v "${services[@]}"
+
+`which go` install -v "${services[@]}"
 
 cd $GOPATH
 mkdir -p build/broker
