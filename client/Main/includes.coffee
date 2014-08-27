@@ -4,12 +4,16 @@ module.exports = [
   "libs/deb.min.js",
   "libs/md5-min.js",
   "libs/uuid.js",
+  'libs/underscore-min.js'
   "libs/accounting.js",
-  "libs/bluebird.js",
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
-
+  'libs/marked.js'
+  'libs/date.format.js'
+  'libs/highlight.pack.js'
+  'libs/cookies.js'
+  'libs/jquery-timeago.js'
 
   # --- Application ---
   "utils.coffee"
