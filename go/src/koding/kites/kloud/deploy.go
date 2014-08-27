@@ -161,6 +161,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	log("Chowning klient directory")
+	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /opt/kite/klient", username))
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	log("Removing leftover klient deb from the machine")
 	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
 	if err != nil {
