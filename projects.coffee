@@ -5,6 +5,12 @@ projects =
     script        : "website/a/js/bongo.js"
     sourceMapRoot : "Bongo/"
 
+  Core            :
+    path          : 'client/Core'
+    style         : 'website/a/css/__core.css'
+    script        : 'website/a/js/__core.js'
+    sourceMapRoot : 'Core/'
+
   KDMainApp       :
     path          : "client/Main"
     style         : "website/a/css/__kdapp.css"
@@ -149,12 +155,12 @@ projects =
 
 bundles           =
 
-  Koding          :
+  KodingIn        :
     projects      : [
                      'KDBackend'
+                     'Core'
                      'KDMainApp'
                      'Activity'
-                     'Login'
                      'PostOperations'
                     ]
 
