@@ -4,24 +4,51 @@ class ActivityLikeCount extends ReplyLikeView
 
     super options, data
 
-    {interactions: {like}} =  @getData()
-    {actorsCount} = like
+    @syncCountWithData()
 
-    if actorsCount then @show() else @hide()
+    if @actorsCount then @show() else @hide()
 
     data
       .on 'LikeAdded', @bound 'addLike'
       .on 'LikeRemoved', @bound 'removeLike'
+      .on 'LikeChanged', @bound 'setCountNumber'
+
+
+  syncCountWithData: ->
+    { @actorsCount } = @getData().interactions.like
+
+
+  # latency compensation
+  setCountNumber: (likeState) ->
+
+    if likeState is yes
+      @actorsCount++
+      @show()
+    else
+      @actorsCount--
+      @hide()  if @actorsCount is 0
+
+    @setTemplate @pistachio()
 
 
   addLike: ->
+
+    @syncCountWithData()
+
     @show()
+
     KD.mixpanel "Activity like, success"
 
 
   removeLike: ->
-    @hide()  unless @getData().interactions.like.actorsCount
+
+    @syncCountWithData()
+
+    @hide()  unless @actorsCount
+
     KD.mixpanel "Activity unlike, success"
 
 
-  pistachio: -> "{{ #(interactions.like.actorsCount)}}"
+  pistachio: ->
+    "#{ @actorsCount }"
+

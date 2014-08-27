@@ -314,7 +314,12 @@ module.exports = class ComputeProvider extends Base
       oldDomain = "#{oldUsername}.#{KONFIG.userSitesDomain}"
 
       JMachine = require './machine'
-      JMachine.one domain: ///#{oldDomain}$///, (err, machine)->
+      JMachine.one
+
+        provider : 'koding'
+        domain   : ///#{oldDomain}$///
+
+      , (err, machine)->
 
         if err? or not machine
           console.log "Failed to find machine for #{username}", err
@@ -322,7 +327,15 @@ module.exports = class ComputeProvider extends Base
         else
 
           newDomain = "#{machine.uid}.#{username}.#{KONFIG.userSitesDomain}"
-          machine.update $set: domain: newDomain, (err)->
+
+          machine.update
+
+            $set         :
+              domain     : newDomain
+              credential : username
+
+          , (err)->
+
             unless err
               console.log """Machine domain updated for #{username}
                              from *.#{oldDomain} to #{newDomain}"""
