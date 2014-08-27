@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/workers/common/runner"
 	"testing"
 	"time"
 
@@ -68,6 +69,12 @@ func TestChannelParticipantBeforeUpdate(t *testing.T) {
 }
 
 func TestChannelParticipantIsParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
 	Convey("While testing is participant", t, func() {
 		Convey("it should have channel id", func() {
 			cp := NewChannelParticipant()
@@ -102,6 +109,48 @@ func TestChannelParticipantIsParticipant(t *testing.T) {
 			ip, err := cp.IsParticipant(acc.Id)
 			So(err, ShouldBeNil)
 			So(ip, ShouldEqual, true)
+			So(cp.StatusConstant, ShouldEqual, ChannelParticipant_STATUS_ACTIVE)
 		})
 	})
+}
+
+func TestChannelParticipantFetchParticipantCount(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While fetching participant count", t, func() {
+		Convey("it should have channel id", func() {
+			cp := NewChannelParticipant()
+
+			fp, err := cp.FetchParticipantCount()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+			So(fp, ShouldEqual, 0)
+		})
+
+		Convey("it should return participant count successfully", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+			acc1 := createAccountWithTest()
+			So(acc1.Create(), ShouldBeNil)
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+			So(cp.Create(), ShouldBeNil)
+
+			c.AddParticipant(acc.Id)
+			c.AddParticipant(acc1.Id)
+
+			ip, err := cp.FetchParticipantCount()
+			So(err, ShouldBeNil)
+			So(ip, ShouldNotEqual, 2)
+
+		})
+	})
+
 }

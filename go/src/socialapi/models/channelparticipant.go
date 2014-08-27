@@ -316,6 +316,7 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	return c.Count("channel_id = ? and status_constant = ?", c.ChannelId, ChannelParticipant_STATUS_ACTIVE)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
 		return false, ErrChannelIdIsNotSet
