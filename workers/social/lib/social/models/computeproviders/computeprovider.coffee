@@ -17,7 +17,7 @@ module.exports = class ComputeProvider extends Base
   {permit} = require '../group/permissionset'
 
   JMachine = require './machine'
-  JDomain  = require '../domain'
+  JProposedDomain  = require '../domain'
 
   @share()
 
@@ -119,8 +119,8 @@ module.exports = class ComputeProvider extends Base
     { r: { account } } = client
     { stack } = options
 
-    JStack = require '../stack'
-    JStack.getStack account, stack, (err, revivedStack)=>
+    JComputeStack = require '../stack'
+    JComputeStack.getStack account, stack, (err, revivedStack)=>
       return callback err  if err?
       return callback new KodingError "No such stack"  unless revivedStack
 
@@ -194,8 +194,8 @@ module.exports = class ComputeProvider extends Base
 
       { account, user, group, template } = res
 
-      JStack = require '../stack'
-      JStack.create {
+      JComputeStack = require '../stack'
+      JComputeStack.create {
         title       : template.title
         config      : template.config
         baseStackId : template._id
@@ -228,7 +228,7 @@ module.exports = class ComputeProvider extends Base
 
           queue.push ->
             domain = domainInfo.domain.replace "${username}", user.username
-            JDomain.createDomain {
+            JProposedDomain.createDomain {
               domain, account,
               stack : stack._id
               group : group.slug
