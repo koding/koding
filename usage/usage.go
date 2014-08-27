@@ -53,10 +53,16 @@ func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
 	}
 
 	// reset the latest activity
+	u.Reset()
+	return nil, nil
+}
+
+// Reset resets all internal counters
+func (u *Usage) Reset() {
+	// reset the latest activity
 	u.latestActivity = time.Now()
 	u.InactiveDuration = 0
 	u.MethodCalls += 1
-	return nil, nil
 }
 
 // Current returns the current activity usage
