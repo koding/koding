@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/request"
 	"time"
@@ -169,7 +168,7 @@ func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error
 	var participants []ChannelParticipant
 
 	if c.ChannelId == 0 {
-		return participants, errors.New("ChannelId is not set")
+		return participants, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -194,7 +193,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	var participants []int64
 
 	if c.ChannelId == 0 {
-		return participants, errors.New("ChannelId is not set")
+		return participants, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -222,7 +221,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 
 func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account.Id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	channelIds := make([]int64, 0)
@@ -308,6 +307,10 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 	return channelIds, nil
 }
 
+// FetchParticipantCount fetchs the participant count in the channel
+// if there is no participant in the channel, then returns zero value
+//
+// Tests are done.
 func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	if c.ChannelId == 0 {
 		return 0, ErrChannelIdIsNotSet

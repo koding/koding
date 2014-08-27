@@ -125,9 +125,17 @@ func TestChannelParticipantFetchParticipantCount(t *testing.T) {
 		Convey("it should have channel id", func() {
 			cp := NewChannelParticipant()
 
-			fp, err := cp.FetchParticipantCount()
+			_, err := cp.FetchParticipantCount()
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should have zero value if account is not exist in the channel", func() {
+			cp := NewChannelParticipant()
+			cp.ChannelId = 2442
+
+			fp, err := cp.FetchParticipantCount()
+			So(err, ShouldBeNil)
 			So(fp, ShouldEqual, 0)
 		})
 
