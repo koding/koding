@@ -31,8 +31,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
-    computeController.on "error-#{@machineId}", ({task, err}) =>
-      @_error = err.message  if err.message?
+    computeController.on "error-#{@machineId}", =>
+      @hasError = yes
       @updateStatus { status: Unknown }
 
     @show()
@@ -157,14 +157,17 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   createError: ->
 
-    return  unless @_error
+    return  unless @hasError
 
     @errorMessage = new KDCustomHTMLView
-      cssClass : 'error-message'
-      partial  : """Failed to change state: #{@_error}"""
+      cssClass    : 'error-message'
+      partial     : """
+        <p>There was an error with your VM. Please try again.</p>
+        <p>Contact support@koding.com for further assistance.</p>
+      """
 
     @container.addSubView @errorMessage
-    @_error = null
+    @hasError = null
 
 
   turnOnMachine: ->
