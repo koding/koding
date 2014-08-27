@@ -285,7 +285,7 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response int
 func validateDomain(domain, username, hostedZone string) error {
 	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
 	if f == domain {
-		return fmt.Errorf("Domain is invalid '%s'", domain)
+		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
 	}
 
 	if !strings.Contains(domain, username) {
@@ -297,7 +297,7 @@ func validateDomain(domain, username, hostedZone string) error {
 	}
 
 	if !validator.IsValidDomain(domain) {
-		return fmt.Errorf("Domain is invalid '%s'", domain)
+		return fmt.Errorf("Domain is invalid (2) '%s'", domain)
 	}
 
 	return nil
