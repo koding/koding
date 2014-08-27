@@ -174,11 +174,13 @@ class ComputeController extends KDController
           if task is 'info'
             if err.code is ComputeErrors.Pending
               retryIfNeeded task, machine
+              safeToSuspend = yes
             else
               @eventListener.triggerState machine, status: Machine.State.Unknown
 
-      @emit "error", { task, err, machine }
-      @emit "error-#{machine._id}", { task, err, machine }
+      unless safeToSuspend
+        @emit "error", { task, err, machine }
+        @emit "error-#{machine._id}", { task, err, machine }
 
       warn "#{task} failed:", err, this
 
