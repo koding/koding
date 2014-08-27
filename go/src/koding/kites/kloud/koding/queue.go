@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 15
+	FreeUserTimeout = time.Minute * 30
 	CleanUpTimeout  = time.Minute * 10
 )
 

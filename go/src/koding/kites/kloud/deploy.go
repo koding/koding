@@ -61,7 +61,6 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 
 	username := artifact.Username
 	ipAddress := artifact.IpAddress
-	// hostname := artifact.InstanceName
 	privateKey := artifact.SSHPrivateKey
 	sshusername := artifact.SSHUsername
 
@@ -102,6 +101,11 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	out, err := client.StartCommand(createUserCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
+		return nil, err
+	}
+
+	log("Changing hostname to " + username)
+	if err := changeHostname(client, username); err != nil {
 		return nil, err
 	}
 
