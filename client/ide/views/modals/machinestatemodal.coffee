@@ -32,7 +32,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     stateUpdater = (event) =>
 
       {status} = event
+
       return  if status is @state
+
+      @prepareIDE()  if status is Running
 
       @state = status
       @buildViews()
@@ -156,8 +159,10 @@ class IDE.MachineStateModal extends IDE.ModalView
       @state = nextState
       @buildViews()
 
-  startIDE: ->
-    @destroy()
+  startIDE: -> @destroy()
+
+
+  prepareIDE: ->
 
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
       return KD.showError "Couldn't fetch your VMs"  if err
@@ -169,3 +174,4 @@ class IDE.MachineStateModal extends IDE.ModalView
       @setData m
 
       @emit 'IDEBecameReady'
+
