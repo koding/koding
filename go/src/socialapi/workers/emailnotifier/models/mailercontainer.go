@@ -43,6 +43,14 @@ func (mc *MailerContainer) PrepareContainer() error {
 	case models.NotificationContent_TYPE_PM:
 		target, err = fetchChannelTarget(mc.Content.TargetId)
 		mc.Message = target.Body
+	case models.NotificationContent_TYPE_COMMENT:
+		target, err = fetchMessageTarget(mc.Activity.MessageId)
+		if err != nil {
+			return err
+		}
+		mc.Message = target.Body
+		target, err = fetchMessageParent(mc.Activity.MessageId)
+
 	default:
 		target, err = fetchMessageTarget(mc.Content.TargetId)
 		mc.Message = target.Body
@@ -86,6 +94,13 @@ func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
 	}
 
 	return target, nil
+}
+
+func fetchMessageParent(messageId int64) (*socialmodels.ChannelMessage, error) {
+	mr := socialmodels.NewMessageReply()
+	mr.ReplyId = messageId
+
+	return mr.FetchParent()
 }
 
 func (mc *MailerContainer) validateContainer() error {
