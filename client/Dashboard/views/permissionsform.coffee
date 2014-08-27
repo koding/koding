@@ -75,7 +75,7 @@ class PermissionsForm extends KDFormViewWithFields
       "SocialMessage"  : "Social API"
       "JVM"            : "Compute"
       "JGroupBundle"   : "Group Bundles"
-      "JDomain"        : "Domains"
+      "JProposedDomain": "Domains"
       "JProxyFilter"   : "Proxy Filters"
       "JInvitation"    : "Invitations"
       "JStack"         : "Stacks"
@@ -147,7 +147,7 @@ class PermissionsForm extends KDFormViewWithFields
           cascadeHeaderElements roles, roles.length
 
     # set.permissionsByModule is giving all the possible permissions
-    # module is collection name (JComment, JDomain etc..)
+    # module is collection name (JComment, JProposedDomain etc..)
     # var permissions is permission under collection (module)
     # like "edit comments" for JComment
     for own module, permissions of set.permissionsByModule

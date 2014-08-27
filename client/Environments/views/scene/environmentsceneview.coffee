@@ -40,7 +40,7 @@ class EnvironmentScene extends KDDiaScene
     {domain, machine, rule, extra} = items
 
     if domain and machine
-      jDomain   = domain.dia.getData().domain # JDomain
+      jDomain   = domain.dia.getData().domain # JProposedDomain
       machineId = machine.dia.getData()._id   # JMachine._id
       jDomain.unbindMachine machineId, (err)->
         return KD.showError err  if err
@@ -76,7 +76,7 @@ class EnvironmentScene extends KDDiaScene
     #       title : "A domain name can only be bound to one machine."
 
     if domain and machine
-      jDomain   = domain.dia.getData().domain # JDomain
+      jDomain   = domain.dia.getData().domain # JProposedDomain
       machineId = machine.dia.getData()._id   # JMachine._id
       jDomain.bindMachine machineId, (err)->
         return  if KD.showError err

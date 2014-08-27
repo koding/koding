@@ -18,7 +18,7 @@ module.exports = class JVM extends Module
   JPaymentSubscription = require './payment/subscription'
   JPaymentPack         = require './payment/pack'
   JPermissionSet       = require './group/permissionset'
-  JDomain              = require './domain'
+  JProposedDomain      = require './domain'
 
   @share()
 
@@ -385,7 +385,7 @@ module.exports = class JVM extends Module
                 return console.error "Failed to create VM for ", \
                                      {users, groups, hostnameAlias, err}
 
-              JDomain.createDomains {
+              JProposedDomain.createDomains {
                 account, stackId,
                 domains: hostnameAliases
                 hostnameAlias: hostnameAliases[0]
@@ -394,7 +394,7 @@ module.exports = class JVM extends Module
 
               group.addVm vm, (err)=>
                 return callback err  if err
-                JDomain.ensureDomainSettingsForVM {
+                JProposedDomain.ensureDomainSettingsForVM {
                   account, vm, type, nickname, group: groupSlug, stackId
                 }
                 account.sendNotification "VMCreated"
@@ -528,12 +528,12 @@ module.exports = class JVM extends Module
     { delegate } = client.connection
     @fetchAccountVmsBySelector delegate, { hostnameAlias: $in: names }, callback
 
-  # TODO: Move these methods to JDomain at some point ~ GG
+  # TODO: Move these methods to JProposedDomain at some point ~ GG
   # ------------------------------------------------------
   # Private static method to fetch domains
   @fetchDomains = (selector, callback)->
-    JDomain = require './domain'
-    JDomain.someData selector, {domain:1}, \
+    JProposedDomain = require './domain'
+    JProposedDomain.someData selector, {domain:1}, \
     (err, cursor)->
       return callback err, []  if err
       cursor.toArray (err, arr)->
@@ -574,8 +574,8 @@ module.exports = class JVM extends Module
       hostnameAlias : vm.hostnameAlias
       domain        : { $in : aliasesToDelete }
 
-    JDomain = require './domain'
-    JDomain.remove selector, (err)->
+    JProposedDomain = require './domain'
+    JProposedDomain.remove selector, (err)->
       callback err
       return console.error "Failed to delete domains:", err  if err
 
@@ -709,11 +709,11 @@ module.exports = class JVM extends Module
 
       group = groupSlug
 
-      JDomain.ensureDomainSettingsForVM {
+      JProposedDomain.ensureDomainSettingsForVM {
         account, vm, type, nickname, group, stack
       }
 
-      JDomain.createDomains {
+      JProposedDomain.createDomains {
         account, domains:hostnameAliases,
         group, hostnameAlias, stack
       }
@@ -832,7 +832,7 @@ module.exports = class JVM extends Module
                     type:'user', groupSlug:group
                   }
 
-                  JDomain.createDomains {
+                  JProposedDomain.createDomains {
                     account, stack, group,
                     domains:hostnameAliases,
                     hostnameAlias:hostnameAliases[0]

@@ -29,7 +29,7 @@ db.jVMs.find().forEach(function(vm) {
       var domainRelCount, relSelector;
 
       relSelector = {
-        targetName: "JDomain",
+        targetName: "JProposedDomain",
         targetId: domain._id,
         sourceName: "JAccount",
         sourceId: rel.targetId,

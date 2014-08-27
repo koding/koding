@@ -83,7 +83,7 @@ explanation of each part below:
         Stack model, which is a packed storage for followings:
 
         - Rules (WIP)
-        - Domains  -> `ObjectIDs` of `JDomain`s
+        - Domains  -> `ObjectIDs` of `JProposedDomain`s
         - Machines -> `ObjectIDs` of `JMachine`s
         - Extras (WIP)
         - and the `configuration` which is shared with every member of this

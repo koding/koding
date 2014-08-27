@@ -192,7 +192,7 @@ module.exports = class JStack extends jraphical.Module
 
   revive: (callback)->
 
-    JDomain  = require "./domain"
+    JProposedDomain = require "./domain"
     JMachine = require "./computeproviders/machine"
 
     queue    = []
@@ -206,7 +206,7 @@ module.exports = class JStack extends jraphical.Module
         queue.next()
 
     (@domains ? []).forEach (domainId)->
-      queue.push -> JDomain.one _id: domainId, (err, domain)->
+      queue.push -> JProposedDomain.one _id: domainId, (err, domain)->
         if not err? and domain
           domains.push domain
         queue.next()
@@ -233,13 +233,13 @@ module.exports = class JStack extends jraphical.Module
       # TODO Implement delete methods.
       @update $set: status: "Terminating"
 
-      JDomain  = require "./domain"
+      JProposedDomain  = require "./domain"
       JMachine = require "./computeproviders/machine"
 
       { delegate } = client.connection
 
       @domains?.forEach (_id)->
-        JDomain.one {_id}, (err, domain)->
+        JProposedDomain.one {_id}, (err, domain)->
           if not err? and domain?
             domain.remove (err)->
               if err then console.error \
