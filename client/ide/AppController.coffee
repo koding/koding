@@ -214,12 +214,20 @@ class IDEAppController extends AppController
         return unless machine
 
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
+          nickname     = KD.nick()
+          machineLabel = machine.label
+          splashs      = IDE.splashMarkups
+
           tabView      = @activeTabView
-          terminalView = new KDCustomHTMLView partial: IDE.terminalSplashMarkup
+          terminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
           terminalPane = tabView.parent.createPane_ terminalView, { name: 'Terminal' }
+
+          finderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
+          @workspace.panel.getPaneByName('filesPane').finderPane.addSubView finderView, '.nfinder .jtreeview-wrapper'
 
           KD.utils.defer =>
             @machineStateModal.once 'IDEBecameReady', =>
+              finderView.destroy()
               tabView.removePane_ terminalPane
               @createNewTerminal @machineStateModal.getData()
               @setActiveTabView @ideViews.first.tabView
