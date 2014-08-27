@@ -14,15 +14,16 @@ class IDE.MachineStateModal extends IDE.ModalView
     super options, data
 
     @addSubView @container = new KDCustomHTMLView cssClass: 'content-container'
+    @machine = @getData()
 
-    unless data
+    unless @machine
       @state = options.state
       return @buildViews()
 
-    {jMachine}   = data
+    {jMachine}   = @machine
     @machineName = jMachine.label
     @machineId   = jMachine._id
-    {@state}     = data.status
+    {@state}     = @machine.status
 
     @buildViews()
 
@@ -136,7 +137,7 @@ class IDE.MachineStateModal extends IDE.ModalView
         methodName = 'build'
         nextState  = 'Building'
 
-      computeController[methodName] @getData()
+      computeController[methodName] @machine
       @state = nextState
       @buildViews()
 
@@ -146,9 +147,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
       return KD.showError "Couldn't fetch your VMs"  if err
 
-      m = machine for machine in machines when machine._id is @getData()._id
+      m = machine for machine in machines when machine._id is @machine._id
 
       KD.getSingleton('appManager').tell 'IDE', 'mountMachine', m
+      @machine = m
       @setData m
 
       @emit 'IDEBecameReady'
