@@ -104,6 +104,7 @@ utils.extend utils,
       text = text.replace "[tempLink#{i}]", link
 
     text = @expandUsernames text
+    text = emojify.replace text
     return text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 

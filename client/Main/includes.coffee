@@ -14,6 +14,8 @@ module.exports = [
   'libs/highlight.pack.js'
   'libs/cookies.js'
   'libs/jquery-timeago.js'
+  'libs/emojify.js'
+
 
   # --- Application ---
   "mq.config.coffee",
