@@ -49,6 +49,9 @@ type Config struct {
 	// Defines the base domain for domain creation
 	HostedZone string
 
+	// Defines the default AMI Tag to use for koding provider
+	AMITag string
+
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
 	KontrolURL string
@@ -135,6 +138,11 @@ func newKite(conf *Config) *kite.Kite {
 	id := uniqueId(k.Config.Port)
 	if conf.Id != "" {
 		id = conf.Id
+	}
+
+	if conf.AMITag != "" {
+		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
+		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
 	modelhelper.Initialize(conf.MongoURL)
