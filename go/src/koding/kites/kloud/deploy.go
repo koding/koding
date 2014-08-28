@@ -225,13 +225,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	k.Log.Info("Connecting to remote Klient instance")
-	klient, err := klient.NewKlient(k.Kite, query.String())
+	klientRef, err := klient.NewKlient(k.Kite, query.String())
 	if err != nil {
 		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
-		defer klient.Close()
+		defer klientRef.Close()
 		k.Log.Info("Sending a ping message")
-		if err := klient.Ping(); err != nil {
+		if err := klientRef.Ping(); err != nil {
 			k.Log.Warning("Sending a ping message err:", err)
 		}
 	}

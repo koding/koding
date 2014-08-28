@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"koding/db/mongodb"
+	"koding/kites/kloud/klient"
 
 	"github.com/koding/kite"
 	amazonClient "github.com/koding/kloud/api/amazon"
@@ -364,6 +365,18 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	artifact.DomainName = machineData.Domain
+
+	p.Log.Info("Connecting to remote Klient instance")
+	klientRef, err := klient.NewKlient(p.Kite, machineData.QueryString)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klientRef.Close()
+		p.Log.Info("Sending a ping message")
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("Sending a ping message err:", err)
+		}
+	}
 
 	///// ROUTE 53 /////////////////
 
