@@ -1,4 +1,4 @@
-box: koding/base@0.0.10
+box: koding/base@0.0.11
 services:
   - wercker/postgresql@0.0.4
   - wercker/rabbitmq@1.0.1
