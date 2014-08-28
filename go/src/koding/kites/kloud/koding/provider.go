@@ -109,19 +109,27 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
 
+	// make a custom logger which just prepends our machineid
+	infoLog := func(format string, formatArgs ...interface{}) {
+		format = "[%s] " + format
+		args := []interface{}{opts.MachineId}
+		args = append(args, formatArgs...)
+		p.Log.Info(format, args...)
+	}
+
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	if instanceName == "terminated-instance" {
 		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		a.Log.Info("Instance name is an artifact (terminated), changing to %s", instanceName)
+		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
-	a.Log.Info("Checking if security group '%s' exists", groupName)
+	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		a.Log.Info("No security group with name: '%s' exists. Creating a new one...", groupName)
+		infoLog("No security group with name: '%s' exists. Creating a new one...", groupName)
 		vpcs, err := a.ListVPCs()
 		if err != nil {
 			return nil, err
@@ -133,7 +141,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 			VpcId:       vpcs.VPCs[0].VpcId,
 		}
 
-		a.Log.Info("Creating security group for this instance...")
+		infoLog("Creating security group for this instance...")
 		// TODO: remove it after we are done
 		groupResp, err := a.Client.CreateSecurityGroup(group)
 		if err != nil {
@@ -154,7 +162,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		// We loop and retry this a few times because sometimes the security
 		// group isn't available immediately because AWS resources are eventaully
 		// consistent.
-		a.Log.Info("Authorizing SSH access on the security group: '%s'", group.Id)
+		infoLog("Authorizing SSH access on the security group: '%s'", group.Id)
 		for i := 0; i < 5; i++ {
 			_, err = a.Client.AuthorizeSecurityGroup(group, perms)
 			if err == nil {
@@ -177,14 +185,14 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
-	a.Log.Info("Searching for subnets")
+	infoLog("Searching for subnets")
 	subs, err := a.ListSubnets()
 	if err != nil {
 		return nil, err
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
 
-	a.Log.Info("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		return nil, err
@@ -212,30 +220,32 @@ hostname: %s`
 		return nil, err
 	}
 
+	buildArtifact.MachineId = opts.MachineId
+
 	// cleanup build if something goes wrong here
 	defer func() {
 		if err != nil {
-			p.Log.Warning("Cleaning up instance for machine id: %s. Terminating instance: %s",
+			p.Log.Warning("[%s] Cleaning up instance. Terminating instance: %s",
 				opts.MachineId, buildArtifact.InstanceId)
 
 			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
-				p.Log.Warning("Cleaning up instance failed: %v", err)
+				p.Log.Warning("[%s] Cleaning up instance failed: %v", opts.MachineId, err)
 			}
 		}
 	}()
 
 	// Add user specific tag to make it easier  simplfying easier
-	a.Log.Info("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
+	infoLog("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-user", username); err != nil {
 		return nil, err
 	}
 
-	a.Log.Info("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
+	infoLog("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
 		return nil, err
 	}
 
-	a.Log.Info("Adding machineId tag '%s' to the instance '%s'", opts.MachineId, buildArtifact.InstanceId)
+	infoLog("Adding machineId tag '%s' to the instance '%s'", opts.MachineId, buildArtifact.InstanceId)
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-machineId", opts.MachineId); err != nil {
 		return nil, err
 	}
@@ -265,16 +275,16 @@ hostname: %s`
 
 	defer func() {
 		if err != nil {
-			p.Log.Warning("Cleaning up domain record for machine id: %s. Deleting domain record: %s",
+			p.Log.Warning("[%s] Cleaning up domain record. Deleting domain record: %s",
 				opts.MachineId, machineData.Domain)
 			if err := p.DNS.DeleteDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
-				p.Log.Warning("Cleaning up domain failed: %v", err)
+				p.Log.Warning("[%s] Cleaning up domain failed: %v", opts.MachineId, err)
 			}
 
 		}
 	}()
 
-	a.Log.Info("Adding user domain tag '%s' to the instance '%s'",
+	infoLog("Adding user domain tag '%s' to the instance '%s'",
 		machineData.Domain, buildArtifact.InstanceId)
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err
@@ -367,19 +377,19 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	artifact.DomainName = machineData.Domain
 
-	p.Log.Info("Connecting to remote Klient instance")
+	///// ROUTE 53 /////////////////
+
+	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
 	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
 	if err != nil {
 		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
 		defer klientRef.Close()
-		p.Log.Info("Sending a ping message")
+		p.Log.Info("[%s] Sending a ping message", opts.MachineId)
 		if err := klientRef.Ping(); err != nil {
 			p.Log.Warning("Sending a ping message err:", err)
 		}
 	}
-
-	///// ROUTE 53 /////////////////
 
 	return artifact, nil
 }
