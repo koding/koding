@@ -265,3 +265,66 @@ func TestChannelParticipantFetchParticipant(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelParticipantFetcActivehParticipant(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While fetching active participant", t, func() {
+		Convey("it should have error if channel id is not set", func() {
+			cp := NewChannelParticipant()
+
+			err := cp.FetchParticipant()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("it should return active participant successfully", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			_, errr := c.AddParticipant(acc.Id)
+			So(errr, ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+
+			err := cp.FetchActiveParticipant()
+			So(err, ShouldBeNil)
+		})
+
+		Convey("it should have error if account is not exist in channel", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			_, errr := c.AddParticipant(acc.Id)
+			So(errr, ShouldBeNil)
+
+			erro := c.RemoveParticipant(acc.Id)
+			So(erro, ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+
+			err := cp.FetchActiveParticipant()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+	})
+}
