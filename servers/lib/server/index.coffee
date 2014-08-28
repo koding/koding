@@ -209,21 +209,29 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
+  { redirect } = req.body
+  redirect ?= '/'
   koding.fetchClient req.cookies.clientId, context, (client) ->
     JUser.convert client, req.body, (err, result) ->
       return res.send 403, err  if err
       res.cookie 'clientId', result.newToken
-      res.send 200, 'ok'
+      # handle the request as an XHR response:
+      return res.send 200, null if req.xhr
+      # handle the request with an HTTP redirect:
+      res.redirect 301, redirect
 
 app.post "/:name?/Login", (req, res) ->
   { JUser } = koding.models
-  { username, password } = req.body
+  { username, password, redirect } = req.body
   { clientId } = req.cookies
-
+  redirect ?= "/"
   JUser.login clientId, { username, password }, (err, response) ->
     return res.send 403, err  if err
     res.cookie 'clientId', response.replacementToken
-    res.send 200, 'ok'
+    # handle the request as an XHR response:
+    return res.send 200, null if req.xhr
+    # handle the request with an HTTP redirect:
+    res.redirect 301, redirect
 
 app.all "/:name?/Logout", (req, res)->
   res.clearCookie 'clientId'  if req.method is 'POST'

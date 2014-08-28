@@ -14,15 +14,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         validate      : @getEmailValidator()
         decorateValidation: no
 
-    @avatar = new AvatarStaticView
-      size        :
-        width     : 55
-        height    : 55
-    , profile     :
-        hash      : md5.digest "there is no such email"
-        firstName : "New koding user"
-    @avatar.hide()
-
     @username = new LoginInputViewWithLoader
       inputOptions       :
         name             : "username"
@@ -114,21 +105,6 @@ class RegisterInlineForm extends LoginViewInlineForm
               input.setValidationResult "usernameCheck", null
       , delay
 
-  userAvatarFeedback:(input)->
-    if input.valid
-      @avatar.setData
-        profile     :
-          hash      : md5.digest input.getValue()
-          firstName : "New koding user"
-      @avatar.render()
-      @showUserAvatar()
-    else
-      @hideUserAvatar()
-
-  showUserAvatar:-> @avatar.show()
-
-  hideUserAvatar:-> @avatar.hide()
-
   viewAppended:->
 
     super
@@ -175,7 +151,7 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
     """
     <section class='main-part'>
-      <div class='email'>{{> @avatar}}{{> @email}}</div>
+      <div class='email'>{{> @email}}</div>
       <div class='username'>{{> @username}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>

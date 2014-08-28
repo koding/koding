@@ -30,6 +30,14 @@ class MainController extends KDController
     @detectIdleUser()
     @startCachingAssets()  unless KD.isLoggedInOnLoad
 
+    emojify.setConfig
+      img_dir : 'https://s3.amazonaws.com/koding-cdn/emojis'
+      ignored_tags  :
+        'TEXTAREA'  : 1,
+        'A'         : 1,
+        'PRE'       : 1,
+        'CODE'      : 1
+
   createSingletons:->
 
     KD.registerSingleton 'mainController',            this
@@ -276,9 +284,7 @@ class MainController extends KDController
 
   startCachingAssets:->
 
-    KD.utils.defer ->
-
-      KD.singletons.appManager.require 'Login'
+    KD.singletons.appManager.require 'Login', ->
 
       images = [
         '/a/images/city.jpg'

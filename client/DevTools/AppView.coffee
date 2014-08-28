@@ -343,11 +343,9 @@ class DevToolsMainView extends KDView
     switch mode
       when 'home'
         @welcomePage.show()
-        KD.singletons.mainView.appSettingsMenuButton.hide()
         KD.utils.defer @welcomePage.lazyBound 'unsetClass', 'out'
       else
         @welcomePage.setClass 'out'
-        KD.singletons.mainView.appSettingsMenuButton.show()
         KD.utils.wait 500, @welcomePage.bound 'hide'
 
   saveAll:->

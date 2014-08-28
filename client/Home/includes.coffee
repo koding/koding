@@ -1,7 +1,12 @@
 module.exports = [
 
-  "AppController.coffee",
-  "AppView.coffee",
+  'testimonialsquoteview.coffee'
+  'testimonialsview.coffee'
+  'footerview.coffee'
 
-  "styl/home.styl"
+  'AppController.coffee'
+  'AppView.coffee'
+
+  'styl/home.styl'
+
 ]
