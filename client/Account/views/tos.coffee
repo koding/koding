@@ -2,6 +2,6 @@ class TermsOfServiceView extends KDCustomHTMLView
   constructor : (options = {}, data) ->
     options.tagName     = 'iframe'
     options.attributes  =
-      src               : "#{KD.config.mainUri}/tos.html"
+      src               : "/tos.html"
 
     super options, data

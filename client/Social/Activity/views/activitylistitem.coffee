@@ -246,6 +246,8 @@ class ActivityListItemView extends KDListItemView
 
     JView::viewAppended.call this
 
+    emojify.run @getElement()
+
     @setAnchors()
 
     { updatedAt, createdAt } = @getData()
