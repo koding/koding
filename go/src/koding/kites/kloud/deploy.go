@@ -65,8 +65,12 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	privateKey := artifact.SSHPrivateKey
 	sshusername := artifact.SSHUsername
 
-	log := func(msg string) {
-		k.Log.Info("%s ==> %s", username, msg)
+	// make a custom logger which just prepends our machineid
+	infoLog := func(format string, formatArgs ...interface{}) {
+		format = "[%s] " + format
+		args := []interface{}{artifact.MachineId}
+		args = append(args, formatArgs...)
+		k.Log.Info(format, args...)
 	}
 
 	sshAddress := ipAddress + ":22"
@@ -75,7 +79,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	log("Connecting to SSH: " + sshAddress)
+	infoLog("Connecting to SSH: %s", sshAddress)
 	client, err := sshutil.ConnectSSH(sshAddress, sshConfig)
 	if err != nil {
 		return nil, err
@@ -87,7 +91,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	log("Creating a kite.key directory")
+	infoLog("Creating a kite.key directory")
 	err = sftpClient.Mkdir("/etc/kite")
 	if err != nil {
 		return nil, err
@@ -98,24 +102,24 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, kloud.NewError(kloud.ErrSignGenerateToken)
 	}
 
-	log("Creating user account")
+	infoLog("Creating user account")
 	out, err := client.StartCommand(createUserCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Changing hostname to " + username)
+	infoLog("Changing hostname to %s", username)
 	if err := changeHostname(client, username); err != nil {
 		return nil, err
 	}
 
-	log("Creating user migration script")
+	infoLog("Creating user migration script")
 	if err = k.setupMigrateScript(sftpClient, username); err != nil {
 		return nil, err
 	}
 
-	log("Creating a key with kontrolURL: " + k.KontrolURL)
+	infoLog("Creating a key with kontrolURL: %s", k.KontrolURL)
 	kiteKey, err := k.createKey(username, tknID.String())
 	if err != nil {
 		return nil, err
@@ -126,13 +130,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	log("Copying kite.key to remote machine")
+	infoLog("Copying kite.key to remote machine")
 	_, err = remoteFile.Write([]byte(kiteKey))
 	if err != nil {
 		return nil, err
 	}
 
-	log("Fetching latest klient.deb binary")
+	infoLog("Fetching latest klient.deb binary")
 	latestDeb, err := k.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
@@ -148,74 +152,74 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	// signedURL allows us to have public access for a limited time frame
 	signedUrl := k.Bucket.SignedURL(latestDeb, time.Now().Add(time.Minute*3))
 
-	log("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
+	infoLog("Downloading '" + filepath.Base(latestDeb) + "' to /tmp inside the machine")
 	out, err = client.StartCommand(fmt.Sprintf("wget -O /tmp/klient-latest.deb '%s'", signedUrl))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Installing klient deb on the machine")
+	infoLog("Installing klient deb on the machine")
 	out, err = client.StartCommand("dpkg -i /tmp/klient-latest.deb")
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Chowning klient directory")
+	infoLog("Chowning klient directory")
 	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /opt/kite/klient", username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Removing leftover klient deb from the machine")
+	infoLog("Removing leftover klient deb from the machine")
 	out, err = client.StartCommand("rm -f /tmp/klient-latest.deb")
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Patching klient.conf")
+	infoLog("Patching klient.conf")
 	out, err = client.StartCommand(patchConfCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Restarting klient with kite.key")
+	infoLog("Restarting klient with kite.key")
 	out, err = client.StartCommand("service klient restart")
 	if err != nil {
 		return nil, err
 	}
 
-	log("Making user's default directories")
+	infoLog("Making user's default directories")
 	out, err = client.StartCommand(fmt.Sprintf("cp -r /opt/koding/userdata/* /home/%s/ && rm -rf /opt/koding/userdata ", username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Chowning user's default directories")
+	infoLog("Chowning user's default directories")
 	out, err = client.StartCommand(fmt.Sprintf("chown -R %[1]s:%[1]s /home/%[1]s/", username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Tweaking apache config")
+	infoLog("Tweaking apache config")
 	if err := changeApacheConf(client, defaultApacheConfig); err != nil {
 		return nil, err
 	}
 
-	log("Setting up users' Web/ directory to be served by apache")
+	infoLog("Setting up users' Web/ directory to be served by apache")
 	out, err = client.StartCommand(webSetupCommand(username))
 	if err != nil {
 		fmt.Println("out", out)
 		return nil, err
 	}
 
-	log("Restarting apache2 with new config")
+	infoLog("Restarting apache2 with new config")
 	out, err = client.StartCommand("a2enmod cgi && service apache2 restart")
 	if err != nil {
 		fmt.Println("out", out)
@@ -224,13 +228,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
-	k.Log.Info("Connecting to remote Klient instance")
+	infoLog("Connecting to remote Klient instance")
 	klientRef, err := klient.NewWithTimeout(k.Kite, query.String(), time.Minute)
 	if err != nil {
 		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
 		defer klientRef.Close()
-		k.Log.Info("Sending a ping message")
+		infoLog("Sending a ping message")
 		if err := klientRef.Ping(); err != nil {
 			k.Log.Warning("Sending a ping message err:", err)
 		}
