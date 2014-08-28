@@ -40,6 +40,11 @@ build:
         icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 deploy:
   steps:
+    - create-file:
+        name: write version file
+        filename: $WERCKER_ROOT/VERSION
+        content: $(git log -1 --format="%h")
+        overwrite: true
     - script:
         name: zip
         code: |
