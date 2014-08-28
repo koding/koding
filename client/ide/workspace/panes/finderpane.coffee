@@ -10,8 +10,9 @@ class IDE.FinderPane extends IDE.Pane
 
     appManager.open 'Finder', (finderApp) =>
       fc = @finderController = finderApp.create
-        addAppTitle   : no
-        treeItemClass : IDE.FinderItem
+        addAppTitle          : no
+        bindMachineEvents    : no
+        treeItemClass        : IDE.FinderItem
 
       @addSubView fc.getView()
       @bindListeners()

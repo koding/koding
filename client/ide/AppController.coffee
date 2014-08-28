@@ -107,6 +107,8 @@ class IDEAppController extends AppController
 
         @createInitialView()
 
+        {@finderPane} = @workspace.panel.getPaneByName 'filesPane'
+
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
@@ -223,7 +225,7 @@ class IDEAppController extends AppController
           terminalPane = tabView.parent.createPane_ terminalView, { name: 'Terminal' }
 
           finderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
-          @workspace.panel.getPaneByName('filesPane').finderPane.addSubView finderView, '.nfinder .jtreeview-wrapper'
+          @finderPane.addSubView finderView, '.nfinder .jtreeview-wrapper'
 
           KD.utils.defer =>
             @machineStateModal.once 'IDEBecameReady', =>
@@ -256,7 +258,6 @@ class IDEAppController extends AppController
       for machine in machines when machine.uid is machineUId
         machineItem = machine
 
-      # TODO: DRY. Make the logic below more readable and clear.
       if machineItem
         {state} = machineItem.status
         machineId = machineItem._id
@@ -266,13 +267,14 @@ class IDEAppController extends AppController
         else
           @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
 
-        computeController.on "stop-#{machineId}", (event) ->
-          if event.status is 'Stopped'
-            @machineStateModal = new IDE.MachineStateModal { state: 'Stopped', container }, machineItem
+        stateHandler = (event, state) =>
+          if event.status is state
+            options = { state, container }
+            @machineStateModal = new IDE.MachineStateModal options, machineItem
+            @machineStateModal.once 'IDEBecameReady', => @finderPane.finderController.reset()
 
-        computeController.on "destroy-#{machineId}", (event) ->
-          if event.status is 'Terminated'
-            @machineStateModal = new IDE.MachineStateModal { state: 'Terminated', container }, machineItem
+        computeController.on "stop-#{machineId}", (event) ->    stateHandler event, 'Stopped'
+        computeController.on "destroy-#{machineId}", (event) -> stateHandler event, 'Terminated'
       else
         @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
