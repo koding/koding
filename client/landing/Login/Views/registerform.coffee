@@ -83,14 +83,14 @@ class RegisterInlineForm extends LoginViewInlineForm
     return if event?.which is 9
     return if input.getValue().length < 4
 
-    clearTimeout usernameCheckTimer
+    KD.utils.killWait usernameCheckTimer
     input.setValidationResult "usernameCheck", null
     name = input.getValue()
 
     if input.valid
-      usernameCheckTimer = setTimeout =>
+      usernameCheckTimer = KD.utils.wait delay, =>
         @username.loader.show()
-        KD.remote.api.JUser.usernameAvailable name, (err, response)=>
+        KD.remote.api.JUser.usernameAvailable name, (err, response) =>
           @username.loader.hide()
           {kodingUser, forbidden} = response
           if err
@@ -103,7 +103,6 @@ class RegisterInlineForm extends LoginViewInlineForm
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
             else
               input.setValidationResult "usernameCheck", null
-      , delay
 
   viewAppended:->
 
