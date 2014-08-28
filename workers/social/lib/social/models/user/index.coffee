@@ -992,14 +992,19 @@ Team Koding
     # if context is 'koding' then @fetchOwnAccount rest...
     # else @fetchContextualAccount context, rest...
 
-  changePassword:(newPassword, callback)->
+  setPassword:(password, callback)->
     salt = createSalt()
     @update $set: {
       salt
-      password: hashPassword(newPassword, salt)
-      passwordStatus: 'valid'
-    }, (err) ->
-      return callback err if err
+      password       : hashPassword password, salt
+      passwordStatus : 'valid'
+    }, callback
+
+
+  changePassword:(newPassword, callback)->
+
+    @setPassword newPassword, (err)->
+      return callback err  if err?
       sendChangeEmail @email, "password"
       callback null
 
