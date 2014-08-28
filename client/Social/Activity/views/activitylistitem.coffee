@@ -139,7 +139,7 @@ class ActivityListItemView extends KDListItemView
 
     body = fn body for fn in fns
     body = KD.utils.expandUsernames body, 'code'
-    body = emojify.replace body
+    body = emojify.replace body, 'code'
 
     return body
 
