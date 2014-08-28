@@ -89,7 +89,8 @@
     "ws": "0.4.25",
     "xml2js": "0.2.6",
     "zlib": "^1.0.5",
-    "compress-buffer":"*"
+    "compress-buffer":"*",
+    "sax":"*"
   },
   "devDependencies": {
     "which": "^1.0.5"
