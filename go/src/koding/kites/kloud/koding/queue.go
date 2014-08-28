@@ -136,7 +136,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 		// used also catch fields that doesn't exist.
 		egligibleMachines := bson.M{
 			"provider":     "koding",
-			"status.state": "Running",
+			"status.state": machinestate.Running.String(),
 			"$or": []bson.M{
 				{"assignee.inProgress": false},
 				{"assignee.inProgress": nil},
