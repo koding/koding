@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  options.hostname       = "eb.koding.com"
+  options.hostname       = "prod.koding.com"
   options.publicHostname = "https://#{options.hostname}"
 
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
@@ -30,7 +30,7 @@ Configuration = (options={}) ->
   customDomain        = { public:   "http://#{hostname}"                             , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "#{publicHostname}/kontrol"                      , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "http://localhost/kontrol/kite"                  , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    '8KD9RHY1OA'                                     , apiKey:             'e4a8ebe91bf848b67c9ac31a6178c64b'    , indexSuffix:     ''                   }
@@ -99,7 +99,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                              , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -146,8 +146,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "https://koding.com"
-    mainUri           : "https://koding.com"
+    apiUri            : "/"
+    mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
     appsUri           : "https://rest.kd.io"
@@ -157,7 +157,7 @@ Configuration = (options={}) ->
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github            : {clientId     : "f8e440b796d953ea01e5" }
-    newkontrol        : {url          : "#{kontrol.url}"}
+    newkontrol        : {url          : "/kontrol/kite"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
@@ -186,7 +186,7 @@ Configuration = (options={}) ->
       nginx             :
         ports           : ["#{kontrol.port}"]
         websocket       : yes
-        locations       : ["~^/kontrol/.*"]
+        locations       : ["~ /kontrol"]
 
     kloud               :
       group             : "environment"
@@ -195,7 +195,7 @@ Configuration = (options={}) ->
       nginx             :
         ports           : ["#{KONFIG.kloud.port}"]
         websocket       : yes
-        locations       : ["~^/kloud/.*"]
+        locations       : ["~ /kloud"]
 
     # ngrokProxy          :
     #   group             : "environment"

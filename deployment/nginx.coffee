@@ -3,13 +3,14 @@ createUpstreams = (workers={}) ->
   for name, options of workers when options.nginx?.ports?
     servers = ""
     for port in options.nginx.ports
+      servers += "\n" if servers isnt ""
 
-      servers += "\tserver 127.0.0.1:#{port};\n"
+      servers += "\tserver 127.0.0.1:#{port};"
 
     upstreams += """
       upstream #{name} {
     #{servers}
-      }\n"""
+      }\n\n"""
 
   return upstreams
 

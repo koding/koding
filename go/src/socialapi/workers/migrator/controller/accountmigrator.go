@@ -31,6 +31,7 @@ func (mwc *Controller) migrateAllAccounts() {
 
 	s := modelhelper.Selector{
 		"migration": modelhelper.Selector{"$exists": false},
+		"type":      "registered",
 	}
 
 	migrateAccount := func(account interface{}) error {
