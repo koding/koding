@@ -49,7 +49,15 @@ deploy:
         name: zip
         code: |
           TODAY=$(date "+%Y-%m-%dT%H:%M:%S")
-          export ZIPPED_FILENAME=${TODAY}_${WERCKER_GIT_COMMIT}.zip
+          export ZIPPED_FILENAME=${TODAY}_${WERCKER_GIT_COMMIT:0:8}.zip
+
+          cd $WERCKER_ROOT
+          rm -rf node_modules
+          rm -rf .git
+          rm -rf go/bin
+          rm -rf go/pkg
+          rm -rf .build
+
           zip -r $ZIPPED_FILENAME .
     - rioki/s3put@0.0.3:
           key-id: $S3_KEY_ID
