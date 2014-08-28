@@ -3,12 +3,12 @@ package kloud
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/kr/pretty"
 
 	"github.com/koding/kite"
 )
@@ -71,14 +71,10 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		msg := "Build is finished successfully."
 
 		if err != nil {
-			b.Log.Error("[controller] building machine for id '%s' failed: %s.",
-				c.MachineId, err.Error())
+			b.Log.Error("[%s] building failed. err %s.", c.MachineId, err.Error())
 
 			status = c.CurrenState
 			msg = "Building failed. Please contact support."
-		} else {
-			b.Log.Info("[controller] building machine for id '%s' is successfull. Instance name: %s",
-				c.MachineId, c.Machine.Builder["instanceName"].(string))
 		}
 
 		b.Storage.UpdateState(c.MachineId, status)
@@ -108,7 +104,6 @@ provider      : %s
 machineId     : %s
 username      : %s
 instanceName  : %s
-meta data     : %# v
 `
 
 	buildInfo := fmt.Sprintf(buildStub,
@@ -116,10 +111,9 @@ meta data     : %# v
 		c.MachineId,
 		r.Username,
 		c.Machine.Builder["instanceName"].(string),
-		pretty.Formatter(c.Machine.Builder),
 	)
 
-	b.Log.Info("[controller] building machine with following data: %s", buildInfo)
+	b.Log.Info("[%s] building machine with following data: %s", c.MachineId, buildInfo)
 
 	var artifact *protocol.Artifact
 
@@ -149,11 +143,10 @@ meta data     : %# v
 			return
 		}
 
-		b.Log.Info("[controller] building machine failed. Starting canceller for id '%s'",
-			c.MachineId)
+		b.Log.Info("[%s] building machine failed. Starting canceller.", c.MachineId)
 
 		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
-			b.Log.Debug("[controller] couldn't run canceller for id '%s': %s", c.MachineId, err)
+			b.Log.Debug("[%s] couldn't run canceller. err: %s", c.MachineId, err)
 		}
 	}()
 
@@ -165,8 +158,27 @@ meta data     : %# v
 	// garbage collect it
 	r.Context = nil
 
-	b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
-		pretty.Formatter(artifact))
+	// b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
+	// 	pretty.Formatter(artifact))
+
+	resultStub := `
+username   : %s
+domain     : %s
+ip address : %s
+instance   : %s
+kite query : %s
+`
+
+	resultInfo := fmt.Sprintf(resultStub,
+		artifact.Username,
+		artifact.DomainName,
+		artifact.IpAddress,
+		artifact.InstanceName,
+		artifact.KiteQuery,
+	)
+
+	b.Log.Info("[%s] building machine was successfull. Artifact data: %s",
+		c.MachineId, resultInfo)
 
 	storageData := map[string]interface{}{
 		"ipAddress":    artifact.IpAddress,
@@ -174,6 +186,8 @@ meta data     : %# v
 		"instanceId":   artifact.InstanceId,
 		"instanceName": artifact.InstanceName,
 	}
+
+	b.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 
 	storageData["queryString"] = deployArtifact.(*protocol.Artifact).KiteQuery
 
