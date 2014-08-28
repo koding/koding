@@ -48,8 +48,10 @@ class RegisterInlineForm extends LoginViewInlineForm
             finalCheck   : "blur"
         decorateValidation: no
 
+    {buttonTitle} = @getOptions()
+
     @button = new KDButtonView
-      title         : "Create account"
+      title         : buttonTitle or 'Create account'
       type          : 'submit'
       style         : "solid green medium"
       loader        : yes
