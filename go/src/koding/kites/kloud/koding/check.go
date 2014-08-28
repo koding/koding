@@ -40,8 +40,9 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 	// instances in Amazon have a `koding-user` tag with the username as the
 	// value. We can easily find them acording to this tag
 	filter.Add("tag:koding-user", ctx.username)
+	filter.Add("tag:koding-env", ctx.env)
 
-	// Anything except "terminated" and "shutting-downg"
+	// Anything except "terminated" and "shutting-down"
 	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
 
 	instances, err := ctx.api.InstancesByFilter(filter)

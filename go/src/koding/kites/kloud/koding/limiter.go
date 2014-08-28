@@ -12,6 +12,7 @@ type CheckContext struct {
 	api      *amazon.AmazonClient
 	db       *mongodb.MongoDB
 	username string
+	env      string
 }
 
 // Limiter checks the limits via the Check() method. It should simply return an
@@ -56,6 +57,7 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 		api:      a,
 		db:       p.Session,
 		username: username,
+		env:      p.Kite.Config.Environment,
 	}
 
 	return p.CheckLimits("free", ctx)
