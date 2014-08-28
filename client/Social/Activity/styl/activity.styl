@@ -14,6 +14,9 @@ mainTextColor = #3B3B3B
 .activity-status-context
   display               none
 
+body.activity .app-content
+  max-width             800px
+
 .content-page.activity
 .member.content-display
   .lazy-loader
@@ -650,6 +653,11 @@ span.collapsedtext
   .comment-container
     overflow              visible
 
+    .link-embed-box
+      border              1px solid #d6d6d6
+      rounded             3px
+      margin              16px 0 0
+
 
     > .listview-wrapper
       overflow            visible
@@ -1025,12 +1033,13 @@ span.collapsedtext
   .hide-embed
     right                   7px
     top                     7px
-
     border                  none
     outline                 none
-    shadow                  none
+    shadow                  0 0 0 4px #fff
     z-index                 10
     r-sprite                app "20-close-tab"
+    background-color        #fff
+    rounded                 50%
     abs()
 
 .activity-item.status
@@ -1040,8 +1049,8 @@ span.collapsedtext
     margin-bottom           16px
     max-width               720px
 
-  .link-embed-box
-    padding                 0 14px 15px
+  .activity-content-wrapper > .link-embed-box
+    padding                 0 0 15px
     overflow                visible
     borderBox()
 

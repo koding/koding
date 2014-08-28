@@ -315,6 +315,16 @@ class ComputeController extends KDController
   # Utils beyond this point
   #
 
+  triggerReviveFor:(machineId)->
+
+    info "Triggering revive for #{machineId}..."
+
+    KD.remote.api.JMachine.one machineId, (err, machine)=>
+      if err? then warn "Revive failed for #{machineId}: ", err
+      else
+        @emit "revive-#{machineId}", machine
+        info "Revive triggered for #{machineId}", machine
+
 
   requireMachine: (options = {}, callback = noop)-> @ready =>
 
