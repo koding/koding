@@ -6,6 +6,7 @@ import (
 
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
+	"github.com/koding/logging"
 )
 
 type CheckContext struct {
@@ -13,6 +14,7 @@ type CheckContext struct {
 	db       *mongodb.MongoDB
 	username string
 	env      string
+	log      logging.Logger
 }
 
 // Limiter checks the limits via the Check() method. It should simply return an
@@ -58,6 +60,7 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 		db:       p.Session,
 		username: username,
 		env:      p.Kite.Config.Environment,
+		log:      p.Log,
 	}
 
 	return p.CheckLimits("free", ctx)

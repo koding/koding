@@ -57,9 +57,10 @@ func (t *totalLimit) Check(ctx *CheckContext) error {
 		return err
 	}
 
-	fmt.Printf("Got %+v servers for user: %s\n", len(instances), ctx.username)
+	ctx.log.Info("Got %+v servers for user: %s\n", len(instances), ctx.username)
 
 	if len(instances) >= t.total {
+		ctx.log.Info("Total limit for the user %s is %d. Permission denied to create another one.", ctx.username, t.total)
 		return fmt.Errorf("total limit of %d machines has been reached", t.total)
 	}
 
