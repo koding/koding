@@ -65,7 +65,7 @@ class HomeView extends JView
                         modal.setTitle "Passwords should be at least 8 characters."
                       else
                         unless input.getValue() is form.inputs.confirm.getValue()
-                          modal.setTitle "Looks fine, please repeat it again in next field."
+                          modal.setTitle "Looks good, please confirm it."
 
                   events              :
                     passwordCheck     : "keyup"
@@ -83,7 +83,7 @@ class HomeView extends JView
                           form = modal.modalTabs.forms.password
                           if form.inputs.password.getValue().length >= 8
                             if input.getValue() is form.inputs.password.getValue()
-                              modal.setTitle "All looks fine!"
+                              modal.setTitle "Both look good!"
                               form.buttons.submit.enable()
                             else
                               modal.setTitle "Passwords should match."
@@ -97,7 +97,7 @@ class HomeView extends JView
               submit          :
                 cssClass      : 'solid green medium'
                 type          : 'submit'
-                title         : 'Submit'
+                title         : 'Let\'s go'
                 disabled      : yes
 
     modal.once 'KDObjectWillBeDestroyed', =>
