@@ -802,18 +802,19 @@ Team Koding
         account.update accountModifier, (err) ->
           return callback err  if err?
           queue.next()
-      =>
-        JPasswordRecovery = require '../passwordrecovery'
-
-        passwordOptions =
-          email         : user.email
-          verb          : unless username? then 'Register' else 'Confirm'
-          resetPassword : no
-          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
-
-        JPasswordRecovery.create client, passwordOptions, (err, token)->
-          recoveryToken = token
           queue.next()
+      # =>
+      #   JPasswordRecovery = require '../passwordrecovery'
+
+      #   passwordOptions =
+      #     email         : user.email
+      #     verb          : unless username? then 'Register' else 'Confirm'
+      #     resetPassword : no
+      #     expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
+
+      #   JPasswordRecovery.create client, passwordOptions, (err, token)->
+      #     recoveryToken = token
+      #     queue.next()
       ->
         JPaymentSubscription.createFreeSubscription account, (err) ->
           console.warn err  if err
