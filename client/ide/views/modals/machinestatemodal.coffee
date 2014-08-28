@@ -36,7 +36,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       @updateStatus { status: Unknown }
 
     @show()
-    @getOptions().container.setClass 'blur'
+    # @getOptions().container.setClass 'blurred'
 
 
   updateStatus: (event) ->
@@ -191,7 +191,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   startIDE: ->
     @destroy()
-    @getOptions().container.unsetClass 'blur'
+    # @getOptions().container.unsetClass 'blurred'
 
 
   prepareIDE: ->
