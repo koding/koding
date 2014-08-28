@@ -1,4 +1,6 @@
-package koding
+// Package klient provides an instance and abstraction to a remote klient kite.
+// It is used to easily call methods of a klient kite
+package klient
 
 import (
 	"fmt"
@@ -11,7 +13,8 @@ import (
 // Klient represents a remote klient instance
 type Klient struct {
 	client   *kite.Client
-	username string
+	kite     *kite.Kite
+	Username string
 }
 
 // Klient returns a new connected klient instance to the given queryString. The
@@ -37,8 +40,9 @@ func NewKlient(k *kite.Kite, queryString string) (*Klient, error) {
 
 	// klient connection is ready now
 	return &Klient{
+		kite:     k,
 		client:   remoteKite,
-		username: remoteKite.Username,
+		Username: remoteKite.Username,
 	}, nil
 
 }
