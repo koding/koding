@@ -49,7 +49,7 @@ class FinishRegistrationForm extends RegisterInlineForm
   pistachio: ->
     """
     <div class='login-hint'>Complete your registration:</div>
-    <div class='email'>{{> @avatar}}{{> @email}}</div>
+    <div class='email'>{{> @email}}</div>
     <div class='username'>{{> @username}}</div>
     <div>{{> @password}}</div>
     <div>{{> @passwordConfirm}}</div>

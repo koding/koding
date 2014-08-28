@@ -1,5 +1,5 @@
 @import "../../Framework/src/themes/default/kdfn"
-@import "../styl/appfn"
+@import "../../Core/styl/appfn"
 
 @css {
 /*
@@ -390,10 +390,12 @@ sidebarSelectedBg = #15171A
       borderBox()
       &:hover
         border          none
+        right           8px
         .icon
           r-sprite      activity 'check-gray'
 
       .icon
+        r-sprite        activity 'check-gray'
         margin          0 6px 0 0
         padding         0
         fr()
@@ -404,14 +406,16 @@ sidebarSelectedBg = #15171A
       &.following
         bg              color transparent
         border-color    transparent
+        right           8px
 
         .icon
-          r-sprite      activity 'check-gray'
+          r-sprite      activity 'check-green'
 
         &:hover
           border        1px solid #b1b1b1
           .icon
-            display     none
+            r-sprite    activity 'check-green'
+            opacity     .6
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -440,10 +444,6 @@ sidebarSelectedBg = #15171A
         bg              color transparent
         border-color    transparent
 
-        &:hover
-          border          1px solid #b1b1b1
-          .icon
-            display       none
 
   .conversations
   .messages

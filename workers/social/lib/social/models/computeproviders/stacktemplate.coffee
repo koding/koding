@@ -188,81 +188,32 @@ module.exports = class JStackTemplate extends jraphical.Module
 # Base StackTemplate example for koding group
 ###
 
-{JStackTemplate} = KD.remote.api
-
-JStackTemplate.create
-
-  title       : "Default Koding stack"
-  description : "Koding's default stack template for new users"
-
-  config      :
-
-    KODINGINSTALLER : "v1.0"
-    KONTROL_URL     : "https://kontrol.koding.com"
-    FOO_KODING      : "bar koding"
-    BAZ_KODING      : "foo koding"
-
-  rules       : [
+KD.remote.api.JStackTemplate.create({
+  title: "Default stack",
+  description: "Koding's default stack template for new users",
+  config: {
+     "KODINGINSTALLER" : "v1.0",
+     "KODING_BASE_PACKAGES" : "mc nodejs python sl screen",
+     "DEBIAN_FRONTEND" : "noninteractive"
+  },
+  rules: [],
+  domains: [],
+  machines: [
     {
-      name    : "Allow Gokmen"
-      rules   : [
-          {
-              type    : "ip",
-              match   : "176.33.13.53",
-              action  : "allow",
-              enabled : yes
-          }
-      ]
-      enabled : yes
-    }
-    {
-      name    : "Allow Turkey"
-      rules   : [
-          {
-              type    : "country",
-              match   : "TR",
-              action  : "allow",
-              enabled : yes
-          }
-      ]
-      enabled : yes
-    }
-  ]
-
-  domains     : [
-    { domain  : "{{profile.nickname}}.kd.io" }
-    { domain  : "digitalocean.{{profile.nickname}}.kd.io" }
-    { domain  : "aws.{{profile.nickname}}.kd.io" }
-  ]
-
-  machines    : [
-    {
-      label: "Development VM", provider: "koding", instanceType: "micro"
-    }
-    {
-      label: "Test VM on DO", provider: "digitalocean", instanceType: "micro",
-      credential: "703484dfc34fc9b9830c43eddb2725f5", image: "ubuntu-13-10-x64",
-      region: "ams1", size: "512mb"
-    }
-    {
-      label: "AWS micro", provider: "amazon", instanceType: "micro",
-      credential: "0dffe6d974948f95b0abf60ec67b2c8b"
-    }
-  ]
-
-  connections : [
-    { rules   : 0, domains  : 0 }
-    { rules   : 0, domains  : 1 }
-    { rules   : 1, domains  : 0 }
-    { domains : 0, machines : 0 }
-    { domains : 1, machines : 1 }
-    { domains : 2, machines : 2 }
-  ]
-
-, (err, template)->
-
-  console.log err, template
-
+            "label" : "koding-vm-0",
+            "provider" : "koding",
+            "instanceType" : "t2.micro",
+            "provisioners" : [
+                "devrim/koding-base"
+            ],
+            "region" : "us-east-1",
+            "source_ami" : "ami-a6926dce"
+        }
+  ],
+  connections: []
+}, function(err, template) {
+  return console.log(err, template);
+});
 
 Default Template ---
 

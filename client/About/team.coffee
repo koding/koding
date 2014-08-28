@@ -28,13 +28,7 @@ KD.extend
         username  : 'cihangirsavas'
         title     : 'Software Engineer'
       ,
-        username  : 'kiwigeraint'
-        title     : 'Director of Infrastructure'
-      ,
         username  : 'szkl'
-        title     : 'DevOps'
-      ,
-        username  : 'leventyalcin'
         title     : 'DevOps'
       ,
         username  : 'burakcan'
@@ -63,9 +57,18 @@ KD.extend
       ,
         username  : 'didemacet'
         title     : 'QA'
-      # ,
-      #   username  : 'gniting'
-      #   title     : 'BizDev'
+      ,
+        username  : 'nitin'
+        title     : 'Chief Business Officer'
+      ,
+        username  : 'rsbrown'
+        title     : 'VP of Engineering'
+      ,
+        username  : 'alice'
+        title     : 'Chef de Cuisine'
+      ]
+
+    # suspended     : []
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
@@ -85,12 +88,12 @@ KD.extend
       #   username  : 'pablostanley'
       #   title     : 'Illustrator'
       # ,
-      #   username  : 'aleksey-m'
-      #   title     : 'System Administrator'
-      ]
-
-    # suspended     : []
-
+      #   username  : 'kiwigeraint'
+      #   title     : 'Director of Infrastructure'
+      # ,
+      #   username  : 'leventyalcin'
+      #   title     : 'DevOps'
+      # ,
       #   username  : 'aleksey-m'
       #   title     : 'Sys Admin &amp; node.js Developer'
       # ,

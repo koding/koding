@@ -2,7 +2,7 @@ class JobsView extends KDView
   constructor : (options = {}) ->
 
     options.cssClass = KD.utils.curry 'jobs-view', options.cssClass
-    options.apiUrl   = "#{KD.apiUri}/-/jobs"
+    options.apiUrl   = "#{KD.apiUri or window.location.origin}/-/jobs"
 
     super options
 

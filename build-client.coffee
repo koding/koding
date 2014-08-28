@@ -89,14 +89,20 @@ class Builder
 
   buildFramework:->
 
-    cmd = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
-    exec cmd, (err, stdout, stderr)->
+    buildLoggedInFramework  = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
+    buildLoggedOutFramework = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/out/  --entryPath=../entry.coffee"
+    exec buildLoggedInFramework, (err, stdout, stderr)->
       console.log """
       ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
        To use watcher for Framework use following command in different tab:
-       $ #{cmd.replace 'compile ', ''}
+       $ #{buildLoggedInFramework.replace 'compile ', ''}
       ---------------------------------------------------------------------------------------------
       """
+
+      # exec buildLoggedOutFramework, (err, stdout, stderr)->
+      #   console.log """
+      #   ----------------------------- KD FRAMEWORK LOGGEDOUT COMPILED -------------------------------
+      #   """
 
   buildClient: (options) ->
 
@@ -155,13 +161,13 @@ class Builder
     # registering app names to KD.config
     # so that we know all the available apps
     # before even loading their sources
-    fs.writeFileSync "#{__dirname}/client/Main/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
+    fs.writeFileSync "#{__dirname}/client/Core/__generatedapps__.coffee" , "KD.config.apps=#{@getProjects()}", "utf8"
 
     # this registers routes just before application runs
     # this is not the best place to put this
     # assuming to refactor this at some point
     # by switching to a task manager - SY
-    fs.writeFileSync "#{__dirname}/client/Main/__generatedroutes__.coffee" , @getRoutes(), "utf8"
+    fs.writeFileSync "#{__dirname}/client/Core/__generatedroutes__.coffee" , @getRoutes(), "utf8"
 
     @compileChanged options, true
 

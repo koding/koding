@@ -38,12 +38,23 @@ class Machine extends KDObject
         options.machine = this
         FSItem.create options, callback
 
-    KD.singletons.computeController.on "public-#{machine._id}", (event)=>
+    {computeController} = KD.singletons
+
+    computeController.on "public-#{machine._id}", (event)=>
 
       unless event.status is @jMachine.status.state
 
         @jMachine.setAt? "status.state", event.status
         @updateLocalData()
+
+    computeController.on "revive-#{machine._id}", (machine)=>
+
+      # invalidate klient kite if exists
+      KD.singletons.kontrol.kites?.klient?[@uid] = null
+
+      # update machine data
+      @jMachine = machine
+      @updateLocalData()
 
 
   updateLocalData:->

@@ -98,6 +98,7 @@ class ComputeEventListener extends KDObject
         if res.event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, machineId: eventId
           computeController.emit "stateChanged-#{eventId}", ev.private
+          computeController.triggerReviveFor eventId
 
         unless res.event.status is 'Unknown'
           computeController.emit "public-#{eventId}",    res.event

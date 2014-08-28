@@ -1,5 +1,6 @@
 do->
-  KD.singleton('router').on "RouteInfoHandled", (argsForMixpanel)->
+
+  KD.singletons.router.on 'RouteInfoHandled', (argsForMixpanel) ->
     KD.gaPageView argsForMixpanel.path
 
     for own _ of argsForMixpanel.query

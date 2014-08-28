@@ -1,5 +1,5 @@
 @import "../../../Framework/src/themes/default/kdfn"
-@import "../../../Main/styl/appfn"
+@import "../../../Core/styl/appfn"
 
 
 @css {
@@ -13,6 +13,22 @@ mainTextColor = #3B3B3B
 
 .activity-status-context
   display               none
+
+body.activity
+  #main-panel-wrapper
+    background          #f0f0f0
+
+  .app-content
+    max-width           600px
+
+    .message-pane > .listview-wrapper
+      margin-top        34px
+
+    .message-pane > .activity-input-widget + .listview-wrapper
+      margin-top        0
+
+    .message-pane.privatemessage > .listview-wrapper
+      margin-top        0
 
 .content-page.activity
 .member.content-display
@@ -494,7 +510,6 @@ span.collapsedtext
   hidden()
 
 .activity-item
-  padding-left              56px
   borderBox()
 
   &.edited article > p:after
@@ -512,7 +527,7 @@ span.collapsedtext
     position                relative
 
     .settings-menu-wrapper
-      abs                   0 24px 0 0
+      abs                   0 0px 0 0
       size                  15px 10px
       z-index               1
 
@@ -533,15 +548,14 @@ span.collapsedtext
           r-sprite          activity chevron-icon
 
     .author-avatar
-      abs                 0 0 0 -54px
-      display             block
-      // border              2px solid #0EB463
+      fl()
 
       img
         display           block
 
     .meta
-      margin              20px 0 0px 0px
+      margin              4px 0 0 16px
+      fl()
 
       .profile
         color             #1aaf5d
@@ -554,10 +568,10 @@ span.collapsedtext
         //   display         block
 
       time
-        margin-left       11px
         color             #999999
         font-size         12px
         font-weight       400
+        display           block
 
       .location
         color             #999999
@@ -570,17 +584,18 @@ span.collapsedtext
       color               mainTextColor
       font-weight         400
       word-break          break-word
+      clear               both
       // to avoid too long posts
       // until we find a better solution - SY
       overflow            auto
       max-height          400px
       opacity             .99
 
-      *:first-child
-        padding-top       6px
-
-      *:last-child
-        padding-bottom    6px
+      .emoji
+        size              16px, 16px
+        display           inline-block
+        padding           0
+        margin            0 0 -2px
 
     .like-summary
       size                auto, 31px
@@ -599,8 +614,6 @@ span.collapsedtext
         color             inherit
         font-weight       600
         noTextDeco()
-
-
 
     .activity-actions
       padding             0 0 10px 0
@@ -650,6 +663,11 @@ span.collapsedtext
   .comment-container
     overflow              visible
 
+    .link-embed-box
+      border              1px solid #d6d6d6
+      rounded             3px
+      margin              16px 0 0
+
 
     > .listview-wrapper
       overflow            visible
@@ -670,6 +688,7 @@ span.collapsedtext
 
     .comment-input-widget
       margin-top          0
+      margin-bottom       0
 
     .item-add-comment-box
       position            relative
@@ -806,6 +825,12 @@ span.collapsedtext
               color       #1aaf5d
               noTextDeco()
 
+          .emoji
+            size              16px, 16px
+            display           inline-block
+            padding           0
+            margin            0 0 -2px
+
       .action-link
         font-size         12px
         color             #ADAEB1
@@ -869,10 +894,11 @@ span.collapsedtext
 
 
 .activity-item.preview
-  margin-top              29px
+  margin-top              9px
   overflow                visible
   border                  2px dashed #cfcfcf
   rounded                 6px 6px 0 0
+  background              #fff
   borderBox()
 
   .activity-actions
@@ -885,7 +911,7 @@ span.collapsedtext
     size                  0 0
     border                10px solid transparent
     border-bottom-color   #fff
-    abs                   0 110px 100% 0
+    abs                   0 114px 100% 0
     margin-bottom         -2px
 
   &:before
@@ -894,7 +920,6 @@ span.collapsedtext
     border                10px solid transparent
     border-bottom-color   #cfcfcf
     abs                   0 114px 100% 0
-    margin-bottom         -3px
 
   .activity-content-wrapper
     padding-bottom        15px
@@ -920,6 +945,7 @@ span.collapsedtext
     border-left             1px solid #d6d6d6
     border-right            1px solid #d6d6d6
     position                relative
+    background              #fff
 
   .embed-link-view
     margin                  0
@@ -1025,23 +1051,27 @@ span.collapsedtext
   .hide-embed
     right                   7px
     top                     7px
-
     border                  none
     outline                 none
-    shadow                  none
+    shadow                  0 0 0 4px #fff
     z-index                 10
     r-sprite                app "20-close-tab"
+    background-color        #fff
+    rounded                 50%
     abs()
 
 .activity-item.status
-  margin-bottom             56px
+  margin-bottom             13px
+  padding                   24px
+  background                #fff
+  rounded                   3px
 
   &.static
     margin-bottom           16px
     max-width               720px
 
-  .link-embed-box
-    padding                 0 14px 15px
+  .activity-content-wrapper > .link-embed-box
+    padding                 0 0 15px
     overflow                visible
     borderBox()
 
@@ -1069,16 +1099,16 @@ span.collapsedtext
           noTextDeco()
 
           h4
-            font-size       16px
-            line-height     18px
+            font-size       14px
+            line-height     19px
             color           #4f4f4f
             display         block
 
         a.description
           padding           14px 0
           color             #727272
-          font-size         14px
-          line-height       16px
+          font-size         12px
+          line-height       18px
           display           block
           opacity           .99
 
@@ -1086,7 +1116,7 @@ span.collapsedtext
           overflow          visible
           color             #bdbdbd
           opacity           .99
-          font-size         14px
+          font-size         12px
           line-height       16px
 
       .preview-image + .preview-text
@@ -1105,13 +1135,11 @@ span.collapsedtext
 /** Markdown Styling **/
 .activity-content-wrapper > article
 
-  > *
-    padding               0 21px
-
   /* Headings */
   h1, h2, h3, h4, h5, h6
     color                 #50595a
     font-size             14px
+    padding               12px 0
 
   /* Lists */
 
@@ -1152,8 +1180,8 @@ span.collapsedtext
     border                none
   blockquote
     border-left           4px solid #DDD
-    margin                4px 21px
     padding               0 10px
+    margin                12px 0
   p
     padding               12px 0
     word-wrap             break-word
@@ -1166,7 +1194,7 @@ span.collapsedtext
       vertical-align      top
       font-size           12px
   pre
-    padding               15px 14px
+    padding               12px 0
     code
       display             block
       line-height         16px
@@ -1277,8 +1305,10 @@ span.collapsedtext
 
 
 .content-page.activity > main .kdtabpaneview.privatemessage
-  min-height            0
-  padding-top           58px
+  min-height            100vh
+  padding               58px 34px 0 34px
+  background            #fff
+  margin-left           -34px
   borderBox()
 
   .list-previous-link
@@ -1300,6 +1330,7 @@ span.collapsedtext
     height                  58px
     line-height             58px
     width                   100%
+    max-width               566px
     z-index                 1
     background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
     background -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(65%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)))
@@ -1359,6 +1390,7 @@ span.collapsedtext
       margin-top            0
 
   .activity-item.privatemessage
+    padding           0
 
     .settings-menu-wrapper
       top             25px
@@ -1379,8 +1411,10 @@ span.collapsedtext
         visibility    visible !important
 
     .activity-content-wrapper
+      padding-left      56px
+
       .meta
-        margin-top        10px
+        margin          8px 0 4px 0px
 
     .comment-time
       cursor            pointer
@@ -1391,6 +1425,9 @@ span.collapsedtext
 
     &.consequent
       padding-left      56px
+
+      .activity-content-wrapper
+        padding         0
 
       .settings-menu-wrapper
         top             10px
@@ -1453,7 +1490,7 @@ span.collapsedtext
         visible()
 
     .author-avatar
-      abs                   10px 0 0 -51px
+      abs                   10px 0 0 0px
       border                none
 
     .list-previous-link
@@ -1604,7 +1641,8 @@ span.collapsedtext
     position            fixed
     bottom              0
     height              auto
-    kalc                width, 100% \- 326px
+    kalc                width, 100% \- 360px
+    max-width           532px
     padding             0 0 30px
     bg                  color white
     margin-top          8px
