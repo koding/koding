@@ -63,7 +63,7 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", machine.MachineId, username, msg)
+			p.Log.Info("[%s] %s (username: %s)", machine.MachineId, msg, username)
 
 			machine.Eventer.Push(&eventer.Event{
 				Message:    msg,
