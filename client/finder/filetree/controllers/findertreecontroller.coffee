@@ -520,7 +520,7 @@ class NFinderTreeController extends JTreeViewController
       @contextMenu nodeView, event
       return no
 
-    if $(event.target).is ".arrow"
+    if $(event.target).is ".icon"
       @openItem nodeView
       return no
 
