@@ -31,6 +31,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
+    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
     computeController.on "error-#{@machineId}", =>
       @hasError = yes
       @updateStatus { status: Unknown }

@@ -267,14 +267,17 @@ class IDEAppController extends AppController
         else
           @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
 
-        stateHandler = (event, state) =>
-          if event.status is state
+        stateHandler = (event, states) =>
+          if event.status in states
             options = { state, container }
-            @machineStateModal = new IDE.MachineStateModal options, machineItem
+
+            unless @machineStateModal
+              @machineStateModal = new IDE.MachineStateModal options, machineItem
+
             @machineStateModal.once 'IDEBecameReady', => @finderPane.finderController.reset()
 
-        computeController.on "stop-#{machineId}", (event) ->    stateHandler event, 'Stopped'
-        computeController.on "destroy-#{machineId}", (event) -> stateHandler event, 'Terminated'
+        computeController.on "stop-#{machineId}", (event) ->    stateHandler event, [ 'Stopping', 'Stopped' ]
+        computeController.on "destroy-#{machineId}", (event) -> stateHandler event, [ 'Terminated' ]
       else
         @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
