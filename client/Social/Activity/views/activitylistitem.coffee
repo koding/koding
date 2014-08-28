@@ -139,7 +139,6 @@ class ActivityListItemView extends KDListItemView
 
     body = fn body for fn in fns
     body = KD.utils.expandUsernames body, 'code'
-    body = emojify.replace body, 'code'
 
     return body
 
@@ -246,6 +245,8 @@ class ActivityListItemView extends KDListItemView
   viewAppended:->
 
     JView::viewAppended.call this
+
+    emojify.run @getElement()
 
     @setAnchors()
 
