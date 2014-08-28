@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/klient"
 
 	"github.com/koding/kite"
+	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
@@ -415,6 +416,15 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	}
 
 	///// ROUTE 53 /////////////////
+
+	if err := p.Update(opts.MachineId, &kloud.StorageData{
+		Type: "stop",
+		Data: map[string]interface{}{
+			"ipAddress": "",
+		},
+	}); err != nil {
+		p.Log.Error("[stop] storage update of essential data was not possible: %s", err.Error())
+	}
 
 	return nil
 }
