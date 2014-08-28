@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"koding/db/mongodb"
+	"koding/kites/kloud/klient"
 
 	"github.com/koding/kite"
+	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
@@ -365,6 +367,18 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	artifact.DomainName = machineData.Domain
 
+	p.Log.Info("Connecting to remote Klient instance")
+	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klientRef.Close()
+		p.Log.Info("Sending a ping message")
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("Sending a ping message err:", err)
+		}
+	}
+
 	///// ROUTE 53 /////////////////
 
 	return artifact, nil
@@ -402,6 +416,15 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	}
 
 	///// ROUTE 53 /////////////////
+
+	if err := p.Update(opts.MachineId, &kloud.StorageData{
+		Type: "stop",
+		Data: map[string]interface{}{
+			"ipAddress": "",
+		},
+	}); err != nil {
+		p.Log.Error("[stop] storage update of essential data was not possible: %s", err.Error())
+	}
 
 	return nil
 }

@@ -155,7 +155,7 @@ func main() {
 		go k.RegisterToProxy(registerURL, proxyQuery)
 	} else {
 		if err := k.RegisterForever(registerURL); err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}
 

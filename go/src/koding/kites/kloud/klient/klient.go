@@ -1,8 +1,11 @@
-package koding
+// Package klient provides an instance and abstraction to a remote klient kite.
+// It is used to easily call methods of a klient kite
+package klient
 
 import (
 	"fmt"
 	"koding/kites/klient/usage"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
@@ -11,20 +14,22 @@ import (
 // Klient represents a remote klient instance
 type Klient struct {
 	client   *kite.Client
-	username string
+	kite     *kite.Kite
+	Username string
 }
 
-// Klient returns a new connected klient instance to the given queryString. The
+// New returns a new connected klient instance to the given queryString. The
 // klient is ready to use. It's connected and will redial if there is any
 // disconnections.
-func (p *Provider) Connect(queryString string) (*Klient, error) {
+func New(k *kite.Kite, queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
 	}
 
-	p.Log.Debug("Querying for Klient: %s", queryString)
-	kites, err := p.Kite.GetKites(query.Query())
+	k.Log.Debug("Querying for Klient: %s", queryString)
+
+	kites, err := k.GetKites(query.Query())
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +41,30 @@ func (p *Provider) Connect(queryString string) (*Klient, error) {
 
 	// klient connection is ready now
 	return &Klient{
+		kite:     k,
 		client:   remoteKite,
-		username: remoteKite.Username,
+		Username: remoteKite.Username,
 	}, nil
 
+}
+
+// Klient returns a new connected klient instance to the given queryString. The
+// klient is ready to use. It's tries to connect for the given timeout duration
+func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
+	timeout := time.After(t)
+
+	k.Log.Debug("Querying for Klient: %s", queryString)
+	for {
+		select {
+		case <-time.Tick(time.Second * 2):
+			if klient, err := New(k, queryString); err == nil {
+				return klient, nil
+			}
+
+		case <-timeout:
+			return nil, fmt.Errorf("timeout while connection for kite")
+		}
+	}
 }
 
 func (k *Klient) Close() {

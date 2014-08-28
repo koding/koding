@@ -725,7 +725,7 @@ Team Koding
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName,
-      agree, inviteCode, referrer } = userFormData
+      agree, inviteCode, referrer, password, passwordConfirm } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -736,6 +736,9 @@ Team Koding
 
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
+
+    if password isnt passwordConfirm
+      return callback createKodingError "Passwords must match!"
 
     newToken       = null
     invite         = null
@@ -802,18 +805,22 @@ Team Koding
         account.update accountModifier, (err) ->
           return callback err  if err?
           queue.next()
-      =>
-        JPasswordRecovery = require '../passwordrecovery'
-
-        passwordOptions =
-          email         : user.email
-          verb          : unless username? then 'Register' else 'Confirm'
-          resetPassword : no
-          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
-
-        JPasswordRecovery.create client, passwordOptions, (err, token)->
-          recoveryToken = token
+      ->
+        user.setPassword password, (err) ->
+          return callback err  if err?
           queue.next()
+      # =>
+      #   JPasswordRecovery = require '../passwordrecovery'
+
+      #   passwordOptions =
+      #     email         : user.email
+      #     verb          : unless username? then 'Register' else 'Confirm'
+      #     resetPassword : no
+      #     expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
+
+      #   JPasswordRecovery.create client, passwordOptions, (err, token)->
+      #     recoveryToken = token
+      #     queue.next()
       ->
         JPaymentSubscription.createFreeSubscription account, (err) ->
           console.warn err  if err
@@ -991,14 +998,19 @@ Team Koding
     # if context is 'koding' then @fetchOwnAccount rest...
     # else @fetchContextualAccount context, rest...
 
-  changePassword:(newPassword, callback)->
+  setPassword:(password, callback)->
     salt = createSalt()
     @update $set: {
       salt
-      password: hashPassword(newPassword, salt)
-      passwordStatus: 'valid'
-    }, (err) ->
-      return callback err if err
+      password       : hashPassword password, salt
+      passwordStatus : 'valid'
+    }, callback
+
+
+  changePassword:(newPassword, callback)->
+
+    @setPassword newPassword, (err)->
+      return callback err  if err?
       sendChangeEmail @email, "password"
       callback null
 
