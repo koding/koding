@@ -725,7 +725,7 @@ Team Koding
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
     { username, email, firstName, lastName,
-      agree, inviteCode, referrer } = userFormData
+      agree, inviteCode, referrer, password, passwordConfirm } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -736,6 +736,9 @@ Team Koding
 
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
+
+    if password isnt passwordConfirm
+      return callback createKodingError "Passwords must match!"
 
     newToken       = null
     invite         = null
@@ -802,6 +805,9 @@ Team Koding
         account.update accountModifier, (err) ->
           return callback err  if err?
           queue.next()
+      ->
+        user.setPassword password, (err) ->
+          return callback err  if err?
           queue.next()
       # =>
       #   JPasswordRecovery = require '../passwordrecovery'
