@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb"
+	"koding/kites/kloud/klient"
 	"path/filepath"
 	"strings"
 	"time"
@@ -222,6 +223,18 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	}
 
 	query := kiteprotocol.Kite{ID: tknID.String()}
+
+	k.Log.Info("Connecting to remote Klient instance")
+	klient, err := klient.NewKlient(k.Kite, query.String())
+	if err != nil {
+		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klient.Close()
+		k.Log.Info("Sending a ping message")
+		if err := klient.Ping(); err != nil {
+			k.Log.Warning("Sending a ping message err:", err)
+		}
+	}
 
 	artifact.KiteQuery = query.String()
 	return artifact, nil
