@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  prod_simulation_server = "10.0.0.137"
+  prod_simulation_server = "10.0.0.84"
 
   hostname            = options.hostname       or "prod-v1_2_4-anna"
   publicHostname      = options.publicHostname or "https://koding.me"
