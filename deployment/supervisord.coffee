@@ -1,3 +1,5 @@
+fs = require 'fs'
+
 generateMainConf = (supervisorEnvironmentStr ="")->
   """
   [supervisord]
@@ -83,5 +85,7 @@ module.exports.create = (KONFIG)->
     programs=#{Object.keys(sections).join(",")}
     \n
     """
-  console.log conf
+
+  fs.writeFileSync "./deployment/generated_files/supervisord.conf", conf
+
   return conf
