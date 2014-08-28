@@ -10,16 +10,67 @@ class HomeView extends JView
       style       : 'solid thin medium thin-white'
       callback    : -> router.handleRoute '/Pricing'
 
-    @signUpButton = new KDButtonView
-      title       : 'Sign Up Now'
-      style       : 'solid medium green'
-      callback    : -> router.handleRoute '/Register'
+    @signUpForm = new HomeRegisterForm
+      cssClass    : 'login-form register'
+      buttonTitle : 'Sign up'
+      callback    : @bound 'showPasswordModal'
 
     @testimonials = new TestimonialsView
 
     @footer = new FooterView
 
+
+  showPasswordModal: (formData) ->
+
+    unless @signUpForm.email.input.valid and @signUpForm.username.input.valid
+      @signUpForm.button.hideLoader()
+
+    {appManager, mainView} = KD.singletons
+
+    mainView.setClass 'blur'
+
+    modal = new KDModalViewWithForms
+      cssClass                : 'password'
+      width                   : 600
+      height                  : 'auto'
+      overlay                 : yes
+      title                   : 'Almost there, please enter a strong password.'
+      tabs                    :
+        forms                 :
+          password            :
+            callback          : (form) =>
+              appManager.require 'Login', (controller) =>
+                KD.mixpanel 'Register submit, click'
+                controller.getView().doRegister formData, @signUpForm
+                log 'set the password here'
+                modal.destroy()
+            fields            :
+              password        :
+                type          : 'password'
+                cssClass      : 'half'
+                name          : 'password'
+                placeholder   : 'password'
+                nextElement   :
+                  confirm     :
+                    cssClass  : 'half'
+                    type      : 'password'
+                    name      : 'confirm'
+                    placeholder : 'confirm password'
+            buttons           :
+              submit          :
+                cssClass      : 'solid green medium'
+                type          : 'submit'
+                title         : 'Submit'
+
+    modal.once 'KDObjectWillBeDestroyed', =>
+      mainView.unsetClass 'blur'
+      @signUpForm.button.hideLoader()
+
+
+
+
   pistachio : ->
+
     """
       <section class="introduction">
         <div class="inner-container clearfix">
@@ -28,8 +79,8 @@ class HomeView extends JView
             <p>
               Koding gives you the necessary environment to start developing your apps, run them, collaborate and share with the world.
             </p>
-            {{> @signUpButton}}
-            {{> @pricingButton}}
+
+            {{> @signUpForm}}
           </article>
         </div>
       </section>
