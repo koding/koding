@@ -68,7 +68,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	// release the lock from mongodb after we are done
 	defer p.ResetAssignee(machine.Id.Hex())
 
-	klient, err := klient.NewKlient(p.Kite, machine.QueryString)
+	klient, err := klient.New(p.Kite, machine.QueryString)
 	if err != nil {
 		return err
 	}

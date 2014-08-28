@@ -367,7 +367,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	artifact.DomainName = machineData.Domain
 
 	p.Log.Info("Connecting to remote Klient instance")
-	klientRef, err := klient.NewKlient(p.Kite, machineData.QueryString)
+	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
 	if err != nil {
 		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {

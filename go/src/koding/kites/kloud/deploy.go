@@ -225,7 +225,7 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	k.Log.Info("Connecting to remote Klient instance")
-	klientRef, err := klient.NewKlient(k.Kite, query.String())
+	klientRef, err := klient.NewWithTimeout(k.Kite, query.String(), time.Minute)
 	if err != nil {
 		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
