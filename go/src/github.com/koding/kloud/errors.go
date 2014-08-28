@@ -82,7 +82,7 @@ func NewErrorMessage(errMsg string) *kite.Error {
 func NewError(errorCode int) *kite.Error {
 	errMsg, ok := errors[errorCode]
 	if !ok {
-		panic(fmt.Sprintf("no message is defined for error code %s", errorCode))
+		panic(fmt.Sprintf("no message is defined for error code %d", errorCode))
 	}
 
 	code := strconv.Itoa(errorCode)

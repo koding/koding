@@ -97,6 +97,11 @@ type ProviderDeploy struct {
 // Artifact should be returned from a Build method. It contains data
 // that is needed in other interfaces
 type Artifact struct {
+	// Machine Id defines the source of the build that caused this artifact to
+	// be created. It should be equal to the MachineId that was passed via
+	// MachineOptions
+	MachineId string
+
 	// InstanceName should define the name/hostname of the created machine. It
 	// should be equal to the InstanceName that was passed via MachineOptions.
 	InstanceName string
@@ -104,7 +109,7 @@ type Artifact struct {
 	// InstanceId should define a unique ID that defined the created machine.
 	// It's different than the machineID and is usually an unique id which is
 	// given by the third-party provider, for example DigitalOcean returns a
-	// droplet Id.
+	// droplet Id, AWS returns an instance id, etc..
 	InstanceId string
 
 	// IpAddress defines the public ip address of the running machine.

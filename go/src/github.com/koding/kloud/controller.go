@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/koding/kite"
 	"github.com/koding/kloud/eventer"
@@ -74,12 +75,6 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 
 func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 	return kite.HandlerFunc(func(r *kite.Request) (response interface{}, err error) {
-		defer func() {
-			if err != nil {
-				k.Log.Warning("[controller] %s error: %s", r.Method, err.Error())
-			}
-		}()
-
 		// calls with zero arguments causes args to be nil. Check it that we
 		// don't get a beloved panic
 		if r.Args == nil {
@@ -91,7 +86,13 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		k.Log.Info("[controller] new call for '%s' method with id: %+v", r.Method, args.MachineId)
+		defer func() {
+			if err != nil {
+				k.Log.Error("[%s] method '%s' failed. err: %s", args.MachineId, r.Method, err.Error())
+			}
+		}()
+
+		k.Log.Info("\n[%s] ========== %s started ==========", args.MachineId, strings.ToUpper(r.Method))
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -128,8 +129,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}
 
-		k.Log.Debug("[controller] got machine data with machineID (%s) : %+v",
-			args.MachineId, machine)
+		k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
 		// to be able to build again or get information, therefore build and info
@@ -169,7 +169,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
-			k.Log.Debug("[controller] limiter is enabled for provider: %s", machine.Provider)
+			k.Log.Debug("[%s] limiter is enabled for provider: %s", machine.Provider)
 			err := limiter.Limit(c.Machine, r.Method)
 			if err != nil {
 				return nil, err
@@ -197,7 +197,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 
 	defer func() {
 		if err == nil {
-			k.Log.Info("[info] returning response %+v", resp)
+			k.Log.Info("[%s] info result: %+v", c.MachineId, resp)
 		}
 	}()
 
@@ -261,7 +261,8 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 		})
 
 		if err != nil {
-			k.Log.Error("[start] storage update of essential data was not possible: %s", err.Error())
+			k.Log.Error("[%s] updating data after start method was not possible: %s",
+				c.MachineId, err.Error())
 		}
 
 		// do not return the error, the machine is already prepared and
@@ -337,16 +338,17 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		machOptions := c.Machine
 		machOptions.Eventer = c.Eventer
 
-		k.Log.Debug("[controller] running method %s with mach options %v", r.Method, machOptions)
+		k.Log.Debug("[%s] running method %s with mach options %v", c.MachineId, r.Method, machOptions)
 		err := fn(machOptions)
 		if err != nil {
-			k.Log.Error("[controller] %s failed: %s. Machine state did't change and is set to '%s' now.",
-				r.Method, err.Error(), c.CurrenState)
+			k.Log.Error("[%s] %s failed. Machine state did't change and is set back to origin state '%s'. err: %s",
+				c.MachineId, r.Method, c.CurrenState, err.Error())
 
 			status = c.CurrenState
 			msg = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
-			k.Log.Info("[%s] is successfull. State is now: %+v", r.Method, status)
+			k.Log.Info("[%s] State is now: %+v", c.MachineId, status)
+			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)
