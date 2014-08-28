@@ -30,6 +30,9 @@ class MainController extends KDController
     @detectIdleUser()
     @startCachingAssets()  unless KD.isLoggedInOnLoad
 
+    emojify.setConfig
+      img_dir : 'https://s3.amazonaws.com/koding-cdn/emojis'
+
   createSingletons:->
 
     KD.registerSingleton 'mainController',            this
