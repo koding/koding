@@ -8,7 +8,7 @@ class IDE.MachineItemView extends NFileItemView
 
     {@machine}      = @getData()
 
-    @vmInfo         = new KDCustomHTMLView
+    @machineInfo    = new KDCustomHTMLView
       tagName       : 'span'
       cssClass      : 'vm-info'
       partial       : @machine.getName()
@@ -23,19 +23,11 @@ class IDE.MachineItemView extends NFileItemView
       selectOptions : @createSelectOptions()
       callback      : @bound 'updateRoot'
 
-    @vm = KD.getSingleton 'vmController'
-    @vm.on 'StateChanged', @bound 'checkVMState'
-
-    @vm.fetchVMDomains data.vmName, (err, domains) =>
-      if not err and domains.length > 0
-        @vmInfo.updatePartial domains.first
 
   updateRoot: (path) ->
-    data    = @getData()
-    vm      = data.vmName
-    finder  = data.treeController.getDelegate()
+    finder = @getData().treeController.getDelegate()
+    finder?.updateMachineRoot @machine.uid, path
 
-    finder?.updateMachineRoot vm, path
 
   createSelectOptions: ->
     currentPath = @getData().path
@@ -57,21 +49,10 @@ class IDE.MachineItemView extends NFileItemView
 
     return items
 
-  checkVMState:(err, vm, info)->
-    return unless vm is @getData().vmName
-
-    if err or not info
-      @unsetClass 'online'
-      return warn err
-
-    if info.state is "RUNNING"
-    then @setClass 'online'
-    else @unsetClass 'online'
-
   pistachio:->
     return """
       <div class="vm-header">
-        {{> @vmInfo}}
+        {{> @machineInfo}}
         <div class="buttons">
           {{> @terminalButton}}
           <span class='chevron'></span>
