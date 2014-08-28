@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/koding/kite"
 	"github.com/koding/kloud/eventer"
@@ -91,7 +92,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}()
 
-		k.Log.Info("[%s] new call for '%s' method", args.MachineId, r.Method)
+		k.Log.Info("\n[%s] ========== %s started ==========", args.MachineId, strings.ToUpper(r.Method))
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
@@ -346,7 +347,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 			status = c.CurrenState
 			msg = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
-			k.Log.Info("[%s] call for method '%s' was successfull. State is now: %+v", c.MachineId, r.Method, status)
+			k.Log.Info("[%s] State is now: %+v", c.MachineId, status)
+			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 		}
 
 		k.Storage.UpdateState(c.MachineId, status)

@@ -117,6 +117,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		p.Log.Info(format, args...)
 	}
 
+	a.InfoLog = infoLog
+
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
@@ -364,12 +366,28 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
+	// Check if the record exist, if yes update the ip instead of creating a new one.
+	record, err := p.DNS.Domain(machineData.Domain)
+	if err == ErrNoRecord {
+		if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		// If it's something else just return it
 		return nil, err
 	}
 
-	a.Log.Info("Updating user domain tag '%s' of instance '%s'",
-		machineData.Domain, artifact.InstanceId)
+	// Means the record exist, update it
+	if err == nil {
+		p.Log.Warning("[%s] Domain '%s' already exists (that shouldn't happen). Going to update to new IP",
+			machineData.Domain, opts.MachineId)
+		if err := p.DNS.Update(machineData.Domain, record.Records[0], artifact.IpAddress); err != nil {
+			return nil, err
+		}
+	}
+
+	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+		opts.MachineId, machineData.Domain, artifact.InstanceId)
 
 	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err

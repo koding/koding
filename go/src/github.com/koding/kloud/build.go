@@ -3,12 +3,12 @@ package kloud
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/kr/pretty"
 
 	"github.com/koding/kite"
 )
@@ -104,7 +104,6 @@ provider      : %s
 machineId     : %s
 username      : %s
 instanceName  : %s
-meta data     : %# v
 `
 
 	buildInfo := fmt.Sprintf(buildStub,
@@ -112,7 +111,6 @@ meta data     : %# v
 		c.MachineId,
 		r.Username,
 		c.Machine.Builder["instanceName"].(string),
-		pretty.Formatter(c.Machine.Builder),
 	)
 
 	b.Log.Info("[%s] building machine with following data: %s", c.MachineId, buildInfo)
@@ -188,6 +186,8 @@ kite query : %s
 		"instanceId":   artifact.InstanceId,
 		"instanceName": artifact.InstanceName,
 	}
+
+	b.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 
 	storageData["queryString"] = deployArtifact.(*protocol.Artifact).KiteQuery
 
