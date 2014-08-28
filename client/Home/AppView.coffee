@@ -49,23 +49,56 @@ class HomeView extends JView
 
                 controller.getView().doRegister formData, @signUpForm
                 modal.destroy()
-            fields            :
-              password        :
-                type          : 'password'
-                cssClass      : 'half'
-                name          : 'password'
-                placeholder   : 'password'
-                nextElement   :
-                  confirm     :
-                    cssClass  : 'half'
-                    type      : 'password'
-                    name      : 'confirm'
-                    placeholder : 'confirm password'
+
+            fields                    :
+              password                :
+                type                  : 'password'
+                cssClass              : 'half'
+                name                  : 'password'
+                placeholder           : 'password'
+                validate              :
+                  rules               :
+                    passwordCheck     : (input, event)=>
+
+                      form = modal.modalTabs.forms.password
+                      if input.getValue().length < 8
+                        modal.setTitle "Passwords should be at least 8 characters."
+                      else
+                        unless input.getValue() is form.inputs.confirm.getValue()
+                          modal.setTitle "Looks fine, please repeat it again in next field."
+
+                  events              :
+                    passwordCheck     : "keyup"
+
+                nextElement           :
+                  confirm             :
+                    cssClass          : 'half'
+                    type              : 'password'
+                    name              : 'passwordConfirm'
+                    placeholder       : 'confirm password'
+                    validate          :
+                      rules           :
+                        passwordCheck : (input, event)=>
+
+                          form = modal.modalTabs.forms.password
+                          if form.inputs.password.getValue().length >= 8
+                            if input.getValue() is form.inputs.password.getValue()
+                              modal.setTitle "All looks fine!"
+                              form.buttons.submit.enable()
+                            else
+                              modal.setTitle "Passwords should match."
+                              form.buttons.submit.disable()
+
+                      events          :
+                        passwordCheck : "keyup"
+
+
             buttons           :
               submit          :
                 cssClass      : 'solid green medium'
                 type          : 'submit'
                 title         : 'Submit'
+                disabled      : yes
 
     modal.once 'KDObjectWillBeDestroyed', =>
       mainView.unsetClass 'blur'
