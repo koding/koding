@@ -17,14 +17,15 @@ type Klient struct {
 // Klient returns a new connected klient instance to the given queryString. The
 // klient is ready to use. It's connected and will redial if there is any
 // disconnections.
-func (p *Provider) Connect(queryString string) (*Klient, error) {
+func NewKlient(k *kite.Kite, queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
 	}
 
-	p.Log.Debug("Querying for Klient: %s", queryString)
-	kites, err := p.Kite.GetKites(query.Query())
+	k.Log.Debug("Querying for Klient: %s", queryString)
+
+	kites, err := k.GetKites(query.Query())
 	if err != nil {
 		return nil, err
 	}
