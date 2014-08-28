@@ -215,13 +215,13 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
-      'Toggle invisible files'    :
-        action                    : 'toggleDotFiles'
-        separator                 : yes
       'New file'                  :
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
+        separator                 : yes
+      'Toggle invisible files'    :
+        action                    : 'toggleDotFiles'
       # 'Upload file...'            :
       #   action                    : 'upload'
 
