@@ -10,10 +10,9 @@ class HomeView extends JView
       style       : 'solid thin medium thin-white'
       callback    : -> router.handleRoute '/Pricing'
 
-    @signUpButton = new KDButtonView
-      title       : 'Sign Up Now'
-      style       : 'solid medium green'
-      callback    : -> router.handleRoute '/Register'
+    @signUpForm = new HomeRegisterForm
+      cssClass    : 'login-form register'
+      buttonTitle : 'Sign up'
 
     @testimonials = new TestimonialsView
 
@@ -28,8 +27,8 @@ class HomeView extends JView
             <p>
               Koding gives you the necessary environment to start developing your apps, run them, collaborate and share with the world.
             </p>
-            {{> @signUpButton}}
-            {{> @pricingButton}}
+
+            {{> @signUpForm}}
           </article>
         </div>
       </section>
