@@ -180,6 +180,7 @@ class NFinderController extends KDViewController
 
 
   setRecentFile:({path})->
+
     recentFiles = @appStorage.getValue('recentFiles')
     recentFiles = []  unless Array.isArray recentFiles
 
@@ -191,7 +192,9 @@ class NFinderController extends KDViewController
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
+
   hideDotFiles:(uid)->
+
     return  unless uid
     @setNodesHidden uid, yes
     for own path, node of @treeController.nodes
@@ -200,7 +203,9 @@ class NFinderController extends KDViewController
         @stopWatching file.path
         @treeController.removeNodeView node
 
+
   showDotFiles:(uid)->
+
     return  unless uid
     @setNodesHidden uid, no
     for own path, node of @treeController.nodes when node.getData().type is 'machine'
@@ -209,28 +214,38 @@ class NFinderController extends KDViewController
           @reloadPreviousState uid
         , yes
 
+
   isNodesHiddenFor:(uid)->
+
     return yes  if @getOption 'hideDotFiles'
     return (@appStorage.getValue('machinesDotFileChoices') or {})[uid]
 
+
   setNodesHidden:(uid, state)->
+
     prefs = @appStorage.getValue('machinesDotFileChoices') or {}
     prefs[uid] = state
     @appStorage.setValue 'machinesDotFileChoices', prefs
 
+
   getRecentFolders:->
+
     recentFolders = @appStorage.getValue('recentFolders')
     recentFolders = []  unless Array.isArray recentFolders
     return recentFolders
 
+
   setRecentFolder:(folderPath, callback)->
+
     recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
     recentFolders.sort (path)-> if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
+
   unsetRecentFolder:(folderPath, callback)->
+
     recentFolders = @getRecentFolders()
     recentFolders = recentFolders.filter (path)->
       path.indexOf(folderPath) isnt 0
@@ -238,14 +253,18 @@ class NFinderController extends KDViewController
       if path is folderPath then -1 else 0
     @appStorage.setValue 'recentFolders', recentFolders, callback
 
+
   expandFolder:(folderPath, callback=noop)->
+
     return  unless folderPath
     for own path, node of @treeController.nodes
       return @treeController.expandFolder node, callback  if path is folderPath
     callback {message:"Folder not exists: #{folderPath}"}
 
+
   # FIXME THIS ~GG getPathHiearchy needs to be fixed for machine.uid
   expandFolders: (paths, callback=noop)->
+
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths
     path = paths.pop()
@@ -255,7 +274,9 @@ class NFinderController extends KDViewController
       then callback null, @treeController.nodes[path]
       else @expandFolders paths, callback
 
+
   reloadPreviousState:(uid)->
+
     recentFolders = @getRecentFolders()
     if uid
       recentFolders = recentFolders.filter (folder)->
@@ -264,7 +285,9 @@ class NFinderController extends KDViewController
         recentFolders = ["[#{uid}]/"]
     @expandFolders recentFolders
 
+
   uploadTo: (path)->
+
     {uploader, uploaderPlaceholder} = @getDelegate()
     uploader.setPath path
     uploaderPlaceholder.show()
@@ -282,9 +305,9 @@ class NFinderController extends KDViewController
            machineItem.data.machine._id is uid
           return machineItem
 
+
   # Settings helpers
   #
-
   updateMountState:(uid, state)->
 
     return  if KD.isGuest()
@@ -297,23 +320,28 @@ class NFinderController extends KDViewController
 
   # FS Watcher helpers
   #
-
   registerWatcher:(path, stopWatching)->
+
     @watchers[path] = stop: stopWatching
 
+
   stopAllWatchers:->
+
     (watcher.stop() for own path, watcher of @watchers)
     @watchers = {}
 
+
   stopWatching:(pathToStop)->
+
     for own path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
+
   # Basics
   #
-
   cleanup:->
+
     @treeController.removeAllNodes()
     FSHelper.resetRegistry()
     @stopAllWatchers()
