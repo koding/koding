@@ -39,10 +39,15 @@ class HomeView extends JView
         forms                 :
           password            :
             callback          : (form) =>
+
               appManager.require 'Login', (controller) =>
+
                 KD.mixpanel 'Register submit, click'
+
+                formData.password        = form.password
+                formData.passwordConfirm = form.passwordConfirm
+
                 controller.getView().doRegister formData, @signUpForm
-                log 'set the password here'
                 modal.destroy()
             fields            :
               password        :
