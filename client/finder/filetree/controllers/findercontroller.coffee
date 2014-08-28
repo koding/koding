@@ -53,17 +53,19 @@ class NFinderController extends KDViewController
     @noMachineFoundWidget = new NoMachinesFoundWidget
     @cleanup()
 
-    { computeController } = KD.singletons
+    if options.bindMachineEvents
 
-    computeController.on "MachineDestroyed", ({machineId})=>
-      @unmountMachine machineId
+      { computeController } = KD.singletons
 
-    computeController.on "MachineStopped", ({machineId})=>
-      @unmountMachine machineId
+      computeController.on "MachineDestroyed", ({machineId})=>
+        @unmountMachine machineId
 
-    computeController.on "MachineStarted", ({machineId})=>
-      computeController.fetchMachine machineId, (err, machine)=>
-        @mountMachine machine  unless err
+      computeController.on "MachineStopped", ({machineId})=>
+        @unmountMachine machineId
+
+      computeController.on "MachineStarted", ({machineId})=>
+        computeController.fetchMachine machineId, (err, machine)=>
+          @mountMachine machine  unless err
 
 
   loadView:(mainView)->

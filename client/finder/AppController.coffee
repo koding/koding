@@ -11,10 +11,11 @@ class FinderController extends KDController
     super options, data
 
   create: (options = {}) ->
-    options.useStorage       ?= yes
-    options.addOrphansToRoot ?= no
-    options.addAppTitle      ?= yes
-    options.delegate         ?= this
+    options.useStorage        ?= yes
+    options.addOrphansToRoot  ?= no
+    options.addAppTitle       ?= yes
+    options.bindMachineEvents ?= yes
+    options.delegate          ?= this
 
     @controller = new NFinderController options
     finderView  = @controller.getView()
