@@ -38,7 +38,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 
 		if err := p.CheckUsage(machine); err != nil {
 			if err == kite.ErrNoKitesAvailable {
-				p.Log.Warning("[%s] can't check machine (%s). klient kite is not running, waiting...",
+				p.Log.Warning("[%s] can't check machine (%s). klient kite is not running yet, waiting...",
 					machine.Id.Hex(), machine.IpAddress)
 			} else {
 				p.Log.Warning("check usage of kite err: %v", err)
@@ -81,7 +81,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		return err
 	}
 
-	p.Log.Info("[%s] machine with ip %s is inactive for %s",
+	p.Log.Info("[%s] checker: machine with ip %s is inactive for %s",
 		machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
 
 	// It still have plenty of time to work, do not stop it
@@ -132,11 +132,15 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 		// which are not assigned to anyone yet. We also check the date to not
 		// pick up fresh documents. That means documents that are proccessed
 		// and put into the DB will not selected until the interval has been
-		// passed. The interval is the same as checkers interval.
+		// passed. The interval is the same as checkers interval. The $or is
+		// used also catch fields that doesn't exist.
 		egligibleMachines := bson.M{
-			"provider":            "koding",
-			"status.state":        "Running",
-			"assignee.inProgress": false,
+			"provider":     "koding",
+			"status.state": "Running",
+			"$or": []bson.M{
+				{"assignee.inProgress": false},
+				{"assignee.inProgress": nil},
+			},
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
 		}
 
@@ -184,7 +188,10 @@ func (p *Provider) CleanQueue(timeout time.Duration) error {
 		}
 
 		cleanMachines := bson.M{
-			"assignee.inProgress": false,
+			"$or": []bson.M{
+				{"assignee.inProgress": false},
+				{"assignee.inProgress": nil},
+			},
 			"assignee.assignedAt": time.Now().UTC(),
 		}
 
