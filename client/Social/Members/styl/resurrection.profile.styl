@@ -11,8 +11,15 @@ resurrection.profile.styl
 
 
 body.profile
+  #main-panel-wrapper
+    background            #f0f0f0
+
+  .app-content
+    max-width             600px
+    padding-left          0
+
   .app-sidebar
-    bg                    color, #EFEFEF
+    bg                    color, #e0e0e0
     text-align            center
 
     > main
@@ -118,11 +125,12 @@ body.profile
 
   .member-tabs
     kalc                  width, 100% \- 292px
-    margin                0 0 6px 292px
+    margin                0 0 13px 292px
+    max-width             600px
     padding               0
     height                62px
     borderBox()
-    shadow                inset 0 -3px 0 #F2F2F2
+    shadow                inset 0 -3px 0 #e0e0e0
 
     a
       height              62px
