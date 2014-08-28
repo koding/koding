@@ -8,14 +8,14 @@ class KodingAppsController extends KDController
   constructor:->
     super
 
-    appStorage = KD.getSingleton 'appStorageController'
-    @storage   = appStorage.storage "Applications", version
+    # appStorage = KD.getSingleton 'appStorageController'
+    # @storage   = appStorage.storage "Applications", version
 
-    @storage.fetchStorage (storage)=>
-      @apps = @storage.getValue('installed') or {}
-      @apps or= {}
+    # @storage.fetchStorage (storage)=>
+    #   @apps = @storage.getValue('installed') or {}
+    #   @apps or= {}
 
-      @emit 'ready'
+    #   @emit 'ready'
 
   @loadInternalApp = (name, callback)->
 

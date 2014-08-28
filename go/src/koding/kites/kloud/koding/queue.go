@@ -2,6 +2,7 @@ package koding
 
 import (
 	"errors"
+	"koding/kites/kloud/klient"
 	"time"
 
 	"github.com/koding/kite"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 15
+	FreeUserTimeout = time.Minute * 30
 	CleanUpTimeout  = time.Minute * 10
 )
 
@@ -67,7 +68,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	// release the lock from mongodb after we are done
 	defer p.ResetAssignee(machine.Id.Hex())
 
-	klient, err := p.Connect(machine.QueryString)
+	klient, err := klient.New(p.Kite, machine.QueryString)
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		CurrentData: machine,
 	}
 
-	m.Builder["username"] = klient.username
+	m.Builder["username"] = klient.Username
 
 	// add a fake eventer, means we are not reporting anyone and prevent also
 	// panicing when someone try to call the eventer

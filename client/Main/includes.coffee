@@ -4,23 +4,27 @@ module.exports = [
   "libs/deb.min.js",
   "libs/md5-min.js",
   "libs/uuid.js",
+  'libs/underscore-min.js'
   "libs/accounting.js",
-  "libs/bluebird.js",
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
+  'libs/marked.js'
+  'libs/date.format.js'
+  'libs/highlight.pack.js'
+  'libs/cookies.js'
+  'libs/jquery-timeago.js'
+  'libs/emojify.js'
 
 
   # --- Application ---
+  "mq.config.coffee",
   "utils.coffee"
   "KD.extend.coffee" # our extensions to KD global
-  "kodingrouter.coffee",
-  "mq.config.coffee",
   "log.config.coffee",
   "algoliaresult.coffee",
 
   # jview
-  "jview.coffee",
   "jcustomhtmlview.coffee",
 
   # mainapp controllers
@@ -29,7 +33,6 @@ module.exports = [
   "socialapicontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
-  "oauthcontroller.coffee",
   "widgetcontroller.coffee",
   "localsynccontroller.coffee",
 
@@ -39,15 +42,12 @@ module.exports = [
   "onboarding/onboardingitemview.coffee",
 
   # COMMON VIEWS
-  "CommonViews/testimonialsquoteview.coffee",
-  "CommonViews/testimonialsview.coffee",
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
   "CommonViews/sharepopup.coffee",
   "CommonViews/sharelink.coffee",
   "CommonViews/linkviews/linkview.coffee",
   "CommonViews/linkviews/linkmenuitemview.coffee",
-  "CommonViews/linkviews/customlinkview.coffee",
   "CommonViews/linkviews/profilelinkview.coffee",
   "CommonViews/linkviews/profiletextview.coffee",
   "CommonViews/linkviews/taglinkview.coffee",
@@ -57,7 +57,6 @@ module.exports = [
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
-  "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
@@ -158,8 +157,6 @@ module.exports = [
   # Algolia-based autocomplete:
   "autocompletecontroller.coffee",
 
-  "navigation/topnavigation.coffee",
-
   "navigation/navigationlink.coffee",
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
@@ -187,11 +184,6 @@ module.exports = [
   "payment/existingaccountworkflow.coffee",
 
 
-  #maintabs
-
-  "maintabs/maintabview.coffee",
-  "maintabs/maintabpaneview.coffee",
-
   # global notifications
   "globalnotification.coffee",
 
@@ -218,16 +210,11 @@ module.exports = [
 
   "maincontroller/groupdata.coffee",
   "maincontroller/mainviews/appsettingsmenubutton.coffee",
-  "maincontroller/mainviews/mainview.coffee",
-  "maincontroller/mainviewcontroller.coffee",
   "maincontroller/groupscontroller.coffee",
-  "maincontroller/maincontroller.coffee",
   "maincontroller/helpcontroller.coffee",
 
   # --- Applications ---
   "channels/kitechannel.coffee",
-  "ApplicationManager.coffee",
-  "AppController.coffee",
   "AppStorage.coffee",
   "localstorage.coffee",
 
@@ -237,7 +224,6 @@ module.exports = [
   "extras/github/views/githubrepoitem.coffee",
 
   # Application Backend
-  "kodingappscontroller.coffee",
   "CommonViews/kodingappselectorforgithub.coffee",
 
   # CONTENT DISPLAY VIEWS
@@ -259,12 +245,6 @@ module.exports = [
   "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
-  # these are generated dependencies
-  # do not delete they're ignored in git
-  # created in compile time.
-  "__generatedapps__.coffee",
-  "__generatedroutes__.coffee",
-
   "status.coffee",
   "main.coffee",
   "rollbar.coffee",
@@ -277,12 +257,9 @@ module.exports = [
 
   # STYLES
 
-  "styl/appfn.styl",
-  "styl/resurrection.styl",
   "styl/resurrection.sidebar.styl",
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
-  "styl/resurrection.commons.styl",
   "styl/troubleshoot.styl",
   "styl/computeproviders.styl",
 

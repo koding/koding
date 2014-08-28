@@ -4,6 +4,7 @@ class AboutView extends JView
 
     @activeController = new KDListViewController
       view        : new KDListView
+        cssClass  : 'clearfix'
         itemClass : AboutListItem
         type      : 'team'
         tagName   : 'ul'

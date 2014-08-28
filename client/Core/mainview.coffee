@@ -204,9 +204,6 @@ class MainView extends KDView
 
   createMainTabView:->
 
-    @appSettingsMenuButton = new AppSettingsMenuButton
-    @appSettingsMenuButton.hide()
-
     @mainTabView = new MainTabView
       domId               : 'main-tab-view'
       listenToFinder      : yes
@@ -215,32 +212,13 @@ class MainView extends KDView
       hideHandleContainer : yes
 
 
-    @mainTabView.on "PaneDidShow", (pane)=>
-      appManager   = KD.getSingleton "appManager"
-
-      return  unless appManager.getFrontApp()
-
-      appManifest  = appManager.getFrontAppManifest()
-      forntAppName = appManager.getFrontApp().getOptions().name
-      menu         = appManifest?.menu or KD.getAppOptions(forntAppName)?.menu
-
-      if Array.isArray menu
-        menu = items: menu
-
-      @appSettingsMenuButton.hide()
-      if menu?.items?.length
-        @appSettingsMenuButton.setData menu
-        unless menu.hiddenOnStart
-          @appSettingsMenuButton.show()
-
-      @emit "MainTabPaneShown", pane
+    @mainTabView.on 'PaneDidShow', (pane) => @emit 'MainTabPaneShown', pane
 
 
     @mainTabView.on "AllPanesClosed", ->
       KD.getSingleton('router').handleRoute "/Activity"
 
     @panelWrapper.addSubView @mainTabView
-    @panelWrapper.addSubView @appSettingsMenuButton
 
 
   openMachineModal: (machine, item) ->

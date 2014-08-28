@@ -5,6 +5,12 @@ projects =
     script        : "website/a/js/bongo.js"
     sourceMapRoot : "Bongo/"
 
+  Core            :
+    path          : 'client/Core'
+    style         : 'website/a/css/__core.css'
+    script        : 'website/a/js/__core.js'
+    sourceMapRoot : 'Core/'
+
   KDMainApp       :
     path          : "client/Main"
     style         : "website/a/css/__kdapp.css"
@@ -149,17 +155,30 @@ projects =
 
 bundles           =
 
-  Koding          :
+  KodingIn        :
     projects      : [
                      'KDBackend'
+                     'Core'
+                     'Home'
                      'KDMainApp'
                      'Activity'
-                     'Login'
                      'PostOperations'
                     ]
 
     style         : "website/a/css/koding.css"
     script        : "website/a/js/koding.js"
+
+  # out for a while - SY
+  # KodingOut       :
+  #   projects      : [
+  #                    'Core'
+  #                    'Home'
+  #                    'Login'
+  #                    'PostOperations'
+  #                   ]
+
+  #   style         : "website/a/out/css/koding.css"
+  #   script        : "website/a/out/js/koding.js"
 
   TeamworkBundle  :
     projects      : ['Viewer', 'Teamwork', 'DevTools']

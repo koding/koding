@@ -3,7 +3,7 @@ KodingError    = require '../../error'
 module.exports = class JProxyRestriction extends jraphical.Module
 
   {secure, signature, ObjectId} = require 'bongo'
-  JDomain      = require "../domain"
+  JProposedDomain = require "../domain"
   JProxyFilter = require "./index"
 
   @share()
@@ -44,7 +44,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
     if not domainName and not filterId
       return callback new KodingError { message: "Missing arguments" }
 
-    JDomain.fetchDomains client, (err, domains) ->
+    JProposedDomain.fetchDomains client, (err, domains) ->
       userDomains = (domain.domain for domain in domains)
       if userDomains.indexOf(domainName) is -1
         return callback new KodingError { message: "Access Denied" }

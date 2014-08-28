@@ -64,7 +64,7 @@ class GroupsInvitationTabPaneView extends KDView
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
-    options = {@timestamp , @requestLimit, search: @searchValue, }
+    options = { @timestamp, @requestLimit, search: @searchValue }
     options.showResolved = @getOptions().showResolved
     options.type = @getOptions().type
 

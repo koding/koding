@@ -43,7 +43,7 @@ class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      KD.remote.api.JStack.some {}, (err, stacks = [])=>
+      KD.remote.api.JComputeStack.some {}, (err, stacks = [])=>
 
         if err?
           cb err  for cb in queue
@@ -174,11 +174,13 @@ class ComputeController extends KDController
           if task is 'info'
             if err.code is ComputeErrors.Pending
               retryIfNeeded task, machine
+              safeToSuspend = yes
             else
               @eventListener.triggerState machine, status: Machine.State.Unknown
 
-      @emit "error", { task, err, machine }
-      @emit "error-#{machine._id}", { task, err, machine }
+      unless safeToSuspend
+        @emit "error", { task, err, machine }
+        @emit "error-#{machine._id}", { task, err, machine }
 
       warn "#{task} failed:", err, this
 
@@ -186,6 +188,8 @@ class ComputeController extends KDController
   destroy: (machine)->
 
     ComputeController.UI.askFor 'destroy', machine, =>
+
+      machine.getBaseKite( createIfExists = no ).disconnect()
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -310,6 +314,16 @@ class ComputeController extends KDController
 
   # Utils beyond this point
   #
+
+  triggerReviveFor:(machineId)->
+
+    info "Triggering revive for #{machineId}..."
+
+    KD.remote.api.JMachine.one machineId, (err, machine)=>
+      if err? then warn "Revive failed for #{machineId}: ", err
+      else
+        @emit "revive-#{machineId}", machine
+        info "Revive triggered for #{machineId}", machine
 
 
   requireMachine: (options = {}, callback = noop)-> @ready =>

@@ -98,7 +98,7 @@ class ActivityAppController extends AppController
     else
       socialapi.channel.fetchActivities {id, from, limit}, callback
 
-    firstFetch = yes
+    firstFetch = no
 
 
   bindModalDestroy: (modal, lastRoute) ->
