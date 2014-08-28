@@ -54,7 +54,10 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		_, err := c.Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
-				"assignee.inProgress": false,
+				"$or": []bson.M{
+					{"assignee.inProgress": false},
+					{"assignee.inProgress": nil},
+				},
 			},
 		).Apply(change, &machine)
 		return err
