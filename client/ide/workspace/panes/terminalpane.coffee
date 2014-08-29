@@ -27,6 +27,8 @@ class IDE.TerminalPane extends IDE.Pane
       @remote = remote
       @emit 'WebtermCreated'
 
+    @webtermView.connectToTerminal()
+
   getMode: ->
     return 'create'
 
@@ -44,8 +46,6 @@ class IDE.TerminalPane extends IDE.Pane
 
   notify: (message) -> console.log 'notify:', message
 
-  viewAppended: ->
-
-    super
-
-    @webtermView.connectToTerminal()
+  resurrect: ->
+    @destroySubViews()
+    @createTerminal()

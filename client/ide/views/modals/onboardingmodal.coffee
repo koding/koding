@@ -26,5 +26,3 @@ class IDE.OnboardingModal extends IDE.ModalView
     @destroy()
 
     @emit 'OnboardingModalDismissed'
-
-

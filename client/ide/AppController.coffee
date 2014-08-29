@@ -297,15 +297,7 @@ class IDEAppController extends AppController
   createMachineStateModal: (state, container, machineItem) ->
     @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady', =>
-      @finderPane.finderController.reset()
-
-      unless @fakeViewsDestroyed
-        @fakeFinderView.destroy()
-        @fakeTabView.removePane_ @fakeTerminalPane
-        @createNewTerminal @machineStateModal.getData()
-        @setActiveTabView @ideViews.first.tabView
-        @fakeViewsDestroyed = yes
+    @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
 
   collapseSidebar: ->
     panel        = @workspace.getView()
@@ -546,6 +538,18 @@ class IDEAppController extends AppController
   handleFileDeleted: (file) ->
     for ideView in @ideViews
       ideView.tabView.emit 'TabNeedsToBeClosed', file
+
+  handleIDEBecameReady: ->
+    @finderPane.finderController.reset()
+    @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
+      terminalPane.resurrect()
+
+    unless @fakeViewsDestroyed
+      @fakeFinderView.destroy()
+      @fakeTabView.removePane_ @fakeTerminalPane
+      @createNewTerminal @machineStateModal.getData()
+      @setActiveTabView @ideViews.first.tabView
+      @fakeViewsDestroyed = yes
 
   doResize: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
