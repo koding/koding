@@ -7,9 +7,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass or= 'ide-machine-state'
-    options.width      = 440
-    options.height     = 270
+    options.cssClass = KD.utils.curry 'ide-machine-state', options.cssClass
+    options.width    = 440
+    options.height   = 270
 
     super options, data
 

@@ -629,15 +629,64 @@ body.ide .kddialogview.save-as-dialog
   abs()
   bg                    color, rgba(0, 0, 0, .5)
 
-.ide-machine-state
+
+.ide-modal
   bg                    color, #E7E7E7
-  &.no-machine
-    height              216px !important
+
   .kdmodal-inner
     margin              0
     bg                  color, #E7E7E7
+
   .content-container
     text-align          center
+
+  .kdbutton
+    rounded             4px !important
+    bg                  color, #4EA04C !important
+    height              40px !important
+    &:focus
+      vendor            box-shadow, none !important
+
+  .footer
+    bg                  color, #DCDCDC
+    font-size           14px
+    color               #5E5E5E
+    padding             25px 30px
+    rounded             0 0 6px 6px
+
+
+.ide-onboarding-modal
+
+  .kdmodal-title
+    hidden()
+
+  .kdmodal-content
+    margin-top          0
+
+  .kdbutton
+    margin              17px auto !important
+
+  .top-container
+    height              285px
+
+  .footer
+    height              130px
+    borderBox()
+
+    .headline
+      color             #5e5e5e
+      font-size         18px
+      font-weight       600
+
+    .dont-show-label
+      font-size         12px
+      color             #6d6d6d
+      text-decoration   underline
+
+
+.ide-machine-state
+
+  .content-container
     margin-bottom       30px
 
     .error-message
@@ -653,6 +702,7 @@ body.ide .kddialogview.save-as-dialog
     margin              14px 0 18px 0
     font-size           18px
     color               #7D7D7D
+
     font-weight         600
     strong
       color             #404040
@@ -668,24 +718,8 @@ body.ide .kddialogview.save-as-dialog
     &.running
       .icon
         r-sprite        'ide', 'vm-state-running'
-  .kdbutton
-    rounded             4px !important
-    bg                  color, #4EA04C !important
-    height              40px !important
-    &:focus
-      vendor            box-shadow, none !important
-    &.turn-on
-      padding           0 20px 0 14px
-      .icon
-        r-sprite        'ide', 'turn-on'
-        margin          -2px 8px 0 0 !important
-        padding         0
+
   .footer
-    bg                  color, #DCDCDC
-    font-size           14px
-    color               #5E5E5E
-    padding             25px 30px
-    rounded             0 0 6px 6px
     .upgrade-link
       color             #4EA04C
       display           block

@@ -32,6 +32,8 @@ module.exports = [
   # modals
   "views/modals/modalview.coffee"
   "views/modals/machinestatemodal.coffee"
+  "views/modals/onboardingmodalcontent.coffee"
+  "views/modals/onboardingmodal.coffee"
 
   # views
   "views/tabview/idefilestabview.coffee"

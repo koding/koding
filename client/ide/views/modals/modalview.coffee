@@ -2,6 +2,7 @@ class IDE.ModalView extends KDBlockingModalView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass        = KD.utils.curry 'ide-modal', options.cssClass
     options.overlay         = no
     options.appendToDomBody = no
 
