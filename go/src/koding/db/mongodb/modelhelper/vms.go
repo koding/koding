@@ -30,14 +30,14 @@ func GetVM(hostname string) (*models.VM, error) {
 	return vm, nil
 }
 
-func GetUserVMS(username string) ([]*models.VM, error) {
+func GetUserVMs(username string) ([]models.VM, error) {
 	vm := new(models.VM)
-	vms := make([]*models.VM, 0)
+	vms := make([]models.VM, 0)
 
 	query := func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{"webHome": username}).Iter()
 		for iter.Next(&vm) {
-			vms = append(vms, vm)
+			vms = append(vms, *vm)
 		}
 
 		if err := iter.Close(); err != nil {

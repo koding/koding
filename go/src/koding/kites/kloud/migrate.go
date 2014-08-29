@@ -30,14 +30,17 @@ while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
   echo -n "Which vm would you like to migrate? (0-$count) "
   read index
 done
-out="${vm_names[$index]}.tgz"
-echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $out
+archive="${vm_names[$index]}.tgz"
+directory="${vm_names[$index]}"
+echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $archive
+mkdir $directory && tar -xzvf $archive -C $directory --strip-components 1
+rm $archive
 
 `
 )
 
 func (k *KodingDeploy) setupMigrateScript(client *sftp.Client, username string) error {
-	vms, err := modelhelper.GetUserVMS(username)
+	vms, err := modelhelper.GetUserVMs(username)
 	if err != nil {
 		return err
 	}
