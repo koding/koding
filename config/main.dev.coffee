@@ -192,7 +192,7 @@ Configuration = (options={}) ->
       nginx             :
         ports           : ["#{KONFIG.kloud.port}"]
         websocket       : yes
-        locations       : ["~ /kloud"]
+        locations       : ["~ /kloud" ]
 
     ngrokProxy          :
       group             : "environment"
