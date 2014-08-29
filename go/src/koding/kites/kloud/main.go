@@ -145,6 +145,12 @@ func newKite(conf *Config) *kite.Kite {
 		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
+	klientFolder := "klient/development/latest"
+	if conf.ProdMode {
+		klientFolder = "klient/production/latest"
+	}
+	k.Log.Info("Klient distribution channel is: %s", klientFolder)
+
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
@@ -160,11 +166,6 @@ func newKite(conf *Config) *kite.Kite {
 
 	go kodingProvider.RunChecker(time.Second * 10)
 	go kodingProvider.RunCleaner(time.Minute)
-
-	klientFolder := "klient/development/latest"
-	if conf.ProdMode {
-		klientFolder = "klient/production/latest"
-	}
 
 	privateKey, publicKey := kontrolKeys(conf)
 

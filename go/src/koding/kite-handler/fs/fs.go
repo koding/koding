@@ -9,16 +9,19 @@ import (
 	"path"
 	"sync"
 
-	"github.com/howeyc/fsnotify"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"gopkg.in/fsnotify.v1"
 )
 
 var (
 	// watcher variables
 	once               sync.Once
 	newPaths, oldPaths = make(chan string), make(chan string)
-	watchCallbacks     = make(map[string]func(*fsnotify.FileEvent), 100) // Limit of watching folders
+
+	// Limit of watching folders
+	watchCallbacks = make(map[string]func(fsnotify.Event), 100)
+	mu             sync.Mutex // protects watchCallbacks
 )
 
 func ReadDirectory(r *kite.Request) (interface{}, error) {
@@ -42,17 +45,15 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		onceBody := func() { startWatcher() }
 		go once.Do(onceBody)
 
-		// notify new paths to the watcher
-		newPaths <- params.Path
-
 		var eventType string
 		var fileEntry *FileEntry
 
-		changer := func(ev *fsnotify.FileEvent) {
-			if ev.IsCreate() {
+		changer := func(ev fsnotify.Event) {
+			switch ev.Op {
+			case fsnotify.Create:
 				eventType = "added"
 				fileEntry, _ = getInfo(ev.Name)
-			} else if ev.IsDelete() {
+			case fsnotify.Remove, fsnotify.Rename:
 				eventType = "removed"
 				fileEntry = NewFileEntry(path.Base(ev.Name), ev.Name)
 			}
@@ -62,22 +63,34 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 				"file":  fileEntry,
 			}
 
+			// send back the result to the client
 			params.OnChange.Call(event)
 			return
 		}
 
-		watchCallbacks[params.Path] = changer
+		mu.Lock()
+		_, ok := watchCallbacks[params.Path]
+		if !ok {
+			// notify new paths to the watcher
+			newPaths <- params.Path
+			watchCallbacks[params.Path] = changer
+		}
+		mu.Unlock()
 
-		// TODO: handle them together
-		r.Client.OnDisconnect(func() {
+		removePath := func() {
+			mu.Lock()
 			delete(watchCallbacks, params.Path)
+			mu.Unlock()
+
 			oldPaths <- params.Path
-		})
+		}
+
+		// remove the path when the remote client disconnects
+		r.Client.OnDisconnect(removePath)
 
 		// this callback is called whenever we receive a 'stopWatching' from the client
 		response["stopWatching"] = dnode.Callback(func(r *dnode.Partial) {
-			delete(watchCallbacks, params.Path)
-			oldPaths <- params.Path
+			removePath()
 		})
 	}
 
@@ -101,12 +114,12 @@ func startWatcher() {
 		for {
 			select {
 			case p := <-newPaths:
-				err := watcher.Watch(p)
+				err := watcher.Add(p)
 				if err != nil {
 					log.Println("watch path adding", err)
 				}
 			case p := <-oldPaths:
-				err := watcher.RemoveWatch(p)
+				err := watcher.Remove(p)
 				if err != nil {
 					log.Println("watch remove adding", err)
 				}
@@ -114,14 +127,25 @@ func startWatcher() {
 		}
 	}()
 
-	for event := range watcher.Event {
-		f, ok := watchCallbacks[path.Dir(event.Name)]
-		if !ok {
-			continue
-		}
+	for {
+		select {
+		case event := <-watcher.Events:
 
-		f(event)
+			mu.Lock()
+			f, ok := watchCallbacks[path.Dir(event.Name)]
+			mu.Unlock()
+
+			if !ok {
+				continue
+			}
+
+			f(event)
+
+		case err := <-watcher.Errors:
+			log.Println("watcher error:", err)
+		}
 	}
+
 }
 
 func Glob(r *kite.Request) (interface{}, error) {

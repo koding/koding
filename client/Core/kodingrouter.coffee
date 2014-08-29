@@ -82,39 +82,39 @@ class KodingRouter extends KDRouter
 
   setPageTitle: (title = 'Koding') -> document.title = Encoder.htmlDecode title
 
-  # openContent : (name, section, models, route, query, passOptions=no) ->
-  #   method   = 'createContentDisplay'
-  #   [models] = models  if Array.isArray models
+  openContent : (name, section, models, route, query, passOptions=no) ->
+    method   = 'createContentDisplay'
+    [models] = models  if Array.isArray models
 
-  #   # HK: with passOptions false an application only gets the information
-  #   # 'hey open content' with this model. But some applications require
-  #   # more information such as the route. Unfortunately we would need to
-  #   # refactor a lot legacy. For now we do this new thing opt-in
-  #   if passOptions
-  #     method += 'WithOptions'
-  #     options = {model:models, route, query}
+    # HK: with passOptions false an application only gets the information
+    # 'hey open content' with this model. But some applications require
+    # more information such as the route. Unfortunately we would need to
+    # refactor a lot legacy. For now we do this new thing opt-in
+    if passOptions
+      method += 'WithOptions'
+      options = {model:models, route, query}
 
-  #   callback = =>
-  #     KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
-  #       unless contentDisplay
-  #         console.warn 'no content display'
-  #         return
-  #       routeWithoutParams = route.split('?')[0]
-  #       @openRoutes[routeWithoutParams] = contentDisplay
-  #       @openRoutesById[contentDisplay.id] = routeWithoutParams
-  #       contentDisplay.emit 'handleQuery', query
+    callback = =>
+      KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
+        unless contentDisplay
+          console.warn 'no content display'
+          return
+        routeWithoutParams = route.split('?')[0]
+        @openRoutes[routeWithoutParams] = contentDisplay
+        @openRoutesById[contentDisplay.id] = routeWithoutParams
+        contentDisplay.emit 'handleQuery', query
 
-  #   groupsController = KD.getSingleton('groupsController')
-  #   currentGroup = groupsController.getCurrentGroup()
+    groupsController = KD.getSingleton('groupsController')
+    currentGroup = groupsController.getCurrentGroup()
 
-  #   # change group if necessary
-  #   unless currentGroup
-  #     groupName = if section is "Groups" then name else "koding"
-  #     groupsController.changeGroup groupName, (err) =>
-  #       KD.showError err if err
-  #       callback()
-  #   else
-  #     callback()
+    # change group if necessary
+    unless currentGroup
+      groupName = if section is "Groups" then name else "koding"
+      groupsController.changeGroup groupName, (err) =>
+        KD.showError err if err
+        callback()
+    else
+      callback()
 
   loadContent: (name, section, slug, route, query, passOptions) ->
 

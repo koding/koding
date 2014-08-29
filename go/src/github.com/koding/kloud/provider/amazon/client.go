@@ -114,7 +114,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Running,
-		Start:        25,
+		Start:        45,
 		Finish:       60,
 	}
 	if err := ws.Wait(); err != nil {

@@ -77,10 +77,11 @@ class MachineSettingsModal extends KDModalViewWithForms
               label         : "Change machine state"
               defaultValue  : running
               itemClass     : KodingSwitch
-              callback      : (state)->
+              callback      : (state) =>
                 if state
                 then computeController.start data
                 else computeController.stop data
+                @destroy()
 
             advanced        :
               label         : 'Advanced settings'

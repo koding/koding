@@ -159,9 +159,8 @@ bundles           =
     projects      : [
                      'KDBackend'
                      'Core'
-                     'Login'
-                     'Home'
                      'KDMainApp'
+                     'Home'
                      'Activity'
                      'PostOperations'
                     ]

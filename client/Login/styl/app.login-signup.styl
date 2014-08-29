@@ -292,10 +292,11 @@ img.off-screen-login-image
       &.validation-error
         input.kdinput.text
           border          1px solid #e79a8f
+          color           red
         // .placeholder-helper
         //   color           #e79a8f
         .validation-icon
-          r-sprite          app 'login-validation-fail'
+          r-sprite        account 'cross-8'
           opacity         1
 
       // &.validation-passed
@@ -355,9 +356,7 @@ img.off-screen-login-image
     //   opacity           1
 
   .validation-icon
-    abs()
-    right               6px
-    top                 6px
+    abs                 18px 15px 0 0
     vendor              transition, opacity .15s ease-out
     opacity             0
     z-index             2

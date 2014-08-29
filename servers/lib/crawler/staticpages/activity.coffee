@@ -2,10 +2,10 @@
 {uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
 
 
-getAvatarImageUrl = (hash, avatar)->
-  imgURL   = "//gravatar.com/avatar/#{hash}?size=37&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
+getAvatarImageUrl = (hash, avatar, size = 37)->
+  imgURL   = "//gravatar.com/avatar/#{hash}?size=#{size}&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
-    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=37&height=37&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
+    imgURL = "//i.embed.ly/1/display/crop?grow=false&width=#{size}&height=#{size}&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
   return imgURL
 
 createAvatarImage = (hash, avatar)=>
@@ -16,7 +16,7 @@ createAvatarImage = (hash, avatar)=>
 
 createCreationDate = (createdAt, slug)->
   """
-  <time class="kdview">#{createdAt}</time>
+  <time class="kdview" itemprop="dateCreated">#{createdAt}</time>
   """
 
 createAuthor = (accountName, nickname)->
@@ -38,9 +38,9 @@ prepareComments = (activityContent)->
           #{avatarImage}
         </a>
         <div class="comment-contents clearfix">
-          <a href="#{uri.address}/#{nickname}" class="profile">Sinan Yasar</a>
+          <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
           <div class="comment-body-container">
-            <p data-paths="body" id="el-56">#{message.body}</p>
+            <p data-paths="body" itemprop="commentText" id="el-56">#{message.body}</p>
           </div>
         </div>
       </div>
@@ -55,6 +55,8 @@ getActivityContent = (activityContent)->
   avatarImage   = createAvatarImage hash, avatar
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
+
+  displayCommentCount = if commentCount then commentCount else ""
 
   {formatBody} = require './bodyrenderer'
   body = formatBody body
@@ -76,11 +78,11 @@ getActivityContent = (activityContent)->
         </article>
         <div class="kdview activity-actions comment-header">
           <span class="logged-in action-container">
-            <a class="custom-link-view" href="#">
+            <a class="custom-link-view" href="/Register">
               <span class="title" data-paths="title" id="el-41">Comment</span>
             </a>
-            <a class="custom-link-view count" href="#">
-              <span data-paths="repliesCount" id="el-42">#{commentCount}</span>
+            <a class="custom-link-view #{if commentCount then 'count'}" href="/Register">
+              <span data-paths="repliesCount" id="el-42">#{displayCommentCount}</span>
             </a>
           </span>
           <span class="optional action-container">
