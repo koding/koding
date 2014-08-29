@@ -16,7 +16,7 @@ createAvatarImage = (hash, avatar)=>
 
 createCreationDate = (createdAt, slug)->
   """
-  <time class="kdview">#{createdAt}</time>
+  <time class="kdview" itemprop="dateCreated">#{createdAt}</time>
   """
 
 createAuthor = (accountName, nickname)->
@@ -40,7 +40,7 @@ prepareComments = (activityContent)->
         <div class="comment-contents clearfix">
           <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
           <div class="comment-body-container">
-            <p data-paths="body" id="el-56">#{message.body}</p>
+            <p data-paths="body" itemprop="commentText" id="el-56">#{message.body}</p>
           </div>
         </div>
       </div>
