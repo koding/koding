@@ -20,11 +20,6 @@ func TestChannelMessageContainerNewChannelMessageContainer(t *testing.T) {
 }
 
 func TestChannelMessageContainerNewInteractionContainer(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
 
 	c := NewInteractionContainer()
 
@@ -45,5 +40,67 @@ func TestChannelMessageContainerNewInteractionContainer(t *testing.T) {
 		Convey("it should have actorscount as set", func() {
 			So(c.ActorsCount, ShouldEqual, 0)
 		})
+	})
+}
+
+/*
+// function as argument needs to be...
+func TestChannelMessageContainerwithChannelMessageContainerChecks(t *testing.T) {
+	Convey("while checking channel message container", t, func() {
+		Convey("it should have error if channel is empty", func() {
+			cmc := NewChannelMessageContainer()
+
+			cc := withChannelMessageContainerChecks(cmc, f)
+
+			So(cc, ShouldNotBeNil)
+			So(cc.Err, ShouldEqual, ErrMessageIsNotSet)
+		})
+	})
+}
+*/
+
+func TestChannelMessageContainerTableName(t *testing.T) {
+	Convey("while testing table name", t, func() {
+		Convey("it should not be empty", func() {
+			cmc := NewChannelMessageContainer()
+			So(cmc.TableName(), ShouldNotBeEmpty)
+		})
+
+		Convey("it should be api.channel_message", func() {
+			cmc := NewChannelMessageContainer()
+			So(cmc.TableName(), ShouldEqual, "api.channel_message")
+		})
+	})
+}
+
+func TestChannelMessageContainerGetId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while getting id", t, func() {
+		Convey("it should be zero value if channel message is not exist", func() {
+			cmc := NewChannelMessageContainer()
+
+			gi := cmc.GetId()
+			So(gi, ShouldEqual, 0)
+		})
+		/*
+			Convey("it should not have any error if channel message is exist", func() {
+				// create message
+				c := createMessageWithTest()
+				So(c.Create(), ShouldBeNil)
+
+				cmc := NewChannelMessageContainer()
+				cmc.Message.Body = c.Body
+				cmc.Message.Id = c.Id
+
+				gi := cmc.GetId()
+				So(gi, ShouldEqual, c.Id)
+			})
+		*/
+
 	})
 }
