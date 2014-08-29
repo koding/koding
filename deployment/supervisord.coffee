@@ -27,7 +27,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     stdout_logfile_backups  : 50
     stderr_logfile          : "/var/log/koding/#{app}.log"
     stdout_logfile          : "/var/log/koding/#{app}.log"
-    numprocs                : 1
+    numprocs                : options.instances or 1
     directory               : "/opt/koding"
     autostart               : yes
     autorestart             : yes
@@ -41,8 +41,15 @@ generateSupervisorSectionForWorker = (app, options={})->
     stdout_logfile_backups  : 10
     stdout_capture_maxbytes : "1MB"
 
-  for key, opt of options
+  for key, opt of options.supervisord
     section[key] = opt
+
+  if section.numprocs > 1 and options.port?
+    options.numprocs_start = options.port
+    port = "#{options.port}"
+    partialPort = "#{options.port}".substring(0, port.length - 1)
+    section.process_name = "%(program_name)s_%(process_num)d"
+    section.command = section.command.replace new RegExp(options.port), "#{partialPort}%(process_num)d"
 
   supervisordSection = "\n[program:#{app}]\n"
   for key, val of section
@@ -72,8 +79,7 @@ module.exports.create = (KONFIG)->
     groupConfigs[options.group]       or= {}
     groupConfigs[options.group][name] or= {}
 
-
-    conf += generateSupervisorSectionForWorker name, options.supervisord
+    conf += generateSupervisorSectionForWorker name, options
 
 
   # add group sections
