@@ -35,7 +35,11 @@ func GetUserVMs(username string) ([]models.VM, error) {
 	vms := make([]models.VM, 0)
 
 	query := func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"webHome": username}).Iter()
+		iter := c.Find(bson.M{
+			"webHome":   username,
+			"vmType":    "user",
+			"isEnabled": true,
+		}).Iter()
 		for iter.Next(&vm) {
 			vms = append(vms, *vm)
 		}
