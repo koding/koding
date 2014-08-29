@@ -11,6 +11,7 @@ class Machine extends KDObject
     'Rebooting'       # Machine is rebooting...
     'Terminating'     # Machine is being destroyed...
     'Terminated'      # Machine is destroyed, does not exist anymore
+    'Updating'        # Machine is being updated by provisioner
     'Unknown'         # Machine is in an unknown state
                       # needs to be resolved manually
   }
