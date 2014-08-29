@@ -386,7 +386,7 @@ div.kdtooltip.activity-helper
     borderBox()
 
     > div
-      rounded         4px
+      rounded         3px 3px 0 0
       size            100% auto
       min-height      54px
       line-height     18px
@@ -394,7 +394,7 @@ div.kdtooltip.activity-helper
       color           #3c4752
       padding         16px 16px 16px 46px
       background      #fff
-      border          2px solid #EAEAEA
+      border          1px solid #e4e4e4
       outline         none
       // border-bottom   none
       // border-right    none
@@ -450,11 +450,13 @@ div.kdtooltip.activity-helper
 
 
   &.edit-widget
-    margin            12px 0
+    padding           13px 0 0
+    margin            0
+    clear             both
 
     .input-view > div
       padding         5px
-      border          2px solid #e9e9e9
+      border          1px solid #e9e9e9
       rounded         3px
       font-size       14px
       line-height     19px
@@ -527,7 +529,7 @@ span.collapsedtext
     position                relative
 
     .settings-menu-wrapper
-      abs                   0 0px 0 0
+      abs                   0 24px 0 0
       size                  15px 10px
       z-index               1
 
@@ -598,17 +600,17 @@ span.collapsedtext
         margin            0 0 -2px
 
     .like-summary
-      size                auto, 31px
+      size                auto, 32px
       clear               both
-      line-height         31px
-      padding             0 11px
+      line-height         32px
+      padding             0 24px
       font-size           12px
       opacity             .99
       color               #525252
-      background          #EEEEEE
+      background          #fafafa
       rounded             2px
-      margin              0 0 7px
-      fl()
+      margin              13px -24px -16px
+      shadow              inset 0 1px 0 rgba(0,0,0,.05)
 
       a
         color             inherit
@@ -616,7 +618,7 @@ span.collapsedtext
         noTextDeco()
 
     .activity-actions
-      padding             0 0 10px 0
+      padding             0
       clear               both
 
       span.action-container
@@ -631,15 +633,16 @@ span.collapsedtext
           noTextDeco()
 
         a.count
-          display         inline-block
-          height          16px
-          line-height     16px
-          padding         0 4px
-          background      #dfdfdf
-          color           #747474
-          rounded         2px
-          margin-left     7px
-          font-size       11px
+          // display         inline-block
+          // height          16px
+          // line-height     16px
+          // padding         0 4px
+          // background      #dfdfdf
+          // color           #747474
+          // rounded         2px
+          // margin-left     7px
+          // font-size       11px
+          display         none
 
         &~.action-container:before
           content         ""
@@ -662,6 +665,17 @@ span.collapsedtext
 
   .comment-container
     overflow              visible
+    background            #fafafa
+    padding               16px 24px 16px
+    rounded               0 0 3px 3px
+    shadow                inset 0 1px 0 rgba(0,0,0,.05)
+    borderBox()
+
+    &.no-comments
+      display             none
+
+    &.static
+      padding-bottom      5px
 
     .link-embed-box
       border              1px solid #d6d6d6
@@ -692,7 +706,7 @@ span.collapsedtext
 
     .item-add-comment-box
       position            relative
-      padding-left        50px
+      padding-left        37px
       borderBox()
 
       &.placeholder
@@ -706,32 +720,33 @@ span.collapsedtext
         font-weight       300
         background        #fff
         width             100%
-        min-height        38px
+        min-height        30px
         rounded           3px
-        border            2px solid #EAEAEA
-        padding           7px 13px 10px 13px
-        font-size         14px
-        line-height       18px
+        border            1px solid #EAEAEA
+        padding           6px 13px 8px 13px
+        margin-top        -1px
+        font-size         12px
+        line-height       16px
         color             #444
         vendor            transition, none
         borderBox()
         &:hover
-          border          2px solid #DADADA
+          border          1px solid #DADADA
         &:focus
-          border          2px solid #CACACA
+          border          1px solid #CACACA
           shadow          none
 
     .list-previous-link
-      size                100%, 41px
-      line-height         41px
+      size                100%, auto
+      line-height         32px
       rounded             3px
-      background          #E5E5E5
+      background          #ededed
       text-align          center
       display             block
-      color               #2D2D2D
+      color               #1aaf5d
       font-size           12px
       font-weight         600
-      margin              0 0 15px
+      margin              0 0 10px
       noTextDeco()
 
     .new-messages
@@ -769,7 +784,7 @@ span.collapsedtext
     .kdlistitemview-comment
       // background          #f7f7f7
       // border-top          1px solid #e9e9e9
-      padding             7px 15px 12px 52px
+      padding             3px 15px 12px 37px
       borderBox()
 
       &:last-child
@@ -786,7 +801,7 @@ span.collapsedtext
         border            none
         shadow            none
         padding           0
-        abs               22px 22px 0 0
+        abs               0px 0px 0 0
         opacity           0
 
         .icon
@@ -800,16 +815,26 @@ span.collapsedtext
           display         block
 
       a.profile
-        font-size         14px
+        font-size         12px
+        font-weight       600
         color             #1aaf5d
+        margin            0 6px 0 0
         noTextDeco()
 
       .comment-body-container
-        font-size         14px
+        font-size         12px
         color             #575757
-        padding           5px 0 6px
-        line-height       20px
+        padding           0
+        line-height       16px
         opacity           .99
+        display           inline
+
+        &:after
+          content         ''
+          display         block
+          width           100%
+          clear           both
+          margin          0 0 3px 0
 
         &.edited p:after
           content       ' (edited)'
@@ -818,6 +843,7 @@ span.collapsedtext
           color         #ccc
 
         p
+          display       inline
           a
             color         inherit
 
@@ -833,7 +859,7 @@ span.collapsedtext
 
       .action-link
         font-size         12px
-        color             #ADAEB1
+        color             #a3a3a3
         noTextDeco()
 
         &:before
@@ -845,9 +871,6 @@ span.collapsedtext
           margin          -2px 7px 0 5px
           vertical-align  middle
 
-        &.like-link:before
-          display         none
-
       .like-count
         noTextDeco()
         display           inline-block
@@ -858,10 +881,17 @@ span.collapsedtext
         color             #747474
         rounded           2px
         margin-left       7px
+        margin-bottom     -2px
         font-size         11px
 
+        &:before
+          display         none
+
       time
-        display           none //TEMP
+        color             #cacaca
+        width             auto
+        font-size         12px
+        display           inline-block
 
       .edit-comment-box
         margin            6px 0
@@ -1062,13 +1092,22 @@ span.collapsedtext
 
 .activity-item.status
   margin-bottom             13px
-  padding                   24px
+  padding                   0
   background                #fff
   rounded                   3px
+  border                    1px solid #e2e2e2
 
   &.static
     margin-bottom           16px
     max-width               720px
+
+    &:first-of-type
+      margin-top            34px
+
+  .activity-content-wrapper
+    padding                 24px 24px 16px
+    rounded                 3px 3px 0 0
+    borderBox()
 
   .activity-content-wrapper > .link-embed-box
     padding                 0 0 15px
@@ -1391,9 +1430,11 @@ span.collapsedtext
 
   .activity-item.privatemessage
     padding           0
+    border            none
 
     .settings-menu-wrapper
       top             25px
+
 
     .chevron
       hidden()
@@ -1411,7 +1452,7 @@ span.collapsedtext
         visibility    visible !important
 
     .activity-content-wrapper
-      padding-left      56px
+      padding           0 0 0 56px
 
       .meta
         margin          8px 0 4px 0px
@@ -1573,7 +1614,6 @@ span.collapsedtext
       .kdlistitemview-comment
         padding             10px 15px 0 52px
 
-
         &:hover
           .action-link.like-link:after
             r-sprite        activity heart-dim
@@ -1625,7 +1665,7 @@ span.collapsedtext
 
         textarea
           rounded           0
-          border            2px solid #EAEAEA
+          border            1px solid #EAEAEA
           height            53px !important
           margin            0 0 -2px 0
           padding           16px 16px 16px 46px
@@ -2106,4 +2146,3 @@ body.group.members
   .kdautocompletelistitem.active
     color           white
     bg              color logoBg
-

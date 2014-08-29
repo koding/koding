@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/koding/kite"
@@ -98,13 +99,26 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, NewError(ErrMachineIdMissing)
 		}
 
-		// if something goes wrong reset the assigne which is going to be set
-		// in the next step by Storage.Get(). If there is no error, Assignee is
-		// going to be reseted in ControlFunc wrapper.
+		// if something goes wrong after step reset the assigne which is was
+		// set in the next step by Storage.Get(). If there is no error,
+		// Assignee is going to be reseted in ControlFunc wrapper.
 		defer func() {
-			if err != nil {
-				k.Storage.ResetAssignee(args.MachineId)
+			kiteErr, ok := err.(*kite.Error)
+			if !ok {
+				return
 			}
+
+			kloudErr, _ := strconv.Atoi(kiteErr.CodeVal)
+			if kloudErr == ErrMachinePendingEvent {
+				// ErrMachinePendingEvent means that the Storage.Get has
+				// aquired a lock, don't do anything
+				return
+			}
+
+			// otherwise that means Storage.Get or something else in
+			// ControlFunc failed. Reset the lock again so it can be aquired by
+			// others.
+			k.Storage.ResetAssignee(args.MachineId)
 		}()
 
 		// Get all the data we need. It also sets the assignee for the given
@@ -169,7 +183,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 
 		// execute our limiter interface if the provider supports it
 		if limiter, err := k.Limiter(machine.Provider); err == nil {
-			k.Log.Debug("[%s] limiter is enabled for provider: %s", machine.Provider)
+			k.Log.Debug("[%s] limiter is enabled for provider: %s", c.MachineId, machine.Provider)
 			err := limiter.Limit(c.Machine, r.Method)
 			if err != nil {
 				return nil, err
@@ -200,6 +214,8 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 			k.Log.Info("[%s] info result: %+v", c.MachineId, resp)
 		}
 	}()
+
+	k.Log.Info("[%s] info current state: %s", c.MachineId, c.CurrenState)
 
 	if c.CurrenState == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -314,5 +315,99 @@ func TestChannelMessageUpdate(t *testing.T) {
 func TestChannelMessageGetTableName(t *testing.T) {
 	Convey("while testing TableName()", t, func() {
 		So(NewChannelMessage().TableName(), ShouldEqual, ChannelMessageTableName)
+	})
+}
+
+func TestChannelMessageGetAccountId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while getting account id ", t, func() {
+		Convey("it should have channel id", func() {
+			cm := NewChannelMessage()
+
+			_, err := cm.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+		})
+
+		Convey("it should have error if account is not set", func() {
+			cm := NewChannelMessage()
+			cm.Id = 13531
+
+			_, err := cm.getAccountId()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("it should not have error if channel & account are exist", func() {
+			cm := NewChannelMessage()
+			cm.Id = 2454
+			cm.AccountId = 4353
+
+			gid, err := cm.getAccountId()
+			So(err, ShouldBeNil)
+			So(gid, ShouldEqual, cm.AccountId)
+		})
+
+	})
+}
+
+func TestChannelMessageBodyLenCheck(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while checking body length", t, func() {
+		Convey("it should have error if body length is zero", func() {
+			cm := createMessageWithTest()
+			cm.Body = ""
+
+			err := bodyLenCheck(cm.Body)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "message body length should be greater than")
+		})
+
+		Convey("it should not have error if length of body is greater than zero ", func() {
+			cm := createMessageWithTest()
+			cm.Body = "message"
+
+			err := bodyLenCheck(cm.Body)
+			So(err, ShouldBeNil)
+		})
+
+	})
+}
+
+func TestChannelMessageBuildEmptyMessageContainer(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while building empty message container", t, func() {
+		Convey("it should have channel message id", func() {
+			c := NewChannelMessage()
+
+			_, err := c.BuildEmptyMessageContainer()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
+		})
+
+		Convey("it should not have error if chanel is exist", func() {
+			// create message
+			c := createMessageWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			bem, err := c.BuildEmptyMessageContainer()
+			So(err, ShouldBeNil)
+			So(bem.Message, ShouldEqual, c)
+		})
 	})
 }

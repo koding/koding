@@ -192,7 +192,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : ["~ /kloud"]
+        locations       : ["~ /kloud" ]
 
     ngrokProxy          :
       group             : "environment"
@@ -395,7 +395,6 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-        rm -rf #{projectRoot}/.logs
         #{killlist()}
         nginx -s quit
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
@@ -407,7 +406,6 @@ Configuration = (options={}) ->
         echo "starting nginx"
         nginx -s quit
         nginx -c #{projectRoot}/.dev.nginx.conf
-
 
       }
 

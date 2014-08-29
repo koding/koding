@@ -18,6 +18,7 @@ class ComputeController extends KDController
         environment  : KD.config.environment
 
       @eventListener = new ComputeEventListener
+      @computeStateChecker = new ComputeStateChecker
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
@@ -93,6 +94,9 @@ class ComputeController extends KDController
             machines.push machine
 
         @machines = machines
+        @computeStateChecker.machines = machines
+        @computeStateChecker.start()
+
         cb null, machines  for cb in queue
         queue = []
 
@@ -304,6 +308,8 @@ class ComputeController extends KDController
       @eventListener.triggerState machine,
         status      : response.State
         percentage  : 100
+
+      response
 
     .timeout ComputeController.timeout
 

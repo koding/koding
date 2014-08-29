@@ -16,10 +16,14 @@ type ChannelContainer struct {
 	Err                 error                    `json:"-"`
 }
 
+// Inits channel
+//
+// Tests are done
 func NewChannelContainer() *ChannelContainer {
 	return &ChannelContainer{}
 }
 
+// Tests are done
 func (c *ChannelContainer) TableName() string {
 	return "api.channel"
 }
@@ -38,6 +42,9 @@ func (c *ChannelContainer) Fetch(id int64, q *request.Query) error {
 	return nil
 }
 
+// GetId fetch the id of the channel
+//
+// Tests are done
 func (c *ChannelContainer) GetId() int64 {
 	if c.Channel != nil {
 		return c.Channel.Id

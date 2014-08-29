@@ -30,13 +30,15 @@ Configuration = (options={}) ->
   customDomain        = { public:   "http://#{hostname}"                             , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/prod_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/prod_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    '8KD9RHY1OA'                                     , apiKey:             'e4a8ebe91bf848b67c9ac31a6178c64b'    , indexSuffix:     ''                   }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"               , enabled:            yes                                 }
   postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  # this is set to kite_home/koding intentionally, because of the usage of
+  # localhost:4000
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
@@ -224,6 +226,7 @@ Configuration = (options={}) ->
 
     authworker          :
       group             : "webserver"
+      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
 
@@ -242,7 +245,7 @@ Configuration = (options={}) ->
       group             : "webserver"
       port              : "#{KONFIG.appsproxy.port}"
       supervisord       :
-        command         : "node #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
+        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
     webserver           :
       group             : "webserver"
@@ -307,6 +310,7 @@ Configuration = (options={}) ->
 
     realtime            :
       group             : "socialapi"
+      instances         : 2
       supervisord       :
         command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
 
