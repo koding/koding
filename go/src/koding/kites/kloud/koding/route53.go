@@ -209,11 +209,10 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 	for _, h := range hostedZones.HostedZones {
 		// the "." point is here because hosteded zones are listed as
 		// "dev.koding.io." , "koding.io." and so on
-		if !strings.HasSuffix(h.Name, p.HostedZone+".") {
-			continue
+		if h.Name == p.HostedZone+"." {
+			zoneId = route53.CleanZoneID(h.ID)
+			break
 		}
-
-		zoneId = route53.CleanZoneID(h.ID)
 	}
 
 	if zoneId == "" {
