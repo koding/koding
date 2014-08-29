@@ -220,19 +220,13 @@ class IDEAppController extends AppController
           machineLabel = machine.label
           splashs      = IDE.splashMarkups
 
-          tabView      = @activeTabView
-          terminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
-          terminalPane = tabView.parent.createPane_ terminalView, { name: 'Terminal' }
+          @fakeTabView      = @activeTabView
+          @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
+          @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
 
-          finderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
-          @finderPane.addSubView finderView, '.nfinder .jtreeview-wrapper'
+          @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
+          @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
-          KD.utils.defer =>
-            @machineStateModal.once 'IDEBecameReady', =>
-              finderView.destroy()
-              tabView.removePane_ terminalPane
-              @createNewTerminal @machineStateModal.getData()
-              @setActiveTabView @ideViews.first.tabView
         else
           @createNewTerminal machine
           @setActiveTabView @ideViews.first.tabView
@@ -255,32 +249,59 @@ class IDEAppController extends AppController
     computeController.fetchMachines (err, machines) =>
       return KD.showError 'Something went wrong. Try again.'  if err
 
-      for machine in machines when machine.uid is machineUId
-        machineItem = machine
 
-      if machineItem
-        {state} = machineItem.status
-        machineId = machineItem._id
+      callback = (machineUId) =>
+        for machine in machines when machine.uid is machineUId
+          machineItem = machine
 
-        if state is 'Running'
-          @mountMachine machineItem
+        if machineItem
+          {state} = machineItem.status
+          machineId = machineItem._id
+
+          if state is 'Running'
+            @mountMachine machineItem
+          else
+            @createMachineStateModal state, container, machineItem
+
+          stateHandler = (event, states) =>
+            if event.status in states
+              unless @machineStateModal
+                @createMachineStateModal state, container, machineItem
+
+          computeController.on "stop-#{machineId}", (event) ->    stateHandler event, [ 'Stopping', 'Stopped' ]
+          computeController.on "destroy-#{machineId}", (event) -> stateHandler event, [ 'Terminated' ]
         else
-          @createMachineStateModal state, container, machineItem
+          @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 
-        stateHandler = (event, states) =>
-          if event.status in states
-            unless @machineStateModal
-              @createMachineStateModal state, container, machineItem
 
-        computeController.on "stop-#{machineId}", (event) ->    stateHandler event, [ 'Stopping', 'Stopped' ]
-        computeController.on "destroy-#{machineId}", (event) -> stateHandler event, [ 'Terminated' ]
-      else
-        @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
+      { appStorageController } = KD.singletons
+
+      appStorage = appStorageController.storage 'IDE', '1.0.0'
+
+      appStorage.fetchStorage =>
+        hideOnboardingView = appStorage.getValue 'hideOnboardingModal'
+
+        console.log { hideOnboardingView }
+
+        unless hideOnboardingView
+          @onboardingModal = new IDE.OnboardingModal { container }
+          @onboardingModal.once 'OnboardingModalDismissed', -> callback machineUId
+        else
+          callback machineUId
+
 
   createMachineStateModal: (state, container, machineItem) ->
     @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
-    @machineStateModal.once 'IDEBecameReady', => @finderPane.finderController.reset()
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
+    @machineStateModal.once 'IDEBecameReady', =>
+      @finderPane.finderController.reset()
+
+      unless @fakesDestroyed
+        @fakeFinderView.destroy()
+        @fakeTabView.removePane_ @fakeTerminalPane
+        @createNewTerminal @machineStateModal.getData()
+        @setActiveTabView @ideViews.first.tabView
+        @fakesDestroyed = yes
 
   collapseSidebar: ->
     panel        = @workspace.getView()
