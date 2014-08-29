@@ -328,55 +328,44 @@ class LoginView extends JView
           content   : "We've sent you a confirmation mail."
           duration  : 4500
 
-  doRegister:(formData)->
-    (KD.getSingleton 'mainController').isLoggingIn on
-    formData.agree = 'on'
+  doRegister: (formData, form) ->
+
+    {mainController, groupsController} = KD.singletons
+
+    mainController.isLoggingIn on
+
+    formData.agree    = 'on'
     formData.referrer = Cookies.get 'referrer'
-    @registerForm.notificationsDisabled = yes
-    @registerForm.notification?.destroy()
+
+    form or= @registerForm
+    form.notificationsDisabled = yes
+    form.notification?.destroy()
 
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel?.close()
+    groupsController.groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, user) =>
 
-      @registerForm.button.hideLoader()
+      form.button.hideLoader()
 
       if err
         {message} = err
         warn "An error occured while registering:", err
-        @registerForm.notificationsDisabled = no
-        @registerForm.emit "SubmitFailed", message
+        form.notificationsDisabled = no
+        form.emit "SubmitFailed", message
       else
-
         {account, newToken} = user
-        account  ?= KD.whoami()
+        account ?= KD.whoami()
 
         KD.mixpanel.alias account.profile.nickname
-        KD.mixpanel "Signup, success"
+        KD.mixpanel 'Signup, success'
 
         Cookies.set 'newRegister', yes
-        KD.getSingleton("mainController").swapAccount {
-          account, replacementToken: newToken
-        }
+        mainController.swapAccount { account, replacementToken: newToken }
 
-        titleText = unless err then 'You\'re good to go, Enjoy!' \
-                    else 'Quota exceeded and could not join to the group. Please contact the group admin'
-        title = "<span>#{titleText}</span>"
-
-        new KDNotificationView
-          cssClass  : "login"
-          title     : title
-          # content   : 'Successfully registered!'
-          duration  : 2000
-
-        return location.reload()  unless KD.remote.isConnected()
-
-        @headBanner.hide()
-
-        window.location.href= '/'
+        return location.reload()
 
 
   doFinishRegistration: (formData) ->
