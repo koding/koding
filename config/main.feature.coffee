@@ -49,6 +49,7 @@ Configuration = (options={}) ->
     mq                : mq
     redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
+    kiteHome          : kiteHome
     environment       : environment
     region            : region
     hostname          : hostname
