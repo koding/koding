@@ -226,6 +226,13 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	infoLog("Disabling access to ec2metada")
+	out, err = client.StartCommand("sudo /sbin/route add -host 169.254.169.254 reject")
+	if err != nil {
+		fmt.Println("out", out)
+		return nil, err
+	}
+
 	query := kiteprotocol.Kite{ID: tknID.String()}
 
 	infoLog("Connecting to remote Klient instance")

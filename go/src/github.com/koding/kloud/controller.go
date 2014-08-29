@@ -92,7 +92,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}()
 
-		k.Log.Info("\n[%s] ========== %s started ==========", args.MachineId, strings.ToUpper(r.Method))
+		k.Log.Info("[%s] ========== %s started ==========", args.MachineId, strings.ToUpper(r.Method))
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)

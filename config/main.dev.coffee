@@ -184,6 +184,7 @@ Configuration = (options={}) ->
     appsproxy           : command : "./watch-node #{projectRoot}/servers/appsproxy/web.js            -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
     webserver           : command : "./watch-node #{projectRoot}/servers/index.js                    -c #{configName} -p #{KONFIG.webserver.port}   --disable-newrelic"
     socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
+    userCreator         : command : "node #{projectRoot}/workers/usercreator/index.js               -c #{configName}"
 
     clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"

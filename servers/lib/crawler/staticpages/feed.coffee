@@ -176,31 +176,34 @@ createTagNode = (tag)->
 
 getSidebar = ->
   """
-  <aside id="main-sidebar">
-    <div id="dock">
-      <h3 class="sidebar-title">MY APPS</h3>
-      <div id="main-nav" class="kdview kdlistview kdlistview-navigation">
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim activity running selected" href="/Activity">
-          <figure></figure>
-          <cite>Activity</cite>
-        </a>
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim ide" href="/IDE">
-          <figure></figure>
-          <cite>IDE</cite>
-        </a>
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim teamwork" href="/Teamwork">
-          <figure></figure>
-          <cite>Teamwork</cite>
-        </a>
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim apps" href="/Apps">
-          <figure></figure>
-          <cite>Apps</cite>
-        </a>
-        <a class="kdview kdlistitemview kdlistitemview-main-nav no-anim devtools" href="/DevTools">
-          <figure></figure>
-          <cite>DevTools</cite>
-        </a>
-      </div>
+  <aside id="main-sidebar" class="static">
+    <div class="logo-wrapper">
+      <a href="/"><figure></figure></a>
+    </div>
+    <div class="kdcustomscrollview">
+      <main class="kdview kdscrollview">
+        <div class="activity-sidebar">
+          <a class="custom-link-view kdlistitemview-sidebar-item activity" href="/Activity/Public">
+            <span class="icon"></span>
+            <span class="title">Activity</span>
+          </a>
+          <section class='sidebar-join'>
+            Join our community of developers building full stack applications
+            on Koding.
+            <form action="/Register">
+              <button type="submit" class="kdbutton solid green medium">
+                <span class="button-title">Sign Up</span>
+              </button>
+            </form>
+            <a href="/Login" class='login-link'>Login</a>
+          </section>
+          <section class='sidebar-bottom-links'>
+            <a href='http://learn.koding.com/'>University</a>
+            <a href='http://koding.com'>Features</a>
+            <a href='http://koding.com/About'>About</a>
+          </section>
+        </div>
+      </main>
     </div>
   </aside>
   """

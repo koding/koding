@@ -30,6 +30,9 @@ sidebarSelectedBg = #15171A
     kalc              height, 100% \- 107px
     styleScrollBars()
 
+  &.static > .kdcustomscrollview
+    kalc              height, 100% \- 47px
+
   .logo-wrapper
     size              100% 47px
     bg                color #262626
@@ -118,8 +121,6 @@ sidebarSelectedBg = #15171A
         font-weight     400
         rounded         3px
         shadow          none
-
-
 
 .activity-sidebar
   font-family         openSansFamily
@@ -507,6 +508,41 @@ sidebarSelectedBg = #15171A
         size            24px 24px
         top             2px
         left            8px
+
+
+  .sidebar-join
+    abs                   50% 0 0 0px
+    vendor                transform, translateY(-50%)
+    text-align            center
+    font-size             14px
+    line-height           19px
+    color                 #cecece
+    font-weight           400
+    padding-right         16px
+    padding-left          16px
+    width                 100%
+    borderBox()
+
+    .kdbutton.solid.medium.green
+      margin              24px 0 18px
+      rounded             3px
+
+    a.login-link
+      color               #fff
+
+  .sidebar-bottom-links
+    text-align            center
+    abs                   0 0 26px 0px
+    font-size             14px
+    font-weight           400
+    width                 100%
+
+    a
+      color               #777777
+      noTextDeco()
+
+      &~a
+        margin-left       12px
 
 
   .conversations

@@ -26,9 +26,10 @@ var (
 	DefaultInstanceType = "t2.micro"
 	DefaultRegion       = "us-east-1"
 
+	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	kodingCredential = map[string]interface{}{
-		"access_key": "AKIAI6IUMWKF3F4426CA",
-		"secret_key": "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",
+		"access_key": "AKIAIDPT7E2UHZHT2CXQ",
+		"secret_key": "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",
 	}
 )
 

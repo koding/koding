@@ -11,6 +11,7 @@ class Machine extends KDObject
     'Rebooting'       # Machine is rebooting...
     'Terminating'     # Machine is being destroyed...
     'Terminated'      # Machine is destroyed, does not exist anymore
+    'Updating'        # Machine is being updated by provisioner
     'Unknown'         # Machine is in an unknown state
                       # needs to be resolved manually
   }
@@ -64,7 +65,7 @@ class Machine extends KDObject
   getName: ->
     {uid, label, ipAddress} = this
 
-    return label or ipAddress or uid or "one of #{KD.nick()}'s machine"
+    return label or ipAddress or uid or "one of #{KD.nick()}'s machines"
 
 
   getBaseKite: (createIfNotExists = yes)->
