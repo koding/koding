@@ -2,12 +2,15 @@ fs = require 'fs'
 
 createUpstreams = (workers={}) ->
   upstreams = "# add global upstreams\n"
-  for name, options of workers when options.nginx?.ports?
+  for name, options of workers when options.port?
     servers = ""
-    for port in options.nginx.ports
+    {port} = options
+    options.instances or= 1
+    for index in [0...options.instances]
       servers += "\n" if servers isnt ""
+      port = parseInt(port, 10)
 
-      servers += "\tserver 127.0.0.1:#{port};"
+      servers += "\tserver 127.0.0.1:#{port + index};"
 
     upstreams += """
       upstream #{name} {
@@ -46,7 +49,8 @@ createWebsocketLocation = (name, location) ->
 
 createLocations = (workers={}) ->
   locations = ""
-  for name, options of workers when options.nginx?.ports?
+  for name, options of workers when options.port?
+    options.nginx = {}  unless options.nginx
     location = ""
 
     options.nginx.locations or= ["/#{name}"]
