@@ -28,18 +28,18 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    {computeController} = KD.singletons
-    computeController.on "public-#{@machine._id}", @bound 'handleMachineEvent'
-
+    KD.singletons.computeController.on "public-#{@machine._id}", (event)=>
+      @handleMachineEvent event
 
   handleMachineEvent: (event) ->
 
     {percentage, status} = event
 
-    switch status
-      when Machine.State.Terminated then @destroy()
-      else @setState status
+    # switch status
+    #   when Machine.State.Terminated then @destroy()
+    #  else @setState status
 
+    @setState status
     @updateProgressBar percentage
 
 
