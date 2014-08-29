@@ -143,7 +143,9 @@ class MachineSettingsModal extends KDModalViewWithForms
     advanced.addSubView new KDButtonView
       style    : 'solid compact red'
       title    : 'Terminate VM'
-      callback : -> KD.singletons.computeController.destroy machine
+      callback : =>
+        KD.singletons.computeController.destroy machine
+        @destroy()
 
     advanced.addSubView new CustomLinkView
       title    : 'Open a Terminal for this machine'
