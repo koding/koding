@@ -8,6 +8,8 @@ class WebTermView extends KDView
 
     @initBackoff()
 
+    KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
+
   viewAppended: ->
 
     @container = new KDView
@@ -321,3 +323,11 @@ class WebTermView extends KDView
       event.preventDefault()
 
   initBackoff: KDBroker.Broker::initBackoff
+
+
+  mainTabPaneShown: (pane) ->
+
+    return  unless pane.getElement().contains @getElement()
+
+    el = @container.getElement()
+    el.scrollTop = el.scrollHeight
