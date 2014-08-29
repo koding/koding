@@ -72,6 +72,12 @@ class WebTermView extends KDView
 
     @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 
+    # watch machine state:
+    { computeController } = KD.singletons
+    computeController.on "public-#{@getMachine()._id}", (event) =>
+      if event.status in [Machine.State.Stopping, Machine.State.Stopped]
+        @terminal.cursor.stopBlink()
+
     @setKeyView()
 
 

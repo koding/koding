@@ -114,16 +114,10 @@ func main() {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
-	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
-	k.HandleFunc("webterm.connect", terminal.Connect).PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		// this function is used to reset inactivity whenever something is put into terminal :)
-		reset := func() {
-			usg.Reset()
-		}
+	terminal.ResetFunc = usg.Reset
 
-		r.Context.Set("resetFunc", reset)
-		return nil, nil
-	})
+	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
+	k.HandleFunc("webterm.connect", terminal.Connect)
 
 	k.HandleFunc("webterm.killSession", terminal.KillSession)
 	k.HandleFunc("exec", command.Exec)

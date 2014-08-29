@@ -78,6 +78,7 @@ Configuration = (options={}) ->
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
+    kiteHome                       : kiteHome
     redis                          : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
