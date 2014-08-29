@@ -14,7 +14,7 @@ class CommentListPreviousLink extends CustomLinkView
     {replies, repliesCount} = @getData()
     {linkCopy}              = @getOptions()
 
-    listedCount  = Math.max @getDelegate().getItemCount(), replies.length
+    listedCount  = Math.max @getDelegate().getItemCount(), replies?.length
     count        = Math.min (repliesCount - listedCount), 10
 
     partial = if linkCopy then linkCopy
