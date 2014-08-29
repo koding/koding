@@ -233,8 +233,6 @@ app.post "/:name?/Login", (req, res) ->
       version : '2.0'
     info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
       return res.send 500, "Internal error"  if err
-      if appStorage.bucket.useOldKoding is on
-        res.cookie 'useOldKoding', 'true'
       res.cookie 'clientId', response.replacementToken
       res.send 200, 'ok'
 
@@ -246,6 +244,7 @@ app.all "/:name?/Logout", (req, res)->
   if req.method is 'POST'
     res.clearCookie 'clientId'
     res.clearCookie 'useOldKoding'
+    res.clearCookie 'useNewKoding'
   res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
