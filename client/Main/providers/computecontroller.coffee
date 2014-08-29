@@ -88,8 +88,17 @@ class ComputeController extends KDController
           return
 
         machines = []
-        stacks.forEach (stack)->
-          stack.machines.forEach (machine)->
+        stacks.forEach (stack) =>
+          stack.machines.forEach (machine) =>
+            kite = machine.getBaseKite()
+            if kite.on?
+              machineId = machine._id
+              kite
+                .on 'open', =>
+                  @emit "kiteStateChanged-#{machineId}", "open"
+                .on 'close', =>
+                  @emit "kiteStateChanged-#{machineId}", "close"
+
             machines.push machine
 
         @machines = machines
