@@ -4,7 +4,6 @@ package fs
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -50,17 +49,11 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		var fileEntry *FileEntry
 
 		changer := func(ev fsnotify.Event) {
-			// log.Println("event:", event)
-			// if event.Op&fsnotify.Write == fsnotify.Write {
-			// 	log.Println("modified file:", event.Name)
-			// }
-
-			fmt.Printf("ev %+v\n", ev)
-
-			if ev.Op == fsnotify.Create {
+			switch ev.Op {
+			case fsnotify.Create:
 				eventType = "added"
 				fileEntry, _ = getInfo(ev.Name)
-			} else if ev.Op == fsnotify.Remove {
+			case fsnotify.Remove, fsnotify.Rename:
 				eventType = "removed"
 				fileEntry = NewFileEntry(path.Base(ev.Name), ev.Name)
 			}
