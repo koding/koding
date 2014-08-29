@@ -124,35 +124,7 @@ class MachineSettingsModal extends KDModalViewWithForms
       position :
         top    : 20
 
-    {advanced} = @modalTabs.forms.Settings.inputs
-    {label}    = advanced.getOptions()
-
-    advanced.hide()
-    label.setClass 'advanced'
-
-    # advanced.addSubView new KDButtonView
-    #   style    : 'solid compact green'
-    #   title    : 'Run Init Script'
-    #   callback : -> ComputeController.runInitScript machine
-
-    # advanced.addSubView new KDButtonView
-    #   style    : 'solid compact'
-    #   title    : 'Edit Init Script'
-    #   callback : -> ComputeController.UI.showBuildScriptEditorModal machine
-
-    advanced.addSubView new KDButtonView
-      style    : 'solid compact red'
-      title    : 'Terminate VM'
-      callback : -> KD.singletons.computeController.destroy machine
-
-    advanced.addSubView new CustomLinkView
-      title    : 'Open a Terminal for this machine'
-      cssClass : 'open-terminal-link'
-      click    : (event) ->
-        KD.utils.stopDOMEvent event
-        new TerminalModal { machine }
-
-    label.on 'click', @bound 'toggleAdvancedSettings'
+    # @buildAdvancedSettings()
 
     # If JMachine data loaded from KD.userMachines
     # we need to revive them once from DB to be able to use
@@ -164,6 +136,40 @@ class MachineSettingsModal extends KDModalViewWithForms
         @_setDomainField()
     else
       @_setDomainField()
+
+
+  buildAdvancedSettings: ->
+
+    {advanced} = @modalTabs.forms.Settings.inputs
+    {label}    = advanced.getOptions()
+
+    label.setClass 'advanced'
+    label.on 'click', @bound 'toggleAdvancedSettings'
+
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact green'
+      title    : 'Run Init Script'
+      callback : -> ComputeController.runInitScript machine
+
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact'
+      title    : 'Edit Init Script'
+      callback : -> ComputeController.UI.showBuildScriptEditorModal machine
+
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact red'
+      title    : 'Terminate VM'
+      callback : =>
+        KD.singletons.computeController.destroy machine
+        @destroy()
+
+    advanced.addSubView new CustomLinkView
+      title    : 'Open a Terminal for this machine'
+      cssClass : 'open-terminal-link'
+      click    : (event) ->
+        KD.utils.stopDOMEvent event
+        new TerminalModal { machine }
+
 
   updateState:(event)->
 
