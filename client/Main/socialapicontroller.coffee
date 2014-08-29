@@ -45,7 +45,6 @@ class SocialApiController extends KDController
     plain._id = plain.id
 
     {payload} = plain
-    delete plain.payload
 
     m = new KD.remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]

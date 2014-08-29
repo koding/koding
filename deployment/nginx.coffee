@@ -1,3 +1,5 @@
+fs = require 'fs'
+
 createUpstreams = (workers={}) ->
   upstreams = "# add global upstreams\n"
   for name, options of workers when options.nginx?.ports?
@@ -108,5 +110,5 @@ module.exports.create = (workers)->
   # close http
   }
   """
-  console.log config
+  fs.writeFileSync "./deployment/generated_files/nginx.conf", config
   return config
