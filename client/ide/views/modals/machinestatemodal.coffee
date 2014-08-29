@@ -50,8 +50,10 @@ class IDE.MachineStateModal extends IDE.ModalView
         @progressBar?.show()
 
       else
-        @progressBar?.hide()
-        @createLoading()
+
+        if status in [Stopping, Starting, Building, Terminating]
+          @progressBar?.hide()
+          @createLoading()
 
     else
 
@@ -190,20 +192,18 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   turnOnMachine: ->
 
-    computeController = KD.getSingleton 'computeController'
-    computeController.fetchMachines (err) =>
-      return KD.showError "Couldn't fetch machines"  if err
+    {@state}     = @machine.status
 
-      methodName   = 'start'
-      nextState    = 'Starting'
+    methodName   = 'start'
+    nextState    = 'Starting'
 
-      if @state in [ NotInitialized, Terminated, Unknown ]
-        methodName = 'build'
-        nextState  = 'Building'
+    if @state in [ NotInitialized, Terminated, Unknown ]
+      methodName = 'build'
+      nextState  = 'Building'
 
-      computeController[methodName] @machine
-      @state = nextState
-      @buildViews()
+    KD.singletons.computeController[methodName] @machine
+    @state = nextState
+    @buildViews()
 
 
   startIDE: ->
