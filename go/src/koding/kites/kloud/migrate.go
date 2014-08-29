@@ -31,7 +31,8 @@ while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
   read index
 done
 out="${vm_names[$index]}.tgz"
-echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com/export-files" | xargs curl > $out
+echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $out
+
 `
 )
 
