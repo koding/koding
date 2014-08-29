@@ -2,6 +2,7 @@ package fs
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -99,11 +100,10 @@ func TestReadDirectory(t *testing.T) {
 
 func TestWatcher(t *testing.T) {
 	testDir := "testdata"
-	addfile := "testdata/example1.txt"
+	addFile := "testdata/example1.txt"
+	newFile := "testdata/example2.txt"
 
-	defer os.Remove(addfile)
-
-	done := make(chan struct{}, 1)
+	done := make(chan struct{}, 2)
 
 	onChange := dnode.Callback(func(r *dnode.Partial) {
 		s := r.MustSlice()
@@ -114,9 +114,21 @@ func TestWatcher(t *testing.T) {
 		var f = &FileEntry{}
 		m["file"].Unmarshal(f)
 
-		if e == "added" && f.Name == "example1.txt" {
-			done <- struct{}{}
+		switch e {
+		case "added":
+			if f.Name == "example1.txt" {
+				done <- struct{}{}
+			}
+		case "removed":
+			if f.Name == "example1.txt" {
+				done <- struct{}{}
+			}
+
+			if f.Name == "example2.txt" {
+				done <- struct{}{}
+			}
 		}
+
 	})
 
 	_, err := remote.Tell("readDirectory", struct {
@@ -130,12 +142,43 @@ func TestWatcher(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ioutil.WriteFile(addfile, []byte("example"), 0755)
+	fmt.Println("Creating file")
+	time.Sleep(time.Millisecond * 100)
+
+	ioutil.WriteFile(addFile, []byte("example"), 0755)
 
 	select {
 	case <-done:
 	case <-time.After(time.Second * 2):
-		t.Fatal("timeout watcher after two seconds")
+		t.Fatal("timeout adding watcher after two seconds")
+	}
+
+	fmt.Println("Renaming file")
+	time.Sleep(time.Millisecond * 100)
+
+	err = os.Rename(addFile, newFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	select {
+	case <-done:
+	case <-time.After(time.Second * 2):
+		t.Fatal("timeout removing watcher after two seconds")
+	}
+
+	fmt.Println("Removing file")
+	time.Sleep(time.Millisecond * 100)
+
+	err = os.Remove(newFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	select {
+	case <-done:
+	case <-time.After(time.Second * 2):
+		t.Fatal("timeout removing watcher after two seconds")
 	}
 }
 
