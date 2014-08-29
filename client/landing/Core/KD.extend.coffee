@@ -7,6 +7,18 @@
 #   window.WebSocket = null
 
 KD.extend
+  newKodingLaunchDate: do ->
+    d = new Date()
+    d.setUTCFullYear 2014
+    d.setUTCMonth 7
+    d.setUTCDate 30
+    d.setUTCHours 17
+    d.setUTCMinutes 0
+    d
+
+  setVersionCookie: ({ meta:{ createdAt }}) ->
+    if (new Date createdAt) > KD.newKodingLaunchDate
+      Cookies.set 'useNewKoding', 'true'
 
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
