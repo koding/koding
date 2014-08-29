@@ -28,30 +28,38 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    { computeController } = KD.singletons
+    KD.singletons.computeController.on "public-#{@machine._id}", (event)=>
+      @handleMachineEvent event
 
-    computeController.on "public-#{@machine._id}", (event)=>
+  handleMachineEvent: (event) ->
 
-      {percentage, status} = event
+    {percentage, status} = event
 
-      if percentage?
+    # switch status
+    #   when Machine.State.Terminated then @destroy()
+    #  else @setState status
 
-        if @progress.bar
+    @setState status
+    @updateProgressBar percentage
 
-          @progress.show()
-          @progress.updateBar percentage
 
-          if percentage is 100
-            KD.utils.wait 1000, @progress.bound 'hide'
+  setState: (state) ->
 
-      else
+    return  unless state
 
-        @progress.hide()
+    @unsetClass stateClasses
+    @setClass status.toLowerCase()
 
-      if status?
 
-        @unsetClass stateClasses
-        @setClass status.toLowerCase()
+  updateProgressBar: (percentage) ->
+
+    return @progress.hide()  unless percentage
+
+    @progress.show()
+    @progress.updateBar percentage
+
+    if percentage is 100
+      KD.utils.wait 1000, @progress.bound 'hide'
 
 
   pistachio:->

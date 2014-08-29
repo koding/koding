@@ -50,6 +50,7 @@ func NewChannelMessage() *ChannelMessage {
 }
 
 // Update only updates the body field of the channel message
+//
 // tests are added for this function
 func (c *ChannelMessage) Update() error {
 	if err := bodyLenCheck(c.Body); err != nil {
@@ -74,6 +75,7 @@ func (c *ChannelMessage) Update() error {
 }
 
 // Create creates the channel message
+//
 // tests are added for this function
 func (c *ChannelMessage) Create() error {
 	if err := bodyLenCheck(c.Body); err != nil {
