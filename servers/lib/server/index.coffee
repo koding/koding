@@ -271,10 +271,10 @@ app.get "/-/healthCheck", (req, res) ->
 
   dash urlFns, ->
     if Object.keys(errs).length > 0
-      result = errs
-    else result = 200
-
-    res.jsonp({result})
+      console.log "HEALTHCHECK ERROR:", errs
+      res.send 500
+    else
+      res.send 200
 
 app.get "/-/version", (req, res) ->
   res.jsonp(version:KONFIG.version)
