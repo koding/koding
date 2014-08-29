@@ -21,7 +21,7 @@ func createAccount() (*Account, error) {
 	// seed the random data generator
 	rand.Seed(time.Now().UnixNano())
 
-	author.Nick = "malitest" + strconv.Itoa(rand.Intn(10e6))
+	author.Nick = "malitest" + strconv.Itoa(rand.Intn(10e9))
 
 	if err := author.Create(); err != nil {
 		return nil, err

@@ -151,6 +151,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	return c, nil
 }
 
+// Tests are done.
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
 		return ErrAccountIdIsNotSet
@@ -177,6 +178,7 @@ func (a *Account) MarkAsTroll() error {
 	return nil
 }
 
+// Tests are done
 func (a *Account) UnMarkAsTroll() error {
 	if a.Id == 0 {
 		return ErrAccountIdIsNotSet
