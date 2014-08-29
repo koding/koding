@@ -210,7 +210,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		// the "." point is here because hosteded zones are listed as
 		// "dev.koding.io." , "koding.io." and so on
 		if h.Name == p.HostedZone+"." {
-			zoneId = route52.CleanZoneID(h.ID)
+			zoneId = route53.CleanZoneID(h.ID)
 			break
 		}
 	}
