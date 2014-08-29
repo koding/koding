@@ -56,6 +56,8 @@ getActivityContent = (activityContent)->
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
 
+  displayCommentCount = if commentCount then commentCount else ""
+
   {formatBody} = require './bodyrenderer'
   body = formatBody body
   commentsList = prepareComments activityContent
@@ -79,8 +81,8 @@ getActivityContent = (activityContent)->
             <a class="custom-link-view" href="/Register">
               <span class="title" data-paths="title" id="el-41">Comment</span>
             </a>
-            <a class="custom-link-view count" href="/Register">
-              <span data-paths="repliesCount" id="el-42">#{commentCount}</span>
+            <a class="custom-link-view #{if commentCount then 'count'}" href="/Register">
+              <span data-paths="repliesCount" id="el-42">#{displayCommentCount}</span>
             </a>
           </span>
           <span class="optional action-container">
