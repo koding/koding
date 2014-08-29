@@ -272,12 +272,15 @@ class IDEAppController extends AppController
           computeController.on "public-#{machineId}", (event) =>
 
             if event.status in [Stopping, Stopped, Terminating, Terminated]
+
               unless @machineStateModal
                 @createMachineStateModal state, container, machineItem
               else
                 @machineStateModal.updateStatus event
+
         else
-          @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
+
+          @createMachineStateModal { state: 'NotFound', container }
 
 
       { appStorageController } = KD.singletons
@@ -297,7 +300,7 @@ class IDEAppController extends AppController
   createMachineStateModal: (state, container, machineItem) ->
     @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady', @bound 'handleIDEBecameReady'
+    @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady()
 
   collapseSidebar: ->
     panel        = @workspace.getView()
