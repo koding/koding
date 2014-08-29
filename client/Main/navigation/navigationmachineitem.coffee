@@ -36,7 +36,10 @@ class NavigationMachineItem extends JView
 
     {percentage, status} = event
 
-    @setState status
+    switch status
+      when Machine.State.Terminated then @destroy()
+      else @setState status
+
     @updateProgressBar percentage
 
 
