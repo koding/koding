@@ -16,9 +16,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     @addSubView @container = new KDCustomHTMLView cssClass: 'content-container'
     @machine = @getData()
 
-    unless @machine
-      @state = options.state
-      return @buildViews()
+    return @handleNoMachineFound()  unless @machine
 
     {jMachine}   = @machine
     @machineName = jMachine.label
@@ -92,8 +90,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
       @createStateButton()
-    else if @state in [ Starting, Building, Stopping,
-                        Terminating, Updating, Rebooting ]
+    else if @state in [ Starting, Building, Stopping, Terminating, Updating, Rebooting ]
       @createProgressBar()
 
     @createError()
@@ -226,3 +223,10 @@ class IDE.MachineStateModal extends IDE.ModalView
       @setData m
 
       @emit 'IDEBecameReady'
+
+  handleNoMachineFound: ->
+    {@state} = @getOptions()
+    @setClass 'no-machine'
+    @buildViews()
+    @createFooter()
+    return @show()

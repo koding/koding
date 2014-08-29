@@ -218,8 +218,8 @@ class IDEAppController extends AppController
     KD.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
-        {state} = machine.status
         return unless machine
+        {state} = machine.status
 
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           nickname     = KD.nick()
