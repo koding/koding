@@ -41,9 +41,10 @@ class ComputeStateChecker extends KDObject
 
   addMachine:(machine)->
 
-    inList = no
-    @machines.forEach (_)-> inList |= _.uid is machine.uid
-    @machines.push machine  unless inList
+    for m in @machines
+      return  if machine.uid is m.uid
+
+    @machines.push machine
 
 
   tick:->
