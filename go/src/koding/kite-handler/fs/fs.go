@@ -4,14 +4,15 @@ package fs
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path"
 	"sync"
 
-	"github.com/howeyc/fsnotify"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
+	"gopkg.in/fsnotify.v1"
 )
 
 var (
@@ -20,7 +21,7 @@ var (
 	newPaths, oldPaths = make(chan string), make(chan string)
 
 	// Limit of watching folders
-	watchCallbacks = make(map[string]func(*fsnotify.FileEvent), 100)
+	watchCallbacks = make(map[string]func(fsnotify.Event), 100)
 	mu             sync.Mutex // protects watchCallbacks
 )
 
@@ -48,11 +49,18 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		var eventType string
 		var fileEntry *FileEntry
 
-		changer := func(ev *fsnotify.FileEvent) {
-			if ev.IsCreate() {
+		changer := func(ev fsnotify.Event) {
+			// log.Println("event:", event)
+			// if event.Op&fsnotify.Write == fsnotify.Write {
+			// 	log.Println("modified file:", event.Name)
+			// }
+
+			fmt.Printf("ev %+v\n", ev)
+
+			if ev.Op == fsnotify.Create {
 				eventType = "added"
 				fileEntry, _ = getInfo(ev.Name)
-			} else if ev.IsDelete() {
+			} else if ev.Op == fsnotify.Remove {
 				eventType = "removed"
 				fileEntry = NewFileEntry(path.Base(ev.Name), ev.Name)
 			}
@@ -62,6 +70,7 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 				"file":  fileEntry,
 			}
 
+			// send back the result to the client
 			params.OnChange.Call(event)
 			return
 		}
@@ -112,12 +121,12 @@ func startWatcher() {
 		for {
 			select {
 			case p := <-newPaths:
-				err := watcher.Watch(p)
+				err := watcher.Add(p)
 				if err != nil {
 					log.Println("watch path adding", err)
 				}
 			case p := <-oldPaths:
-				err := watcher.RemoveWatch(p)
+				err := watcher.Remove(p)
 				if err != nil {
 					log.Println("watch remove adding", err)
 				}
@@ -125,17 +134,25 @@ func startWatcher() {
 		}
 	}()
 
-	for event := range watcher.Event {
-		mu.Lock()
-		f, ok := watchCallbacks[path.Dir(event.Name)]
-		mu.Unlock()
+	for {
+		select {
+		case event := <-watcher.Events:
 
-		if !ok {
-			continue
+			mu.Lock()
+			f, ok := watchCallbacks[path.Dir(event.Name)]
+			mu.Unlock()
+
+			if !ok {
+				continue
+			}
+
+			f(event)
+
+		case err := <-watcher.Errors:
+			log.Println("watcher error:", err)
 		}
-
-		f(event)
 	}
+
 }
 
 func Glob(r *kite.Request) (interface{}, error) {
