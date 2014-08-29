@@ -3,7 +3,7 @@ class HomeView extends JView
   constructor:->
     super
 
-    {router} = KD.singletons
+    {router, appManager} = KD.singletons
 
     @pricingButton = new KDButtonView
       title       : 'See Pricing'
@@ -13,96 +13,16 @@ class HomeView extends JView
     @signUpForm = new HomeRegisterForm
       cssClass    : 'login-form register'
       buttonTitle : 'Sign up'
-      callback    : @bound 'showPasswordModal'
+      callback    : (formData) =>
+        appManager.require 'Login', (controller) =>
+
+          controller.getView().showPasswordModal formData, @signUpForm
 
     @testimonials = new TestimonialsView
 
     @footer = new FooterView
 
 
-  showPasswordModal: (formData) ->
-
-    unless @signUpForm.email.input.valid and @signUpForm.username.input.valid
-      @signUpForm.button.hideLoader()
-
-    {appManager, mainView} = KD.singletons
-
-    mainView.setClass 'blur'
-
-    modal = new KDModalViewWithForms
-      cssClass                : 'password'
-      width                   : 600
-      height                  : 'auto'
-      overlay                 : yes
-      title                   : 'Almost there, please enter a strong password.'
-      tabs                    :
-        forms                 :
-          password            :
-            callback          : (form) =>
-
-              appManager.require 'Login', (controller) =>
-
-                KD.mixpanel 'Register submit, click'
-
-                formData.password        = form.password
-                formData.passwordConfirm = form.passwordConfirm
-
-                controller.getView().doRegister formData, @signUpForm
-                modal.destroy()
-
-            fields                    :
-              password                :
-                type                  : 'password'
-                cssClass              : 'half'
-                name                  : 'password'
-                placeholder           : 'password'
-                validate              :
-                  rules               :
-                    passwordCheck     : (input, event)=>
-
-                      form = modal.modalTabs.forms.password
-                      if input.getValue().length < 8
-                        modal.setTitle "Passwords should be at least 8 characters."
-                      else
-                        unless input.getValue() is form.inputs.confirm.getValue()
-                          modal.setTitle "Looks good, please confirm it."
-
-                  events              :
-                    passwordCheck     : "keyup"
-
-                nextElement           :
-                  confirm             :
-                    cssClass          : 'half'
-                    type              : 'password'
-                    name              : 'passwordConfirm'
-                    placeholder       : 'confirm password'
-                    validate          :
-                      rules           :
-                        passwordCheck : (input, event)=>
-
-                          form = modal.modalTabs.forms.password
-                          if form.inputs.password.getValue().length >= 8
-                            if input.getValue() is form.inputs.password.getValue()
-                              modal.setTitle "Both look good!"
-                              form.buttons.submit.enable()
-                            else
-                              modal.setTitle "Passwords should match."
-                              form.buttons.submit.disable()
-
-                      events          :
-                        passwordCheck : "keyup"
-
-
-            buttons           :
-              submit          :
-                cssClass      : 'solid green medium'
-                type          : 'submit'
-                title         : 'Let\'s go'
-                disabled      : yes
-
-    modal.once 'KDObjectWillBeDestroyed', =>
-      mainView.unsetClass 'blur'
-      @signUpForm.button.hideLoader()
 
 
 

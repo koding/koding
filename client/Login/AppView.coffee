@@ -151,9 +151,9 @@ class LoginView extends JView
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
-      callback : (formData)=>
+      callback : (formData) =>
         KD.mixpanel "Register submit, click"
-        @doRegister formData
+        @showPasswordModal formData, @registerForm
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
@@ -327,6 +327,90 @@ class LoginView extends JView
           title     : "Check your email"
           content   : "We've sent you a confirmation mail."
           duration  : 4500
+
+
+  showPasswordModal: (formData, form) ->
+
+    unless form.email.input.valid and form.username.input.valid
+      return form.button.hideLoader()
+
+    {mainView} = KD.singletons
+
+    mainView.setClass 'blur'
+
+    modal = new KDModalViewWithForms
+      cssClass                : 'password'
+      width                   : 600
+      height                  : 'auto'
+      overlay                 : yes
+      title                   : 'Almost there, please enter a strong password.'
+      tabs                    :
+        forms                 :
+          password            :
+            callback          : (passwordForm) =>
+
+              KD.mixpanel 'Register submit, click'
+
+              formData.password        = passwordForm.password
+              formData.passwordConfirm = passwordForm.passwordConfirm
+
+              @doRegister formData, form
+              modal.destroy()
+
+            fields                    :
+              password                :
+                type                  : 'password'
+                cssClass              : 'half'
+                name                  : 'password'
+                placeholder           : 'password'
+                validate              :
+                  rules               :
+                    passwordCheck     : (input, event)=>
+
+                      passwordForm = modal.modalTabs.forms.password
+                      if input.getValue().length < 8
+                        modal.setTitle "Passwords should be at least 8 characters."
+                      else
+                        unless input.getValue() is passwordForm.inputs.confirm.getValue()
+                          modal.setTitle "Looks good, please confirm it."
+
+                  events              :
+                    passwordCheck     : "keyup"
+
+                nextElement           :
+                  confirm             :
+                    cssClass          : 'half'
+                    type              : 'password'
+                    name              : 'passwordConfirm'
+                    placeholder       : 'confirm password'
+                    validate          :
+                      rules           :
+                        passwordCheck : (input, event)=>
+
+                          passwordForm = modal.modalTabs.forms.password
+                          if passwordForm.inputs.password.getValue().length >= 8
+                            if input.getValue() is passwordForm.inputs.password.getValue()
+                              modal.setTitle "Both look good!"
+                              passwordForm.buttons.submit.enable()
+                            else
+                              modal.setTitle "Passwords should match."
+                              passwordForm.buttons.submit.disable()
+
+                      events          :
+                        passwordCheck : "keyup"
+
+
+            buttons           :
+              submit          :
+                cssClass      : 'solid green medium'
+                type          : 'submit'
+                title         : 'Let\'s go'
+                disabled      : yes
+
+    modal.once 'KDObjectWillBeDestroyed', =>
+      mainView.unsetClass 'blur'
+      form.button.hideLoader()
+
 
   doRegister: (formData, form) ->
 
