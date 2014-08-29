@@ -38,7 +38,7 @@ prepareComments = (activityContent)->
           #{avatarImage}
         </a>
         <div class="comment-contents clearfix">
-          <a href="#{uri.address}/#{nickname}" class="profile">Sinan Yasar</a>
+          <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
           <div class="comment-body-container">
             <p data-paths="body" id="el-56">#{message.body}</p>
           </div>
