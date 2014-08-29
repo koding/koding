@@ -22,6 +22,8 @@ import (
 
 const randomStringLength = 24 // 144 bit base64 encoded
 
+var ResetFunc func()
+
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
@@ -171,15 +173,6 @@ func Connect(r *kite.Request) (interface{}, error) {
 				n++
 			}
 
-			// this is only used for koding's own purpose to count wheter an
-			// input was called or not. There is probably better ways, like
-			// exposing messageCounter variable and check it. However this just
-			// works now.
-			if val, err := r.Context.Get("resetFunc"); err == nil {
-				resetFunc := val.(func())
-				resetFunc()
-			}
-
 			// Rate limiting...
 			if server.throttling {
 				s := time.Now().Unix()
@@ -210,6 +203,12 @@ func Connect(r *kite.Request) (interface{}, error) {
 // Input is called when some text is written to the terminal.
 func (s *Server) Input(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
+
+	// this is only used for koding's own purpose to count wheter an
+	// input was called or not. There is probably better ways, like
+	// exposing messageCounter variable and check it. However this just
+	// works now.
+	ResetFunc()
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
