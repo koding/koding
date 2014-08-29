@@ -18,9 +18,10 @@ import (
 var ErrNoRecord = errors.New("no records available")
 
 type DNS struct {
-	Route53 *route53.Route53
-	ZoneId  string
-	Log     logging.Logger
+	Route53   *route53.Route53
+	ZoneId    string
+	Log       logging.Logger
+	MachineId string
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
@@ -49,7 +50,8 @@ func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
 		},
 	}
 
-	d.Log.Info("Updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
+	d.Log.Info("[%s] Updating name of IP %s from %v to %v",
+		d.MachineId, currentIP, oldDomain, newDomain)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -85,8 +87,8 @@ func (d *DNS) Update(domain string, oldIP, newIP string) error {
 		},
 	}
 
-	d.Log.Info("Updating domain %s IP from %v to %v",
-		domain, oldIP, newIP)
+	d.Log.Info("[%s] Updating domain %s IP from %v to %v",
+		d.MachineId, domain, oldIP, newIP)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -112,8 +114,8 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 		},
 	}
 
-	d.Log.Info("Deleting domain name: %s which was associated to following ips: %v",
-		domain, ips)
+	d.Log.Info("[%s] Deleting domain name: %s which was associated to following ips: %v",
+		d.MachineId, domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -139,8 +141,8 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 		},
 	}
 
-	d.Log.Info("Creating domain name: %s to be associated with following ips: %v",
-		domain, ips)
+	d.Log.Info("[%s] Creating domain name: %s to be associated with following ips: %v",
+		d.MachineId, domain, ips)
 
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
@@ -156,7 +158,7 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 		Name: domain,
 	}
 
-	d.Log.Info("Fetching domain record for name: %s", domain)
+	d.Log.Info("[%s] Fetching domain record for name: %s", d.MachineId, domain)
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {
@@ -188,7 +190,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		return err
 	}
 
-	a.Log.Debug("Creating Route53 instance")
+	a.Log.Info("[%s] Creating Route53 instance", opts.MachineId)
 	dns := route53.New(
 		aws.Auth{
 			AccessKey: a.Creds.AccessKey,
@@ -197,7 +199,7 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 		aws.Regions[DefaultRegion],
 	)
 
-	a.Log.Info("Searching for hosted zone: %s", p.HostedZone)
+	a.Log.Info("[%s] Searching for hosted zone: %s", opts.MachineId, p.HostedZone)
 	hostedZones, err := dns.ListHostedZones("", 100)
 	if err != nil {
 		return err
@@ -207,11 +209,10 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 	for _, h := range hostedZones.HostedZones {
 		// the "." point is here because hosteded zones are listed as
 		// "dev.koding.io." , "koding.io." and so on
-		if !strings.HasSuffix(h.Name, p.HostedZone+".") {
-			continue
+		if h.Name == p.HostedZone+"." {
+			zoneId = route53.CleanZoneID(h.ID)
+			break
 		}
-
-		zoneId = route53.CleanZoneID(h.ID)
 	}
 
 	if zoneId == "" {
@@ -219,9 +220,10 @@ func (p *Provider) InitDNS(opts *protocol.Machine) error {
 	}
 
 	p.DNS = &DNS{
-		Route53: dns,
-		ZoneId:  zoneId,
-		Log:     p.Log,
+		Route53:   dns,
+		ZoneId:    zoneId,
+		Log:       p.Log,
+		MachineId: opts.MachineId,
 	}
 	return nil
 }

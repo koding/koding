@@ -357,6 +357,9 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 
 	// fetch channel by group name
 	query.Name = query.GroupName
+	if query.GroupName == "koding" {
+		query.Name = "public"
+	}
 	query.Type = Channel_TYPE_GROUP
 	ch := NewChannel()
 	channel, err := ch.ByName(query)

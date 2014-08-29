@@ -45,9 +45,21 @@ type AmazonClient struct {
 	Log    logging.Logger
 	Push   func(string, int, machinestate.State)
 	Deploy *protocol.ProviderDeploy
+
+	// Used for customization
+	InfoLog func(string, ...interface{})
 }
 
 func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
+	infoLog := func(format string, args ...interface{}) {
+		a.Log.Info(format, args...)
+	}
+
+	// Check wether a new infoLog was passed, and use it
+	if a.InfoLog != nil {
+		infoLog = a.InfoLog
+	}
+
 	// Don't build anything without this, otherwise ec2 complains about it as a
 	// missing paramater.
 	if a.Builder.SecurityGroupId == "" {
@@ -55,7 +67,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	}
 
 	// Make sure AMI exists
-	a.Log.Info("Checking if image '%s' exists", a.Builder.SourceAmi)
+	infoLog("Checking if image '%s' exists", a.Builder.SourceAmi)
 	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
 		if err != nil {
 			return nil, err
@@ -64,6 +76,8 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 
 	// get the necessary keynames that we are going to provide with Amazon. If
 	// it doesn't exist a new one will be created.
+	// check if the key exist, if yes return the keyname
+	infoLog("Checking if keypair '%s' does exist", a.Deploy.KeyName)
 	keyName, err := a.DeployKey()
 	if err != nil {
 		return nil, err
@@ -73,7 +87,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	// be a empty key pair, means no one is able to ssh into the machine.
 	a.Builder.KeyPair = keyName
 
-	a.Log.Info("Creating instance with type: '%s' based on AMI: '%s'",
+	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
 	resp, err := a.CreateInstance()
 	if err != nil {
@@ -108,7 +122,7 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	}
 
 	// Rename the machine
-	a.Log.Info("Adding the tag '%s' to the instance '%s'", instanceName, instance.InstanceId)
+	infoLog("Adding the tag '%s' to the instance '%s'", instanceName, instance.InstanceId)
 	if err := a.AddTag(instance.InstanceId, "Name", instanceName); err != nil {
 		return nil, err
 	}
@@ -149,8 +163,6 @@ func (a *AmazonClient) DeployKey() (string, error) {
 		return "", nil
 	}
 
-	// check if the key exist, if yes return the keyname
-	a.Log.Info("Checking if keypair '%s' does exist", a.Deploy.KeyName)
 	resp, err := a.Showkey(a.Deploy.KeyName)
 	if err == nil {
 		return resp.Keys[0].Name, nil

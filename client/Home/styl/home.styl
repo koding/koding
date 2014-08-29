@@ -13,9 +13,45 @@ body.home
   background              #fff
   font-family             asapFamily
 
+  #kdmaincontainer.blur
+    vendor                filter, blur(5px)
+
   .content-page.home
     padding               0
     max-width             100%
+
+  .kdmodal.password
+    bg                    color, #DCDCDC
+    .kdmodal-title .title
+      font-size           18px !important
+
+    .kdmodal-inner
+      bg                  color, #DCDCDC
+      margin              30px
+    .kdinput.half
+      margin              0
+      kalc                width, \(100% \- 120px\) / 2
+      rounded             4px
+      font-size           14px
+      font-family         asapFamily
+      text-align          left
+      border-color        #bbb
+      fl()
+      &:first-child
+        margin-right      10px
+    .button-field
+      top                 0
+      right               0
+      width               70px
+      margin              0 !important
+      abs()
+      .kdbutton
+        rounded           4px
+        padding           0 25px
+    .kdformview .formline .input-wrapper
+      margin              0
+    .kdscrollview.kdtabview
+      overflow            hidden
 
   section .inner-container
     max-width             1290px
@@ -46,6 +82,57 @@ body.home
 
     p
       font-family         openSansFamily
+
+  .login-form.register
+    margin                0 auto 50px auto
+    max-width             600px
+    rel()
+    &.focused
+      .accept-tos
+      div.hint
+        opacity           1
+
+    div.hint
+    .accept-tos
+      vendor              transition, opacity .4s .3s ease
+      margin              0
+      text-align          left
+      opacity             0
+
+    div.hint
+      color               #999
+    .accept-tos
+      color               #6e7879
+
+    section
+      > div
+        kalc              width, \(100% \- 128px\) / 2
+        padding-right     10px
+        borderBox()
+        &:last-child
+          padding-right   0
+          width           128px
+        .kdbutton.solid.medium
+          width           100%
+          rounded         4px
+        .login-input-view
+          rounded         4px
+          bg              color white
+          input
+            rounded       4px
+            margin        0
+            font-size     14px
+            font-family   asapFamily
+            text-align    left
+          .placeholder-helper
+            text-align    left
+            top           6px
+            padding       0 15px
+            borderBox()
+            &.out
+              top         -26px
+              color       #aaa
+
 
 
   //Introduction section
@@ -87,31 +174,31 @@ body.home
         color             #fff
         max-width         800px
 
-      .kdbutton
-        text-transform    uppercase
-        width             190px
-        rounded           4px
+      // .kdbutton
+      //   text-transform    uppercase
+      //   width             190px
+      //   rounded           4px
 
-        .button-title
-          color           inherit !important
+      //   .button-title
+      //     color           inherit !important
 
-        &.green
-          bg              color, #29c566
-          margin-right    9px
-          color           #071d11
+      //   &.green
+      //     bg              color, #29c566
+      //     margin-right    9px
+      //     color           #071d11
 
-          &:hover
-            bg            color, #d7d7d7
-            color         #071d11
+      //     &:hover
+      //       bg            color, #d7d7d7
+      //       color         #071d11
 
-        &.thin-white
-          bg              color, transparent
-          border          2px solid #b7b7b7
-          color           #e0dfdf
+      //   &.thin-white
+      //     bg              color, transparent
+      //     border          2px solid #b7b7b7
+      //     color           #e0dfdf
 
-          &:hover
-            bg            color, #b7b7b7
-            color         #071d11
+      //     &:hover
+      //       bg            color, #b7b7b7
+      //       color         #071d11
 
 
   // screenshots Section

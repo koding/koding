@@ -46,11 +46,11 @@ class MainViewController extends KDViewController
 
     windowController.on 'ScrollHappened', @bound 'handleScroll'
 
-    # if KD.config?.environment isnt 'production'
-    #   window.addEventListener 'click', (event) =>
-    #     if event.metaKey and event.altKey
-    #       logViewByElement event.target
-    #   , yes
+    if KD.config?.environment isnt 'production'
+      window.addEventListener 'click', (event) =>
+        if event.metaKey and event.altKey
+          logViewByElement event.target
+      , yes
 
 
   loadView:(mainView)->

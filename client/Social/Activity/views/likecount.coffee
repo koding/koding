@@ -17,6 +17,8 @@ class ActivityLikeCount extends ReplyLikeView
   syncCountWithData: ->
     { @actorsCount } = @getData().interactions.like
 
+    @setTemplate @pistachio()
+
 
   # latency compensation
   setCountNumber: (likeState) ->

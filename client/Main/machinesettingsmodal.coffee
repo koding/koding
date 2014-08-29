@@ -197,6 +197,7 @@ class MachineSettingsModal extends KDModalViewWithForms
 
     @convertToSubdomainField()
     domain.setValue _domain
+    domain.blur()
 
 
   handleChange: ->
@@ -225,7 +226,6 @@ class MachineSettingsModal extends KDModalViewWithForms
     domain.setValue ''
 
     @handleChange()
-    domain.setFocus()
     toggle?()
 
 

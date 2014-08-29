@@ -101,6 +101,7 @@ func (c *ChannelParticipant) CreateRaw() error {
 		Scan(&c.Id)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) FetchParticipant() error {
 	if c.ChannelId == 0 {
 		return ErrChannelIdIsNotSet
@@ -118,6 +119,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 	return c.fetchParticipant(selector)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) FetchActiveParticipant() error {
 	selector := map[string]interface{}{
 		"channel_id":      c.ChannelId,
