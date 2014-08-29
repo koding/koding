@@ -45,9 +45,6 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		onceBody := func() { startWatcher() }
 		go once.Do(onceBody)
 
-		// notify new paths to the watcher
-		newPaths <- params.Path
-
 		var eventType string
 		var fileEntry *FileEntry
 
@@ -70,7 +67,12 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		}
 
 		mu.Lock()
-		watchCallbacks[params.Path] = changer
+		_, ok := watchCallbacks[params.Path]
+		if !ok {
+			// notify new paths to the watcher
+			newPaths <- params.Path
+			watchCallbacks[params.Path] = changer
+		}
 		mu.Unlock()
 
 		removePath := func() {
