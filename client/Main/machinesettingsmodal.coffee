@@ -124,7 +124,7 @@ class MachineSettingsModal extends KDModalViewWithForms
       position :
         top    : 20
 
-    @buildAdvancedSettings()
+    # @buildAdvancedSettings()
 
     # If JMachine data loaded from KD.userMachines
     # we need to revive them once from DB to be able to use
