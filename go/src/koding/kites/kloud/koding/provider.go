@@ -110,6 +110,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
 
+	a.Push("Initializing data", 10, machinestate.Building)
+
 	// make a custom logger which just prepends our machineid
 	infoLog := func(format string, formatArgs ...interface{}) {
 		format = "[%s] " + format
@@ -127,6 +129,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
+
+	a.Push("Checking security requirements", 20, machinestate.Building)
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
 	infoLog("Checking if security group '%s' exists", groupName)
@@ -195,6 +199,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
 
+	a.Push("Checking base build image", 30, machinestate.Building)
+
 	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
@@ -253,6 +259,8 @@ hostname: %s`
 		return nil, err
 	}
 
+	a.Push("Checking domain", 65, machinestate.Building)
+
 	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
@@ -271,6 +279,8 @@ hostname: %s`
 			return nil, fmt.Errorf("domain %s already exists", machineData.Domain)
 		}
 	}
+
+	a.Push("Creating domain", 70, machinestate.Building)
 
 	if err := p.DNS.CreateDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
 		return nil, err
@@ -292,6 +302,8 @@ hostname: %s`
 	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err
 	}
+
+	a.Push("Starting provisioning", 75, machinestate.Building)
 
 	buildArtifact.DomainName = machineData.Domain
 
@@ -356,6 +368,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
 
+	a.Push("Initializing domain instance", 65, machinestate.Starting)
+
 	/////// ROUTE 53 /////////////////
 	if err := p.InitDNS(opts); err != nil {
 		return nil, err
@@ -367,9 +381,11 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	a.Push("Checking domain", 70, machinestate.Starting)
 	// Check if the record exist, if yes update the ip instead of creating a new one.
 	record, err := p.DNS.Domain(machineData.Domain)
 	if err == ErrNoRecord {
+		a.Push("Creating domain", 75, machinestate.Starting)
 		if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
 			return nil, err
 		}
@@ -380,6 +396,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	// Means the record exist, update it
 	if err == nil {
+		a.Push("Updating domain", 75, machinestate.Starting)
 		p.Log.Warning("[%s] Domain '%s' already exists (that shouldn't happen). Going to update to new IP",
 			machineData.Domain, opts.MachineId)
 		if err := p.DNS.Update(machineData.Domain, record.Records[0], artifact.IpAddress); err != nil {
@@ -390,6 +407,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
 		opts.MachineId, machineData.Domain, artifact.InstanceId)
 
+	a.Push("Adding domain tag", 80, machinestate.Starting)
 	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err
 	}
@@ -398,6 +416,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	///// ROUTE 53 /////////////////
 
+	a.Push("Checking remote machine", 90, machinestate.Starting)
 	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
 	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
 	if err != nil {
@@ -432,6 +451,7 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
 
+	a.Push("Initializing domain instance", 65, machinestate.Stopping)
 	if err := p.InitDNS(opts); err != nil {
 		return err
 	}
@@ -440,12 +460,14 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
+	a.Push("Deleting domain", 75, machinestate.Stopping)
 	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}
 
 	///// ROUTE 53 /////////////////
 
+	a.Push("Updating ip address", 85, machinestate.Stopping)
 	if err := p.Update(opts.MachineId, &kloud.StorageData{
 		Type: "stop",
 		Data: map[string]interface{}{
@@ -495,6 +517,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
+	a.Push("Checking domain", 75, machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
 	_, err = p.DNS.Domain(machineData.Domain)
@@ -507,6 +530,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
+	a.Push("Deleting domain", 85, machinestate.Terminating)
 	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}

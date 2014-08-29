@@ -42,6 +42,10 @@ module.exports = [
   "onboarding/onboardingitemview.coffee",
 
   # COMMON VIEWS
+  'CommonViews/login/loginform.coffee'
+  'CommonViews/login/logininputview.coffee'
+  'CommonViews/login/logininputwithloader.coffee'
+  'CommonViews/login/registerform.coffee'
   "CommonViews/applicationview/applicationtabview.coffee",
   "CommonViews/applicationview/applicationtabhandleholder.coffee",
   "CommonViews/sharepopup.coffee",
@@ -134,6 +138,7 @@ module.exports = [
   "providers/computecontroller.coffee",
   "providers/computecontroller.ui.coffee",
   "providers/computeeventlistener.coffee",
+  "providers/computestatechecker.coffee",
 
   "providers/dummymachine.coffee",
   "providers/machineitem.coffee",

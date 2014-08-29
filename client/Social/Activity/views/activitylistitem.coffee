@@ -71,6 +71,8 @@ class ActivityListItemView extends KDListItemView
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
 
+    @likeSummaryView  = new ActivityLikeSummaryView {}, data
+
 
   initViewEvents: ->
 
@@ -241,6 +243,9 @@ class ActivityListItemView extends KDListItemView
   hide:-> @setClass   'hidden-item'
   show:-> @unsetClass 'hidden-item'
 
+  render : ->
+    super
+    emojify.run @getElement()
 
   viewAppended:->
 
@@ -273,6 +278,7 @@ class ActivityListItemView extends KDListItemView
       {article{@formatContent #(body)}}
       {{> @embedBox}}
       {{> @actionLinks}}
+      {{> @likeSummaryView}}
     </div>
     {{> @commentBox}}
     """

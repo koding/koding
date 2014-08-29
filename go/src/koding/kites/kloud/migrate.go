@@ -18,6 +18,9 @@ vm_names=({{ .VmNames }})
 vm_ids=({{ .VmIds }})
 count=$((${#credentials[@]} - 1))
 counter=0
+echo
+echo "We've upgraded your VM! Please follow the instructions below to transfer files from your old VM."
+echo
 echo "VMs:"
 echo
 for vm in "${vm_names[@]}"; do
@@ -30,13 +33,25 @@ while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
   echo -n "Which vm would you like to migrate? (0-$count) "
   read index
 done
-out="${vm_names[$index]}.tgz"
-echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com/export-files" | xargs curl > $out
+vm_name="${vm_names[$index]}"
+echo
+echo "Downloading files from $vm_name..."
+echo
+archive="${vm_names[$index]}.tgz"
+echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $archive
+echo
+echo "Extracting your files to directory $(pwd)/$vm_name..."
+mkdir $vm_name > /dev/null 2>&1
+tar -xzvf $archive -C $vm_name --strip-components 1 > /dev/null 2>&1
+rm $archive
+echo
+echo "Done."
+
 `
 )
 
 func (k *KodingDeploy) setupMigrateScript(client *sftp.Client, username string) error {
-	vms, err := modelhelper.GetUserVMS(username)
+	vms, err := modelhelper.GetUserVMs(username)
 	if err != nil {
 		return err
 	}

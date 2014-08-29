@@ -98,8 +98,8 @@ class CommentInputWidget extends ActivityInputWidget
     if @getOption 'showAvatar'
       @addSubView new AvatarStaticView
         size    :
-          width : 38
-          height: 38
+          width : 30
+          height: 30
       , KD.whoami()
 
     @addSubView @input

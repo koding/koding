@@ -86,7 +86,9 @@ class ComputeEventListener extends KDObject
       activeListeners = []
       responses.forEach (res)=>
 
-        warn "Error on '#{res.event_id}':", res.err  if res.err?
+        if res.err? and not res.event?
+          warn "Error on '#{res.event_id}':", res.err
+          return
 
         [type, eventId] = res.event.eventId.split '-'
 
@@ -110,5 +112,6 @@ class ComputeEventListener extends KDObject
     .catch (err)=>
 
       @tickInProgress = no
+
       warn "Eventer error:", err
       @stop()

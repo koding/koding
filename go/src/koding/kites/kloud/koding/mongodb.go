@@ -113,7 +113,7 @@ func (p *Provider) GetCredential(publicKey string) *Credential {
 }
 
 func (p *Provider) Update(id string, s *kloud.StorageData) error {
-	p.Log.Debug("[storage] got update request for id '%s' of type '%s'", id, s.Type)
+	p.Log.Debug("[%s] storage update request of type '%s' data: %v", id, s.Type, s.Data)
 
 	data := map[string]interface{}{}
 
@@ -148,6 +148,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 }
 
 func (p *Provider) UpdateState(id string, state machinestate.State) error {
+	p.Log.Info("[%s] storage state update request to state %v", id, state)
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),

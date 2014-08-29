@@ -90,6 +90,14 @@ func main() {
 
 	k := newKite(conf)
 
+	if conf.DebugMode {
+		k.Log.Info("Debug mode enabled")
+	}
+
+	if conf.TestMode {
+		k.Log.Info("Test mode enabled")
+	}
+
 	registerURL := k.RegisterURL(!conf.Public)
 	if conf.RegisterURL != "" {
 		u, err := url.Parse(conf.RegisterURL)
@@ -145,6 +153,13 @@ func newKite(conf *Config) *kite.Kite {
 		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
+	klientFolder := "klient/development/latest"
+	if conf.ProdMode {
+		k.Log.Info("Prod mode enabled")
+		klientFolder = "klient/production/latest"
+	}
+	k.Log.Info("Klient distribution channel is: %s", klientFolder)
+
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
@@ -160,11 +175,6 @@ func newKite(conf *Config) *kite.Kite {
 
 	go kodingProvider.RunChecker(time.Second * 10)
 	go kodingProvider.RunCleaner(time.Minute)
-
-	klientFolder := "klient/development/latest"
-	if conf.ProdMode {
-		klientFolder = "klient/production/latest"
-	}
 
 	privateKey, publicKey := kontrolKeys(conf)
 

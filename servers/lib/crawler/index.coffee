@@ -74,7 +74,7 @@ fetchGroupContent = (models, options, callback) ->
 
     options.channelId = group.socialApiChannelId
     # TODO change this with group implementation
-    options.route ="Public"
+    options.route = "Public"
     options.contentType = "post"
     feed.createFeed models, options, callback
 

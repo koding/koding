@@ -699,18 +699,19 @@ utils.extend utils,
       constructorName: 'JAccount'
 
     fakeObject         =
-      isFake           : yes
-      on               : -> this
-      watch            : -> this
-      body             : body
-      account          : account
-      createdAt        : isoNow
-      updatedAt        : isoNow
-      replies          : []
-      repliesCount     : 0
-      interactions     :
-        like           :
-          isInteracted : no
-          actorsCount  : 0
+      isFake            : yes
+      on                : -> this
+      watch             : -> this
+      body              : body
+      account           : account
+      createdAt         : isoNow
+      updatedAt         : isoNow
+      replies           : []
+      repliesCount      : 0
+      interactions      :
+        like            :
+          isInteracted  : no
+          actorsCount   : 0
+          actorsPreview : []
 
 

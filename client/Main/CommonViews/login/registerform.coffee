@@ -24,9 +24,9 @@ class RegisterInlineForm extends LoginViewInlineForm
         keyup            : =>
 
           if (val = @username.input.getValue()).trim() isnt ''
-            @domain.updatePartial "#{val}.kd.io"
+            @domain.updatePartial "#{val}.koding.io"
           else
-            @domain.updatePartial "username.kd.io"
+            @domain.updatePartial "username.koding.io"
 
         validate         :
           container      : this
@@ -64,7 +64,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     @domain = new KDCustomHTMLView
       tagName : 'strong'
-      partial : 'username.kd.io'
+      partial : 'username.koding.io'
 
     @on "SubmitFailed", (msg)=>
       # if msg is "Wrong password"
@@ -91,9 +91,9 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     if input.valid
       usernameCheckTimer = KD.utils.wait delay, =>
-        @username.loader.show()
+        # @username.loader.show()
         KD.remote.api.JUser.usernameAvailable name, (err, response) =>
-          @username.loader.hide()
+          # @username.loader.hide()
           {kodingUser, forbidden} = response
           if err
             if response?.kodingUser
@@ -135,9 +135,9 @@ class RegisterInlineForm extends LoginViewInlineForm
         input.setValidationResult "available", null
         email = input.getValue()
         if input.valid
-          @email.loader.show()
+          # @email.loader.show()
           KD.remote.api.JUser.emailAvailable email, (err, response)=>
-            @email.loader.hide()
+            # @email.loader.hide()
             if err then warn err
             else
               if response
@@ -159,7 +159,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         Invited by:
         <span class='wrapper'></span>
       </div>
-      <div class='hint'>Your username must be at least 4 characters and it’s also going to be your {{> @domain}} domain.</div>
+      <div class='hint'>Usernames must be a minimum of 4 characters as they are also going to be used to set your Koding hostname, e.g. {{> @domain}}</div>
       <div>{{> @button}}</div>
       <div class="accept-tos">
       By creating an account, I accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a>
