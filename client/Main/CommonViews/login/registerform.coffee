@@ -91,9 +91,9 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     if input.valid
       usernameCheckTimer = KD.utils.wait delay, =>
-        @username.loader.show()
+        # @username.loader.show()
         KD.remote.api.JUser.usernameAvailable name, (err, response) =>
-          @username.loader.hide()
+          # @username.loader.hide()
           {kodingUser, forbidden} = response
           if err
             if response?.kodingUser
@@ -135,9 +135,9 @@ class RegisterInlineForm extends LoginViewInlineForm
         input.setValidationResult "available", null
         email = input.getValue()
         if input.valid
-          @email.loader.show()
+          # @email.loader.show()
           KD.remote.api.JUser.emailAvailable email, (err, response)=>
-            @email.loader.hide()
+            # @email.loader.hide()
             if err then warn err
             else
               if response

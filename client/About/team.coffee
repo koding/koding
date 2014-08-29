@@ -3,7 +3,6 @@ KD.extend
   team            :
 
     active        : [
-
         username  : 'devrim'
         title     : 'CEO &amp; Co-Founder'
       ,
@@ -65,7 +64,7 @@ KD.extend
         title     : 'VP of Engineering'
       ,
         username  : 'alice'
-        title     : 'Chef de Cuisine'
+        title     : 'Senior Food Engineer'
       ]
 
     # suspended     : []
