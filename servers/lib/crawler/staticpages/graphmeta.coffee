@@ -54,6 +54,6 @@ module.exports = (options={})->
   <link rel="fluid-icon" href="#{uri.address}/a/images/logos/fluid512.png" title="Koding">
   <link rel="stylesheet" href="/a/css/kd.css?#{version}">
   <link rel="stylesheet" href="/a/css/koding.css?#{version}">
-  <link class="internal-style-app-social" rel="stylesheet" href="/a/css/__social.css?#{version}">
+  <link class="internal-style-app-members" rel="stylesheet" href="/a/css/__app.members.css?#{version}">
 
   """
