@@ -2,16 +2,16 @@
 {uri, client}       = require('koding-config-manager').load("main.#{argv.c}")
 
 
-getAvatarImageUrl = (hash, avatar, size = 37)->
+getAvatarImageUrl = (hash, avatar, size = 38)->
   imgURL   = "//gravatar.com/avatar/#{hash}?size=#{size}&d=https://koding-cdn.s3.amazonaws.com/images/default.avatar.140.png&r=g"
   if avatar
     imgURL = "//i.embed.ly/1/display/crop?grow=false&width=#{size}&height=#{size}&key=94991069fb354d4e8fdb825e52d4134a&url=#{encodeURIComponent avatar}"
   return imgURL
 
-createAvatarImage = (hash, avatar)=>
-  imgURL = getAvatarImageUrl hash, avatar
+createAvatarImage = (hash, avatar, size = 38)=>
+  imgURL = getAvatarImageUrl hash, avatar, size
   """
-  <img width="37" height="37" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
+  <img width="#{size}" height="#{size}" src="#{imgURL}" style="opacity: 1;" itemprop="image" />
   """
 
 createCreationDate = (createdAt, slug)->
@@ -28,9 +28,14 @@ prepareComments = (activityContent)->
 
   activityContent.replies.reverse()
   for comment in activityContent.replies
-    {replier, message} = comment
+    {replier, message}                 = comment
+    {createdAt}                        = message
     {hash, avatar, nickname, fullName} = replier
-    avatarImage = createAvatarImage hash, avatar
+    date                               = new Date createdAt
+    createdAt                          = "#{date.getDate()}. #{date.getMonth()}. #{date.getFullYear()} - #{date.getHours()}:#{date.getMinutes()}"
+    createdAt                          = createCreationDate createdAt
+    avatarImage                        = createAvatarImage hash, avatar, 30
+
     commentsList +=
       """
       <div class="kdview kdlistitemview kdlistitemview-comment">
@@ -42,12 +47,14 @@ prepareComments = (activityContent)->
           <div class="comment-body-container">
             <p data-paths="body" itemprop="commentText" id="el-56">#{message.body}</p>
           </div>
+          #{createdAt}
         </div>
       </div>
 
       """
 
   return commentsList
+
 
 getActivityContent = (activityContent)->
   slugWithDomain = "#{uri.address}/Activity/Public/#{activityContent.slug}"
@@ -61,6 +68,9 @@ getActivityContent = (activityContent)->
   {formatBody} = require './bodyrenderer'
   body = formatBody body
   commentsList = prepareComments activityContent
+  hasComments  = if activityContent.replies?.length > 0
+  then 'has-comments'
+  else 'no-comments'
 
   content  =
     """
@@ -92,7 +102,7 @@ getActivityContent = (activityContent)->
           </span>
         </div>
       </div>
-      <div class="kdview comment-container fixed-height">
+      <div class="kdview comment-container static #{hasComments}">
         <div class="kdview listview-wrapper">
           <div class="kdview kdscrollview">
             <div class="kdview kdlistview kdlistview-comments">
