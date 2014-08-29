@@ -188,10 +188,7 @@ func (p *Provider) CleanQueue(timeout time.Duration) error {
 		}
 
 		cleanMachines := bson.M{
-			"$or": []bson.M{
-				{"assignee.inProgress": false},
-				{"assignee.inProgress": nil},
-			},
+			"assignee.inProgress": false,
 			"assignee.assignedAt": time.Now().UTC(),
 		}
 
