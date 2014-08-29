@@ -18,7 +18,10 @@ var (
 	// watcher variables
 	once               sync.Once
 	newPaths, oldPaths = make(chan string), make(chan string)
-	watchCallbacks     = make(map[string]func(*fsnotify.FileEvent), 100) // Limit of watching folders
+
+	// Limit of watching folders
+	watchCallbacks = make(map[string]func(*fsnotify.FileEvent), 100)
+	mu             sync.Mutex // protects watchCallbacks
 )
 
 func ReadDirectory(r *kite.Request) (interface{}, error) {
@@ -66,18 +69,24 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 			return
 		}
 
+		mu.Lock()
 		watchCallbacks[params.Path] = changer
+		mu.Unlock()
 
-		// TODO: handle them together
-		r.Client.OnDisconnect(func() {
+		removePath := func() {
+			mu.Lock()
 			delete(watchCallbacks, params.Path)
+			mu.Unlock()
+
 			oldPaths <- params.Path
-		})
+		}
+
+		// remove the path when the remote client disconnects
+		r.Client.OnDisconnect(removePath)
 
 		// this callback is called whenever we receive a 'stopWatching' from the client
 		response["stopWatching"] = dnode.Callback(func(r *dnode.Partial) {
-			delete(watchCallbacks, params.Path)
-			oldPaths <- params.Path
+			removePath()
 		})
 	}
 
@@ -115,7 +124,10 @@ func startWatcher() {
 	}()
 
 	for event := range watcher.Event {
+		mu.Lock()
 		f, ok := watchCallbacks[path.Dir(event.Name)]
+		mu.Unlock()
+
 		if !ok {
 			continue
 		}
