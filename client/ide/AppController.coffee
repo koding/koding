@@ -265,21 +265,22 @@ class IDEAppController extends AppController
         if state is 'Running'
           @mountMachine machineItem
         else
-          @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
+          @createMachineStateModal state, container, machineItem
 
         stateHandler = (event, states) =>
           if event.status in states
-            options = { state, container }
-
             unless @machineStateModal
-              @machineStateModal = new IDE.MachineStateModal options, machineItem
-
-            @machineStateModal.once 'IDEBecameReady', => @finderPane.finderController.reset()
+              @createMachineStateModal state, container, machineItem
 
         computeController.on "stop-#{machineId}", (event) ->    stateHandler event, [ 'Stopping', 'Stopped' ]
         computeController.on "destroy-#{machineId}", (event) -> stateHandler event, [ 'Terminated' ]
       else
         @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
+
+  createMachineStateModal: (state, container, machineItem) ->
+    @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
+    @machineStateModal.once 'IDEBecameReady', => @finderPane.finderController.reset()
+    @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
 
   collapseSidebar: ->
     panel        = @workspace.getView()
