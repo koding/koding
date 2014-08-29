@@ -1,5 +1,11 @@
 class IDEAppController extends AppController
 
+  {
+    Stopped, Running, NotInitialized, Terminated, Unknown,
+    Starting, Building, Stopping, Rebooting, Terminating, Updating
+  } = Machine.State
+
+
   KD.registerAppClass this,
     name         : 'IDE'
     behavior     : 'application'
@@ -267,13 +273,14 @@ class IDEAppController extends AppController
         else
           @createMachineStateModal state, container, machineItem
 
-        stateHandler = (event, states) =>
-          if event.status in states
+        computeController.on "public-#{machineId}", (event) =>
+
+          if event.status in [Stopping, Stopped, Terminating, Terminated]
             unless @machineStateModal
               @createMachineStateModal state, container, machineItem
+            else
+              @machineStateModal.updateStatus event
 
-        computeController.on "stop-#{machineId}", (event) ->    stateHandler event, [ 'Stopping', 'Stopped' ]
-        computeController.on "destroy-#{machineId}", (event) -> stateHandler event, [ 'Terminated' ]
       else
         @machineStateModal = new IDE.MachineStateModal { state: 'NotFound', container } , undefined
 

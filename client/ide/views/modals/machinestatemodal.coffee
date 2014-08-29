@@ -45,13 +45,27 @@ class IDE.MachineStateModal extends IDE.ModalView
     {status, percentage} = event
 
     if status is @state
-      @progressBar.updateBar Math.max percentage, 10
+
+      if percentage?
+
+        @progressBar?.updateBar Math.max percentage, 10
+        @progressBar?.show()
+
+      else
+        @progressBar?.hide()
+        @createLoading()
+
     else
+
       @state = status
 
-      if percentage is 100
-        @progressBar.updateBar 100
+      if percentage? and percentage is 100
+
+        @progressBar?.updateBar 100
+        @progressBar?.show()
+        @loader?.hide()
         KD.utils.wait 500, @bound 'buildViews'
+
       else
         @buildViews()
 
@@ -130,6 +144,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   createLoading: ->
 
+    @loader?.destroy()
     @loader = new KDLoaderView
       showLoader : yes
       size       :
