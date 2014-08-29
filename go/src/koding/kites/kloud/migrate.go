@@ -33,7 +33,7 @@ done
 archive="${vm_names[$index]}.tgz"
 directory="${vm_names[$index]}"
 echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $archive
-mkdir $directory && tar -xzvf $archive -C $directory --strip-components 1
+mkdir $directory && tar -xzvf $archive -C $directory --strip-components 1 1&2>/dev/null
 rm $archive
 
 `
