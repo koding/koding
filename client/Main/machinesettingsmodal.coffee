@@ -124,21 +124,37 @@ class MachineSettingsModal extends KDModalViewWithForms
       position :
         top    : 20
 
+    @buildAdvancedSettings()
+
+    # If JMachine data loaded from KD.userMachines
+    # we need to revive them once from DB to be able to use
+    # provided instance methods on it.
+    unless @machine.jMachine?["ಠ_ಠ"]
+      KD.remote.api.JMachine.one @machine.uid, (err, jMachine)=>
+        info "Revived from DB", err, jMachine
+        unless err then @machine.jMachine = jMachine
+        @_setDomainField()
+    else
+      @_setDomainField()
+
+
+  buildAdvancedSettings: ->
+
     {advanced} = @modalTabs.forms.Settings.inputs
     {label}    = advanced.getOptions()
 
-    advanced.hide()
     label.setClass 'advanced'
+    label.on 'click', @bound 'toggleAdvancedSettings'
 
-    # advanced.addSubView new KDButtonView
-    #   style    : 'solid compact green'
-    #   title    : 'Run Init Script'
-    #   callback : -> ComputeController.runInitScript machine
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact green'
+      title    : 'Run Init Script'
+      callback : -> ComputeController.runInitScript machine
 
-    # advanced.addSubView new KDButtonView
-    #   style    : 'solid compact'
-    #   title    : 'Edit Init Script'
-    #   callback : -> ComputeController.UI.showBuildScriptEditorModal machine
+    advanced.addSubView new KDButtonView
+      style    : 'solid compact'
+      title    : 'Edit Init Script'
+      callback : -> ComputeController.UI.showBuildScriptEditorModal machine
 
     advanced.addSubView new KDButtonView
       style    : 'solid compact red'
@@ -154,18 +170,6 @@ class MachineSettingsModal extends KDModalViewWithForms
         KD.utils.stopDOMEvent event
         new TerminalModal { machine }
 
-    label.on 'click', @bound 'toggleAdvancedSettings'
-
-    # If JMachine data loaded from KD.userMachines
-    # we need to revive them once from DB to be able to use
-    # provided instance methods on it.
-    unless @machine.jMachine?["ಠ_ಠ"]
-      KD.remote.api.JMachine.one @machine.uid, (err, jMachine)=>
-        info "Revived from DB", err, jMachine
-        unless err then @machine.jMachine = jMachine
-        @_setDomainField()
-    else
-      @_setDomainField()
 
   updateState:(event)->
 
