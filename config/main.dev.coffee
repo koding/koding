@@ -178,19 +178,19 @@ Configuration = (options={}) ->
   KONFIG.workers =
     kontrol             :
       group             : "environment"
+      port              : "#{kontrol.port}"
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
       nginx             :
-        ports           : ["#{kontrol.port}"]
         websocket       : yes
         locations       : ["~ /kontrol"]
 
     kloud               :
       group             : "environment"
+      port              : "#{KONFIG.kloud.port}"
       supervisord       :
         command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
-        ports           : ["#{KONFIG.kloud.port}"]
         websocket       : yes
         locations       : ["~ /kloud" ]
 
@@ -206,12 +206,12 @@ Configuration = (options={}) ->
 
     broker              :
       group             : "webserver"
+      port              : "#{KONFIG.broker.port}"
       supervisord       :
         command         : "#{GOBIN}/rerun koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
-        ports           : ["#{KONFIG.broker.port}"]
 
     rerouting           :
       group             : "webserver"
@@ -225,10 +225,9 @@ Configuration = (options={}) ->
 
     sourcemaps          :
       group             : "webserver"
+      port              : "#{KONFIG.sourcemaps.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-      nginx             :
-        ports           : ["#{KONFIG.sourcemaps.port}"]
 
     emailsender         :
       group             : "webserver"
@@ -237,25 +236,24 @@ Configuration = (options={}) ->
 
     appsproxy           :
       group             : "webserver"
+      port              : "#{KONFIG.appsproxy.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
-      nginx             :
-        ports           : ["#{KONFIG.appsproxy.port}"]
 
     webserver           :
       group             : "webserver"
+      port              : "#{KONFIG.webserver.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        ports           : ["#{KONFIG.webserver.port}"]
         locations       : ["/"]
 
     socialworker        :
       group             : "webserver"
+      port              : "#{KONFIG.social.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        ports           : ["#{KONFIG.social.port}"]
         locations       : ["/xhr"]
 
     guestCleaner        :
@@ -270,10 +268,10 @@ Configuration = (options={}) ->
 
     socialapi:
       group             : "socialapi"
+      instances         : 3
+      port              : "#{socialapiProxy.port}"
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
-      nginx             :
-        ports           : ["#{socialapiProxy.port}"]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
