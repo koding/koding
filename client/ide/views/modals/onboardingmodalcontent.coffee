@@ -6,32 +6,20 @@ class IDE.OnboardingModalContent extends JView
 
     super options, data
 
-    @createSubViews()
-
-
-  createSubViews: ->
-
-    @headline = new KDCustomHTMLView
-      cssClass : 'headline'
-      partial  : 'Welcome to your awesome dev environment'
-
     @getStartedButton = new KDButtonView
       title    : 'Get Started'
       cssClass : 'get-started solid green medium'
-      callback : @bound 'getStarted'
-
-
-  getStarted: -> @emit 'GetStartedButtonClicked'
-
+      callback : => @emit 'GetStartedButtonClicked'
 
   pistachio: ->
+    return """
+      <div class="top-container">
+        <div class="video-placeholder"></div>
+      </div>
+      <div class="footer">
+        <div class="headline">
+          Welcome to your awesome dev environment
+        </div>
+        {{> @getStartedButton }}
+      </div>
     """
-    <div class="top-container">
-      <div class="video-placeholder"></div>
-    </div>
-    <div class="footer">
-      {{> @headline}}
-      {{> @getStartedButton }}
-    </div>
-    """
-
