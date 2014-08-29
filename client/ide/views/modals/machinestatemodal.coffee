@@ -2,7 +2,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown,
-    Starting, Building, Stopping, Rebooting, Terminating
+    Starting, Building, Stopping, Rebooting, Terminating, Updating
   } = Machine.State
 
   constructor: (options = {}, data) ->
@@ -78,7 +78,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
       @createStateButton()
-    else if @state in [ Starting, Building, Stopping ]
+    else if @state in [ Starting, Building, Stopping,
+                        Terminating, Updating, Rebooting ]
       @createProgressBar()
 
     @createError()
@@ -94,6 +95,9 @@ class IDE.MachineStateModal extends IDE.ModalView
       Building       : 'is building now.'
       NotInitialized : 'is turned off.'
       Terminated     : 'is turned off.'
+      Rebooting      : 'is rebooting.'
+      Terminating    : 'is terminating.'
+      Updating       : 'is updating now.'
       Unknown        : 'is turned off.'
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
@@ -115,7 +119,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       icon       : yes
       callback   : @bound 'turnOnMachine'
 
-    if @state is 'Running'
+    if @state is Running
       @button    = new KDButtonView
         title    : 'Start IDE'
         cssClass : 'start-ide state-button solid green medium'
