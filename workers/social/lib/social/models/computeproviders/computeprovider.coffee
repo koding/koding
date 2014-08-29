@@ -293,6 +293,9 @@ module.exports = class ComputeProvider extends Base
     JGroup = require '../group'
     JGroup.on 'MemberAdded', ({group, member})->
 
+      # No need to try creating group stacks for guests group members
+      return  if group.slug is 'guests'
+
       client =
         connection :
           delegate : member

@@ -64,7 +64,7 @@ class Machine extends KDObject
   getName: ->
     {uid, label, ipAddress} = this
 
-    return label or ipAddress or uid or "one of #{KD.nick()}'s machine"
+    return label or ipAddress or uid or "one of #{KD.nick()}'s machines"
 
 
   getBaseKite: (createIfNotExists = yes)->
