@@ -55,6 +55,10 @@ func main() {
 
 	mux = handlers.Inject(mux, r.Metrics)
 
+	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello from socialapi")
+	})
+
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()

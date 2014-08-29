@@ -2,7 +2,6 @@ package bongo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -19,7 +18,7 @@ func (b *Bongo) Fetch(i Modellable, id int64) error {
 
 	data, ok := i.(Cacher)
 	if !ok {
-		return errors.New("cacher is not implemented for given struct")
+		return CacherIsNotImplemented
 	}
 
 	return b.GetFromBest(i, data, id)

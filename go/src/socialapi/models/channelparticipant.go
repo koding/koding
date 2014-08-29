@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/request"
 	"time"
@@ -102,7 +101,15 @@ func (c *ChannelParticipant) CreateRaw() error {
 		Scan(&c.Id)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) FetchParticipant() error {
+	if c.ChannelId == 0 {
+		return ErrChannelIdIsNotSet
+	}
+
+	if c.AccountId == 0 {
+		return ErrAccountIdIsNotSet
+	}
 
 	selector := map[string]interface{}{
 		"channel_id": c.ChannelId,
@@ -112,6 +119,7 @@ func (c *ChannelParticipant) FetchParticipant() error {
 	return c.fetchParticipant(selector)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) FetchActiveParticipant() error {
 	selector := map[string]interface{}{
 		"channel_id":      c.ChannelId,
@@ -169,7 +177,7 @@ func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error
 	var participants []ChannelParticipant
 
 	if c.ChannelId == 0 {
-		return participants, errors.New("ChannelId is not set")
+		return participants, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -194,7 +202,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	var participants []int64
 
 	if c.ChannelId == 0 {
-		return participants, errors.New("ChannelId is not set")
+		return participants, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -222,7 +230,7 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 
 func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
 	if a.Id == 0 {
-		return nil, errors.New("Account.Id is not set")
+		return nil, ErrAccountIdIsNotSet
 	}
 
 	channelIds := make([]int64, 0)
@@ -308,14 +316,19 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 	return channelIds, nil
 }
 
+// FetchParticipantCount fetchs the participant count in the channel
+// if there is no participant in the channel, then returns zero value
+//
+// Tests are done.
 func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 	if c.ChannelId == 0 {
-		return 0, errors.New("channel Id is not set")
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	return c.Count("channel_id = ? and status_constant = ?", c.ChannelId, ChannelParticipant_STATUS_ACTIVE)
 }
 
+// Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 	if c.ChannelId == 0 {
 		return false, ErrChannelIdIsNotSet
@@ -381,6 +394,7 @@ func (c *ChannelParticipant) isExempt() (bool, error) {
 	return false, nil
 }
 
+// Tests are done.
 func (c *ChannelParticipant) getAccountId() (int64, error) {
 	if c.AccountId != 0 {
 		return c.AccountId, nil

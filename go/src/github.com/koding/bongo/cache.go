@@ -2,14 +2,9 @@ package bongo
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 
 	"github.com/koding/redis"
-)
-
-var (
-	ErrCacheIsNotEnabled = errors.New("cache is not enabled")
 )
 
 // A generic key value storage interface. Implementations must be thread safe.
