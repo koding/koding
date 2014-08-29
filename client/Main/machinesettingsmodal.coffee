@@ -113,7 +113,7 @@ class MachineSettingsModal extends KDModalViewWithForms
         @showLoader()
         KD.singletons.computeController.build machine
 
-    computeController.on "public-#{machine._id}", @bound 'updateState'
+    computeController.on "public-#{machine._id}", (event)=> @updateState event
 
     @over.hide()  if machine.status.state not in [
       Terminated, NotInitialized, Building, Terminating
