@@ -226,6 +226,7 @@ Configuration = (options={}) ->
 
     authworker          :
       group             : "webserver"
+      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
 
@@ -244,7 +245,7 @@ Configuration = (options={}) ->
       group             : "webserver"
       port              : "#{KONFIG.appsproxy.port}"
       supervisord       :
-        command         : "node #{projectRoot}/servers/appsproxy/web.js               -c #{configName} -p #{KONFIG.appsproxy.port}"
+        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
     webserver           :
       group             : "webserver"
@@ -309,6 +310,7 @@ Configuration = (options={}) ->
 
     realtime            :
       group             : "socialapi"
+      instances         : 2
       supervisord       :
         command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
 

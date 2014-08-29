@@ -49,6 +49,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     port = "#{options.port}"
     partialPort = "#{options.port}".substring(0, port.length - 1)
     section.process_name = "%(program_name)s_%(process_num)d"
+
     section.command = section.command.replace new RegExp(options.port), "#{partialPort}%(process_num)d"
 
   supervisordSection = "\n[program:#{app}]\n"
