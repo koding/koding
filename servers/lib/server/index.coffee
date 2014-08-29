@@ -19,6 +19,7 @@ Object.defineProperty global, 'KONFIG',
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
+{dash}  = require 'bongo'
 
 _          = require 'underscore'
 async      = require 'async'
@@ -252,7 +253,28 @@ app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
 app.get "/-/healthCheck", (req, res) ->
-  res.jsonp(result:1)
+  {socialapi, newkontrol} = KONFIG
+  {socialApiUri, broker} = KONFIG.client.runtimeOptions
+
+  errs = []
+  urls = [
+    socialapi.proxyUrl
+    newkontrol.url
+    socialApiUri
+    broker.uri
+  ]
+
+  urlFns = urls.map (url)->->
+    request url, (err, resp, body)->
+      errs.push({ url, err })  if err?
+      urlFns.fin()
+
+  dash urlFns, ->
+    if Object.keys(errs).length > 0
+      console.log "HEALTHCHECK ERROR:", errs
+      res.send 500
+    else
+      res.send 200
 
 app.get "/-/version", (req, res) ->
   res.jsonp(version:KONFIG.version)
