@@ -184,16 +184,16 @@ Configuration = (options={}) ->
       nginx             :
         ports           : ["#{kontrol.port}"]
         websocket       : yes
-        locations       : ["~^/kontrol/.*"]
+        locations       : ["~ /kontrol"]
 
     kloud               :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo}"
+        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         ports           : ["#{KONFIG.kloud.port}"]
         websocket       : yes
-        locations       : ["~^/kloud/.*"]
+        locations       : ["~ /kloud"]
 
     # ngrokProxy          :
     #   group             : "environment"
