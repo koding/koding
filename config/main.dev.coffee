@@ -186,7 +186,7 @@ Configuration = (options={}) ->
     socialworker        : command : "./watch-node #{projectRoot}/workers/social/index.js             -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=13020"
     userCreator         : command : "node #{projectRoot}/workers/usercreator/index.js               -c #{configName}"
 
-    clientWatcher       : command : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
+    clientWatcher       : command : "ulimit -n 4096 && coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri /sourcemaps --verbose true"
     ngrokProxy          : command : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
     guestCleaner        : command : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
@@ -467,7 +467,6 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-        rm -rf #{projectRoot}/.logs
         #{killlist()}
         nginx -s quit
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
@@ -479,7 +478,6 @@ Configuration = (options={}) ->
         echo "starting nginx"
         nginx -s quit
         nginx -c #{projectRoot}/.dev.nginx.conf
-
 
       }
 
