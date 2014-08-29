@@ -49,12 +49,6 @@ class IDE.MachineStateModal extends IDE.ModalView
         @progressBar?.updateBar Math.max percentage, 10
         @progressBar?.show()
 
-      else
-
-        if status in [Stopping, Starting, Building, Terminating]
-          @progressBar?.hide()
-          @createLoading()
-
     else
 
       @state = status
@@ -63,10 +57,11 @@ class IDE.MachineStateModal extends IDE.ModalView
 
         @progressBar?.updateBar 100
         @progressBar?.show()
-        @loader?.hide()
+
         KD.utils.wait 500, @bound 'buildViews'
 
       else
+
         @buildViews()
 
       @prepareIDE()  if status is Running
