@@ -84,7 +84,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    webserver                      : {port          : 3000                        , useCacheHeader: no}
+    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort: 8865}
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
