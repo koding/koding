@@ -224,17 +224,27 @@ app.post "/:name?/Login", (req, res) ->
   { JUser } = koding.models
   { username, password, redirect } = req.body
   { clientId } = req.cookies
-  redirect ?= "/"
-  JUser.login clientId, { username, password }, (err, response) ->
+
+  JUser.login clientId, { username, password }, (err, info) ->
     return res.send 403, err  if err
-    res.cookie 'clientId', response.replacementToken
-    # handle the request as an XHR response:
-    return res.send 200, null if req.xhr
-    # handle the request with an HTTP redirect:
-    res.redirect 301, redirect
+    # implementing a temporary opt-out for new koding:
+    storageOptions =
+      appId   : 'NewKoding'
+      version : '2.0'
+    info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
+      return res.send 500, "Internal error"  if err
+      res.cookie 'clientId', response.replacementToken
+      res.send 200, 'ok'
+
+app.post '/:name?/Optout', (req, res) ->
+  res.cookie 'useOldKoding', 'true'
+  res.redirect 301, '/'
 
 app.all "/:name?/Logout", (req, res)->
-  res.clearCookie 'clientId'  if req.method is 'POST'
+  if req.method is 'POST'
+    res.clearCookie 'clientId'
+    res.clearCookie 'useOldKoding'
+    res.clearCookie 'useNewKoding'
   res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
