@@ -18,7 +18,7 @@ class IDE.OnboardingModalContent extends JView
       </div>
       <div class="footer">
         <div class="headline">
-          Welcome to your awesome dev environment
+          Welcome to Koding! This 2min video will give you an overview of your new cloud-based development environment. Get ready to say goodbye to localhost!
         </div>
         {{> @getStartedButton }}
       </div>
