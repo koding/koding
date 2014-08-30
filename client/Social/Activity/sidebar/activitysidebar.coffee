@@ -412,6 +412,13 @@ class ActivitySidebar extends KDCustomHTMLView
       treeItemClass       : NavigationItem
       addListsCollapsed   : yes
 
+    # This is temporary, we will create a separate TreeViewController
+    # for this and put this logic into there ~ FIXME ~ GG
+    @machineTree.dblClick = (nodeView, event)->
+      machine = nodeView.getData()
+      if machine.status.state is Machine.State.Running
+        @toggle nodeView
+
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
