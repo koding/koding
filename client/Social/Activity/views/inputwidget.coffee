@@ -105,14 +105,15 @@ class ActivityInputWidget extends KDView
 
     fn(obj, @bound 'submissionCallback')
 
-    @emit 'SubmitStarted', value, clientRequestId
+    @emit 'SubmitStarted', body, clientRequestId
 
 
   submissionCallback: (err, activity) ->
 
     if err
       @showError err
-      @emit 'SubmitFailed', err
+      @emit 'SubmitFailed', err, activity.clientRequestId
+      return
 
     @emit 'SubmitSucceeded', activity
 
