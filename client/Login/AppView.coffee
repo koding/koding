@@ -431,7 +431,6 @@ class LoginView extends JView
     groupsController.groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, user) =>
-
       form.button.hideLoader()
 
       if err
@@ -440,6 +439,7 @@ class LoginView extends JView
         form.notificationsDisabled = no
         form.emit "SubmitFailed", message
       else
+        KD.setVersionCookie user.account
         {account, newToken} = user
         account ?= KD.whoami()
 

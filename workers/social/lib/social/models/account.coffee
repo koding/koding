@@ -1025,10 +1025,7 @@ module.exports = class JAccount extends jraphical.Module
             data        : {name}
           rel.save (err)-> callback err, storage
 
-  fetchAppStorage$: secure (client, options, callback)->
-    unless @equals client.connection.delegate
-      return callback "Attempt to access unauthorized application storage"
-
+  fetchOrCreateAppStorage: (options, callback) ->
     {appId, version} = options
     @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
       if err then callback err
@@ -1050,6 +1047,12 @@ module.exports = class JAccount extends jraphical.Module
             rel.save (err)-> callback err, newStorage
       else
         callback err, storage
+
+  fetchAppStorage$: secure (client, options, callback)->
+    unless @equals client.connection.delegate
+      return callback "Attempt to access unauthorized application storage"
+
+    @fetchOrCreateAppStorage options, callback
 
   fetchUser:(callback)->
     JUser = require './user'
