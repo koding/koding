@@ -407,9 +407,13 @@ class LoginView extends JView
                 title         : 'Let\'s go'
                 disabled      : yes
 
-    modal.once 'KDObjectWillBeDestroyed', =>
+    modal.once 'KDObjectWillBeDestroyed', ->
       mainView.unsetClass 'blur'
       form.button.hideLoader()
+
+    modal.once 'viewAppended', ->
+      KD.utils.defer ->
+        modal.modalTabs.forms.password.inputs.password.setFocus()
 
 
   doRegister: (formData, form) ->
@@ -449,7 +453,7 @@ class LoginView extends JView
         Cookies.set 'newRegister', yes
         mainController.swapAccount { account, replacementToken: newToken }
 
-        return location.reload()
+        return location.replace('/')
 
 
   doFinishRegistration: (formData) ->
