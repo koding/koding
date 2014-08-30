@@ -23,10 +23,6 @@ class HomeView extends JView
     @footer = new FooterView
 
 
-
-
-
-
   pistachio : ->
 
     """
