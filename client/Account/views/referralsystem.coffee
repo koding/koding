@@ -22,11 +22,11 @@ class AccountReferralSystemListController extends AccountListViewController
     @addHeader()
     @loadItems()
 
-  showRedeemReferralPointModal:->
-    KD.mixpanel "Referer Redeem Point modal, click"
+  # showRedeemReferralPointModal:->
+  #   KD.mixpanel "Referer Redeem Point modal, click"
 
-    appManager = KD.getSingleton "appManager"
-    appManager.tell "Account", "showRedeemReferralPointModal"
+  #   appManager = KD.getSingleton "appManager"
+  #   appManager.tell "Account", "showRedeemReferralPointModal"
 
 
   addHeader:->
@@ -51,7 +51,9 @@ class AccountReferralSystemListController extends AccountListViewController
         cssClass  : 'add-big-btn'
         title     : 'Redeem your VM space'
         icon      : yes
-        callback  : => @showRedeemReferralPointModal()
+        callback  : =>
+          new KDNotificationView title: "Coming soon!"
+          # @showRedeemReferralPointModal()
 
 class AccountReferralSystemList extends KDListView
 
