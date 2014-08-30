@@ -411,6 +411,10 @@ class LoginView extends JView
       mainView.unsetClass 'blur'
       form.button.hideLoader()
 
+    modal.once 'viewAppended', ->
+      KD.utils.defer ->
+        modal.modalTabs.forms.password.inputs.password.setFocus()
+
 
   doRegister: (formData, form) ->
 
