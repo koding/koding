@@ -569,8 +569,10 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       height = editorPane.getHeight()
       {ace}  = editorPane.aceView
-      ace.setHeight height
-      ace.editor.resize()
+
+      if ace?.editor?
+        ace.setHeight height
+        ace.editor.resize()
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title
