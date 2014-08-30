@@ -125,6 +125,8 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
     mixpanel                       : mixpanel.token
+    segment                        : '4c570qjqo0'
+
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
