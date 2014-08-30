@@ -289,15 +289,24 @@ class IDEAppController extends AppController
 
       appStorage.fetchStorage =>
 
-        return  if @onboardingModal?
+        return  if @onboardingModal
 
         hideOnboardingView = appStorage.getValue 'hideOnboardingModal'
 
         unless hideOnboardingView
-          @onboardingModal = new IDE.OnboardingModal { container }
-          @onboardingModal.once 'OnboardingModalDismissed', =>
-            mainView.activitySidebar.initiateFakeCounter()
-            callback()
+          mainView.activitySidebar.initiateFakeCounter()
+          callback()
+          appStorage.setValue 'hideOnboardingModal', yes
+
+          # FIXME: Onboarding modal is currently disabled.
+          # To make a quick workaround for `initiateFakeCounter`
+          # I just set appStorage flag to true. When we want to
+          # put onboarding modal back we need to change flag name.
+
+          # @onboardingModal = new IDE.OnboardingModal { container }
+          # @onboardingModal.once 'OnboardingModalDismissed', =>
+          #   mainView.activitySidebar.initiateFakeCounter()
+          #   callback()
         else
           callback()
 
