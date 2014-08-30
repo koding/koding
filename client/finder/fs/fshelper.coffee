@@ -99,31 +99,24 @@ class FSHelper
 
   @minimizePath: (path)-> @plainPath(path).replace ///^\/home\/#{KD.nick()}///, '~'
 
-  @exists = (path, vmName, callback=noop)->
-    @getInfo path, vmName, (err, res)->
-      callback err, res?
+  # @exists = (path, vmName, callback=noop)->
+  #   @getInfo path, vmName, (err, res)->
+  #     callback err, res?
 
-  @getInfo = (path, vmName, callback=noop)->
-    KD.getSingleton('vmController').run
-      method   : "fs.getInfo"
-      vmName   : vmName
-      withArgs : {path, vmName}
-    , callback
+  # @getInfo = (path, vmName, callback=noop)->
+  #   KD.getSingleton('vmController').run
+  #     method   : "fs.getInfo"
+  #     vmName   : vmName
+  #     withArgs : {path, vmName}
+  #   , callback
 
-  @glob = (pattern, vmName, callback)->
-    [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
-    KD.getSingleton('vmController').run
-      method   : "fs.glob"
-      vmName   : vmName
-      withArgs : {pattern, vmName}
-    , callback
-
-  @uniquePath = (path, vmName, callback=noop)->
-    KD.getSingleton('vmController').run
-      method   : "fs.uniquePath"
-      vmName   : vmName
-      withArgs : {path, vmName}
-    , callback
+  # @glob = (pattern, vmName, callback)->
+  #   [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
+  #   KD.getSingleton('vmController').run
+  #     method   : "fs.glob"
+  #     vmName   : vmName
+  #     withArgs : {pattern, vmName}
+  #   , callback
 
   @registry = {}
 
@@ -166,17 +159,17 @@ class FSHelper
 
     return parent
 
-  @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
-    return warn "Pass a path to create folders recursively"  unless path
+  # @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
+  #   return warn "Pass a path to create folders recursively"  unless path
 
-    KD.getSingleton("vmController").run {
-      method      : "fs.createDirectory"
-      withArgs    : {
-        recursive : yes
-        path
-      }
-      vmName
-    }, callback
+  #   KD.getSingleton("vmController").run {
+  #     method      : "fs.createDirectory"
+  #     withArgs    : {
+  #       recursive : yes
+  #       path
+  #     }
+  #     vmName
+  #   }, callback
 
   @escapeFilePath = (name) ->
     return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
