@@ -662,6 +662,19 @@ span.collapsedtext
           &:before
             display       none
 
+  .resend
+    position          absolute
+    right             26px
+    font-size         12px
+    font-weight       400
+    z-index           10
+
+    a
+      font-size       inherit
+      font-weight     inherit
+      color           #D05656
+      noTextDeco()
+
 
   .comment-container
     overflow              visible
@@ -670,6 +683,20 @@ span.collapsedtext
     rounded               0 0 3px 3px
     shadow                inset 0 1px 0 rgba(0,0,0,.05)
     borderBox()
+
+    .resend
+      position          absolute
+      right             0
+      font-size         12px
+      font-weight       400
+      z-index           10
+
+      a
+        font-size       inherit
+        font-weight     inherit
+        color           #D05656
+        noTextDeco()
+
 
     &.no-comments
       display             none
