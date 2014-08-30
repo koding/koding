@@ -35,20 +35,20 @@ class FSFolder extends FSFile
       @emit 'fs.job.finished'
 
 
-  save:(callback)->
+  # save:(callback)->
 
-    @emit "fs.save.started"
+  #   @emit "fs.save.started"
 
-    @getKite().init()
+  #   @getKite().init()
 
-    .then =>
-      @vmController.fsCreateDirectory {
-        path: FSHelper.plainPath @path
-      }
+  #   .then =>
+  #     @vmController.fsCreateDirectory {
+  #       path: FSHelper.plainPath @path
+  #     }
 
-    .nodeify (err, response) ->
-      callback null, response
-      @emit "fs.save.finished", null, response
+  #   .nodeify (err, response) ->
+  #     callback null, response
+  #     @emit "fs.save.finished", null, response
 
   saveAs:(callback)->
     log 'Not implemented yet.'

@@ -130,7 +130,7 @@ class FSItem extends KDObject
       @emit "fs.job.finished"
 
 
-  @extract: (callback = (->)) ->
+  extract: (callback = ->)->
 
     @emit "fs.job.started"
 
@@ -165,17 +165,6 @@ class FSItem extends KDObject
       kite.exec({command})
 
     .then(handleStdErr())
-
-    .then =>
-
-      file = FSHelper.createFileInstance {
-        path            : actualPath
-        parentPath      : @parentPath
-        type            : 'folder'
-        machine         : @machine
-      }
-
-      return file
 
     .nodeify(callback)
 
