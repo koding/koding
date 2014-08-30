@@ -28,6 +28,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     stderr_logfile          : "/var/log/koding/#{app}.log"
     stdout_logfile          : "/var/log/koding/#{app}.log"
     numprocs                : options.instances or 1
+    numprocs_start          : 0
     directory               : "/opt/koding"
     autostart               : yes
     autorestart             : yes
