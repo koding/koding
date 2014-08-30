@@ -407,7 +407,7 @@ class LoginView extends JView
                 title         : 'Let\'s go'
                 disabled      : yes
 
-    modal.once 'KDObjectWillBeDestroyed', =>
+    modal.once 'KDObjectWillBeDestroyed', ->
       mainView.unsetClass 'blur'
       form.button.hideLoader()
 
