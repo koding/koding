@@ -83,11 +83,11 @@ projects =
     script        : "website/a/js/__app.viewer.js"
     sourceMapRoot : "Viewer/"
 
-  Teamwork        :
-    path          : "client/Teamwork"
-    style         : "website/a/css/__app.teamwork.css"
-    script        : "website/a/js/__app.teamwork.js"
-    sourceMapRoot : "Teamwork/"
+  # Teamwork        :
+  #   path          : "client/Teamwork"
+  #   style         : "website/a/css/__app.teamwork.css"
+  #   script        : "website/a/js/__app.teamwork.js"
+  #   sourceMapRoot : "Teamwork/"
 
   IDE             :
     path          : "client/IDE"
@@ -147,11 +147,11 @@ projects =
     script        : "website/a/js/__app.bugreport.js"
     sourceMapRoot : "Social/Bugs/"
 
-  DevTools        :
-    path          : "client/DevTools"
-    style         : "website/a/css/__app.devtools.css"
-    script        : "website/a/js/__app.devtools.js"
-    sourceMapRoot : "DevTools/"
+  # DevTools        :
+  #   path          : "client/DevTools"
+  #   style         : "website/a/css/__app.devtools.css"
+  #   script        : "website/a/js/__app.devtools.js"
+  #   sourceMapRoot : "DevTools/"
 
 bundles           =
 
@@ -180,10 +180,10 @@ bundles           =
   #   style         : "website/a/out/css/koding.css"
   #   script        : "website/a/out/js/koding.js"
 
-  TeamworkBundle  :
-    projects      : ['Viewer', 'Teamwork', 'DevTools']
-    style         : "website/a/css/__teamwork.css"
-    script        : "website/a/js/__teamwork.js"
+  # TeamworkBundle  :
+  #   projects      : ['Viewer', 'Teamwork', 'DevTools']
+  #   style         : "website/a/css/__teamwork.css"
+  #   script        : "website/a/js/__teamwork.js"
 
   IDEBundle       :
     projects      : ['Ace', 'Terminal', 'Finder', 'Viewer', 'IDE']
