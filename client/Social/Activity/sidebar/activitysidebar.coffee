@@ -340,7 +340,9 @@ class ActivitySidebar extends KDCustomHTMLView
         title    : 'Activity'
         cssClass : 'kdlistitemview-sidebar-item activity'
         href     : '/Activity/Public'
-        click    : -> @setClass 'selected'
+        click    : ->
+          @setClass 'selected'
+          @$('cite.count').remove()
         icon     : {}
 
       @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
