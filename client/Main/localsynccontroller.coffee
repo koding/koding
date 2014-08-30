@@ -6,8 +6,8 @@ class LocalSyncController extends KDController
     @filesToSave = @storage.getValue("saveRequestedFiles") or []
     @openedFiles = @storage.getValue("openedFiles") or []
 
-    if @filesToSave.length > 0
-      @syncLocalContentIfDiffExists (res)-> log "Synced"
+    # if @filesToSave.length > 0
+    #   @syncLocalContentIfDiffExists (res)-> log "Synced"
 
     @initializeListeners()
 
@@ -15,9 +15,9 @@ class LocalSyncController extends KDController
     KD.remote.on "reconnected", =>
       return  if @synStarted
       @synStarted = yes
-      @syncLocalContentIfDiffExists (err)=>
-        @synStarted = no
-        KD.showError err if err
+      # @syncLocalContentIfDiffExists (err)=>
+      #   @synStarted = no
+      #   KD.showError err if err
 
   syncLocalContentIfDiffExists: (callback)->
     {dash} = Bongo
