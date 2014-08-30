@@ -311,10 +311,10 @@ module.exports = class JGroup extends Module
         as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
-        as          : 'owner'
+        as          : 'permset'
       defaultPermissionSet:
         targetType  : JPermissionSet
-        as          : 'default'
+        as          : 'defaultpermset'
       member        :
         targetType  : 'JAccount'
         as          : 'member'
