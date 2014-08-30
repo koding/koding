@@ -449,7 +449,7 @@ class LoginView extends JView
         Cookies.set 'newRegister', yes
         mainController.swapAccount { account, replacementToken: newToken }
 
-        return location.reload()
+        return location.replace('/')
 
 
   doFinishRegistration: (formData) ->

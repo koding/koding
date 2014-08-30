@@ -4,8 +4,10 @@ class HomeAppController extends AppController
     name         : "Home"
     route        : "/Home"
     preCondition :
-      condition  : (options, cb)-> cb !KD.isLoggedIn()
-      failure    : (options, cb)-> KD.singletons.router.handleRoute '/Activity'
+      condition  : (options, cb) -> cb !KD.isLoggedIn()
+      failure    : (options, cb) ->
+        {router} = KD.singletons
+        router.handleRoute router.getDefaultRoute()
 
   constructor:(options = {}, data)->
 
