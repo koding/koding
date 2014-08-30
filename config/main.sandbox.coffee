@@ -498,7 +498,7 @@ Configuration = (options={}) ->
   machineSettings = ->
     return """
         \n
-        echo '#{b64z KONFIG.nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
+        echo '#{b64z KONFIG.nginxConf}' | base64 --decode | gunzip > /etc/nginx/nginx.conf;
         echo "nginx configured."
         echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
         echo "supervisor configured."
