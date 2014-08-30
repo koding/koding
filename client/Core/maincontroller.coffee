@@ -145,7 +145,7 @@ class MainController extends KDController
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
 
-      Cookies.expire "useNewKoding"
+      Cookies.expire "koding082014"
       Cookies.expire "useOldKoding"
 
       wc = KD.singleton 'windowController'

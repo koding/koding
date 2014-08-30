@@ -1,4 +1,4 @@
-Mongo              = "localhost:27017/koding"
+Mongo              = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
 Environment        = "prod"
 Region             = "prod"
 Hostname           = "http://lvh.me:8090"
@@ -11,11 +11,11 @@ Password= "socialapplication"
 DBName=   "social"
 
 [mq]
-Host     = "localhost"
+Host     = "golden-ox.rmq.cloudamqp.com"
 Port     = 5672
-Login    = "guest"
-Password = "guest"
-Vhost    = "/"
+Login    = "hcaxnooc"
+Password = "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"
+Vhost    = "hcaxnooc"
 
 [redis]
 URL = "prod0.1ia3pb.0001.use1.cache.amazonaws.com:6379"

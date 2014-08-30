@@ -47,12 +47,12 @@ type Config struct {
 	MongoKontrol   string
 	MongoMinWrites int
 	Mq             struct {
-		Host          string
-		Port          int
-		ComponentUser string
-		Password      string
-		Vhost         string
-		LogLevel      string
+		Host     string
+		Port     int
+		Login    string
+		Password string
+		Vhost    string
+		LogLevel string
 	}
 	Neo4j struct {
 		Read    string
