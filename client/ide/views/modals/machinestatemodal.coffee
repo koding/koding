@@ -7,9 +7,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'ide-machine-state', options.cssClass
-    options.width    = 440
-    options.height   = 270
+    options.cssClass or= 'ide-machine-state'
+    options.width      = 440
+    # options.height   = 270
 
     super options, data
 
@@ -162,10 +162,11 @@ class IDE.MachineStateModal extends IDE.ModalView
       cssClass : 'footer'
       partial  : """
         <p>Free account VMs are shutdown when you leave Koding.</p>
-        <a href="#" class="upgrade-link">Upgrade your account to keep it always on</a>
         <a href="#" class="info-link">More about VMs</a>
         <span class="more-icon"></span>
       """
+      # should be hidden out until mvp - SY
+      # <a href="#" class="upgrade-link">Upgrade your account to keep it always on</a>
 
     @addSubView @footer
 
