@@ -283,7 +283,7 @@ class IDEAppController extends AppController
           @createMachineStateModal { state: 'NotFound', container }
 
 
-      { appStorageController } = KD.singletons
+      { appStorageController, mainView } = KD.singletons
 
       appStorage = appStorageController.storage 'IDE', '1.0.0'
 
@@ -295,7 +295,9 @@ class IDEAppController extends AppController
 
         unless hideOnboardingView
           @onboardingModal = new IDE.OnboardingModal { container }
-          @onboardingModal.once 'OnboardingModalDismissed', => callback()
+          @onboardingModal.once 'OnboardingModalDismissed', =>
+            mainView.activitySidebar.initiateFakeCounter()
+            callback()
         else
           callback()
 
