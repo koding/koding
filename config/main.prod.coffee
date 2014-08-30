@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  options.hostname       = "prod.koding.com"
+  options.hostname       = "latest.koding.com"
   options.publicHostname = "https://#{options.hostname}"
 
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
