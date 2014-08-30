@@ -120,7 +120,7 @@ func TestChannelMessageContainerAddAccountOldId(t *testing.T) {
 			So(gi.AccountOldId, ShouldEqual, "")
 		})
 
-		Convey("it should be empty account old if channel is not set", func() {
+		Convey("it should add account old id successfully ", func() {
 			// create account
 			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)

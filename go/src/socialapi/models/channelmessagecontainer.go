@@ -105,6 +105,7 @@ func (c *ChannelMessageContainer) PopulateWith(m *ChannelMessage) *ChannelMessag
 	return c
 }
 
+// Tests are done
 func (cc *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		if c.AccountOldId != "" {
