@@ -42,6 +42,7 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       when 'privatemessage'
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
+      when 'group'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
