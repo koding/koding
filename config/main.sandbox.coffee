@@ -229,7 +229,7 @@ Configuration = (options={}) ->
       group             : "webserver"
       port              : "#{KONFIG.sourcemaps.port}"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+        command         : "#{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
     emailsender         :
       group             : "webserver"
@@ -246,7 +246,7 @@ Configuration = (options={}) ->
       group             : "webserver"
       port              : "#{KONFIG.webserver.port}"
       supervisord       :
-        command         : "KITE_HOME=#{kiteHome} node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                  --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
 
@@ -254,7 +254,7 @@ Configuration = (options={}) ->
       group             : "webserver"
       port              : "#{KONFIG.social.port}"
       supervisord       :
-        command         : "KITE_HOME=#{kiteHome} node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/xhr"]
 
@@ -498,7 +498,7 @@ Configuration = (options={}) ->
   machineSettings = ->
     return """
         \n
-        echo '#{b64z KONFIG.nginxConf}'                      | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
+        echo '#{b64z KONFIG.nginxConf}' | base64 --decode | gunzip > /etc/nginx/nginx.conf;
         echo "nginx configured."
         echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
         echo "supervisor configured."
