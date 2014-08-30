@@ -18,7 +18,7 @@ KD.extend
 
   setVersionCookie: ({ meta:{ createdAt }}) ->
     if (new Date createdAt) > KD.newKodingLaunchDate
-      Cookies.set 'useNewKoding', 'true'
+      Cookies.set 'koding082014', 'koding082014'
 
   apiUri       : KD.config.apiUri
   appsUri      : KD.config.appsUri
