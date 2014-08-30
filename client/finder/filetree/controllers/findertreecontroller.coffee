@@ -77,9 +77,9 @@ class NFinderTreeController extends JTreeViewController
     {vmName, path} = nodeView.getData()
     @appManager.open "Viewer", params: {path, vmName}
 
-  resetVm:(nodeView)->
-    {vmName} = nodeView.data
-    KD.getSingleton('vmController').reinitialize vmName
+  # resetVm:(nodeView)->
+  #   {vmName} = nodeView.data
+  #   KD.getSingleton('vmController').reinitialize vmName
 
   unmountVm:(nodeView)->
     { machine: { uid } } = nodeView.getData()
@@ -436,7 +436,7 @@ class NFinderTreeController extends JTreeViewController
   cmMakeTopFolder:       (node) -> @makeTopFolder        node
   cmRefresh:             (node) -> @refreshFolder        node
   cmToggleDotFiles:      (node) -> @toggleDotFiles       node
-  cmResetVm:             (node) -> @resetVm              node
+  # cmResetVm:             (node) -> @resetVm              node
   cmUnmountVm:           (node) -> @unmountVm            node
   cmOpenMachineTerminal: (node) -> @openMachineTerminal  node
   cmCreateFile:          (node) -> @createFile           node
