@@ -256,7 +256,7 @@ class IDEAppController extends AppController
       return KD.showError 'Something went wrong. Try again.'  if err
 
 
-      callback = =>
+      callback = (initiateFakeCounter) =>
         for machine in machines when machine.uid is machineUId
           machineItem = machine
 
@@ -268,34 +268,31 @@ class IDEAppController extends AppController
             @mountMachine machineItem
           else
             @createMachineStateModal state, container, machineItem
+            if initiateFakeCounter
+              @machineStateModal.once 'MachineTurnOnStarted', ->
+                KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
           computeController.on "public-#{machineId}", (event) =>
-
             if event.status in [Stopping, Stopped, Terminating, Terminated]
 
               unless @machineStateModal
                 @createMachineStateModal state, container, machineItem
               else
                 @machineStateModal.updateStatus event
-
         else
-
           @createMachineStateModal { state: 'NotFound', container }
 
 
-      { appStorageController, mainView } = KD.singletons
-
+      {appStorageController} = KD.singletons
       appStorage = appStorageController.storage 'IDE', '1.0.0'
 
       appStorage.fetchStorage =>
-
         return  if @onboardingModal
 
-        hideOnboardingView = appStorage.getValue 'hideOnboardingModal'
+        hideOnboardingModal = appStorage.getValue 'hideOnboardingModal'
 
-        unless hideOnboardingView
-          mainView.activitySidebar.initiateFakeCounter()
-          callback()
+        unless hideOnboardingModal
+          callback yes
           appStorage.setValue 'hideOnboardingModal', yes
 
           # FIXME: Onboarding modal is currently disabled.

@@ -201,6 +201,8 @@ class IDE.MachineStateModal extends IDE.ModalView
     @state = nextState
     @buildViews()
 
+    @emit 'MachineTurnOnStarted'
+
 
   startIDE: ->
     @destroy()
