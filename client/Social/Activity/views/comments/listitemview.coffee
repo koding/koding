@@ -51,6 +51,31 @@ class CommentListItemView extends KDListItemView
       .once 'Cancel', @bound 'hideEditForm'
 
 
+  showResend: ->
+
+    @setClass 'failed'
+
+    @resend.addSubView link = new CustomLinkView {}, title: 'There was an error. Resend?'
+    @resend.show()
+
+    link.on 'click', (event) =>
+
+      { activity }              = @getOptions()
+      { body, clientRequestId } = @getData()
+      { appManager }            = KD.singletons
+
+      appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
+        return KD.showError err  if err
+
+        @emit 'SubmitSucceeded', reply
+        @hideResend()
+
+
+  hideResend: ->
+    @unsetClass 'failed'
+    @resend.destroySubViews()
+
+
   hideEditForm: ->
 
     { createdAt, updatedAt } = @getData()
@@ -163,6 +188,9 @@ class CommentListItemView extends KDListItemView
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
 
     @menuWrapper = new KDCustomHTMLView
+
+    @resend = new KDCustomHTMLView cssClass: 'resend hidden'
+
     @addMenu()
     @createReplyLink()
 
@@ -196,6 +224,7 @@ class CommentListItemView extends KDListItemView
     {{> @body}}
     {{> @formWrapper}}
     {{> @menuWrapper}}
+    {{> @resend}}
     {{> @timeAgoView}}
     {{> @likeView}}
     {{> @replyView}}
