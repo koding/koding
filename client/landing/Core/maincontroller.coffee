@@ -98,7 +98,8 @@ class MainController extends KDController
     role = 'moderator' if 'moderator' in roles
     role = 'admin'     if 'admin'     in roles
 
-    return yes  if name in disabledFeatures[role]
+    return no   if !disabledFeatures[role]
+    return yes  if disabledFeatures[role] and name in disabledFeatures[role]
 
     return no
 
