@@ -9,9 +9,10 @@ class HomeAppController extends AppController
         {router} = KD.singletons
         router.handleRoute router.getDefaultRoute()
 
-  constructor:(options = {}, data)->
+
+  constructor: (options = {}, data) ->
 
     options.view    = new HomeView
-      cssClass      : "content-page home"
+      cssClass      : 'content-page home'
 
     super options, data
