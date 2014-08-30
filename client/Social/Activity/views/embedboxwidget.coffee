@@ -181,10 +181,7 @@ class EmbedBoxWidget extends KDView
 
     @imageIndex = 0
 
-    desiredFields = [
-      'url', 'safe', 'type', 'provider_name', 'error_type', 'content',
-      'error_message', 'safe_type', 'safe_message', 'images'
-    ]
+    desiredFields = ['original_url']
 
     for key in desiredFields
       wantedData[key] = data[key]
