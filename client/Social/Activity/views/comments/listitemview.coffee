@@ -55,21 +55,25 @@ class CommentListItemView extends KDListItemView
 
     @setClass 'failed'
 
-    @resend.addSubView link = new CustomLinkView {}, title: 'There was an error. Resend?'
+    @resend.addSubView text = new KDCustomHTMLView
+      tagName : 'span'
+      partial : 'Comment could not be send'
+
+    @resend.addSubView button = new KDButtonView
+      cssClass : 'solid green medium'
+      partial  : 'RESEND'
+      callback : =>
+        { activity }              = @getOptions()
+        { body, clientRequestId } = @getData()
+        { appManager }            = KD.singletons
+
+        appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
+          return KD.showError err  if err
+
+          @emit 'SubmitSucceeded', reply
+          @hideResend()
+
     @resend.show()
-
-    link.on 'click', (event) =>
-
-      { activity }              = @getOptions()
-      { body, clientRequestId } = @getData()
-      { appManager }            = KD.singletons
-
-      appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
-        return KD.showError err  if err
-
-        @emit 'SubmitSucceeded', reply
-        @hideResend()
-
 
   hideResend: ->
     @unsetClass 'failed'

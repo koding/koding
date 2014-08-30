@@ -243,18 +243,25 @@ class ActivityListItemView extends KDListItemView
 
     @setClass 'failed'
 
-    @resend.addSubView link = new CustomLinkView {}, title: 'There was an error. Resend?'
+    @resend.addSubView text = new KDCustomHTMLView
+      tagName : 'span'
+      partial : 'Post could not be send'
+
+    @resend.addSubView button = new KDButtonView
+      cssClass : 'solid green medium'
+      partial  : 'RESEND'
+      callback : =>
+        { body, clientRequestId } = @getData()
+        { appManager } = KD.singletons
+
+        appManager.tell 'Activity', 'post', {body, clientRequestId}, (err, activity) =>
+          return KD.showError err  if err
+
+          @emit 'SubmitSucceeded', activity
+          @hideResend()
+
     @resend.show()
 
-    link.on 'click', =>
-      { body, clientRequestId } = @getData()
-      { appManager } = KD.singletons
-
-      appManager.tell 'Activity', 'post', {body, clientRequestId}, (err, activity) =>
-        return KD.showError err  if err
-
-        @emit 'SubmitSucceeded', activity
-        @hideResend()
 
 
   hideResend: ->
