@@ -47,6 +47,37 @@ createWebsocketLocation = (name, location) ->
       }
   \n"""
 
+createUserMachineLocation = (path) ->
+  return """\n
+      location ~ ^\/#{path}\/(?<ip>.+?)\/(?<rest>.*) {
+        # define our dynamically created backend
+        set $backend $ip:3000/$rest;
+
+        # proxy it to the backend
+        proxy_pass http://$backend;
+
+        # needed for websocket handshake
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        # be a good proxy :)
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+
+        # Don't buffer WebSocket connections
+        proxy_buffering off;
+
+        # Default is 60 seconds, means nginx will close it after 60 seconds
+        # inactivity which is a bad thing for long standing connections
+        # like websocket. Make it 6 hours.
+        proxy_read_timeout 21600s;
+        proxy_send_timeout 21600s;
+      }
+  \n"""
+
 createLocations = (workers={}) ->
   locations = ""
   for name, options of workers when options.port?
@@ -109,6 +140,7 @@ module.exports.create = (workers, environment)->
         #access_log off;
       }
       #{createLocations(workers)}
+      #{createUserMachineLocation("userproxy")}
     # close server
     }
   # close http
