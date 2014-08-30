@@ -44,11 +44,11 @@ generateSupervisorSectionForWorker = (app, options={})->
   for key, opt of options.supervisord
     section[key] = opt
 
-  if section.numprocs > 1 and options.port?
-    options.numprocs_start = options.port
-    port = "#{options.port}"
-    partialPort = "#{options.port}".substring(0, port.length - 1)
-    section.command = section.command.replace new RegExp(options.port), "#{partialPort}%(process_num)d"
+  if section.numprocs > 1 and options.ports?.length
+    for port in options.ports
+      port = "#{port}"
+      partialPort = port.substring(0, port.length - 1)
+      section.command = section.command.replace new RegExp(port), "#{partialPort}%(process_num)d"
 
   # %(process_num) must be present within process_name when numprocs > 1
   if section.numprocs > 1

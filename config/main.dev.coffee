@@ -18,7 +18,7 @@ Configuration = (options={}) ->
   build               = options.build          or "1111"
   githubuser          = options.githubuser     or "koding"
 
-  mongo               = "#{boot2dockerbox}:27017/koding"
+  mongo               = "192.168.59.108:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
 
   redis               = { host:     "#{boot2dockerbox}"                         , port:               "6379"                                  , db:                 0                         }
@@ -181,7 +181,7 @@ Configuration = (options={}) ->
   KONFIG.workers =
     kontrol             :
       group             : "environment"
-      port              : "#{kontrol.port}"
+      ports             : ["#{kontrol.port}"]
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
       nginx             :
@@ -190,7 +190,7 @@ Configuration = (options={}) ->
 
     kloud               :
       group             : "environment"
-      port              : "#{KONFIG.kloud.port}"
+      ports             : ["#{KONFIG.kloud.port}"]
       supervisord       :
         command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
@@ -209,7 +209,7 @@ Configuration = (options={}) ->
 
     broker              :
       group             : "webserver"
-      port              : "#{KONFIG.broker.port}"
+      ports             : ["#{KONFIG.broker.port}"]
       supervisord       :
         command         : "#{GOBIN}/rerun koding/broker -c #{configName}"
       nginx             :
@@ -228,7 +228,7 @@ Configuration = (options={}) ->
 
     sourcemaps          :
       group             : "webserver"
-      port              : "#{KONFIG.sourcemaps.port}"
+      ports             : ["#{KONFIG.sourcemaps.port}"]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -239,13 +239,13 @@ Configuration = (options={}) ->
 
     appsproxy           :
       group             : "webserver"
-      port              : "#{KONFIG.appsproxy.port}"
+      ports             : ["#{KONFIG.appsproxy.port}"]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
     webserver           :
       group             : "webserver"
-      port              : "#{KONFIG.webserver.port}"
+      ports             : ["#{KONFIG.webserver.port}", "#{KONFIG.webserver.kitePort}"]
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -253,7 +253,7 @@ Configuration = (options={}) ->
 
     socialworker        :
       group             : "webserver"
-      port              : "#{KONFIG.social.port}"
+      ports             : ["#{KONFIG.social.port}", "#{KONFIG.social.kitePort}"]
       supervisord       :
         command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -272,7 +272,7 @@ Configuration = (options={}) ->
     socialapi:
       group             : "socialapi"
       instances         : 3
-      port              : "#{socialapiProxy.port}"
+      ports             : ["#{socialapiProxy.port}"]
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
