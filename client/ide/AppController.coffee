@@ -269,8 +269,9 @@ class IDEAppController extends AppController
           else
             @createMachineStateModal state, container, machineItem
             if initiateFakeCounter
-              @machineStateModal.once 'MachineTurnOnStarted', ->
+              @machineStateModal.once 'MachineTurnOnStarted', =>
                 KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
+                @appStorage.setValue 'isMachineInitializedOnce', yes
 
           computeController.on "public-#{machineId}", (event) =>
             if event.status in [Stopping, Stopped, Terminating, Terminated]
@@ -283,29 +284,31 @@ class IDEAppController extends AppController
           @createMachineStateModal { state: 'NotFound', container }
 
 
-      {appStorageController} = KD.singletons
-      appStorage = appStorageController.storage 'IDE', '1.0.0'
+      @appStorage = KD.getSingleton('appStorageController').storage 'IDE', '1.0.0'
+      @appStorage.fetchStorage =>
+        return if @appStorageFetched
+        @appStorageFetched = yes
 
-      appStorage.fetchStorage =>
-        return  if @onboardingModal
+        isOnboardingModalShown   = @appStorage.getValue 'isOnboardingModalShown'
+        isMachineInitializedOnce = @appStorage.getValue 'isMachineInitializedOnce'
 
-        hideOnboardingModal = appStorage.getValue 'hideOnboardingModal'
+        callback !isMachineInitializedOnce
 
-        unless hideOnboardingModal
-          callback yes
-          appStorage.setValue 'hideOnboardingModal', yes
+        # unless hideOnboardingModal
+        #   callback yes
+        #   appStorage.setValue 'hideOnboardingModal', yes
 
-          # FIXME: Onboarding modal is currently disabled.
-          # To make a quick workaround for `initiateFakeCounter`
-          # I just set appStorage flag to true. When we want to
-          # put onboarding modal back we need to change flag name.
+        #   # FIXME: Onboarding modal is currently disabled.
+        #   # To make a quick workaround for `initiateFakeCounter`
+        #   # I just set appStorage flag to true. When we want to
+        #   # put onboarding modal back we need to change flag name.
 
-          # @onboardingModal = new IDE.OnboardingModal { container }
-          # @onboardingModal.once 'OnboardingModalDismissed', =>
-          #   mainView.activitySidebar.initiateFakeCounter()
-          #   callback()
-        else
-          callback()
+        #   # @onboardingModal = new IDE.OnboardingModal { container }
+        #   # @onboardingModal.once 'OnboardingModalDismissed', =>
+        #   #   mainView.activitySidebar.initiateFakeCounter()
+        #   #   callback()
+        # else
+        #   callback()
 
 
   createMachineStateModal: (state, container, machineItem) ->

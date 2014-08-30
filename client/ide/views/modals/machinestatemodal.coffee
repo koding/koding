@@ -185,6 +185,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   turnOnMachine: ->
 
+    @emit 'MachineTurnOnStarted'
+
     {@state}     = @machine.status
 
     methodName   = 'start'
@@ -197,8 +199,6 @@ class IDE.MachineStateModal extends IDE.ModalView
     KD.singletons.computeController[methodName] @machine
     @state = nextState
     @buildViews()
-
-    @emit 'MachineTurnOnStarted'
 
 
   startIDE: ->
@@ -219,7 +219,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
       @emit 'IDEBecameReady'
 
+
   handleNoMachineFound: ->
+
     {@state} = @getOptions()
     @setClass 'no-machine'
     @buildViews()
