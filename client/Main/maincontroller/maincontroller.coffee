@@ -112,6 +112,9 @@ class MainController extends KDController
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
 
+      Cookies.expire "koding082014"
+      Cookies.expire "useOldKoding"
+
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
 
@@ -185,6 +188,7 @@ class MainController extends KDController
 
     JUser.login credentials, (err, result) =>
       return callback err  if err
+      KD.setVersionCookie result.account
       @swapAccount result, callback
 
   handleFinishRegistration: (formData, callback) ->

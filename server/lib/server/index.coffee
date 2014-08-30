@@ -227,7 +227,10 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
 
 
 app.all "/:name?/Logout", (req, res)->
-  res.clearCookie 'clientId'  if req.method is 'POST'
+  if req.method is 'POST'
+    res.clearCookie 'clientId'
+    res.clearCookie 'koding082014'
+    res.clearCookie 'useOldKoding'
   res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->

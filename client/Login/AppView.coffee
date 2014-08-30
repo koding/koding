@@ -352,7 +352,7 @@ class LoginView extends JView
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
-
+        KD.setVersionCookie account
         KD.mixpanel.alias account.profile.nickname
         KD.mixpanel "Signup, success"
 
