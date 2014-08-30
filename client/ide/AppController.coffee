@@ -288,6 +288,9 @@ class IDEAppController extends AppController
       appStorage = appStorageController.storage 'IDE', '1.0.0'
 
       appStorage.fetchStorage =>
+
+        return  if @onboardingModal?
+
         hideOnboardingView = appStorage.getValue 'hideOnboardingModal'
 
         unless hideOnboardingView
