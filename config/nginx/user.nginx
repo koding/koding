@@ -23,8 +23,12 @@ http {
 		'$status $body_bytes_sent "$http_referer" '
 		'"$http_user_agent" "$http_x_forwarded_for" "$host" -> "$backend"';
 
-	access_log /var/log/nginx/access.log main;
-	error_log /var/log/nginx/error.log;
+
+	# Buffer log writes to speed up IO, or disable them altogether if needed
+	access_log /var/log/nginx/access.log main buffer=16k;
+
+	# only log critical errors
+	error_log /var/log/nginx/error.log crit;
 
 
 	# This is healtcheck
