@@ -1568,6 +1568,9 @@ module.exports = class JAccount extends jraphical.Module
   fetchPlansAndSubscriptions: secure (client, options, callback) ->
     JPaymentPlan = require './payment/plan'
 
+    [options, callback] = [callback, options] unless callback
+    options ?= {}
+
     @fetchSubscriptions$ client, options, (err, subscriptions) ->
       return callback err  if err
 
