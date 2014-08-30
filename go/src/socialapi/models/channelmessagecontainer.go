@@ -19,6 +19,7 @@ type ChannelMessageContainer struct {
 	Err                error                    `json:"-"`
 }
 
+// Tests are done.
 func NewChannelMessageContainer() *ChannelMessageContainer {
 	container := &ChannelMessageContainer{}
 	container.Interactions = make(map[string]*InteractionContainer)
@@ -33,6 +34,7 @@ type InteractionContainer struct {
 	ActorsCount   int      `json:"actorsCount"`
 }
 
+// Tests are done.
 func NewInteractionContainer() *InteractionContainer {
 	interactionContainer := &InteractionContainer{}
 	interactionContainer.ActorsPreview = make([]string, 0)
@@ -83,10 +85,12 @@ func (c *ChannelMessageContainer) Fetch(id int64, q *request.Query) error {
 	return nil
 }
 
+// Tests are done.
 func (c *ChannelMessageContainer) TableName() string {
 	return "api.channel_message"
 }
 
+// Tests are done.
 func (c *ChannelMessageContainer) GetId() int64 {
 	if c.Message != nil {
 		return c.Message.Id

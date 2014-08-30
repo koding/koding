@@ -104,3 +104,32 @@ func TestChannelMessageContainerGetId(t *testing.T) {
 
 	})
 }
+
+func TestChannelMessageContainerAddAccountOldId(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while adding account old id", t, func() {
+		Convey("it should be empty account old if channel is not set", func() {
+			cmc := NewChannelMessageContainer()
+
+			gi := cmc.AddAccountOldId()
+			So(gi.AccountOldId, ShouldEqual, "")
+		})
+
+		Convey("it should be empty account old if channel is not set", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			cmc := NewChannelMessageContainer()
+			cmc.AccountOldId = acc.OldId
+
+			gi := cmc.AddAccountOldId()
+			So(gi.AccountOldId, ShouldEqual, cmc.AccountOldId)
+		})
+	})
+}
