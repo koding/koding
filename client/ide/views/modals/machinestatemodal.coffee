@@ -161,12 +161,9 @@ class IDE.MachineStateModal extends IDE.ModalView
     @footer    = new KDCustomHTMLView
       cssClass : 'footer'
       partial  : """
-        <p>Free account VMs are shutdown when you leave Koding.</p>
-        <a href="#" class="info-link">More about VMs</a>
-        <span class="more-icon"></span>
+        <p>Free account VMs are turned off automatically after 60m of inactivity.</p>
+        <a href="/Pricing" class="upgrade-link">Upgrade to make your VMs always-on.</a>
       """
-      # should be hidden out until mvp - SY
-      # <a href="#" class="upgrade-link">Upgrade your account to keep it always on</a>
 
     @addSubView @footer
 
@@ -188,6 +185,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   turnOnMachine: ->
 
+    @emit 'MachineTurnOnStarted'
+
     {@state}     = @machine.status
 
     methodName   = 'start'
@@ -200,8 +199,6 @@ class IDE.MachineStateModal extends IDE.ModalView
     KD.singletons.computeController[methodName] @machine
     @state = nextState
     @buildViews()
-
-    @emit 'MachineTurnOnStarted'
 
 
   startIDE: ->
@@ -222,7 +219,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
       @emit 'IDEBecameReady'
 
+
   handleNoMachineFound: ->
+
     {@state} = @getOptions()
     @setClass 'no-machine'
     @buildViews()
