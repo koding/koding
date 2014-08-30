@@ -61,7 +61,7 @@ http {
 		server_name *.koding.io;
 
 		location / {
-			proxy_pass http://user/kite;
+			proxy_pass http://user/kite/;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			#proxy_set_header Connection "upgrade";
