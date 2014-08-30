@@ -343,6 +343,17 @@ class ActivitySidebar extends KDCustomHTMLView
         click    : -> @setClass 'selected'
         icon     : {}
 
+      @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
+
+  initiateFakeCounter: ->
+
+    return  if KD.singletons.mainController.isFeatureDisabled 'activity-link'
+
+    KD.utils.wait 5000, =>
+      @activityLink.setClass 'unread'
+      @activityLink.$('cite').removeClass 'hidden'
+
+
 
   listMachines: (machines) ->
 
