@@ -21,11 +21,10 @@ http {
 
 	log_format main '$remote_addr - $remote_user [$time_local] "$request" '
 		'$status $body_bytes_sent "$http_referer" '
-		'"$http_user_agent" "$http_x_forwarded_for" "$host"  $server_name"';
+		'"$http_user_agent" "$http_x_forwarded_for" "$host" -> "$backend"';
 
 	access_log /var/log/nginx/access.log main;
 	error_log /var/log/nginx/error.log;
-
 
 
 	# This is healtcheck
@@ -56,19 +55,25 @@ http {
 		listen 8000 default_server;
 		listen [::]:8000 default_server ipv6only=on;
 
-		# catch each single integerd which will be captured as a digit
-		# variable. This digit variable is going to be used in proxy_pass
+		# catch each single integer which will be captured as a digit variable.
+		# This digit variable is going to be used in proxy_pass converts
+		# 1-2-3-4.example.com to 1.2.3.4 via the captured digits (see below
+		# $backend variable)
 		server_name ~^([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\.proxy\.koding\.io$;
 
 		location / {
-			# proxy_pass http://$backend:3000/kite/;
-			proxy_pass http://$1.$2.$3.$4:3000/kite/$request_uri;
+			# define our dynamically created backend
+			set $backend $1.$2.$3.$4:3000$request_uri;
 
+			# proxy it to the backend
+			proxy_pass http://$backend;
+
+			# needed for websocket handshake
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
-			#proxy_set_header Connection "upgrade";
 			proxy_set_header Connection $connection_upgrade;
 
+			# be a good proxy :)
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 			proxy_set_header Host $host;
@@ -77,10 +82,11 @@ http {
 			# Don't buffer WebSocket connections
 			proxy_buffering off;
 
-			# Default is 60 seconds, means nginx will close it.
-			# However websocket could be idle, make it 24 hours.
-			proxy_read_timeout 86400s;
-			proxy_send_timeout 86400s;
+			# Default is 60 seconds, means nginx will close it after 60 seconds
+			# inactivity which is a bad thing for long standing connections
+			# like websocket. Make it 6 hours.
+			proxy_read_timeout 21600s;
+			proxy_send_timeout 21600s;
 		}
 	}
 }
