@@ -42,6 +42,7 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       when 'privatemessage'
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
+      when 'group'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
@@ -53,6 +54,7 @@ class MessagePane extends KDTabPaneView
     @input
       .on 'SubmitStarted',   @bound 'handleEnter'
       .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
+      .on 'SubmitFailed',    @bound 'messageSubmitFailed'
 
 
   replaceFakeItemView: (message) ->
@@ -93,6 +95,14 @@ class MessagePane extends KDTabPaneView
     # save it to a map so that we have a reference
     # to it to be deleted.
     @fakeMessageMap[clientRequestId] = item
+
+
+  messageSubmitFailed: (err, clientRequestId) ->
+    view = @fakeMessageMap[clientRequestId]
+    view.showResend()
+    view.on 'SubmitSucceeded', (message) =>
+      message.clientRequestId = clientRequestId
+      @replaceFakeItemView message
 
 
   handleFocus: (focused) -> @glance()  if focused and @active

@@ -364,6 +364,8 @@ class LoginView extends JView
                 name                  : 'password'
                 placeholder           : 'password'
                 validate              :
+                  events              :
+                    passwordCheck     : 'keyup'
                   rules               :
                     passwordCheck     : (input, event)=>
 
@@ -374,9 +376,6 @@ class LoginView extends JView
                         unless input.getValue() is passwordForm.inputs.confirm.getValue()
                           modal.setTitle "Looks good, please confirm it."
 
-                  events              :
-                    passwordCheck     : "keyup"
-
                 nextElement           :
                   confirm             :
                     cssClass          : 'half'
@@ -384,21 +383,19 @@ class LoginView extends JView
                     name              : 'passwordConfirm'
                     placeholder       : 'confirm password'
                     validate          :
+                      events          :
+                        passwordCheck : 'keyup'
                       rules           :
                         passwordCheck : (input, event)=>
 
                           passwordForm = modal.modalTabs.forms.password
                           if passwordForm.inputs.password.getValue().length >= 8
                             if input.getValue() is passwordForm.inputs.password.getValue()
-                              modal.setTitle "Both look good!"
+                              modal.setTitle 'Both look good!'
                               passwordForm.buttons.submit.enable()
                             else
-                              modal.setTitle "Passwords should match."
+                              modal.setTitle 'Passwords should match.'
                               passwordForm.buttons.submit.disable()
-
-                      events          :
-                        passwordCheck : "keyup"
-
 
             buttons           :
               submit          :
