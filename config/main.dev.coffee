@@ -34,7 +34,8 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    "#{algolia.appId}"                          , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"          , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                         , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
-  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
+  kiteKeyName         = if environment is "dev" then "koding" else environment
+  kiteHome            = "#{projectRoot}/kite_home/#{kiteKeyName}"
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -315,7 +316,7 @@ Configuration = (options={}) ->
         function worker_daemon_#{key} {
 
           #------------- worker: #{key} -------------#
-          #{val.command} &>#{projectRoot}/.logs/#{key}.log &
+          #{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log &
           #{key}pid=$!
           echo [#{key}] started with pid: $#{key}pid
 
@@ -325,7 +326,7 @@ Configuration = (options={}) ->
         function worker_#{key} {
 
           #------------- worker: #{key} -------------#
-          #{val.command}
+          #{val.supervisord.command}
 
         }
 
@@ -704,7 +705,7 @@ Configuration = (options={}) ->
 
   KONFIG.ENV            = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG.workers
+  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.runFile        = generateRunFile        KONFIG
 
   fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
