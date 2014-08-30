@@ -156,5 +156,7 @@ func main() {
 		}
 	}
 
+	k.Log.Info("Running as version %s", VERSION)
+
 	k.Run()
 }

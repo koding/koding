@@ -234,6 +234,8 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 		return nil, err
 	}
 
+	k.Log.Info("[%s] info response state: %s", c.MachineId, response.State)
+
 	if response.State == machinestate.Unknown {
 		response.State = c.CurrenState
 	}

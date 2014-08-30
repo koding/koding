@@ -49,7 +49,7 @@ createWebsocketLocation = (name, location) ->
 
 createUserMachineLocation = (path) ->
   return """\n
-      location ~ ^\/#{path}\/(?<ip>.+?)\/(?<rest>.*) {
+      location ~ ^\\/-\\/#{path}\\/(?<ip>.+?)\\/(?<rest>.*) {
         # define our dynamically created backend
         set $backend $ip:3000/$rest;
 
