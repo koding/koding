@@ -355,16 +355,15 @@ class NFinderTreeController extends JTreeViewController
   compressFiles:(nodeView, type)->
 
     file = nodeView.getData()
-    FSItem.compress file, type, (err, response)=>
+    file.compress type, (err, response)=>
       if err then @notify null, null, err
       else
         @notify "#{file.type.capitalize()} compressed!", "success"
-        @refreshFolder @nodes[file.parentPath]
 
   extractFiles:(nodeView)->
 
     file = nodeView.getData()
-    FSItem.extract file, (err, response)=>
+    file.extract (err, response)=>
       if err then @notify null, null, err
       else
         @notify "#{file.type.capitalize()} extracted!", "success"
