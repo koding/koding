@@ -505,7 +505,7 @@ Configuration = (options={}) ->
 
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
-  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers
+  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
 

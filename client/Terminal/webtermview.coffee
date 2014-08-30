@@ -327,7 +327,7 @@ class WebTermView extends KDView
 
   mainTabPaneShown: (pane) ->
 
-    return  unless pane.getElement().contains @getElement()
+    return  unless pane.hasClass('ide') and pane.getElement().contains @getElement()
 
     el = @container.getElement()
     el.scrollTop = el.scrollHeight

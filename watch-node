@@ -4,7 +4,7 @@ trap     ctrl_c INT
 function ctrl_c () { kill -KILL $pid $$; }
 
 path=$@
-watchfolder=${path%/*}
+watchfolder=$(dirname $1)
 command="node $path"
 
 # echo

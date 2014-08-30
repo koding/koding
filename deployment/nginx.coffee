@@ -69,7 +69,7 @@ createLocations = (workers={}) ->
 nginxTemplate = (workers)->
 
 
-module.exports.create = (workers)->
+module.exports.create = (workers, environment)->
   config = """
   worker_processes  5;
 
@@ -101,7 +101,7 @@ module.exports.create = (workers)->
     # start server
     server {
       # do not add hostname here!
-      listen 80;
+      listen #{if environment is "dev" then 8090 else 80};
       root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
