@@ -71,6 +71,8 @@ class ActivityListItemView extends KDListItemView
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
 
+    @resend = new KDCustomHTMLView cssClass: 'resend hidden'
+
     @likeSummaryView  = new ActivityLikeSummaryView {}, data
 
 
@@ -237,6 +239,29 @@ class ActivityListItemView extends KDListItemView
       else KD.singleton("router").handleRoute href
 
 
+  showResend: ->
+
+    @setClass 'failed'
+
+    @resend.addSubView link = new CustomLinkView {}, title: 'There was an error. Resend?'
+    @resend.show()
+
+    link.on 'click', =>
+      { body, clientRequestId } = @getData()
+      { appManager } = KD.singletons
+
+      appManager.tell 'Activity', 'post', {body, clientRequestId}, (err, activity) =>
+        return KD.showError err  if err
+
+        @emit 'SubmitSucceeded', activity
+        @hideResend()
+
+
+  hideResend: ->
+    @unsetClass 'failed'
+    @resend.destroySubViews()
+
+
   partial:-> ''
 
 
@@ -276,6 +301,7 @@ class ActivityListItemView extends KDListItemView
       </div>
       {{> @editWidgetWrapper}}
       {article{@formatContent #(body)}}
+      {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}
       {{> @likeSummaryView}}
