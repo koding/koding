@@ -123,7 +123,7 @@ func main() {
 
 	registerURL, err := getRegisterURL(k)
 	if err != nil {
-		panic("could not get public ip" + err.Error())
+		log.Panic("could not get public ip" + err.Error())
 	}
 
 	if *flagRegisterURL != "" {
@@ -136,7 +136,7 @@ func main() {
 	}
 
 	if registerURL == nil {
-		panic("register url is nil")
+		log.Panic("register url is nil")
 	}
 
 	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
