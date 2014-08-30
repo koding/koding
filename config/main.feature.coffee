@@ -34,16 +34,22 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{hostname}"                            , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
+  socialapiProxy      =
+    hostname          : "localhost"
+    port              : "7000"
+
   socialapi =
-    proxyUrl          : "http://localhost:7000"
+    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/feature.toml"
     postgres          : postgres
     mq                : mq
     redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
+    kiteHome          : kiteHome
     environment       : environment
     region            : region
     hostname          : hostname
@@ -90,7 +96,6 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
-
     kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -118,6 +123,7 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
     recaptcha                      : '6LcF9vgSAAAAAOTEx2iMgeJ5HQSyysPyKzUYPNjF'
+    segment                        : '4c570qjqo0'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 

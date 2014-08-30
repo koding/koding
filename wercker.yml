@@ -1,4 +1,4 @@
-box: koding/base@0.0.10
+box: koding/base@0.0.11
 services:
   - wercker/postgresql@0.0.4
   - wercker/rabbitmq@1.0.1
@@ -7,9 +7,6 @@ services:
 
 build:
   steps:
-    - script:
-        name: psuedo build
-        code: echo foo bar baz
     - script:
         name: initialize submodules
         code: git submodule update --init --recursive
@@ -54,6 +51,7 @@ build:
         channel: announce
         username: wercker
         icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+
 deploy:
   steps:
     - script:
@@ -78,6 +76,11 @@ deploy:
           Host github.com
             User git
             IdentityFile ~/.ssh/id_rsa
+    - create-file:
+        name: write version file
+        filename: $WERCKER_ROOT/VERSION
+        content: $(git log -1 --format="%h")
+        overwrite: true
     - script:
         name: deploy
         code: |
@@ -87,6 +90,32 @@ deploy:
           git config --global user.name "wercker-build-box"
           git fetch --tags
           ./deploy --deploy --config=$CONFIG
+    - script:
+        name: zip
+        code: |
+          TODAY=$(date "+%Y-%m-%dT%H:%M:%S")
+          export ZIPPED_FILENAME=${TODAY}_${WERCKER_GIT_COMMIT:0:8}.zip
+
+          cd $WERCKER_ROOT
+          rm -rf node_modules
+          rm -rf .git
+          rm -rf go/bin
+          rm -rf go/pkg
+          rm -rf .build
+
+          zip -q --symlinks -r $ZIPPED_FILENAME .
+    - rioki/s3put@0.0.3:
+          key-id: $S3_KEY_ID
+          key-secret: $S3_KEY_SECRET
+          file: $ZIPPED_FILENAME
+          url: s3://$S3_EB_DEPLOY
+    - koding/eb-deploy@0.0.3:
+          access-key: $S3_KEY_ID
+          secret-key: $S3_KEY_SECRET
+          app-name: koding
+          env-name: $EB_ENV_NAME
+          app-location: $S3_EB_DEPLOY/$ZIPPED_FILENAME
+          version-label: $ZIPPED_FILENAME
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding

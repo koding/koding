@@ -4,12 +4,15 @@ class HomeAppController extends AppController
     name         : "Home"
     route        : "/Home"
     preCondition :
-      condition  : (options, cb)-> cb !KD.isLoggedIn()
-      failure    : (options, cb)-> KD.singletons.router.handleRoute '/Activity'
+      condition  : (options, cb) -> cb !KD.isLoggedIn()
+      failure    : (options, cb) ->
+        {router} = KD.singletons
+        router.handleRoute router.getDefaultRoute()
 
-  constructor:(options = {}, data)->
+
+  constructor: (options = {}, data) ->
 
     options.view    = new HomeView
-      cssClass      : "content-page home"
+      cssClass      : 'content-page home'
 
     super options, data

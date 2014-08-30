@@ -83,9 +83,9 @@ class MachineSettingsModal extends KDModalViewWithForms
                 else computeController.stop data
                 @destroy()
 
-            advanced        :
-              label         : 'Advanced settings'
-              itemClass     : KDCustomHTMLView
+            # advanced        :
+            #   label         : 'Advanced settings'
+            #   itemClass     : KDCustomHTMLView
 
 
     super options, data

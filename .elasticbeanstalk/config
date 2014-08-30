@@ -1,0 +1,14 @@
+[global]
+ApplicationName=koding
+AwsCredentialFile=/Users/siesta/.elasticbeanstalk/aws_credential_file
+DevToolsEndpoint=git.elasticbeanstalk.us-east-1.amazonaws.com
+EnvironmentName=koding-alpha-web-10
+EnvironmentTier=WebServer::Standard::1.0
+EnvironmentType=LoadBalanced
+InstanceProfileName=aws-elasticbeanstalk-ec2-role
+OptionSettingFile=/Users/siesta/Documents/koding/koding/.elasticbeanstalk/optionsettings.koding-alpha-web-10
+RdsEnabled=No
+Region=us-east-1
+ServiceEndpoint=https://elasticbeanstalk.us-east-1.amazonaws.com
+SolutionStack=64bit Amazon Linux 2014.03 v1.0.4 running PHP 5.5
+

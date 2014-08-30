@@ -2,12 +2,10 @@
 set -o errexit
 
 export GOPATH=$(cd "$(dirname "$0")"; pwd)
-export GIT_DIR=$GOPATH/../.git
 if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
 
-ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
   koding/broker
   koding/rerouting
@@ -29,11 +27,13 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/graphitefeeder
+  koding/workers/guestcleanerworker
   socialapi/workers/api
   github.com/skelterjohn/rerun
 )
 
-go install -v -ldflags "$ldflags" "${services[@]}"
+
+`which go` install -v "${services[@]}"
 
 cd $GOPATH
 mkdir -p build/broker

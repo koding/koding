@@ -124,57 +124,57 @@ install-postgres:
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 
 installrerun:
-	@go get github.com/skelterjohn/rerun
-	@go install github.com/skelterjohn/rerun
+	@`which go` get github.com/skelterjohn/rerun
+	@`which go` install github.com/skelterjohn/rerun
 
 installfresh:
-	@go get github.com/canthefason/fresh
-	@go install github.com/canthefason/fresh
+	@`which go` get github.com/canthefason/fresh
+	@`which go` install github.com/canthefason/fresh
 
 install:
 	@echo $(CONFIG)
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
-	@go install $(VERBOSE) ${PACKAGES}
+	@`which go` install $(VERBOSE) ${PACKAGES}
 
 test:
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
-	@go test $(VERBOSE) ${PACKAGES}
+	@`which go` test $(VERBOSE) ${PACKAGES}
 
 build:
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@go build $(VERBOSE) ${PACKAGES}
+	@`which go` build $(VERBOSE) ${PACKAGES}
 
 testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	@go test -c models/*.go
+	@`which go` test -c models/*.go
 	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./models.test
 
-	@go test config/*.go $(DBG)
+	@`which go` test config/*.go $(DBG)
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
-	@go test -c workers/algoliaconnector/algoliaconnector/*.go
+	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
-	@go test -c workers/common/metrics/*.go
+	@`which go` test -c workers/common/metrics/*.go
 	@./metrics.test
 	@rm ./metrics.test
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
-	@go test workers/trollmode/tests/*.go
-	@go test -c workers/trollmode/trollmode/*.go
+	@`which go` test workers/trollmode/tests/*.go
+	@`which go` test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
-	@go test -c workers/topicfeed/topicfeed/*.go
+	@`which go` test -c workers/topicfeed/topicfeed/*.go
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
-	@go test -c tests/*.go
+	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 

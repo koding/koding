@@ -19,6 +19,7 @@ Object.defineProperty global, 'KONFIG',
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
 Crawler = require '../crawler'
+{dash}  = require 'bongo'
 
 _          = require 'underscore'
 async      = require 'async'
@@ -224,17 +225,28 @@ app.post "/:name?/Login", (req, res) ->
   { JUser } = koding.models
   { username, password, redirect } = req.body
   { clientId } = req.cookies
-  redirect ?= "/"
-  JUser.login clientId, { username, password }, (err, response) ->
+
+  JUser.login clientId, { username, password }, (err, info) ->
     return res.send 403, err  if err
-    res.cookie 'clientId', response.replacementToken
-    # handle the request as an XHR response:
-    return res.send 200, null if req.xhr
-    # handle the request with an HTTP redirect:
-    res.redirect 301, redirect
+    # implementing a temporary opt-out for new koding:
+    storageOptions =
+      appId   : 'NewKoding'
+      version : '2.0'
+    info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
+      return res.send 500, "Internal error"  if err
+      res.cookie 'clientId', response.replacementToken
+      res.send 200, 'ok'
+
+app.post '/:name?/Optout', (req, res) ->
+  res.cookie 'useOldKoding', 'true'
+  res.redirect 301, '/'
 
 app.all "/:name?/Logout", (req, res)->
-  res.clearCookie 'clientId'  if req.method is 'POST'
+  if req.method is 'POST'
+    res.clearCookie 'clientId'
+    res.clearCookie 'useOldKoding'
+    res.clearCookie 'koding082014'
+
   res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
@@ -252,7 +264,29 @@ app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
 app.get "/-/healthCheck", (req, res) ->
-  res.jsonp(result:1)
+  {socialapi, newkontrol} = KONFIG
+  {socialApiUri, broker} = KONFIG.client.runtimeOptions
+
+  errs = []
+  urls = [
+    socialapi.proxyUrl
+    newkontrol.url
+    "#{KONFIG.publicHostname}#{socialApiUri}"
+    "#{KONFIG.publicHostname}#{broker.uri}/info"
+    "#{KONFIG.publicHostname}/kloud/kite/info"
+  ]
+
+  urlFns = urls.map (url)->->
+    request url, (err, resp, body)->
+      errs.push({ url, err })  if err?
+      urlFns.fin()
+
+  dash urlFns, ->
+    if Object.keys(errs).length > 0
+      console.log "HEALTHCHECK ERROR:", errs
+      res.send 500
+    else
+      res.send 200
 
 app.get "/-/version", (req, res) ->
   res.jsonp(version:KONFIG.version)

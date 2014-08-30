@@ -1,0 +1,47 @@
+[aws:autoscaling:asg]
+Custom Availability Zones=
+MaxSize=4
+MinSize=1
+
+[aws:autoscaling:launchconfiguration]
+EC2KeyName=cihangir
+InstanceType=t1.micro
+
+[aws:autoscaling:updatepolicy:rollingupdate]
+RollingUpdateEnabled=false
+
+[aws:ec2:vpc]
+ELBScheme=public
+ELBSubnets=subnet-b47692ed
+Subnets=subnet-b47692ed
+VPCId=vpc-ddf154b8
+
+[aws:elasticbeanstalk:application]
+Application Healthcheck URL=/healthcheck
+
+[aws:elasticbeanstalk:application:environment]
+PARAM1=
+PARAM2=
+PARAM3=
+PARAM4=
+PARAM5=
+
+[aws:elasticbeanstalk:container:php:phpini]
+allow_url_fopen=On
+composer_options=
+display_errors=Off
+document_root=
+max_execution_time=60
+memory_limit=256M
+zlib.output_compression=Off
+
+[aws:elasticbeanstalk:hostmanager]
+LogPublicationControl=false
+
+[aws:elasticbeanstalk:monitoring]
+Automatically Terminate Unhealthy Instances=true
+
+[aws:elasticbeanstalk:sns:topics]
+Notification Endpoint=
+Notification Protocol=email
+
