@@ -271,8 +271,9 @@ app.get "/-/healthCheck", (req, res) ->
   urls = [
     socialapi.proxyUrl
     newkontrol.url
-    socialApiUri
-    broker.uri
+    "#{KONFIG.publicHostname}#{socialApiUri}"
+    "#{KONFIG.publicHostname}#{broker.uri}/info"
+    "#{KONFIG.publicHostname}/kloud/kite/info"
   ]
 
   urlFns = urls.map (url)->->
