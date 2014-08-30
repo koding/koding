@@ -109,8 +109,8 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
-      'Open with...'              :
-        children                  : @getOpenWithMenuItems fileView
+      # 'Open with...'              :
+      #   children                  : @getOpenWithMenuItems fileView
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
         separator                 : yes
@@ -135,11 +135,11 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
-      'Upload file...'            :
-        action                    : 'upload'
-      'Clone a repo here'         :
-        action                    : "cloneRepo"
-        separator                 : yes
+      # 'Upload file...'            :
+      #   action                    : 'upload'
+      # 'Clone a repo here'         :
+      #   action                    : "cloneRepo"
+      #   separator                 : yes
       # Download                    :
       #   disabled                  : yes
       #   action                    : "download"
@@ -151,8 +151,8 @@ class NFinderContextMenuController extends KDController
       #     'Upload to Dropbox'     :
       #       action                : 'dropboxSaver'
       #   separator                 : yes
-      'Public URL...'             :
-        separator                 : yes
+      # 'Public URL...'             :
+      #   separator                 : yes
       Refresh                     :
         action                    : 'refresh'
 
@@ -161,29 +161,29 @@ class NFinderContextMenuController extends KDController
     else
       delete items.Collapse
 
-    unless FSHelper.isPublicPath fileData.path
-      delete items['Public URL...']
-    else
-      items['Public URL...'].children =
-        customView : new NCopyUrlView {}, fileData
+    # unless FSHelper.isPublicPath fileData.path
+    #   delete items['Public URL...']
+    # else
+    #   items['Public URL...'].children =
+    #     customView : new NCopyUrlView {}, fileData
 
-    {nickname} = KD.whoami().profile
+    # {nickname} = KD.whoami().profile
 
-    if ///\/home\/#{nickname}\/Applications$///.test fileData.path
-      items.Refresh.separator         = yes
-      items["Make a new Application"] =
-        action : "makeNewApp"
+    # if ///\/home\/#{nickname}\/Applications$///.test fileData.path
+    #   items.Refresh.separator         = yes
+    #   items["Make a new Application"] =
+    #     action : "makeNewApp"
 
-    if fileData.getExtension() is "kdapp"
-      items.Refresh.separator   = yes
-      items['Application menu'] =
-        children                   :
-          Compile                  :
-            action                 : "compile"
-          "Publish to app catalog" :
-            action                 : "publish"
-    else
-      delete items['Open with...']
+    # if fileData.getExtension() is "kdapp"
+    #   items.Refresh.separator   = yes
+    #   items['Application menu'] =
+    #     children                   :
+    #       Compile                  :
+    #         action                 : "compile"
+    #       "Publish to app catalog" :
+    #         action                 : "publish"
+    # else
+    #   delete items['Open with...']
 
     return items
 
