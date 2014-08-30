@@ -437,6 +437,8 @@ class KodingAppsController extends KDController
 
   @compileAppOnServer = (path, callback)->
 
+    return
+
     app = KodingAppsController.getAppInfoFromPath path, yes
     return  unless app
 
