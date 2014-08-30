@@ -73,10 +73,19 @@ module.exports = class SocialMessage extends Base
     doRequest, permittedRequest,
     ensureGroupChannel } = require "./helper"
 
+  cachedEmbedlyResult = {}
+
   @post = permit 'create posts',
     success: (client, data, callback)->
       ensureGroupChannel client, (err, socialApiChannelId)->
         data.channelId = socialApiChannelId
+
+        if data.payload?.link_embed
+          {original_url} = data.payload.link_embed
+          cachedEmbed    = cachedEmbedlyResult[original_url][0]
+
+          data.payload.link_embed = cachedEmbed
+
         doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
@@ -221,9 +230,6 @@ module.exports = class SocialMessage extends Base
         if accountId is socialApiId
           return callback null, yes
         fn client, callback
-
-
-  cachedEmbedlyResult = {}
 
   @fetchDataFromEmbedly = (urls, options, callback) ->
 
