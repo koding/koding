@@ -255,6 +255,7 @@ Configuration = (options={}) ->
 
     webserver           :
       group             : "webserver"
+      instances         : 2
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
@@ -266,6 +267,7 @@ Configuration = (options={}) ->
 
     socialworker        :
       group             : "webserver"
+      instances         : 2
       ports             :
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
