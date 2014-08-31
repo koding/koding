@@ -180,7 +180,8 @@ Configuration = (options={}) ->
   KONFIG.workers =
     kontrol             :
       group             : "environment"
-      ports             : ["#{kontrol.port}"]
+      ports             :
+        incoming        : "#{kontrol.port}"
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
       nginx             :
@@ -189,7 +190,8 @@ Configuration = (options={}) ->
 
     kloud               :
       group             : "environment"
-      ports             : ["#{KONFIG.kloud.port}"]
+      ports             :
+        incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
         command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
@@ -208,7 +210,8 @@ Configuration = (options={}) ->
 
     broker              :
       group             : "webserver"
-      ports             : ["#{KONFIG.broker.port}"]
+      ports             :
+        incoming        : "#{KONFIG.broker.port}"
       supervisord       :
         command         : "#{GOBIN}/broker    -c #{configName}"
       nginx             :
@@ -227,7 +230,8 @@ Configuration = (options={}) ->
 
     sourcemaps          :
       group             : "webserver"
-      ports             : ["#{KONFIG.sourcemaps.port}"]
+      ports             :
+        incoming        : "#{KONFIG.sourcemaps.port}"
       supervisord       :
         command         : "#{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
@@ -238,13 +242,16 @@ Configuration = (options={}) ->
 
     appsproxy           :
       group             : "webserver"
-      ports             : ["#{KONFIG.appsproxy.port}"]
+      ports             :
+        incoming        : "#{KONFIG.appsproxy.port}"
       supervisord       :
         command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
 
     webserver           :
       group             : "webserver"
-      ports             : ["#{KONFIG.webserver.port}", "#{KONFIG.webserver.kitePort}"]
+      ports             :
+        incoming        : "#{KONFIG.webserver.port}"
+        outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -252,7 +259,9 @@ Configuration = (options={}) ->
 
     socialworker        :
       group             : "webserver"
-      ports             : ["#{KONFIG.social.port}", "#{KONFIG.social.kitePort}"]
+      ports             :
+        incoming        : "#{KONFIG.social.port}"
+        outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -267,7 +276,8 @@ Configuration = (options={}) ->
     # Social API workers
     socialapi           :
       group             : "socialapi"
-      ports             : ["#{socialapiProxy.port}"]
+      ports             :
+        incoming        : "#{socialapiProxy.port}"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
 
