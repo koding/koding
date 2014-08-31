@@ -6,6 +6,15 @@ generateMainConf = (supervisorEnvironmentStr ="")->
   ; environment variables
   environment=#{supervisorEnvironmentStr}
 
+  [unix_http_server]
+  file=/var/run/supervisor.sock                   ; path to your socket file
+
+  [rpcinterface:supervisor]
+  supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+  [supervisorctl]
+  serverurl=unix:///var/run/supervisor.sock       ; use a unix:// URL  for a unix socket
+
   logfile=/var/log/supervisord/supervisord.log    ; supervisord log file
   logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
   logfile_backups=10                              ; number of backed up logfiles
