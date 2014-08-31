@@ -94,7 +94,7 @@ createUserMachineLocation = (path) ->
 
 createLocations = (workers={}) ->
   locations = ""
-  for name, options of workers when options.port?
+  for name, options of workers when options.ports?
     options.nginx = {}  unless options.nginx
     location = ""
 
@@ -158,6 +158,7 @@ module.exports.create = (workers, environment)->
         #access_log off;
       }
       #{createLocations(workers)}
+
       #{createUserMachineLocation("userproxy")}
     # close server
     }
