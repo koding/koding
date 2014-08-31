@@ -545,5 +545,40 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 		return nil, err
 	}
 
-	return a.Info()
+	infoResp, err := a.Info()
+	if err != nil {
+		return nil, err
+	}
+
+	// return anything that is not defining it as runnning or starting
+	if !infoResp.State.In(machinestate.Starting, machinestate.Running) {
+		return infoResp, nil
+	}
+
+	// for the rest ask again to klient so we know if it's running or not
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
+
+	p.Log.Info("[%s] machine state is '%s'. Pinging klient again to be sure.",
+		opts.MachineId, infoResp.State)
+
+	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
+	if err != nil {
+		p.Log.Warning("[%s] machine state is '%s' but I can't connect to klient. Marking it as stopped",
+			opts.MachineId, infoResp.State)
+		infoResp.State = machinestate.Stopped
+	} else {
+		defer klientRef.Close()
+
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("[%s] machine state is '%s' but I can't send a ping. Marking it as stopped. Err: %s",
+				opts.MachineId, infoResp.State, err.Error())
+			infoResp.State = machinestate.Stopped
+		}
+	}
+
+	return infoResp, nil
+
 }
