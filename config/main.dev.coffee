@@ -18,7 +18,7 @@ Configuration = (options={}) ->
   build               = options.build          or "1111"
   githubuser          = options.githubuser     or "koding"
 
-  mongo               = "192.168.59.108:27017/koding"
+  mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
 
   redis               = { host:     "#{boot2dockerbox}"                         , port:               "6379"                                  , db:                 0                         }

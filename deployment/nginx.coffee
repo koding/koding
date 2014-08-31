@@ -2,9 +2,9 @@ fs = require 'fs'
 
 createUpstreams = (workers={}) ->
   upstreams = "# add global upstreams\n"
-  for name, options of workers when options.port?
+  for name, options of workers when options.ports?.incoming?
     servers = ""
-    {port} = options
+    { incoming: port } = options.ports
     options.instances or= 1
     for index in [0...options.instances]
       servers += "\n" if servers isnt ""
