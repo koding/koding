@@ -2,9 +2,9 @@ fs = require 'fs'
 
 createUpstreams = (workers={}) ->
   upstreams = "# add global upstreams\n"
-  for name, options of workers when options.port?
+  for name, options of workers when options.ports?.incoming?
     servers = ""
-    {port} = options
+    { incoming: port } = options.ports
     options.instances or= 1
     for index in [0...options.instances]
       servers += "\n" if servers isnt ""
@@ -122,7 +122,7 @@ module.exports.create = (workers, environment)->
   #error_log  logs/error.log  notice;
   #error_log  logs/error.log  info;
 
-  pid         /var/run/nginx.pid;
+  pid #{if environment is 'dev' then '/usr/local/var/run/nginx.pid' else '/var/run/nginx.pid'};
 
   events { worker_connections  1024; }
 

@@ -28,6 +28,11 @@ ifneq ($(strip $(config)),)
 	CONFIG=$(config)
 endif
 
+# set port
+ifdef port
+	PORT="-port=$(port)"
+endif
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -54,7 +59,7 @@ default: configure
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/fresh -r socialapi/workers/api -w socialapi -a "-c $(CONFIG) $(DBG) $(METRICS)"
+	@$(GOBINDIR)/fresh -r socialapi/workers/api -w socialapi -a "-c $(CONFIG) $(PORT) $(DBG) $(METRICS)"
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
 	@$(GOBINDIR)/fresh -r socialapi/workers/topicfeed -a "-c $(CONFIG) $(DBG) $(METRICS)"

@@ -28,6 +28,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     stderr_logfile          : "/var/log/koding/#{app}.log"
     stdout_logfile          : "/var/log/koding/#{app}.log"
     numprocs                : options.instances or 1
+    numprocs_start          : 0
     directory               : "/opt/koding"
     autostart               : yes
     autorestart             : yes
@@ -44,11 +45,11 @@ generateSupervisorSectionForWorker = (app, options={})->
   for key, opt of options.supervisord
     section[key] = opt
 
-  if section.numprocs > 1 and options.port?
-    options.numprocs_start = options.port
-    port = "#{options.port}"
-    partialPort = "#{options.port}".substring(0, port.length - 1)
-    section.command = section.command.replace new RegExp(options.port), "#{partialPort}%(process_num)d"
+  if section.numprocs > 1 and options.ports?
+    for key, port of options.ports
+      port = "#{port}"
+      partialPort = port.substring(0, port.length - 1)
+      section.command = section.command.replace new RegExp(port), "#{partialPort}%(process_num)d"
 
   # %(process_num) must be present within process_name when numprocs > 1
   if section.numprocs > 1
