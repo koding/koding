@@ -370,7 +370,7 @@ Configuration = (options={}) ->
       workers = ""
       for key,val of KONFIG.workers
         workers +="#------------- worker: #{key} -------------#\n"
-        workers +="#{val.command} &>#{projectRoot}/.logs/#{key}.log & \n"
+        workers +="#{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log & \n"
         workers +="#{key}pid=$! \n"
         workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
       return workers

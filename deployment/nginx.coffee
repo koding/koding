@@ -36,14 +36,28 @@ createWebsocketLocation = (name, location) ->
   return """\n
       location #{location} {
         proxy_pass            http://#{name};
+
+        # needed for websocket handshake
         proxy_http_version    1.1;
         proxy_set_header      Upgrade         $http_upgrade;
         proxy_set_header      Connection      $connection_upgrade;
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
+
+        proxy_set_header      Host $host;
+        proxy_set_header      X-Real-IP $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect        off;
+
+        # Don't buffer WebSocket connections
+        proxy_buffering off;
+
+        # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
+
+        # Default is 60 seconds, means nginx will close it after 60 seconds
+        # inactivity which is a bad thing for long standing connections
+        # like websocket. Make it 6 hours.
+        proxy_read_timeout 21600s;
+        proxy_send_timeout 21600s;
       }
   \n"""
 
