@@ -99,6 +99,18 @@ class KodingKontrol extends (require 'kontrol')
     # since its not cached before
     kite = @getKiteProxy { name, correlationName, transportOptions }
 
+    if kite.options.name is 'klient'
+      kite
+        .on 'close', ->
+          if kite.transport.options.autoReconnect
+            KodingKontrol.dcNotification ?= new KDNotificationView
+              title     : 'Trying to reconnect...'
+              type      : 'tray'
+              duration  : 999999
+        .on 'open', ->
+          KodingKontrol.dcNotification?.destroy()
+          KodingKontrol.dcNotification = null
+
     # Query kontrol
     @fetchKite
       query : query ? { name, region, username, environment }
