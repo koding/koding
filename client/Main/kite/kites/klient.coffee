@@ -41,7 +41,7 @@ class KodingKite_KlientKite extends KodingKite
     # new: https://koding.com/-/userproxy/54.164.243.111/kite
     #           or
     #      http://localhost:8090/-/userproxy/54.164.243.111/kite
-    changedUrl = KD.config.mainUri + "/-/userproxy/" + parser.hostname + "/kite"
+    changedUrl = "/-/userproxy/" + parser.hostname + "/kite"
 
     @transport.options.url = changedUrl
 
