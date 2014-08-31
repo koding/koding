@@ -184,6 +184,12 @@ func (m *SubscriptionHandler) HandleEvent(controllerValue reflect.Value, data []
 			controllerValue,
 			parameter,
 		})
+	case 3:
+		out = m.v.Call([]reflect.Value{
+			controllerValue,
+			parameter,
+			reflect.ValueOf(logging),
+		})
 	default:
 		return fmt.Errorf("unknown signature %s", m.v.Type())
 	}
