@@ -154,9 +154,11 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	klientFolder := "klient/development/latest"
+	checkInterval := time.Second * 5
 	if conf.ProdMode {
 		k.Log.Info("Prod mode enabled")
 		klientFolder = "klient/production/latest"
+		checkInterval = time.Millisecond * 500
 	}
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 
@@ -173,7 +175,7 @@ func newKite(conf *Config) *kite.Kite {
 		HostedZone:   conf.HostedZone,
 	}
 
-	go kodingProvider.RunChecker(time.Millisecond * 500)
+	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
 
 	privateKey, publicKey := kontrolKeys(conf)
