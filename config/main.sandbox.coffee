@@ -84,12 +84,12 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort: 8865}
+    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort: 8860}
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
     elasticSearch                  : {host          : "#{prod_simulation_server}" , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
-    social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8765 }
+    social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
     newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{projectRoot}/kite_home/sandbox/kite.key"}
     log                            : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
