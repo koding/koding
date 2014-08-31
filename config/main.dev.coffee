@@ -187,7 +187,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
       nginx             :
         websocket       : yes
-        locations       : ["~ /kontrol"]
+        locations       : ["~^/kontrol/.*"]
 
     kloud               :
       group             : "environment"
@@ -197,7 +197,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : ["~ /kloud" ]
+        locations       : ["~^/kloud/.*"]
 
     ngrokProxy          :
       group             : "environment"

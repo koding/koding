@@ -131,7 +131,11 @@ module.exports.create = (workers, environment)->
 
     #{createUpstreams(workers)}
 
-    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+    # we're in the http context here
+    map $http_upgrade $connection_upgrade {
+      default upgrade;
+      ''      close;
+    }
 
     gzip on;
     gzip_disable "msie6";
