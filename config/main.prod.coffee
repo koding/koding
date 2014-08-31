@@ -324,7 +324,7 @@ Configuration = (options={}) ->
 
     realtime            :
       group             : "socialapi"
-      instances         : 2
+      instances         : 3
       supervisord       :
         command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
 
