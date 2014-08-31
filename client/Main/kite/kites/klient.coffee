@@ -37,11 +37,14 @@ class KodingKite_KlientKite extends KodingKite
     parser.href = @transport.options.url
 
     # build our new url, example:
-    # old: http://54.164.174.218:3000/kite 
+    # old: http://54.164.174.218:3000/kite
     # new: https://koding.com/-/userproxy/54.164.243.111/kite
     #           or
     #      http://localhost:8090/-/userproxy/54.164.243.111/kite
-    changedUrl = "/-/userproxy/" + parser.hostname + "/kite"
+
+    {hostname, protocol} = document.location
+
+    changedUrl = "#{protocol}//#{hostname}/-/userproxy/#{parser.hostname}/kite"
 
     @transport.options.url = changedUrl
 
