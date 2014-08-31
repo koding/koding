@@ -173,7 +173,7 @@ func newKite(conf *Config) *kite.Kite {
 		HostedZone:   conf.HostedZone,
 	}
 
-	go kodingProvider.RunChecker(time.Second * 10)
+	go kodingProvider.RunChecker(time.Millisecond * 500)
 	go kodingProvider.RunCleaner(time.Minute)
 
 	privateKey, publicKey := kontrolKeys(conf)
