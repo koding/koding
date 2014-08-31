@@ -220,6 +220,9 @@ func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, e
 	return channelIds, nil
 }
 
+// FetchMessageChannels fetchs the channels by message id
+//
+// Tests are done.
 func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
 	channelIds, err := c.FetchMessageChannelIds(messageId)
 	if err != nil {
@@ -229,6 +232,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	return NewChannel().FetchByIds(channelIds)
 }
 
+// FetchMessageIdsByChannelId fetchs the channels by message id
 func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
