@@ -137,3 +137,68 @@ func TestChannelMessageListCount(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageListisExempt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while testing is exempt", t, func() {
+		Convey("it should have error if message id is not set ", func() {
+			cml := NewChannelMessageList()
+
+			is, err := cml.isExempt()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			So(is, ShouldEqual, false)
+		})
+
+		Convey("it should return true is channel is exempt", func() {
+			// create account as troll
+			acc := createAccountWithTest()
+			acc.IsTroll = true
+			So(acc.Create(), ShouldBeNil)
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			is, err := cml.isExempt()
+			So(err, ShouldBeNil)
+			So(is, ShouldEqual, true)
+		})
+
+		Convey("it should return false is channel is not exempt", func() {
+			// create account as not troll
+			acc := createAccountWithTest()
+			acc.IsTroll = false
+			So(acc.Create(), ShouldBeNil)
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			is, err := cml.isExempt()
+			So(err, ShouldBeNil)
+			So(is, ShouldEqual, false)
+		})
+	})
+}
