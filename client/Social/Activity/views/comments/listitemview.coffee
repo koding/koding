@@ -29,7 +29,20 @@ class CommentListItemView extends KDListItemView
     else @body.unsetClass 'edited'
 
 
-  click: (event) -> KD.utils.showMoreClickHandler event
+  click: (event) ->
+
+    if event.target.classList.contains 'profile-link'
+      @handleProfileLink event
+
+    KD.utils.showMoreClickHandler event
+
+
+  handleProfileLink: (event) ->
+
+    KD.utils.stopDOMEvent event
+
+    {target} = event
+    KD.getSingleton('router').handleRoute target.getAttribute 'href'
 
 
   showEditForm: ->
@@ -49,6 +62,35 @@ class CommentListItemView extends KDListItemView
     @editInput
       .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
+
+
+  showResend: ->
+
+    @setClass 'failed'
+
+    @resend.addSubView text = new KDCustomHTMLView
+      tagName : 'span'
+      partial : 'Comment could not be send'
+
+    @resend.addSubView button = new KDButtonView
+      cssClass : 'solid green medium'
+      partial  : 'RESEND'
+      callback : =>
+        { activity }              = @getOptions()
+        { body, clientRequestId } = @getData()
+        { appManager }            = KD.singletons
+
+        appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
+          return KD.showError err  if err
+
+          @emit 'SubmitSucceeded', reply
+          @hideResend()
+
+    @resend.show()
+
+  hideResend: ->
+    @unsetClass 'failed'
+    @resend.destroySubViews()
 
 
   hideEditForm: ->
@@ -163,6 +205,9 @@ class CommentListItemView extends KDListItemView
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
 
     @menuWrapper = new KDCustomHTMLView
+
+    @resend = new KDCustomHTMLView cssClass: 'resend hidden'
+
     @addMenu()
     @createReplyLink()
 
@@ -196,6 +241,7 @@ class CommentListItemView extends KDListItemView
     {{> @body}}
     {{> @formWrapper}}
     {{> @menuWrapper}}
+    {{> @resend}}
     {{> @timeAgoView}}
     {{> @likeView}}
     {{> @replyView}}

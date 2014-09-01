@@ -166,6 +166,7 @@ module.exports = [
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
+  "guideslinksview.coffee"
   "machinesettingsmodal.coffee",
 
   # LOCATION

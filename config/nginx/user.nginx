@@ -1,0 +1,123 @@
+# Nginx configuration that is used to reverse proxy user machines
+user www-data;
+pid /run/nginx.pid;
+
+worker_processes 4;
+worker_rlimit_nofile 10240;
+
+events {
+	worker_connections 8192;
+}
+
+http {
+	# Hide nginx version information.
+	server_tokens off;
+
+	# Sendfile copies data between one FD and other from within the kernel.  More
+	# efficient than read() + write(), since the requires transferring data to and
+	# from the user space.
+	sendfile on;
+
+	# Tcp_nopush causes nginx to attempt to send its HTTP response head in one
+	# packet, instead of using partial frames. This is useful for prepending
+	# headers before calling sendfile, or for throughput optimization.
+	tcp_nopush on;
+
+	# don't buffer data-sends (disable Nagle algorithm). Good for sending
+	# frequent small bursts of data in real time.
+	tcp_nodelay on;
+	keepalive_timeout 65;
+	types_hash_max_size 2048;
+
+	log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+		'$status $body_bytes_sent "$http_referer" '
+		'"$http_user_agent" "$http_x_forwarded_for" "$host" -> "$backend" IP:"$ip"';
+
+
+	# Buffer log writes to speed up IO, or disable them altogether if needed
+	# access_log /var/log/nginx/access.log main buffer=16k;
+	access_log /var/log/nginx/access.log main;
+
+	# only log critical errors
+	error_log /var/log/nginx/error.log crit;
+
+
+	# This is healtcheck
+	server {
+		listen 80 default_server;
+		listen [::]:80 default_server ipv6only=on;
+
+		# Make site accessible from http://localhost/
+		server_name localhost;
+
+		root /usr/share/nginx/html;
+		index index.html index.htm;
+
+		location / {
+			try_files $uri $uri/ =404;
+		}
+
+		# only works if nginx is compiled with lua and LuaJIT support
+		# it's here as an example
+		# location = /lua {
+		# 	default_type text/plain;
+		# 	content_by_lua '
+		# 		if jit then
+		# 			ngx.say(jit.version)
+		# 		else
+		# 			ngx.say("Not LuaJIT!")
+		# 		end
+		# 	';
+		# }
+	}
+
+	# if we have a Upgrade header set the connection upgrade to "upgrade"
+	# automatically. 
+	map $http_upgrade $connection_upgrade {
+		default upgrade;
+		'' close;
+	}
+
+	# This  is used for proxying to kites
+	server {
+		listen 8000 default_server;
+		listen [::]:8000 default_server ipv6only=on;
+
+		# NOT USED: catch each single integer which will be captured as a digit
+		# variable.  This digit variable is going to be used in proxy_pass
+		# converts 1-2-3-4.example.com to 1.2.3.4 via the captured digits (see
+		# below $backend variable)
+		# server_name ~^([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\.proxy\.koding\.io$;
+		# set $backend $1.$2.$3.$4:3000$request_uri;
+
+		server_name *.koding.me;
+
+		location ~ ^\/(?<ip>.+?)\/(?<rest>.*) {
+			# define our dynamically created backend
+			set $backend $ip:3000/$rest;
+
+			# proxy it to the backend
+			proxy_pass http://$backend;
+
+			# needed for websocket handshake
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection $connection_upgrade;
+
+			# be a good proxy :)
+			proxy_set_header X-Real-IP $remote_addr;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_set_header Host $host;
+			proxy_redirect off;
+
+			# Don't buffer WebSocket connections
+			proxy_buffering off;
+
+			# Default is 60 seconds, means nginx will close it after 60 seconds
+			# inactivity which is a bad thing for long standing connections
+			# like websocket. Make it 6 hours.
+			proxy_read_timeout 21600s;
+			proxy_send_timeout 21600s;
+		}
+	}
+}

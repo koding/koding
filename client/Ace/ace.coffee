@@ -186,10 +186,10 @@ class Ace extends KDView
     unless /localfile:/.test file.path
       @notify 'Loading...', null, null, 10000
       file.fetchContents callback
-      {vmName, path} = file
-      FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
-        return if err or not info
-        @emit 'FileIsReadOnly'  unless info.writable
+      # {vmName, path} = file
+      # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
+      #   return if err or not info
+      #   @emit 'FileIsReadOnly'  unless info.writable
     else
       callback null, file.contents or ''
 

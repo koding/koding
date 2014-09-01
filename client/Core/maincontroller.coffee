@@ -56,7 +56,7 @@ class MainController extends KDController
     KD.registerSingleton 'groupsController',          new GroupsController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
-    KD.registerSingleton 'vmController',              new VirtualizationController
+    # KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController
@@ -98,7 +98,8 @@ class MainController extends KDController
     role = 'moderator' if 'moderator' in roles
     role = 'admin'     if 'admin'     in roles
 
-    return yes  if name in disabledFeatures[role]
+    return no   if !disabledFeatures[role]
+    return yes  if disabledFeatures[role] and name in disabledFeatures[role]
 
     return no
 

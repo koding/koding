@@ -62,6 +62,7 @@ class CommentView extends KDView
       .on 'Blured',          @bound 'resetDecoration'
       .on 'SubmitStarted',   @bound 'handleEnter'
       .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
+      .on 'SubmitFailed',    @bound 'messageSubmitFailed'
 
 
   addMessage: (message) ->
@@ -106,6 +107,14 @@ class CommentView extends KDView
     return  unless item = @fakeMessageMap[identifier]
 
     @controller.removeItem item
+
+
+  messageSubmitFailed: (err, clientRequestId) ->
+    view = @fakeMessageMap[clientRequestId]
+    view.showResend()
+    view.on 'SubmitSucceeded', (comment) =>
+      comment.clientRequestId = clientRequestId
+      @replaceFakeItemView comment
 
 
   listPreviousReplies: (event) ->

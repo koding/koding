@@ -24,7 +24,6 @@ var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 3000, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagLocal       = flag.Bool("local", false, "Start klient in local environment.")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
@@ -122,7 +121,11 @@ func main() {
 	k.HandleFunc("webterm.killSession", terminal.KillSession)
 	k.HandleFunc("exec", command.Exec)
 
-	registerURL := k.RegisterURL(*flagLocal)
+	registerURL, err := getRegisterURL(k)
+	if err != nil {
+		log.Panic("could not get public ip" + err.Error())
+	}
+
 	if *flagRegisterURL != "" {
 		u, err := url.Parse(*flagRegisterURL)
 		if err != nil {
@@ -133,7 +136,7 @@ func main() {
 	}
 
 	if registerURL == nil {
-		panic("register url is nil")
+		log.Panic("register url is nil")
 	}
 
 	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
@@ -152,6 +155,8 @@ func main() {
 			log.Panic(err)
 		}
 	}
+
+	k.Log.Info("Running as version %s", VERSION)
 
 	k.Run()
 }

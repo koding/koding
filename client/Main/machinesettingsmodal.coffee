@@ -83,6 +83,10 @@ class MachineSettingsModal extends KDModalViewWithForms
                 else computeController.stop data
                 @destroy()
 
+            guides          :
+              label         : 'Guides'
+              itemClass     : GuidesLinksView
+
             # advanced        :
             #   label         : 'Advanced settings'
             #   itemClass     : KDCustomHTMLView

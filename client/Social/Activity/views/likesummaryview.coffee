@@ -41,11 +41,14 @@ class ActivityLikeSummaryView extends KDView
 
   fetchPreviewAccounts: (callback) ->
 
-    constructorName = "JAccount"
-    origins = @getData().interactions.like.actorsPreview.map (id) -> {id, constructorName}
+    {actorsPreview} = @getData().interactions.like
+    if actorsPreview?
+      constructorName = "JAccount"
+      origins = actorsPreview.map (id) -> {id, constructorName}
 
-    KD.remote.cacheable origins, callback
-
+      KD.remote.cacheable origins, callback
+    else
+      callback null, []
 
   refresh: (accounts = []) ->
 

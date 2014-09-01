@@ -340,8 +340,21 @@ class ActivitySidebar extends KDCustomHTMLView
         title    : 'Activity'
         cssClass : 'kdlistitemview-sidebar-item activity'
         href     : '/Activity/Public'
-        click    : -> @setClass 'selected'
+        click    : ->
+          @setClass 'selected'
+          @$('cite.count').remove()
         icon     : {}
+
+      @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
+
+  initiateFakeCounter: ->
+
+    return  if KD.singletons.mainController.isFeatureDisabled 'activity-link'
+
+    KD.utils.wait 5000, =>
+      @activityLink.setClass 'unread'
+      @activityLink.$('cite').removeClass 'hidden'
+
 
 
   listMachines: (machines) ->
@@ -398,6 +411,13 @@ class ActivitySidebar extends KDCustomHTMLView
       type                : 'main-nav'
       treeItemClass       : NavigationItem
       addListsCollapsed   : yes
+
+    # This is temporary, we will create a separate TreeViewController
+    # for this and put this logic into there ~ FIXME ~ GG
+    @machineTree.dblClick = (nodeView, event)->
+      machine = nodeView.getData()
+      if machine.status.state is Machine.State.Running
+        @toggle nodeView
 
     section.addSubView header = new KDCustomHTMLView
       tagName  : 'h3'

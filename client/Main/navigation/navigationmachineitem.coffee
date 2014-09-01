@@ -48,7 +48,7 @@ class NavigationMachineItem extends JView
     return  unless state
 
     @unsetClass stateClasses
-    @setClass status.toLowerCase()
+    @setClass state.toLowerCase()
 
 
   updateProgressBar: (percentage) ->

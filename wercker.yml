@@ -79,7 +79,7 @@ deploy:
     - create-file:
         name: write version file
         filename: $WERCKER_ROOT/VERSION
-        content: $(git log -1 --format="%h")
+        content: $(git log -1 --format=%h)
         overwrite: true
     - script:
         name: deploy
