@@ -20,7 +20,7 @@ build:
         code: ./configure --config $CONFIG --projectRoot /opt/koding
     - script:
         name: build client
-        code: ./run buildclient
+        code: ./run
     - script:
         name: build go binaries
         code: go/build.sh
