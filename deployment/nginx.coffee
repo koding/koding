@@ -122,7 +122,7 @@ module.exports.create = (workers, environment)->
   #error_log  logs/error.log  notice;
   #error_log  logs/error.log  info;
 
-  pid #{if environment is 'dev' then '.nginx.pid' else '/var/run/nginx.pid'};
+  #{if environment is 'dev' then '' else 'pid /var/run/nginx.pid;'}
 
   events { worker_connections  1024; }
 

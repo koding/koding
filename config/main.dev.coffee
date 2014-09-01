@@ -409,7 +409,7 @@ Configuration = (options={}) ->
 
       function kill_all () {
         #{killlist()}
-        nginx -s quit
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
 
@@ -417,8 +417,9 @@ Configuration = (options={}) ->
       function nginxrun () {
 
         echo "starting nginx"
-        nginx -s quit
-        nginx -c #{projectRoot}/.dev.nginx.conf
+        touch #{projectRoot}/.dev.nginx.pid
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;'
 
       }
 
@@ -619,10 +620,7 @@ Configuration = (options={}) ->
         echo "Starting services: $SERVICES"
         docker start $SERVICES
 
-        echo "starting nginx"
-        nginx -s quit
-        nginx -c `pwd`/.dev.nginx.conf
-
+        nginxrun
       }
 
 
