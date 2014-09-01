@@ -54,28 +54,6 @@ build:
 
 deploy:
   steps:
-    - script:
-        name: create $HOME/.ssh directory
-        code: mkdir -p $HOME/.ssh
-    - create-file:
-        name: write private key
-        filename: $HOME/.ssh/id_rsa
-        content: $KEY_PRIVATE
-        overwrite: true
-        hide-from-log: true
-    - create-file:
-        name: write public key
-        filename: $HOME/.ssh/id_rsa.pub
-        content: $KEY_PUBLIC
-        overwrite: true
-        hide-from-log: false
-    - create-file:
-        name: create ssh configuration
-        filename: $HOME/.ssh/config
-        content: |-
-          Host github.com
-            User git
-            IdentityFile ~/.ssh/id_rsa
     - create-file:
         name: write version file
         filename: $WERCKER_ROOT/VERSION
@@ -85,6 +63,7 @@ deploy:
         name: zip
         code: |
           cd $WERCKER_ROOT
+          ./configure --config $CONFIG --projectRoot /opt/koding
           rm -rf .git .build node_modules
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
