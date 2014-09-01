@@ -261,7 +261,7 @@ Configuration = (options={}) ->
         outgoing        : "#{KONFIG.webserver.kitePort}"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
 
