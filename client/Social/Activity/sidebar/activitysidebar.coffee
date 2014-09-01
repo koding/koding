@@ -560,8 +560,7 @@ class ActivitySidebar extends KDCustomHTMLView
         left      : 255
       content     : """
         <h4>Coming soon...</h4>
-        <p>The ability to add new VMs will be available on <strong>Sep 7</strong>.</p>
-
+        <p>We are improving our backend infrastructure to improve vm performance. You'll be able to add new VMs starting <strong>Sep 7</strong>.</p>
       """
 
     modal.addSubView (new KDCustomHTMLView cssClass: 'modal-arrow'), 'kdmodal-inner', yes
