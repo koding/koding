@@ -15,35 +15,42 @@ import (
 
 var (
 	FreeUserTimeout = time.Minute * 30
-	CleanUpTimeout  = time.Minute * 10
+
+	// Be cautious if your try to lower this. A build might really last more
+	// than 10 minutes.
+	CleanUpTimeout = time.Minute * 10
 )
 
 // RunChecker runs the checker every given interval time. It fetches a single
 // document.
 func (p *Provider) RunChecker(interval time.Duration) {
 	for _ = range time.Tick(interval) {
-		machine, err := p.FetchOne(interval)
-		if err != nil {
-			// do not show an error if the query didn't find anything, that
-			// means there is no such a document, which we don't care
-			if err != mgo.ErrNotFound {
-				p.Log.Warning("FetchOne err: %v", err)
+		// do not block the next tick
+		go func() {
+			machine, err := p.FetchOne(interval)
+			if err != nil {
+				// do not show an error if the query didn't find anything, that
+				// means there is no such a document, which we don't care
+				if err != mgo.ErrNotFound {
+					p.Log.Warning("FetchOne err: %v", err)
+				}
+
+				p.Log.Debug("checker no machines available to check: %s", err.Error())
+
+				// move one with the next one
+				return
 			}
 
-			p.Log.Debug("checker no machines available to check: %s", err.Error())
-
-			// move one with the next one
-			continue
-		}
-
-		if err := p.CheckUsage(machine); err != nil {
-			if err == kite.ErrNoKitesAvailable {
-				p.Log.Warning("[%s] can't check machine (%s). klient kite is not running yet, waiting...",
-					machine.Id.Hex(), machine.IpAddress)
-			} else {
-				p.Log.Warning("check usage of kite err: %v", err)
+			if err := p.CheckUsage(machine); err != nil {
+				if err == kite.ErrNoKitesAvailable {
+					p.Log.Warning("[%s] can't check machine (%s). klient kite is not running yet, waiting...",
+						machine.Id.Hex(), machine.IpAddress)
+				} else {
+					p.Log.Warning("[%s] check usage of kite [%s] err: %v",
+						machine.Id.Hex(), machine.IpAddress, err)
+				}
 			}
-		}
+		}()
 	}
 }
 
@@ -77,7 +84,6 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
 	if err != nil {
-		p.Log.Error("[%s] couldn't get usage to klient: %s", machine.Id.Hex(), err)
 		return err
 	}
 

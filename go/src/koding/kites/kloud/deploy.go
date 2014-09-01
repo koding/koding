@@ -207,6 +207,15 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	infoLog("Chmod user cgi scripts")
+	for _, cgi := range []string{"perl.pl", "python.py", "ruby.rb"} {
+		out, err = client.StartCommand(fmt.Sprintf("chmod +x /home/%s/Web/%s", username, cgi))
+		if err != nil {
+			fmt.Println("out", out)
+			return nil, err
+		}
+	}
+
 	infoLog("Tweaking apache config")
 	if err := changeApacheConf(client, defaultApacheConfig); err != nil {
 		return nil, err

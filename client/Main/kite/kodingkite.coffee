@@ -24,6 +24,9 @@ class KodingKite extends KDObject
   getTransport: -> @transport
 
   setTransport: (@transport) ->
+    @forwardEvent @transport, 'close'
+    @forwardEvent @transport, 'open'
+
     @transport.connect()
     @emit 'ready'
 

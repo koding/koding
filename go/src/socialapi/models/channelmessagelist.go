@@ -328,6 +328,10 @@ func (c *ChannelMessageList) isExempt() (bool, error) {
 
 }
 
+// Count counts messages in the channel
+// if account of message is troll, will not be counted as message
+//
+// Tests are done.
 func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 	if channelId == 0 {
 		return 0, ErrChannelIdIsNotSet

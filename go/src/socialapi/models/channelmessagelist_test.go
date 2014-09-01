@@ -75,7 +75,7 @@ func TestChannelMessageListCount(t *testing.T) {
 			So(c, ShouldEqual, 0)
 		})
 
-		Convey("it should error  ", func() {
+		Convey("it should not error if message in the channel", func() {
 			// create message
 			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
@@ -92,7 +92,48 @@ func TestChannelMessageListCount(t *testing.T) {
 			cnt, err := cml.Count(cml.ChannelId)
 			So(err, ShouldBeNil)
 			So(cnt, ShouldEqual, 1)
+		})
 
+		Convey("it should not count message if account of message is troll ", func() {
+			// create channel
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			// create account as troll
+			acc1 := createAccountWithTest()
+			acc1.IsTroll = true
+			So(acc1.Create(), ShouldBeNil)
+
+			acc2 := createAccountWithTest()
+			So(acc2.Create(), ShouldBeNil)
+
+			// create message that creator is troll
+			msg := createMessageWithTest()
+			msg.AccountId = acc1.Id
+			So(msg.Create(), ShouldBeNil)
+
+			msg2 := createMessageWithTest()
+			msg2.AccountId = acc2.Id
+			So(msg2.Create(), ShouldBeNil)
+
+			// add message to the channel
+			// account is troll !!
+			_, err := c.AddMessage(msg.Id)
+			So(err, ShouldBeNil)
+
+			_, erre := c.AddMessage(msg2.Id)
+			So(erre, ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+
+			// there is 2 message in the channel
+			// but one of the account of message is troll so;
+			// Count will not count this message
+			// messages of troll is not valid to count
+			cnt, err := cml.Count(cml.ChannelId)
+			So(err, ShouldBeNil)
+			So(cnt, ShouldEqual, 1)
 		})
 	})
 }

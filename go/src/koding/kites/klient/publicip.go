@@ -6,12 +6,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/koding/kite"
 )
 
 const publicEcho = "http://echoip.com"
-const proxyHostUrl = "koding.com/-/userproxy/"
 
 func getRegisterURL(k *kite.Kite) (*url.URL, error) {
 	ip, err := publicIP()
@@ -19,11 +19,14 @@ func getRegisterURL(k *kite.Kite) (*url.URL, error) {
 		return nil, err
 	}
 
-	// http://localhost:8090/userproxy/54.164.243.111/kite
+	scheme := "http"
+	if k.TLSConfig != nil {
+		scheme = "https"
+	}
 
 	return &url.URL{
-		Scheme: "https",
-		Host:   proxyHostUrl + ip.String(),
+		Scheme: scheme,
+		Host:   ip.String() + ":" + strconv.Itoa(k.Config.Port),
 		Path:   "/kite",
 	}, nil
 }
