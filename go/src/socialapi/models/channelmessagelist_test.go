@@ -202,3 +202,22 @@ func TestChannelMessageListisExempt(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageListMarkIfExempt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while marking if channel is exempt", t, func() {
+		Convey("it should have error if message id is not set", func() {
+			cml := NewChannelMessageList()
+
+			err := cml.MarkIfExempt()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+		})
+
+	})
+}
