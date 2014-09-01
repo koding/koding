@@ -56,7 +56,7 @@ class MainController extends KDController
     KD.registerSingleton 'groupsController',          new GroupsController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
-    KD.registerSingleton 'vmController',              new VirtualizationController
+    # KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController

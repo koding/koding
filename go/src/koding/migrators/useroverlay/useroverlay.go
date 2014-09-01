@@ -97,6 +97,7 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := vm.LockRBD(); err != nil {
 		respond(w, 412, "RBD cannot be locked")
+		return
 	}
 	defer func() {
 		if err := vm.UnlockRBD(); err != nil {

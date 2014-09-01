@@ -10,13 +10,17 @@ log "# ./configure assumes development environment - comes bundled with options 
 log "# override them as you see fit with command line arguments like --config --branch etc."
 log ""
 
+
+version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+
 options = o =
   projectRoot      : argv.projectRoot    or __dirname
   config           : argv.config         or "dev"
   region           : argv.region         or "dev"
   branch           : argv.branch         or "cake-rewrite"
   build            : argv.build          or 1
-  version          : argv.version        or "1.0"
+  version          : argv.version        or                 version or "1.0"
+  tag              : argv.tag            or                 version or "1.0"
   environment      : argv.environment    or "dev"
   hostname         : argv.hostname       or "lvh.me:8090"
   publicHostname   : argv.publichostname or process.env.USER

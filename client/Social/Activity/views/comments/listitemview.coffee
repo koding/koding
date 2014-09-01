@@ -29,7 +29,20 @@ class CommentListItemView extends KDListItemView
     else @body.unsetClass 'edited'
 
 
-  click: (event) -> KD.utils.showMoreClickHandler event
+  click: (event) ->
+
+    if event.target.classList.contains 'profile-link'
+      @handleProfileLink event
+
+    KD.utils.showMoreClickHandler event
+
+
+  handleProfileLink: (event) ->
+
+    KD.utils.stopDOMEvent event
+
+    {target} = event
+    KD.getSingleton('router').handleRoute target.getAttribute 'href'
 
 
   showEditForm: ->

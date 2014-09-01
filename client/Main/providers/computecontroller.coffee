@@ -296,10 +296,6 @@ class ComputeController extends KDController
       @eventListener.addListener stateEvent, machine._id
       return Promise.resolve()
 
-    @eventListener.triggerState machine,
-      status      : machine.status.state
-      percentage  : 0
-
     call = @kloud.info { machineId: machine._id }
 
     .then (response)=>
