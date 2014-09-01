@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/url"
-	"os"
-	"path"
+
 	"socialapi/config"
+	"socialapi/workers/emailnotifier/templates"
 	"strings"
 	"time"
 
@@ -24,45 +23,8 @@ type TemplateParser struct {
 	UserContact *UserContact
 }
 
-var (
-	mainTemplateFile        string
-	footerTemplateFile      string
-	contentTemplateFile     string
-	gravatarTemplateFile    string
-	groupTemplateFile       string
-	previewTemplateFile     string
-	objectTemplateFile      string
-	unsubscribeTemplateFile string
-
-	css []byte
-)
-
 func NewTemplateParser() *TemplateParser {
 	return &TemplateParser{}
-}
-
-func prepareTemplateFiles() error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	root := config.MustGet().Email.TemplateRoot
-	mainTemplateFile = path.Join(wd, root, "main.tmpl")
-	footerTemplateFile = path.Join(wd, root, "footer.tmpl")
-	contentTemplateFile = path.Join(wd, root, "content.tmpl")
-	gravatarTemplateFile = path.Join(wd, root, "gravatar.tmpl")
-	groupTemplateFile = path.Join(wd, root, "group.tmpl")
-	previewTemplateFile = path.Join(wd, root, "preview.tmpl")
-	objectTemplateFile = path.Join(wd, root, "object.tmpl")
-	unsubscribeTemplateFile = path.Join(wd, root, "unsubscribe.tmpl")
-
-	css, err = ioutil.ReadFile(path.Join(wd, root, "style.css"))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, error) {
@@ -102,10 +64,6 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 }
 
 func (tp *TemplateParser) validateTemplateParser() error {
-	if err := prepareTemplateFiles(); err != nil {
-		return err
-	}
-
 	if tp.UserContact == nil {
 		return fmt.Errorf("TemplateParser UserContact is not set")
 	}
@@ -114,6 +72,7 @@ func (tp *TemplateParser) validateTemplateParser() error {
 }
 
 func (tp *TemplateParser) inlineCss(content string) string {
+	css := []byte(templates.Style)
 	rules := juice.Parse(css)
 	output := juice.Inline(strings.NewReader(content), rules)
 
@@ -121,15 +80,21 @@ func (tp *TemplateParser) inlineCss(content string) string {
 }
 
 func (tp *TemplateParser) renderTemplate(contentType, content, description string, date time.Time) (string, error) {
-	t := template.Must(template.ParseFiles(
-		mainTemplateFile, footerTemplateFile, unsubscribeTemplateFile))
+
+	ut := template.Must(template.New("unsubscribe").Parse(templates.Unsubscribe))
+	ft := template.Must(template.New("footer").Parse(templates.Footer))
+	mt := template.Must(template.New("main").Parse(templates.Main))
+
+	mt.AddParseTree("unsubscribe", ut.Tree)
+	mt.AddParseTree("footer", ft.Tree)
+
 	mc := tp.buildMailContent(contentType, getMonthAndDay(date))
 
 	mc.Content = template.HTML(content)
 	mc.Description = description
 
 	var doc bytes.Buffer
-	if err := t.Execute(&doc, mc); err != nil {
+	if err := mt.Execute(&doc, mc); err != nil {
 		return "", err
 	}
 
@@ -178,36 +143,38 @@ func appendGroupTemplate(t *template.Template, mc *MailerContainer) {
 	if mc.Group.Name == "" || mc.Group.Slug == "koding" {
 		groupTemplate = getEmptyTemplate()
 	} else {
-		groupTemplate = template.Must(
-			template.ParseFiles(groupTemplateFile))
+		groupTemplate = template.Must(template.New("group").Parse(templates.Group))
 	}
 
 	t.AddParseTree("group", groupTemplate.Tree)
 }
 
 func (tp *TemplateParser) renderContentTemplate(ec *EventContent, mc *MailerContainer) string {
-	t := template.Must(template.ParseFiles(contentTemplateFile, gravatarTemplateFile))
-	appendPreviewTemplate(t, mc)
-	appendGroupTemplate(t, mc)
+	ct := template.Must(template.New("content").Parse(templates.Content))
+	gt := template.Must(template.New("gravatar").Parse(templates.Gravatar))
+	ct.AddParseTree("gravatar", gt.Tree)
+
+	appendPreviewTemplate(ct, mc)
+	appendGroupTemplate(ct, mc)
 
 	buf := bytes.NewBuffer([]byte{})
-	t.ExecuteTemplate(buf, "content", ec)
+	ct.ExecuteTemplate(buf, "content", ec)
 
 	return buf.String()
 }
 
 func appendPreviewTemplate(t *template.Template, mc *MailerContainer) {
-	var previewTemplate, objectTemplate *template.Template
+	var previewTemplate, contentLinkTemplate *template.Template
 	if mc.Message == "" {
 		previewTemplate = getEmptyTemplate()
-		objectTemplate = getEmptyTemplate()
+		contentLinkTemplate = getEmptyTemplate()
 	} else {
-		previewTemplate = template.Must(template.ParseFiles(previewTemplateFile))
-		objectTemplate = template.Must(template.ParseFiles(objectTemplateFile))
+		previewTemplate = template.Must(template.New("preview").Parse(templates.Preview))
+		contentLinkTemplate = template.Must(template.New("contentLink").Parse(templates.ContentLink))
 	}
 
 	t.AddParseTree("preview", previewTemplate.Tree)
-	t.AddParseTree("object", objectTemplate.Tree)
+	t.AddParseTree("contentLink", contentLinkTemplate.Tree)
 }
 
 func getEmptyTemplate() *template.Template {

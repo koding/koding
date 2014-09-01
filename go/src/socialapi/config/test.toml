@@ -32,7 +32,6 @@ DefaultFromName = "Koding"
 ForcedRecipient = "canthefason@gmail.com"
 Username        = "koding"
 Password        = "DEQl7_Dr"
-TemplateRoot    = "workers/emailnotifier/templates/"
 
 [sitemap]
 RedisDB = 2

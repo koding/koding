@@ -1,3 +1,6 @@
+package templates
+
+const Style = `
 body {
     margin: 10px;
 }
@@ -184,3 +187,4 @@ a {
     background-color:#F8F8F8;
     border-radius:4px;
 }
+`

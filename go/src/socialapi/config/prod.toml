@@ -28,7 +28,6 @@ DefaultFromMail = "hello@koding.com"
 DefaultFromName = "Koding"
 Username        = "koding"
 Password        = "DEQl7_Dr"
-TemplateRoot    = "/opt/koding/go/src/socialapi/workers/emailnotifier/templates/"
 
 [sitemap]
 RedisDB = 0
