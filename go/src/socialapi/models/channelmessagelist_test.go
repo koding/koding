@@ -219,5 +219,27 @@ func TestChannelMessageListMarkIfExempt(t *testing.T) {
 			So(err, ShouldEqual, ErrMessageIdIsNotSet)
 		})
 
+		Convey("it should mark as exempt if channel is exempt", func() {
+			// create account as troll
+			acc := createAccountWithTest()
+			acc.IsTroll = true
+			So(acc.Create(), ShouldBeNil)
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			err := cml.MarkIfExempt()
+			So(err, ShouldBeNil)
+		})
+
 	})
 }
