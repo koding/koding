@@ -79,34 +79,27 @@ deploy:
     - create-file:
         name: write version file
         filename: $WERCKER_ROOT/VERSION
-        content: $(git log -1 --format=%h)
+        content: ${WERCKER_GIT_COMMIT:0:8}
         overwrite: true
     - script:
         name: zip
         code: |
-          TODAY=$(date "+%Y-%m-%dT%H:%M:%S")
-          export ZIPPED_FILENAME=${TODAY}_${WERCKER_GIT_COMMIT:0:8}.zip
-
           cd $WERCKER_ROOT
-          rm -rf node_modules
-          rm -rf .git
-          rm -rf go/bin
-          rm -rf go/pkg
-          rm -rf .build
-
-          zip -q --symlinks -r $ZIPPED_FILENAME .
+          rm -rf .git .build node_modules
+          rm -rf go/{bin,pkg}
+          zip -q --symlinks -r $ARCHIVE .
     - rioki/s3put@0.0.3:
           key-id: $S3_KEY_ID
           key-secret: $S3_KEY_SECRET
-          file: $ZIPPED_FILENAME
+          file: $ARCHIVE
           url: s3://$S3_EB_DEPLOY
     - koding/eb-deploy@0.0.3:
           access-key: $S3_KEY_ID
           secret-key: $S3_KEY_SECRET
           app-name: koding
           env-name: $EB_ENV_NAME
-          app-location: $S3_EB_DEPLOY/$ZIPPED_FILENAME
-          version-label: $ZIPPED_FILENAME
+          app-location: $S3_EB_DEPLOY/ARCHIVE
+          version-label: $ARCHIVE
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
