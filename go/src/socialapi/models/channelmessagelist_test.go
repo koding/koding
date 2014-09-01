@@ -101,11 +101,9 @@ func TestChannelMessageListCount(t *testing.T) {
 
 			// create account as troll
 			acc1 := createAccountWithTest()
-			acc1.IsTroll = true
-			So(acc1.Create(), ShouldBeNil)
+			acc1.MarkAsTroll()
 
 			acc2 := createAccountWithTest()
-			So(acc2.Create(), ShouldBeNil)
 
 			// create message that creator is troll
 			msg := createMessageWithTest()
@@ -158,8 +156,8 @@ func TestChannelMessageListisExempt(t *testing.T) {
 		Convey("it should return true is channel is exempt", func() {
 			// create account as troll
 			acc := createAccountWithTest()
-			acc.IsTroll = true
-			So(acc.Create(), ShouldBeNil)
+			acc.MarkAsTroll()
+
 			// create channel
 			c := createNewChannelWithTest()
 			c.CreatorId = acc.Id
@@ -182,7 +180,7 @@ func TestChannelMessageListisExempt(t *testing.T) {
 			// create account as not troll
 			acc := createAccountWithTest()
 			acc.IsTroll = false
-			So(acc.Create(), ShouldBeNil)
+
 			// create channel
 			c := createNewChannelWithTest()
 			c.CreatorId = acc.Id
@@ -223,7 +221,7 @@ func TestChannelMessageListMarkIfExempt(t *testing.T) {
 			// create account as troll
 			acc := createAccountWithTest()
 			acc.IsTroll = true
-			So(acc.Create(), ShouldBeNil)
+
 			// create channel
 			c := createNewChannelWithTest()
 			c.CreatorId = acc.Id
