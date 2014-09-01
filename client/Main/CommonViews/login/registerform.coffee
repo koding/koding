@@ -162,7 +162,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       <div class='hint'>Usernames must be a minimum of 4 characters as they are also going to be used to set your Koding hostname, e.g. {{> @domain}}</div>
       <div>{{> @button}}</div>
       <div class="accept-tos">
-      By creating an account, I accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a>
+      By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a>
       </div>
     </section>
     {{> @invitationCode}}
