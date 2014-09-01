@@ -1,3 +1,6 @@
+package templates
+
+const Main = `
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
         "http://www.w3.org/TR/REC-html40/loose.dtd">
 <html>
@@ -34,3 +37,30 @@
   </table>
 </body>
 </html>
+`
+
+const Footer = `
+    {{define "footer"}}
+    <!-- FOOTER -->
+    <tr height="90%" class="footer-before">
+      <td></td>
+      <td height="40px" colspan="2"></td>
+    </tr>
+    <tr class="footer">
+      <td></td>
+      <td colspan="2">
+        {{template "unsubscribe" . }}
+        <br/>
+        <a href="{{.Uri}}">Koding</a>,
+         Inc. 358 Brannan, San Francisco, CA 94107
+      </td>
+    </tr>
+    {{end}}
+`
+
+const Unsubscribe = `
+    {{if .Unsubscribe.ShowLink }}
+    Unsubscribe from <a href="{{.Uri}}/Unsubscribe/{{.Unsubscribe.Token}}/{{.Unsubscribe.Recipient}}">{{.Unsubscribe.ContentType}}</a> notifications /
+    {{end}}
+    Unsubscribe from <a href="{{.Uri}}/Unsubscribe/{{.Unsubscribe.Token}}/{{.Unsubscribe.Recipient}}/all">all</a> emails from Koding.
+`
