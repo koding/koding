@@ -7,11 +7,11 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname            = options.hostname       or "prod-v1_2_4-anna"
-  publicHostname      = options.publicHostname or "https://koding.me"
-  region              = options.region         or "aws"
-  configName          = options.configName     or "sandbox"
-  environment         = options.environment    or "sandbox"
+  hostname            = options.hostname       or "sandbox.koding.io"
+  publicHostname      = options.publicHostname or "http://sandbox.koding.io"
+  region              = "aws"
+  configName          = "sandbox"
+  environment         = "sandbox"
   projectRoot         = options.projectRoot    or "/opt/koding"
   version             = options.tag
   tag                 = options.tag
@@ -49,7 +49,6 @@ Configuration = (options={}) ->
     mq                : mq
     redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
-    kiteHome          : kiteHome
     environment       : environment
     region            : region
     hostname          : hostname
@@ -79,12 +78,13 @@ Configuration = (options={}) ->
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
+    kiteHome                       : kiteHome
     redis                          : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
 
-    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort: 8860}
+    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
@@ -97,7 +97,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -145,18 +145,18 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : null
-    mainUri           : null
+    apiUri            : "#{customDomain.public}/"
+    mainUri           : "#{customDomain.public}/"
     sourceMapsUri     : "/sourcemaps"
+    broker            : {uri          : "/subscribe" }
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    broker            : {uri          : "/subscribe" }
     github            : {clientId     : "f8e440b796d953ea01e5" }
-    newkontrol        : {url          : "#{kontrol.url}"}
+    newkontrol        : {url          : kontrol.url}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
@@ -213,7 +213,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/broker    -c #{configName}"
+        command         : "#{GOBIN}/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -356,154 +356,22 @@ Configuration = (options={}) ->
         return ""
 
   prodKeys =
-    id_rsa          : fs.readFileSync( "./install/keys/prod.ssh/id_rsa"          ,"utf8")
-    id_rsa_pub      : fs.readFileSync( "./install/keys/prod.ssh/id_rsa.pub"      ,"utf8")
-    authorized_keys : fs.readFileSync( "./install/keys/prod.ssh/authorized_keys" ,"utf8")
-    config          : fs.readFileSync( "./install/keys/prod.ssh/config"          ,"utf8")
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa"          , "utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
   generateSupervisorConf = (KONFIG)->
     return (require "../deployment/supervisord.coffee").create KONFIG
 
   generateRunFile = (KONFIG) ->
-    envvars = ->
-      env = """
+    return """
       export GOPATH=#{projectRoot}/go
       export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      \n
+      coffee #{projectRoot}/build-client.coffee --watch false
       """
-      # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
-      return env
-
-    workersRunList = ->
-      workers = ""
-      for key,val of KONFIG.workers
-        workers +="#------------- worker: #{key} -------------#\n"
-        workers +="#{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log & \n"
-        workers +="#{key}pid=$! \n"
-        workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
-      return workers
-
-
-    runContents = """
-      #!/bin/bash
-      #{envvars()}
-
-      function install() {
-        touch /root/run.install.start
-
-        echo #{b64z prodKeys.id_rsa}          | base64 --decode | gunzip >/root/.ssh/id_rsa
-        echo #{b64z prodKeys.id_rsa_pub}      | base64 --decode | gunzip >/root/.ssh/id_rsa.pub
-        echo #{b64z prodKeys.authorized_keys} | base64 --decode | gunzip >/root/.ssh/authorized_keys
-        echo #{b64z prodKeys.config}          | base64 --decode | gunzip >/root/.ssh/config
-        chmod 0600 /root/.ssh/id_rsa
-
-        cd /opt
-        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:#{options.githubuser}/koding.git koding
-
-        cd /opt/koding
-
-        # retrieve machine settings from the git tag namely, write nginx and supervisor conf.
-        ms=`git tag -l -n1 | grep '#{tag}'`
-        ms=${ms##*machine-settings-b64-zip-}  # get the part after the last separator
-        echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
-        bash #{projectRoot}/machineSettings
-
-        npm i gulp stylus coffee-script -g
-        npm i --unsafe-perm
-        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
-        bash #{projectRoot}/go/build.sh
-        cd #{projectRoot}/go/src/socialapi
-        make install
-        cd #{projectRoot}/node_modules_koding/koding-broker-client
-        cake build
-        mkdir $HOME/.kite
-        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
-
-        # new relic setup
-        echo deb http://apt.newrelic.com/debian/ newrelic non-free >> /etc/apt/sources.list.d/newrelic.list
-        wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -
-        apt-get update
-        apt-get install newrelic-sysmond
-        nrsysmond-config --set license_key=aa81e308ad9a0d95cf5a90fec9692c80551e8a68
-        /etc/init.d/newrelic-sysmond start
-
-
-        touch /root/run.install.end
-      }
-
-      function services() {
-        touch /root/run.services.start
-        service nginx restart
-        service supervisor restart
-        touch /root/run.services.end
-
-      }
-
-      if [[ "$1" == "" ]]; then
-        install
-        services
-        exit 0
-      elif [ "$1" == "install" ]; then
-        install
-      elif [ "$1" == "services" ]; then
-        services
-      else
-        echo "unknown argument."
-      fi
-      """
-
-
-    run = """
-      #cloud-config
-
-      # this file cannot exceed 16k therefore, i'm placing supervisor and nginxConf
-      # into git tag message and reading it from there.
-      # tl;dr - keep this small.
-
-      disable_root: false
-      hostname : #{hostname}
-
-      packages:
-        - mc
-        - mosh
-        - supervisor
-        - golang
-        - nodejs
-        - npm
-        - git
-        - graphicsmagick
-        - mosh
-        - nginx
-        - mongodb-clients
-
-
-      write_files:
-
-        - path: /root/run.b64z
-          content : #{b64z runContents}
-        - path: /root/run
-          permissions: '0755'
-        - path: /etc/nginx/conf.d/.htpasswd
-          content: koding:$apr1$K17a7D.N$vuaxDfc4kJvHAg7Id43wk1
-
-      runcmd:
-        - echo 127.0.0.1 `hostname` >> /etc/hosts
-        - curl http://169.254.169.254/latest/meta-data/instance-id >/root/instance-id
-        - curl -s https://get.docker.io/ubuntu/ | sudo sh
-        - ln -sf /usr/bin/nodejs /usr/bin/node
-        - ln -sf /usr/bin/supervisorctl /usr/bin/s
-        - cat /root/run.b64z | base64 --decode | gunzip > /root/run
-        - /root/run
-        - echo "deploy done."
-
-
-
-    """
-
-    return run
 
   machineSettings = ->
     return """

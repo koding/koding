@@ -86,7 +86,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
           rm -rf .git .build node_modules
-          rm -rf go/{bin,pkg}
+          rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
     - rioki/s3put@0.0.3:
           key-id: $S3_KEY_ID

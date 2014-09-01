@@ -52,7 +52,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
     postgres          : postgres
     mq                : mq
-    redis             :  url: "#{redis.host}:#{redis.port}"
+    redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
     environment       : environment
     region            : region
@@ -150,8 +150,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : "#{customDomain.public}/"
+    mainUri           : "#{customDomain.public}/"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
     appsUri           : "https://rest.kd.io"
@@ -161,7 +161,7 @@ Configuration = (options={}) ->
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github            : {clientId     : "f8e440b796d953ea01e5" }
-    newkontrol        : {url          : "/kontrol/kite"}
+    newkontrol        : {url          : kontrol.url}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
@@ -261,7 +261,7 @@ Configuration = (options={}) ->
         outgoing        : "#{KONFIG.webserver.kitePort}"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                  --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
 
@@ -289,7 +289,7 @@ Configuration = (options={}) ->
 
 
     # Social API workers
-    socialapi:
+    socialapi           :
       group             : "socialapi"
       instances         : 2
       ports             :
@@ -392,10 +392,10 @@ Configuration = (options={}) ->
         return ""
 
   prodKeys =
-    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa","utf8")
-    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub","utf8")
-    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys","utf8")
-    config          : fs.readFileSync("./install/keys/prod.ssh/config","utf8")
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa"          , "utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
 
   generateSupervisorConf = (KONFIG)->
@@ -410,33 +410,6 @@ Configuration = (options={}) ->
       export KONFIG_JSON='#{KONFIG.JSON}'
       coffee #{projectRoot}/build-client.coffee --watch false
       """
-
-  cloudformation = ->
-    AWSTemplateFormatVersion: "2010-09-09"
-    Description: "Koding deployment on AWS"
-    Resources:
-        KodingAutoScale:
-            Type: "AWS::AutoScaling::AutoScalingGroup"
-            Properties:
-                AvailabilityZones: ["us-east-1a"]
-                LaunchConfigurationName: {Ref: "KodingLaunchConfig"}
-                VPCZoneIdentifier: ["subnet-b47692ed"]
-                LoadBalancerNames: ["koding-prod-deployment"]
-                MinSize: "3"
-                MaxSize: "12"
-                DesiredCapacity: "3"
-                Tags: [ Key: "Name", Value: {Ref: "AWS::StackName"}, PropagateAtLaunch: yes]
-
-        KodingLaunchConfig:
-            Type: "AWS::AutoScaling::LaunchConfiguration"
-            Properties:
-                ImageId: "ami-864d84ee"
-                InstanceType: "t2.micro"
-                KeyName: "koding-prod-deployment"
-                SecurityGroups: ["sg-64126d01"]
-                UserData: "Fn::Base64": run
-
-
 
   machineSettings = ->
     return """
