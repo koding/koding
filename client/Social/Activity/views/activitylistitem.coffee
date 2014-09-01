@@ -52,6 +52,10 @@ class ActivityListItemView extends KDListItemView
       disableFollow : disableFollow
     , data
 
+    # related to Latency Compensation:
+    # prevent users taking action when data is fake.
+    @settingsButton.hide()  if data.isFake
+
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account?.isExempt
