@@ -17,7 +17,7 @@ build:
           npm install || :
     - script:
         name: configure build
-        code: ./configure
+        code: ./configure --config $CONFIG --projectRoot /opt/koding
     - script:
         name: build client
         code: ./run buildclient
@@ -63,7 +63,6 @@ deploy:
         name: zip
         code: |
           cd $WERCKER_ROOT
-          ./configure --config $CONFIG --projectRoot /opt/koding
           rm -rf .git .build node_modules
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
