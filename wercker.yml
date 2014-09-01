@@ -82,15 +82,6 @@ deploy:
         content: $(git log -1 --format=%h)
         overwrite: true
     - script:
-        name: deploy
-        code: |
-          chmod 600 $HOME/.ssh/id_rsa
-          chmod 644 $HOME/.ssh/id_rsa.pub
-          git config --global user.email "wercker@koding.com"
-          git config --global user.name "wercker-build-box"
-          git fetch --tags
-          ./deploy --deploy --config=$CONFIG
-    - script:
         name: zip
         code: |
           TODAY=$(date "+%Y-%m-%dT%H:%M:%S")
