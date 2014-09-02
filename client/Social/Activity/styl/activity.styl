@@ -30,6 +30,69 @@ body.activity
     .message-pane.privatemessage > .listview-wrapper
       margin-top        0
 
+  .posting-guidelines
+    kalc                width, 100% \- 613px
+    max-width           400px
+    font-size           13px
+    line-height         18px
+    padding             20px
+    background          rgba(0,0,0,.03)
+    border              1px solid rgba(0,0,0,.08)
+    color               #555
+    margin-top          34px
+    margin-left         13px
+    rounded             3px
+    borderBox()
+    fl()
+
+    a
+      color             inherit
+
+    h4
+      font-size         14px
+      font-weight       600
+      margin            14px 0 8px 0
+
+      &:first-of-type
+        margin-top      0
+
+    li
+      position          relative
+
+      & ~ li
+        margin-top      23px
+
+    ol
+      padding           12px 0 12px 20px
+      counter-reset     orderedList
+
+      li:before
+        counter-increment orderedList
+        content           counter(orderedList) "."
+        display           block
+        abs               0px 0 0 -20px
+        font-weight       600
+
+      ol
+        padding-top     0
+
+        li:before
+          content       counter(orderedList, lower-latin) ")"
+
+        li ~ li
+          margin-top    1px
+
+    ul
+      padding           12px 0 12px 20px
+
+      li:before
+        content         ''
+        size            4px, 4px
+        abs             7px 0 0 -17px
+        rounded         2px
+        background      rgba(0,0,0,0.2)
+
+
 .content-page.activity
 .member.content-display
   .lazy-loader
