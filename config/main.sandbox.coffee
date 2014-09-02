@@ -34,8 +34,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
-
+  kiteHome            = "#{projectRoot}/kite_home/koding"
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
   socialapiProxy      =
