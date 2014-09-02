@@ -37,8 +37,6 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
   postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  # this is set to kite_home/koding intentionally, because of the usage of
-  # localhost:4000
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
@@ -102,7 +100,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                              , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -140,7 +138,7 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar , mixpanel etc.
+    logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
@@ -154,7 +152,7 @@ Configuration = (options={}) ->
     mainUri           : "#{customDomain.public}/"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
-    appsUri           : "https://rest.kd.io"
+    appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
@@ -409,21 +407,10 @@ Configuration = (options={}) ->
       coffee ./build-client.coffee --watch false
       """
 
-  machineSettings = ->
-    return """
-        \n
-        echo '#{b64z KONFIG.nginxConf}'               | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
-        echo "nginx configured."
-        echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
-        echo "supervisor configured."
-    """
-
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
-  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
 
   return KONFIG
-
 
 module.exports = Configuration

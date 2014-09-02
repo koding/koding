@@ -97,7 +97,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                              , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -135,7 +135,7 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar , mixpanel etc.
+    logToExternal     : no                                 # rollbar, mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
@@ -377,24 +377,14 @@ Configuration = (options={}) ->
 
   generateRunFile = (KONFIG) ->
     return """
+      #!/bin/bash
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
       coffee ./build-client.coffee --watch false
       """
 
-  machineSettings = ->
-    return """
-        \n
-        echo '#{b64z KONFIG.nginxConf}' | base64 --decode | gunzip > /etc/nginx/nginx.conf;
-        echo "nginx configured."
-        echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
-        echo "supervisor configured."
-    """
-
-
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
-  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
 
   return KONFIG
