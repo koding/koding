@@ -267,7 +267,7 @@ class IDEAppController extends AppController
           if state is 'Running'
             @mountMachine machineItem
           else
-            @createMachineStateModal state, container, machineItem
+            @createMachineStateModal state, container, machineItem, yes
             if initiateFakeCounter
               @machineStateModal.once 'MachineTurnOnStarted', =>
                 KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
@@ -276,10 +276,17 @@ class IDEAppController extends AppController
           computeController.on "public-#{machineId}", (event) =>
             if event.status in [Stopping, Stopped, Terminating, Terminated]
 
+              KodingKontrol.dcNotification?.destroy()
+              KodingKontrol.dcNotification = null
+
+              machineItem.getBaseKite( no ).disconnect()
+
               unless @machineStateModal
                 @createMachineStateModal state, container, machineItem
               else
-                @machineStateModal.updateStatus event
+                if event.status in [Stopped, Terminated]
+                  @machineStateModal.updateStatus event
+
         else
           @createMachineStateModal { state: 'NotFound', container }
 
@@ -311,8 +318,8 @@ class IDEAppController extends AppController
         #   callback()
 
 
-  createMachineStateModal: (state, container, machineItem) ->
-    @machineStateModal = new IDE.MachineStateModal { state, container }, machineItem
+  createMachineStateModal: (state, container, machineItem, initial) ->
+    @machineStateModal = new IDE.MachineStateModal { state, container, initial }, machineItem
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady()
 
@@ -562,8 +569,8 @@ class IDEAppController extends AppController
       terminalPane.resurrect()
 
     unless @fakeViewsDestroyed
-      @fakeFinderView.destroy()
-      @fakeTabView.removePane_ @fakeTerminalPane
+      @fakeFinderView?.destroy()
+      @fakeTabView?.removePane_ @fakeTerminalPane
       @createNewTerminal @machineStateModal.getData()
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes

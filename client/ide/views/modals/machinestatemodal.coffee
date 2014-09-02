@@ -75,12 +75,19 @@ class IDE.MachineStateModal extends IDE.ModalView
     @createLoading()
     @createFooter()
 
-    KD.getSingleton 'computeController'
-      .info @machine
-      .then => @buildViews()
+    if @getOption 'initial'
+      KD.getSingleton 'computeController'
+        .kloud.info { @machineId }
+        .then (response)=> @buildViews response
+        .catch => @buildViews()
+    else
+      @buildViews()
 
+  buildViews: (response)->
 
-  buildViews: ->
+    if response?
+      @state = response.State
+
     @container.destroySubViews()
 
     @createStateLabel()
