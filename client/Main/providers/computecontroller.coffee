@@ -138,10 +138,14 @@ class ComputeController extends KDController
 
     @stacks   = []
     @machines = []
+    @_trials  = {}
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "renderStacks"
+
+  _clearTrialCounts: (machine)->
+    @_trials[machine.uid] = {}
 
 
   errorHandler: (call, task, machine)->
@@ -152,12 +156,16 @@ class ComputeController extends KDController
 
     { timeout }   = ComputeController
 
-    retryIfNeeded = KD.utils.throttle 500, (task, machine)->
+    retryIfNeeded = KD.utils.throttle 500, (task, machine)=>
 
-      if task in ['info', 'stop', 'start', 'destroy']
+      @_trials[machine.uid]       ?= {}
+      @_trials[machine.uid][task] ?= 0
+
+      if @_trials[machine.uid][task]++ < 20
         info "Trying again to do '#{task}'..."
         KD.singletons.computeController[task] machine
         return yes
+
 
     (err)=>
 
@@ -174,12 +182,11 @@ class ComputeController extends KDController
 
         when ComputeErrors.KiteError
 
-          if task in ['info', 'stop', 'start', 'destroy']
-            if err.code is ComputeErrors.Pending
-              retried = retryIfNeeded task, machine
-              safeToSuspend = yes
-            else
-              @eventListener.triggerState machine, status: Machine.State.Unknown
+          if err.code is ComputeErrors.Pending
+            retried = retryIfNeeded task, machine
+            safeToSuspend = yes
+          else
+            @eventListener.triggerState machine, status: Machine.State.Unknown
 
       unless safeToSuspend
         @emit "error", { task, err, machine }
@@ -193,11 +200,13 @@ class ComputeController extends KDController
 
     ComputeController.UI.askFor 'destroy', machine, =>
 
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
-
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      @_clearTrialCounts machine
 
       call = @kloud.destroy { machineId: machine._id }
 
@@ -226,6 +235,7 @@ class ComputeController extends KDController
     .then (res)=>
 
       log "build res:", res
+      @_clearTrialCounts machine
       @eventListener.addListener 'build', machine._id
 
     .timeout ComputeController.timeout
@@ -249,6 +259,7 @@ class ComputeController extends KDController
     .then (res)=>
 
       log "start res:", res
+      @_clearTrialCounts machine
       @eventListener.addListener 'start', machine._id
 
     .timeout ComputeController.timeout
@@ -272,6 +283,7 @@ class ComputeController extends KDController
     .then (res)=>
 
       log "stop res:", res
+      @_clearTrialCounts machine
       @eventListener.addListener 'stop', machine._id
 
     .timeout ComputeController.timeout
@@ -307,6 +319,7 @@ class ComputeController extends KDController
     .then (response)=>
 
       log "info response:", response
+      @_clearTrialCounts machine
       @eventListener.triggerState machine,
         status      : response.State
         percentage  : 100
