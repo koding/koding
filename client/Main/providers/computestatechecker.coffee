@@ -3,7 +3,7 @@ class ComputeStateChecker extends KDObject
   constructor:(options = {})->
 
     super
-      interval : options.interval ? 30000
+      interval : options.interval ? 5000
 
     @kloud           = KD.singletons.kontrol.getKite
       name           : "kloud"
@@ -57,31 +57,31 @@ class ComputeStateChecker extends KDObject
 
     @machines.forEach (machine)=>
 
-      KD.utils.wait KD.utils.getRandomNumber(1453), =>
+      log "calling machne info csc....", machine._id
 
-        call = @kloud.info { machineId: machine._id }
+      call = @kloud.info { machineId: machine._id }
 
-        .then (response)=>
+      .then (response)=>
 
-          log "csc: info response:", response
+        log "csc: info response:", response
 
-          computeController.eventListener
-            .triggerState machine, status : response.State
+        computeController.eventListener
+          .triggerState machine, status : response.State
 
-          unless machine.status.state is response.State
-            computeController.triggerReviveFor machine._id
+        unless machine.status.state is response.State
+          computeController.triggerReviveFor machine._id
 
-          @addMachine machine
+        @addMachine machine
 
-        .timeout ComputeController.timeout
+      .timeout ComputeController.timeout
 
-        .catch (err)=>
+      .catch (err)=>
 
-          # Ignore pending event errors but log others
-          unless err?.code is "107"
-            log "csc: info error happened:", err
+        # Ignore pending event errors but log others
+        unless err?.code is "107"
+          log "csc: info error happened:", err
 
-          @addMachine machine
+        @addMachine machine
 
     @machines = []
     @tickInProgress = no
