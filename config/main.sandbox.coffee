@@ -258,6 +258,7 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
+        auth            : yes
 
     socialworker        :
       group             : "webserver"
