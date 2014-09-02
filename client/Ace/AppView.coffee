@@ -171,6 +171,8 @@ class AceView extends JView
       contents          = @ace.getContents()
       oldCursorPosition = @ace.editor.getCursorPosition()
 
+      file.machine = parent.machine
+
       file.emit 'file.requests.saveAs', contents, name, parent.path
       file.once 'fs.saveAs.finished',   @ace.bound 'saveAsFinished'
       @ace.emit 'AceDidSaveAs', name, parent.path
