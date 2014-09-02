@@ -177,15 +177,12 @@ class AceView extends JView
       file.once 'fs.saveAs.finished',   @ace.bound 'saveAsFinished'
       @ace.emit 'AceDidSaveAs', name, parent.path
 
-      file.on 'fs.saveAs.finished', =>
+      file.on 'fs.saveAs.finished', (newFile) =>
+
         {tabView} = @getDelegate()
         return  if tabView.willClose
-        @getDelegate().openFile \
-          FSHelper.createFileInstance path: "#{parent.path}/#{name}"
 
-        newFile = FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
-        @getDelegate().openFile newFile, contents
-
+        @getDelegate().openFile newFile
 
     , { inputDefaultValue: file.name }
 
