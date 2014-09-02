@@ -102,14 +102,15 @@ class KodingKontrol extends (require 'kontrol')
     if kite.options.name is 'klient'
       kite
         .on 'close', ->
-          if kite.transport.options.autoReconnect
+          if not kite.isDisconnected and kite.transport?.options.autoReconnect
             KodingKontrol.dcNotification ?= new KDNotificationView
               title     : 'Trying to reconnect...'
               type      : 'tray'
               duration  : 999999
         .on 'open', ->
           KodingKontrol.dcNotification?.destroy()
-          KodingKontrol.dcNotification = null
+          # FIXME Chris ~
+          # KodingKontrol.dcNotification = null
 
     # Query kontrol
     @fetchKite
@@ -130,9 +131,8 @@ class KodingKontrol extends (require 'kontrol')
       # Instead parsing message we need to define a code or different
       # name for `No kite found` error in kite.js ~ FIXME GG
       if err and err.name is "KiteError" and /^No kite found/.test err.message
+        @setCachedKite name, correlationName, null
         kite.invalid = err
-
-      @setCachedKite name, correlationName, null
 
       {message} = err
       message   = if message then message else err

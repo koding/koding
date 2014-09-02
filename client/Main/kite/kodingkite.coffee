@@ -13,28 +13,32 @@ class KodingKite extends KDObject
     return {reason, code, wasClean, timestamp, type}
 
   logTransportFailures:->
-    @transport.ws.addEventListener 'close', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws closed', params
+    if @transport.ws?
+      @transport.ws.addEventListener 'close', (event)->
+        params = extractInfoFromWsEvent event
+        ErrorLog.create 'ws closed', params
 
-    @transport.ws.addEventListener 'error', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws error', params
+      @transport.ws.addEventListener 'error', (event)->
+        params = extractInfoFromWsEvent event
+        ErrorLog.create 'ws error', params
 
   getTransport: -> @transport
 
   setTransport: (@transport) ->
+    if @transport?.ws?
+      @transport.disconnect()
+
     @forwardEvent @transport, 'close'
     @forwardEvent @transport, 'open'
 
-    @transport.connect()
+    @transport.connect() unless @isDisconnected
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
 
     unless @invalid
 
-      @ready().then => @transport.tell rpcMethod, [params], callback
+      @ready().then => @transport?.tell rpcMethod, [params], callback
 
     else
 
@@ -57,4 +61,7 @@ class KodingKite extends KDObject
   @constructors = {}
 
   connect:    -> @transport?.connect()
-  disconnect: -> @transport?.disconnect()
+  disconnect: ->
+    @isDisconnected = yes
+    @transport?.disconnect()
+    @transport = null

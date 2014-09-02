@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"socialapi/request"
 	"time"
 
@@ -122,7 +121,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 	var messages []int64
 
 	if c.ChannelId == 0 {
-		return nil, errors.New("ChannelId is not set")
+		return nil, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -157,7 +156,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 
 func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, error) {
 	if messageId == 0 || channelId == 0 {
-		return false, errors.New("channelId/messageId is not set")
+		return false, ErrChannelOrMessageIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -220,6 +219,9 @@ func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, e
 	return channelIds, nil
 }
 
+// FetchMessageChannels fetchs the channels by message id
+//
+// Tests are done.
 func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, error) {
 	channelIds, err := c.FetchMessageChannelIds(messageId)
 	if err != nil {
@@ -229,6 +231,7 @@ func (c *ChannelMessageList) FetchMessageChannels(messageId int64) ([]Channel, e
 	return NewChannel().FetchByIds(channelIds)
 }
 
+// FetchMessageIdsByChannelId fetchs the channels by message id
 func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -276,7 +279,7 @@ func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interf
 
 func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 	if messageId == 0 || channelId == 0 {
-		return errors.New("channelId/messageId is not set")
+		return ErrChannelOrMessageIdIsNotSet
 	}
 
 	query := &bongo.Query{
@@ -308,6 +311,7 @@ func (c *ChannelMessageList) MarkIfExempt() error {
 	return nil
 }
 
+// Tests are done.
 func (c *ChannelMessageList) isExempt() (bool, error) {
 	// return early if channel is already exempt
 	if c.MetaBits.Is(Troll) {
@@ -315,7 +319,7 @@ func (c *ChannelMessageList) isExempt() (bool, error) {
 	}
 
 	if c.MessageId == 0 {
-		return false, errors.New("message id is not set for exempt check")
+		return false, ErrMessageIdIsNotSet
 	}
 
 	cm := NewChannelMessage()
@@ -325,9 +329,13 @@ func (c *ChannelMessageList) isExempt() (bool, error) {
 
 }
 
+// Count counts messages in the channel
+// if account of message is troll, will not be counted as message
+//
+// Tests are done.
 func (c *ChannelMessageList) Count(channelId int64) (int, error) {
 	if channelId == 0 {
-		return 0, errors.New("channel id is not set")
+		return 0, ErrChannelIdIsNotSet
 	}
 
 	query := &bongo.Query{

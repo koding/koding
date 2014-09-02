@@ -183,9 +183,6 @@ class MachineSettingsModal extends KDModalViewWithForms
 
     {Running, Starting, NotInitialized, Terminated} = Machine.State
 
-    if reverted
-      warn "State reverted!"
-
     @unsetClass stateClasses
     @setClass status.toLowerCase()
 

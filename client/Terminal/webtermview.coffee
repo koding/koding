@@ -114,7 +114,9 @@ class WebTermView extends KDView
     options.mode = mode
 
     kite = @getKite()
+    kite.init()
     kite.webtermConnect(options).then (remote) =>
+      return  unless remote?
 
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>

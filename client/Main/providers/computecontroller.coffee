@@ -152,17 +152,16 @@ class ComputeController extends KDController
 
     { timeout }   = ComputeController
 
-    retryIfNeeded = (task, machine)->
+    retryIfNeeded = KD.utils.throttle 500, (task, machine)->
 
-      return # FIXME ~ GG
-
-      if task in ['info', 'stop', 'start']
-        info "Trying again to do '#{task}' in #{timeout}ms..."
-        KD.utils.wait timeout, ->
-          KD.singletons.computeController[task] machine
+      if task in ['info', 'stop', 'start', 'destroy']
+        info "Trying again to do '#{task}'..."
+        KD.singletons.computeController[task] machine
+        return yes
 
     (err)=>
 
+      retried = no
       @eventListener.revertToPreviousState machine
 
       switch err.name
@@ -175,9 +174,9 @@ class ComputeController extends KDController
 
         when ComputeErrors.KiteError
 
-          if task is 'info'
+          if task in ['info', 'stop', 'start', 'destroy']
             if err.code is ComputeErrors.Pending
-              retryIfNeeded task, machine
+              retried = retryIfNeeded task, machine
               safeToSuspend = yes
             else
               @eventListener.triggerState machine, status: Machine.State.Unknown
@@ -186,14 +185,15 @@ class ComputeController extends KDController
         @emit "error", { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
 
-      warn "#{task} failed:", err, this
+      unless retried
+        warn "#{task} failed:", err, this
 
 
   destroy: (machine)->
 
     ComputeController.UI.askFor 'destroy', machine, =>
 
-      machine.getBaseKite( createIfExists = no ).disconnect()
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -242,6 +242,8 @@ class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
+    machine.getBaseKite().isDisconnected = no
+
     call = @kloud.start { machineId: machine._id }
 
     .then (res)=>
@@ -263,7 +265,7 @@ class ComputeController extends KDController
       status      : Machine.State.Stopping
       percentage  : 0
 
-    machine.getBaseKite( createIfExists = no ).disconnect()
+    machine.getBaseKite( createIfNotExists = no ).disconnect()
 
     call = @kloud.stop { machineId: machine._id }
 
@@ -295,6 +297,10 @@ class ComputeController extends KDController
     if stateEvent
       @eventListener.addListener stateEvent, machine._id
       return Promise.resolve()
+
+    @eventListener.triggerState machine,
+      status      : machine.status.state
+      percentage  : 0
 
     call = @kloud.info { machineId: machine._id }
 
