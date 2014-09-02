@@ -404,8 +404,6 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export GOPATH=#{projectRoot}/go
-      export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
       coffee ./build-client.coffee --watch false
