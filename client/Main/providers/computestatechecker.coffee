@@ -57,13 +57,9 @@ class ComputeStateChecker extends KDObject
 
     @machines.forEach (machine)=>
 
-      log "calling machne info csc....", machine._id
-
       call = @kloud.info { machineId: machine._id }
 
       .then (response)=>
-
-        log "csc: info response:", response
 
         computeController.eventListener
           .triggerState machine, status : response.State
