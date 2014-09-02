@@ -7,16 +7,17 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname            = options.hostname       or "sandbox.koding.com"
-  publicHostname      = options.publicHostname or "https://sandbox.koding.com"
-  region              = "aws"
-  configName          = "sandbox"
-  environment         = "sandbox"
-  projectRoot         = options.projectRoot    or "/opt/koding"
-  version             = options.tag
-  tag                 = options.tag
-  publicIP            = options.publicIP       or "*"
-  githubuser          = options.githubuser     or "koding"
+  hostname       = options.hostname            = "sandbox.koding.com"
+  publicHostname = options.publicHostname      = "https://sandbox.koding.com"
+  region         = options.region              = "aws"
+  configName     = options.configName          = "sandbox"
+  environment    = options.environment         = "sandbox"
+  projectRoot    = options.projectRoot         or "/opt/koding"
+  version        = options.tag
+  tag            = options.tag
+  publicIP       = options.publicIP            or "*"
+  githubuser     = options.githubuser          or "koding"
+
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
@@ -135,7 +136,7 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar, mixpanel etc.
+    logToExternal     : no                                 # rollbar , mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
