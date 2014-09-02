@@ -261,7 +261,7 @@ Configuration = (options={}) ->
         outgoing        : "#{KONFIG.webserver.kitePort}"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
 
@@ -404,11 +404,9 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export GOPATH=#{projectRoot}/go
-      export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee #{projectRoot}/build-client.coffee --watch false
+      coffee ./build-client.coffee --watch false
       """
 
   machineSettings = ->

@@ -17,10 +17,10 @@ build:
           npm install || :
     - script:
         name: configure build
-        code: ./configure
+        code: ./configure --config $CONFIG --projectRoot /opt/koding
     - script:
         name: build client
-        code: ./run buildclient
+        code: ./run
     - script:
         name: build go binaries
         code: go/build.sh
@@ -54,28 +54,6 @@ build:
 
 deploy:
   steps:
-    - script:
-        name: create $HOME/.ssh directory
-        code: mkdir -p $HOME/.ssh
-    - create-file:
-        name: write private key
-        filename: $HOME/.ssh/id_rsa
-        content: $KEY_PRIVATE
-        overwrite: true
-        hide-from-log: true
-    - create-file:
-        name: write public key
-        filename: $HOME/.ssh/id_rsa.pub
-        content: $KEY_PUBLIC
-        overwrite: true
-        hide-from-log: false
-    - create-file:
-        name: create ssh configuration
-        filename: $HOME/.ssh/config
-        content: |-
-          Host github.com
-            User git
-            IdentityFile ~/.ssh/id_rsa
     - create-file:
         name: write version file
         filename: $WERCKER_ROOT/VERSION
@@ -85,6 +63,10 @@ deploy:
         name: zip
         code: |
           cd $WERCKER_ROOT
+
+          ./configure --config $CONFIG --projectRoot /opt/koding
+          ./run
+
           rm -rf .git .build node_modules
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
@@ -98,7 +80,7 @@ deploy:
           secret-key: $S3_KEY_SECRET
           app-name: koding
           env-name: $EB_ENV_NAME
-          app-location: $S3_EB_DEPLOY/ARCHIVE
+          app-location: $S3_EB_DEPLOY/$ARCHIVE
           version-label: $ARCHIVE
   after-steps:
     - jessefulton/slack-notify:
