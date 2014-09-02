@@ -37,8 +37,6 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
   postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  # this is set to kite_home/koding intentionally, because of the usage of
-  # localhost:4000
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
@@ -52,7 +50,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
     postgres          : postgres
     mq                : mq
-    redis             :  url: "#{redis.host}:#{redis.port}"
+    redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
     environment       : environment
     region            : region
@@ -102,7 +100,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                              , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -150,18 +148,18 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : "#{customDomain.public}/"
+    mainUri           : "#{customDomain.public}/"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
-    appsUri           : "https://rest.kd.io"
+    appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github            : {clientId     : "f8e440b796d953ea01e5" }
-    newkontrol        : {url          : "/kontrol/kite"}
+    newkontrol        : {url          : kontrol.url}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
@@ -261,7 +259,7 @@ Configuration = (options={}) ->
         outgoing        : "#{KONFIG.webserver.kitePort}"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                  --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
+        command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
         auth            : yes
@@ -290,7 +288,7 @@ Configuration = (options={}) ->
 
 
     # Social API workers
-    socialapi:
+    socialapi           :
       group             : "socialapi"
       instances         : 2
       ports             :
@@ -393,67 +391,25 @@ Configuration = (options={}) ->
         return ""
 
   prodKeys =
-    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa","utf8")
-    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub","utf8")
-    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys","utf8")
-    config          : fs.readFileSync("./install/keys/prod.ssh/config","utf8")
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa"          , "utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
-
-  generateSupervisorConf = (KONFIG)->
-    return (require "../deployment/supervisord.coffee").create KONFIG
 
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export GOPATH=#{projectRoot}/go
-      export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee #{projectRoot}/build-client.coffee --watch false
+      coffee ./build-client.coffee --watch false
       """
-
-  cloudformation = ->
-    AWSTemplateFormatVersion: "2010-09-09"
-    Description: "Koding deployment on AWS"
-    Resources:
-        KodingAutoScale:
-            Type: "AWS::AutoScaling::AutoScalingGroup"
-            Properties:
-                AvailabilityZones: ["us-east-1a"]
-                LaunchConfigurationName: {Ref: "KodingLaunchConfig"}
-                VPCZoneIdentifier: ["subnet-b47692ed"]
-                LoadBalancerNames: ["koding-prod-deployment"]
-                MinSize: "3"
-                MaxSize: "12"
-                DesiredCapacity: "3"
-                Tags: [ Key: "Name", Value: {Ref: "AWS::StackName"}, PropagateAtLaunch: yes]
-
-        KodingLaunchConfig:
-            Type: "AWS::AutoScaling::LaunchConfiguration"
-            Properties:
-                ImageId: "ami-864d84ee"
-                InstanceType: "t2.micro"
-                KeyName: "koding-prod-deployment"
-                SecurityGroups: ["sg-64126d01"]
-                UserData: "Fn::Base64": run
-
-
-
-  machineSettings = ->
-    return """
-        \n
-        echo '#{b64z KONFIG.nginxConf}'               | base64 --decode | gunzip >  /etc/nginx/sites-enabled/default;
-        echo "nginx configured."
-        echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
-        echo "supervisor configured."
-    """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
-  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
+  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
   return KONFIG
-
 
 module.exports = Configuration
