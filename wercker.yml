@@ -80,7 +80,7 @@ deploy:
           secret-key: $S3_KEY_SECRET
           app-name: koding
           env-name: $EB_ENV_NAME
-          app-location: $S3_EB_DEPLOY/ARCHIVE
+          app-location: $S3_EB_DEPLOY/$ARCHIVE
           version-label: $ARCHIVE
   after-steps:
     - jessefulton/slack-notify:
