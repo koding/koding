@@ -381,7 +381,7 @@ Configuration = (options={}) ->
       export GOBIN=#{projectRoot}/go/bin
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee #{projectRoot}/build-client.coffee --watch false
+      coffee ./build-client.coffee --watch false
       """
 
   machineSettings = ->
