@@ -78,7 +78,7 @@ class AceView extends JView
     @ace.on "ace.requests.save", (contents) =>
       file = @getData()
       if /localfile:/.test file.path
-        @openSaveDialog closeAfter: no
+        @openSaveDialog()
       else
         file.once 'fs.save.started',    @ace.bound 'saveStarted'
         file.once 'fs.save.finished',   @ace.bound 'saveFinished'
@@ -150,13 +150,14 @@ class AceView extends JView
       id         : 13
       parentId   : null
       callback   : =>
-        @openSaveDialog closeAfter: no
+        @openSaveDialog()
 
-  openSaveDialog: (options = {}) ->
-    { closeAfter }   = options
+  openSaveDialog: ->
 
     file = @getData()
+
     KD.utils.showSaveDialog this, (input, finderController, dialog) =>
+
       [node] = finderController.treeController.selectedNodes
       name   = input.getValue()
 
@@ -183,12 +184,6 @@ class AceView extends JView
         newFile = FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
         @getDelegate().openFile newFile, contents
 
-        if closeAfter
-          @utils.defer =>
-            tabView.removePane_ tabView.getActivePane()
-            {ace} = tabView.getActivePane().getOptions().aceView
-            ace.on 'ace.ready', ->
-              ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
 
     , { inputDefaultValue: file.name }
 
