@@ -63,6 +63,10 @@ deploy:
         name: zip
         code: |
           cd $WERCKER_ROOT
+
+          ./configure --config $CONFIG --projectRoot /opt/koding
+          ./run
+
           rm -rf .git .build node_modules
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
