@@ -31,6 +31,8 @@ class ActivityAppView extends KDView
 
     @appStorage.setValue 'liveUpdates', off
 
+    @postingGuidelines = new PostingGuidelinesView
+
     # windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
 
 
@@ -45,6 +47,7 @@ class ActivityAppView extends KDView
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
+    @addSubView @postingGuidelines
 
 
   scroll: ->
