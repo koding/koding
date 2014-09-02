@@ -4,6 +4,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -242,5 +243,39 @@ func TestChannelMessageListMarkIfExempt(t *testing.T) {
 			So(errr, ShouldBeNil)
 		})
 
+	})
+}
+
+func TestChannelMessageListUpdateAddedAt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while updating addedAt", t, func() {
+		Convey("it should have message id otherwise occurs error", func() {
+			cml := NewChannelMessageList()
+
+			err := cml.UpdateAddedAt(0, 1092)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+		})
+
+		Convey("it should have channel id otherwise occurs error", func() {
+			cml := NewChannelMessageList()
+
+			err := cml.UpdateAddedAt(1091, 0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+		})
+
+		Convey("it should have record not found error if channel id or message id are not exist", func() {
+			cml := NewChannelMessageList()
+
+			err := cml.UpdateAddedAt(1091, 1092)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
 	})
 }
