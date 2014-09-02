@@ -26,7 +26,7 @@ Configuration = (options={}) ->
   mq                  = { host:     "#{rabbitmq.host}"                          , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "http://koding-#{publicHostname}.ngrok.com" , public_:            "koding-#{publicHostname}.ngrok.com"    , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
   sendgrid            = { username: "koding"                                    , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                   , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , templateRoot:   "workers/sitemap/files/"                 , forcedRecipient: undefined }
+  email               = { host:     "#{customDomain.public_}"                   , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"       , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                    , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                             , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -409,7 +409,7 @@ Configuration = (options={}) ->
 
       function kill_all () {
         #{killlist()}
-        nginx -s quit
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
 
@@ -417,8 +417,9 @@ Configuration = (options={}) ->
       function nginxrun () {
 
         echo "starting nginx"
-        nginx -s quit
-        nginx -c #{projectRoot}/.dev.nginx.conf
+        touch #{projectRoot}/.dev.nginx.pid
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
+        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;'
 
       }
 
@@ -619,10 +620,7 @@ Configuration = (options={}) ->
         echo "Starting services: $SERVICES"
         docker start $SERVICES
 
-        echo "starting nginx"
-        nginx -s quit
-        nginx -c `pwd`/.dev.nginx.conf
-
+        nginxrun
       }
 
 

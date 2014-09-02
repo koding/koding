@@ -7,16 +7,16 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname            = options.hostname       or "prod-v1_2_4-anna"
-  publicHostname      = options.publicHostname or "https://koding.me"
-  region              = options.region         or "aws"
-  configName          = options.configName     or "sandbox"
-  environment         = options.environment    or "sandbox"
-  projectRoot         = options.projectRoot    or "/opt/koding"
-  version             = options.tag
-  tag                 = options.tag
-  publicIP            = options.publicIP       or "*"
-  githubuser          = options.githubuser     or "koding"
+  hostname       = options.hostname            = "sandbox.koding.com"
+  publicHostname = options.publicHostname      = "https://sandbox.koding.com"
+  region         = options.region              = "aws"
+  configName     = options.configName          = "sandbox"
+  environment    = options.environment         = "sandbox"
+  projectRoot    = options.projectRoot         or "/opt/koding"
+  version        = options.tag
+  tag            = options.tag
+  publicIP       = options.publicIP            or "*"
+  githubuser     = options.githubuser          or "koding"
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
@@ -24,18 +24,17 @@ Configuration = (options={}) ->
   redis               = { host:     "#{prod_simulation_server}"              , port:               6379                                  , db:              0                    }
   rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://#{hostname}"                     , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
+  customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , templateRoot:   "workers/sitemap/files/"                              , forcedRecipient: undefined }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"    , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
-  broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
+  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password                                     , forcedRecipient: undefined }
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite" , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                             , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.sandbox'           }
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
-
+  kiteHome            = "#{projectRoot}/kite_home/koding"
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
   socialapiProxy      =
@@ -49,7 +48,6 @@ Configuration = (options={}) ->
     mq                : mq
     redis             : url: "#{redis.host}:#{redis.port}"
     mongo             : mongo
-    kiteHome          : kiteHome
     environment       : environment
     region            : region
     hostname          : hostname
@@ -79,25 +77,26 @@ Configuration = (options={}) ->
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
+    kiteHome                       : kiteHome
     redis                          : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
 
-    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort: 8860}
+    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
     elasticSearch                  : {host          : "#{prod_simulation_server}" , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
-    newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{projectRoot}/kite_home/sandbox/kite.key"}
+    newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{kiteHome}/kite.key"  }
     log                            : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -135,7 +134,7 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar                                            , mixpanel etc.
+    logToExternal     : no                                 # rollbar , mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
@@ -145,16 +144,16 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : null
-    mainUri           : null
+    apiUri            : "/"
+    mainUri           : "/"
     sourceMapsUri     : "/sourcemaps"
+    broker            : {uri          : "/subscribe" }
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    broker            : {uri          : "/subscribe" }
     github            : {clientId     : "f8e440b796d953ea01e5" }
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
@@ -176,7 +175,6 @@ Configuration = (options={}) ->
 
 
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
-
   KONFIG.workers =
     kontrol             :
       group             : "environment"
@@ -213,7 +211,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/broker    -c #{configName}"
+        command         : "#{GOBIN}/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -225,6 +223,7 @@ Configuration = (options={}) ->
 
     authworker          :
       group             : "webserver"
+      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
 
@@ -233,7 +232,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.sourcemaps.port}"
       supervisord       :
-        command         : "#{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
+        command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
     emailsender         :
       group             : "webserver"
@@ -245,10 +244,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.appsproxy.port}"
       supervisord       :
-        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port} --disable-newrelic"
+        command         : "node #{projectRoot}/servers/appsproxy/web.js -c #{configName} -p #{KONFIG.appsproxy.port}"
 
     webserver           :
       group             : "webserver"
+      instances         : 2
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
@@ -256,9 +256,11 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
+        auth            : yes
 
     socialworker        :
       group             : "webserver"
+      instances         : 2
       ports             :
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
@@ -272,14 +274,21 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
+    # clientWatcher       :
+    #   group             : "webserver"
+    #   supervisord       :
+    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+
+
 
     # Social API workers
     socialapi           :
       group             : "socialapi"
+      instances         : 2
       ports             :
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
-        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
 
     dailyemailnotifier  :
       group             : "socialapi"
@@ -308,6 +317,7 @@ Configuration = (options={}) ->
 
     realtime            :
       group             : "socialapi"
+      instances         : 3
       supervisord       :
         command         : "#{GOBIN}/realtime  -c #{socialapi.configFilePath}"
 
@@ -336,6 +346,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -356,169 +367,23 @@ Configuration = (options={}) ->
         return ""
 
   prodKeys =
-    id_rsa          : fs.readFileSync( "./install/keys/prod.ssh/id_rsa"          ,"utf8")
-    id_rsa_pub      : fs.readFileSync( "./install/keys/prod.ssh/id_rsa.pub"      ,"utf8")
-    authorized_keys : fs.readFileSync( "./install/keys/prod.ssh/authorized_keys" ,"utf8")
-    config          : fs.readFileSync( "./install/keys/prod.ssh/config"          ,"utf8")
-
-  generateSupervisorConf = (KONFIG)->
-    return (require "../deployment/supervisord.coffee").create KONFIG
+    id_rsa          : fs.readFileSync("./install/keys/prod.ssh/id_rsa"          , "utf8")
+    id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
+    authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
+    config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
   generateRunFile = (KONFIG) ->
-    envvars = ->
-      env = """
-      export GOPATH=#{projectRoot}/go
-      export GOBIN=#{projectRoot}/go/bin
+    return """
+      #!/bin/bash
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      \n
+      coffee ./build-client.coffee --watch false
       """
-      # env += "export #{key}='#{val}'\n" for key,val of KONFIG.ENV
-      return env
-
-    workersRunList = ->
-      workers = ""
-      for key,val of KONFIG.workers
-        workers +="#------------- worker: #{key} -------------#\n"
-        workers +="#{val.supervisord.command} &>#{projectRoot}/.logs/#{key}.log & \n"
-        workers +="#{key}pid=$! \n"
-        workers +="echo [#{key}] started with pid: $#{key}pid \n\n"
-      return workers
-
-
-    runContents = """
-      #!/bin/bash
-      #{envvars()}
-
-      function install() {
-        touch /root/run.install.start
-
-        echo #{b64z prodKeys.id_rsa}          | base64 --decode | gunzip >/root/.ssh/id_rsa
-        echo #{b64z prodKeys.id_rsa_pub}      | base64 --decode | gunzip >/root/.ssh/id_rsa.pub
-        echo #{b64z prodKeys.authorized_keys} | base64 --decode | gunzip >/root/.ssh/authorized_keys
-        echo #{b64z prodKeys.config}          | base64 --decode | gunzip >/root/.ssh/config
-        chmod 0600 /root/.ssh/id_rsa
-
-        cd /opt
-        git clone --recursive --branch '#{tag}' --depth 1 git@github.com:#{options.githubuser}/koding.git koding
-
-        cd /opt/koding
-
-        # retrieve machine settings from the git tag namely, write nginx and supervisor conf.
-        ms=`git tag -l -n1 | grep '#{tag}'`
-        ms=${ms##*machine-settings-b64-zip-}  # get the part after the last separator
-        echo $ms | base64 --decode | gunzip > #{projectRoot}/machineSettings
-        bash #{projectRoot}/machineSettings
-
-        npm i gulp stylus coffee-script -g
-        npm i --unsafe-perm
-        /usr/local/bin/coffee /opt/koding/build-client.coffee --watch false
-        bash #{projectRoot}/go/build.sh
-        cd #{projectRoot}/go/src/socialapi
-        make install
-        cd #{projectRoot}/node_modules_koding/koding-broker-client
-        cake build
-        mkdir $HOME/.kite
-        echo copying #{KONFIG.newkites.keyFile} to $HOME/.kite/kite.key
-        cp #{KONFIG.newkites.keyFile} $HOME/.kite/kite.key
-
-        # new relic setup
-        echo deb http://apt.newrelic.com/debian/ newrelic non-free >> /etc/apt/sources.list.d/newrelic.list
-        wget -O- https://download.newrelic.com/548C16BF.gpg | apt-key add -
-        apt-get update
-        apt-get install newrelic-sysmond
-        nrsysmond-config --set license_key=aa81e308ad9a0d95cf5a90fec9692c80551e8a68
-        /etc/init.d/newrelic-sysmond start
-
-
-        touch /root/run.install.end
-      }
-
-      function services() {
-        touch /root/run.services.start
-        service nginx restart
-        service supervisor restart
-        touch /root/run.services.end
-
-      }
-
-      if [[ "$1" == "" ]]; then
-        install
-        services
-        exit 0
-      elif [ "$1" == "install" ]; then
-        install
-      elif [ "$1" == "services" ]; then
-        services
-      else
-        echo "unknown argument."
-      fi
-      """
-
-
-    run = """
-      #cloud-config
-
-      # this file cannot exceed 16k therefore, i'm placing supervisor and nginxConf
-      # into git tag message and reading it from there.
-      # tl;dr - keep this small.
-
-      disable_root: false
-      hostname : #{hostname}
-
-      packages:
-        - mc
-        - mosh
-        - supervisor
-        - golang
-        - nodejs
-        - npm
-        - git
-        - graphicsmagick
-        - mosh
-        - nginx
-        - mongodb-clients
-
-
-      write_files:
-
-        - path: /root/run.b64z
-          content : #{b64z runContents}
-        - path: /root/run
-          permissions: '0755'
-        - path: /etc/nginx/conf.d/.htpasswd
-          content: koding:$apr1$K17a7D.N$vuaxDfc4kJvHAg7Id43wk1
-
-      runcmd:
-        - echo 127.0.0.1 `hostname` >> /etc/hosts
-        - curl http://169.254.169.254/latest/meta-data/instance-id >/root/instance-id
-        - curl -s https://get.docker.io/ubuntu/ | sudo sh
-        - ln -sf /usr/bin/nodejs /usr/bin/node
-        - ln -sf /usr/bin/supervisorctl /usr/bin/s
-        - cat /root/run.b64z | base64 --decode | gunzip > /root/run
-        - /root/run
-        - echo "deploy done."
-
-
-
-    """
-
-    return run
-
-  machineSettings = ->
-    return """
-        \n
-        echo '#{b64z KONFIG.nginxConf}' | base64 --decode | gunzip > /etc/nginx/nginx.conf;
-        echo "nginx configured."
-        echo '#{b64z generateSupervisorConf(KONFIG)}' | base64 --decode | gunzip >  /etc/supervisor/conf.d/koding.conf;
-        echo "supervisor configured."
-    """
-
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
-  KONFIG.machineSettings = b64z machineSettings()
   KONFIG.runFile         = generateRunFile KONFIG
+  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
   return KONFIG
 

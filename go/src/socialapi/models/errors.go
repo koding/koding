@@ -35,4 +35,6 @@ var (
 	ErrRecipientsNotDefined = errors.New("recipients are not defined")
 	ErrCannotOpenChannel    = errors.New("you can not open the channel")
 	ErrSlugIsNotSet         = errors.New("slug is not set")
+
+	ErrChannelOrMessageIdIsNotSet = errors.New("channelId/messageId is not set")
 )

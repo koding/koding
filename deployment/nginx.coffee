@@ -20,8 +20,11 @@ createUpstreams = (workers={}) ->
   return upstreams
 
 
+basicAuth = """
+auth_basic            "Restricted";
+      auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
-createWebLocation = (name, location) ->
+createWebLocation = (name, location, auth = no) ->
   return """\n
       location #{location} {
         proxy_pass            http://#{name};
@@ -29,6 +32,7 @@ createWebLocation = (name, location) ->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+        #{if auth then basicAuth else ''}
       }
   \n"""
 
@@ -107,7 +111,7 @@ createLocations = (workers={}) ->
       else
         createWebLocation
 
-      locations += fn name, location
+      locations += fn name, location, options.nginx.auth
 
   return locations
 
@@ -122,7 +126,7 @@ module.exports.create = (workers, environment)->
   #error_log  logs/error.log  notice;
   #error_log  logs/error.log  info;
 
-  pid #{if environment is 'dev' then '/usr/local/var/run/nginx.pid' else '/var/run/nginx.pid'};
+  #{if environment is 'dev' then '' else 'pid /var/run/nginx.pid;'}
 
   events { worker_connections  1024; }
 
@@ -157,6 +161,16 @@ module.exports.create = (workers, environment)->
         return 200;
         #access_log off;
       }
+
+      # special case for ELB here, for now
+      location /-/healthCheck {
+        proxy_pass            http://webserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
       #{createLocations(workers)}
 
       #{createUserMachineLocation("userproxy")}
