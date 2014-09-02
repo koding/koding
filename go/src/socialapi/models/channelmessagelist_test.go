@@ -277,5 +277,30 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
+
+		Convey("it should not have error if update is done successfuly", func() {
+			// create account
+			acc := createAccountWithTest()
+
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			_, erro := c.AddMessage(msg.Id)
+			So(erro, ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			err := cml.UpdateAddedAt(cml.ChannelId, cml.MessageId)
+			So(err, ShouldBeNil)
+		})
 	})
 }
