@@ -275,9 +275,7 @@ class IDEAppController extends AppController
 
           computeController.on "public-#{machineId}", (event) =>
             if event.status in [Stopping, Stopped, Terminating, Terminated]
-
               KodingKontrol.dcNotification?.destroy()
-              KodingKontrol.dcNotification = null
 
               machineItem.getBaseKite( no ).disconnect()
 
