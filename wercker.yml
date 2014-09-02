@@ -104,7 +104,7 @@ deploy:
           rm -rf .build
 
           zip -q --symlinks -r $ZIPPED_FILENAME .
-    - rioki/s3put@0.0.3:
+    - koding/s3put@0.0.3:
           key-id: $S3_KEY_ID
           key-secret: $S3_KEY_SECRET
           file: $ZIPPED_FILENAME
