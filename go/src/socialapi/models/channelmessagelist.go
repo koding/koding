@@ -277,6 +277,7 @@ func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interf
 	return nil
 }
 
+// Tests are done.
 func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 	if messageId == 0 || channelId == 0 {
 		return ErrChannelOrMessageIdIsNotSet

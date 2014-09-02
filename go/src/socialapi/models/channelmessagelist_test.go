@@ -254,7 +254,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 	defer r.Close()
 
 	Convey("while updating addedAt", t, func() {
-		Convey("it should have message id otherwise occurs error", func() {
+		Convey("it should have message id otherwise error occurs", func() {
 			cml := NewChannelMessageList()
 
 			err := cml.UpdateAddedAt(0, 1092)
@@ -262,7 +262,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
 		})
 
-		Convey("it should have channel id otherwise occurs error", func() {
+		Convey("it should have channel id otherwise error occurs", func() {
 			cml := NewChannelMessageList()
 
 			err := cml.UpdateAddedAt(1091, 0)
@@ -270,7 +270,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
 		})
 
-		Convey("it should have record not found error if channel id or message id are not exist", func() {
+		Convey("it should have record not found error if channel id or message id does not exist", func() {
 			cml := NewChannelMessageList()
 
 			err := cml.UpdateAddedAt(1091, 1092)
@@ -301,6 +301,26 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 
 			err := cml.UpdateAddedAt(cml.ChannelId, cml.MessageId)
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestChannelMessageListUnreadCount(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while counting unread messages", t, func() {
+		Convey("it should have error if channel id doesn't exist", func() {
+			cml := NewChannelMessageList()
+			cp := NewChannelParticipant()
+
+			cnt, err := cml.UnreadCount(cp)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+			So(cnt, ShouldEqual, 0)
 		})
 	})
 }
