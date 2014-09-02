@@ -7,16 +7,16 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname            = options.hostname       or "sandbox.koding.com"
-  publicHostname      = options.publicHostname or "https://sandbox.koding.com"
-  region              = "aws"
-  configName          = "sandbox"
-  environment         = "sandbox"
-  projectRoot         = options.projectRoot    or "/opt/koding"
-  version             = options.tag
-  tag                 = options.tag
-  publicIP            = options.publicIP       or "*"
-  githubuser          = options.githubuser     or "koding"
+  hostname       = options.hostname            = "sandbox.koding.com"
+  publicHostname = options.publicHostname      = "https://sandbox.koding.com"
+  region         = options.region              = "aws"
+  configName     = options.configName          = "sandbox"
+  environment    = options.environment         = "sandbox"
+  projectRoot    = options.projectRoot         or "/opt/koding"
+  version        = options.tag
+  tag            = options.tag
+  publicIP       = options.publicIP            or "*"
+  githubuser     = options.githubuser          or "koding"
 
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
@@ -34,8 +34,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  kiteHome            = "#{projectRoot}/kite_home/#{environment}"
-
+  kiteHome            = "#{projectRoot}/kite_home/koding"
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
   socialapiProxy      =
@@ -135,7 +134,7 @@ Configuration = (options={}) ->
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar, mixpanel etc.
+    logToExternal     : no                                 # rollbar , mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
@@ -257,6 +256,7 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/"]
+        auth            : yes
 
     socialworker        :
       group             : "webserver"
@@ -372,9 +372,6 @@ Configuration = (options={}) ->
     authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
     config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
-  generateSupervisorConf = (KONFIG)->
-    return (require "../deployment/supervisord.coffee").create KONFIG
-
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
@@ -386,6 +383,7 @@ Configuration = (options={}) ->
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.runFile         = generateRunFile KONFIG
+  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
   return KONFIG
 
