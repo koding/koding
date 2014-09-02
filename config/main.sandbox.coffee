@@ -18,7 +18,6 @@ Configuration = (options={}) ->
   publicIP       = options.publicIP            or "*"
   githubuser     = options.githubuser          or "koding"
 
-
   mongo               = "#{prod_simulation_server}:27017/koding"
   etcd                = "#{prod_simulation_server}:4001"
 
@@ -374,9 +373,6 @@ Configuration = (options={}) ->
     authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
     config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
-  generateSupervisorConf = (KONFIG)->
-    return (require "../deployment/supervisord.coffee").create KONFIG
-
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
@@ -388,6 +384,7 @@ Configuration = (options={}) ->
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.runFile         = generateRunFile KONFIG
+  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
   return KONFIG
 

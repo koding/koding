@@ -397,9 +397,6 @@ Configuration = (options={}) ->
     config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
 
 
-  generateSupervisorConf = (KONFIG)->
-    return (require "../deployment/supervisord.coffee").create KONFIG
-
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
@@ -411,6 +408,7 @@ Configuration = (options={}) ->
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.runFile         = generateRunFile KONFIG
+  KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 
   return KONFIG
 
