@@ -688,7 +688,6 @@ utils.extend utils,
   generateFakeIdentifier: (timestamp) ->
     "#{KD.whoami().profile.nickname}-#{timestamp}"
 
-
   # Generates a fake SocialMessage object
   generateDummyMessage: (body) ->
 
@@ -714,4 +713,4 @@ utils.extend utils,
           actorsCount   : 0
           actorsPreview : []
 
-
+  urlLocation:-> window.location.origin
