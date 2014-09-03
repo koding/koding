@@ -35,7 +35,6 @@ class IDE.MachineStateModal extends IDE.ModalView
       @updateStatus { status: Unknown }
 
     @show()
-    # @getOptions().container.setClass 'blurred'
 
 
   updateStatus: (event) ->
@@ -43,25 +42,20 @@ class IDE.MachineStateModal extends IDE.ModalView
     {status, percentage} = event
 
     if status is @state
-
       if percentage?
-
         @progressBar?.updateBar Math.max percentage, 10
         @progressBar?.show()
 
     else
-
       @state = status
 
       if percentage? and percentage is 100
-
         @progressBar?.updateBar 100
         @progressBar?.show()
 
         KD.utils.wait 500, @bound 'buildViews'
 
       else
-
         @buildViews()
 
       @prepareIDE()  if status is Running
@@ -82,6 +76,7 @@ class IDE.MachineStateModal extends IDE.ModalView
         .catch => @buildViews()
     else
       @buildViews()
+
 
   buildViews: (response)->
 
@@ -210,7 +205,6 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   startIDE: ->
     @destroy()
-    # @getOptions().container.unsetClass 'blurred'
 
 
   prepareIDE: ->
