@@ -22,6 +22,7 @@ class MessagePane extends KDTabPaneView
     @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
     @createInputWidget()
+    @createFilterLinks()
     @bindInputEvents()
 
     @fakeMessageMap = {}
@@ -161,6 +162,16 @@ class MessagePane extends KDTabPaneView
     @input = new ActivityInputWidget {channel}
 
 
+  createFilterLinks: ->
+
+    return if @getOption 'type' is 'privatemessage'
+
+    @filterLinks = new FilterLinksView {},
+      'Most Liked'  :
+        active      : yes
+      'Most Recent' : {}
+
+
   bindChannelEvents: (channel) ->
 
     return  unless channel
@@ -201,6 +212,7 @@ class MessagePane extends KDTabPaneView
   viewAppended: ->
 
     @addSubView @input  if @input
+    @addSubView @filterLinks if @filterLinks
     @addSubView @listController.getView()
     @populate()
 

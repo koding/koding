@@ -137,81 +137,6 @@ class ActivityListItemView extends KDListItemView
     @destroy()
 
 
-  formatContent: (body = '') ->
-
-    fns = [
-      @bound 'transformTags'
-      @bound 'formatBlockquotes'
-      KD.utils.applyMarkdown
-    ]
-
-    body = fn body for fn in fns
-    body = KD.utils.expandUsernames body, 'code'
-
-    return body
-
-
-  transformTags: (text = '') ->
-
-    {slug}   = KD.getGroup()
-
-    skipRanges  = @getBlockquoteRanges text
-    inSkipRange = (position) ->
-      for [start, end] in skipRanges
-        return yes  if start <= position <= end
-      return no
-
-    return text.replace /#(\w+)/g, (match, tag, offset) ->
-
-      return match  if inSkipRange offset
-
-      pre  = text[offset - 1]
-      post = text[offset + match.length]
-
-      switch
-        when (pre?.match /\S/) and offset isnt 0
-          return match
-        when post?.match /[,.;:!?]/
-          break
-        when (post?.match /\S/) and (offset + match.length) isnt text.length
-          return match
-
-      href = KD.utils.groupifyLink "Activity/Topic/#{tag}", yes
-      return "[##{tag}](#{href})"
-
-
-  getBlockquoteRanges: (text = '') ->
-
-    ranges = []
-    read   = 0
-
-    for part, index in text.split '```'
-      blockquote = index %% 2 is 1
-
-      if blockquote
-        ranges.push [read, read + part.length - 1]
-
-      read += part.length + 3
-
-    return ranges
-
-
-  formatBlockquotes: (text = '') ->
-
-    parts = text.split '```'
-    for part, index in parts
-      blockquote = index %% 2 is 1
-
-      if blockquote
-        if match = part.match /^\w+/
-          [lang] = match
-          part = "\n#{part}"  unless hljs.getLanguage lang
-
-        parts[index] = "\n```#{part}\n```\n"
-
-    parts.join ''
-
-
   setAnchors: ->
 
     @$("article a").each (index, element) ->
@@ -311,7 +236,7 @@ class ActivityListItemView extends KDListItemView
         {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
-      {article{@formatContent #(body)}}
+      {article{KD.utils.formatContent #(body)}}
       {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}

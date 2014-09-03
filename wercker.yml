@@ -59,11 +59,6 @@ deploy:
         filename: $WERCKER_ROOT/VERSION
         content: ${WERCKER_GIT_COMMIT:0:8}
         overwrite: true
-    - create-file:
-        name: write eb-env-name file
-        filename: $WERCKER_ROOT/EB_ENV_NAME
-        content: $EB_ENV_NAME
-        overwrite: true
     - script:
         name: zip
         code: |
