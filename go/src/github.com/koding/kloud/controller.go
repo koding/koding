@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/koding/kite"
@@ -104,14 +103,8 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// set in the next step by Storage.Get(). If there is no error,
 		// Assignee is going to be reseted in ControlFunc wrapper.
 		defer func() {
-			kiteErr, ok := err.(*kite.Error)
-			if !ok {
-				return
-			}
-
-			kloudErr, _ := strconv.Atoi(kiteErr.CodeVal)
-			if kloudErr == ErrMachinePendingEvent {
-				// ErrMachinePendingEvent means that the Storage.Get has
+			if err == ErrLockAcquired {
+				// ErrLockAcquired means that the Storage.Get has
 				// aquired a lock, don't do anything
 				return
 			}
