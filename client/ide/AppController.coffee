@@ -561,7 +561,7 @@ class IDEAppController extends AppController
     for ideView in @ideViews
       ideView.tabView.emit 'TabNeedsToBeClosed', file
 
-  handleIDEBecameReady: ->
+  handleIDEBecameReady: (machine) ->
     @finderPane.finderController.reset()
     @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
       terminalPane.resurrect()
@@ -569,7 +569,7 @@ class IDEAppController extends AppController
     unless @fakeViewsDestroyed
       @fakeFinderView?.destroy()
       @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal @machineStateModal.getData()
+      @createNewTerminal machine
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 

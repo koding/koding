@@ -58,7 +58,9 @@ class IDE.MachineStateModal extends IDE.ModalView
       else
         @buildViews()
 
-      @prepareIDE()  if status is Running
+      if status is Running
+        @prepareIDE()
+        @destroy()
 
 
   buildInitial:->
@@ -129,12 +131,6 @@ class IDE.MachineStateModal extends IDE.ModalView
       icon       : yes
       callback   : @bound 'turnOnMachine'
 
-    if @state is Running
-      @button    = new KDButtonView
-        title    : 'Start IDE'
-        cssClass : 'start-ide state-button solid green medium'
-        callback : @bound 'startIDE'
-
     @container.addSubView @button
 
 
@@ -203,10 +199,6 @@ class IDE.MachineStateModal extends IDE.ModalView
     @buildViews()
 
 
-  startIDE: ->
-    @destroy()
-
-
   prepareIDE: ->
 
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
@@ -218,7 +210,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       @machine = m
       @setData m
 
-      @emit 'IDEBecameReady'
+      @emit 'IDEBecameReady', m
 
 
   handleNoMachineFound: ->
