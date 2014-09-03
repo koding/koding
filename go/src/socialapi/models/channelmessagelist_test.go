@@ -418,5 +418,56 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 			//So(err, ShouldEqual, bongo.RecordNotFound)
 			So(ch, ShouldEqual, false)
 		})
+
+		Convey("it should return false if message is not in the channel", func() {
+			// create account as troll
+			acc := createAccountWithTest()
+
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			// we created messsage
+			// but didn't add it to the channel
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
+			So(errr, ShouldBeNil)
+			So(ch, ShouldEqual, false)
+		})
+
+		Convey("it should return true if message is in the channel", func() {
+			// create account as troll
+			acc := createAccountWithTest()
+
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			_, err := c.AddMessage(msg.Id)
+			So(err, ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			ch, errr := cml.IsInChannel(cml.MessageId, cml.ChannelId)
+			So(errr, ShouldBeNil)
+			So(ch, ShouldEqual, true)
+		})
 	})
 }
