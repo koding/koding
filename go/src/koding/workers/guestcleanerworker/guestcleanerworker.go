@@ -72,7 +72,7 @@ func createFilter() helper.Selector {
 // relationships for given account
 func deleteGuestAccounts(account interface{}) error {
 	acc := account.(*models.Account)
-	log.Info("Deleting account: %v", acc.Profile.Nickname)
+	log.Debug("Deleting account: %v", acc.Profile.Nickname)
 
 	// clear all sessions for acc
 	clearAllSessions(acc)
