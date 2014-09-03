@@ -194,7 +194,7 @@ class CommentListItemView extends KDListItemView
 
     @body       = new JCustomHTMLView
       cssClass  : 'comment-body-container'
-      pistachio : '{p{KD.utils.applyTextExpansions #(body), yes}}'
+      pistachio : '{p{KD.utils.formatContent #(body), yes}}'
     , data
 
     @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
