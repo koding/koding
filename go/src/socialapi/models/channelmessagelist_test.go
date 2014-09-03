@@ -383,3 +383,40 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageListIsInChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while testing message is in channel", t, func() {
+		Convey("it should have message id, otherwise error occurs", func() {
+			cml := NewChannelMessageList()
+
+			ch, err := cml.IsInChannel(0, 1020)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+			So(ch, ShouldEqual, false)
+		})
+
+		Convey("it should have channel id, otherwise error occurs", func() {
+			cml := NewChannelMessageList()
+
+			ch, err := cml.IsInChannel(1040, 0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelOrMessageIdIsNotSet)
+			So(ch, ShouldEqual, false)
+		})
+
+		Convey("it should have record not found error if message or channel id are not in db", func() {
+			cml := NewChannelMessageList()
+
+			ch, err := cml.IsInChannel(1091, 1092)
+			So(err, ShouldBeNil)
+			//So(err, ShouldEqual, bongo.RecordNotFound)
+			So(ch, ShouldEqual, false)
+		})
+	})
+}
