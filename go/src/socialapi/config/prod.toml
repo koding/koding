@@ -1,7 +1,7 @@
 Mongo              = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
 Environment        = "prod"
 Region             = "prod"
-Hostname           = "http://lvh.me:8090"
+Hostname           = "prod.koding.com"
 
 [postgres]
 Host=     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
@@ -22,7 +22,7 @@ URL = "prod0.1ia3pb.0001.use1.cache.amazonaws.com:6379"
 DB  = 0
 
 [email]
-Host            = "lvh.me:8090"
+Host            = "prod.koding.com"
 Protocol        = "http:"
 DefaultFromMail = "hello@koding.com"
 DefaultFromName = "Koding"
