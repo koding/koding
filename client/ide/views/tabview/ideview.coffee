@@ -69,6 +69,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       ace.on 'FindAndReplaceViewRequested', (withReplaceMode) ->
         appManager.tell 'IDE', 'showFindReplaceView', withReplaceMode
 
+      ace.editor.scrollToRow 0
+      editorPane.goToLine 1
+
       callback editorPane
 
     @createPane_ editorPane, paneOptions, file
