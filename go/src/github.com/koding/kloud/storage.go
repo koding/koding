@@ -17,9 +17,6 @@ type Storage interface {
 	// UpdateState updates the machine state for the given machine id
 	UpdateState(id string, state machinestate.State) error
 
-	// ResetAssignee resets the assigne which was acquired with Get()
-	ResetAssignee(id string) error
-
 	// Assignee returns the unique identifier that is responsible of doing the
 	// actions of this interface.
 	Assignee() string
@@ -28,4 +25,15 @@ type Storage interface {
 type StorageData struct {
 	Type string
 	Data map[string]interface{}
+}
+
+// Locker is a distributed lock that locks with the specific id and undlocks
+// again with the given id.
+type Locker interface {
+	// Lock should lock with the given Id. If there is a lock already it should
+	// return an error.
+	Lock(id string) error
+
+	// Unlock unlocks the lock with the given id.
+	Unlock(id string)
 }

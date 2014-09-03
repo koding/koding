@@ -30,6 +30,9 @@ type Kloud struct {
 	// during certain actions
 	Storage Storage
 
+	// Locker is used to lock/unlock distributed locks based on unique ids
+	Locker Locker
+
 	// Eventers is providing an event mechanism for each method.
 	Eventers map[string]eventer.Eventer
 

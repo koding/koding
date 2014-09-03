@@ -116,10 +116,10 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 				return
 			}
 
-			// otherwise that means Storage.Get or something else in
+			// otherwise that means Locker.Lock or something else in
 			// ControlFunc failed. Reset the lock again so it can be aquired by
 			// others.
-			k.Storage.ResetAssignee(args.MachineId)
+			k.Locker.Unlock(args.MachineId)
 		}()
 
 		// Get all the data we need. It also sets the assignee for the given
@@ -208,7 +208,7 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
+	defer k.Locker.Unlock(c.MachineId) // unlock lcok after we are done
 
 	defer func() {
 		if err == nil {
@@ -368,8 +368,13 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 		}
 
+		// update final status in storage
 		k.Storage.UpdateState(c.MachineId, status)
-		k.Storage.ResetAssignee(c.MachineId)
+
+		// unlock distributed lock
+		k.Locker.Unlock(c.MachineId)
+
+		// update final status in storage
 		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,
