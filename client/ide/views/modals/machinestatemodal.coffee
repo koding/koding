@@ -35,7 +35,8 @@ class IDE.MachineStateModal extends IDE.ModalView
       @updateStatus { status: Unknown }
 
     @show()
-    # @getOptions().container.setClass 'blurred'
+
+    @turnOnMachine()  if @getOptions().isFirstInitialize
 
 
   updateStatus: (event) ->
@@ -43,28 +44,25 @@ class IDE.MachineStateModal extends IDE.ModalView
     {status, percentage} = event
 
     if status is @state
-
       if percentage?
-
         @progressBar?.updateBar Math.max percentage, 10
         @progressBar?.show()
 
     else
-
       @state = status
 
       if percentage? and percentage is 100
-
         @progressBar?.updateBar 100
         @progressBar?.show()
 
         KD.utils.wait 500, @bound 'buildViews'
 
       else
-
         @buildViews()
 
-      @prepareIDE()  if status is Running
+      if status is Running
+        @prepareIDE()
+        @destroy()
 
 
   buildInitial:->
@@ -82,6 +80,7 @@ class IDE.MachineStateModal extends IDE.ModalView
         .catch => @buildViews()
     else
       @buildViews()
+
 
   buildViews: (response)->
 
@@ -133,12 +132,6 @@ class IDE.MachineStateModal extends IDE.ModalView
       cssClass   : 'turn-on state-button solid green medium'
       icon       : yes
       callback   : @bound 'turnOnMachine'
-
-    if @state is Running
-      @button    = new KDButtonView
-        title    : 'Start IDE'
-        cssClass : 'start-ide state-button solid green medium'
-        callback : @bound 'startIDE'
 
     @container.addSubView @button
 
@@ -208,11 +201,6 @@ class IDE.MachineStateModal extends IDE.ModalView
     @buildViews()
 
 
-  startIDE: ->
-    @destroy()
-    # @getOptions().container.unsetClass 'blurred'
-
-
   prepareIDE: ->
 
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
@@ -224,7 +212,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       @machine = m
       @setData m
 
-      @emit 'IDEBecameReady'
+      @emit 'IDEBecameReady', m
 
 
   handleNoMachineFound: ->
