@@ -255,7 +255,7 @@ class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
-    machine.getBaseKite().isDisconnected = no
+    machine.getBaseKite( createIfNotExists = no ).isDisconnected = no
 
     call = @kloud.start { machineId: machine._id }
 
