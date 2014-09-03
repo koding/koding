@@ -122,10 +122,16 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			k.Locker.Unlock(args.MachineId)
 		}()
 
-		// Get all the data we need. It also sets the assignee for the given
-		// machine id. Assignee means this kloud instance is now responsible
-		// for this machine. Its basically a distributed lock. Assignee gets
-		// reseted when there is an error or if the method call is finished.
+		// Sets the assignee (lock) for the given machine id. Assignee means
+		// this kloud instance is now responsible for this machine id. Its
+		// basically a distributed lock. Assignee gets reseted (unlcoked) when
+		// there is an error or if the method call is finished (unlocking is
+		// done in the responsible method calls).
+		if err := k.Locker.Lock(args.MachineId); err != nil {
+			return nil, err
+		}
+
+		// Get all the data we need.
 		machine, err := k.Storage.Get(args.MachineId, r.Username)
 		if err != nil {
 			return nil, err

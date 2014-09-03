@@ -233,7 +233,7 @@ type domainSet struct {
 }
 
 func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response interface{}, err error) {
-	defer p.ResetAssignee(c.MachineId) // reset assignee after we are done
+	defer p.Unlock(c.MachineId) // reset assignee after we are done
 
 	args := &domainSet{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
