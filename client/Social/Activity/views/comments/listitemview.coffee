@@ -25,8 +25,8 @@ class CommentListItemView extends KDListItemView
     { updatedAt, createdAt } = @getData()
 
     if updatedAt > createdAt
-    then @body.setClass 'edited'
-    else @body.unsetClass 'edited'
+    then @setClass 'edited'
+    else @unsetClass 'edited'
 
 
   click: (event) ->
@@ -49,7 +49,7 @@ class CommentListItemView extends KDListItemView
 
     @menuWrapper.hide()
     @body.hide()
-    @body.unsetClass 'edited'
+    @unsetClass 'edited'
     @likeView.hide()
     @replyView?.hide()
 
@@ -199,7 +199,7 @@ class CommentListItemView extends KDListItemView
 
     @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
 
-    @body.setClass 'edited'  if updatedAt > createdAt
+    @setClass 'edited'  if updatedAt > createdAt
 
     # if deleterId? and deleterId isnt origin.id
     #   @deleter = new ProfileLinkView {}, data.getAt 'deletedBy'
