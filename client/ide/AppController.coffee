@@ -255,8 +255,7 @@ class IDEAppController extends AppController
     computeController.fetchMachines (err, machines) =>
       return KD.showError 'Something went wrong. Try again.'  if err
 
-
-      callback = (initiateFakeCounter) =>
+      callback = (isFirstInitialize) =>
         for machine in machines when machine.uid is machineUId
           machineItem = machine
 
@@ -267,8 +266,8 @@ class IDEAppController extends AppController
           if state is 'Running'
             @mountMachine machineItem
           else
-            @createMachineStateModal state, container, machineItem, yes
-            if initiateFakeCounter
+            @createMachineStateModal state, container, machineItem, yes, isFirstInitialize
+            if isFirstInitialize
               @machineStateModal.once 'MachineTurnOnStarted', =>
                 KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
                 @appStorage.setValue 'isMachineInitializedOnce', yes
@@ -316,8 +315,10 @@ class IDEAppController extends AppController
         #   callback()
 
 
-  createMachineStateModal: (state, container, machineItem, initial) ->
-    @machineStateModal = new IDE.MachineStateModal { state, container, initial }, machineItem
+  createMachineStateModal: (state, container, machineItem, initial, isFirstInitialize) ->
+    modalOptions       = { state, container, initial, isFirstInitialize }
+    @machineStateModal = new IDE.MachineStateModal modalOptions, machineItem
+
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady()
 

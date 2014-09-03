@@ -36,6 +36,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @show()
 
+    @turnOnMachine()  if @getOptions().isFirstInitialize
+
 
   updateStatus: (event) ->
 
