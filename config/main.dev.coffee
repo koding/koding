@@ -7,8 +7,9 @@ Configuration = (options={}) ->
 
   boot2dockerbox      = "192.168.59.103"
 
-  hostname            = options.hostname       or "lvh.me:8090"
-  publicHostname      = options.publicHostname or process.env.USER
+  publicPort          = options.publicPort     or "8090"
+  hostname            = options.hostname       or "lvh.me#{if publicPort isnt "80" then ':'+publicPort}"
+  publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
@@ -21,19 +22,19 @@ Configuration = (options={}) ->
   mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
 
-  redis               = { host:     "#{boot2dockerbox}"                         , port:               "6379"                                  , db:                 0                         }
-  rabbitmq            = { host:     "#{boot2dockerbox}"                         , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
-  mq                  = { host:     "#{rabbitmq.host}"                          , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{publicHostname}.ngrok.com" , public_:            "koding-#{publicHostname}.ngrok.com"    , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
-  sendgrid            = { username: "koding"                                    , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                   , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"       , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
-  broker              = { name:     "broker"                                    , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
-  regions             = { kodingme: "#{configName}"                             , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        '.dev'                    }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                          , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"          , enabled:            no                                    }
-  postgres            = { host:     "#{boot2dockerbox}"                         , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
+  rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
+  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"    , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
+  sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
+  email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
+  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
+  broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
+  regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
+  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        '.dev'                    }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
+  postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kiteKeyName         = if environment is "dev" then "koding" else environment
   kiteHome            = "#{projectRoot}/kite_home/#{kiteKeyName}"
 

@@ -5,7 +5,8 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  options.hostname       = "prod.koding.com"
+  publicPort             = options.publicPort or "80"
+  options.hostname       = "prod.koding.com#{if publicPort isnt "80" then ':'+publicPort}"
   options.publicHostname = "https://#{options.hostname}"
 
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
