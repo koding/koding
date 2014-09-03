@@ -158,6 +158,8 @@ class ComputeController extends KDController
 
     retryIfNeeded = KD.utils.throttle 500, (task, machine)=>
 
+      return  if task is 'info'
+
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
@@ -176,6 +178,7 @@ class ComputeController extends KDController
 
         when ComputeErrors.TimeoutError
 
+          safeToSuspend = yes
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()

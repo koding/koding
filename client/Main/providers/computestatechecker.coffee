@@ -73,8 +73,8 @@ class ComputeStateChecker extends KDObject
 
       .catch (err)=>
 
-        # Ignore pending event errors but log others
-        unless err?.code is "107"
+        # Ignore pending event and timeout errors but log others
+        unless (err?.code is "107") or (err?.name is "TimeoutError")
           log "csc: info error happened:", err
 
         @addMachine machine
