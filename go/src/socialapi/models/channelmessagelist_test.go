@@ -322,5 +322,29 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 			So(cnt, ShouldEqual, 0)
 		})
+
+		Convey("it should have error if channel id doesn't exist", func() {
+			cp := NewChannelParticipant()
+			cml := NewChannelMessageList()
+			cp.ChannelId = 1920
+
+			cnt, err := cml.UnreadCount(cp)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
+			So(cnt, ShouldEqual, 0)
+		})
+
+		// Convey("it should have error if last seen time is zero", func() {
+		// 	cml := NewChannelMessageList()
+		// 	cp := NewChannelParticipant()
+		// 	cp.ChannelId = 1920
+		// 	cp.AccountId = 1903
+		// 	cp.LastSeenAt = time.RFC3339Nano
+
+		// 	cnt, err := cml.UnreadCount(cp)
+		// 	So(err, ShouldNotBeNil)
+		// 	So(err, ShouldEqual, ErrLastSeenAtIsNotSet)
+		// 	So(cnt, ShouldEqual, 0)
+		// })
 	})
 }
