@@ -47,5 +47,4 @@ class IDE.ContentSearchResultView extends KDScrollView
 
     file.fetchContents (err, contents) ->
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
-        KD.utils.wait 500, -> # setting editor font size is kinda buggy, temp fix for it
-          editorPane.goToLine lineNumber
+        editorPane.goToLine lineNumber
