@@ -38,10 +38,10 @@ class ActivityLikeSummaryView extends KDView
       actorsPreview.unshift KD.whoami()._id
       @getData().interactions.like.actorsCount += 1
     else
-      for id, index in actorsPreview when id is KD.whoami()._id
+      index = actorsPreview.indexOf KD.whoami()._id
+      if index > -1
         actorsPreview.splice index, 1
         @getData().interactions.like.actorsCount -= 1
-        break
 
     @updateActors()
 
