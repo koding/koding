@@ -21,6 +21,7 @@ func (p *Provider) Lock(id string) error {
 					"assignee.assignedAt": time.Now().UTC(),
 				},
 			},
+			ReturnNew: true,
 		}
 
 		// if Find() is successful the Update() above will be applied (which

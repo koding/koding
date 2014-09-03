@@ -99,22 +99,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, NewError(ErrMachineIdMissing)
 		}
 
-		// if something goes wrong after step reset the assigne which is was
-		// set in the next step by Storage.Get(). If there is no error,
-		// Assignee is going to be reseted in ControlFunc wrapper.
-		defer func() {
-			if err == ErrLockAcquired {
-				// ErrLockAcquired means that the Storage.Get has
-				// aquired a lock, don't do anything
-				return
-			}
-
-			// otherwise that means Locker.Lock or something else in
-			// ControlFunc failed. Reset the lock again so it can be aquired by
-			// others.
-			k.Locker.Unlock(args.MachineId)
-		}()
-
 		// Sets the assignee (lock) for the given machine id. Assignee means
 		// this kloud instance is now responsible for this machine id. Its
 		// basically a distributed lock. Assignee gets reseted (unlcoked) when
@@ -123,6 +107,18 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		if err := k.Locker.Lock(args.MachineId); err != nil {
 			return nil, err
 		}
+
+		// if something goes wrong after step reset the assigne which is was
+		// set in the next step by Storage.Get(). If there is no error,
+		// Assignee is going to be reseted in ControlFunc wrapper.
+		defer func() {
+			if err != nil {
+				// otherwise that means Locker.Lock or something else in
+				// ControlFunc failed. Reset the lock again so it can be aquired by
+				// others.
+				k.Locker.Unlock(args.MachineId)
+			}
+		}()
 
 		// Get all the data we need.
 		machine, err := k.Storage.Get(args.MachineId, r.Username)
