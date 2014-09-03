@@ -346,5 +346,40 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 		// 	So(err, ShouldEqual, ErrLastSeenAtIsNotSet)
 		// 	So(cnt, ShouldEqual, 0)
 		// })
+
+		Convey("it should count if participant is troll", func() {
+			// create account as troll
+			acc := createAccountWithTest()
+			err := acc.MarkAsTroll()
+			So(err, ShouldBeNil)
+
+			// create channel
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			// create message
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			cml := NewChannelMessageList()
+			cml.ChannelId = c.Id
+			cml.MessageId = msg.Id
+
+			_, errs := c.AddParticipant(acc.Id)
+			So(errs, ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+
+			_, erre := c.AddMessage(msg.Id)
+			So(erre, ShouldBeNil)
+
+			cnt, err := cml.UnreadCount(cp)
+			So(err, ShouldBeNil)
+			So(cnt, ShouldEqual, 1)
+		})
 	})
 }
