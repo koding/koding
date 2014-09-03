@@ -2,7 +2,7 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
-  @timeout = 20000
+  @timeout = 30000
 
   constructor:->
     super

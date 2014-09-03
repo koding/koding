@@ -3,7 +3,7 @@ class ComputeStateChecker extends KDObject
   constructor:(options = {})->
 
     super
-      interval : options.interval ? 5000
+      interval : options.interval ? 10000
 
     @kloud           = KD.singletons.kontrol.getKite
       name           : "kloud"
