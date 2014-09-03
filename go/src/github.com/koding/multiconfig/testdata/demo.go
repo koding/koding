@@ -1,7 +1,11 @@
 // main package demonstrates the usage of the multiconfig package
 package main
 
-import "github.com/koding/multiconfig"
+import (
+	"fmt"
+
+	"github.com/koding/multiconfig"
+)
 
 type (
 	// Server holds supported types by the multiconfig package
@@ -31,4 +35,10 @@ func main() {
 
 	// Populated the serverConf struct
 	m.MustLoad(serverConf) // Check for error
+
+	if serverConf.Enabled {
+		fmt.Println("Enabled field is set to true")
+	} else {
+		fmt.Println("Enabled field is set to false")
+	}
 }

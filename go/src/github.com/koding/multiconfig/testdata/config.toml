@@ -1,6 +1,6 @@
 Name              = "koding"
 Port              = 6060
-Enabled           = true
+Enabled           = false
 Users             = ["ankara", "istanbul"]
 
 [Postgres]
