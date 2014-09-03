@@ -154,6 +154,7 @@ func (c *ChannelMessageList) getMessages(q *request.Query) ([]*ChannelMessageCon
 	return populatedChannelMessages, nil
 }
 
+// Tests are done.
 func (c *ChannelMessageList) IsInChannel(messageId, channelId int64) (bool, error) {
 	if messageId == 0 || channelId == 0 {
 		return false, ErrChannelOrMessageIdIsNotSet
