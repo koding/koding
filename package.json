@@ -43,7 +43,7 @@
     "highlight.js": "7.3.0",
     "htmlencode": "0.0.3",
     "jsonify": "0.0.0",
-    "kite.js": "^0.3.8",
+    "kite.js": "0.3.9",
     "log": "1.2.0",
     "marked": "0.3.1",
     "mime": "1.2.x",
