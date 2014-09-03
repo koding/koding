@@ -59,6 +59,11 @@ deploy:
         filename: $WERCKER_ROOT/VERSION
         content: ${WERCKER_GIT_COMMIT:0:8}
         overwrite: true
+    - create-file:
+        name: write eb-env-name file
+        filename: $WERCKER_ROOT/EB_ENV_NAME
+        content: $EB_ENV_NAME
+        overwrite: true
     - script:
         name: zip
         code: |
@@ -75,7 +80,7 @@ deploy:
           key-secret: $S3_KEY_SECRET
           file: $ARCHIVE
           url: s3://$S3_EB_DEPLOY
-    - koding/eb-deploy@0.0.3:
+    - koding/eb-deploy@0.0.5:
           access-key: $S3_KEY_ID
           secret-key: $S3_KEY_SECRET
           app-name: koding

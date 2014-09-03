@@ -7,8 +7,9 @@ class ActivityLikeSummaryView extends KDView
     super options, data
 
     data
-      .on "LikeAdded", @bound "updateActors"
+      .on "LikeAdded",   @bound "updateActors"
       .on "LikeRemoved", @bound "updateActors"
+      .on "LikeChanged", @bound "handleLikeChanged"
 
 
   showLikers: ->
@@ -27,6 +28,22 @@ class ActivityLikeSummaryView extends KDView
 
         return KD.showError err  if err
         new ShowMoreDataModalView null, accounts
+
+
+  handleLikeChanged: (liked) ->
+
+    {actorsPreview} = @getData().interactions.like
+
+    if liked
+      actorsPreview.unshift KD.whoami()._id
+      @getData().interactions.like.actorsCount += 1
+    else
+      index = actorsPreview.indexOf KD.whoami()._id
+      if index > -1
+        actorsPreview.splice index, 1
+        @getData().interactions.like.actorsCount -= 1
+
+    @updateActors()
 
 
   updateActors: ->
@@ -50,9 +67,10 @@ class ActivityLikeSummaryView extends KDView
     else
       callback null, []
 
+
   refresh: (accounts = []) ->
 
-    return @hide() if accounts.length is 0
+    return @hide()  if accounts.length is 0
 
     {actorsCount, actorsPreview} = @getData().interactions.like
     actorsCount = Math.max actorsCount, actorsPreview.length
@@ -103,3 +121,4 @@ class ActivityLikeSummaryView extends KDView
     super
 
     @updateActors()
+
