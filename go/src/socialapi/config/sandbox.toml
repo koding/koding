@@ -1,7 +1,7 @@
 Mongo              = "10.0.0.248:27017/koding"
 Environment        = "sandbox"
 Region             = "sandbox"
-Hostname           = "http://sandbox.koding.io"
+Hostname           = "sandbox.koding.com"
 
 [postgres]
 Host=     "10.0.0.248"
@@ -22,7 +22,7 @@ URL = "10.0.0.248:6379"
 DB  = 0
 
 [email]
-Host            = "sandbox.koding.io"
+Host            = "sandbox.koding.com"
 Protocol        = "http:"
 DefaultFromMail = "hello@koding.com"
 DefaultFromName = "Koding"
