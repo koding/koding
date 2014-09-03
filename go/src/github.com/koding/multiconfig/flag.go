@@ -89,6 +89,16 @@ func (f *fieldValue) Get() interface{} {
 	return fl.Value()
 }
 
+// This is an unexported interface, be careful about it.
+// https://code.google.com/p/go/source/browse/src/pkg/flag/flag.go?name=release#101
+func (f *fieldValue) IsBoolFlag() bool {
+	fl := (*structs.Field)(f)
+	if fl.Kind() == reflect.Bool {
+		return true
+	}
+	return false
+}
+
 func flagUsage(name string) string { return fmt.Sprintf("Change value of %s.", name) }
 
 func flagName(name string) string { return strings.ToLower(name) }
