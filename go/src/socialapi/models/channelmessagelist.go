@@ -298,6 +298,7 @@ func (c *ChannelMessageList) UpdateAddedAt(channelId, messageId int64) error {
 	return c.Update()
 }
 
+// Tests are done.
 func (c *ChannelMessageList) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
 	if err != nil {
