@@ -346,7 +346,7 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
-
+        npm i --unsafe-perm --silent
         echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
         chmod +x ./build-client.coffee
@@ -358,7 +358,6 @@ Configuration = (options={}) ->
         # this overrides them and broke developers machine ~
         # npm i gulp stylus coffee-script -g --silent
 
-        npm i --unsafe-perm --silent
 
 
 
@@ -486,6 +485,7 @@ Configuration = (options={}) ->
 
       function run () {
         check
+        npm i --silent
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
@@ -548,14 +548,21 @@ Configuration = (options={}) ->
       }
 
       function check_service_dependencies () {
-        echo "checking required services: nginx, docker, mongo..."
-        command -v go           >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
-        command -v docker       >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
-        command -v nginx        >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-        command -v boot2docker  >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
-        command -v mongorestore >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
-        command -v node         >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
-        command -v npm          >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
+        echo "checking required services: nginx, docker, mongo, graphicsmagick..."
+        command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
+        command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
+        command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
+        command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        command -v mongorestore  >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
+        command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
+        command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
+        command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
+        # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
+        command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
+
+        brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
+
+
 
       }
 
@@ -637,7 +644,7 @@ Configuration = (options={}) ->
         kill_all
 
       elif [ "$1" == "install" ]; then
-
+        check_service_dependencies
         #{installScript}
 
       elif [ "$1" == "printconfig" ]; then

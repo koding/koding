@@ -471,3 +471,32 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageListFetchMessageChannelIds(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching message channel ids", t, func() {
+		Convey("it should have message id otherwise error occurs", func() {
+			cml := NewChannelMessageList()
+
+			fm, err := cml.FetchMessageChannelIds(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			So(fm, ShouldEqual, nil)
+		})
+
+		// Convey("it should ", func() {
+		// 	cml := NewChannelMessageList()
+		// 	cml.MessageId = 19824
+
+		// 	fm, err := cml.FetchMessageChannelIds(cml.MessageId)
+		// 	// So(err, ShouldNotBeNil)
+		// 	So(err, ShouldEqual, bongo.RecordNotFound)
+		// 	So(fm, ShouldEqual, nil)
+		// })
+	})
+}

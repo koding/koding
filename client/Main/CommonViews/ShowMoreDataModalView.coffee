@@ -20,7 +20,7 @@ class ShowMoreDataModalView extends KDModalView
 
     if participants[0] instanceof KD.remote.api.JAccount
       @type = "account"
-      css   = "modal-topic-wrapper"
+      css   = "members-wrapper"
     else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
       css   = "modal-topic-wrapper"

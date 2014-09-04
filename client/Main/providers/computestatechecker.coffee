@@ -3,7 +3,7 @@ class ComputeStateChecker extends KDObject
   constructor:(options = {})->
 
     super
-      interval : options.interval ? 5000
+      interval : options.interval ? 10000
 
     @kloud           = KD.singletons.kontrol.getKite
       name           : "kloud"
@@ -64,6 +64,10 @@ class ComputeStateChecker extends KDObject
         computeController.eventListener
           .triggerState machine, status : response.State
 
+        computeController.followUpcomingEvents {
+          _id: machine._id, status: state: response.State
+        }
+
         unless machine.status.state is response.State
           computeController.triggerReviveFor machine._id
 
@@ -73,8 +77,8 @@ class ComputeStateChecker extends KDObject
 
       .catch (err)=>
 
-        # Ignore pending event errors but log others
-        unless err?.code is "107"
+        # Ignore pending event and timeout errors but log others
+        unless (err?.code is "107") or (err?.name is "TimeoutError")
           log "csc: info error happened:", err
 
         @addMachine machine

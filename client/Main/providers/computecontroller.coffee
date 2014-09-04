@@ -2,7 +2,7 @@ class ComputeController extends KDController
 
   @providers = KD.config.providers
 
-  @timeout = 20000
+  @timeout = 30000
 
   constructor:->
     super
@@ -158,6 +158,8 @@ class ComputeController extends KDController
 
     retryIfNeeded = KD.utils.throttle 500, (task, machine)=>
 
+      return  if task is 'info'
+
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
@@ -176,6 +178,7 @@ class ComputeController extends KDController
 
         when ComputeErrors.TimeoutError
 
+          safeToSuspend = yes
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()
@@ -252,7 +255,7 @@ class ComputeController extends KDController
       status      : Machine.State.Starting
       percentage  : 0
 
-    machine.getBaseKite().isDisconnected = no
+    machine.getBaseKite( createIfNotExists = no ).isDisconnected = no
 
     call = @kloud.start { machineId: machine._id }
 
@@ -275,6 +278,7 @@ class ComputeController extends KDController
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
       percentage  : 0
+      silent      : yes
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -294,20 +298,29 @@ class ComputeController extends KDController
 
 
 
-  StateEventMap =
 
-    Stopping    : "stop"
-    Building    : "build"
-    Starting    : "start"
-    Rebooting   : "restart"
-    Terminating : "destroy"
+  followUpcomingEvents: (machine)->
 
-  info: (machine)->
+    StateEventMap =
+
+      Stopping    : "stop"
+      Building    : "build"
+      Starting    : "start"
+      Rebooting   : "restart"
+      Terminating : "destroy"
 
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
       @eventListener.addListener stateEvent, machine._id
+      return yes
+
+    return no
+
+
+  info: (machine)->
+
+    if @followUpcomingEvents machine
       return Promise.resolve()
 
     @eventListener.triggerState machine,

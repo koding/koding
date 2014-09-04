@@ -60,6 +60,15 @@ class CommentInputEditWidget extends CommentInputWidget
 
     super
 
+    data         = @getData()
+    {body, link} = data
+    content      = ""
+
+    for line in body.split "\n"
+      content += "<div>#{Encoder.htmlEncode line}&nbsp;</div>"
+
+    @input.setContent content, data
+
     @addSubView new KDCustomHTMLView
       cssClass  : 'cancel-description'
       pistachio : 'Press Esc to cancel'

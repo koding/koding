@@ -17,9 +17,6 @@ type Storage interface {
 	// UpdateState updates the machine state for the given machine id
 	UpdateState(id string, state machinestate.State) error
 
-	// ResetAssignee resets the assigne which was acquired with Get()
-	ResetAssignee(id string) error
-
 	// Assignee returns the unique identifier that is responsible of doing the
 	// actions of this interface.
 	Assignee() string

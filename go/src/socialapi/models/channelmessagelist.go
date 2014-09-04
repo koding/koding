@@ -31,6 +31,7 @@ type ChannelMessageList struct {
 	DeletedAt time.Time `json:"deletedAt"`
 }
 
+// Tests are done.
 func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	if cp.ChannelId == 0 {
 		return 0, ErrChannelIdIsNotSet
@@ -202,7 +203,12 @@ func (c *ChannelMessageList) populateChannelMessages(channelMessageIds []int64, 
 	return populatedChannelMessages, nil
 }
 
+// To be continued. for tests.
 func (c *ChannelMessageList) FetchMessageChannelIds(messageId int64) ([]int64, error) {
+	if messageId == 0 {
+		return nil, ErrMessageIdIsNotSet
+	}
+
 	var channelIds []int64
 
 	q := &bongo.Query{

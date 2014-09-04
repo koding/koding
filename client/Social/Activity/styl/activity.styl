@@ -514,8 +514,7 @@ span.collapsedtext
 .activity-item
   borderBox()
 
-  &.edited article > p:after
-  &.edited article > pre:after
+  &.edited .meta time:after
     content       ' (edited)'
     display       inline
     font-family   openSansFamily
@@ -662,6 +661,53 @@ span.collapsedtext
           &:before
             display       none
 
+  pre
+    padding               12px 0
+    code
+      display             block
+      line-height         16px
+      font-size           12px
+      font-family         monoFamily
+      padding             14px
+      color               white
+      bg                  color, #28292A
+
+      .hljs-comment
+      .hljs-string
+      .hljs-regexp
+        color             #96B486
+
+      .hljs-keyword
+        color             #9B8298
+
+      .hljs-title
+      .hljs-variable
+        color             #6096BE
+
+      .hljs-literal
+      .hljs-number
+        color             #D17819
+
+      .hljs-constant
+      .hljs-decorator
+      .hljs-typename
+        color             #DEB63A
+
+      &.lang-go
+        .built_in
+          color           #6096BE
+
+      &.lang-css
+        .hljs-pseudo
+          color           #DEB63A
+
+        .hljs-id
+        .hljs-tag
+        .hljs-class
+          color           #9B8298
+
+        .hljs-attribute
+          color           #6096BE
   .resend
     position          absolute
     right             26px
@@ -839,6 +885,15 @@ span.collapsedtext
       padding             3px 15px 12px 37px
       borderBox()
 
+      &.edited time:after
+        content       ' (edited)'
+        display       inline
+        font-size     11px
+        color         #ccc
+
+      pre
+        padding       6px 0
+
       &:last-child
         padding-bottom    20px
 
@@ -888,11 +943,6 @@ span.collapsedtext
           clear           both
           margin          0 0 3px 0
 
-        &.edited p:after
-          content       ' (edited)'
-          display       inline
-          font-size     11px
-          color         #ccc
 
         p
           display       inline
@@ -1284,53 +1334,6 @@ span.collapsedtext
       border-radius       3px
       vertical-align      top
       font-size           12px
-  pre
-    padding               12px 0
-    code
-      display             block
-      line-height         16px
-      font-size           12px
-      font-family         monoFamily
-      padding             14px
-      color               white
-      bg                  color, #28292A
-
-      .hljs-comment
-      .hljs-string
-      .hljs-regexp
-        color             #96B486
-
-      .hljs-keyword
-        color             #9B8298
-
-      .hljs-title
-      .hljs-variable
-        color             #6096BE
-
-      .hljs-literal
-      .hljs-number
-        color             #D17819
-
-      .hljs-constant
-      .hljs-decorator
-      .hljs-typename
-        color             #DEB63A
-
-      &.lang-go
-        .built_in
-          color           #6096BE
-
-      &.lang-css
-        .hljs-pseudo
-          color           #DEB63A
-
-        .hljs-id
-        .hljs-tag
-        .hljs-class
-          color           #9B8298
-
-        .hljs-attribute
-          color           #6096BE
 
 .activity-share-popup
   bg                      color, #fff
