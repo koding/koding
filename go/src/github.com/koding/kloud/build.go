@@ -77,8 +77,13 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 			msg = "Building failed. Please contact support."
 		}
 
+		// update final status in storage
 		b.Storage.UpdateState(c.MachineId, status)
-		b.Storage.ResetAssignee(c.MachineId)
+
+		// unlock distributed lock
+		b.Locker.Unlock(c.MachineId)
+
+		// let them know we are finished with our work
 		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,

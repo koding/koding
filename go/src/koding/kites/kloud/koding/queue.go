@@ -57,6 +57,11 @@ func (p *Provider) RunChecker(interval time.Duration) {
 // RunCleaner runs the cleaner for the given timeout duration. It cleans
 // up/resets machine documents.
 func (p *Provider) RunCleaner(interval time.Duration) {
+	// run for the first
+	if err := p.CleanQueue(CleanUpTimeout); err != nil {
+		p.Log.Warning("Cleaning queue: %s", err)
+	}
+
 	for _ = range time.Tick(interval) {
 		if err := p.CleanQueue(CleanUpTimeout); err != nil {
 			p.Log.Warning("Cleaning queue: %s", err)
@@ -73,7 +78,7 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	}
 
 	// release the lock from mongodb after we are done
-	defer p.ResetAssignee(machine.Id.Hex())
+	defer p.Unlock(machine.Id.Hex())
 
 	klient, err := klient.New(p.Kite, machine.QueryString)
 	if err != nil {

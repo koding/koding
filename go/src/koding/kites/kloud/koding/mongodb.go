@@ -26,53 +26,11 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	// really doesn't exist or if there is an assignee which is a different
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
+	machine := &Machine{}
 	if err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.FindId(bson.ObjectIdHex(id)).One(nil)
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
-	}
-
-	machine := &Machine{}
-	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		// we use findAndModify() to get a unique lock from the DB. That means only
-		// one instance should be responsible for this action. We will update the
-		// assignee if none else is doing stuff with it.
-		change := mgo.Change{
-			Update: bson.M{
-				"$set": bson.M{
-					"assignee.inProgress": true,
-					"assignee.assignedAt": time.Now().UTC(),
-				},
-			},
-			ReturnNew: true,
-		}
-
-		// if Find() is successful the Update() above will be applied (which
-		// set's us as assignee by marking the inProgress to true). If not, it
-		// means someone else is working on this document and we should return
-		// with an error. The whole process is atomic and a single transaction.
-		_, err := c.Find(
-			bson.M{
-				"_id": bson.ObjectIdHex(id),
-				"$or": []bson.M{
-					{"assignee.inProgress": false},
-					{"assignee.inProgress": nil},
-				},
-			},
-		).Apply(change, &machine)
-		return err
-	})
-
-	// query didn't matched, means it's assigned to some other Kloud
-	// instances and an ongoing event is in process.
-	if err == mgo.ErrNotFound {
-		return nil, kloud.NewError(kloud.ErrMachinePendingEvent)
-	}
-
-	// some other error, this shouldn't be happed
-	if err != nil {
-		p.Log.Error("Storage get error: %s", err.Error())
-		return nil, kloud.NewError(kloud.ErrBadState)
 	}
 
 	// do not check for admin users, or if test mode is enabled
@@ -158,16 +116,6 @@ func (p *Provider) UpdateState(id string, state machinestate.State) error {
 					"status.modifiedAt": time.Now().UTC(),
 				},
 			},
-		)
-	})
-}
-
-// ResetAssignee resets the assigne for the given id to nil.
-func (p *Provider) ResetAssignee(id string) error {
-	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(id),
-			bson.M{"$set": bson.M{"assignee.inProgress": false}},
 		)
 	})
 }
