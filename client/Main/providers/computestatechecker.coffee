@@ -64,6 +64,10 @@ class ComputeStateChecker extends KDObject
         computeController.eventListener
           .triggerState machine, status : response.State
 
+        computeController.followUpcomingEvents {
+          _id: machine._id, status: state: response.State
+        }
+
         unless machine.status.state is response.State
           computeController.triggerReviveFor machine._id
 

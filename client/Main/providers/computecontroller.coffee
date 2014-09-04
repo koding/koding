@@ -278,6 +278,7 @@ class ComputeController extends KDController
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
       percentage  : 0
+      silent      : yes
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
@@ -297,20 +298,29 @@ class ComputeController extends KDController
 
 
 
-  StateEventMap =
 
-    Stopping    : "stop"
-    Building    : "build"
-    Starting    : "start"
-    Rebooting   : "restart"
-    Terminating : "destroy"
+  followUpcomingEvents: (machine)->
 
-  info: (machine)->
+    StateEventMap =
+
+      Stopping    : "stop"
+      Building    : "build"
+      Starting    : "start"
+      Rebooting   : "restart"
+      Terminating : "destroy"
 
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
       @eventListener.addListener stateEvent, machine._id
+      return yes
+
+    return no
+
+
+  info: (machine)->
+
+    if @followUpcomingEvents machine
       return Promise.resolve()
 
     @eventListener.triggerState machine,
