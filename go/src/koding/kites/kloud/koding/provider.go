@@ -553,7 +553,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 	resultState := infoResp.State
 
-	p.Log.Info("[%s] current db state is '%s'. amazon ec2 state is '%s'",
+	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
 		opts.MachineId, opts.State, infoResp.State)
 
 	// We have many states that defines a machine. We need to decide which one
@@ -590,7 +590,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	// check now whether the amazone ec2 state does match one and is in
 	// comparable bounds with the current state
 	if infoResp.State.In(matchStates[opts.State]...) {
-		p.Log.Info("[%s] info result: db state matches amazon state. returning current state '%s'",
+		p.Log.Info("[%s] info result  : db state matches amazon state. returning current state '%s'",
 			opts.MachineId, opts.State)
 
 		return &protocol.InfoArtifact{
@@ -628,7 +628,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 			}
 		}
 
-		p.Log.Info("[%s] info result: fetched result from klient. returning '%s'",
+		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
 
 		return &protocol.InfoArtifact{
@@ -638,9 +638,10 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 	}
 
-	p.Log.Info("[%s] info result: state is incosistent. correcting it to amazon state '%s'",
+	p.Log.Info("[%s] info result  : state is incosistent. correcting it to amazon state '%s'",
 		opts.MachineId, infoResp.State)
 
+	// fix the incosistency
 	p.UpdateState(opts.MachineId, infoResp.State)
 
 	// there is an incosistency between the DB state and Amazon EC2 state. So
