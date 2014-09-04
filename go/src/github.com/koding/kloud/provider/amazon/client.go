@@ -319,6 +319,10 @@ func (a *AmazonClient) Destroy() error {
 }
 
 func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
+	if a.Id() == "" {
+		return nil, errors.New("instance id is empty.")
+	}
+
 	instance, err := a.Instance(a.Id())
 	if err == aws.ErrNoInstances {
 		return &protocol.InfoArtifact{

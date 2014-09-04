@@ -545,13 +545,26 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 		return nil, err
 	}
 
+	// otherwise ask AWS to get an machine state
 	infoResp, err := a.Info()
 	if err != nil {
 		return nil, err
 	}
 
-	// return anything that is not defining it as runnning or starting
-	if !infoResp.State.In(machinestate.Starting, machinestate.Running) {
+	p.Log.Info("[%s] current db state: %s", opts.MachineId, opts.State)
+	p.Log.Info("[%s] aws        state: %s", opts.MachineId, infoResp.State)
+
+	// return back the DB state if it's progress state
+	if opts.State.InProgress() {
+		return &protocol.InfoArtifact{
+			State: opts.State,
+			Name:  "in-progress-instance",
+		}, nil
+	}
+
+	// return when the machine state is anything expect running. We only check
+	// the klient existing if there machien is running so we are sure about it.
+	if infoResp.State != machinestate.Running {
 		return infoResp, nil
 	}
 
