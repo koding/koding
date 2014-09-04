@@ -192,6 +192,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
+	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
 	// be sure it compiles correctly,
