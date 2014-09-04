@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   boot2dockerbox      = "192.168.59.103"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me#{if publicPort isnt "80" then ':'+publicPort}"
+  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
