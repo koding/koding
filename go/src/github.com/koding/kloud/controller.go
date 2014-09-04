@@ -206,14 +206,6 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	// defer k.Locker.Unlock(c.MachineId) // unlock lock after we are done
-
-	defer func() {
-		if err == nil {
-			k.Log.Info("[%s] info result: %+v", c.MachineId, resp)
-		}
-	}()
-
 	if c.CurrenState == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{
 			State: machinestate.NotInitialized,
@@ -234,14 +226,6 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 	if response.State == machinestate.Unknown {
 		response.State = c.CurrenState
 	}
-
-	// k.Storage.UpdateState(c.MachineId, response.State)
-	// k.Storage.Update(c.MachineId, &StorageData{
-	// 	Type: "info",
-	// 	Data: map[string]interface{}{
-	// 		"instanceName": response.Name,
-	// 	},
-	// })
 
 	return response, nil
 }

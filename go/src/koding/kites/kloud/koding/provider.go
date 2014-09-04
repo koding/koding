@@ -539,7 +539,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	return nil
 }
 
-func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
+func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, err error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
@@ -551,42 +551,55 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 		return nil, err
 	}
 
-	p.Log.Info("[%s] current db state: %s", opts.MachineId, opts.State)
-	p.Log.Info("[%s] aws        state: %s", opts.MachineId, infoResp.State)
 	resultState := infoResp.State
+
+	p.Log.Info("[%s] current db state is '%s'. amazon ec2 state is '%s'",
+		opts.MachineId, opts.State, infoResp.State)
 
 	// We have many states that defines a machine. We need to decide which one
 	// is correct so we compare the result from the DB and Amazon. We check the
-	// current state with the result from amamazon. If  they are the same we
-	// just return. However there are individual states that needs special
-	// treatment.
+	// current state with the result from amamazon. If they are the in the
+	// corresponding states we just return. However there are individual states
+	// that needs special treatment.
 
-	// equalStates := []struct {
-	// 	Current machinestate.State
-	// 	Amazon  machinestate.State
-	// }{}
-	//
+	// corresponding states defines a map that defines a relationship from a DB
+	// state to Amazon state.  That means say in DB we have the state
+	// "machinestate.Building", this means the machine is in either Starting
+	// mode or Terminated mode (if it was terminated before and not running
+	// yet). Another example say we have the state "machinestate.Starting".
+	// That means the state can be in Amazon: Starting, Running or even Stopped
+	// (between the time Start is called and and info method is made.
+	correspondingStates := map[machinestate.State][]machinestate.State{
+		machinestate.Building: []machinestate.State{
+			machinestate.Starting, machinestate.Terminated,
+		},
+		machinestate.Starting: []machinestate.State{
+			machinestate.Starting, machinestate.Running, machinestate.Stopped,
+		},
+		machinestate.Stopping: []machinestate.State{
+			machinestate.Stopping, machinestate.Stopped,
+		},
+		machinestate.Terminating: []machinestate.State{
+			machinestate.Terminating, machinestate.Terminated,
+		},
+		machinestate.Updating:   []machinestate.State{machinestate.Running},
+		machinestate.Stopped:    []machinestate.State{machinestate.Stopped},
+		machinestate.Terminated: []machinestate.State{machinestate.Terminated},
+	}
 
-	switch opts.State {
-	case machinestate.Building:
-		if infoResp.State == machinestate.Running {
-			resultState = opts.State
-		}
-	case machinestate.Stopped, machinestate.Stopping:
-		if infoResp.State.In(machinestate.Stopped, machinestate.Stopping) {
-			resultState = opts.State
-		}
-	case machinestate.Starting:
-		if infoResp.State == machinestate.Starting {
-			resultState = opts.State
-		}
-	case machinestate.Running:
-		if infoResp.State != machinestate.Running {
-			// we don't check if the state is something else. Klient is only
-			// available when the machine is running
-			break
-		}
+	if opts.State.In(correspondingStates[opts.State]...) {
+		p.Log.Info("[%s] info result: db state matches amazon state. returning state '%s'",
+			opts.MachineId, resultState)
 
+		return &protocol.InfoArtifact{
+			State: resultState,
+			Name:  infoResp.Name,
+		}, nil
+	}
+
+	// we don't check if the state is something else. Klient is only
+	// available when the machine is running
+	if opts.State == machinestate.Running && infoResp.State == machinestate.Running {
 		resultState = opts.State
 
 		// for the rest ask again to klient so we know if it's running or not
@@ -595,41 +608,43 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 			return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 		}
 
-		p.Log.Info("[%s] machine state is '%s'. Pinging klient again to be sure.",
+		p.Log.Info("[%s] machine state is '%s'. pinging klient again to be sure.",
 			opts.MachineId, infoResp.State)
 
 		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
 		if err != nil {
-			p.Log.Warning("[%s] machine state is '%s' but I can't connect to klient. Marking it as stopped",
+			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
 				opts.MachineId, resultState)
 			resultState = machinestate.Stopped
 		} else {
 			defer klientRef.Close()
 
 			if err := klientRef.Ping(); err != nil {
-				p.Log.Warning("[%s] machine state is '%s' but I can't send a ping. Marking it as stopped. Err: %s",
+				p.Log.Warning("[%s] state is '%s' but I can't send a ping. Err: %s",
 					opts.MachineId, resultState, err.Error())
 				resultState = machinestate.Stopped
 			}
 		}
-	case machinestate.Terminating:
-		if infoResp.State == machinestate.Terminating {
-			resultState = opts.State
-		}
-	case machinestate.Terminated:
-		if infoResp.State == machinestate.Terminated {
-			resultState = opts.State
-		}
-	case machinestate.Updating:
-		if infoResp.State == machinestate.Running {
-			resultState = opts.State
-		}
+
+		p.Log.Info("[%s] info result: fetched result from klient. returning '%s'",
+			opts.MachineId, resultState)
+
+		return &protocol.InfoArtifact{
+			State: resultState,
+			Name:  infoResp.Name,
+		}, nil
+
 	}
 
-	p.Log.Info("[%s] result     state: %s", opts.MachineId, resultState)
+	p.Log.Info("[%s] info result: state is incosistent. correcting it to amazon state '%s'",
+		opts.MachineId, infoResp.State)
 
+	p.UpdateState(opts.MachineId, infoResp.State)
+
+	// there is an incosistency between the DB state and Amazon EC2 state. So
+	// we are saying that the EC2 state is the correct one.
 	return &protocol.InfoArtifact{
-		State: resultState,
+		State: infoResp.State,
 		Name:  infoResp.Name,
 	}, nil
 
