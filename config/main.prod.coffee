@@ -352,6 +352,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
+    mongomigrator       :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/migrator -c #{socialapi.configFilePath} -s"
+
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
