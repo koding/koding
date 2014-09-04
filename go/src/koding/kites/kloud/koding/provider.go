@@ -613,7 +613,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] machine state is '%s'. pinging klient again to be sure.",
 			opts.MachineId, infoResp.State)
 
-		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
+		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*5)
 		if err != nil {
 			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
 				opts.MachineId, resultState)
@@ -630,6 +630,8 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
+
+		p.UpdateState(opts.MachineId, resultState)
 
 		return &protocol.InfoArtifact{
 			State: resultState,
