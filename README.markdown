@@ -48,51 +48,25 @@ information about the folder structure.
 * workers: contains all our backend based code. Like authWorker, socialWorker
            and so on. All these workers also carry the associated bongo models.
 
+# Build 
+
+We need to, build (go binaries), transpile (coffee-javascript, sylus-css), generate (sprites), install (npm modules), test the codebase before all kinds of deployment, those are all handled by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b). It uses `wercker.yml` file that is located at the root of this repository:
+
+If you want your code to be built, just open merge request to `main branch` (as the time of writing it is `newkoding`, will be replaced by master soon). It will be built automatically, and you will be able to see the result of it under you PR. [e.g](http://note.io/1unWQ7K)
+
 # Deployment
 
-Deployment process is carried out by script `deploy`. It accepts following options:
+Deployment process is carried out by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b) also. It uses `wercker.yml` file that is located at the root of this repository:
 
-* config      : prod, feature or sandbox (default: feature)
-* githubuser  : Used for determining base repository of deployment  (default: koding)
-* gitremote   : Remote name in local clone for the base repository (default: origin)
-* version     : Version number (default: automatically increments latest tag)
-* boxes       : Number of instance to launch (default: 1)
-* boxtype     : EC2 instance type (default: t2.medium)
-* versiontype : major, premajor, minor, preminor, patch, prepatch, or prerelease (default: patch)
+Steps that we have in that file:
 
-Script pushes a tag to base repository during preparing phase. That's
-why `gitremote` option should be the name of the remote name in your
-local clone. Newly launched instance will pull repository from
-corresponding repository (from a fork if you pass `githubuser`
-option).
-
-To login an instance over SSH you need to put your public SSH key to
-`install/keys/prod.ssh/authorized_keys` file before deploy.
-
-Make sure you have necessary credentials and access to instance(s) you
-need to work with.
-
-## Feature branch deployment
-
-Launches a standalone instance and hosts both application and
-services.
-
-Example:
-
-```
-./deploy --deploy --config feature --githubuser foo --gitremote fork
-```
+* create-file      : we are creating a `VERSION` file to store the head commit ID 
+* zip              : we are zipping the whole repo excluded `.git .build node_modules go/bin go/pkg`
+* s3put            : we are putting created zip file to S3, to be able to reproduce it again.
+* eb-deploy        : we are triggering a deploy operation on the EB(Elastic Beanstalk) side, in short we are telling EB to use a zip file to build the current servers
+* notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, not its EB's turn.  
 
 ## Sandbox deployment
-
-Launches a new EC2 instance. Sandbox configuration points to a
-predefined host for services.
-
-Example:
-
-```
-./deploy --deploy --config sandbox --gitremote upstream
-```
 
 ### `sandbox` branch
 
