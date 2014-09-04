@@ -264,16 +264,16 @@ app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
 app.get "/-/healthCheck", (req, res) ->
-  {socialapi, newkontrol} = KONFIG
+  {socialapi, newkontrol, publicPort} = KONFIG
   {socialApiUri, broker} = KONFIG.client.runtimeOptions
 
   errs = []
   urls = [
     socialapi.proxyUrl
     newkontrol.url
-    "#{KONFIG.publicHostname}#{socialApiUri}"
-    "#{KONFIG.publicHostname}#{broker.uri}/info"
-    "#{KONFIG.publicHostname}/kloud/kite/info"
+    "http://localhost:#{publicPort}#{socialApiUri}"
+    "http://localhost:#{publicPort}#{broker.uri}/info"
+    "http://localhost:#{publicPort}/kloud/kite/info"
   ]
 
   urlFns = urls.map (url)->->

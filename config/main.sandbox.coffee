@@ -70,6 +70,7 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
