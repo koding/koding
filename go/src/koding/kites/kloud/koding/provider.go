@@ -599,9 +599,9 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		}, nil
 	}
 
-	// we don't check if the state is something else. Klient is only
-	// available when the machine is running
-	if opts.State == machinestate.Running && infoResp.State == machinestate.Running {
+	// we don't check if the state is something else. Klient is only available
+	// when the machine is running
+	if opts.State.In(machinestate.Running, machinestate.Stopped) && infoResp.State == machinestate.Running {
 		resultState = opts.State
 
 		// for the rest ask again to klient so we know if it's running or not
@@ -610,7 +610,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 			return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 		}
 
-		p.Log.Info("[%s] machine state is '%s'. pinging klient again to be sure.",
+		p.Log.Info("[%s] amazon machine state is '%s'. pinging klient again to be sure.",
 			opts.MachineId, infoResp.State)
 
 		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*5)
