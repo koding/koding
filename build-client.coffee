@@ -239,6 +239,19 @@ class Builder
       options.callback()
       delete options.callback
 
+    unless initial
+      cprojects = null
+      if changedJS.length > 0
+        cprojects = changedJS.join " "
+      else if changedCSS.length > 0
+        cprojects = changedCSS.join " "
+      if cprojects
+        spawn.apply null, ["osascript", [
+          "-e", """
+            display notification "#{cprojects}" with title "Koding projects compiled"
+          """]
+        ]
+
     if args.watch is yes
       if initial
         log.info "\n All done. Watching for changes... \n"
