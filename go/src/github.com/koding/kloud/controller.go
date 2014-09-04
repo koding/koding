@@ -22,7 +22,7 @@ type Controller struct {
 	Canceller    protocol.Canceller  `json:"-"`
 	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
-	Username     string              `json:"-"`
+	Username     string
 }
 
 type ControlResult struct {

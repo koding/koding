@@ -12,7 +12,7 @@ import (
 var admins = []string{"kloud", "koding"}
 
 // isAdmin checks whether the given username is an admin or not
-func isAdmin(username string) bool {
+func IsAdmin(username string) bool {
 	for _, admin := range admins {
 		if admin == username {
 			return true

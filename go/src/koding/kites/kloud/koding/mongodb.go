@@ -34,7 +34,7 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	}
 
 	// do not check for admin users, or if test mode is enabled
-	if !isAdmin(username) {
+	if !IsAdmin(username) {
 		// check for user permissions
 		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
 			return nil, err
