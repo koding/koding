@@ -148,6 +148,7 @@ func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) e
 	return nil
 }
 
+// Tests are done in channelmessagelist.
 func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
 	cml := NewChannelMessageList()
 	return cml.UnreadCount(c)

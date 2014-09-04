@@ -491,7 +491,7 @@ func TestChannelMessageListFetchMessageChannelIds(t *testing.T) {
 
 		// Convey("it should ", func() {
 		// 	cml := NewChannelMessageList()
-		// 	cml.MessageId = 19824
+		// 	cml.MessageId = 1982
 
 		// 	fm, err := cml.FetchMessageChannelIds(cml.MessageId)
 		// 	// So(err, ShouldNotBeNil)
