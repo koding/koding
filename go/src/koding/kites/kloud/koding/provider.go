@@ -553,45 +553,84 @@ func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) 
 
 	p.Log.Info("[%s] current db state: %s", opts.MachineId, opts.State)
 	p.Log.Info("[%s] aws        state: %s", opts.MachineId, infoResp.State)
+	resultState := infoResp.State
 
-	// return back the DB state if it's progress state
-	if opts.State.InProgress() {
-		return &protocol.InfoArtifact{
-			State: opts.State,
-			Name:  "in-progress-instance",
-		}, nil
-	}
+	// We have many states that defines a machine. We need to decide which one
+	// is correct so we compare the result from the DB and Amazon. We check the
+	// current state with the result from amamazon. If  they are the same we
+	// just return. However there are individual states that needs special
+	// treatment.
 
-	// return when the machine state is anything expect running. We only check
-	// the klient existing if there machien is running so we are sure about it.
-	if infoResp.State != machinestate.Running {
-		return infoResp, nil
-	}
+	// equalStates := []struct {
+	// 	Current machinestate.State
+	// 	Amazon  machinestate.State
+	// }{}
+	//
 
-	// for the rest ask again to klient so we know if it's running or not
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
+	switch opts.State {
+	case machinestate.Building:
+		if infoResp.State == machinestate.Running {
+			resultState = opts.State
+		}
+	case machinestate.Stopped, machinestate.Stopping:
+		if infoResp.State.In(machinestate.Stopped, machinestate.Stopping) {
+			resultState = opts.State
+		}
+	case machinestate.Starting:
+		if infoResp.State == machinestate.Starting {
+			resultState = opts.State
+		}
+	case machinestate.Running:
+		if infoResp.State != machinestate.Running {
+			// we don't check if the state is something else. Klient is only
+			// available when the machine is running
+			break
+		}
 
-	p.Log.Info("[%s] machine state is '%s'. Pinging klient again to be sure.",
-		opts.MachineId, infoResp.State)
+		resultState = opts.State
 
-	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
-	if err != nil {
-		p.Log.Warning("[%s] machine state is '%s' but I can't connect to klient. Marking it as stopped",
+		// for the rest ask again to klient so we know if it's running or not
+		machineData, ok := opts.CurrentData.(*Machine)
+		if !ok {
+			return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+		}
+
+		p.Log.Info("[%s] machine state is '%s'. Pinging klient again to be sure.",
 			opts.MachineId, infoResp.State)
-		infoResp.State = machinestate.Stopped
-	} else {
-		defer klientRef.Close()
 
-		if err := klientRef.Ping(); err != nil {
-			p.Log.Warning("[%s] machine state is '%s' but I can't send a ping. Marking it as stopped. Err: %s",
-				opts.MachineId, infoResp.State, err.Error())
-			infoResp.State = machinestate.Stopped
+		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
+		if err != nil {
+			p.Log.Warning("[%s] machine state is '%s' but I can't connect to klient. Marking it as stopped",
+				opts.MachineId, resultState)
+			resultState = machinestate.Stopped
+		} else {
+			defer klientRef.Close()
+
+			if err := klientRef.Ping(); err != nil {
+				p.Log.Warning("[%s] machine state is '%s' but I can't send a ping. Marking it as stopped. Err: %s",
+					opts.MachineId, resultState, err.Error())
+				resultState = machinestate.Stopped
+			}
+		}
+	case machinestate.Terminating:
+		if infoResp.State == machinestate.Terminating {
+			resultState = opts.State
+		}
+	case machinestate.Terminated:
+		if infoResp.State == machinestate.Terminated {
+			resultState = opts.State
+		}
+	case machinestate.Updating:
+		if infoResp.State == machinestate.Running {
+			resultState = opts.State
 		}
 	}
 
-	return infoResp, nil
+	p.Log.Info("[%s] result     state: %s", opts.MachineId, resultState)
+
+	return &protocol.InfoArtifact{
+		State: resultState,
+		Name:  infoResp.Name,
+	}, nil
 
 }
