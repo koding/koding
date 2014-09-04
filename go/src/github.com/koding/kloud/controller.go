@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/koding/kite"
@@ -93,38 +92,35 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}()
 
-		k.Log.Info("[%s] ========== %s started ==========", args.MachineId, strings.ToUpper(r.Method))
+		k.Log.Info("[%s] ========== %s called by user: %s ==========",
+			args.MachineId, strings.ToUpper(r.Method), r.Username)
 
 		if args.MachineId == "" {
 			return nil, NewError(ErrMachineIdMissing)
 		}
 
-		// if something goes wrong after step reset the assigne which is was
-		// set in the next step by Storage.Get(). If there is no error,
-		// Assignee is going to be reseted in ControlFunc wrapper.
+		// Lock the machine id so no one else can access it. It means this
+		// kloud instance is now responsible for this machine id. Its basically
+		// a distributed lock. It's unlocked when there is an error or if the
+		// method call is finished (unlocking is done inside the responsible
+		// method calls).
+		if err := k.Locker.Lock(args.MachineId); err != nil {
+			return nil, err
+		}
+
+		// if something goes wrong after step reset the assignee which is was
+		// set in the by previous step by Locker.Lock(). If there is no error,
+		// Assignee is going to be reseted in the respective method function.
 		defer func() {
-			kiteErr, ok := err.(*kite.Error)
-			if !ok {
-				return
+			if err != nil {
+				// otherwise that means Locker.Lock or something else in
+				// ControlFunc failed. Reset the lock again so it can be acquired by
+				// others.
+				k.Locker.Unlock(args.MachineId)
 			}
-
-			kloudErr, _ := strconv.Atoi(kiteErr.CodeVal)
-			if kloudErr == ErrMachinePendingEvent {
-				// ErrMachinePendingEvent means that the Storage.Get has
-				// aquired a lock, don't do anything
-				return
-			}
-
-			// otherwise that means Storage.Get or something else in
-			// ControlFunc failed. Reset the lock again so it can be aquired by
-			// others.
-			k.Storage.ResetAssignee(args.MachineId)
 		}()
 
-		// Get all the data we need. It also sets the assignee for the given
-		// machine id. Assignee means this kloud instance is now responsible
-		// for this machine. Its basically a distributed lock. Assignee gets
-		// reseted when there is an error or if the method call is finished.
+		// Get all the data we need.
 		machine, err := k.Storage.Get(args.MachineId, r.Username)
 		if err != nil {
 			return nil, err
@@ -190,8 +186,8 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			}
 		}
 
-		// now finally call our kite handler with the the controller context,
-		// run forrest run...!
+		// now finally call our kite handler with the controller context, run
+		// forrest run...!
 		return control(r, c)
 	})
 }
@@ -207,7 +203,7 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	defer k.Storage.ResetAssignee(c.MachineId) // reset assignee after we are done
+	defer k.Locker.Unlock(c.MachineId) // unlock lock after we are done
 
 	defer func() {
 		if err == nil {
@@ -331,7 +327,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
-	// get our state pair. A state pair defines the inital state and the final
+	// get our state pair. A state pair defines the initial state and the final
 	// state. For example, for "restart" method the initial state is
 	// "rebooting" and the final "running.
 	s, ok := states[r.Method]
@@ -367,8 +363,13 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 		}
 
+		// update final status in storage
 		k.Storage.UpdateState(c.MachineId, status)
-		k.Storage.ResetAssignee(c.MachineId)
+
+		// unlock distributed lock
+		k.Locker.Unlock(c.MachineId)
+
+		// update final status in storage
 		c.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,
