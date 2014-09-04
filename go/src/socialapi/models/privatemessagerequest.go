@@ -13,6 +13,7 @@ type PrivateMessageRequest struct {
 	ChannelId       int64  `json:"channelId,string"`
 	RequestData     string `json:"requestData"`
 	ClientRequestId string `json:"ClientRequestId"`
+	Purpose         string `json:"purpose"`
 }
 
 func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
@@ -29,6 +30,7 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 
 	// create the channel
 	c := NewPrivateMessageChannel(p.AccountId, p.GroupName)
+	c.Purpose = p.Purpose
 	if err := c.Create(); err != nil {
 		return nil, err
 	}
