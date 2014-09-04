@@ -569,7 +569,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	// yet). Another example say we have the state "machinestate.Starting".
 	// That means the state can be in Amazon: Starting, Running or even Stopped
 	// (between the time Start is called and and info method is made.
-	correspondingStates := map[machinestate.State][]machinestate.State{
+	matchStates := map[machinestate.State][]machinestate.State{
 		machinestate.Building: []machinestate.State{
 			machinestate.Starting, machinestate.Terminated,
 		},
@@ -587,12 +587,14 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		machinestate.Terminated: []machinestate.State{machinestate.Terminated},
 	}
 
-	if opts.State.In(correspondingStates[opts.State]...) {
-		p.Log.Info("[%s] info result: db state matches amazon state. returning state '%s'",
-			opts.MachineId, resultState)
+	// check now whether the amazone ec2 state does match one and is in
+	// comparable bounds with the current state
+	if infoResp.State.In(matchStates[opts.State]...) {
+		p.Log.Info("[%s] info result: db state matches amazon state. returning current state '%s'",
+			opts.MachineId, opts.State)
 
 		return &protocol.InfoArtifact{
-			State: resultState,
+			State: opts.State,
 			Name:  infoResp.Name,
 		}, nil
 	}
