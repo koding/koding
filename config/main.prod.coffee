@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  publicPort             = options.publicPort or "80"
+  publicPort             = "80"
   options.hostname       = "prod.koding.com#{if publicPort isnt "80" then ':'+publicPort}"
   options.publicHostname = "https://#{options.hostname}"
 
