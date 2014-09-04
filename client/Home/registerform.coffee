@@ -6,8 +6,6 @@ class HomeRegisterForm extends RegisterInlineForm
 
     @email.input.on    'focus', @bound 'handleFocus'
     @username.input.on 'focus', @bound 'handleFocus'
-    # @email.input.on    'blur', @bound 'handleBlur'
-    # @username.input.on 'blur', @bound 'handleBlur'
 
 
   handleFocus: -> @setClass 'focused'
