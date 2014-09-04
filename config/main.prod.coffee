@@ -5,15 +5,11 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  options.publicPort     = "80"
-  options.hostname       = "prod.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
-  options.publicHostname = "https://#{options.hostname}"
-
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
 
-  publicPort          = options.publicPort
-  hostname            = options.hostname       or "koding.com"
-  publicHostname      = options.publicHostname or "https://koding.com"
+  publicPort          = options.publicPort     = "80"
+  hostname            = options.hostname       ="prod.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname      = options.publicHostname = "https://#{options.hostname}"
   region              = "aws"
   configName          = "prod"
   environment         = "production"
