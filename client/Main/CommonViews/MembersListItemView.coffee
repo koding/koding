@@ -3,8 +3,8 @@ class MembersListItemView extends KDListItemView
     options.type        = "member"
     options.avatar     ?=
       size              :
-        width           : 30
-        height          : 30
+        width           : 40
+        height          : 40
 
     super options, data
 
@@ -15,7 +15,6 @@ class MembersListItemView extends KDListItemView
     @avatar  = new AvatarView
       size       : width: avatarSize.width, height: avatarSize.height
       cssClass   : "avatarview"
-      showStatus : yes
     , data
 
     @actor = new ProfileLinkView {}, data
@@ -29,10 +28,12 @@ class MembersListItemView extends KDListItemView
       @followButton = new FollowButton
         title          : "follow"
         icon           : yes
+        style          : 'solid green medium'
         stateOptions   :
           unfollow     :
             title      : "unfollow"
             cssClass   : 'following-account'
+            style      : 'solid gray medium'
         dataType       : 'JAccount'
       , data
 

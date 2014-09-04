@@ -3,7 +3,6 @@ module.exports = [
   "ContentDisplays/externalprofileview.coffee"
   "ContentDisplays/profileview.coffee"
 
-  "memberslistitemview.coffee"
   "groupmemberspagelistitemview.coffee"
   "newmemberactivitylistitem.coffee"
 
