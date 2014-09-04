@@ -24,10 +24,12 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
+
     @tabs = new KDTabView
       tagName             : 'main'
       cssClass            : 'app-content'
       hideHandleContainer : yes
+
 
     @appStorage.setValue 'liveUpdates', off
 

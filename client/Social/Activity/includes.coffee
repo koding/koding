@@ -16,6 +16,8 @@ module.exports = [
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
 
+  "views/filterlinks.coffee"
+
   # Activity commons
   "views/feedcoverphotoview.coffee"
   "views/likelink.coffee"
