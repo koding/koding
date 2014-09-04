@@ -21,6 +21,7 @@ class MessagePane extends KDTabPaneView
 
     @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
 
+    @createChannelTitle()
     @createInputWidget()
     @createFilterLinks()
     @bindInputEvents()
@@ -153,6 +154,22 @@ class MessagePane extends KDTabPaneView
       document.body.scrollTop = @lastScrollTops.body
 
 
+  createChannelTitle: ->
+
+    type = @getOption 'type'
+
+    if type is 'privatemessage' or type is 'post' then return
+
+    {name, isParticipant} = @getData()
+
+    @channelTitleView = new KDCustomHTMLView
+      partial   : "##{name}"
+      cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
+
+    unless name is 'public'
+      @channelTitleView.addSubView new TopicFollowButton null, @getData()
+
+
   createInputWidget: ->
 
     return  if @getOption("type") is 'post'
@@ -164,7 +181,9 @@ class MessagePane extends KDTabPaneView
 
   createFilterLinks: ->
 
-    return if @getOption 'type' is 'privatemessage'
+    type = @getOption 'type'
+
+    if type is 'privatemessage' or type is 'post' then return
 
     @filterLinks = new FilterLinksView {},
       'Most Liked'  :
@@ -211,8 +230,9 @@ class MessagePane extends KDTabPaneView
 
   viewAppended: ->
 
-    @addSubView @input  if @input
-    @addSubView @filterLinks if @filterLinks
+    @addSubView @channelTitleView  if @channelTitleView
+    @addSubView @input             if @input
+    @addSubView @filterLinks       if @filterLinks
     @addSubView @listController.getView()
     @populate()
 
