@@ -337,7 +337,7 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 	defer r.Close()
 
 	Convey("While marking if participant is exempt", t, func() {
-		Convey("it should have error if channel id is not set", func() {
+		Convey("it should be nil if participant is already exempt", func() {
 			// create account
 			acc := createAccountWithTest()
 			acc.IsTroll = true
@@ -363,7 +363,24 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 
 			err := cp.MarkIfExempt()
 			So(err, ShouldBeNil)
+		})
 
+		Convey("it should be nil if participant is already exempt", func() {
+			// create account
+			acc := createAccountWithTest()
+			acc.IsTroll = false
+			So(acc.Update(), ShouldBeNil)
+
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+
+			err := cp.MarkIfExempt()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
 		})
 
 	})
