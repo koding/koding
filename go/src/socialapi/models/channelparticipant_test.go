@@ -365,7 +365,7 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("it should be nil if participant is already exempt", func() {
+		Convey("it should have error if account is not set", func() {
 			// create account
 			acc := createAccountWithTest()
 			acc.IsTroll = false
@@ -381,6 +381,52 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 			err := cp.MarkIfExempt()
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+		})
+
+	})
+}
+
+func TestChannelParticipantisExempt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While testing channel participant is exempt or not", t, func() {
+		Convey("it should have error while getting account id from db", func() {
+			cp := NewChannelParticipant()
+
+			ex, err := cp.isExempt()
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, "couldnt find accountId from content")
+			So(ex, ShouldEqual, false)
+		})
+
+		Convey("it should return true is participant is troll", func() {
+			// create account
+			acc := createAccountWithTest()
+			err := acc.MarkAsTroll()
+			So(err, ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.AccountId = acc.Id
+
+			ex, err := cp.isExempt()
+			So(err, ShouldBeNil)
+			So(ex, ShouldEqual, true)
+		})
+
+		Convey("it should return true is participant is troll", func() {
+			// create account
+			acc := createAccountWithTest()
+
+			cp := NewChannelParticipant()
+			cp.AccountId = acc.Id
+
+			ex, err := cp.isExempt()
+			So(err, ShouldBeNil)
+			So(ex, ShouldEqual, false)
 		})
 
 	})
