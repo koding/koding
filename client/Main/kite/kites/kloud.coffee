@@ -25,16 +25,14 @@ class KodingKite_KloudKite extends KodingKite
       @needsRequest = no
       @tell 'info', { machineId }
         .then (info) =>
-          @needsRequest = yes
           @requestingInfo[machineId].forEach ({ resolve }) -> resolve info
           @requestingInfo[machineId] = null
         .timeout ComputeController.timeout
         .catch Promise.TimeoutError, (err) =>
           @requestingInfo[machineId].forEach ({ reject }) -> reject err
           @requestingInfo[machineId] = null
-        .catch require('kite').Error.codeIs "107", (err) =>
-          # SILENCE THIS ERROR!
-          @needsRequest = yes
+        .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!
+        .finally => @needsRequest = yes
 
     new Promise (resolve, reject) =>
       @requestingInfo[machineId] ?= []

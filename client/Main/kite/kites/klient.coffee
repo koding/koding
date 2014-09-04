@@ -50,3 +50,10 @@ class KodingKite_KlientKite extends KodingKite
 
     # now call @connect in super, which will connect to our new URL
     super transport
+
+
+  disconnect: ->
+
+    super
+
+    KD.singletons.kontrol.kites?.klient?[@getOption 'correlationName'] = null
