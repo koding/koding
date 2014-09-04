@@ -582,8 +582,10 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		machinestate.Terminating: []machinestate.State{
 			machinestate.Terminating, machinestate.Terminated,
 		},
+		machinestate.Stopped: []machinestate.State{
+			machinestate.Stopped, machinestate.Stopping,
+		},
 		machinestate.Updating:   []machinestate.State{machinestate.Running},
-		machinestate.Stopped:    []machinestate.State{machinestate.Stopped},
 		machinestate.Terminated: []machinestate.State{machinestate.Terminated},
 	}
 
