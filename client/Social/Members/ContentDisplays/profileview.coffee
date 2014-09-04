@@ -412,7 +412,7 @@ class ProfileView extends JView
         KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
     if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
-    then @trollButton = new TrollButtonView style : 'thin medium red', data
+    then @trollButton = new TrollButtonView style : 'solid medium red', data
     else @trollButton = new KDCustomHTMLView
 
     nickname = @memberData.profile.nickname
