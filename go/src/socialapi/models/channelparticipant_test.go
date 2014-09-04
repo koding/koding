@@ -266,7 +266,7 @@ func TestChannelParticipantFetchParticipant(t *testing.T) {
 	})
 }
 
-func TestChannelParticipantFetcActivehParticipant(t *testing.T) {
+func TestChannelParticipantFetcActiveParticipant(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -324,6 +324,46 @@ func TestChannelParticipantFetcActivehParticipant(t *testing.T) {
 			err := cp.FetchActiveParticipant()
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+	})
+}
+
+func TestChannelParticipantMarkIfExempt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While marking if participant is exempt", t, func() {
+		Convey("it should have error if channel id is not set", func() {
+			// create account
+			acc := createAccountWithTest()
+			acc.IsTroll = true
+			So(acc.Update(), ShouldBeNil)
+
+			c := createNewChannelWithTest()
+			c.CreatorId = acc.Id
+			So(c.Create(), ShouldBeNil)
+
+			msg := createMessageWithTest()
+			msg.AccountId = acc.Id
+			So(msg.Create(), ShouldBeNil)
+
+			_, errs := c.AddMessage(msg.Id)
+			So(errs, ShouldBeNil)
+
+			cp := NewChannelParticipant()
+			cp.ChannelId = c.Id
+			cp.AccountId = acc.Id
+
+			_, erro := c.AddParticipant(acc.Id)
+			So(erro, ShouldBeNil)
+
+			err := cp.MarkIfExempt()
+			So(err, ShouldBeNil)
+
 		})
 
 	})
