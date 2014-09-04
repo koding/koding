@@ -50,9 +50,6 @@ class Machine extends KDObject
 
     computeController.on "revive-#{machine._id}", (machine)=>
 
-      # invalidate klient kite if exists
-      KD.singletons.kontrol.kites?.klient?[@uid] = null
-
       # update machine data
       @jMachine = machine
       @updateLocalData()

@@ -109,8 +109,7 @@ class KodingKontrol extends (require 'kontrol')
               duration  : 999999
         .on 'open', ->
           KodingKontrol.dcNotification?.destroy()
-          # FIXME Chris ~
-          # KodingKontrol.dcNotification = null
+          KodingKontrol.dcNotification = null
 
     # Query kontrol
     @fetchKite

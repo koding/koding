@@ -49,8 +49,10 @@ class ComputeEventListener extends KDObject
 
     state = { status : event.status, reverted : event.reverted }
     state.percentage = event.percentage  if event.percentage?
+    state.isSilent = !!event.silent
 
-    @machineStatuses[machine.uid] = machine.status.state
+    unless state.isSilent
+      @machineStatuses[machine.uid] = machine.status.state
 
     computeController.emit "public-#{machine._id}", state
 
