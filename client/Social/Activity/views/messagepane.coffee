@@ -284,8 +284,8 @@ class MessagePane extends KDTabPaneView
 
       console.time('populate')
       @listController.hideLazyLoader()
-      @listController.instantiateListItems items
       console.timeEnd('populate')
+      items.forEach (item) => KD.utils.defer => @appendMessage item
 
       KD.utils.defer @bound 'focus'
 
