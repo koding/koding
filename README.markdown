@@ -50,7 +50,7 @@ information about the folder structure.
 
 # Build 
 
-We need to, build (go binaries), transpile (coffee-javascript, sylus-css), generate (sprites), install (npm modules), test the codebase before all kinds of deployment, those are all handled by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b). It uses `wercker.yml` file that is located at the root of this repository:
+We need to, build (go binaries), transpile (coffee-javascript, stylus-css), generate (sprites), install (npm modules), test the codebase before all kinds of deployment, those are all handled by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b). It uses `wercker.yml` file that is located at the root of this repository:
 
 If you want your code to be built, just open merge request to `main branch` (as the time of writing it is `newkoding`, will be replaced by master soon). It will be built automatically, and you will be able to see the result of it under you PR. [e.g](http://note.io/1unWQ7K)
 
@@ -64,7 +64,7 @@ Steps that we have in that file:
 * zip              : we are zipping the whole repo excluded `.git .build node_modules go/bin go/pkg`
 * s3put            : we are putting created zip file to S3, to be able to reproduce it again.
 * eb-deploy        : we are triggering a deploy operation on the EB(Elastic Beanstalk) side, in short we are telling EB to use a zip file to build the current servers
-* notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, not its EB's turn.  
+* notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, now its EB's turn.  
 
 ## Debugging
 
@@ -75,7 +75,7 @@ services are located.
 
 ## Logging 
 
-Our server logs are aggregated at 
+Our server logs are aggregated at [PaperTrail](https://papertrailapp.com/)
 
 ## Sandbox deployment
 
