@@ -330,7 +330,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		defer k.idlock.Get(c.MachineId).Unlock()
 
 		status := s.final
-		var eventErr error
+		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
+		eventErr := ""
 
 		machOptions := c.Machine
 		machOptions.Eventer = c.Eventer
@@ -342,7 +343,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 				c.MachineId, r.Method, c.CurrenState, err.Error())
 
 			status = c.CurrenState
-			eventErr = fmt.Errorf("%s failed. Please contact support.", r.Method)
+			msg = ""
+			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] State is now: %+v", c.MachineId, status)
 			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
@@ -356,7 +358,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 
 		// update final status in storage
 		c.Eventer.Push(&eventer.Event{
-			Message:    fmt.Sprintf("%s is finished successfully.", r.Method),
+			Message:    msg,
 			Status:     status,
 			Percentage: 100,
 			Error:      eventErr,

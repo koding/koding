@@ -44,9 +44,9 @@ type Event struct {
 	// TimeStamp contains the last updated event time
 	TimeStamp time.Time `json:"timeStamp"`
 
-	// Error is non nil if there is an error. If there is an error, the eventer
-	// should stop sending any event and call Close()
-	Error error `json:"error"`
+	// Error is non empty if there is an error. It should be populated if there
+	// is an error, the eventer should stop sending any event and call Close()
+	Error string `json:"error"`
 }
 
 func (e *Event) String() string {
