@@ -571,7 +571,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	// (between the time Start is called and and info method is made.
 	matchStates := map[machinestate.State][]machinestate.State{
 		machinestate.Building: []machinestate.State{
-			machinestate.Starting, machinestate.Terminated,
+			machinestate.Starting, machinestate.Terminated, machinestate.NotInitialized,
 		},
 		machinestate.Starting: []machinestate.State{
 			machinestate.Starting, machinestate.Running, machinestate.Stopped,
