@@ -9,7 +9,6 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
-	"socialapi/workers/helper"
 )
 
 func (mwc *Controller) migrateAllAccountsToAlgolia() {
@@ -23,12 +22,8 @@ func (mwc *Controller) migrateAllAccountsToAlgolia() {
 	c := config.MustGet()
 
 	algolia := algoliasearch.NewClient(c.Algolia.AppId, c.Algolia.ApiSecretKey)
-	log := helper.CreateLogger(
-		"Algolia account migrator",
-		false,
-	)
 	// create message handler
-	handler := algoliaconnector.New(log, algolia, c.Algolia.IndexSuffix)
+	handler := algoliaconnector.New(mwc.log, algolia, c.Algolia.IndexSuffix)
 
 	migrateAccount := func(account interface{}) error {
 		oldAccount := account.(*mongomodels.Account)
