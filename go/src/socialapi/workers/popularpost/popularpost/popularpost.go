@@ -95,15 +95,14 @@ func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bo
 	return true
 }
 
-func PreparePopularPostKey(group, channelName, statisticName string, year, dateNumber int) string {
+func PreparePopularPostKey(group, channelName string, year, dateNumber int) string {
 	return fmt.Sprintf(
-		"%s:%s:%s:%s:%d:%s:%d",
+		"%s:%s:%s:%s:%d:%d",
 		config.MustGet().Environment,
 		group,
 		PopularPostKey,
 		channelName,
 		year,
-		statisticName,
 		dateNumber,
 	)
 }
@@ -122,5 +121,5 @@ func GetDailyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interac
 		year, _, _ = now.Date()
 	}
 
-	return PreparePopularPostKey(c.GroupName, c.Name, "daily", year, day)
+	return PreparePopularPostKey(c.GroupName, c.Name, year, day)
 }
