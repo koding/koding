@@ -267,13 +267,15 @@ class IDEAppController extends AppController
             @mountMachine machineItem
           else
 
-            @createMachineStateModal {
-              state, container, machineItem, initial: yes
-            }
+            unless @machineStateModal
 
-            if state is NotInitialized
-              @machineStateModal.once 'MachineTurnOnStarted', =>
-                KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
+              @createMachineStateModal {
+                state, container, machineItem, initial: yes
+              }
+
+              if state is NotInitialized
+                @machineStateModal.once 'MachineTurnOnStarted', =>
+                  KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
           computeController.on "public-#{machineId}", (event) =>
 
