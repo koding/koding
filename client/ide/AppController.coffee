@@ -255,7 +255,7 @@ class IDEAppController extends AppController
     computeController.fetchMachines (err, machines) =>
       return KD.showError 'Something went wrong. Try again.'  if err
 
-      callback = (isFirstInitialize) =>
+      callback = =>
         for machine in machines when machine.uid is machineUId
           machineItem = machine
 
@@ -263,25 +263,32 @@ class IDEAppController extends AppController
           {state} = machineItem.status
           machineId = machineItem._id
 
-          if state is 'Running'
+          if state is Running
             @mountMachine machineItem
           else
-            @createMachineStateModal state, container, machineItem, yes, isFirstInitialize
-            if isFirstInitialize
+
+            @createMachineStateModal {
+              state, container, machineItem, initial: yes
+            }
+
+            if state is NotInitialized
               @machineStateModal.once 'MachineTurnOnStarted', =>
                 KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
-                @appStorage.setValue 'isMachineInitializedOnce', yes
 
           computeController.on "public-#{machineId}", (event) =>
+
             if event.status in [Stopping, Stopped, Terminating, Terminated]
+
               KodingKontrol.dcNotification?.destroy()
+              KodingKontrol.dcNotification = null
 
               machineItem.getBaseKite( no ).disconnect()
 
               unless @machineStateModal
-                @createMachineStateModal state, container, machineItem
+                @createMachineStateModal { state, container, machineItem }
+
               else
-                if event.status in [Stopped, Terminated]
+                if event.status in [Stopped, Terminated, Stopping, Terminating]
                   @machineStateModal.updateStatus event
 
         else
@@ -290,13 +297,10 @@ class IDEAppController extends AppController
 
       @appStorage = KD.getSingleton('appStorageController').storage 'IDE', '1.0.0'
       @appStorage.fetchStorage =>
-        return if @appStorageFetched
-        @appStorageFetched = yes
 
-        isOnboardingModalShown   = @appStorage.getValue 'isOnboardingModalShown'
-        isMachineInitializedOnce = @appStorage.getValue 'isMachineInitializedOnce'
+        isOnboardingModalShown = @appStorage.getValue 'isOnboardingModalShown'
 
-        callback !isMachineInitializedOnce
+        callback()
 
         # unless hideOnboardingModal
         #   callback yes
@@ -315,8 +319,9 @@ class IDEAppController extends AppController
         #   callback()
 
 
-  createMachineStateModal: (state, container, machineItem, initial, isFirstInitialize) ->
-    modalOptions       = { state, container, initial, isFirstInitialize }
+  createMachineStateModal: (options = {}) ->
+    { state, container, machineItem, initial } = options
+    modalOptions = { state, container, initial }
     @machineStateModal = new IDE.MachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null

@@ -36,8 +36,6 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @show()
 
-    @turnOnMachine()  if @getOptions().isFirstInitialize
-
 
   updateStatus: (event) ->
 
@@ -55,7 +53,7 @@ class IDE.MachineStateModal extends IDE.ModalView
         @progressBar?.updateBar 100
         @progressBar?.show()
 
-        KD.utils.wait 500, @bound 'buildViews'
+        KD.utils.wait 500, => @buildViews()
 
       else
         @buildViews()
@@ -86,6 +84,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     if response?
       @state = response.State
+      if @state is NotInitialized and @getOption 'initial'
+        KD.utils.defer @bound 'turnOnMachine'
 
     @container.destroySubViews()
 
