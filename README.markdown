@@ -66,16 +66,6 @@ Steps that we have in that file:
 * eb-deploy        : we are triggering a deploy operation on the EB(Elastic Beanstalk) side, in short we are telling EB to use a zip file to build the current servers
 * notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, now its EB's turn.  
 
-## Debugging
-
-Worker/service configurations are in usual configuration
-directory. All configurations contain the necessary information to
-find out/traceback how a worker is set up and where (external)
-services are located.
-
-## Logging 
-
-Our server logs are aggregated at [PaperTrail](https://papertrailapp.com/)
 
 ## Sandbox deployment
 
@@ -112,3 +102,19 @@ After getting acceptance on [sandbox env](https://console.aws.amazon.com/elastic
 * Go to the build, that you want to deploy to prod. [e.g](http://note.io/1vUrhFI)
 * Click `Deploy to`, you will see env listed there [e.g](http://note.io/1vUuOnn) 
 * If you click any of them, it will start deployment, when it is done -> [e.g](http://note.io/1wb9Fm2)
+
+
+## Logging 
+
+Our server logs are aggregated at [PaperTrail](https://papertrailapp.com/) You can easily see the the creation time of the log, app name and the host name in the [logs](http://note.io/1oNcu6Z) 
+
+## Debugging / Troubleshooting
+
+Worker/service configurations are in usual configuration
+directory. All configurations contain the necessary information to
+find out/traceback how a worker is set up and where (external)
+services are located.
+
+
+When you feel something is wrong, first of all just notify others that you realized a problem and started working on it. Then check the aggregated logs. If you see an error there you  can find the server name from the logs [e.g.](http://note.io/1oNcu6Z) There can be options about fixing the problem, even one of them can be `destroying` the machine, auto scaling will create a new one for us. 
+
