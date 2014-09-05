@@ -195,8 +195,7 @@ class ComputeController extends KDController
         @emit "error", { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
 
-      unless retried
-        warn "#{task} failed:", err, this
+      warn "#{task} failed:", err, this
 
       @stateChecker.watch machine._id
 
