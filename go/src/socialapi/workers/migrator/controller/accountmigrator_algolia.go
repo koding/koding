@@ -46,6 +46,7 @@ func (mwc *Controller) migrateAllAccountsToAlgolia() {
 	iterOptions.Result = &mongomodels.Account{}
 	iterOptions.Limit = 10000000
 	iterOptions.Skip = 0
+	iterOptions.Sort = []string{"-_id"}
 
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
