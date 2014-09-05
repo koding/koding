@@ -955,26 +955,29 @@ module.exports = class JGroup extends Module
 
   toggleFeature: permit 'grant permissions',
     success:(client, options, callback)->
-      if not options.feature or not options.role or not options.operation
-        return callback {message:"request is not valid"}
+      @_toggleFeature options, callback
 
-      @disabledFeatures = {}  unless @disabledFeatures
-      @disabledFeatures[options.role] =[]  unless @disabledFeatures[options.role]
+  _toggleFeature: (options, callback)->
+    if not options.feature or not options.role or not options.operation
+      return callback {message:"request is not valid"}
 
-      if options.operation is "disable"
-        if options.feature not in @disabledFeatures?[options.role]
-          @disabledFeatures[options.role].push options.feature
-          return @update callback
-        else
-          return callback {message:"item is not in the list "}
+    @disabledFeatures = {}  unless @disabledFeatures
+    @disabledFeatures[options.role] =[]  unless @disabledFeatures[options.role]
+
+    if options.operation is "disable"
+      if options.feature not in @disabledFeatures?[options.role]
+        @disabledFeatures[options.role].push options.feature
+        return @update callback
       else
+        return callback {message:"item is not in the list "}
+    else
 
-        if options.feature not in @disabledFeatures?[options.role]
-          return callback {message:"item is not in the list"}
-        else
-          ops = (feature for feature in @disabledFeatures?[options.role] when feature isnt options.feature)
-          @disabledFeatures[options.role] = ops
-          return @update callback
+      if options.feature not in @disabledFeatures?[options.role]
+        return callback {message:"item is not in the list"}
+      else
+        ops = (feature for feature in @disabledFeatures?[options.role] when feature isnt options.feature)
+        @disabledFeatures[options.role] = ops
+        return @update callback
 
 
   resolvePendingRequests: permit 'send invitations',

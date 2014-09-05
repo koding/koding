@@ -46,6 +46,25 @@ initKodingGroup = ->
       fin()
 
 exports.init = (koding) ->
+  JGroup = require './models/group'
+  JGroup.one {title:"Koding"}, (err, group)->
+    return console.error err  if err
+
+    # these features are temporarily disbaled for members: SA
+    features = [
+      'channels', 'threads', 'private-messages', 'extended-sidebar'
+    ]
+
+    console.warn "Disabling #{features} for members"
+
+    queue = features.map (feature)->->
+      group._toggleFeature(
+        {feature : feature, role : 'member', operation: 'disable'}
+        queue.fin
+      )
+
+    dash queue, ->
+
   console.warn 'Initialization code is temporarily disabled.'
   # JGroup = require './models/group'
   # JGroup.count (err, count) ->
