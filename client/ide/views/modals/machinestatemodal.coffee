@@ -74,7 +74,13 @@ class IDE.MachineStateModal extends IDE.ModalView
     if @getOption 'initial'
       KD.getSingleton 'computeController'
         .kloud.info { @machineId }
-        .then (response)=> @buildViews response
+        .then (response)=>
+
+          @buildViews response
+
+          if response.State is NotInitialized
+            KD.utils.defer => @turnOnMachine()
+
         .catch => @buildViews()
     else
       @buildViews()
@@ -82,10 +88,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
   buildViews: (response)->
 
-    if response?
+    if response?.State?
       @state = response.State
-      if @state is NotInitialized and @getOption 'initial'
-        KD.utils.defer @bound 'turnOnMachine'
 
     @container.destroySubViews()
 
@@ -186,8 +190,6 @@ class IDE.MachineStateModal extends IDE.ModalView
   turnOnMachine: ->
 
     @emit 'MachineTurnOnStarted'
-
-    {@state}     = @machine.status
 
     methodName   = 'start'
     nextState    = 'Starting'
