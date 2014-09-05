@@ -148,6 +148,7 @@ func getSevenDayKey(c *models.Channel, cm *models.ChannelMessage) string {
 }
 
 func PopularPostKey(group, channelName string, current time.Time) string {
+	current = getStartOfDay(current.UTC())
 	sevenDaysAgo := getXDaysAgo(current, 7)
 
 	return fmt.Sprintf("%s:%s:%s:%s:%d-%d",
