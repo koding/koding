@@ -65,8 +65,11 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 		// save the value in DB, this is only set if the lock is unlocked.
 		// Thefore it will not change the db state if there is an ongoing
-		// process.
-		p.CheckAndUpdateState(opts.MachineId, infoResp.State)
+		// process. Also update only if there is a change, there is no need to
+		// update if it's the same :)
+		if opts.State != infoResp.State {
+			p.CheckAndUpdateState(opts.MachineId, infoResp.State)
+		}
 
 		// Return the old DB state
 		return &protocol.InfoArtifact{
