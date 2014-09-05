@@ -355,6 +355,8 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 
 // Put them all behind an interface
 // channels, messages, lists, participants, etc
+//
+// Tests are done.
 func (c *ChannelParticipant) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
 	if err != nil {
@@ -368,6 +370,7 @@ func (c *ChannelParticipant) MarkIfExempt() error {
 	return nil
 }
 
+// Tests are done.
 func (c *ChannelParticipant) isExempt() (bool, error) {
 	// return early if channel is already exempt
 	if c.MetaBits.Is(Troll) {

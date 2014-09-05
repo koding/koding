@@ -266,7 +266,7 @@ func TestChannelParticipantFetchParticipant(t *testing.T) {
 	})
 }
 
-func TestChannelParticipantFetcActiveParticipant(t *testing.T) {
+func TestChannelParticipantFetchActiveParticipant(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -394,7 +394,7 @@ func TestChannelParticipantisExempt(t *testing.T) {
 	defer r.Close()
 
 	Convey("While testing channel participant is exempt or not", t, func() {
-		Convey("it should have error while getting account id from db", func() {
+		Convey("it should have error while getting account id from db when channel id is not set", func() {
 			cp := NewChannelParticipant()
 
 			ex, err := cp.isExempt()
@@ -403,7 +403,7 @@ func TestChannelParticipantisExempt(t *testing.T) {
 			So(ex, ShouldEqual, false)
 		})
 
-		Convey("it should return true is participant is troll", func() {
+		Convey("it should return true if participant is troll", func() {
 			// create account
 			acc := createAccountWithTest()
 			err := acc.MarkAsTroll()
@@ -417,7 +417,7 @@ func TestChannelParticipantisExempt(t *testing.T) {
 			So(ex, ShouldEqual, true)
 		})
 
-		Convey("it should return true is participant is troll", func() {
+		Convey("it should return true if participant is not troll", func() {
 			// create account
 			acc := createAccountWithTest()
 

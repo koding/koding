@@ -307,13 +307,13 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 
 func TestChannelMessageListUnreadCount(t *testing.T) {
 	r := runner.New("test")
+	defer r.Close()
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
-	defer r.Close()
 
 	Convey("while counting unread messages", t, func() {
-		Convey("it should have error if channel id doesn't exist", func() {
+		Convey("it should have error if channel id is not set", func() {
 			cml := NewChannelMessageList()
 			cp := NewChannelParticipant()
 
@@ -323,7 +323,7 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 			So(cnt, ShouldEqual, 0)
 		})
 
-		Convey("it should have error if channel id doesn't exist", func() {
+		Convey("it should have error if account id doesn't exist", func() {
 			cp := NewChannelParticipant()
 			cml := NewChannelMessageList()
 			cp.ChannelId = 1920
@@ -349,30 +349,30 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 
 		Convey("it should count if participant is troll", func() {
 			// create account as troll
-			acc := createAccountWithTest()
-			err := acc.MarkAsTroll()
+			accTroll := createAccountWithTest()
+			err := accTroll.MarkAsTroll()
 			So(err, ShouldBeNil)
 
 			// create channel
 			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
+			c.CreatorId = accTroll.Id
 			So(c.Create(), ShouldBeNil)
 
 			// create message
 			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
+			msg.AccountId = accTroll.Id
 			So(msg.Create(), ShouldBeNil)
 
 			cml := NewChannelMessageList()
 			cml.ChannelId = c.Id
 			cml.MessageId = msg.Id
 
-			_, errs := c.AddParticipant(acc.Id)
+			_, errs := c.AddParticipant(accTroll.Id)
 			So(errs, ShouldBeNil)
 
 			cp := NewChannelParticipant()
 			cp.ChannelId = c.Id
-			cp.AccountId = acc.Id
+			cp.AccountId = accTroll.Id
 
 			_, erre := c.AddMessage(msg.Id)
 			So(erre, ShouldBeNil)
@@ -392,7 +392,7 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 	defer r.Close()
 
 	Convey("while testing message is in channel", t, func() {
-		Convey("it should have message id, otherwise error occurs", func() {
+		Convey("it should have error if message id doesn't exist", func() {
 			cml := NewChannelMessageList()
 
 			ch, err := cml.IsInChannel(0, 1020)
@@ -410,27 +410,26 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 			So(ch, ShouldEqual, false)
 		})
 
-		Convey("it should have record not found error if message or channel id are not in db", func() {
+		Convey("it should have record not found error if message or channel id doesn't exist in db", func() {
 			cml := NewChannelMessageList()
 
 			ch, err := cml.IsInChannel(1091, 1092)
 			So(err, ShouldBeNil)
-			//So(err, ShouldEqual, bongo.RecordNotFound)
 			So(ch, ShouldEqual, false)
 		})
 
 		Convey("it should return false if message is not in the channel", func() {
 			// create account as troll
-			acc := createAccountWithTest()
+			accTroll := createAccountWithTest()
 
 			// create channel
 			c := createNewChannelWithTest()
-			c.CreatorId = acc.Id
+			c.CreatorId = accTroll.Id
 			So(c.Create(), ShouldBeNil)
 
 			// create message
 			msg := createMessageWithTest()
-			msg.AccountId = acc.Id
+			msg.AccountId = accTroll.Id
 			So(msg.Create(), ShouldBeNil)
 
 			// we created messsage
