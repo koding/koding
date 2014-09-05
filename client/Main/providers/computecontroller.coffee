@@ -163,7 +163,7 @@ class ComputeController extends KDController
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
-      if @_trials[machine.uid][task]++ < 20
+      if @_trials[machine.uid][task]++ < 2
         info "Trying again to do '#{task}'..."
         KD.singletons.computeController[task] machine
         return yes
