@@ -32,28 +32,40 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
+	log.Info("INDEX SUFFIX: '%v'", indexSuffix)
 	return &Controller{
 		log:    log,
 		client: client,
 		indexes: &IndexSet{
-			"topics": client.InitIndex("topics" + indexSuffix),
+			"topics":   client.InitIndex("topics" + indexSuffix),
+			"accounts": client.InitIndex("accounts" + indexSuffix),
 		},
 	}
+}
+
+func (f *Controller) insert(indexName string, record map[string]interface{}) error {
+	index, err := f.indexes.Get(indexName)
+	if err != nil {
+		return err
+	}
+	_, err = index.AddObject(record)
+	return err
 }
 
 func (f *Controller) TopicSaved(data *models.Channel) error {
 	if data.TypeConstant != models.Channel_TYPE_TOPIC {
 		return nil
 	}
-	topicData := map[string]interface{}{
+	return f.insert("topics", map[string]interface{}{
 		"name":     data.Name,
 		"purpose":  data.Purpose,
 		"objectID": strconv.FormatInt(data.Id, 10),
-	}
-	index, err := f.indexes.Get("topics")
-	if err != nil {
-		return err
-	}
-	_, err = index.AddObject(topicData)
-	return err
+	})
+}
+
+func (f *Controller) AccountSaved(data *models.Account) error {
+	return f.insert("accounts", map[string]interface{}{
+		"nick":     data.Nick,
+		"objectID": data.OldId,
+	})
 }
