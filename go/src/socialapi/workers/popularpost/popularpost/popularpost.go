@@ -73,41 +73,88 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return err
 	}
 
+	err = f.saveToSevenDayBucket(c, cm, i, incrementCount)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (f *Controller) saveToDailyBucket(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction, incrementCount int) error {
-	_, err := f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), incrementCount, i.MessageId)
+	key := GetDailyKey(c, cm.CreatedAt)
+	_, err := f.redis.SortedSetIncrBy(key, incrementCount, cm.Id)
+
 	return err
 }
 
-func PreparePopularPostKey(group, channelName string, year, dateNumber int) string {
-	return fmt.Sprintf(
-		"%s:%s:%s:%s:%d:%d",
-		config.MustGet().Environment,
-		group,
-		PopularPostKey,
-		channelName,
-		year,
-		dateNumber,
-	)
-}
+func (f *Controller) saveToSevenDayBucket(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction, incrementCount int) error {
+	key := GetSevenDayKey(c, cm)
+	from := getStartOfDay(cm.CreatedAt)
 
-func GetDailyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	day := 0
-	year := 2014
-
-	if !i.CreatedAt.IsZero() {
-		day = i.CreatedAt.UTC().YearDay()
-		year, _, _ = i.CreatedAt.UTC().Date()
-	} else {
-		// no need to convert it to UTC
-		now := time.Now().UTC()
-		day = now.YearDay()
-		year, _, _ = now.Date()
+	exists := f.redis.Exists(key)
+	if !exists {
+		err := f.createSevenDayCombinedBucket(c, cm, key, from)
+		if err != nil {
+			return err
+		}
 	}
 
-	return PreparePopularPostKey(c.GroupName, c.Name, year, day)
+	_, err := f.redis.SortedSetIncrBy(key, incrementCount, cm.Id)
+
+	return err
+}
+
+func (f *Controller) createSevenDayCombinedBucket(c *models.Channel, cm *models.ChannelMessage, key string, from time.Time) error {
+	keys, weights := []interface{}{}, []interface{}{}
+	aggregate := "SUM"
+	from = getStartOfDay(from)
+
+	for i := 0; i <= 7; i++ {
+		currentDate := getXDaysAgo(from, i)
+		key := GetDailyKey(c, currentDate)
+
+		keys = append(keys, key)
+
+		weight := float64(i)
+		if weight == 0 {
+			weight = 1
+		}
+		weights = append(weights, float64(1/weight))
+	}
+
+	_, err := f.redis.SortedSetsUnion(key, keys, weights, aggregate)
+
+	return err
+}
+
+//----------------------------------------------------------
+// Key helpers
+//----------------------------------------------------------
+
+func GetDailyKey(c *models.Channel, date time.Time) string {
+	if date.IsZero() {
+		date = time.Now().UTC()
+	}
+
+	unix := getStartOfDay(date).Unix()
+
+	return PreparePopularPostKey(c.GroupName, c.Name, unix)
+}
+
+func GetSevenDayKey(c *models.Channel, cm *models.ChannelMessage) string {
+	postCreatedAtKey := GetDailyKey(c, cm.CreatedAt)
+
+	date := getStartOfDay(cm.CreatedAt)
+	sevenDaysAgo := getXDaysAgo(date, 7).Unix()
+
+	return fmt.Sprintf("%d-%d", postCreatedAtKey, sevenDaysAgo)
+}
+
+func PreparePopularPostKey(group, channelName string, day int64) string {
+	return fmt.Sprintf("%s:%s:%s:%s:%d",
+		config.MustGet().Environment, group, PopularPostKey, channelName, day,
+	)
 }
 
 //----------------------------------------------------------
@@ -134,7 +181,24 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 	return false
 }
 
+//----------------------------------------------------------
+// Time helpers
+//----------------------------------------------------------
+
 func createdMoreThan7DaysAgo(createdAt time.Time) bool {
 	delta := time.Now().Sub(createdAt)
 	return delta.Hours()/24 > 7
+}
+
+func getStartOfDay(t time.Time) time.Time {
+	start := time.Duration(-t.Hour()) * time.Hour         // subtract hour
+	start = start - time.Duration(t.Minute())*time.Minute // subtract minutes
+	start = start - time.Duration(t.Second())*time.Second // substract seconds
+
+	return t.Add(start)
+}
+
+func getXDaysAgo(t time.Time, days int) time.Time {
+	daysAgo := -time.Hour * 24 * time.Duration(days)
+	return t.Add(daysAgo)
 }
