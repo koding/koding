@@ -98,6 +98,7 @@ class ComputeEventListener extends KDObject
 
         if res.err? and not res.event?
           warn "Error on '#{res.event_id}':", res.err
+          computeController.stateChecker.watch res.event_id
           return
 
         [type, eventId] = res.event.eventId.split '-'
