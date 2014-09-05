@@ -97,7 +97,10 @@ blocking any other part.
 * Production has its own EB env [koding-prod](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-x2yfycg3tm). 
 * Latest has its own EB env  [koding-latest](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-3puhn8mma6).
 * All of our `workers` are running in every server that we have for prod. They are exposed to the internet via nginx. We are deamonizing workers in servers with supervisord. You can see all the workers that we have in config files. eg: main.prod.coffee
-
+* Mongo         : [ObjectRocket](https://app.objectrocket.com/instances/koding_prod01)
+* Postgres      : [RDS](https://console.aws.amazon.com/rds/home?region=us-east-1#dbinstances:id=prod0;sf=all)
+* Redis         : [ElasticCache](https://console.aws.amazon.com/elasticache/home?region=us-east-1#)
+ 
 ### Deployment process  [latest.koding.com](https://latest.koding.com)
 
 Main purpose of this step is to see that our app works in production environment.
