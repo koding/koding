@@ -138,23 +138,12 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	query := request.GetQuery(u)
 	query.Type = models.ChannelMessage_TYPE_POST
 
-	statisticName := u.Query().Get("statisticName")
 	channelName := u.Query().Get("channelName")
-	skip := u.Query().Get("skip")
 
-	query.Skip = skip
-
-	year, dateNumber, err := getDateNumberAndYear(statisticName)
-	if err != nil {
-		return response.NewBadRequest(errors.New("Unknown statistic name"))
-	}
-
-	key := popularpost.PreparePopularPostKey(
+	key := popularpost.PopularPostKey(
 		query.GroupName,
 		channelName,
-		statisticName,
-		year,
-		dateNumber,
+		time.Now(),
 	)
 
 	popularPostIds, err := getIds(key, query)

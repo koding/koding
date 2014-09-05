@@ -46,7 +46,7 @@ func TestPopularPost(t *testing.T) {
 		So(err, ShouldEqual, nil)
 
 		Convey("Interaction is saved in daily bucket", func() {
-			dailyKey := GetDailyKey(c, cm.CreatedAt)
+			dailyKey := getDailyKey(c, cm.CreatedAt)
 			exists := controller.redis.Exists(dailyKey)
 
 			So(exists, ShouldEqual, true)
@@ -55,7 +55,7 @@ func TestPopularPost(t *testing.T) {
 		})
 
 		Convey("Interaction is saved in 7day bucket", func() {
-			sevenDayKey := GetSevenDayKey(c, cm)
+			sevenDayKey := getSevenDayKey(c, cm)
 			exists := controller.redis.Exists(sevenDayKey)
 
 			So(exists, ShouldEqual, true)
