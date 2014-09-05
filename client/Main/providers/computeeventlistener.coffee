@@ -43,8 +43,12 @@ class ComputeEventListener extends KDObject
 
   addListener:(type, eventId)->
 
+    {computeController} = KD.singletons
+
     if uniqueAdd @listeners, type, eventId
+
       @start()  unless @running
+      computeController.stateChecker.ignore eventId
 
 
   triggerState:(machine, event)->
@@ -107,6 +111,7 @@ class ComputeEventListener extends KDObject
         if res.event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, machineId: eventId
           computeController.emit "stateChanged-#{eventId}", ev.private
+          computeController.stateChecker.watch eventId
           computeController.triggerReviveFor eventId
 
         unless res.event.status is 'Unknown'
