@@ -25,73 +25,25 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		return nil, err
 	}
 
-	dbState := opts.State
-	awsState := infoResp.State
-
 	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
 		opts.MachineId, dbState, awsState)
 
-	// corresponding states defines a map that defines a relationship from a DB
-	// state to Amazon state.  That means say in DB we have the state
-	// "machinestate.Building", this means the machine is in either Starting
-	// mode or Terminated mode (if it was terminated before and not running
-	// yet). Another example say we have the state "machinestate.Starting".
-	// That means the state can be in Amazon: Starting, Running or even Stopped
-	// (between the time Start is called and and info method is made.
-	matchStates := map[machinestate.State][]machinestate.State{
-		machinestate.Building: []machinestate.State{
-			machinestate.Starting, machinestate.Terminated, machinestate.NotInitialized,
-		},
-		machinestate.Starting: []machinestate.State{
-			machinestate.Starting, machinestate.Running, machinestate.Stopped,
-		},
-		machinestate.Stopping: []machinestate.State{
-			machinestate.Stopping, machinestate.Stopped,
-		},
-		machinestate.Terminating: []machinestate.State{
-			machinestate.Terminating, machinestate.Terminated,
-		},
-		machinestate.Stopped: []machinestate.State{
-			machinestate.Stopped, machinestate.Stopping,
-		},
-		machinestate.Updating:   []machinestate.State{machinestate.Running},
-		machinestate.Terminated: []machinestate.State{machinestate.Terminated},
-	}
+	dbState := opts.State
+	awsState := infoResp.State
 
-	// check now whether the amazon ec2 state does match one and is in
-	// comparable bounds with the current state
-	if awsState.In(matchStates[dbState]...) {
-		p.Log.Info("[%s] info result  : db state complies with amazon state. returning current state '%s'",
-			opts.MachineId, dbState)
-
-		// save the value in DB, this is only set if the lock is unlocked.
-		// Thefore it will not change the db state if there is an ongoing
-		// process. Also update only if there is a change, there is no need to
-		// update if it's the same :)
-		if dbState != awsState {
-			p.CheckAndUpdateState(opts.MachineId, awsState)
-		}
-
-		// Return the old DB state
-		return &protocol.InfoArtifact{
-			State: dbState,
-			Name:  infoResp.Name,
-		}, nil
-	}
+	// result state is the final state that is send back to the request
+	resultState := dbState
 
 	// we don't check if the state is something else. Klient is only available
 	// when the machine is running
+	klientChecked := false
 	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
-		resultState := dbState
-
+		klientChecked = true
 		// for the rest ask again to klient so we know if it's running or not
 		machineData, ok := opts.CurrentData.(*Machine)
 		if !ok {
 			return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 		}
-
-		p.Log.Info("[%s] amazon machine state is '%s'. pinging klient again to be sure.",
-			opts.MachineId, awsState)
 
 		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*5)
 		if err != nil {
@@ -110,13 +62,10 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 					opts.MachineId, resultState, err.Error())
 
 				// seems we can't send even a simple ping! It's not
-				// functional so we assume it's stoped
+				// functional so we assume it's stopped
 				resultState = machinestate.Stopped
 			}
 		}
-
-		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
-			opts.MachineId, resultState)
 
 		if resultState != dbState {
 			// return an error anything here if the DB is locked.
@@ -125,25 +74,33 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 			}
 		}
 
-		return &protocol.InfoArtifact{
-			State: resultState,
-			Name:  infoResp.Name,
-		}, nil
-
+		p.Log.Info("[%s] info decision: based on klient interaction: '%s'",
+			opts.MachineId, resultState)
 	}
 
-	p.Log.Info("[%s] info result  : state is incosistent. correcting it to amazon state '%s'",
-		opts.MachineId, awsState)
+	// fix db state if the aws state is different than dbState. This will not
+	// break existing actions like building,starting,stopping etc.. because
+	// CheckAndUpdateState only update the state if there is no lock available
+	if dbState != awsState && !klientChecked {
+		// this is only set if the lock is unlocked. Thefore it will not
+		// change the db state if there is an ongoing process. If there is no
+		// error than it means there is no lock so we could update it with the
+		// state from amazon. Therefore send it back!
+		err := p.CheckAndUpdateState(opts.MachineId, awsState)
+		if err == nil {
+			p.Log.Info("[%s] info decision : inconsistent state. using amazon state '%s'",
+				opts.MachineId, awsState)
+			resultState = awsState
+		}
+	}
 
-	// fix the inconsistency
-	p.CheckAndUpdateState(opts.MachineId, awsState)
+	p.Log.Info("[%s] info result   : '%s'", opts.MachineId, resultState)
 
-	// there is an inconsistency between the DB state and Amazon EC2 state. So
-	// we are saying that the EC2 state is the correct one.
 	return &protocol.InfoArtifact{
-		State: awsState,
+		State: resultState,
 		Name:  infoResp.Name,
 	}, nil
+
 }
 
 // CheckAndUpdate state updates only if the given machine id is not used by
@@ -166,7 +123,7 @@ func (p *Provider) CheckAndUpdateState(id string, state machinestate.State) erro
 	})
 
 	if err == mgo.ErrNotFound {
-		p.Log.Warning("[%s] can't update state because lock is acquired by someone else", id)
+		p.Log.Warning("[%s] info can't update db state because lock is acquired by someone else", id)
 	}
 
 	return err
