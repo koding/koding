@@ -623,9 +623,16 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		} else {
 			defer klientRef.Close()
 
+			// now assume it's running
+			resultState = machinestate.Running
+
+			// ping the klient again just to see if it can respond to us
 			if err := klientRef.Ping(); err != nil {
 				p.Log.Warning("[%s] state is '%s' but I can't send a ping. Err: %s",
 					opts.MachineId, resultState, err.Error())
+
+				// seems we can't send even a simple ping! It's not
+				// functional so we assume it's stoped
 				resultState = machinestate.Stopped
 			}
 		}
