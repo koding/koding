@@ -22,7 +22,7 @@ type Controller struct {
 	Canceller    protocol.Canceller  `json:"-"`
 	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
-	Username     string              `json:"-"`
+	Username     string
 }
 
 type ControlResult struct {
@@ -104,15 +104,18 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// a distributed lock. It's unlocked when there is an error or if the
 		// method call is finished (unlocking is done inside the responsible
 		// method calls).
-		if err := k.Locker.Lock(args.MachineId); err != nil {
-			return nil, err
+
+		if r.Method != "info" {
+			if err := k.Locker.Lock(args.MachineId); err != nil {
+				return nil, err
+			}
 		}
 
 		// if something goes wrong after step reset the assignee which is was
 		// set in the by previous step by Locker.Lock(). If there is no error,
 		// Assignee is going to be reseted in the respective method function.
 		defer func() {
-			if err != nil {
+			if err != nil && r.Method != "info" {
 				// otherwise that means Locker.Lock or something else in
 				// ControlFunc failed. Reset the lock again so it can be acquired by
 				// others.
@@ -203,16 +206,6 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	defer k.Locker.Unlock(c.MachineId) // unlock lock after we are done
-
-	defer func() {
-		if err == nil {
-			k.Log.Info("[%s] info result: %+v", c.MachineId, resp)
-		}
-	}()
-
-	k.Log.Info("[%s] info current state: %s", c.MachineId, c.CurrenState)
-
 	if c.CurrenState == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{
 			State: machinestate.NotInitialized,
@@ -222,7 +215,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 
 	machOptions := c.Machine
 
-	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use
+	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use it
 	machOptions.Eventer = &eventer.Events{}
 
 	response, err := c.Controller.Info(machOptions)
@@ -233,14 +226,6 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 	if response.State == machinestate.Unknown {
 		response.State = c.CurrenState
 	}
-
-	k.Storage.UpdateState(c.MachineId, response.State)
-	k.Storage.Update(c.MachineId, &StorageData{
-		Type: "info",
-		Data: map[string]interface{}{
-			"instanceName": response.Name,
-		},
-	})
 
 	return response, nil
 }
@@ -346,6 +331,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
+		eventErr := ""
 
 		machOptions := c.Machine
 		machOptions.Eventer = c.Eventer
@@ -357,7 +343,8 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 				c.MachineId, r.Method, c.CurrenState, err.Error())
 
 			status = c.CurrenState
-			msg = fmt.Sprintf("%s failed. Please contact support.", r.Method)
+			msg = ""
+			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] State is now: %+v", c.MachineId, status)
 			k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
@@ -374,6 +361,7 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 			Message:    msg,
 			Status:     status,
 			Percentage: 100,
+			Error:      eventErr,
 		})
 	}()
 

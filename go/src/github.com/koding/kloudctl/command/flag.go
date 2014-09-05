@@ -11,6 +11,7 @@ var (
 	// global flags variables
 	flagRandomKite bool
 	flagKloudQuery string
+	flagUsername   string
 )
 
 type Flag struct {
@@ -25,6 +26,7 @@ func NewFlag(name, synopsis string) *Flag {
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
+	flagSet.StringVar(&flagUsername, "user", "koding", "Respective use of the given machine id")
 	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
 	flagSet.StringVar(&flagKloudQuery, "kontrol-query", "/koding/dev/kloud", "Define first three query keys in username/environment/kitename format ...")
 

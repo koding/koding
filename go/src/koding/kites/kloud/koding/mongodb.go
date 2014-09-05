@@ -34,7 +34,7 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	}
 
 	// do not check for admin users, or if test mode is enabled
-	if !isAdmin(username) {
+	if !IsAdmin(username) {
 		// check for user permissions
 		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
 			return nil, err
@@ -108,8 +108,10 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 func (p *Provider) UpdateState(id string, state machinestate.State) error {
 	p.Log.Info("[%s] storage state update request to state %v", id, state)
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(id),
+		return c.Update(
+			bson.M{
+				"_id": bson.ObjectIdHex(id),
+			},
 			bson.M{
 				"$set": bson.M{
 					"status.state":      state.String(),
