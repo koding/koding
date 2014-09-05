@@ -115,7 +115,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		// set in the by previous step by Locker.Lock(). If there is no error,
 		// Assignee is going to be reseted in the respective method function.
 		defer func() {
-			if err != nil {
+			if err != nil && r.Method != "info" {
 				// otherwise that means Locker.Lock or something else in
 				// ControlFunc failed. Reset the lock again so it can be acquired by
 				// others.
