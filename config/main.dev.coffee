@@ -25,7 +25,7 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"    , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
+  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
@@ -204,12 +204,12 @@ Configuration = (options={}) ->
     ngrokProxy          :
       group             : "environment"
       supervisord       :
-        command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
+        command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
     reverseProxy        :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{process.env.USER}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"
