@@ -3,6 +3,7 @@ package koding
 import (
 	"fmt"
 	"koding/kites/kloud/klient"
+	"sync"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -12,6 +13,27 @@ import (
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 )
+
+// invalidChanges is a list of exceptions that applies when we fix the DB state
+// with the state coming from Amazon. For example if the db state is "stopped"
+// there is no need to change it with the Amazon state "stopping"
+var invalidChanges = map[machinestate.State]machinestate.State{
+	machinestate.Stopped:    machinestate.Stopping,
+	machinestate.Running:    machinestate.Starting,
+	machinestate.Terminated: machinestate.Terminating,
+}
+
+// protects invalidChanges
+var rwLock sync.RWMutex
+
+// validChange returns true if the given db state is a valid to change with the
+// aws state
+func validChange(db, aws machinestate.State) bool {
+	rwLock.Lock()
+	defer rwLock.Unlock()
+
+	return invalidChanges[db] != aws
+}
 
 func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, err error) {
 	a, err := p.NewClient(opts)
@@ -25,14 +47,14 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		return nil, err
 	}
 
-	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
-		opts.MachineId, dbState, awsState)
-
 	dbState := opts.State
 	awsState := infoResp.State
 
 	// result state is the final state that is send back to the request
 	resultState := dbState
+
+	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
+		opts.MachineId, dbState, awsState)
 
 	// we don't check if the state is something else. Klient is only available
 	// when the machine is running
@@ -80,8 +102,11 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 	// fix db state if the aws state is different than dbState. This will not
 	// break existing actions like building,starting,stopping etc.. because
-	// CheckAndUpdateState only update the state if there is no lock available
-	if dbState != awsState && !klientChecked {
+	// CheckAndUpdateState only update the state if there is no lock available.
+	// however only fix when it's there was no klient checking and the state
+	// chanign is a valid transformation (for example prevent if it's "Stopped"
+	// -> "Stopping"
+	if dbState != awsState && !klientChecked && validChange(dbState, awsState) {
 		// this is only set if the lock is unlocked. Thefore it will not
 		// change the db state if there is an ongoing process. If there is no
 		// error than it means there is no lock so we could update it with the
