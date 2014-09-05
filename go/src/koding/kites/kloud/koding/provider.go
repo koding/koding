@@ -398,7 +398,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	if err == nil {
 		a.Push("Updating domain", 75, machinestate.Starting)
 		p.Log.Warning("[%s] Domain '%s' already exists (that shouldn't happen). Going to update to new IP",
-			machineData.Domain, opts.MachineId)
+			opts.MachineId, machineData.Domain)
 		if err := p.DNS.Update(machineData.Domain, record.Records[0], artifact.IpAddress); err != nil {
 			return nil, err
 		}
