@@ -63,12 +63,22 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), incrementCount, i.MessageId)
+	if createdMoreThan7DaysAgo(cm.CreatedAt) {
+		f.log.Debug(fmt.Sprintf("Post created more than 7 days ago: %v, %v", i.Id, i.CreatedAt))
+		return nil
+	}
+
+	err = f.saveToDailyBucket(c, cm, i, incrementCount)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (f *Controller) saveToDailyBucket(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction, incrementCount int) error {
+	_, err := f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), incrementCount, i.MessageId)
+	return err
 }
 
 func PreparePopularPostKey(group, channelName string, year, dateNumber int) string {
@@ -122,4 +132,9 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 	}
 
 	return false
+}
+
+func createdMoreThan7DaysAgo(createdAt time.Time) bool {
+	delta := time.Now().Sub(createdAt)
+	return delta.Hours()/24 > 7
 }
