@@ -83,6 +83,88 @@ pre
       margin-left     258px
 
 
+.onboarding-modal
+
+  bg                  color, #E7E7E7
+  min-height          235px
+
+  .kdmodal-inner
+    margin            0 !important
+    bg                color, #E7E7E7
+
+    .kdmodal-content
+      margin-top          0 !important
+
+  .top-container
+    bg                color, #000
+    height            330px
+    border-radius     4px 4px 0 0
+
+    .video-placeholder
+      position        relative
+      cursor          pointer
+
+      &.started
+        height        0
+
+        video
+          opacity     1 !important
+          cursor      auto
+
+        &:before
+          display     none
+
+      &:before
+        content       ''
+        display       block
+        abs           50% 0 0 50%
+        margin-left   -51px
+        margin-top    -51px
+        background    red
+        z-index       20
+        r-sprite      app, 'onboarding-play-icon'
+
+      video
+        height          330px
+        width           100%
+        opacity         0
+
+        &.full
+          fix()
+          size          100% 100%
+
+  .content-container
+    text-align          center
+
+  .kdbutton
+    rounded             4px !important
+    bg                  color, #4EA04C !important
+    height              40px !important
+    margin              17px auto 0 !important
+    &:focus
+      vendor            box-shadow, none !important
+
+  .footer
+    padding             25px 30px
+    bg                  color, #DCDCDC
+    font-size           14px
+    color               #5E5E5E
+    rounded             0 0 6px 6px
+    borderBox()
+
+    .headline
+      color             #5e5e5e
+      font-size         14px
+      font-weight       400
+
+      h3
+        font-size       18px
+        font-weight     600
+        margin-bottom   8px
+
+  .kdmodal-title
+    hidden()
+
 #main-panel-wrapper
   min-height          100%
   z-index             1

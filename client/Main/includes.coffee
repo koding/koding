@@ -40,6 +40,8 @@ module.exports = [
   "onboarding/onboardingviewcontroller.coffee",
   "onboarding/onboardingcontroller.coffee",
   "onboarding/onboardingitemview.coffee",
+  "onboarding/onboardingmodalcontent.coffee",
+  "onboarding/onboardingmodal.coffee",
 
   # COMMON VIEWS
   'CommonViews/login/loginform.coffee'
