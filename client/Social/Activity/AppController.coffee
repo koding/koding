@@ -77,7 +77,7 @@ class ActivityAppController extends AppController
 
 
 
-  fetch: ({channelId, from, limit, popular}, callback = noop) ->
+  fetch: ({channelId, from, limit, skip, popular}, callback = noop) ->
 
     id = channelId
     {socialapi, router} = KD.singletons
@@ -93,7 +93,7 @@ class ActivityAppController extends AppController
       return router.getCurrentPath().search(routeToLookUp) > 0
 
     if popular
-      return @fetchPopularPosts({from, limit}, callback)
+      return @fetchPopularPosts({skip, limit}, callback)
 
     if firstFetch and prefetchedItems.length > 0 and isCorrectPath()
       messages = socialapi.getPrefetchedData 'navigated'

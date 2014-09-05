@@ -194,8 +194,8 @@ class MessagePane extends KDTabPaneView
       @listController.removeAllItems()
       @listController.showLazyLoader()
 
-      @fetchOptions.popular = true  if data.active
-      @fetchOptions.popular = false unless data.active
+      @fetchOptions.popular = data.active
+      @skip = 0
 
       @populate()
 
@@ -331,7 +331,7 @@ class MessagePane extends KDTabPaneView
     from         = last.getData().createdAt
     @skip       +=10
 
-    @fetch {skip:@skip}, (err, items = []) =>
+    @fetch {from, skip:@skip}, (err, items = []) =>
       @listController.hideLazyLoader()
 
       return KD.showError err  if err
