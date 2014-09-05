@@ -25,10 +25,11 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		return nil, err
 	}
 
-	resultState := infoResp.State
+	dbState := opts.State
+	awsState := infoResp.State
 
 	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
-		opts.MachineId, opts.State, infoResp.State)
+		opts.MachineId, dbState, awsState)
 
 	// corresponding states defines a map that defines a relationship from a DB
 	// state to Amazon state.  That means say in DB we have the state
@@ -59,29 +60,29 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 	// check now whether the amazon ec2 state does match one and is in
 	// comparable bounds with the current state
-	if infoResp.State.In(matchStates[opts.State]...) {
+	if awsState.In(matchStates[dbState]...) {
 		p.Log.Info("[%s] info result  : db state complies with amazon state. returning current state '%s'",
-			opts.MachineId, opts.State)
+			opts.MachineId, dbState)
 
 		// save the value in DB, this is only set if the lock is unlocked.
 		// Thefore it will not change the db state if there is an ongoing
 		// process. Also update only if there is a change, there is no need to
 		// update if it's the same :)
-		if opts.State != infoResp.State {
-			p.CheckAndUpdateState(opts.MachineId, infoResp.State)
+		if dbState != awsState {
+			p.CheckAndUpdateState(opts.MachineId, awsState)
 		}
 
 		// Return the old DB state
 		return &protocol.InfoArtifact{
-			State: opts.State,
+			State: dbState,
 			Name:  infoResp.Name,
 		}, nil
 	}
 
 	// we don't check if the state is something else. Klient is only available
 	// when the machine is running
-	if opts.State.In(machinestate.Running, machinestate.Stopped) && infoResp.State == machinestate.Running {
-		resultState = opts.State
+	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
+		resultState := dbState
 
 		// for the rest ask again to klient so we know if it's running or not
 		machineData, ok := opts.CurrentData.(*Machine)
@@ -90,7 +91,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		}
 
 		p.Log.Info("[%s] amazon machine state is '%s'. pinging klient again to be sure.",
-			opts.MachineId, infoResp.State)
+			opts.MachineId, awsState)
 
 		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*5)
 		if err != nil {
@@ -117,7 +118,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
 
-		if resultState != opts.State {
+		if resultState != dbState {
 			// return an error anything here if the DB is locked.
 			if err := p.CheckAndUpdateState(opts.MachineId, resultState); err == mgo.ErrNotFound {
 				return nil, kloud.ErrLockAcquired
@@ -132,15 +133,15 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	}
 
 	p.Log.Info("[%s] info result  : state is incosistent. correcting it to amazon state '%s'",
-		opts.MachineId, infoResp.State)
+		opts.MachineId, awsState)
 
 	// fix the inconsistency
-	p.CheckAndUpdateState(opts.MachineId, infoResp.State)
+	p.CheckAndUpdateState(opts.MachineId, awsState)
 
 	// there is an inconsistency between the DB state and Amazon EC2 state. So
 	// we are saying that the EC2 state is the correct one.
 	return &protocol.InfoArtifact{
-		State: infoResp.State,
+		State: awsState,
 		Name:  infoResp.Name,
 	}, nil
 }
