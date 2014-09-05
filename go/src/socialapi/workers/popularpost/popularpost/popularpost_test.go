@@ -2,11 +2,57 @@ package popularpost
 
 import (
 	"testing"
+
+	"koding/db/mongodb/modelhelper"
+	// "socialapi/models"
+	"socialapi/rest"
+	"socialapi/workers/common/runner"
+	"socialapi/workers/helper"
+
+	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestMarkedAsTroll(t *testing.T) {
-	Convey("given a controller", t, func() {
-		Convey("troll messages should not be in the populartopic stream", nil)
+func TestPopularPost(t *testing.T) {
+	r := runner.New("popular post")
+	if err := r.Init(); err != nil {
+		panic(err)
+	}
+	defer r.Close()
+
+	// initialize mongo
+	modelhelper.Initialize(r.Conf.Mongo)
+
+	// initialize redis
+	helper.MustGetRedisConn()
+
+	// initialize popular post controller
+	controller := New(r.Log, helper.MustInitRedisConn(r.Conf))
+
+	Convey("When an interaction arrives", t, func() {
+		account, err := rest.CreateAccountInBothDbs()
+		So(err, ShouldEqual, nil)
+
+		c, err := rest.CreateChannel(account.Id)
+		So(err, ShouldEqual, nil)
+
+		cm, err := rest.CreatePost(c.Id, account.Id)
+		So(err, ShouldEqual, nil)
+
+		i, err := rest.AddInteraction("like", cm.Id, account.Id)
+		So(err, ShouldEqual, nil)
+
+		err = controller.InteractionSaved(i)
+		So(err, ShouldEqual, nil)
+
+		Convey("Interaction is saved in daily bucket", func() {
+			dailyKey := GetDailyKey(c, cm, i)
+			exists := controller.redis.Exists(dailyKey)
+
+			So(exists, ShouldEqual, true)
+		})
+
+		Convey("Interaction is saved in 7day bucket", func() {
+		})
 	})
 }
