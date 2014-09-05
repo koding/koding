@@ -14,6 +14,7 @@ module.exports = (options = {}, callback)->
   socialapidata    = null
   currentGroup     = null
   userMachines     = null
+  userWorkspaces   = null
   usePremiumBroker = no
 
   {bongoModels, client, slug} = options
@@ -30,6 +31,7 @@ module.exports = (options = {}, callback)->
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
+    userWorkspaces       = JSON.stringify userWorkspaces
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
@@ -48,6 +50,7 @@ module.exports = (options = {}, callback)->
     <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userMachines=#{userMachines}</script>
+    <script>KD.userWorkspaces=#{userWorkspaces}</script>
     <script>KD.userAccount=#{userAccount}</script>
     <script>KD.currentGroup=#{currentGroup}</script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
@@ -137,6 +140,10 @@ module.exports = (options = {}, callback)->
 
           if group
             currentGroup = group
+
+          bongoModels.JWorkspace.some {}, {}, (err, workspaces) ->
+            console.log err  if err
+            userWorkspaces = workspaces or []
 
           bongoModels.JMachine.some$ client, {}, (err, machines) ->
             console.log err  if err
