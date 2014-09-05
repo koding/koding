@@ -117,9 +117,11 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
 
-		// do not return anything here if the DB is locked.
-		if err := p.CheckAndUpdateState(opts.MachineId, resultState); err == mgo.ErrNotFound {
-			return nil, kloud.ErrLockAcquired
+		if resultState != opts.State {
+			// return an error anything here if the DB is locked.
+			if err := p.CheckAndUpdateState(opts.MachineId, resultState); err == mgo.ErrNotFound {
+				return nil, kloud.ErrLockAcquired
+			}
 		}
 
 		return &protocol.InfoArtifact{
