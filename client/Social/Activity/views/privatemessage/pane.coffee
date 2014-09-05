@@ -224,7 +224,7 @@ class PrivateMessagePane extends MessagePane
 
     @participantsView = new KDCustomHTMLView
       cssClass    : 'chat-heads'
-      partial     : '<span class="description">Private conversation between</span>'
+      partial     : '<span class="description">Chat between</span>'
 
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'

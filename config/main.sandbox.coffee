@@ -7,8 +7,9 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname       = options.hostname            = "sandbox.koding.com"
-  publicHostname = options.publicHostname      = "https://sandbox.koding.com"
+  publicPort     = options.publicPort          = "80"
+  hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname = options.publicHostname      = "https://#{options.hostname}"
   region         = options.region              = "aws"
   configName     = options.configName          = "sandbox"
   environment    = options.environment         = "sandbox"
@@ -69,6 +70,7 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker

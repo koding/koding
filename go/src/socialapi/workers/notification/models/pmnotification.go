@@ -47,11 +47,11 @@ func NewPMNotification() *PMNotification {
 }
 
 func (n *PMNotification) GetDefinition() string {
-	return "private message"
+	return "chat message"
 }
 
 func (n *PMNotification) GetActivity() string {
-	return "send you a"
+	return "sent you a"
 }
 
 func (n *PMNotification) GetMessageId() int64 {
