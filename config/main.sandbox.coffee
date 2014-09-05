@@ -7,8 +7,9 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "10.0.0.248"
 
-  hostname       = options.hostname            = "sandbox.koding.com"
-  publicHostname = options.publicHostname      = "https://sandbox.koding.com"
+  publicPort     = options.publicPort          = "80"
+  hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname = options.publicHostname      = "https://#{options.hostname}"
   region         = options.region              = "aws"
   configName     = options.configName          = "sandbox"
   environment    = options.environment         = "sandbox"
@@ -69,6 +70,7 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
@@ -107,7 +109,7 @@ Configuration = (options={}) ->
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
+    github                         : {clientId      : "d3b586defd01c24bb294"                         , clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
     google                         : {client_id     : "1058622748167.apps.googleusercontent.com"     , client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq"                   , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"}
@@ -154,7 +156,7 @@ Configuration = (options={}) ->
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github            : {clientId     : "f8e440b796d953ea01e5" }
+    github            : {clientId     : "d3b586defd01c24bb294" }
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}

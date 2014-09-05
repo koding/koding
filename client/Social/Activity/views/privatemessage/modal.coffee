@@ -29,6 +29,9 @@ class PrivateMessageModal extends KDModalViewWithForms
           fields           :
             recipient      :
               itemClass    : KDView
+            purpose        :
+              placeholder  : 'What\'s your purpose?'
+              name         : 'purpose'
             body           :
               label        : ''
               name         : 'body'
@@ -64,13 +67,16 @@ class PrivateMessageModal extends KDModalViewWithForms
 
   submitMessage : ->
 
-    body       = @modalTabs.forms.Message.inputs.body.getValue()
+    {body, purpose} = @modalTabs.forms.Message.inputs
+
+    body       = body.getValue()
+    purpose    = purpose.getValue()
     {send}     = @modalTabs.forms.Message.buttons
     recipients = (nickname for {profile:{nickname}} in @autoComplete.getSelectedItemData())
 
     {router, socialapi, notificationController} = KD.singletons
 
-    socialapi.message.initPrivateMessage {body, recipients}, (err, channels) =>
+    socialapi.message.initPrivateMessage {body, recipients, purpose}, (err, channels) =>
 
       send.hideLoader()
 
