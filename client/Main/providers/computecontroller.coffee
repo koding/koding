@@ -198,6 +198,8 @@ class ComputeController extends KDController
       unless retried
         warn "#{task} failed:", err, this
 
+      @stateChecker.watch machine._id
+
 
   destroy: (machine)->
 
