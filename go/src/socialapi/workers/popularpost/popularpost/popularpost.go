@@ -115,8 +115,11 @@ func (f *Controller) createSevenDayCombinedBucket(c *models.Channel, cm *models.
 	for i := 0; i <= 6; i++ {
 		currentDate := getXDaysAgo(from, i)
 		key := GetDailyKey(c, currentDate)
-
 		keys = append(keys, key)
+
+		// add by 1 to prevent divide by 0 errors
+		weight := float64(i + 1)
+		weights = append(weights, float64(1/weight))
 	}
 
 	_, err := f.redis.SortedSetsUnion(key, keys, weights, aggregate)
