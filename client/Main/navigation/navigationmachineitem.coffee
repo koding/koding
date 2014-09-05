@@ -40,7 +40,9 @@ class NavigationMachineItem extends JView
     #  else @setState status
 
     @setState status
-    @updateProgressBar percentage
+
+    if percentage?
+      @updateProgressBar percentage
 
 
   setState: (state) ->
