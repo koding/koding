@@ -5,6 +5,9 @@ import (
 	"koding/kites/kloud/klient"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 )
@@ -25,12 +28,6 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
 		opts.MachineId, opts.State, infoResp.State)
-
-	// We have many states that defines a machine. We need to decide which one
-	// is correct so we compare the result from the DB and Amazon. We check the
-	// current state with the result from amamazon. If they are the in the
-	// corresponding states we just return. However there are individual states
-	// that needs special treatment.
 
 	// corresponding states defines a map that defines a relationship from a DB
 	// state to Amazon state.  That means say in DB we have the state
@@ -59,10 +56,10 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		machinestate.Terminated: []machinestate.State{machinestate.Terminated},
 	}
 
-	// check now whether the amazone ec2 state does match one and is in
+	// check now whether the amazon ec2 state does match one and is in
 	// comparable bounds with the current state
 	if infoResp.State.In(matchStates[opts.State]...) {
-		p.Log.Info("[%s] info result  : db state matches amazon state. returning current state '%s'",
+		p.Log.Info("[%s] info result  : db state complies with amazon state. returning current state '%s'",
 			opts.MachineId, opts.State)
 
 		return &protocol.InfoArtifact{
@@ -110,7 +107,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
 
-		p.UpdateState(opts.MachineId, resultState)
+		p.CheckAndUpdateState(opts.MachineId, resultState)
 
 		return &protocol.InfoArtifact{
 			State: resultState,
@@ -122,14 +119,39 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	p.Log.Info("[%s] info result  : state is incosistent. correcting it to amazon state '%s'",
 		opts.MachineId, infoResp.State)
 
-	// fix the incosistency
-	p.UpdateState(opts.MachineId, infoResp.State)
+	// fix the inconsistency
+	p.CheckAndUpdateState(opts.MachineId, infoResp.State)
 
-	// there is an incosistency between the DB state and Amazon EC2 state. So
+	// there is an inconsistency between the DB state and Amazon EC2 state. So
 	// we are saying that the EC2 state is the correct one.
 	return &protocol.InfoArtifact{
 		State: infoResp.State,
 		Name:  infoResp.Name,
 	}, nil
+}
 
+// CheckAndUpdate state updates only if the given machine id is not used by
+// anyone else
+func (p *Provider) CheckAndUpdateState(id string, state machinestate.State) error {
+	p.Log.Info("[%s] storage state update request to state %v", id, state)
+	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{
+				"_id": bson.ObjectIdHex(id),
+				"assignee.inProgress": false, // only update if it's not locked by someone else
+			},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+				},
+			},
+		)
+	})
+
+	if err == mgo.ErrNotFound {
+		p.Log.Warning("[%s] can't update state because lock is acquired by someone else", id)
+	}
+
+	return err
 }
