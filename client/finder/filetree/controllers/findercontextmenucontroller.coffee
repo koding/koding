@@ -75,9 +75,9 @@ class NFinderContextMenuController extends KDController
       #   separator                 : yes
       #   action                    : 'download'
       #   disabled                  : yes
-      'Public URL...'             :
-        separator                 : yes
+      # 'Public URL...'             :
       'New file'                  :
+        separator                 : yes
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
@@ -89,11 +89,11 @@ class NFinderContextMenuController extends KDController
     else
       delete items.Compress
 
-    unless FSHelper.isPublicPath fileData.path
-      delete items['Public URL...']
-    else
-      items['Public URL...'].children =
-        customView : new NCopyUrlView {}, fileData
+    # unless FSHelper.isPublicPath fileData.path
+    #   delete items['Public URL...']
+    # else
+    #   items['Public URL...'].children =
+    #     customView : new NCopyUrlView {}, fileData
 
     return items
 
