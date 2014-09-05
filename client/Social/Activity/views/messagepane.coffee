@@ -301,8 +301,6 @@ class MessagePane extends KDTabPaneView
 
     options.popular = @fetchOptions.popular
 
-    console.log ">>>>>>>>> fetch", options
-
     {
       name
       type

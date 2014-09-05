@@ -79,8 +79,6 @@ class ActivityAppController extends AppController
 
   fetch: ({channelId, from, limit, popular}, callback = noop) ->
 
-    console.log "Activity#AppController fetch", popular
-
     id = channelId
     {socialapi, router} = KD.singletons
     {socialApiChannelId} = KD.getGroup()

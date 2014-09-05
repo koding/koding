@@ -127,8 +127,6 @@ fetchPopularPosts = (data, callback)->
   if not data.groupName or not data.type or not data.channelName
     return callback {message: "Request is not valid for listing popular topics"}
 
-  console.log ">>>>> fetchPopularPosts", data
-
   url = "/popular/posts/#{data.channelName}/#{data.type}"
   get url, data, callback
 
