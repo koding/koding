@@ -398,7 +398,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	if err == nil {
 		a.Push("Updating domain", 75, machinestate.Starting)
 		p.Log.Warning("[%s] Domain '%s' already exists (that shouldn't happen). Going to update to new IP",
-			machineData.Domain, opts.MachineId)
+			opts.MachineId, machineData.Domain)
 		if err := p.DNS.Update(machineData.Domain, record.Records[0], artifact.IpAddress); err != nil {
 			return nil, err
 		}
@@ -537,48 +537,4 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 
 	///// ROUTE 53 /////////////////
 	return nil
-}
-
-func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
-	a, err := p.NewClient(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	infoResp, err := a.Info()
-	if err != nil {
-		return nil, err
-	}
-
-	// return anything that is not defining it as runnning or starting
-	if !infoResp.State.In(machinestate.Starting, machinestate.Running) {
-		return infoResp, nil
-	}
-
-	// for the rest ask again to klient so we know if it's running or not
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	p.Log.Info("[%s] machine state is '%s'. Pinging klient again to be sure.",
-		opts.MachineId, infoResp.State)
-
-	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*10)
-	if err != nil {
-		p.Log.Warning("[%s] machine state is '%s' but I can't connect to klient. Marking it as stopped",
-			opts.MachineId, infoResp.State)
-		infoResp.State = machinestate.Stopped
-	} else {
-		defer klientRef.Close()
-
-		if err := klientRef.Ping(); err != nil {
-			p.Log.Warning("[%s] machine state is '%s' but I can't send a ping. Marking it as stopped. Err: %s",
-				opts.MachineId, infoResp.State, err.Error())
-			infoResp.State = machinestate.Stopped
-		}
-	}
-
-	return infoResp, nil
-
 }

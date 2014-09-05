@@ -530,12 +530,12 @@ class ActivitySidebar extends KDCustomHTMLView
   addMessages: ->
 
     @addSubView @sections.messages = new ActivitySideView
-      title      : 'Private Messages'
+      title      : 'Chat'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
       dataPath   : 'privateMessages'
       delegate   : this
-      noItemText : "No private messages yet."
+      noItemText : "No chat messages yet."
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '

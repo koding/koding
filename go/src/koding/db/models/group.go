@@ -16,4 +16,5 @@ type Group struct {
 	Customize          map[string]interface{}   `bson:"customize" json:"customize"`
 	Counts             map[string]interface{}   `bson:"counts" json:"counts"`
 	Migration          string                   `bson:"migration,omitempty"`
+	StackTemplate      []string                 `bson:"stackTemplates",omitempty`
 }

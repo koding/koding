@@ -25,6 +25,7 @@ func NewStart() cli.CommandFactory {
 func (s *Start) Action(args []string, k *kite.Client) error {
 	startArgs := &kloud.Controller{
 		MachineId: *s.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("start", startArgs)

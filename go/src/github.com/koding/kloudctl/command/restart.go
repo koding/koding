@@ -25,6 +25,7 @@ func NewRestart() cli.CommandFactory {
 func (r *Restart) Action(args []string, k *kite.Client) error {
 	restartArgs := &kloud.Controller{
 		MachineId: *r.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("restart", restartArgs)

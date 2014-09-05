@@ -69,12 +69,14 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 	defer func() {
 		status := machinestate.Running
 		msg := "Build is finished successfully."
+		eventErr := ""
 
 		if err != nil {
 			b.Log.Error("[%s] building failed. err %s.", c.MachineId, err.Error())
 
 			status = c.CurrenState
-			msg = "Building failed. Please contact support."
+			msg = ""
+			eventErr = fmt.Sprintf("Building failed. Please contact support.")
 		}
 
 		// update final status in storage
@@ -88,6 +90,7 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 			Message:    msg,
 			Status:     status,
 			Percentage: 100,
+			Error:      eventErr,
 		})
 	}()
 

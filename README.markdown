@@ -48,53 +48,32 @@ information about the folder structure.
 * workers: contains all our backend based code. Like authWorker, socialWorker
            and so on. All these workers also carry the associated bongo models.
 
+# Build
+
+We need to, build (go binaries), transpile (coffee-javascript, stylus-css), generate (sprites), install (npm modules), test the codebase before all kinds of deployment, those are all handled by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b). It uses `wercker.yml` file that is located at the root of this repository:
+
+If you want your code to be built, just open merge request to `upstream development branch` (as the time of writing it is `newkoding`, will be replaced by master soon). It will be built automatically, and you will be able to see the result of it under you PR. [e.g](http://note.io/1unWQ7K)
+
 # Deployment
 
-Deployment process is carried out by script `deploy`. It accepts following options:
+Deployment process is carried out by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b) also. It uses `wercker.yml` file that is located at the root of this repository:
 
-* config      : prod, feature or sandbox (default: feature)
-* githubuser  : Used for determining base repository of deployment  (default: koding)
-* gitremote   : Remote name in local clone for the base repository (default: origin)
-* version     : Version number (default: automatically increments latest tag)
-* boxes       : Number of instance to launch (default: 1)
-* boxtype     : EC2 instance type (default: t2.medium)
-* versiontype : major, premajor, minor, preminor, patch, prepatch, or prerelease (default: patch)
+Steps that we have in that file:
 
-Script pushes a tag to base repository during preparing phase. That's
-why `gitremote` option should be the name of the remote name in your
-local clone. Newly launched instance will pull repository from
-corresponding repository (from a fork if you pass `githubuser`
-option).
+* create-file      : we are creating a `VERSION` file to store the head commit ID
+* zip              : we are zipping the whole repo excluded `.git .build node_modules go/bin go/pkg`
+* s3put            : we are putting created zip file to S3, to be able to reproduce it again.
+* eb-deploy        : we are triggering a deploy operation on the EB(Elastic Beanstalk) side, in short we are telling EB to use a zip file to build the current servers
+* notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, now its EB's turn.
 
-To login an instance over SSH you need to put your public SSH key to
-`install/keys/prod.ssh/authorized_keys` file before deploy.
 
-Make sure you have necessary credentials and access to instance(s) you
-need to work with.
+## Sandbox deployment [sandbox.koding.com](sandbox.koding.com)
 
-## Feature branch deployment
+### Server Structure
 
-Launches a standalone instance and hosts both application and
-services.
+* Sandbox has its own [EB env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf). All of our `workers` are running in one [server](54.165.12.215). Our `services` for sandbox env are: postgres, mongo, redis, rabbitmq, etcd
 
-Example:
-
-```
-./deploy --deploy --config feature --githubuser foo --gitremote fork
-```
-
-## Sandbox deployment
-
-Launches a new EC2 instance. Sandbox configuration points to a
-predefined host for services.
-
-Example:
-
-```
-./deploy --deploy --config sandbox --gitremote upstream
-```
-
-### `sandbox` branch
+### Deployment process
 
 Usual workflow is merging upstream development branch into branch
 called `sandbox`. This can be done manually using `git-merge` or by
@@ -110,15 +89,43 @@ rebasing your changes on top of `sandbox` or upstream development
 branch. This is practical if these changes are not breaking or
 blocking any other part.
 
-## Debugging
+
+## Production deployment [koding.com](https://koding.com)
+
+### Server Structure
+
+* Production has its own EB env [koding-prod](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-x2yfycg3tm).
+* Latest has its own EB env  [koding-latest](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-3puhn8mma6).
+* All of our `workers` are running in every server that we have for prod. They are exposed to the internet via nginx. We are deamonizing workers in servers with supervisord. You can see all the workers that we have in config files. eg: main.prod.coffee
+* Mongo         : [ObjectRocket](https://app.objectrocket.com/instances/koding_prod01)
+* Postgres      : [RDS](https://console.aws.amazon.com/rds/home?region=us-east-1#dbinstances:id=prod0;sf=all)
+* Redis         : [ElasticCache](https://console.aws.amazon.com/elasticache/home?region=us-east-1#)
+
+### Deployment process  [latest.koding.com](https://latest.koding.com)
+
+Main purpose of this step is to see that our app works in production environment.
+
+After getting acceptance on [sandbox env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf) Next step will be deploying it to latest, for this purpose:
+* Go to the build, that you want to deploy to prod. [e.g](http://note.io/1vUrhFI)
+* Click `Deploy to`, you will see env listed there [e.g](http://note.io/1vUuOnn)
+* If you click any of them, it will start deployment, when it is done -> [e.g](http://note.io/1wb9Fm2)
+
+
+### Deployment process  [koding.com](https://koding.com)
+Same rules applies with production deployment
+
+
+## Logging
+
+Our server logs are aggregated at [PaperTrail](https://papertrailapp.com/) You can easily see the the creation time of the log, app name and the host name in the [logs](http://note.io/1oNcu6Z)
+
+## Debugging / Troubleshooting
 
 Worker/service configurations are in usual configuration
 directory. All configurations contain the necessary information to
 find out/traceback how a worker is set up and where (external)
 services are located.
 
-Supervisord is managing processes. koding's configuration is located
-at `/etc/supervisor/conf.d/koding.conf`.
 
-Logs are located in `/var/log/supervisord` directory. Both `stdout`
-and `stderr` are redirected to separate files per job.
+When you feel something is wrong, first of all just notify others that you realized a problem and started working on it. Then check the aggregated logs. If you see an error there you  can find the server name from the logs [e.g.](http://note.io/1oNcu6Z) There can be options about fixing the problem, even one of them can be `destroying` the machine, auto scaling will create a new one for us.
+

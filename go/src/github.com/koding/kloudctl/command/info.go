@@ -26,6 +26,7 @@ func NewInfo() cli.CommandFactory {
 func (i *Info) Action(args []string, k *kite.Client) error {
 	infoArgs := &kloud.Controller{
 		MachineId: *i.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("info", infoArgs)

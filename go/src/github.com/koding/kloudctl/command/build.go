@@ -26,6 +26,7 @@ func NewBuild() cli.CommandFactory {
 func (b *Build) Action(args []string, k *kite.Client) error {
 	bArgs := &kloud.Controller{
 		MachineId: *b.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.TellWithTimeout("build", time.Second*4, bArgs)
