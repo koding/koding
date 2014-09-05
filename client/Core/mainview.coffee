@@ -19,7 +19,9 @@ class MainView extends KDView
     @bindTransitionEnd()
     @createHeader()
 
-    if KD.isLoggedInOnLoad then @createSidebar()
+    if KD.isLoggedInOnLoad
+      @createSidebar()
+      @createOnboardingModal()
 
     @createPanelWrapper()
     @createMainTabView()
@@ -29,6 +31,16 @@ class MainView extends KDView
 
       @setStickyNotification()
       @emit 'ready'
+
+
+  createOnboardingModal: ->
+    { appStorageController } = KD.singletons
+
+    appStorage = appStorageController.storage 'Onboarding', '1.0'
+    appStorage.fetchStorage =>
+      isOnboardingModalShown = appStorage.getValue 'isOnboardingModalShown'
+
+      @onboardingModal = new OnboardingModal container: this  unless isOnboardingModalShown
 
 
   createHeader:->
