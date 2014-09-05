@@ -71,8 +71,6 @@ class ComputeStateChecker extends KDObject
         unless machine.status.state is response.State
           computeController.triggerReviveFor machine._id
 
-        @addMachine machine
-
       .timeout ComputeController.timeout
 
       .catch (err)=>
@@ -81,7 +79,4 @@ class ComputeStateChecker extends KDObject
         unless (err?.code is "107") or (err?.name is "TimeoutError")
           log "csc: info error happened:", err
 
-        @addMachine machine
-
-    @machines = []
     @tickInProgress = no
