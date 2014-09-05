@@ -27,6 +27,9 @@ class MessagePane extends KDTabPaneView
     @bindInputEvents()
 
     @fakeMessageMap = {}
+    @fetchOptions   = {popular : true}
+
+    @skip = 0
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -187,6 +190,15 @@ class MessagePane extends KDTabPaneView
       'Most Recent'  :
         active      : yes
 
+    @filterLinks.on "filterLinkClicked", (data)=>
+      @listController.removeAllItems()
+      @listController.showLazyLoader()
+
+      @fetchOptions.popular = true  if data.active
+      @fetchOptions.popular = false unless data.active
+
+      @populate()
+
 
   bindChannelEvents: (channel) ->
 
@@ -287,6 +299,10 @@ class MessagePane extends KDTabPaneView
 
   fetch: (options = {}, callback)->
 
+    options.popular = @fetchOptions.popular
+
+    console.log ">>>>>>>>> fetch", options
+
     {
       name
       type
@@ -315,8 +331,9 @@ class MessagePane extends KDTabPaneView
     return  unless last
 
     from         = last.getData().createdAt
+    @skip       +=10
 
-    @fetch {from}, (err, items = []) =>
+    @fetch {skip:@skip}, (err, items = []) =>
       @listController.hideLazyLoader()
 
       return KD.showError err  if err

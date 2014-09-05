@@ -140,6 +140,9 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	statisticName := u.Query().Get("statisticName")
 	channelName := u.Query().Get("channelName")
+	skip := u.Query().Get("skip")
+
+	query.Skip = skip
 
 	year, dateNumber, err := getDateNumberAndYear(statisticName)
 	if err != nil {
