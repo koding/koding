@@ -7,7 +7,8 @@ Configuration = (options={}) ->
 
   prod_simulation_server = "localhost"
 
-  hostname            = options.hostname       or "prod-v1_2_4-anna"
+  publicPort          = options.publicPort     = "80"
+  hostname            = options.hostname       or "prod-v1_2_4-anna#{if publicPort is "80" then "" else ":"+publicPort}"
   publicHostname      = options.publicHostname or "https://koding.me"
   region              = options.region         or "aws"
   configName          = options.configName     or "feature"
@@ -71,6 +72,7 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
