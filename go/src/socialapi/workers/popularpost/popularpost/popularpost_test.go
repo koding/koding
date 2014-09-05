@@ -9,7 +9,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 
-	"github.com/kr/pretty"
+	//"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

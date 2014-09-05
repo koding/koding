@@ -68,34 +68,27 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, cm, i), incrementCount, i.MessageId)
-	if err != nil {
-		return err
-	}
-
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, cm, i), incrementCount, i.MessageId)
-	if err != nil {
-		return err
-	}
-
 	return nil
-
 }
 
 func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
 	if c.MetaBits.Is(models.Troll) {
+		fmt.Println("channel troll")
 		return false
 	}
 
 	if cm.MetaBits.Is(models.Troll) {
+		fmt.Println("channel message troll")
 		return false
 	}
 
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
+		fmt.Println("channel is private")
 		return false
 	}
 
 	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
+		fmt.Println("channel message is not a post")
 		return false
 	}
 
@@ -130,34 +123,4 @@ func GetDailyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interac
 	}
 
 	return PreparePopularPostKey(c.GroupName, c.Name, "daily", year, day)
-}
-
-func GetWeeklyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	weekNumber := 0
-	year := 2014
-
-	if !i.CreatedAt.IsZero() {
-		_, weekNumber = i.CreatedAt.ISOWeek()
-		year, _, _ = i.CreatedAt.UTC().Date()
-	} else {
-		// no need to convert it to UTC
-		now := time.Now()
-		_, weekNumber = now.ISOWeek()
-		year, _, _ = now.UTC().Date()
-	}
-
-	return PreparePopularPostKey(c.GroupName, c.Name, "weekly", year, weekNumber)
-}
-
-func GetMonthlyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	var month time.Month
-	year := 2014
-
-	if !i.CreatedAt.IsZero() {
-		year, month, _ = i.CreatedAt.UTC().Date()
-	} else {
-		year, month, _ = time.Now().UTC().Date()
-	}
-
-	return PreparePopularPostKey(c.GroupName, c.Name, "monthly", year, int(month))
 }
