@@ -82,6 +82,10 @@ class ComputeStateChecker extends KDObject
 
         log "csc: info: ", response.State
 
+        if machineId in @ignoredMachines
+          log "csc: ignoring check for machine:", machineId
+          return
+
         computeController.eventListener
           .triggerState machine, status : response.State
 
