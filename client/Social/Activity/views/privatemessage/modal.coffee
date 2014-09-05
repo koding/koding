@@ -2,7 +2,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.title    or= 'START A PRIVATE CONVERSATION WITH:'
+    options.title    or= 'START A CHAT WITH:'
     options.cssClass or= 'private-message activity-modal'
     options.content  or= ''
     options.overlay   ?= yes
