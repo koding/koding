@@ -40,14 +40,14 @@ func New(log logging.Logger, redis *redis.RedisSession) *Controller {
 }
 
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
-	return f.handleInteractionEvent(1, i)
+	return f.handleInteraction(1, i)
 }
 
 func (f *Controller) InteractionDeleted(i *models.Interaction) error {
-	return f.handleInteractionEvent(-1, i)
+	return f.handleInteraction(-1, i)
 }
 
-func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Interaction) error {
+func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction) error {
 	cm, err := models.ChannelMessageById(i.MessageId)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 		return err
 	}
 
-	if !f.isEligible(c, cm) {
+	if notEligibleForPopularPost(c, cm) {
 		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
@@ -69,30 +69,6 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 	}
 
 	return nil
-}
-
-func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
-	if c.MetaBits.Is(models.Troll) {
-		fmt.Println("channel troll")
-		return false
-	}
-
-	if cm.MetaBits.Is(models.Troll) {
-		fmt.Println("channel message troll")
-		return false
-	}
-
-	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
-		fmt.Println("channel is private")
-		return false
-	}
-
-	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
-		fmt.Println("channel message is not a post")
-		return false
-	}
-
-	return true
 }
 
 func PreparePopularPostKey(group, channelName string, year, dateNumber int) string {
@@ -122,4 +98,28 @@ func GetDailyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interac
 	}
 
 	return PreparePopularPostKey(c.GroupName, c.Name, year, day)
+}
+
+//----------------------------------------------------------
+// helpers
+//----------------------------------------------------------
+
+func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) bool {
+	if c.MetaBits.Is(models.Troll) {
+		return true
+	}
+
+	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
+		return true
+	}
+
+	if cm.MetaBits.Is(models.Troll) {
+		return true
+	}
+
+	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
+		return true
+	}
+
+	return false
 }
