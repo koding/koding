@@ -484,6 +484,10 @@ class IDEAppController extends AppController
 
   saveAllFiles: ->
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
+      {ace} = editorPane.aceView
+      ace.once 'FileContentSynced', ->
+        ace.removeModifiedFromTab editorPane.aceView
+
       editorPane.emit 'SaveRequested'
 
   previewFile: ->
