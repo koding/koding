@@ -32,14 +32,18 @@ class ComputeEventListener extends KDObject
     KD.utils.killWait @timer
 
 
+  uniqueAdd = (list, type, eventId)->
+
+    for item in list
+      return no  if item.type is type and item.eventId is eventId
+
+    list.push { type, eventId }
+    return yes
+
+
   addListener:(type, eventId)->
 
-    inList = no
-    @listeners.forEach (_)->
-      inList |= _.type is type and _.eventId is eventId
-
-    unless inList
-      @listeners.push { type, eventId }
+    if uniqueAdd @listeners, type, eventId
       @start()  unless @running
 
 
