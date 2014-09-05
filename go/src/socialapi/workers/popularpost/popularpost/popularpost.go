@@ -98,6 +98,8 @@ func (f *Controller) saveToSevenDayBucket(c *models.Channel, cm *models.ChannelM
 		if err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	_, err := f.redis.SortedSetIncrBy(key, incrementCount, cm.Id)
@@ -110,17 +112,11 @@ func (f *Controller) createSevenDayCombinedBucket(c *models.Channel, cm *models.
 	aggregate := "SUM"
 	from = getStartOfDay(from)
 
-	for i := 0; i <= 7; i++ {
+	for i := 0; i <= 6; i++ {
 		currentDate := getXDaysAgo(from, i)
 		key := GetDailyKey(c, currentDate)
 
 		keys = append(keys, key)
-
-		weight := float64(i)
-		if weight == 0 {
-			weight = 1
-		}
-		weights = append(weights, float64(1/weight))
 	}
 
 	_, err := f.redis.SortedSetsUnion(key, keys, weights, aggregate)
@@ -148,7 +144,7 @@ func GetSevenDayKey(c *models.Channel, cm *models.ChannelMessage) string {
 	date := getStartOfDay(cm.CreatedAt)
 	sevenDaysAgo := getXDaysAgo(date, 7).Unix()
 
-	return fmt.Sprintf("%d-%d", postCreatedAtKey, sevenDaysAgo)
+	return fmt.Sprintf("%s-%d", postCreatedAtKey, sevenDaysAgo)
 }
 
 func PreparePopularPostKey(group, channelName string, day int64) string {
