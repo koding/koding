@@ -67,9 +67,9 @@ Steps that we have in that file:
 * notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, now its EB's turn.  
 
 
-## Sandbox deployment
+## Sandbox deployment [sandbox.koding.com](sandbox.koding.com)
 
-### Server Structure
+### Server Structure 
 
 * Sandbox has its own [EB env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf). All of our `workers` are running in one [server](54.165.12.215). Our `services` for sandbox env are: postgres, mongo, redis, rabbitmq, etcd
 
@@ -90,18 +90,24 @@ branch. This is practical if these changes are not breaking or
 blocking any other part.
  
 
-## Production deployment
+## Production deployment [koding.com](https://koding.com)
 
 ### Server Structure
 
 * Production has its own EB env [koding-prod](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-x2yfycg3tm). All of our `workers` are running in every server that we have for prod. They are exposed to the internet via nginx. We are deamonizing workers in servers with supervisord. You can see all the workers that we have in config files. eg: main.prod.coffee
 
-### Deployment process
+### Deployment process  [latest.koding.com](https://latest.koding.com)
+
+Main purpose of this step is to see that our app works in production environment.
 
 After getting acceptance on [sandbox env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf) Next step will be deploying it to latest, for this purpose:
 * Go to the build, that you want to deploy to prod. [e.g](http://note.io/1vUrhFI)
 * Click `Deploy to`, you will see env listed there [e.g](http://note.io/1vUuOnn) 
 * If you click any of them, it will start deployment, when it is done -> [e.g](http://note.io/1wb9Fm2)
+
+
+### Deployment process  [koding.com](https://koding.com)
+Same rules applies with production deployment
 
 
 ## Logging 
