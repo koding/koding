@@ -4,6 +4,8 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 
+	"labix.org/v2/mgo/bson"
+
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 
 	"testing"
@@ -41,4 +43,31 @@ func TestTopicSaved(t *testing.T) {
 		})
 	})
 
+}
+
+func TestAccountSaved(t *testing.T) {
+	r := runner.New("AlogoliaConnector-Test")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	defer r.Close()
+
+	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+	// create message handler
+	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+
+	Convey("given some fake account", t, func() {
+		mockAccount := &models.Account{
+			OldId:   bson.NewObjectId().Hex(),
+			Id:      100000000,
+			Nick:    "fake-nickname",
+			IsTroll: false,
+		}
+		Convey("it should save the document to algolia", func() {
+			err := handler.AccountSaved(mockAccount)
+			So(err, ShouldBeNil)
+		})
+	})
 }
