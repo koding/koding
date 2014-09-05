@@ -32,7 +32,6 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
-	log.Info("INDEX SUFFIX: '%v'", indexSuffix)
 	return &Controller{
 		log:    log,
 		client: client,
