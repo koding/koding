@@ -98,8 +98,9 @@ class ComputeEventListener extends KDObject
 
         [type, eventId] = res.event.eventId.split '-'
 
-        if res.event.percentage < 100
-          activeListeners.push { type, eventId }
+        if res.event.percentage < 100 and \
+           res.event.status isnt Machine.State.Unknown
+          uniqueAdd activeListeners, type, eventId
 
         log "#{res.event.eventId}", res.event
 
