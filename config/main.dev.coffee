@@ -639,8 +639,8 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
-
 
       if [[ "$1" == "killall" ]]; then
 
