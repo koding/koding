@@ -8,6 +8,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/kloud"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 )
@@ -113,7 +114,10 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] info result  : fetched result from klient. returning '%s'",
 			opts.MachineId, resultState)
 
-		p.CheckAndUpdateState(opts.MachineId, resultState)
+		// do not return anything here if the DB is locked.
+		if err := p.CheckAndUpdateState(opts.MachineId, resultState); err == mgo.ErrNotFound {
+			return nil, kloud.ErrLockAcquired
+		}
 
 		return &protocol.InfoArtifact{
 			State: resultState,
