@@ -66,9 +66,24 @@ Steps that we have in that file:
 * eb-deploy        : we are triggering a deploy operation on the EB(Elastic Beanstalk) side, in short we are telling EB to use a zip file to build the current servers
 * notify slack     : we are sending a notification to Slack, about we have done with the deployment process on the Wercker side, but it doesnt mean that deployment is done! Only `Wercker` just finished its job, not its EB's turn.  
 
+## Debugging
+
+Worker/service configurations are in usual configuration
+directory. All configurations contain the necessary information to
+find out/traceback how a worker is set up and where (external)
+services are located.
+
+## Logging 
+
+Our server logs are aggregated at 
+
 ## Sandbox deployment
 
-### `sandbox` branch
+### Server Structure
+
+* Sandbox has its own [EB env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf). All of our `workers` are running in one [server](54.165.12.215). Our `services` for sandbox env are: postgres, mongo, redis, rabbitmq, etcd
+
+### Deployment process
 
 Usual workflow is merging upstream development branch into branch
 called `sandbox`. This can be done manually using `git-merge` or by
@@ -83,16 +98,17 @@ Alternatively, experimental changes can be pushed to sandbox by
 rebasing your changes on top of `sandbox` or upstream development
 branch. This is practical if these changes are not breaking or
 blocking any other part.
+ 
 
-## Debugging
+## Production deployment
 
-Worker/service configurations are in usual configuration
-directory. All configurations contain the necessary information to
-find out/traceback how a worker is set up and where (external)
-services are located.
+### Server Structure
 
-Supervisord is managing processes. koding's configuration is located
-at `/etc/supervisor/conf.d/koding.conf`.
+* Production has its own EB env [koding-prod](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-x2yfycg3tm). All of our `workers` are running in every server that we have for prod. They are exposed to the internet via nginx. We are deamonizing workers in servers with supervisord. You can see all the workers that we have in config files. eg: main.prod.coffee
 
-Logs are located in `/var/log/supervisord` directory. Both `stdout`
-and `stderr` are redirected to separate files per job.
+### Deployment process
+
+After getting acceptance on [sandbox env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf) Next step will be deploying it to latest, for this purpose:
+* Go to the build, that you want to deploy to prod. [e.g](http://note.io/1vUrhFI)
+* Click `Deploy to`, you will see env listed there [e.g](http://note.io/1vUuOnn) 
+* If you click any of them, it will start deployment, when it is done -> [e.g](http://note.io/1wb9Fm2)
