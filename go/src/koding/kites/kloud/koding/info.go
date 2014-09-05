@@ -62,6 +62,12 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		p.Log.Info("[%s] info result  : db state complies with amazon state. returning current state '%s'",
 			opts.MachineId, opts.State)
 
+		// save the value in DB, this is only set if the lock is unlocked.
+		// Thefore it will not change the db state if there is an ongoing
+		// process.
+		p.CheckAndUpdateState(opts.MachineId, infoResp.State)
+
+		// Return the old DB state
 		return &protocol.InfoArtifact{
 			State: opts.State,
 			Name:  infoResp.Name,
