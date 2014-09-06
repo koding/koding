@@ -159,11 +159,6 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		return response.NewBadRequest(err)
 	}
 
-	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
 	popularPosts, err := models.NewChannelMessage().FetchByIds(popularPostIds)
 	if err != nil {
 		return response.NewBadRequest(err)
