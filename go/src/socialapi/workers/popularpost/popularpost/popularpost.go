@@ -101,7 +101,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
 		return err
 	}
 
-	err := f.createSevenDayCombinedBucket(k)
+	err := f.createSevenDayBucket(k)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
 	return nil
 }
 
-func (f *Controller) createSevenDayCombinedBucket(k *KeyName) error {
+func (f *Controller) createSevenDayBucket(k *KeyName) error {
 	keys, weights := []interface{}{}, []interface{}{}
 
 	from := getStartOfDay(k.Time)
@@ -223,5 +223,5 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 		Time: time.Now().UTC(),
 	}
 
-	t.createSevenDayCombinedBucket(keyname)
+	t.createSevenDayBucket(keyname)
 }
