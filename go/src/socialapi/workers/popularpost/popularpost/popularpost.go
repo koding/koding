@@ -110,10 +110,14 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
 		exists := f.redis.Exists(key)
 		if !exists {
 			err := f.createSevenDayBucket(k)
-			return err
+			if err != nil {
+				return err
+			}
 		}
 
 		KeyExistsRegistry[key] = true
+
+		return nil
 	}
 
 	_, err := f.redis.SortedSetIncrBy(key, inc, id)
