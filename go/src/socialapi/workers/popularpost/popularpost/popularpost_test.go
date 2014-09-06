@@ -32,20 +32,20 @@ func TestPopularPost(t *testing.T) {
 
 	Convey("Popular post", t, func() {
 		account, err := rest.CreateAccountInBothDbs()
-		So(err, ShouldEqual, nil)
+		So(err, ShouldBeNil)
 
 		c, err := rest.CreateChannel(account.Id)
-		So(err, ShouldEqual, nil)
+		So(err, ShouldBeNil)
 
 		cm, err := rest.CreatePost(c.Id, account.Id)
-		So(err, ShouldEqual, nil)
+		So(err, ShouldBeNil)
 
 		Convey("When an interaction arrives", func() {
 			i, err := rest.AddInteraction("like", cm.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			Convey("Interaction is saved in daily bucket", func() {
 				keyname := &KeyName{
@@ -60,7 +60,7 @@ func TestPopularPost(t *testing.T) {
 
 				// check for scores
 				score, err := controller.redis.SortedSetScore(key, cm.Id)
-				So(err, ShouldEqual, nil)
+				So(err, ShouldBeNil)
 				So(score, ShouldEqual, 1)
 
 				controller.redis.Del(key)
@@ -79,7 +79,7 @@ func TestPopularPost(t *testing.T) {
 
 				// check for scores
 				score, err := controller.redis.SortedSetScore(key, cm.Id)
-				So(err, ShouldEqual, nil)
+				So(err, ShouldBeNil)
 				So(score, ShouldEqual, 1)
 
 				controller.redis.Del(key)
@@ -88,30 +88,30 @@ func TestPopularPost(t *testing.T) {
 
 		Convey("Posts with more interactions on same day have higher score", func() {
 			acc2, err := rest.CreateAccountInBothDbs()
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			post2, err := rest.CreatePost(c.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			// create 2 likes for post 1
 			i, err := rest.AddInteraction("like", cm.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			i, err = rest.AddInteraction("like", cm.Id, acc2.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			// create 1 likes for post 1
 			i, err = rest.AddInteraction("like", post2.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			// check if check exists
 			keyname := &KeyName{
@@ -125,11 +125,11 @@ func TestPopularPost(t *testing.T) {
 
 			// check for scores
 			score, err := controller.redis.SortedSetScore(key, cm.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 			So(score, ShouldEqual, 2)
 
 			score, err = controller.redis.SortedSetScore(key, post2.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 			So(score, ShouldEqual, 1)
 
 			controller.redis.Del(key)
@@ -137,13 +137,13 @@ func TestPopularPost(t *testing.T) {
 
 		Convey("Posts with interactions today have higher score than yesterday", func() {
 			todayPost, err := rest.CreatePost(c.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			i, err := rest.AddInteraction("like", todayPost.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			// create post with interaction yesterday
 			yesterdayPost := models.NewChannelMessage()
@@ -152,16 +152,34 @@ func TestPopularPost(t *testing.T) {
 			yesterdayPost.Body = "yesterday my troubles were so far away"
 
 			err = yesterdayPost.Create()
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = yesterdayPost.UpdateCreatedAt(now.BeginningOfDay().Add(-24 * time.Hour))
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			i, err = rest.AddInteraction("like", yesterdayPost.Id, account.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 
 			err = controller.InteractionSaved(i)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
+
+			// create post with interaction yesterday
+			twoDaysAgo := models.NewChannelMessage()
+			twoDaysAgo.AccountId = account.Id
+			twoDaysAgo.InitialChannelId = c.Id
+			twoDaysAgo.Body = "yesterday my troubles were so far away"
+
+			err = twoDaysAgo.Create()
+			So(err, ShouldBeNil)
+
+			err = twoDaysAgo.UpdateCreatedAt(now.BeginningOfDay().Add(-48 * time.Hour))
+			So(err, ShouldBeNil)
+
+			i, err = rest.AddInteraction("like", twoDaysAgo.Id, account.Id)
+			So(err, ShouldBeNil)
+
+			err = controller.InteractionSaved(i)
+			So(err, ShouldBeNil)
 
 			// check if check exists
 			keyname := &KeyName{
@@ -175,12 +193,16 @@ func TestPopularPost(t *testing.T) {
 
 			// check for scores
 			score, err := controller.redis.SortedSetScore(key, todayPost.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 			So(score, ShouldEqual, 1)
 
 			score, err = controller.redis.SortedSetScore(key, yesterdayPost.Id)
-			So(err, ShouldEqual, nil)
+			So(err, ShouldBeNil)
 			So(score, ShouldEqual, 0.5)
+
+			score, err = controller.redis.SortedSetScore(key, twoDaysAgo.Id)
+			So(err, ShouldBeNil)
+			So(score, ShouldEqual, 0.3)
 		})
 	})
 }
