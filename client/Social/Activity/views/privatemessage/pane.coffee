@@ -47,18 +47,17 @@ class PrivateMessagePane extends MessagePane
 
     @input.on 'UpKeyIsPressed', @bound 'editLastMessage'
 
+
   editLastMessage: ->
 
     items = @listController.getItemsOrdered().slice(0).reverse()
     myId  = KD.whoami()._id
 
-    for item in items
-      if item.data.account._id is myId
+    for item in items when item.data.account._id is myId
 
-        item.showEditWidget()
+      item.showEditWidget()
 
-        return
-
+      break
 
 
   # override this so that it won't
