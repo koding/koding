@@ -32,5 +32,12 @@ class SidebarMessageItem extends SidebarItem
       showStatus : yes
       origin     : origin
 
+    if data.purpose
+      @purpose = new KDCustomHTMLView
+        tagName  : 'span'
+        cssClass : 'purpose'
+        partial  : data.purpose
 
-  pistachio: -> "{{> @avatar}}{{> @actor}}{{> @unreadCount}}"
+
+  pistachio: ->
+    "{{> @avatar}}{{> @purpose or @actor}}{{> @unreadCount}}"
