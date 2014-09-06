@@ -30,7 +30,7 @@ class PrivateMessageModal extends KDModalViewWithForms
             recipient      :
               itemClass    : KDView
             purpose        :
-              placeholder  : 'What\'s your purpose?'
+              placeholder  : 'Purpose? (optional)'
               name         : 'purpose'
             body           :
               label        : ''
