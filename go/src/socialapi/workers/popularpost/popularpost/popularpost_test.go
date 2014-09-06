@@ -2,12 +2,15 @@ package popularpost
 
 import (
 	"testing"
+	"time"
 
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 
+	"github.com/jinzhu/now"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -51,9 +54,11 @@ func TestPopularPost(t *testing.T) {
 				}
 				key := keyname.Today()
 
+				// check if check exists
 				exists := controller.redis.Exists(key)
 				So(exists, ShouldEqual, true)
 
+				// check for scores
 				score, err := controller.redis.SortedSetScore(key, cm.Id)
 				So(err, ShouldEqual, nil)
 				So(score, ShouldEqual, 1)
@@ -68,9 +73,11 @@ func TestPopularPost(t *testing.T) {
 				}
 				key := keyname.Weekly()
 
+				// check if check exists
 				exists := controller.redis.Exists(key)
 				So(exists, ShouldEqual, true)
 
+				// check for scores
 				score, err := controller.redis.SortedSetScore(key, cm.Id)
 				So(err, ShouldEqual, nil)
 				So(score, ShouldEqual, 1)
@@ -106,6 +113,7 @@ func TestPopularPost(t *testing.T) {
 			err = controller.InteractionSaved(i)
 			So(err, ShouldEqual, nil)
 
+			// check if check exists
 			keyname := &KeyName{
 				GroupName: c.GroupName, ChannelName: c.Name,
 				Time: cm.CreatedAt,
@@ -115,6 +123,7 @@ func TestPopularPost(t *testing.T) {
 			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
 
+			// check for scores
 			score, err := controller.redis.SortedSetScore(key, cm.Id)
 			So(err, ShouldEqual, nil)
 			So(score, ShouldEqual, 2)
@@ -124,6 +133,54 @@ func TestPopularPost(t *testing.T) {
 			So(score, ShouldEqual, 1)
 
 			controller.redis.Del(key)
+		})
+
+		Convey("Posts with interactions today have higher score than yesterday", func() {
+			todayPost, err := rest.CreatePost(c.Id, account.Id)
+			So(err, ShouldEqual, nil)
+
+			i, err := rest.AddInteraction("like", todayPost.Id, account.Id)
+			So(err, ShouldEqual, nil)
+
+			err = controller.InteractionSaved(i)
+			So(err, ShouldEqual, nil)
+
+			// create post with interaction yesterday
+			yesterdayPost := models.NewChannelMessage()
+			yesterdayPost.AccountId = account.Id
+			yesterdayPost.InitialChannelId = c.Id
+			yesterdayPost.Body = "yesterday my troubles were so far away"
+
+			err = yesterdayPost.Create()
+			So(err, ShouldEqual, nil)
+
+			err = yesterdayPost.UpdateCreatedAt(now.BeginningOfDay().Add(-24 * time.Hour))
+			So(err, ShouldEqual, nil)
+
+			i, err = rest.AddInteraction("like", yesterdayPost.Id, account.Id)
+			So(err, ShouldEqual, nil)
+
+			err = controller.InteractionSaved(i)
+			So(err, ShouldEqual, nil)
+
+			// check if check exists
+			keyname := &KeyName{
+				GroupName: c.GroupName, ChannelName: c.Name,
+				Time: time.Now().UTC(),
+			}
+			key := keyname.Weekly()
+
+			exists := controller.redis.Exists(key)
+			So(exists, ShouldEqual, true)
+
+			// check for scores
+			score, err := controller.redis.SortedSetScore(key, todayPost.Id)
+			So(err, ShouldEqual, nil)
+			So(score, ShouldEqual, 1)
+
+			score, err = controller.redis.SortedSetScore(key, yesterdayPost.Id)
+			So(err, ShouldEqual, nil)
+			So(score, ShouldEqual, 0.5)
 		})
 	})
 }
