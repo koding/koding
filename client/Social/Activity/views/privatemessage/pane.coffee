@@ -51,13 +51,14 @@ class PrivateMessagePane extends MessagePane
   editLastMessage: ->
 
     items = @listController.getItemsOrdered().slice(0).reverse()
-    myId  = KD.whoami()._id
-
-    for item in items when item.data.account._id is myId
+    post  = item.getData()
+    
+    for item in items when KD.isMyPost post
 
       item.showEditWidget()
-
       break
+    
+    return post
 
 
   # override this so that it won't
