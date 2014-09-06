@@ -203,11 +203,7 @@ func createdMoreThan7DaysAgo(createdAt time.Time) bool {
 }
 
 func getStartOfDay(t time.Time) time.Time {
-	start := time.Duration(-t.Hour()) * time.Hour         // subtract hour
-	start = start - time.Duration(t.Minute())*time.Minute // subtract minutes
-	start = start - time.Duration(t.Second())*time.Second // substract seconds
-
-	return t.Add(start)
+	return now.New(t).BeginningOfDay()
 }
 
 func getXDaysAgo(t time.Time, days int) time.Time {
