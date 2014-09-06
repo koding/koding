@@ -46,21 +46,29 @@ func TestPopularPost(t *testing.T) {
 		So(err, ShouldEqual, nil)
 
 		Convey("Interaction is saved in daily bucket", func() {
-			dailyKey := getDailyKey(c, cm.CreatedAt)
-			exists := controller.redis.Exists(dailyKey)
+			keyname := &KeyName{
+				GroupName: c.GroupName, ChannelName: c.Name,
+				Time: cm.CreatedAt,
+			}
+			key := keyname.Today()
 
+			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
 
-			controller.redis.Del(dailyKey)
+			controller.redis.Del(key)
 		})
 
 		Convey("Interaction is saved in 7day bucket", func() {
-			sevenDayKey := getSevenDayKey(c, cm)
-			exists := controller.redis.Exists(sevenDayKey)
+			keyname := &KeyName{
+				GroupName: c.GroupName, ChannelName: c.Name,
+				Time: cm.CreatedAt,
+			}
+			key := keyname.Weekly()
 
+			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
 
-			controller.redis.Del(sevenDayKey)
+			controller.redis.Del(key)
 		})
 	})
 }

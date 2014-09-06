@@ -148,11 +148,11 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	query.Skip = i
 
-	key := popularpost.PopularPostKey(
-		query.GroupName,
-		channelName,
-		time.Now(),
-	)
+	keyname := popularpost.KeyName{
+		GroupName: query.GroupName, ChannelName: channelName,
+		Time: time.Now(),
+	}
+	key := keyname.Weekly()
 
 	popularPostIds, err := getIds(key, query)
 	if err != nil {

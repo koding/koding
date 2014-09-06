@@ -6,6 +6,7 @@ import (
 	"socialapi/models"
 	"time"
 
+	"github.com/jinzhu/now"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
@@ -68,12 +69,17 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return nil
 	}
 
-	err = f.saveToDailyBucket(c, cm, i, incrementCount)
+	keyname := &KeyName{
+		GroupName: c.GroupName, ChannelName: c.Name,
+		Time: cm.CreatedAt,
+	}
+
+	err = f.saveToDailyBucket(keyname, incrementCount, i.MessageId)
 	if err != nil {
 		return err
 	}
 
-	err = f.saveToSevenDayBucket(c, cm, i, incrementCount)
+	err = f.saveToSevenDayBucket(keyname, incrementCount, i.MessageId)
 	if err != nil {
 		return err
 	}
@@ -81,24 +87,21 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 	return nil
 }
 
-func (f *Controller) saveToDailyBucket(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction, incrementCount int) error {
-	key := getDailyKey(c, cm.CreatedAt)
-	_, err := f.redis.SortedSetIncrBy(key, incrementCount, cm.Id)
-
+func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
+	_, err := f.redis.SortedSetIncrBy(k.Today(), inc, id)
 	return err
 }
 
-func (f *Controller) saveToSevenDayBucket(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction, incrementCount int) error {
-	key := getSevenDayKey(c, cm)
-	from := getStartOfDay(cm.CreatedAt)
+func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
+	key := k.Weekly()
 
 	exists := f.redis.Exists(key)
 	if exists {
-		_, err := f.redis.SortedSetIncrBy(key, incrementCount, cm.Id)
+		_, err := f.redis.SortedSetIncrBy(key, inc, id)
 		return err
 	}
 
-	err := f.createSevenDayCombinedBucket(c, cm, key, from)
+	err := f.createSevenDayCombinedBucket(k)
 	if err != nil {
 		return err
 	}
@@ -106,54 +109,63 @@ func (f *Controller) saveToSevenDayBucket(c *models.Channel, cm *models.ChannelM
 	return nil
 }
 
-func (f *Controller) createSevenDayCombinedBucket(c *models.Channel, cm *models.ChannelMessage, key string, from time.Time) error {
+func (f *Controller) createSevenDayCombinedBucket(k *KeyName) error {
 	keys, weights := []interface{}{}, []interface{}{}
+
+	from := getStartOfDay(k.Time)
 	aggregate := "SUM"
-	from = getStartOfDay(from)
 
 	for i := 0; i <= 6; i++ {
 		currentDate := getXDaysAgo(from, i)
-		key := getDailyKey(c, currentDate)
-		keys = append(keys, key)
+		keys = append(keys, k.Before(currentDate))
 
 		// add by 1 to prevent divide by 0 errors
 		weight := float64(i + 1)
 		weights = append(weights, float64(1/weight))
 	}
 
-	_, err := f.redis.SortedSetsUnion(key, keys, weights, aggregate)
+	_, err := f.redis.SortedSetsUnion(k.Weekly(), keys, weights, aggregate)
 
 	return err
 }
 
-//----------------------------------------------------------
-// Key helpers
-//----------------------------------------------------------
-
-func getDailyKey(c *models.Channel, date time.Time) string {
-	if date.IsZero() {
-		date = time.Now().UTC()
+func PopularPostKey(groupName, channelName string, current time.Time) string {
+	name := KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: current.UTC(),
 	}
 
-	unix := getStartOfDay(date).Unix()
+	return name.Weekly()
+}
 
+//----------------------------------------------------------
+// KeyName
+//----------------------------------------------------------
+
+type KeyName struct {
+	GroupName, ChannelName string
+	Time                   time.Time
+}
+
+func (k *KeyName) Today() string {
+	return k.do(getStartOfDay(k.Time))
+}
+
+func (k *KeyName) Before(t time.Time) string {
+	return k.do(t)
+}
+
+func (k *KeyName) Weekly() string {
+	current := getStartOfDay(k.Time.UTC())
+	sevenDaysAgo := getXDaysAgo(current, 7).UTC().Unix()
+
+	return fmt.Sprintf("%s-%d", k.do(current), sevenDaysAgo)
+}
+
+func (k *KeyName) do(t time.Time) string {
 	return fmt.Sprintf("%s:%s:%s:%s:%d",
-		config.MustGet().Environment, c.GroupName, PopularPostKeyName, c.Name, unix,
-	)
-}
-
-func getSevenDayKey(c *models.Channel, cm *models.ChannelMessage) string {
-	date := getStartOfDay(cm.CreatedAt)
-	return PopularPostKey(c.GroupName, c.Name, date)
-}
-
-func PopularPostKey(group, channelName string, current time.Time) string {
-	current = getStartOfDay(current.UTC())
-	sevenDaysAgo := getXDaysAgo(current, 7)
-
-	return fmt.Sprintf("%s:%s:%s:%s:%d-%d",
-		config.MustGet().Environment, group, PopularPostKeyName, channelName,
-		current.Unix(), sevenDaysAgo.Unix(),
+		config.MustGet().Environment, k.GroupName, PopularPostKeyName,
+		k.ChannelName, t.UTC().Unix(),
 	)
 }
 
@@ -201,4 +213,19 @@ func getStartOfDay(t time.Time) time.Time {
 func getXDaysAgo(t time.Time, days int) time.Time {
 	daysAgo := -time.Hour * 24 * time.Duration(days)
 	return t.Add(daysAgo)
+}
+
+//----------------------------------------------------------
+func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
+	endOfDay := now.EndOfDay().UTC()
+	difference := time.Now().UTC().Sub(endOfDay)
+
+	<-time.After(difference)
+
+	keyname := &KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: time.Now().UTC(),
+	}
+
+	t.createSevenDayCombinedBucket(keyname)
 }

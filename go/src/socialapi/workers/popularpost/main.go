@@ -22,6 +22,13 @@ func main() {
 	// create context
 	context := popularpost.New(r.Log, helper.MustInitRedisConn(r.Conf))
 
+	go func() {
+		//TODO: remove hardcoded of 'koding' and 'public'
+		//      get yesterday's daily buckets that exist in redis, create
+		//      weekly bucket for those groups, channel names
+		context.CreateKeyAtStartOfDay("koding", "public")
+	}()
+
 	r.SetContext(context)
 	r.Register(models.Interaction{}).OnCreate().Handle((*popularpost.Controller).InteractionSaved)
 	r.Register(models.Interaction{}).OnDelete().Handle((*popularpost.Controller).InteractionDeleted)
