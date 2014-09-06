@@ -24,6 +24,7 @@ func (a *Account) AfterUpdate() {
 
 func (a *Account) AfterCreate() {
 	SetAccountToCache(a)
+	bongo.B.AfterCreate(a)
 }
 
 func (a *Account) One(q *bongo.Query) error {
