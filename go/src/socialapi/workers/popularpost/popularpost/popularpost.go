@@ -138,7 +138,7 @@ func (f *Controller) createSevenDayBucket(k *KeyName) error {
 	aggregate := "SUM"
 
 	for i := 0; i <= 6; i++ {
-		currentDate := getXDaysAgo(from, i)
+		currentDate := getDaysAgo(from, i)
 		keys = append(keys, k.Before(currentDate))
 
 		// add by 1 to prevent divide by 0 errors
@@ -179,7 +179,7 @@ func (k *KeyName) Before(t time.Time) string {
 
 func (k *KeyName) Weekly() string {
 	current := getStartOfDay(k.Time.UTC())
-	sevenDaysAgo := getXDaysAgo(current, 7).UTC().Unix()
+	sevenDaysAgo := getDaysAgo(current, 7).UTC().Unix()
 
 	return fmt.Sprintf("%s-%d", k.do(current), sevenDaysAgo)
 }
@@ -228,7 +228,7 @@ func getStartOfDay(t time.Time) time.Time {
 	return now.New(t).BeginningOfDay()
 }
 
-func getXDaysAgo(t time.Time, days int) time.Time {
+func getDaysAgo(t time.Time, days int) time.Time {
 	daysAgo := -time.Hour * 24 * time.Duration(days)
 	return t.Add(daysAgo)
 }
