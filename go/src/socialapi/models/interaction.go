@@ -9,8 +9,6 @@ import (
 	"github.com/koding/bongo"
 )
 
-var ErrNotSetMessageId = errors.New("messageId is not set")
-
 type Interaction struct {
 	// unique identifier of the Interaction
 	Id int64 `json:"id,string"`
@@ -93,6 +91,7 @@ func (i *Interaction) isExempt() (bool, error) {
 	return false, nil
 }
 
+// Tests are done.
 func (i *Interaction) getAccountId() (int64, error) {
 	if i.AccountId != 0 {
 		return i.AccountId, nil
@@ -131,7 +130,7 @@ func (i *Interaction) List(query *request.Query) ([]int64, error) {
 	var interactions []int64
 
 	if i.MessageId == 0 {
-		return interactions, ErrNotSetMessageId
+		return interactions, ErrMessageIdIsNotSet
 	}
 
 	return i.FetchInteractorIds(query)
@@ -163,7 +162,7 @@ func (i *Interaction) FetchInteractorIds(query *request.Query) ([]int64, error) 
 
 func (c *Interaction) Count(q *request.Query) (int, error) {
 	if c.MessageId == 0 {
-		return 0, ErrNotSetMessageId
+		return 0, ErrMessageIdIsNotSet
 	}
 
 	if q.Type == "" {
@@ -216,7 +215,7 @@ func (c *Interaction) FetchAll(interactionType string) ([]Interaction, error) {
 
 func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 	if i.MessageId == 0 {
-		return false, ErrNotSetMessageId
+		return false, ErrMessageIdIsNotSet
 	}
 
 	selector := map[string]interface{}{
@@ -243,7 +242,7 @@ func (i *Interaction) FetchInteractorCount() (int, error) {
 
 func (i *Interaction) FetchInteractionContainer(query *request.Query) (*InteractionContainer, error) {
 	if i.MessageId == 0 {
-		return nil, ErrNotSetMessageId
+		return nil, ErrMessageIdIsNotSet
 	}
 
 	interactorIds, err := i.List(query)
