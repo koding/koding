@@ -443,3 +443,11 @@ func (r *RedisSession) SortedSetsUnion(destination string, keys []interface{}, w
 
 	return redis.Int64(r.Do("ZUNIONSTORE", prefixed...))
 }
+
+func (r *RedisSession) SortedSetScore(key string, member interface{}) (float64, error) {
+	return redis.Float64(r.Do("ZSCORE", key, member))
+}
+
+func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (float64, error) {
+	return redis.Float64(r.Do("ZREM", key, members))
+}
