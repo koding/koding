@@ -77,13 +77,14 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 
 	difference := int(i.CreatedAt.Sub(cm.CreatedAt).Hours()/24) + 1
 	weight := 1 / float64(difference) * float64(incrementCount)
+	rounded := fmt.Sprintf("%.1f", weight)
 
 	keyname = &KeyName{
 		GroupName: c.GroupName, ChannelName: c.Name,
 		Time: time.Now().UTC(),
 	}
 
-	err = f.saveToSevenDayBucket(keyname, weight, i.MessageId)
+	err = f.saveToSevenDayBucket(keyname, rounded, i.MessageId)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
 	return err
 }
 
-func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) error {
+func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) error {
 	key := k.Weekly()
 
 	_, ok := KeyExistsRegistry[key]
