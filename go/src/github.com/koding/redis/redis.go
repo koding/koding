@@ -448,6 +448,9 @@ func (r *RedisSession) SortedSetScore(key string, member interface{}) (float64, 
 	return redis.Float64(r.Do("ZSCORE", key, member))
 }
 
-func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (float64, error) {
-	return redis.Float64(r.Do("ZREM", key, members))
+func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, error) {
+	prefixed := []interface{}{key}
+	prefixed = append(prefixed, members...)
+
+	return redis.Int64(r.Do("ZREM", prefixed...))
 }
