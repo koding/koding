@@ -14,6 +14,7 @@ import (
 
 var (
 	PopularPostKeyName = "popularpost"
+	KeyExistsRegistry  = map[string]bool{}
 )
 
 type Controller struct {
@@ -109,10 +110,15 @@ func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
 func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
 	key := k.Weekly()
 
-	exists := f.redis.Exists(key)
-	if !exists {
-		err := f.createSevenDayBucket(k)
-		return err
+	_, ok := KeyExistsRegistry[key]
+	if !ok {
+		exists := f.redis.Exists(key)
+		if !exists {
+			err := f.createSevenDayBucket(k)
+			return err
+		}
+
+		KeyExistsRegistry[key] = true
 	}
 
 	_, err := f.redis.SortedSetIncrBy(key, inc, id)
@@ -251,4 +257,8 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 	}
 
 	t.createSevenDayBucket(keyname)
+}
+
+func (t *Controller) ResetRegistry() {
+	KeyExistsRegistry = map[string]bool{}
 }

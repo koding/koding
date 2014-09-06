@@ -27,6 +27,7 @@ func main() {
 		//      get yesterday's daily buckets that exist in redis, create
 		//      weekly bucket for those groups, channel names
 		context.CreateKeyAtStartOfDay("koding", "public")
+		context.ResetRegistry()
 	}()
 
 	r.SetContext(context)
