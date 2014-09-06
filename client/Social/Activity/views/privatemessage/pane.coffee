@@ -45,6 +45,21 @@ class PrivateMessagePane extends MessagePane
 
     @input = new ReplyInputWidget {channel}
 
+    @input.on 'UpKeyIsPressed', @bound 'editLastMessage'
+
+  editLastMessage: ->
+
+    items = @listController.getItemsOrdered().slice(0).reverse()
+    myId  = KD.whoami()._id
+
+    for item in items
+      if item.data.account._id is myId
+
+        item.showEditWidget()
+
+        return
+
+
 
   # override this so that it won't
   # have to scroll to the top when
