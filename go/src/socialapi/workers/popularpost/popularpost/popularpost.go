@@ -219,17 +219,22 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 // Time helpers
 //----------------------------------------------------------
 
-func createdMoreThan7DaysAgo(createdAt time.Time) bool {
-	delta := time.Now().Sub(createdAt)
+func createdMoreThan7DaysAgo(t time.Time) bool {
+	t = t.UCT()
+	delta := time.Now().Sub(t)
+
 	return delta.Hours()/24 > 7
 }
 
 func getStartOfDay(t time.Time) time.Time {
+	t = t.UTC()
 	return now.New(t).BeginningOfDay()
 }
 
 func getDaysAgo(t time.Time, days int) time.Time {
+	t = t.UTC()
 	daysAgo := -time.Hour * 24 * time.Duration(days)
+
 	return t.Add(daysAgo)
 }
 
