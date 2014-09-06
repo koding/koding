@@ -88,7 +88,21 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 }
 
 func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
-	_, err := f.redis.SortedSetIncrBy(k.Today(), inc, id)
+	key := k.Today()
+
+	_, err := f.redis.SortedSetIncrBy(key, inc, id)
+	if err != nil {
+		return err
+	}
+
+	score, err := f.redis.SortedSetScore(key, id)
+	if score <= 0 {
+		_, err := f.redis.SortedSetRem(key, id)
+		if err != nil {
+			return err
+		}
+	}
+
 	return err
 }
 
@@ -104,6 +118,14 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc int, id int64) error {
 	err := f.createSevenDayBucket(k)
 	if err != nil {
 		return err
+	}
+
+	score, err := f.redis.SortedSetScore(key, id)
+	if score <= 0 {
+		_, err := f.redis.SortedSetRem(key, id)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

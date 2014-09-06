@@ -55,6 +55,10 @@ func TestPopularPost(t *testing.T) {
 			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
 
+			score, err := controller.redis.SortedSetScore(key, cm.Id)
+			So(err, ShouldEqual, nil)
+			So(score, ShouldEqual, 1)
+
 			controller.redis.Del(key)
 		})
 
@@ -67,6 +71,10 @@ func TestPopularPost(t *testing.T) {
 
 			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
+
+			score, err := controller.redis.SortedSetScore(key, cm.Id)
+			So(err, ShouldEqual, nil)
+			So(score, ShouldEqual, 1)
 
 			controller.redis.Del(key)
 		})
