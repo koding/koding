@@ -1,5 +1,10 @@
 class MessagePane extends KDTabPaneView
 
+  MOST_LIKED   = 0
+  MOST_RECENT  = 1
+
+  ITEMS_COUNT  = 25
+
   constructor: (options = {}, data) ->
 
     options.type    or= ''
@@ -27,9 +32,16 @@ class MessagePane extends KDTabPaneView
     @bindInputEvents()
 
     @fakeMessageMap = {}
-    @fetchOptions   = {popular : true}
 
-    @skip = 0
+    @currentFilter  = MOST_LIKED
+    @skipItemCount  = 0
+
+    # returns created at timestamp of item, this is not an instance
+    # method due to edge case when we switch from most liked to most
+    # recent filter we want to get posts from top and not the usual
+    # pagination behavior of getting posts that happened after last
+    # post on the feed
+    @getItemTimestampFn = getItemTimestampFn
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -194,8 +206,8 @@ class MessagePane extends KDTabPaneView
       @listController.removeAllItems()
       @listController.showLazyLoader()
 
-      @fetchOptions.popular = data.active
-      @skip = 0
+      @currentFilter = if data.active then MOST_LIKED else MOST_RECENT
+      @skipItemCount = 0
 
       @populate()
 
@@ -299,8 +311,6 @@ class MessagePane extends KDTabPaneView
 
   fetch: (options = {}, callback)->
 
-    options.popular = @fetchOptions.popular
-
     {
       name
       type
@@ -312,12 +322,22 @@ class MessagePane extends KDTabPaneView
     options.name      = name
     options.type      = type
     options.channelId = channelId
+    options.mostLiked = yes  if @currentFilter is MOST_LIKED
 
     # if it is a post it means we already have the data
     if type is 'post'
     then KD.utils.defer -> callback null, [data]
-    else appManager.tell 'Activity', 'fetch', options, callback
+    else appManager.tell 'Activity', 'fetch', options, (err, items)=>
 
+      # when we run out of posts in most liked list, we switch
+      # to getting most recent posts in DESC order
+      if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
+        @currentFilter = MOST_RECENT
+
+        # set to empty fn so we get posts from start of most recent list
+        @getItemTimestampFn = ->
+
+      callback err, items
 
   lazyLoad: ->
 
@@ -328,13 +348,15 @@ class MessagePane extends KDTabPaneView
 
     return  unless last
 
-    from         = last.getData().createdAt
-    @skip       +=10
+    from = @getItemTimestampFn(last)
+    @skipItemCount += ITEMS_COUNT
 
-    @fetch {from, skip:@skip}, (err, items = []) =>
+    @fetch {from, skip:@skipItemCount}, (err, items=[])=>
       @listController.hideLazyLoader()
 
       return KD.showError err  if err
+
+      @getItemTimestampFn = getItemTimestampFn
 
       items.forEach @lazyBound 'loadMessage'
 
@@ -347,3 +369,5 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+  getItemTimestampFn = (item)-> item.getData().createdAt
