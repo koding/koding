@@ -65,11 +65,6 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return nil
 	}
 
-	if createdMoreThan7DaysAgo(cm.CreatedAt) {
-		f.log.Debug(fmt.Sprintf("Post created more than 7 days ago: %v, %v", i.Id, i.CreatedAt))
-		return nil
-	}
-
 	keyname := &KeyName{
 		GroupName: c.GroupName, ChannelName: c.Name,
 		Time: cm.CreatedAt,
@@ -218,6 +213,10 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 		return true
 	}
 
+	if createdMoreThan7DaysAgo(cm.CreatedAt) {
+		return true
+	}
+
 	return false
 }
 
@@ -226,7 +225,7 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 //----------------------------------------------------------
 
 func createdMoreThan7DaysAgo(t time.Time) bool {
-	t = t.UCT()
+	t = t.UTC()
 	delta := time.Now().Sub(t)
 
 	return delta.Hours()/24 > 7
