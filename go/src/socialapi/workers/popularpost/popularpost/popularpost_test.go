@@ -136,6 +136,14 @@ func TestPopularPost(t *testing.T) {
 		})
 
 		Convey("Posts with interactions today have higher score than yesterday", func() {
+			// initialize key
+			keyname := &KeyName{
+				GroupName: c.GroupName, ChannelName: c.Name,
+				Time: time.Now().UTC(),
+			}
+			key := keyname.Weekly()
+
+			// create post with interaction today
 			todayPost, err := rest.CreatePost(c.Id, account.Id)
 			So(err, ShouldBeNil)
 
@@ -163,7 +171,7 @@ func TestPopularPost(t *testing.T) {
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
-			// create post with interaction yesterday
+			// create post with interaction two days ago
 			twoDaysAgo := models.NewChannelMessage()
 			twoDaysAgo.AccountId = account.Id
 			twoDaysAgo.InitialChannelId = c.Id
@@ -181,28 +189,22 @@ func TestPopularPost(t *testing.T) {
 			err = controller.InteractionSaved(i)
 			So(err, ShouldBeNil)
 
-			// check if check exists
-			keyname := &KeyName{
-				GroupName: c.GroupName, ChannelName: c.Name,
-				Time: time.Now().UTC(),
-			}
-			key := keyname.Weekly()
-
+			// check if key exists
 			exists := controller.redis.Exists(key)
 			So(exists, ShouldEqual, true)
 
 			// check for scores
-			score, err := controller.redis.SortedSetScore(key, todayPost.Id)
-			So(err, ShouldBeNil)
-			So(score, ShouldEqual, 1)
+			checkForScores := map[int64]float64{
+				todayPost.Id:     1,
+				yesterdayPost.Id: 0.5,
+				twoDaysAgo.Id:    0.3,
+			}
 
-			score, err = controller.redis.SortedSetScore(key, yesterdayPost.Id)
-			So(err, ShouldBeNil)
-			So(score, ShouldEqual, 0.5)
-
-			score, err = controller.redis.SortedSetScore(key, twoDaysAgo.Id)
-			So(err, ShouldBeNil)
-			So(score, ShouldEqual, 0.3)
+			for id, num := range checkForScores {
+				score, err := controller.redis.SortedSetScore(key, id)
+				So(err, ShouldBeNil)
+				So(score, ShouldEqual, num)
+			}
 		})
 	})
 }
