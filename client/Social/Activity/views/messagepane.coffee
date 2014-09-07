@@ -42,6 +42,20 @@ class MessagePane extends KDTabPaneView
     if typeConstant in ['group', 'topic']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
+    @on "ItemsArrived", (items)->
+      @getItemTimestampFn = getItemTimestampFn
+
+      # when we run out of posts in most liked list, we switch
+      # to getting most recent posts in DESC order
+      if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
+        @setFilterOptions(MOST_RECENT)
+
+        # this is an edge case when we want to get from top of most
+        # recent posts even though the filter is MOST_RECENT
+        @getItemTimestampFn = ->
+
+        @populate()
+
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
     switch typeConstant
@@ -337,15 +351,9 @@ class MessagePane extends KDTabPaneView
     if type is 'post'
     then KD.utils.defer -> callback null, [data]
     else appManager.tell 'Activity', 'fetch', options, (err, items)=>
-      @getItemTimestampFn = getItemTimestampFn
+      return callback err, items  if err
 
-      # when we run out of posts in most liked list, we switch
-      # to getting most recent posts in DESC order
-      if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
-        @currentFilter = MOST_RECENT
-
-        # set to empty fn so we get posts from start of most recent list
-        @getItemTimestampFn = ->
+      @emit "ItemsArrived", items
 
       callback err, items
 
@@ -356,7 +364,7 @@ class MessagePane extends KDTabPaneView
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
 
-    return  unless last
+    return @listController.hideLazyLoader()  unless last
 
     from            = @getItemTimestampFn(last)
     @skipItemCount += ITEMS_COUNT
