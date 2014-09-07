@@ -23,11 +23,13 @@ func main() {
 	context := popularpost.New(r.Log, helper.MustInitRedisConn(r.Conf))
 
 	go func() {
-		//TODO: remove hardcoded of 'koding' and 'public'
-		//      get yesterday's daily buckets that exist in redis, create
-		//      weekly bucket for those groups, channel names
-		context.CreateKeyAtStartOfDay("koding", "public")
-		context.ResetRegistry()
+		for {
+			//TODO: remove hardcoded of 'koding' and 'public'
+			//      get yesterday's daily buckets that exist in redis, create
+			//      weekly bucket for those groups, channel names
+			context.CreateKeyAtStartOfDay("koding", "public")
+			context.ResetRegistry()
+		}
 	}()
 
 	r.SetContext(context)
