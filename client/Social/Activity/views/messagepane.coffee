@@ -33,15 +33,7 @@ class MessagePane extends KDTabPaneView
 
     @fakeMessageMap = {}
 
-    @currentFilter  = MOST_LIKED
-    @skipItemCount  = 0
-
-    # returns created at timestamp of item, this is not an instance
-    # method due to edge case when we switch from most liked to most
-    # recent filter we want to get posts from top and not the usual
-    # pagination behavior of getting posts that happened after last
-    # post on the feed
-    @getItemTimestampFn = getItemTimestampFn
+    @setFilterOptions MOST_LIKED
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -63,6 +55,21 @@ class MessagePane extends KDTabPaneView
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
+  setFilterOptions: (filter)->
+    @skipItemCount  = 0
+
+    if filter is MOST_LIKED
+      @currentFilter      = MOST_LIKED
+      @getItemTimestampFn = ->
+    else
+      @currentFilter      = MOST_RECENT
+
+      # returns created at timestamp of item, this is not an instance
+      # method due to edge case when we switch from most liked to most
+      # recent filter we want to get posts from top and not the usual
+      # pagination behavior of getting posts that happened after last
+      # post on the feed
+      @getItemTimestampFn = getItemTimestampFn
 
   bindInputEvents: ->
 
@@ -206,7 +213,9 @@ class MessagePane extends KDTabPaneView
       @listController.removeAllItems()
       @listController.showLazyLoader()
 
-      @currentFilter = if data.active then MOST_LIKED else MOST_RECENT
+      filter = if data.active then MOST_LIKED else MOST_RECENT
+      @setFilterOptions filter
+
       @skipItemCount = 0
 
       @populate()
@@ -328,6 +337,7 @@ class MessagePane extends KDTabPaneView
     if type is 'post'
     then KD.utils.defer -> callback null, [data]
     else appManager.tell 'Activity', 'fetch', options, (err, items)=>
+      @getItemTimestampFn = getItemTimestampFn
 
       # when we run out of posts in most liked list, we switch
       # to getting most recent posts in DESC order
@@ -348,15 +358,13 @@ class MessagePane extends KDTabPaneView
 
     return  unless last
 
-    from = @getItemTimestampFn(last)
+    from            = @getItemTimestampFn(last)
     @skipItemCount += ITEMS_COUNT
 
     @fetch {from, skip:@skipItemCount}, (err, items=[])=>
       @listController.hideLazyLoader()
 
       return KD.showError err  if err
-
-      @getItemTimestampFn = getItemTimestampFn
 
       items.forEach @lazyBound 'loadMessage'
 
