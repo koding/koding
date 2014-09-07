@@ -2,6 +2,7 @@ zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
+os                    = require 'os'
 
 Configuration = (options={}) ->
 
@@ -31,8 +32,8 @@ Configuration = (options={}) ->
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        '.dev'                    }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kiteKeyName         = if environment is "dev" then "koding" else environment
@@ -638,8 +639,8 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
-
 
       if [[ "$1" == "killall" ]]; then
 

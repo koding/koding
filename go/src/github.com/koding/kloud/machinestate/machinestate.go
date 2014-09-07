@@ -97,6 +97,16 @@ func (s State) In(states ...State) bool {
 	return false
 }
 
+// InProgress checks whether the given state is one of the states that defines
+// a ongoing process, such as building, starting, stopping, etc...
+func (s State) InProgress() bool {
+	if s.In(Building, Starting, Stopping, Terminating, Rebooting, Updating) {
+		return true
+	}
+
+	return false
+}
+
 func (s State) String() string {
 	switch s {
 	case NotInitialized:

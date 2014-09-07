@@ -101,3 +101,26 @@ func TestInteractionisExempt(t *testing.T) {
 
 	})
 }
+
+func TestInteractionMarkIfExempt(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("While marking if interaction isexempt ", t, func() {
+		Convey("it should return nil if exempt", func() {
+			accTroll := createAccountWithTest()
+			err := accTroll.MarkAsTroll()
+			So(err, ShouldBeNil)
+
+			i := NewInteraction()
+			i.AccountId = accTroll.Id
+
+			errs := i.MarkIfExempt()
+			So(errs, ShouldBeNil)
+		})
+
+	})
+}

@@ -65,6 +65,7 @@ func (i *Interaction) MarkIfExempt() error {
 	return nil
 }
 
+// Tests are done.
 func (i *Interaction) isExempt() (bool, error) {
 	if i.MetaBits.Is(Troll) {
 		return true, nil

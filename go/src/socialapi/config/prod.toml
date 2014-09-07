@@ -36,7 +36,7 @@ RedisDB = 0
 AppId          = "DYVV81J2S1"
 ApiKey         = "303eb858050b1067bcd704d6cbfb977c"
 ApiSecretKey   = "041427512bcdcd0c7bd4899ec8175f46"
-IndexSuffix    = ".dev"
+IndexSuffix    = ".prod"
 
 [mixpanel]
 Enabled       = false

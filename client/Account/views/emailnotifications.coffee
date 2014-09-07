@@ -11,7 +11,7 @@ class AccountEmailNotifications extends KDView
       daily            :
         title          : 'Send me a daily digest'
       privateMessage   :
-        title          : 'When someone sends me a private message'
+        title          : 'When someone sends me a chat message'
       comment          :
         title          : 'When my post gets a new comment'
       likeActivities   :

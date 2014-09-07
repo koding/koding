@@ -10,7 +10,7 @@ class ComputeStateChecker extends KDObject
       environment    : KD.config.environment
 
     @machines        = []
-    @machineStatuses = {}
+    @ignoredMachines = []
     @tickInProgress  = no
     @running         = no
     @timer           = null
@@ -47,6 +47,19 @@ class ComputeStateChecker extends KDObject
     @machines.push machine
 
 
+  ignore: (machineId)->
+
+    log "IGNORING: ", {machineId}
+
+    @ignoredMachines.push machineId  unless machineId in @ignoredMachines
+
+  watch: (machineId)->
+
+    log "WATCHING: ", {machineId}
+
+    @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
+
+
   tick:->
 
     return  unless @machines.length
@@ -57,21 +70,31 @@ class ComputeStateChecker extends KDObject
 
     @machines.forEach (machine)=>
 
-      call = @kloud.info { machineId: machine._id }
+      machineId = machine._id
+
+      if machineId in @ignoredMachines
+        log "csc: ignoring check for machine:", machineId
+        return
+
+      call = @kloud.info { machineId }
 
       .then (response)=>
+
+        log "csc: info: ", response.State
+
+        if machineId in @ignoredMachines
+          log "csc: ignoring check for machine:", machineId
+          return
 
         computeController.eventListener
           .triggerState machine, status : response.State
 
         computeController.followUpcomingEvents {
-          _id: machine._id, status: state: response.State
+          _id: machineId, status: state: response.State
         }
 
         unless machine.status.state is response.State
-          computeController.triggerReviveFor machine._id
-
-        @addMachine machine
+          computeController.triggerReviveFor machineId
 
       .timeout ComputeController.timeout
 
@@ -81,7 +104,4 @@ class ComputeStateChecker extends KDObject
         unless (err?.code is "107") or (err?.name is "TimeoutError")
           log "csc: info error happened:", err
 
-        @addMachine machine
-
-    @machines = []
     @tickInProgress = no

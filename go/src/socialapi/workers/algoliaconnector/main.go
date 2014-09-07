@@ -27,6 +27,7 @@ func main() {
 	handler := algoliaconnector.New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
 	r.SetContext(handler)
 	r.Register(models.Channel{}).OnCreate().Handle((*algoliaconnector.Controller).TopicSaved)
+	r.Register(models.Account{}).OnCreate().Handle((*algoliaconnector.Controller).AccountSaved)
 	r.Listen()
 	r.Wait()
 }

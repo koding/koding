@@ -55,6 +55,8 @@ func (mwc *Controller) Shutdown() {
 func (mwc *Controller) Start() {
 	mwc.migrateAllAccounts()
 
+	mwc.migrateAllAccountsToAlgolia()
+
 	mwc.migrateAllGroups()
 
 	mwc.migrateAllTags()

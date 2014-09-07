@@ -183,13 +183,17 @@ getSidebar = ->
     <div class="kdcustomscrollview">
       <main class="kdview kdscrollview">
         <div class="activity-sidebar">
+          <h3 class="sidebar-title">Channels</h3>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Topic/public"><span class="ttag" data-paths="name">#public</span></a>
+              <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Topic/public"><span class="ttag" data-paths="name">#koding</span></a>
           <a class="custom-link-view kdlistitemview-sidebar-item activity" href="/Activity/Public">
             <span class="icon"></span>
             <span class="title">Activity</span>
           </a>
           <section class='sidebar-join'>
-            Join our community of developers building full stack applications
-            on Koding.
+            Join our growing community of developers from all over the world who
+            are building awesome applications on their full-featured, cloud-based
+            development environment powered by Koding.
             <form action="/Register">
               <button type="submit" class="kdbutton solid green medium">
                 <span class="button-title">Sign Up</span>
@@ -198,9 +202,8 @@ getSidebar = ->
             <a href="/Login" class='login-link'>Login</a>
           </section>
           <section class='sidebar-bottom-links'>
-            <a href='http://learn.koding.com/'>University</a>
             <a href='http://koding.com'>Features</a>
-            <a href='http://koding.com/About'>About</a>
+            <a href='http://koding.com/About'>About Koding</a>
           </section>
         </div>
       </main>
