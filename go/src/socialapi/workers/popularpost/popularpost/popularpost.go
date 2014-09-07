@@ -261,7 +261,7 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 	endOfDay := now.EndOfDay().UTC()
 	difference := time.Now().UTC().Sub(endOfDay)
 
-	<-time.After(difference)
+	<-time.After(difference * -1)
 
 	keyname := &KeyName{
 		GroupName: groupName, ChannelName: channelName,
