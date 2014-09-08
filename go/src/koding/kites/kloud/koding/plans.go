@@ -1,11 +1,26 @@
 package koding
 
+type Plan interface {
+	// Total checks whether the given plan has a reached the total machine
+	// limit
+	Total() error
+
+	// Storage checks whether the given plan has sufficent storage
+	Storage() error
+
+	// Timeout checks whether the given plan has reached the inactiviy timeout
+	Timeout() error
+
+	// AlwaysOn() returns true if the user is able to have AlwaysOn() plans
+	AlwaysOn() (bool, error)
+}
+
 // Plan defines a single koding plan
-type Plan int
+type PlanName int
 
 const (
 	// Unknown is a plan that needs to be resolved manually
-	Unknown Plan = iota
+	Unknown PlanName = iota
 
 	// Free:  1 VM, 0 Always On, 30 min timeout -- CAN ONLY CREATE ONE t2.micro (1GB
 	// RAM, 3GB Storage)
@@ -28,7 +43,7 @@ const (
 	Super
 )
 
-func (p Plan) String() string {
+func (p PlanName) String() string {
 	switch p {
 	case Free:
 		return "Free"

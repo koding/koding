@@ -7,6 +7,15 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+type Checker interface {
+	// Total checks whether the given plan has a reached the total machine
+	// limit
+	Total() error
+
+	// Storage checks whether the given plan has sufficent storage
+	Storage() error
+}
+
 type totalLimit struct {
 	// total defines how much machines a user can have
 	total int
@@ -20,7 +29,7 @@ type concurrentLimit struct {
 var (
 	// limits contains the various limitations based on the machine
 	// itself.
-	limits = map[Plan]Limiter{
+	limits = map[PlanName]Limiter{
 		Free: freeLimiter(),
 	}
 )
