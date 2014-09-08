@@ -1,6 +1,9 @@
 class RegisterInlineForm extends LoginViewInlineForm
 
+  EMAIL_VALID    = no
+  USERNAME_VALID = no
   ENTER          = 13
+
   constructor:(options={},data)->
     super options, data
 
@@ -11,16 +14,20 @@ class RegisterInlineForm extends LoginViewInlineForm
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
         decorateValidation: no
+        focus         : => @email.icon.unsetTooltip()
         keyup         : (event)   => @submitForm event  if event.which is ENTER
 
+
+
+    @username?.destroy()
     @username = new LoginInputViewWithLoader
       inputOptions       :
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "username"
-        # defaultValue     : "gokmen-#{random}"
         testPath         : "register-form-username"
-        keyup            : =>
+        focus            : => @username.icon.unsetTooltip()
+        keyup            : (event) =>
 
           if (val = @username.input.getValue()).trim() isnt ''
             @domain.updatePartial "#{val}.koding.io"
@@ -28,6 +35,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             @domain.updatePartial "username.koding.io"
 
           @submitForm event  if event.which is ENTER
+
         validate         :
           container      : this
           rules          :
@@ -50,12 +58,16 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     {buttonTitle} = @getOptions()
 
+    @button?.destroy()
     @button = new KDButtonView
       title         : buttonTitle or 'Create account'
-      type          : 'submit'
+      type          : 'button'
       style         : 'solid green medium'
       loader        : yes
       callback      : @bound 'submitForm'
+
+
+
 
     @invitationCode = new LoginInputView
       cssClass      : 'hidden'
@@ -99,13 +111,17 @@ class RegisterInlineForm extends LoginViewInlineForm
           if err
             if response?.kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              USERNAME_VALID = no
           else
             if forbidden
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
+              USERNAME_VALID = no
             else if kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              USERNAME_VALID = no
             else
               input.setValidationResult "usernameCheck", null
+              USERNAME_VALID = yes
 
 
   getEmailValidator: ->
@@ -125,9 +141,11 @@ class RegisterInlineForm extends LoginViewInlineForm
             if err then warn err
             else
               if response
-                input.setValidationResult "available", null
+                input.setValidationResult 'available', null
+                EMAIL_VALID = yes
               else
-                input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
+                input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+                EMAIL_VALID = no
         return
     messages    :
       required  : 'Please enter your email address.'
