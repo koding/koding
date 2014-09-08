@@ -105,7 +105,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 				break
 			}
 
-			iter := query.Skip(index).Limit(count - index).Sort(sort...).Iter()
+			iter := query.Sort(sort...).Skip(index).Limit(count - index).Iter()
 
 			for iter.Next(iterOptions.Result) {
 				if err := iterOptions.F(iterOptions.Result); err != nil {
