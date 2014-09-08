@@ -55,6 +55,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       type          : 'submit'
       style         : "solid green medium"
       loader        : yes
+      callback      : @bound 'submitForm'
 
     @invitationCode = new LoginInputView
       cssClass      : "hidden"
@@ -148,6 +149,20 @@ class RegisterInlineForm extends LoginViewInlineForm
     messages    :
       required  : "Please enter your email address."
       email     : "That doesn't seem like a valid email address."
+  submitForm: (event) ->
+
+    # KDInputView doesn't give clear results with
+    # async results that's why we maintain those
+    # results manually in EMAIL_VALID and USERNAME_VALID
+    # at least for now - SY
+    if EMAIL_VALID and USERNAME_VALID and @username.input.valid and @email.input.valid
+      @submit event
+      return yes
+    else
+      @button.hideLoader()
+      @username.input.validate()
+      @email.input.validate()
+      return no
 
   pistachio:->
     """
