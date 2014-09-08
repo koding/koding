@@ -512,7 +512,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @addSubView @sections.conversations = new ActivitySideView
       title      : 'Threads'
-      cssClass   : 'conversations'
+      cssClass   : 'conversations hidden'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
