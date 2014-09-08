@@ -420,7 +420,7 @@ func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []int
 // SortedSetsUnion creates a combined set from given list of sorted set keys.
 //
 // See: http://redis.io/commands/zunionstore
-func (r *RedisSession) SortedSetsUnion(destination string, keys []interface{}, weights []interface{}, aggregate string) (int64, error) {
+func (r *RedisSession) SortedSetsUnion(destination string, keys []string, weights []interface{}, aggregate string) (int64, error) {
 	if destination == "" {
 		return 0, errors.New("no destination to store")
 	}
@@ -435,7 +435,7 @@ func (r *RedisSession) SortedSetsUnion(destination string, keys []interface{}, w
 	}
 
 	for _, key := range keys {
-		prefixed = append(prefixed, r.AddPrefix(key.(string)))
+		prefixed = append(prefixed, r.AddPrefix(key))
 	}
 
 	if len(weights) != 0 {
@@ -464,10 +464,5 @@ func (r *RedisSession) SortedSetScore(key string, member interface{}) (float64, 
 // See: http://redis.io/commands/zrem
 func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, error) {
 	prefixed := []interface{}{r.AddPrefix(key)}
-
-	for _, key := range members {
-		prefixed = append(prefixed, r.AddPrefix(key.(string)))
-	}
-
 	return redis.Int64(r.Do("ZREM", prefixed...))
 }

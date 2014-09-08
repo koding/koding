@@ -146,7 +146,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 }
 
 func (f *Controller) CreateSevenDayBucket(k *KeyName) error {
-	keys, weights := []interface{}{}, []interface{}{}
+	keys, weights := []string{}, []interface{}{}
 
 	from := getStartOfDay(k.Time)
 	aggregate := "SUM"
