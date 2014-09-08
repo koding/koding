@@ -310,21 +310,6 @@ class ActivitySidebar extends KDCustomHTMLView
       listController.deselectAllItems()
 
 
-  getItemByRouteParams: (type, slug) ->
-
-    typeConstant = k for own k, v of typeMap when v is type
-
-    itemWeWant = null
-    for own name, section of @sections
-
-      section.listController.getListItems().forEach (item)->
-        if item.typeConstant is typeConstant
-          slugProp = slugProps[item.bongo_.constructorName]
-          itemWeWant = item[slugProp] is slug
-
-    return itemWeWant
-
-
   viewAppended: ->
 
     super
@@ -334,26 +319,19 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
-    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
-      @addSubView @activityLink = new CustomLinkView
-        title    : 'Activity'
-        cssClass : 'kdlistitemview-sidebar-item activity'
-        href     : '/Activity/Public'
-        click    : ->
-          @setClass 'selected'
-          @$('cite.count').remove()
-        icon     : {}
-
-      @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
 
   initiateFakeCounter: ->
 
-    return  if KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
     KD.utils.wait 5000, =>
-      @activityLink.setClass 'unread'
-      @activityLink.$('cite').removeClass 'hidden'
+      publicLink = @sections.channels.listController.getListItems().first
+      publicLink.setClass 'unread'
+      publicLink.unreadCount.updatePartial 1
+      publicLink.unreadCount.show()
+
+      publicLink.on 'click', ->
+        KD.utils.wait 177, ->
+          publicLink.unsetClass 'unread'
+          publicLink.unreadCount.hide()
 
 
 
