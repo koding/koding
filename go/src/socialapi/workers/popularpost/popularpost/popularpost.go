@@ -64,7 +64,7 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return err
 	}
 
-	if notEligibleForPopularPost(c, cm) {
+	if !isEligibleForPopularPost(c, cm) {
 		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
@@ -209,28 +209,28 @@ func (k *KeyName) String(t time.Time) string {
 // helpers
 //----------------------------------------------------------
 
-func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) bool {
+func isEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) bool {
 	if c.MetaBits.Is(models.Troll) {
-		return true
+		return false
 	}
 
 	if c.PrivacyConstant != models.Channel_PRIVACY_PUBLIC {
-		return true
+		return false
 	}
 
 	if cm.MetaBits.Is(models.Troll) {
-		return true
+		return false
 	}
 
 	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
-		return true
+		return false
 	}
 
 	if isCreatedMoreThan7DaysAgo(cm.CreatedAt) {
-		return true
+		return false
 	}
 
-	return false
+	return true
 }
 
 //----------------------------------------------------------
