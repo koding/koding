@@ -30,9 +30,9 @@ class LoginInputView extends JView
     @input.on 'keyup',                     @bound 'inputReceivedKeyup'
     @input.on 'focus',                     @bound 'inputReceivedFocus'
     @input.on 'blur',                      @bound 'inputReceivedBlur'
-    @input.on "ValidationError",           @bound 'decorateValidation'
-    @input.on "ValidationPassed",          @bound 'decorateValidation'
-    @input.on "ValidationFeedbackCleared", @bound 'resetDecoration'
+    @input.on 'ValidationError',           @bound 'decorateValidation'
+    @input.on 'ValidationPassed',          @bound 'decorateValidation'
+    @input.on 'ValidationFeedbackCleared', @bound 'resetDecoration'
 
 
   setFocus: -> @input.setFocus()
