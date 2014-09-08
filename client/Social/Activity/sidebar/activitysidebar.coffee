@@ -374,16 +374,6 @@ class ActivitySidebar extends KDCustomHTMLView
         type     : 'workspace'
         href     : "/IDE/VM/#{machine.uid}"
         parentId : id
-      # treeData.push
-      #   id       : "#{id}-apps"
-      #   title    : 'Apps'
-      #   type     : 'title'
-      #   parentId : id
-      # treeData.push
-      #   title    : 'App Store'
-      #   type     : 'app'
-      #   href     : '/Apps'
-      #   parentId : id
 
 
     @machineTree.addNode data for data in treeData
@@ -416,7 +406,7 @@ class ActivitySidebar extends KDCustomHTMLView
     # for this and put this logic into there ~ FIXME ~ GG
     @machineTree.dblClick = (nodeView, event)->
       machine = nodeView.getData()
-      if machine.status.state is Machine.State.Running
+      if machine.status?.state is Machine.State.Running
         @toggle nodeView
 
     section.addSubView header = new KDCustomHTMLView
@@ -441,6 +431,7 @@ class ActivitySidebar extends KDCustomHTMLView
     else
       @fetchMachines @bound 'listMachines'
 
+
   handleMachineItemClick: (machineItem, event) ->
 
     machine  = machineItem.getData()
@@ -451,7 +442,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if event.target.nodeName is 'SPAN'
 
-      if status.state is Running
+      if status?.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
       else return
@@ -467,7 +458,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return
 
-    else if machineItem.getData().status.state is Machine.State.Building
+    else if machineItem.getData().status?.state is Machine.State.Building
 
       return
 
@@ -484,7 +475,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     for id, node of @machineTree.nodes when node.type is 'machine' and node.id isnt machineItem.id
       @machineTree.collapse node
-
 
 
   addFollowedTopics: ->
@@ -504,8 +494,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
       @sections.followedTopics.hide()
-
-
 
 
   addConversations: ->
