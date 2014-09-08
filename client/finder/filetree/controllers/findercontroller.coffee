@@ -6,6 +6,7 @@ class NFinderController extends KDViewController
 
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
+    treeOptions.contextMenuClass  = options.contextMenuClass  or= NFinderContextMenuController
     treeOptions.nodeIdPath        = options.nodeIdPath        or= "path"
     treeOptions.nodeParentIdPath  = options.nodeParentIdPath  or= "parentPath"
     treeOptions.dragdrop          = options.dragdrop           ?= yes
