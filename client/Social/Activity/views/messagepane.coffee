@@ -33,7 +33,7 @@ class MessagePane extends KDTabPaneView
 
     @fakeMessageMap = {}
 
-    @setFilterOptions MOST_LIKED
+    @changeFilter MOST_LIKED
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -48,7 +48,7 @@ class MessagePane extends KDTabPaneView
       # when we run out of posts in most liked list, we switch
       # to getting most recent posts in DESC order
       if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
-        @setFilterOptions MOST_RECENT
+        @changeFilter MOST_RECENT
 
         # this is an edge case when we want to get from top of most
         # recent posts even though the filter is MOST_RECENT
@@ -69,7 +69,7 @@ class MessagePane extends KDTabPaneView
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
-  setFilterOptions: (filter)->
+  changeFilter: (filter)->
     @skipItemCount  = 0
 
     if filter is MOST_LIKED
@@ -228,7 +228,7 @@ class MessagePane extends KDTabPaneView
       @listController.showLazyLoader()
 
       filter = if data.active then MOST_LIKED else MOST_RECENT
-      @setFilterOptions filter
+      @changeFilter filter
 
       @skipItemCount = 0
 
