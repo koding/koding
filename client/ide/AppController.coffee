@@ -207,7 +207,8 @@ class IDEAppController extends AppController
   mountMachine: (machineData) ->
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
-    filesPane.emit 'MachineMountRequested', machineData
+    rootPath     = @workspaceData?.rootPath or null
+    filesPane.emit 'MachineMountRequested', machineData, rootPath
 
   unmountMachine: (machineData) ->
     panel        = @workspace.getView()
@@ -574,7 +575,12 @@ class IDEAppController extends AppController
       ideView.tabView.emit 'TabNeedsToBeClosed', file
 
   handleIDEBecameReady: (machine) ->
-    @finderPane.finderController.reset()
+    {finderController} = @finderPane
+    if @workspaceData
+      finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
+    else
+      finderController.reset()
+
     @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
       terminalPane.resurrect()
 

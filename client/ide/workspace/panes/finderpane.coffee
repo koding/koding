@@ -29,6 +29,6 @@ class IDE.FinderPane extends IDE.Pane
     fc.treeController.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    @on 'MachineMountRequested',   (machine) -> fc.mountMachine machine
+    @on 'MachineMountRequested',   (machine, rootPath) -> fc.mountMachine machine, { mountPath: rootPath }
 
     @on 'MachineUnmountRequested', (machine) -> fc.unmountMachine machine.uid
