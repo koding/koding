@@ -35,8 +35,8 @@ class ActivityActionsView extends JView
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @shareLink.getX() + 25
-          y           : @shareLink.getY() - 7
+          x           : @shareLink.getX() + window.scrollX + 25
+          y           : @shareLink.getY() + window.scrollY - 7
           menuMaxWidth: 400
           menuMinWidth: 192
           lazyLoad    : yes
