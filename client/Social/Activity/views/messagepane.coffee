@@ -32,8 +32,10 @@ class MessagePane extends KDTabPaneView
     @bindInputEvents()
 
     @fakeMessageMap = {}
+    @mostLikedPostsCount = 0
 
     @changeFilter MOST_LIKED
+    @realFilter = MOST_LIKED
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -43,18 +45,15 @@ class MessagePane extends KDTabPaneView
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
     @on "ItemsArrived", (items)->
-      @getItemTimestampFn = getItemTimestampFn
+      return  if @currentFilter isnt MOST_LIKED
+      @mostLikedPostsCount += items.length
+
+      return  if items.length isnt 0
 
       # when we run out of posts in most liked list, we switch
       # to getting most recent posts in DESC order
-      if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
-        @changeFilter MOST_RECENT
-
-        # this is an edge case when we want to get from top of most
-        # recent posts even though the filter is MOST_RECENT
-        @getItemTimestampFn = ->
-
-        @populate()
+      @changeFilter MOST_RECENT
+      if @mostLikedPostsCount is 0 then @populate()
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
@@ -70,20 +69,9 @@ class MessagePane extends KDTabPaneView
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
   changeFilter: (filter)->
-    @skipItemCount  = 0
-
-    if filter is MOST_LIKED
-      @currentFilter      = MOST_LIKED
-      @getItemTimestampFn = ->
-    else
-      @currentFilter      = MOST_RECENT
-
-      # returns created at timestamp of item, this is not an instance
-      # method due to edge case when we switch from most liked to most
-      # recent filter we want to get posts from top and not the usual
-      # pagination behavior of getting posts that happened after last
-      # post on the feed
-      @getItemTimestampFn = getItemTimestampFn
+    @currentFilter       = filter
+    @skipItemCount       = 0
+    @mostLikedPostsCount = 0
 
   bindInputEvents: ->
 
@@ -229,6 +217,7 @@ class MessagePane extends KDTabPaneView
 
       filter = if data.active then MOST_LIKED else MOST_RECENT
       @changeFilter filter
+      @realFilter = filter
 
       @skipItemCount = 0
 
@@ -361,13 +350,19 @@ class MessagePane extends KDTabPaneView
 
     @listController.showLazyLoader()
 
+    if @realFilter is MOST_LIKED and @mostLikedPostsCount > 0
+      return @listController.hideLazyLoader()
+
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
 
     return @listController.hideLazyLoader()  unless last
 
-    from            = @getItemTimestampFn(last)
-    @skipItemCount += ITEMS_COUNT
+    if @currentFilter is MOST_LIKED
+      from = null
+      @skipItemCount += ITEMS_COUNT
+    else
+      from = last.getData().createdAt
 
     @fetch {from, skip:@skipItemCount}, (err, items=[])=>
       @listController.hideLazyLoader()
@@ -386,4 +381,3 @@ class MessagePane extends KDTabPaneView
     @listController.showLazyLoader()
     @populate()
 
-  getItemTimestampFn = (item)-> item.getData().createdAt
