@@ -1,6 +1,7 @@
 package popularpost
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,6 +31,29 @@ func TestPopularPost(t *testing.T) {
 	// initialize popular post controller
 	controller := New(r.Log, helper.MustInitRedisConn(r.Conf))
 
+	Convey("Given group, channelname and time to keyname", t, func() {
+		keyname := &KeyName{
+			GroupName: "koding", ChannelName: "public",
+			Time: time.Now(),
+		}
+
+		today := now.New(time.Now().UTC()).BeginningOfDay()
+		checkKey := fmt.Sprintf("%s:koding:popularpost:public:%d",
+			r.Conf.Environment, today.Unix(),
+		)
+
+		Convey("Then it should generate daily key", func() {
+			So(keyname.Today(), ShouldEqual, checkKey)
+		})
+
+		Convey("Then it should generate weekly key", func() {
+			sevenDaysAgo := getDaysAgo(today, 7).UTC().Unix()
+			checkKey = fmt.Sprintf("%s-%d", checkKey, sevenDaysAgo)
+
+			So(keyname.Weekly(), ShouldEqual, checkKey)
+		})
+	})
+
 	Convey("Given a post", t, func() {
 		account, err := rest.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
@@ -54,7 +78,7 @@ func TestPopularPost(t *testing.T) {
 				}
 				key := keyname.Today()
 
-				// check if check exists
+				// check if key exists
 				exists := controller.redis.Exists(key)
 				So(exists, ShouldEqual, true)
 
@@ -73,7 +97,7 @@ func TestPopularPost(t *testing.T) {
 				}
 				key := keyname.Weekly()
 
-				// check if check exists
+				// check if key exists
 				exists := controller.redis.Exists(key)
 				So(exists, ShouldEqual, true)
 
@@ -125,7 +149,7 @@ func TestPopularPost(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("Post with more interactions has higher score", func() {
-				// check if check exists
+				// check if key exists
 				keyname := &KeyName{
 					GroupName: c.GroupName, ChannelName: c.Name,
 					Time: cm.CreatedAt,
