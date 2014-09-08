@@ -451,6 +451,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if event.target.nodeName is 'SPAN'
 
+      if machineItem.type is 'title'
+        if event.target.classList.contains 'ws-add-icon'
+          return @addNewWorkspace machineItem
+
       if status?.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
@@ -577,6 +581,72 @@ class ActivitySidebar extends KDCustomHTMLView
     #     if index
     #       tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
     #       KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
+
+
+  addNewWorkspace: (machineItem) ->
+    return if @addWorkspaceView
+
+    {machineUId} = machineItem.getData()
+    type         = 'new-workspace'
+    delegate     = machineItem.getDelegate()
+
+    @addWorkspaceView = delegate.addItem { type, machineUId }
+
+    @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
+      delegate.removeItem @addWorkspaceView
+      @addWorkspaceView = null
+
+    @addWorkspaceView.child.input.setFocus()
+
+
+  createNewWorkspace: (options = {}) ->
+    {name, machineUId, rootPath} = options
+    {computeController, router } = KD.singletons
+    layout                       = {}
+
+    if not name or not machineUId
+      return warn 'Missing options for create new workspace'
+
+    unless rootPath
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
+      emptyWorkspace = yes
+
+    data    = { name, machineUId, rootPath, layout }
+    machine = m for m in computeController.machines when m.uid is machineUId
+    command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
+
+    return warn "Machine not found."  unless machine
+
+    callback = =>
+      KD.remote.api.JWorkspace.create data, (err, workspace) =>
+        return KD.showError "Couldn't create new workspace"  if err
+        view    = @addWorkspaceView
+        options =
+          title : workspace.name
+          type  : 'workspace'
+          href  : "/IDE/#{workspace.slug}"
+          data  : workspace
+
+        if view
+          list  = view.getDelegate()
+          list.removeItem view  if view
+        else
+          for key, node of @machineTree.nodes when node.type is 'title'
+            list = node.getDelegate()
+
+        list.addItem options
+
+        KD.userWorkspaces.push workspace
+
+        router.handleRoute options.href
+
+    if emptyWorkspace
+      machine.getBaseKite().exec({ command })
+      .then  (res) => callback()
+      .catch (err) ->
+        KD.showError 'Unable to create a new workspace'
+    else
+      callback()
 
 
   updateMachineTree: (callback = noop) ->
