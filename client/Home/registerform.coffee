@@ -4,6 +4,9 @@ class HomeRegisterForm extends RegisterInlineForm
 
     super
 
+    @email.setOption 'stickyTooltip', yes
+    @username.setOption 'stickyTooltip', yes
+
     @email.input.on    'focus', @bound 'handleFocus'
     @username.input.on 'focus', @bound 'handleFocus'
 
