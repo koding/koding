@@ -48,7 +48,7 @@ class MessagePane extends KDTabPaneView
       # when we run out of posts in most liked list, we switch
       # to getting most recent posts in DESC order
       if @currentFilter is MOST_LIKED and items.length < ITEMS_COUNT
-        @setFilterOptions(MOST_RECENT)
+        @setFilterOptions MOST_RECENT
 
         # this is an edge case when we want to get from top of most
         # recent posts even though the filter is MOST_RECENT
