@@ -53,7 +53,7 @@ func (f *Controller) InteractionDeleted(i *models.Interaction) error {
 	return f.handleInteraction(-1, i)
 }
 
-func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction) error {
+func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error {
 	cm, err := models.ChannelMessageById(i.MessageId)
 	if err != nil {
 		return err
@@ -74,17 +74,16 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		Time: cm.CreatedAt,
 	}
 
-	err = f.saveToDailyBucket(keyname, incrementCount, i.MessageId)
+	err = f.saveToBucket(keyname.Today(), inc, i.MessageId)
 	if err != nil {
 		return err
 	}
-
-	weight := getWeight(i.CreatedAt, cm.CreatedAt, incrementCount)
 
 	keyname = &KeyName{
 		GroupName: c.GroupName, ChannelName: c.Name,
 		Time: time.Now().UTC(),
 	}
+	weight := getWeight(i.CreatedAt, cm.CreatedAt, inc)
 
 	err = f.saveToSevenDayBucket(keyname, weight, i.MessageId)
 	if err != nil {
@@ -94,9 +93,7 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 	return nil
 }
 
-func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
-	key := k.Today()
-
+func (f *Controller) saveToBucket(key string, inc float64, id int64) error {
 	score, err := f.redis.SortedSetIncrBy(key, inc, id)
 	if err != nil {
 		return err
@@ -112,7 +109,7 @@ func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
 	return err
 }
 
-func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) error {
+func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) error {
 	key := k.Weekly()
 
 	_, ok := keyExistsRegistry[key]
@@ -130,16 +127,9 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 		return nil
 	}
 
-	score, err := f.redis.SortedSetIncrBy(key, inc, id)
+	err := f.saveToBucket(key, inc, id)
 	if err != nil {
 		return err
-	}
-
-	if score <= 0 {
-		_, err := f.redis.SortedSetRem(key, id)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -275,9 +265,10 @@ func (t *Controller) ResetRegistry() {
 	keyExistsRegistry = map[string]bool{}
 }
 
-func getWeight(iCreatedAt, mCreatedAt time.Time, inc int) string {
+func getWeight(iCreatedAt, mCreatedAt time.Time, inc float64) float64 {
 	difference := int(iCreatedAt.Sub(mCreatedAt).Hours()/24) + 1
 	weight := 1 / float64(difference) * float64(inc)
+	truncated := float64(int(weight*10)) / 10
 
-	return fmt.Sprintf("%.1f", weight)
+	return truncated
 }
