@@ -1,5 +1,6 @@
 class RegisterInlineForm extends LoginViewInlineForm
 
+  ENTER          = 13
   constructor:(options={},data)->
     super options, data
 
@@ -10,6 +11,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
         decorateValidation: no
+        keyup         : (event)   => @submitForm event  if event.which is ENTER
 
     @username = new LoginInputViewWithLoader
       inputOptions       :
@@ -25,6 +27,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           else
             @domain.updatePartial "username.koding.io"
 
+          @submitForm event  if event.which is ENTER
         validate         :
           container      : this
           rules          :
