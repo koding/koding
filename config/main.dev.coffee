@@ -158,7 +158,6 @@ Configuration = (options={}) ->
     uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
-    embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github            : {clientId     : "f8e440b796d953ea01e5" }
     newkontrol        : {url          : "#{kontrol.url}"}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
