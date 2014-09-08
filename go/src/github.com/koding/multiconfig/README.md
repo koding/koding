@@ -19,7 +19,7 @@ Lets define and struct that defines our configuration
 ```go
 type Server struct {
 	Name    string
-	Port    int
+	Port    int `default:6060`
 	Enabled bool
 	Users   []string
 }
@@ -28,7 +28,7 @@ type Server struct {
 Load the configuration into multiconfig:
 
 ```go
-// Create a new constructor without or with an initial config file
+// Create a new DefaultLoader without or with an initial config file
 m := multiconfig.New()
 m := multiconfig.NewWithPath("config.toml") // supports TOML and JSON
 
@@ -43,7 +43,8 @@ m.MustLoad(serverConf)    // Panic's if there is any error
 Run your app:
 
 ```sh
-# Loads from config.toml
+# Sets default values first which are defined in each field tag value. 
+# Starts to load from config.toml
 $ app
 
 # Override any config easily with environment variables, environment variables
