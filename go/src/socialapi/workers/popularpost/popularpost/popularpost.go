@@ -14,7 +14,7 @@ import (
 
 var (
 	PopularPostKeyName = "popularpost"
-	KeyExistsRegistry  = map[string]bool{}
+	keyExistsRegistry  = map[string]bool{}
 )
 
 func init() {
@@ -115,7 +115,7 @@ func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
 func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) error {
 	key := k.Weekly()
 
-	_, ok := KeyExistsRegistry[key]
+	_, ok := keyExistsRegistry[key]
 	if !ok {
 		exists := f.redis.Exists(key)
 		if !exists {
@@ -125,7 +125,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 			}
 		}
 
-		KeyExistsRegistry[key] = true
+		keyExistsRegistry[key] = true
 
 		return nil
 	}
@@ -272,7 +272,7 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 }
 
 func (t *Controller) ResetRegistry() {
-	KeyExistsRegistry = map[string]bool{}
+	keyExistsRegistry = map[string]bool{}
 }
 
 func getWeight(iCreatedAt, mCreatedAt time.Time, inc int) string {
