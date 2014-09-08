@@ -13,6 +13,8 @@ class IDE.FinderPane extends IDE.Pane
         addAppTitle          : no
         bindMachineEvents    : no
         treeItemClass        : IDE.FinderItem
+        treeControllerClass  : IDE.FinderTreeController
+        contextMenuClass     : IDE.FinderContextMenuController
 
       @addSubView fc.getView()
       @bindListeners()
