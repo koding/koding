@@ -115,8 +115,23 @@ createLocations = (workers={}) ->
 
   return locations
 
-nginxTemplate = (workers)->
+createStubLocation = (env)->
+  stub = """\n
+      # nginx status location, it retuns info about connections and requests
+      location /nginx_status {
+          # Turn on nginx status page
+          stub_status on;
+          # only allow requests coming from localhost
+          allow 127.0.0.1;
+          # Deny the rest of the connections
+          deny all;
+      }
+  \n"""
 
+  if env is "dev"
+    stub = ""
+
+  return stub
 
 module.exports.create = (workers, environment)->
   config = """
@@ -162,15 +177,7 @@ module.exports.create = (workers, environment)->
         #access_log off;
       }
 
-      # nginx status location, it retuns info about connections and requests
-      location /nginx_status {
-          # Turn on nginx status page
-          stub_status on;
-          # only allow requests coming from localhost
-          allow 127.0.0.1;
-          # Deny the rest of the connections
-          deny all;
-      }
+      #{createStubLocation(environment)}
 
       # special case for ELB here, for now
       location /-/healthCheck {

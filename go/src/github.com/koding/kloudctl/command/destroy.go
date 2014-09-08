@@ -25,6 +25,7 @@ func NewDestroy() cli.CommandFactory {
 func (d *Destroy) Action(args []string, k *kite.Client) error {
 	destroyArgs := &kloud.Controller{
 		MachineId: *d.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("destroy", destroyArgs)

@@ -77,20 +77,16 @@ class ActivityAppView extends KDView
     @sidebar.selectItemByRouteOptions type, slug
     item = @sidebar.selectedItem
 
-    if slug is 'public'
-      kallback item.getData()
-    else if not item
+    if not item
       type_ = switch type
         when 'message' then 'privatemessage'
         when 'post'    then 'activity'
         else type
-
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
           @sidebar.addItem data
           kallback data
-
     else
       kallback item.getData()
 

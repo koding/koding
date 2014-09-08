@@ -11,7 +11,7 @@ type (
 	// Server holds supported types by the multiconfig package
 	Server struct {
 		Name     string
-		Port     int
+		Port     int `default:"6060"`
 		Enabled  bool
 		Users    []string
 		Postgres Postgres
@@ -35,6 +35,9 @@ func main() {
 
 	// Populated the serverConf struct
 	m.MustLoad(serverConf) // Check for error
+
+	fmt.Println("After Loading: ")
+	fmt.Printf("%+v\n", serverConf)
 
 	if serverConf.Enabled {
 		fmt.Println("Enabled field is set to true")

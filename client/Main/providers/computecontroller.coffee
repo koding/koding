@@ -18,7 +18,7 @@ class ComputeController extends KDController
         environment  : KD.config.environment
 
       @eventListener = new ComputeEventListener
-      @computeStateChecker = new ComputeStateChecker
+      @stateChecker  = new ComputeStateChecker
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
@@ -94,8 +94,8 @@ class ComputeController extends KDController
             machines.push machine
 
         @machines = machines
-        @computeStateChecker.machines = machines
-        @computeStateChecker.start()
+        @stateChecker.machines = machines
+        @stateChecker.start()
 
         cb null, machines  for cb in queue
         queue = []
@@ -163,9 +163,9 @@ class ComputeController extends KDController
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
-      if @_trials[machine.uid][task]++ < 20
+      if @_trials[machine.uid][task]++ < 2
         info "Trying again to do '#{task}'..."
-        KD.singletons.computeController[task] machine
+        this[task] machine
         return yes
 
 
@@ -195,8 +195,9 @@ class ComputeController extends KDController
         @emit "error", { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
 
-      unless retried
-        warn "#{task} failed:", err, this
+      warn "#{task} failed:", err, this
+
+      @stateChecker.watch machine._id
 
 
   destroy: (machine)->
@@ -209,13 +210,12 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      @_clearTrialCounts machine
-
       call = @kloud.destroy { machineId: machine._id }
 
       .then (res)=>
 
         log "destroy res:", res
+        @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
       .timeout ComputeController.timeout

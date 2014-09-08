@@ -25,6 +25,7 @@ func NewStop() cli.CommandFactory {
 func (s *Stop) Action(args []string, k *kite.Client) error {
 	stopArgs := &kloud.Controller{
 		MachineId: *s.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("stop", stopArgs)
