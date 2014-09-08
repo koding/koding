@@ -175,7 +175,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getItems: ->
 
     items = []
-    items = items.concat @sections.followedTopics.listController.getListItems()
+    items = items.concat @sections.channels.listController.getListItems()
     items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
 
@@ -185,7 +185,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getListController: (type) ->
 
     section = switch type
-      when 'topic'                  then @sections.followedTopics
+      when 'topic'                  then @sections.channels
       when 'pinnedactivity', 'post' then @sections.conversations
       when 'privatemessage'         then @sections.messages
       else {}
@@ -490,7 +490,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addFollowedTopics: ->
 
-    @addSubView @sections.followedTopics = new ActivitySideView
+    @addSubView @sections.channels = new ActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
@@ -504,7 +504,7 @@ class ActivitySidebar extends KDCustomHTMLView
         , callback
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
-      @sections.followedTopics.hide()
+      @sections.channels.hide()
 
 
 
