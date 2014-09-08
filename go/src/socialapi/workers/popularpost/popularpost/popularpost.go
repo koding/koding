@@ -139,7 +139,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) err
 func (f *Controller) CreateSevenDayBucket(k *KeyName) error {
 	keys, weights := []string{}, []interface{}{}
 
-	from := getStartOfDay(k.Time)
+	from := getStartOfDayUTC(k.Time)
 	aggregate := "SUM"
 
 	for i := 0; i <= 6; i++ {
@@ -188,7 +188,7 @@ func NewKeyName(groupName, channelName string, t time.Time) (*KeyName, error) {
 }
 
 func (k *KeyName) Today() string {
-	return k.String(getStartOfDay(k.Time))
+	return k.String(getStartOfDayUTC(k.Time))
 }
 
 func (k *KeyName) Before(t time.Time) string {
@@ -196,7 +196,7 @@ func (k *KeyName) Before(t time.Time) string {
 }
 
 func (k *KeyName) Weekly() string {
-	current := getStartOfDay(k.Time.UTC())
+	current := getStartOfDayUTC(k.Time.UTC())
 	sevenDaysAgo := getDaysAgo(current, 7).UTC().Unix()
 
 	return fmt.Sprintf("%s-%d", k.String(current), sevenDaysAgo)
@@ -248,7 +248,7 @@ func isCreatedMoreThan7DaysAgo(t time.Time) bool {
 	return delta.Hours()/24 > 7
 }
 
-func getStartOfDay(t time.Time) time.Time {
+func getStartOfDayUTC(t time.Time) time.Time {
 	t = t.UTC()
 	return now.New(t).BeginningOfDay()
 }
