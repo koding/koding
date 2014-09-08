@@ -32,10 +32,10 @@ class MessagePane extends KDTabPaneView
     @bindInputEvents()
 
     @fakeMessageMap = {}
-    @mostLikedPostsCount = 0
 
-    @changeFilter MOST_LIKED
-    @realFilter = MOST_LIKED
+    @mostLikedPostsCount = 0
+    @changeFilter  MOST_LIKED
+    @setRealFilter MOST_LIKED
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -216,10 +216,8 @@ class MessagePane extends KDTabPaneView
       @listController.showLazyLoader()
 
       filter = if data.active then MOST_LIKED else MOST_RECENT
-      @changeFilter filter
-      @realFilter = filter
-
-      @skipItemCount = 0
+      @changeFilter(filter)
+      @setRealFilter(filter)
 
       @populate()
 
@@ -382,4 +380,6 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+  setRealFilter: (filter)-> @realFilter = filter
 
