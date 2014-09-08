@@ -139,14 +139,6 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	query.Type = models.ChannelMessage_TYPE_POST
 
 	channelName := u.Query().Get("channelName")
-	skip := u.Query().Get("skip")
-
-	i, err := strconv.Atoi(skip)
-	if err != nil {
-		i = 0
-	}
-
-	query.Skip = i
 
 	keyname := popularpost.KeyName{
 		GroupName: query.GroupName, ChannelName: channelName,
