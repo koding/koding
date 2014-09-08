@@ -127,6 +127,10 @@ sidebarSelectedBg = #15171A
   padding             1px 16px
   borderBox()
 
+  .workspace.has-sub-items
+    cite
+      display         none !important
+
   li.selected + ul.kdlistview-main-nav.expanded
     bg                color sidebarSelectedBg
     padding-bottom    8px
@@ -276,6 +280,30 @@ sidebarSelectedBg = #15171A
             border      none
             shadow      none
 
+  .ws-add-icon
+    display           inline-block
+    r-sprite          'app', 'circle-plus-14'
+    right             8px
+    top               10px
+    pointer()
+    abs()
+
+  .add-workpace-view
+    .cancel
+      display         inline-block
+      r-sprite        'app', 'circle-plus-14'
+      vendor          transform, rotate(45deg)
+      top             2px
+      position        relative
+      pointer()
+
+    .kdinput
+      border-radius   3px
+      bg              image, none
+      size            152px, 22px
+      margin-right    5px
+      font-size       12px
+      padding         5px
 
   > section
     size              auto auto
@@ -284,9 +312,9 @@ sidebarSelectedBg = #15171A
 
 
     .lazy-loader
-      margin            0
-      top               -28px
-      right             36px
+      margin          0
+      top             -28px
+      right           36px
       abs()
 
     .kdlistview
