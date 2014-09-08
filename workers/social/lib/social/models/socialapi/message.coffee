@@ -50,10 +50,6 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         fetch  :
           (signature Object, Function)
-        fetchDataFromEmbedly: [
-          (signature String, Object, Function)
-          (signature [String], Object, Function)
-        ]
 
     schema          :
       id               : Number
@@ -221,32 +217,3 @@ module.exports = class SocialMessage extends Base
         if accountId is socialApiId
           return callback null, yes
         fn client, callback
-
-
-  cachedEmbedlyResult = {}
-
-  @fetchDataFromEmbedly = (urls, options, callback) ->
-
-    if result = cachedEmbedlyResult[urls]
-      return callback null, result
-
-    urls = [urls]  unless Array.isArray urls
-
-    Embedly    = require "embedly"
-    { apiKey } = KONFIG.embedly
-
-    new Embedly key: apiKey, (err, api) ->
-
-      return callback err  if err
-
-      options    = extend options,
-        urls     : urls
-        maxWidth : 150
-
-      api.extract options, (err, result) ->
-        return callback err, result  if err
-
-        cachedEmbedlyResult[urls] = result
-        callback err, result
-
-
