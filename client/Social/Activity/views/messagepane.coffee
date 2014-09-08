@@ -188,7 +188,6 @@ class MessagePane extends KDTabPaneView
     @filterLinks = new FilterLinksView {},
       'Most Liked'  :
         active      : yes
-      'Most Recent' : {}
 
 
   bindChannelEvents: (channel) ->
