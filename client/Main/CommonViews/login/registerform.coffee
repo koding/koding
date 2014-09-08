@@ -3,13 +3,10 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
-    # random = KD.utils.getRandomNumber()
-
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
         placeholder   : "email address"
-        # defaultValue  : "gokmen+#{random}@goksel.me"
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
         decorateValidation: no
