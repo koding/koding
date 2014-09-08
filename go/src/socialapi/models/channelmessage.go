@@ -158,12 +158,6 @@ func (c *ChannelMessage) UpdateBodyRaw() error {
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
-func (c *ChannelMessage) UpdateCreatedAt(t time.Time) error {
-	updateSql := fmt.Sprintf("UPDATE %s SET created_at=? WHERE id=?", c.TableName())
-
-	return bongo.B.DB.Exec(updateSql, t, c.Id).Error
-}
-
 // TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
 	containers := make([]*ChannelMessageContainer, len(messages))

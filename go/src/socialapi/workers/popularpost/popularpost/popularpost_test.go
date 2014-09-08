@@ -12,8 +12,16 @@ import (
 	"socialapi/workers/helper"
 
 	"github.com/jinzhu/now"
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func updateCreatedAt(id int64, ti time.Time) error {
+	msg := models.NewChannelMessage()
+	updateSql := fmt.Sprintf("UPDATE %s SET created_at=? WHERE id=?", msg.TableName())
+
+	return bongo.B.DB.Exec(updateSql, ti, id).Error
+}
 
 func TestPopularPost(t *testing.T) {
 	r := runner.New("popularpost")
@@ -192,28 +200,23 @@ func TestPopularPost(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		// create post with interaction yesterday
-		yesterdayPost := models.NewChannelMessage()
-		yesterdayPost.AccountId = account.Id
-		yesterdayPost.InitialChannelId = c.Id
-		yesterdayPost.Body = "yesterday my troubles were so far away"
-
-		err = yesterdayPost.Create()
+		yesterdayPost, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
 
-		err = yesterdayPost.UpdateCreatedAt(now.BeginningOfDay().Add(-24 * time.Hour))
-		So(err, ShouldBeNil)
+		// update post to have yesterday's time
+		yesterdayTime := now.BeginningOfDay().Add(-24 * time.Hour)
+		updateCreatedAt(yesterdayPost.Id, yesterdayTime)
 
 		// create post with interaction two days ago
-		twoDaysAgo := models.NewChannelMessage()
-		twoDaysAgo.AccountId = account.Id
-		twoDaysAgo.InitialChannelId = c.Id
-		twoDaysAgo.Body = "yesterday my troubles were so far away"
-
-		err = twoDaysAgo.Create()
+		twoDaysAgo, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
 
 		err = twoDaysAgo.UpdateCreatedAt(now.BeginningOfDay().Add(-48 * time.Hour))
 		So(err, ShouldBeNil)
+
+		// update post to have two days ago time
+		twoDaysAgoTime := now.BeginningOfDay().Add(-48 * time.Hour)
+		updateCreatedAt(twoDaysAgo.Id, twoDaysAgoTime)
 
 		Convey("When interactions arrive for those posts", func() {
 			i, err := rest.AddInteraction("like", todayPost.Id, account.Id)
