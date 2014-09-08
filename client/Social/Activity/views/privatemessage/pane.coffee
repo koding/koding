@@ -51,14 +51,7 @@ class PrivateMessagePane extends MessagePane
   editLastMessage: ->
 
     items = @listController.getItemsOrdered().slice(0).reverse()
-    post  = item.getData()
-    
-    for item in items when KD.isMyPost post
-
-      item.showEditWidget()
-      break
-    
-    return post
+    return item.showEditWidget() for item in items when KD.isMyPost item.getData()
 
 
   # override this so that it won't
@@ -265,4 +258,3 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
-

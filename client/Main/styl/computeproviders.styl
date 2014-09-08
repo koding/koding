@@ -221,3 +221,64 @@ computeproviders.styl
     text-shadow       0 0 2px white
     color             rgba(0, 0, 0, .75)
     position          relative
+
+.computeplan-modal
+
+  bg                    color, #E7E7E7
+  min-height            134px
+
+  .kdmodal-inner
+    margin              0
+    bg                  color, #E7E7E7
+
+  .kdmodal-content
+    text-align          center
+
+  .kdbutton
+    rounded             4px !important
+    bg                  color, #4EA04C !important
+    height              40px !important
+    &:focus
+      vendor            box-shadow, none !important
+
+  .footer
+    bg                  color, #DCDCDC
+    font-size           14px
+    color               #5E5E5E
+    padding             25px 30px
+    rounded             0 0 6px 6px
+
+  .cp-footer
+
+    font-size           14px
+    background          #2C2C2C
+    color               #42B53A
+    text-decoration     underline
+    font-weight         bold
+    padding             10px 25px
+    box-sizing          border-box
+    height              65px
+    margin-top          14px
+    rounded             0 0 3px 3px
+    cursor              pointer
+    line-height         21px
+
+  &.loading
+
+    .closeModal
+      display           none
+
+    .kdloader
+      margin-top        30px
+
+  &.free-plan
+
+    .kdmodal-content
+
+      .message
+
+        font-size         14px
+        font-weight       bold
+        line-height       40px
+        color             #373737
+
