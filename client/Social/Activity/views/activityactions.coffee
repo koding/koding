@@ -25,11 +25,10 @@ class ActivityActionsView extends JView
 
         KD.utils.stopDOMEvent event
 
-        data = @getData()
-        if data?.group? and data.group isnt "koding"
-          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/Post/#{data.slug}"
-        else
-          shareUrl = "#{KD.config.mainUri}/Activity/Post/#{data.slug}"
+        {origin} = window.location
+        shareUrl = if data?.group? and data.group isnt "koding"
+        then "#{origin}/#{data.group}/Activity/Post/#{data.slug}"
+        else "#{origin}/Activity/Post/#{data.slug}"
 
         new KDContextMenu
           cssClass    : "activity-share-popup"
