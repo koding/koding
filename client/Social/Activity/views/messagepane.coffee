@@ -49,10 +49,10 @@ class MessagePane extends KDTabPaneView
       @mostLikedPostsCount += items.length
 
       return  if items.length isnt 0
+      @changeFilter MOST_RECENT
 
       # when we run out of posts in most liked list, we switch
       # to getting most recent posts in DESC order
-      @changeFilter MOST_RECENT
       if @mostLikedPostsCount is 0 then @populate()
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
@@ -350,6 +350,8 @@ class MessagePane extends KDTabPaneView
 
     @listController.showLazyLoader()
 
+    # this is to prevent lazy loading from getting most recent
+    # posts when we're in most liked
     if @realFilter is MOST_LIKED and @mostLikedPostsCount > 0
       return @listController.hideLazyLoader()
 
