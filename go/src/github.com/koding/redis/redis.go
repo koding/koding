@@ -445,11 +445,11 @@ func (r *RedisSession) SortedSetsUnion(destination string, keys []interface{}, w
 }
 
 func (r *RedisSession) SortedSetScore(key string, member interface{}) (float64, error) {
-	return redis.Float64(r.Do("ZSCORE", key, member))
+	return redis.Float64(r.Do("ZSCORE", r.AddPrefix(key), member))
 }
 
 func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, error) {
-	prefixed := []interface{}{key}
+	prefixed := []interface{}{r.AddPrefix(key)}
 	prefixed = append(prefixed, members...)
 
 	return redis.Int64(r.Do("ZREM", prefixed...))
