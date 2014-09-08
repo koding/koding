@@ -17,6 +17,10 @@ var (
 	KeyExistsRegistry  = map[string]bool{}
 )
 
+func init() {
+	now.FirstDayMonday = true
+}
+
 type Controller struct {
 	log   logging.Logger
 	redis *redis.RedisSession
@@ -95,12 +99,11 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 func (f *Controller) saveToDailyBucket(k *KeyName, inc int, id int64) error {
 	key := k.Today()
 
-	_, err := f.redis.SortedSetIncrBy(key, inc, id)
+	score, err := f.redis.SortedSetIncrBy(key, inc, id)
 	if err != nil {
 		return err
 	}
 
-	score, err := f.redis.SortedSetScore(key, id)
 	if score <= 0 {
 		_, err := f.redis.SortedSetRem(key, id)
 		if err != nil {
@@ -129,12 +132,11 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 		return nil
 	}
 
-	_, err := f.redis.SortedSetIncrBy(key, inc, id)
+	score, err := f.redis.SortedSetIncrBy(key, inc, id)
 	if err != nil {
 		return err
 	}
 
-	score, err := f.redis.SortedSetScore(key, id)
 	if score <= 0 {
 		_, err := f.redis.SortedSetRem(key, id)
 		if err != nil {
@@ -184,21 +186,21 @@ type KeyName struct {
 }
 
 func (k *KeyName) Today() string {
-	return k.do(getStartOfDay(k.Time))
+	return k.String(getStartOfDay(k.Time))
 }
 
 func (k *KeyName) Before(t time.Time) string {
-	return k.do(t)
+	return k.String(t)
 }
 
 func (k *KeyName) Weekly() string {
 	current := getStartOfDay(k.Time.UTC())
 	sevenDaysAgo := getDaysAgo(current, 7).UTC().Unix()
 
-	return fmt.Sprintf("%s-%d", k.do(current), sevenDaysAgo)
+	return fmt.Sprintf("%s-%d", k.String(current), sevenDaysAgo)
 }
 
-func (k *KeyName) do(t time.Time) string {
+func (k *KeyName) String(t time.Time) string {
 	return fmt.Sprintf("%s:%s:%s:%s:%d",
 		config.MustGet().Environment, k.GroupName, PopularPostKeyName,
 		k.ChannelName, t.UTC().Unix(),
@@ -226,7 +228,7 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 		return true
 	}
 
-	if createdMoreThan7DaysAgo(cm.CreatedAt) {
+	if isCreatedMoreThan7DaysAgo(cm.CreatedAt) {
 		return true
 	}
 
@@ -237,7 +239,7 @@ func notEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) boo
 // Time helpers
 //----------------------------------------------------------
 
-func createdMoreThan7DaysAgo(t time.Time) bool {
+func isCreatedMoreThan7DaysAgo(t time.Time) bool {
 	t = t.UTC()
 	delta := time.Now().Sub(t)
 
