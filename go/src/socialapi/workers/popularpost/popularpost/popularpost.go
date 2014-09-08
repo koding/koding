@@ -79,16 +79,14 @@ func (f *Controller) handleInteraction(incrementCount int, i *models.Interaction
 		return err
 	}
 
-	difference := int(i.CreatedAt.Sub(cm.CreatedAt).Hours()/24) + 1
-	weight := 1 / float64(difference) * float64(incrementCount)
-	rounded := fmt.Sprintf("%.1f", weight)
+	weight := getWeight(i.CreatedAt, cm.CreatedAt, incrementCount)
 
 	keyname = &KeyName{
 		GroupName: c.GroupName, ChannelName: c.Name,
 		Time: time.Now().UTC(),
 	}
 
-	err = f.saveToSevenDayBucket(keyname, rounded, i.MessageId)
+	err = f.saveToSevenDayBucket(keyname, weight, i.MessageId)
 	if err != nil {
 		return err
 	}
@@ -275,4 +273,11 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 
 func (t *Controller) ResetRegistry() {
 	KeyExistsRegistry = map[string]bool{}
+}
+
+func getWeight(iCreatedAt, mCreatedAt time.Time, inc int) string {
+	difference := int(iCreatedAt.Sub(mCreatedAt).Hours()/24) + 1
+	weight := 1 / float64(difference) * float64(inc)
+
+	return fmt.Sprintf("%.1f", weight)
 }
