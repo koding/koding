@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 
-	"github.com/koding/kloud/protocol"
+	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/ec2"
 )
 
-type CheckContext struct {
+type PlanChecker struct {
 	api      *amazon.AmazonClient
 	db       *mongodb.MongoDB
 	username string
@@ -17,45 +18,59 @@ type CheckContext struct {
 	log      logging.Logger
 }
 
-// Limiter checks the limits via the Check() method. It should simply return an
-// error if the limitations are exceed.
-type Limiter interface {
-	Check(ctx *CheckContext) error
+// Plan returns the current plan
+func (p *PlanChecker) Plan() (Plan, error) {
+	return Free, nil
 }
 
-type multiLimiter []Limiter
+// Total checks whether the user has reached the current plan's limit of having
+// a total number numbers of machines. It returns an error if the limit is
+// reached or an unexplained error happaned.
+func (p *PlanChecker) Total() error {
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
 
-func (m multiLimiter) Check(ctx *CheckContext) error {
-	for _, limiter := range m {
-		if err := limiter.Check(ctx); err != nil {
-			return err
-		}
+	allowedMachines := plan.Limits().Total
+
+	filter := ec2.NewFilter()
+	// instances in Amazon have a `koding-user` tag with the username as the
+	// value. We can easily find them acording to this tag
+	filter.Add("tag:koding-user", p.username)
+	filter.Add("tag:koding-env", p.env)
+
+	// Anything except "terminated" and "shutting-down"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
+
+	instances, err := p.api.InstancesByFilter(filter)
+
+	// no match, allow to create instance
+	if err == aws.ErrNoInstances {
+		return nil
+	}
+
+	// if it's something else don't allow it until it's solved
+	if err != nil {
+		return err
+	}
+
+	p.log.Info("Got %+v servers for user: %s\n", len(instances), p.username)
+
+	if len(instances) >= allowedMachines {
+		p.log.Info("Total machine limit reached for user %s is %d. Permission denied ",
+			p.username, allowedMachines)
+
+		return fmt.Errorf("total limit of %d machines has been reached", allowedMachines)
 	}
 
 	return nil
 }
 
-func newMultiLimiter(limiter ...Limiter) Limiter {
-	return multiLimiter(limiter)
-}
-
-// Limit implements the kloud.Limiter interface. This is called for every
-// incoming method before the execution.
-func (p *Provider) Limit(opts *protocol.Machine, method string) error {
-	// only check for build method, all other's are ok to be used without any
-	// restriction.
-	if method != "build" {
-		return nil
-	}
-
-	a, err := p.NewClient(opts)
-	if err != nil {
-		return err
-	}
-
-	username := opts.Builder["username"].(string)
-
-	ctx := &CheckContext{
+// PlanChecker creates and returns a new PlanChecker struct that is responsible
+// of checking various pieces of informations based on a Plan
+func (p *Provider) PlanChecker(username string, a *amazon.AmazonClient) *PlanChecker {
+	ctx := &PlanChecker{
 		api:      a,
 		db:       p.Session,
 		username: username,
@@ -63,24 +78,5 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 		log:      p.Log,
 	}
 
-	plan, err := p.getPlan()
-	if err != nil {
-		return err
-	}
-
-	return p.CheckLimits(plan, ctx)
-}
-
-func (p *Provider) getPlan() (PlanName, error) {
-	return Free, nil
-}
-
-// CheckLimits checks the given user limits
-func (p *Provider) CheckLimits(plan PlanName, ctx *CheckContext) error {
-	l, ok := limits[plan]
-	if !ok {
-		fmt.Errorf("plan %s not found", plan)
-	}
-
-	return l.Check(ctx)
+	return ctx
 }

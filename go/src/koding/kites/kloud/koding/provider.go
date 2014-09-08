@@ -103,6 +103,11 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 
 	username := opts.Builder["username"].(string)
 
+	// Check for total amachine allowance
+	if err := p.PlanChecker(username, a).Total(); err != nil {
+		return nil, err
+	}
+
 	instanceName := opts.Builder["instanceName"].(string)
 
 	machineData, ok := opts.CurrentData.(*Machine)

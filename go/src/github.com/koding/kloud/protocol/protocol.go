@@ -5,14 +5,6 @@ import (
 	"github.com/koding/kloud/machinestate"
 )
 
-// Limiter checks before any other interface such as controller or builder is
-// executed. If the Limit method returns an error the preceeding action is not
-// executed. Limiter is usefull if you want have throttling or quota checking
-// based on certain criterias.
-type Limiter interface {
-	Limit(opts *Machine, method string) error
-}
-
 // Builder creates and provision a single image or machine for a given Provider.
 type Builder interface {
 	// Build the machine and creates an artifact that can be pass to other
