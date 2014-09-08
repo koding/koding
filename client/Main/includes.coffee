@@ -159,6 +159,7 @@ module.exports = [
   "providers/providerrackspace.coffee",
 
   "providers/providerview.coffee",
+  "providers/computeplansview.coffee",
 
   # Algolia-based autocomplete:
   "autocompletecontroller.coffee",

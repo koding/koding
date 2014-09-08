@@ -427,7 +427,8 @@ class ActivitySidebar extends KDCustomHTMLView
     header.addSubView new KDCustomHTMLView
       tagName  : 'a'
       cssClass : 'buy-vm'
-      click    : @bound 'createBuyNewMachineModal'
+      click    : KD.singletons.computeController
+        .bound 'handleNewMachineRequest'
 
     section.addSubView @machineTree.getView()
 
@@ -547,39 +548,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
-
-
-  createBuyNewMachineModal: ->
-
-    modal = new KDModalView
-      width       : 340
-      overlay     : yes
-      cssClass    : 'coming-soon-modal activity-modal'
-      position    :
-        top       : 20
-        left      : 255
-      content     : """
-        <h4>Coming soon...</h4>
-        <p>The ability to add new VMs will be available on <strong>Sep 7</strong>.</p>
-
-      """
-
-    modal.addSubView (new KDCustomHTMLView cssClass: 'modal-arrow'), 'kdmodal-inner', yes
-
-
-    # modal = new BuyMachineModal
-
-    # modal.once 'MachineCreated', (newMachine) =>
-    #   @updateMachineTree =>
-    #     tree = @machineTree
-
-    #     for node, i in tree.indexedNodes
-    #       if node.data?._id is newMachine._id
-    #         index = i
-
-    #     if index
-    #       tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
-    #       KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
 
 
   updateMachineTree: (callback = noop) ->
