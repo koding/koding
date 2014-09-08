@@ -13,6 +13,7 @@ class ActivityLikeSummaryView extends KDView
 
 
   showLikers: (event)->
+
     KD.utils.stopDOMEvent event
 
     {id} = @getData()
