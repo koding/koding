@@ -6,11 +6,18 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
+	"time"
+
+	"github.com/jinzhu/now"
 )
 
 var (
 	Name = "PopularPost"
 )
+
+func init() {
+	now.FirstDayMonday = true
+}
 
 func main() {
 	r := runner.New(Name)
@@ -32,7 +39,7 @@ func main() {
 			//TODO: remove hardcoded of 'koding' and 'public'
 			//      get yesterday's daily buckets that exist in redis, create
 			//      weekly bucket for those groups, channel names
-			keyname := &KeyName{
+			keyname := &popularpost.KeyName{
 				GroupName: "koding", ChannelName: "public",
 				Time: time.Now().UTC(),
 			}
