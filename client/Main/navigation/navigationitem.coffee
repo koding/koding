@@ -13,6 +13,7 @@ class NavigationItem extends JTreeItemView
 
     if      data.jMachine                then @createMachineItem      data
     else if data.type is 'title'         then @createTitleView        data
+    else if data.type is 'new-workspace' then @createNewWorkspaceView data
     else if data.type is 'workspace'     then @createWorkspaceItem    data
     else if data.type is 'app'           then @createAppItem          data
 
@@ -35,6 +36,12 @@ class NavigationItem extends JTreeItemView
         <figure></figure>
         <a href='#{KD.utils.groupifyLink data.href}'>#{data.title}</a>
       """
+
+
+  createNewWorkspaceView: ->
+    @setClass 'workspace'
+    {machineUId} = @getData()
+    @child       = new AddWorkspaceView {}, { machineUId }
 
 
   createAppItem: ->
