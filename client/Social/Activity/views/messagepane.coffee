@@ -186,7 +186,7 @@ class MessagePane extends KDTabPaneView
     if type is 'privatemessage' or type is 'post' then return
 
     @filterLinks = new FilterLinksView {},
-      'Most Liked'  :
+      'Most Recent'  :
         active      : yes
 
 
