@@ -20,27 +20,10 @@ type concurrentLimit struct {
 var (
 	// limits contains the various limitations based on the machine
 	// itself.
-	limits = map[string]Limiter{
-		"free": freeLimiter(),
+	limits = map[Plan]Limiter{
+		Free: freeLimiter(),
 	}
 )
-
-/*
-Free:  1 VM, 0 Always On, 30 min timeout -- CAN ONLY CREATE ONE t2.micro (1GB
-RAM, 3GB Storage)
-
-Hobbyist: 3 VMs, 0 Always On, 6 hour timeout -- t2.micros ONLY (1GB RAM, 3GB
-Storage)
-
-Developer: 3 VMs, 1 Always On, 3GB total RAM, 20GB total Storage, 12 hour
-timeout  -- t2.micro OR t2.small  (variable Storage)
-
-Professional: 5 VMs, 2 Always On, 5GB total RAM, 50GB total Storage, 12 hour
-timeout  -- t2.micro OR t2.small OR t2.medium  (variable Storage)
-
-Super: 10 VMs, 5 Always On, 10GB total RAM, 100GB total Storage, 12 hour
-timeout  -- t2.micro OR t2.small OR t2.medium  (variable Storage)
-*/
 
 // freeLimiter defines a Limiter which is used for free plans
 func freeLimiter() Limiter {

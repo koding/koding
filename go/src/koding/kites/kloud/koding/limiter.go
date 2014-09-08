@@ -71,12 +71,12 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 	return p.CheckLimits(plan, ctx)
 }
 
-func (p *Provider) getPlan() (string, error) {
-	return "free", nil
+func (p *Provider) getPlan() (Plan, error) {
+	return Free, nil
 }
 
 // CheckLimits checks the given user limits
-func (p *Provider) CheckLimits(plan string, ctx *CheckContext) error {
+func (p *Provider) CheckLimits(plan Plan, ctx *CheckContext) error {
 	l, ok := limits[plan]
 	if !ok {
 		fmt.Errorf("plan %s not found", plan)
