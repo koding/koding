@@ -365,16 +365,25 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
-        id       : "#{id}-workspaces"
-        title    : 'Workspaces'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'My Workspace'
-        type     : 'workspace'
-        href     : "/IDE/VM/#{machine.uid}"
-        parentId : id
+        id           : "#{id}-workspaces"
+        title        : 'Workspaces <span class="ws-add-icon"></span>'
+        type         : 'title'
+        parentId     : id
+        machineUId   : machine.uid
 
+      treeData.push
+        title        : 'My Workspace'
+        type         : 'workspace'
+        href         : "/IDE/my-workspace"
+        parentId     : id
+
+      KD.userWorkspaces.forEach (workspace) ->
+        treeData.push
+          title      : workspace.name
+          type       : 'workspace'
+          href       : "/IDE/#{workspace.slug}"
+          data       : workspace
+          parentId   : id
 
     @machineTree.addNode data for data in treeData
 
