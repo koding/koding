@@ -257,10 +257,8 @@ class EmbedBoxWidget extends KDView
       wmode     : 'transparent'
     }, options
 
-    { fetchDataFromEmbedly } = KD.singletons.socialapi.message
-
     # fetch embed.ly data from the server api
-    fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    KD.remote.api.Embedly.fetch url, embedlyOptions, (err, oembed) =>
       callback oembed[0], embedlyOptions
 
   pistachio:->
