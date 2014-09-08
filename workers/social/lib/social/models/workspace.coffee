@@ -1,5 +1,5 @@
-{ Model }  = require 'bongo'
-{ Module } = require 'jraphical'
+{Inflector}  = require 'bongo'
+{Module}     = require 'jraphical'
 
 module.exports = class JWorkspace extends Module
 
@@ -7,12 +7,13 @@ module.exports = class JWorkspace extends Module
   @share()
 
   @set
-    schema            :
-      name            : String
-      machineUId      : String
-      rootPath        : String
-      owner           : String
-      layout          : Object
+    schema         :
+      name         : String
+      slug         : String
+      machineUId   : String
+      rootPath     : String
+      owner        : String
+      layout       : Object
 
     sharedMethods  :
       static       :
