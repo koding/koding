@@ -211,9 +211,6 @@ func TestPopularPost(t *testing.T) {
 		twoDaysAgo, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
 
-		err = twoDaysAgo.UpdateCreatedAt(now.BeginningOfDay().Add(-48 * time.Hour))
-		So(err, ShouldBeNil)
-
 		// update post to have two days ago time
 		twoDaysAgoTime := now.BeginningOfDay().Add(-48 * time.Hour)
 		updateCreatedAt(twoDaysAgo.Id, twoDaysAgoTime)
