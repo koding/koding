@@ -565,7 +565,7 @@ span.collapsedtext
         display           block
 
     .meta
-      margin              4px 0 0 16px
+      margin              0 0 0 16px
       fl()
 
       .profile
@@ -583,6 +583,7 @@ span.collapsedtext
         font-size         12px
         font-weight       400
         display           block
+        margin-top        4px
 
       .location
         color             #999999
@@ -1538,7 +1539,6 @@ span.collapsedtext
     .settings-menu-wrapper
       top             25px
 
-
     .chevron
       hidden()
 
@@ -1548,6 +1548,28 @@ span.collapsedtext
       overflow          visible
       color             #d2d2d2
       font-size         10px
+
+    &.editing .edit-widget-wrapper
+      padding           16px
+      rounded           3px
+      background        #fdf6e3
+
+      .edit-widget
+        padding         0
+
+        .input-view > div
+          border-color  #dfcc97
+
+
+    &.edited
+      .meta time:after
+        display         none
+
+      .activity-content-wrapper > article > p:after
+        content        ' (edited)'
+        display        inline
+        font-size      11px
+        color          #ccc
 
     &:hover
       .chevron

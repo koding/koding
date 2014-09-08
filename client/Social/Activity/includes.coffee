@@ -62,11 +62,6 @@ module.exports = [
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 
-  "widgets/widgetcontroller.coffee"
-  "widgets/widgetview.coffee"
-  "widgets/widgetbutton.coffee"
-  "widgets/activitywidgetformview.coffee"
-  "widgets/statuswidget.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"

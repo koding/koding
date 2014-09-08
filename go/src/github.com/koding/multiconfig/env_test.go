@@ -9,10 +9,9 @@ import (
 )
 
 func TestENV(t *testing.T) {
-
 	m := EnvironmentLoader{}
 	s := &Server{}
-	structName := structs.New(s).Name()
+	structName := structs.Name(s)
 
 	// set env variables
 	setEnvVars(t, structName, "")
@@ -25,7 +24,6 @@ func TestENV(t *testing.T) {
 }
 
 func TestENVWithPrefix(t *testing.T) {
-
 	const prefix = "Prefix"
 
 	m := EnvironmentLoader{Prefix: prefix}

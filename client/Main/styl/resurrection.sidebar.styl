@@ -327,9 +327,11 @@ sidebarSelectedBg = #15171A
     &:hover
       bg              color rgba(0,0,0,.01)
       pointer()
+      .purpose
       .profile
       .ttag
         text-decoration underline
+
     &.activity
       font-size       14px
       padding-left    30px
@@ -411,6 +413,7 @@ sidebarSelectedBg = #15171A
       margin        0
       borderBox()
 
+      > .purpose
       > .profile
         display     block
         float       none
@@ -420,6 +423,9 @@ sidebarSelectedBg = #15171A
         color       sidebarGray
         font-weight 600
         borderBox()
+
+      > .purpose
+        ellipsis()
 
       > .user-numbers
         padding     0 0 0 36px
@@ -457,6 +463,7 @@ sidebarSelectedBg = #15171A
     .kdlistitemview-sidebar-item
       height            28px
 
+      > .purpose
       > .profile
         color           sidebarActive
 
