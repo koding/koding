@@ -10,6 +10,10 @@ class HomeRegisterForm extends RegisterInlineForm
     @email.input.on    'focus', @bound 'handleFocus'
     @username.input.on 'focus', @bound 'handleFocus'
 
+    KD.singletons.router.on 'RouteInfoHandled', =>
+      @email.icon.unsetTooltip()
+      @username.icon.unsetTooltip()
+
 
   handleFocus: -> @setClass 'focused'
 
