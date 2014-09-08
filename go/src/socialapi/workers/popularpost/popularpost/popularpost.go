@@ -1,6 +1,7 @@
 package popularpost
 
 import (
+	"errors"
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
@@ -171,6 +172,19 @@ func PopularPostKey(groupName, channelName string, current time.Time) string {
 type KeyName struct {
 	GroupName, ChannelName string
 	Time                   time.Time
+}
+
+func NewKeyName(groupName, channelName string, t time.Time) (*KeyName, error) {
+	if groupName == "" || channelName == "" {
+		return nil, errors.New("groupName and channelName are required")
+	}
+
+	k := &KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: t,
+	}
+
+	return k, nil
 }
 
 func (k *KeyName) Today() string {

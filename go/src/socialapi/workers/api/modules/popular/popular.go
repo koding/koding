@@ -140,9 +140,9 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 
 	channelName := u.Query().Get("channelName")
 
-	keyname := popularpost.KeyName{
-		GroupName: query.GroupName, ChannelName: channelName,
-		Time: time.Now(),
+	keyname, err := popularpost.NewKeyName(query.GroupName, channelName, time.Now())
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
 	key := keyname.Weekly()
 
