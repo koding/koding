@@ -16,21 +16,9 @@ module.exports = class JWorkspace extends Module
 
     sharedMethods  :
       static       :
-        create     : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        some       :
-          (signature Object, Object, Function)
-      instance     :
-        update     : [
-          (signature Object, Function)
-          (signature Object, Object, Function)
-        ]
-        remove     : [
-          (signature Function)
-          (signature Object, Function)
-        ]
+        create     : signature Object, Function
+        some       : signature Object, Object, Function
+      instance     : []
     sharedEvents   :
       static       : []
       instance     : []
@@ -46,9 +34,3 @@ module.exports = class JWorkspace extends Module
   some$: secure (client, query = {}, callback) ->
     query.owner = client.connection.delegate.profile.nickname
     JWorkspace.some query, callback
-
-  update$: secure (client, data, callback) ->
-    @update { $set: data }, callback
-
-  remove$: secure (client, callback)->
-    @remove callback
