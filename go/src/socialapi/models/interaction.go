@@ -52,6 +52,7 @@ func (i *Interaction) CreateRaw() error {
 		Scan(&i.Id)
 }
 
+// Tests are done.
 func (i *Interaction) MarkIfExempt() error {
 	isExempt, err := i.isExempt()
 	if err != nil {

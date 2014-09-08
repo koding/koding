@@ -85,6 +85,11 @@ func (b *Bongo) Delete(i Modellable) error {
 	return nil
 }
 
+// Purge deletes all data, and must be used with care.
+func (b *Bongo) Purge(i Modellable) error {
+	return b.DB.Delete(i).Error
+}
+
 // FetchByIds fetches records by their ids and returns results in the same order
 // as the ids; if no records in db we don't return error
 func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {

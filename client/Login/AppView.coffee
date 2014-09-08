@@ -331,7 +331,7 @@ class LoginView extends JView
 
   showPasswordModal: (formData, form) ->
 
-    unless form.email.input.valid and form.username.input.valid
+    if no in [form.email.input.valid, form.username.input.valid]
       return form.button.hideLoader()
 
     {mainView} = KD.singletons

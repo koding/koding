@@ -115,8 +115,12 @@ func TestInteractionMarkIfExempt(t *testing.T) {
 			err := accTroll.MarkAsTroll()
 			So(err, ShouldBeNil)
 
+			msg := createMessageWithTest()
+			So(msg.Create(), ShouldBeNil)
+
 			i := NewInteraction()
 			i.AccountId = accTroll.Id
+			i.MessageId = msg.Id
 
 			errs := i.MarkIfExempt()
 			So(errs, ShouldBeNil)
