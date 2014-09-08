@@ -24,10 +24,20 @@ func main() {
 
 	go func() {
 		for {
+			endOfDay := now.EndOfDay().UTC()
+			difference := time.Now().UTC().Sub(endOfDay)
+
+			<-time.After(difference * -1)
+
 			//TODO: remove hardcoded of 'koding' and 'public'
 			//      get yesterday's daily buckets that exist in redis, create
 			//      weekly bucket for those groups, channel names
-			context.CreateKeyAtStartOfDay("koding", "public")
+			keyname := &KeyName{
+				GroupName: "koding", ChannelName: "public",
+				Time: time.Now().UTC(),
+			}
+
+			context.CreateSevenDayBucket(keyname)
 			context.ResetRegistry()
 		}
 	}()

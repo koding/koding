@@ -119,7 +119,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 	if !ok {
 		exists := f.redis.Exists(key)
 		if !exists {
-			err := f.createSevenDayBucket(k)
+			err := f.CreateSevenDayBucket(k)
 			if err != nil {
 				return err
 			}
@@ -145,7 +145,7 @@ func (f *Controller) saveToSevenDayBucket(k *KeyName, inc string, id int64) erro
 	return nil
 }
 
-func (f *Controller) createSevenDayBucket(k *KeyName) error {
+func (f *Controller) CreateSevenDayBucket(k *KeyName) error {
 	keys, weights := []interface{}{}, []interface{}{}
 
 	from := getStartOfDay(k.Time)
@@ -268,7 +268,7 @@ func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
 		Time: time.Now().UTC(),
 	}
 
-	t.createSevenDayBucket(keyname)
+	t.CreateSevenDayBucket(keyname)
 }
 
 func (t *Controller) ResetRegistry() {
