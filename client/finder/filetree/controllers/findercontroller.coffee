@@ -100,14 +100,15 @@ class NFinderController extends KDViewController
         else @noMachineFoundWidget.show()
 
 
-  mountMachine:(machine, fetchContent = yes)->
+  mountMachine: (machine, options = {}) ->
+    options.fetchContent = yes
 
     unless machine.status.state is Machine.State.Running
       return warn "Machine '#{machine.getName()}' was not ready, I skipped it."
 
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = mRoots[uid] or "/home/#{KD.nick()}"
+    path    = options.mountPath or mRoots[uid] or "/home/#{KD.nick()}"
 
     if @getMachineNode uid
       return warn "Machine #{machine.getName()} is already mounted!"
@@ -126,7 +127,7 @@ class NFinderController extends KDViewController
 
     machineItem = @treeController.addNode @machines.last
 
-    if fetchContent and machineItem
+    if options.fetchContent and machineItem
 
       @utils.defer =>
 
