@@ -63,11 +63,27 @@ class LoginInputView extends JView
   decorateValidation: (err)->
 
     @resetDecoration()
+
     return  unless @input.getValue().length
+
+    {stickyTooltip} = @getOptions()
+
     if err
-    then @icon.setTooltip title : "<p>#{err}</p>"
-    else @icon.unsetTooltip()
-    @setClass if err then "validation-error" else "validation-passed"
+      @icon.setTooltip
+        cssClass  : 'validation-error'
+        title     : "<p>#{err}</p>"
+        direction : 'left'
+        sticky    : yes  if stickyTooltip
+        permanent : yes  if stickyTooltip
+        offset    :
+          top     : -15
+          left    : 0
+      @icon.tooltip.show()
+
+    else
+      @icon.unsetTooltip()
+
+    @setClass if err then 'validation-error' else 'validation-passed'
 
 
   pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}"
