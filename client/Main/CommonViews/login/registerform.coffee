@@ -1,65 +1,78 @@
 class RegisterInlineForm extends LoginViewInlineForm
 
+  EMAIL_VALID    = no
+  USERNAME_VALID = no
+  ENTER          = 13
+
   constructor:(options={},data)->
     super options, data
-
-    # random = KD.utils.getRandomNumber()
 
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
         placeholder   : "email address"
-        # defaultValue  : "gokmen+#{random}@goksel.me"
         testPath      : "register-form-email"
         validate      : @getEmailValidator()
         decorateValidation: no
+        focus         : => @email.icon.unsetTooltip()
+        keyup         : (event)   => @submitForm event  if event.which is ENTER
 
+
+
+    @username?.destroy()
     @username = new LoginInputViewWithLoader
       inputOptions       :
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "username"
-        # defaultValue     : "gokmen-#{random}"
         testPath         : "register-form-username"
-        keyup            : =>
+        focus            : => @username.icon.unsetTooltip()
+        keyup            : (event) =>
 
           if (val = @username.input.getValue()).trim() isnt ''
             @domain.updatePartial "#{val}.koding.io"
           else
             @domain.updatePartial "username.koding.io"
 
+          @submitForm event  if event.which is ENTER
+
         validate         :
           container      : this
           rules          :
             required     : yes
-            rangeLength  : [4,25]
+            rangeLength  : [4, 25]
             regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
             usernameCheck: (input, event)=> @usernameCheck input, event
             finalCheck   : (input, event)=> @usernameCheck input, event, 0
           messages       :
-            required     : "Please enter a username."
-            regExp       : "For username only lowercase letters and numbers are allowed!"
-            rangeLength  : "Username should be between 4 and 25 characters!"
+            required     : 'Please enter a username.'
+            regExp       : 'For username only lowercase letters and numbers are allowed!'
+            rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
-            required     : "blur"
-            rangeLength  : "keyup"
-            regExp       : "keyup"
-            usernameCheck: "keyup"
-            finalCheck   : "blur"
+            required     : 'blur'
+            rangeLength  : 'blur'
+            regExp       : 'keyup'
+            usernameCheck: 'keyup'
+            finalCheck   : 'blur'
         decorateValidation: no
 
     {buttonTitle} = @getOptions()
 
+    @button?.destroy()
     @button = new KDButtonView
       title         : buttonTitle or 'Create account'
-      type          : 'submit'
-      style         : "solid green medium"
+      type          : 'button'
+      style         : 'solid green medium'
       loader        : yes
+      callback      : @bound 'submitForm'
+
+
+
 
     @invitationCode = new LoginInputView
-      cssClass      : "hidden"
+      cssClass      : 'hidden'
       inputOptions  :
-        name        : "inviteCode"
+        name        : 'inviteCode'
         type        : 'hidden'
 
     @domain = new KDCustomHTMLView
@@ -98,13 +111,62 @@ class RegisterInlineForm extends LoginViewInlineForm
           if err
             if response?.kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              USERNAME_VALID = no
           else
             if forbidden
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
+              USERNAME_VALID = no
             else if kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              USERNAME_VALID = no
             else
               input.setValidationResult "usernameCheck", null
+              USERNAME_VALID = yes
+
+
+  getEmailValidator: ->
+    container   : this
+    event       : 'blur'
+    rules       :
+      required  : yes
+      email     : yes
+      available : (input, event) =>
+        return if event?.which is 9
+        input.setValidationResult 'available', null
+        email = input.getValue()
+        if input.valid
+          # @email.loader.show()
+          KD.remote.api.JUser.emailAvailable email, (err, response)=>
+            # @email.loader.hide()
+            if err then warn err
+            else
+              if response
+                input.setValidationResult 'available', null
+                EMAIL_VALID = yes
+              else
+                input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+                EMAIL_VALID = no
+        return
+    messages    :
+      required  : 'Please enter your email address.'
+      email     : 'That doesn\'t seem like a valid email address.'
+
+
+  submitForm: (event) ->
+
+    # KDInputView doesn't give clear results with
+    # async results that's why we maintain those
+    # results manually in EMAIL_VALID and USERNAME_VALID
+    # at least for now - SY
+    if EMAIL_VALID and USERNAME_VALID and @username.input.valid and @email.input.valid
+      @submit event
+      return yes
+    else
+      @button.hideLoader()
+      @username.input.validate()
+      @email.input.validate()
+      return no
+
 
   viewAppended:->
 
@@ -123,31 +185,6 @@ class RegisterInlineForm extends LoginViewInlineForm
           @addSubView new ProfileTextView({}, account), '.invited-by .wrapper'
       else
         @$('.invited-by').addClass('hidden')
-
-  getEmailValidator: ->
-    container   : this
-    event       : "blur"
-    rules       :
-      required  : yes
-      email     : yes
-      available : (input, event)=>
-        return if event?.which is 9
-        input.setValidationResult "available", null
-        email = input.getValue()
-        if input.valid
-          # @email.loader.show()
-          KD.remote.api.JUser.emailAvailable email, (err, response)=>
-            # @email.loader.hide()
-            if err then warn err
-            else
-              if response
-                input.setValidationResult "available", null
-              else
-                input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
-        return
-    messages    :
-      required  : "Please enter your email address."
-      email     : "That doesn't seem like a valid email address."
 
   pistachio:->
     """

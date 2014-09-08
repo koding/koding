@@ -55,6 +55,47 @@ body.environments
         shadow            inset 0 -3px 0 #01B05A
         color             #575757
 
+validationRed = rgba(217, 58, 55, 0.65)
+
+.kdtooltip.validation-error
+.kdtooltip.validation-error.just-text
+  min-width                   none
+  max-width                   234px
+  min-height                  none
+
+  div.wrapper
+    bg                        color, validationRed
+    shadow                    none
+    padding                   10px 15px
+    min-height                auto
+    min-width                 auto
+    rounded                   4px
+    p
+      font-size               14px
+      font-weight             600
+      text-align              center
+      line-height             18px
+      -webkit-font-smoothing  antialiased
+
+  &.placement-right
+    &:after
+      border-right-color    validationRed
+
+  &.placement-left
+    &:after
+      border-left-color     validationRed
+
+  &.placement-bottom
+    &:after
+      border-bottom-color   validationRed
+
+  &.placement-top
+    &:after
+      border-top-color      validationRed
+
+    &.direction-left:after
+      right                 9px
+
 .kdbutton.topic-follow-btn
   size                    24px 18px
   background              transparent
@@ -94,6 +135,7 @@ body.environments
       .icon
         r-sprite    activity 'check-green'
         opacity     .6
+
 
 .avatarview
   background-image          url('/a/images/defaultavatar/avatar.svg')
