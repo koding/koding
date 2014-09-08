@@ -172,39 +172,3 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 		),
 	)
 }
-
-func extendPopularPostsIfNeeded(query *request.Query, popularPostIds []int64, channelName string) ([]int64, error) {
-	toBeAddedItemCount := query.Limit - len(popularPostIds)
-	if toBeAddedItemCount > 0 {
-		c := models.NewChannel()
-		channelId, err := c.FetchChannelIdByNameAndGroupName(channelName, query.GroupName)
-		if err != nil {
-			return popularPostIds, err
-		}
-
-		normalPosts, err := models.NewChannelMessageList().FetchMessageIdsByChannelId(channelId, query)
-		if err != nil {
-			return popularPostIds, err
-		}
-
-		for _, normalPostId := range normalPosts {
-			exists := false
-			for _, popularPostId := range popularPostIds {
-				if normalPostId == popularPostId {
-					exists = true
-					break
-				}
-			}
-
-			if !exists {
-				popularPostIds = append(popularPostIds, normalPostId)
-				toBeAddedItemCount--
-				if toBeAddedItemCount == 0 {
-					break
-				}
-			}
-		}
-	}
-
-	return popularPostIds, nil
-}
