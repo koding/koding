@@ -63,7 +63,16 @@ func (p *Provider) Limit(opts *protocol.Machine, method string) error {
 		log:      p.Log,
 	}
 
-	return p.CheckLimits("free", ctx)
+	plan, err := p.getPlan()
+	if err != nil {
+		return err
+	}
+
+	return p.CheckLimits(plan, ctx)
+}
+
+func (p *Provider) getPlan() (string, error) {
+	return "free", nil
 }
 
 // CheckLimits checks the given user limits
