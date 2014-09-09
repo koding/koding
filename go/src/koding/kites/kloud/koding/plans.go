@@ -48,88 +48,99 @@ func (i InstanceType) Instance() Instance {
 	return Instance{}
 }
 
+// Limits defines several independent limits that are applied to a Plan.
 type Limits struct {
-	Total     int
-	Storage   int
-	Timeout   time.Duration
-	AlwaysOn  int
+	// Total defines the total limit of machines a a plan can have
+	Total int
+
+	// AlwaysOn defines the total limit of machines that can be always on.
+	// These machines are not subject to the Timeout mechanism and are never
+	// shut down
+	AlwaysOn int
+
+	// Storage defines the total storage a plan can have. A user might split
+	// this storage into three instances if the Total limit is three. An example:
+	// User has a 25GB storage plan and a Total limit of 3 machines. He/she can use:
+	// 10GB for the first machine
+	// 10GB for the second machine
+	// 5GB for the third machine
+	Storage int
+
+	// Timeout defines the timeout in which a machine is shutdown after an
+	// inactivity. AlwaysOn vm's are not subject to this limitation
+	Timeout time.Duration
+
+	// Instances defines the instance types a plan can have when building a
+	// machine.
 	Instances map[InstanceType]struct{}
 }
 
-// Plan defines a single koding plan
+// Plan defines a single koding plan. All plans have:
+// 1. 60 min timeout for non-always on vms
+// 2. only t2.micro's as vm type
 type Plan int
 
 const (
-	// Free:  1 VM, 0 Always On, 30 min timeout -- CAN ONLY CREATE ONE t2.micro (1GB
-	// RAM, 3GB Storage)
+	// Free: 1 VM, 0 Always On, 3GB total storage
 	Free Plan = iota + 1
 
-	// Hobbyist: 3 VMs, 0 Always On, 6 hour timeout -- t2.micros ONLY (1GB RAM,
-	// 3GB Storage)
+	// Hobbyist: 1 VM, 1 Always On, 10GB total storage
 	Hobbyist
 
-	// Developer: 3 VMs, 1 Always On, 3GB total RAM, 20GB total Storage, 12
-	// hour timeout  -- t2.micro OR t2.small  (variable Storage)
+	// Developer: 3 VMs, 1 Always On,  25GB total storage
 	Developer
 
-	// Professional: 5 VMs, 2 Always On, 5GB total RAM, 50GB total Storage, 12
-	// hour timeout  -- t2.micro OR t2.small OR t2.medium  (variable Storage)
+	// Professional: 5 VMs, 2 Always On, 50GB total Storage
 	Professional
 
-	// Super: 10 VMs, 5 Always On, 10GB total RAM, 100GB total Storage, 12 hour
-	// timeout  -- t2.micro OR t2.small OR t2.medium  (variable Storage)
+	// Super: 10 VMs, 5 Always On, 100GB total Storage
 	Super
 )
 
 var plans = map[Plan]Limits{
 	Free: {
 		Total:    1,
-		Storage:  3,
-		Timeout:  30 * time.Minute,
 		AlwaysOn: 0,
+		Storage:  3,
+		Timeout:  60 * time.Minute,
 		Instances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Hobbyist: {
-		Total:    3,
-		Storage:  3,
-		Timeout:  6 * time.Hour,
-		AlwaysOn: 0,
+		Total:    1,
+		AlwaysOn: 1,
+		Storage:  10,
+		Timeout:  60 * time.Minute,
 		Instances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Developer: {
 		Total:    3,
-		Storage:  20,
-		Timeout:  12 * time.Hour,
 		AlwaysOn: 1,
+		Storage:  25,
+		Timeout:  60 * time.Minute,
 		Instances: map[InstanceType]struct{}{
 			T2Micro: {},
-			T2Small: {},
 		},
 	},
 	Professional: {
 		Total:    5,
-		Storage:  50,
-		Timeout:  12 * time.Hour,
 		AlwaysOn: 2,
+		Storage:  50,
+		Timeout:  60 * time.Minute,
 		Instances: map[InstanceType]struct{}{
-			T2Micro:  {},
-			T2Small:  {},
-			T2Medium: {},
+			T2Micro: {},
 		},
 	},
 	Super: {
 		Total:    10,
-		Storage:  100,
-		Timeout:  12 * time.Hour,
 		AlwaysOn: 5,
+		Storage:  100,
+		Timeout:  60 * time.Minute,
 		Instances: map[InstanceType]struct{}{
-			T2Micro:  {},
-			T2Small:  {},
-			T2Medium: {},
+			T2Micro: {},
 		},
 	},
 }
