@@ -26,7 +26,7 @@ module.exports = class JWorkspace extends Module
 
   @create = secure (client, data, callback) ->
     data.owner = client.connection.delegate._id
-    data.slug  = Inflector.slugify data.name.toLowerCase()
+    data.slug  = Inflector.slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, owner, layout} = data
 
@@ -38,18 +38,22 @@ module.exports = class JWorkspace extends Module
           owner : client.connection.delegate._id
           slug  : new RegExp slug
 
-        JWorkspace.some query, {}, (err, workspaces) ->
+        options =
+          sort  : slug: -1
+          limit : 1
+
+        JWorkspace.some query, options, (err, workspaces) ->
           return callback err, null  if err
 
-          seed = 1
+          if name is 'My Workspace' and workspaces.length is 0
+            workspaces = [ { name: 'My Workspace', slug: 'my-workspace' } ]
 
-          for workspace in workspaces
-            parts = workspace.slug.split '-'
-            last  = parts[parts.length - 1]
-            seed  = ++last  unless isNaN last
-
-          name = "#{name} #{seed}"
-          slug = "#{slug}-#{seed}"
+          workspace = workspaces[0]
+          parts     = workspace.slug.split '-'
+          last      = parts[parts.length - 1]
+          seed      = if isNaN last then 1 else ++last
+          name      = "#{name} #{seed}"
+          slug      = "#{slug}-#{seed}"
 
           create_ { name, slug, machineUId, rootPath, owner, layout }, callback
       else
