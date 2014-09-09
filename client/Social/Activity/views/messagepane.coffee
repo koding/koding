@@ -61,16 +61,18 @@ class MessagePane extends KDTabPaneView
 
   replaceFakeItemView: (message) ->
 
-    @putMessage message
-
-    @removeFakeMessage message.clientRequestId
+    @putMessage message, @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
 
     return  unless item = @fakeMessageMap[identifier]
 
+    index = @listController.getListView().getItemIndex item
+
     @listController.removeItem item
+
+    return index
 
 
   handleEnter: (value, clientRequestId) ->
@@ -81,11 +83,7 @@ class MessagePane extends KDTabPaneView
     @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message) ->
-
-    {lastToFirst} = @getOptions()
-    index = if lastToFirst then @listController.getItemCount() else 0
-    @appendMessage message, index
+  putMessage: (message, index = 0) -> @appendMessage message, index
 
 
   createFakeItemView: (value, clientRequestId) ->

@@ -37,6 +37,8 @@ class PrivateMessagePane extends MessagePane
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+
 
 
   createInputWidget: ->
@@ -118,6 +120,11 @@ class PrivateMessagePane extends MessagePane
     isFromBot message, @bound 'setResponseMode'
 
     return item
+
+
+  putMessage: (message, index) ->
+
+    @appendMessage message, index or @listController.getItemCount()
 
 
   setResponseMode: (mode) ->
