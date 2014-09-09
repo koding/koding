@@ -178,14 +178,15 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		}
 	}
 
-	p.log.Info("[%s] checking storage. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
+	p.log.Info("[%s] Checking storage. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
 		p.machine.MachineId, currentStorage, wantStorage, totalStorage)
 
 	if currentStorage+wantStorage > totalStorage {
-		return fmt.Errorf("total storage limit of %d GB has been reached", totalStorage)
+		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB", totalStorage-currentStorage, totalStorage)
+		// return fmt.Errorf("total storage limit of %d GB has been reached", totalStorage)
 	}
 
-	p.log.Info("[%s] allowing user '%s'. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
+	p.log.Info("[%s] Allowing user '%s'. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
 		p.machine.MachineId, p.username, currentStorage, wantStorage, totalStorage)
 
 	// allow to create storage

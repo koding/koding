@@ -147,7 +147,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		infoLog("No security group with name: '%s' exists. Creating a new one...", groupName)
+		infoLog("No security group with name: '%s' exists. Creating a new one. Err was: %s", groupName, err)
 		vpcs, err := a.ListVPCs()
 		if err != nil {
 			return nil, err
@@ -226,7 +226,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		storageSize = a.Builder.StorageSize
 	}
 
-	infoLog("Checking if user is allowed to create machine with '%dGB' storage", storageSize)
+	infoLog("Check if user is allowed to create machine with '%dGB' storage", storageSize)
 	// check if the user is egligible to create a vm with this size
 	if err := checker.Storage(storageSize); err != nil {
 		return nil, err
