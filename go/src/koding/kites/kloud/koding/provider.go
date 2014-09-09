@@ -221,6 +221,35 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// Use this ami id, which is going to be a stable one
 	a.Builder.SourceAmi = image.Id
 
+	storageSize := 3 // default AMI 3GB size
+	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
+		storageSize = a.Builder.StorageSize
+	}
+
+	infoLog("Checking if user is allowed to create machine with '%dGB' storage", storageSize)
+	// check if the user is egligible to create a vm with this size
+	if err := checker.Storage(storageSize); err != nil {
+		return nil, err
+	}
+
+	// Increase storage if it's passed to us, otherwise the default 3GB is
+	// created already with the default AMI
+	if a.Builder.StorageSize != 0 {
+		for _, device := range image.BlockDevices {
+			a.Builder.BlockDeviceMapping = ec2.BlockDeviceMapping{
+				DeviceName:          device.DeviceName,
+				VirtualName:         device.VirtualName,
+				SnapshotId:          device.SnapshotId,
+				VolumeType:          device.VolumeType,
+				VolumeSize:          int64(a.Builder.StorageSize),
+				DeleteOnTermination: true,
+				Encrypted:           false,
+			}
+
+			break
+		}
+	}
+
 	cloudConfig := `
 #cloud-config
 disable_root: false
