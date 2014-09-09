@@ -37,6 +37,8 @@ class PrivateMessagePane extends MessagePane
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+
 
 
   createInputWidget: ->
