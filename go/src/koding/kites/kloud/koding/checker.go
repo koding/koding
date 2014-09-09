@@ -21,11 +21,31 @@ type PlanChecker struct {
 	provider *Provider
 	kite     *kite.Kite
 	username string
-	env      string
 	log      logging.Logger
 }
 
-// Plan returns the current plan
+// PlanChecker creates and returns a new PlanChecker struct that is responsible
+// of checking various pieces of informations based on a Plan
+func (p *Provider) PlanChecker(opts *protocol.Machine) (*PlanChecker, error) {
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := &PlanChecker{
+		api:      a,
+		provider: p,
+		db:       p.Session,
+		kite:     p.Kite,
+		username: opts.Builder["username"].(string),
+		log:      p.Log,
+		machine:  opts,
+	}
+
+	return ctx, nil
+}
+
+// Plan returns user's current plan
 func (p *PlanChecker) Plan() (Plan, error) {
 	return Free, nil
 }
@@ -57,8 +77,8 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	p.log.Info("[%s] checking inactivity for user '%s', ip '%s'. It's inactive for %s (current limit:%s)",
-		machineData.Id.Hex(), machineData.IpAddress, klient.Username, usg.InactiveDuration, planTimeout)
+	p.log.Info("[%s] checking inactivity for user '%s', ip '%s'. It's inactive for %s (current limit: %s)",
+		machineData.Id.Hex(), klient.Username, machineData.IpAddress, usg.InactiveDuration, planTimeout)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
@@ -68,6 +88,7 @@ func (p *PlanChecker) Timeout() error {
 	// mark our state as stopping so others know what we are doing
 	p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopping)
 
+	// replace with the real and authenticated username
 	p.machine.Builder["username"] = klient.Username
 
 	// Hasta la vista, baby!
@@ -95,7 +116,7 @@ func (p *PlanChecker) Total() error {
 	// instances in Amazon have a `koding-user` tag with the username as the
 	// value. We can easily find them acording to this tag
 	filter.Add("tag:koding-user", p.username)
-	filter.Add("tag:koding-env", p.env)
+	filter.Add("tag:koding-env", p.kite.Config.Environment)
 
 	// Anything except "terminated" and "shutting-down"
 	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
@@ -125,25 +146,4 @@ func (p *PlanChecker) Total() error {
 		p.machine.MachineId, p.username, len(instances), allowedMachines)
 
 	return nil
-}
-
-// PlanChecker creates and returns a new PlanChecker struct that is responsible
-// of checking various pieces of informations based on a Plan
-func (p *Provider) PlanChecker(opts *protocol.Machine) (*PlanChecker, error) {
-	a, err := p.NewClient(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx := &PlanChecker{
-		api:      a,
-		provider: p,
-		db:       p.Session,
-		username: opts.Builder["username"].(string),
-		env:      p.Kite.Config.Environment,
-		log:      p.Log,
-		machine:  opts,
-	}
-
-	return ctx, nil
 }

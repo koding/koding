@@ -38,7 +38,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 				return
 			}
 
-			if err := p.CheckUsage(machine); err == nil {
+			if err := p.CheckUsage(machine); err != nil {
 				if err == kite.ErrNoKitesAvailable {
 					p.Log.Warning("[%s] can't check machine (%s). klient kite is not running yet, waiting...",
 						machine.Id.Hex(), machine.IpAddress)
@@ -89,6 +89,10 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		State:       machine.State(),
 		CurrentData: machine,
 	}
+
+	// will be replaced once we connect to klient in checker.Timeout() we are
+	// adding it so it doesn't panic when someone tries to retrieve it
+	opts.Builder["username"] = "kloud-checker"
 
 	// add a fake eventer, means we are not reporting anyone and prevent also
 	// panicing when someone try to call the eventer
