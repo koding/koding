@@ -122,6 +122,11 @@ class PrivateMessagePane extends MessagePane
     return item
 
 
+  putMessage: (message, index) ->
+
+    @appendMessage message, index or @listController.getItemCount()
+
+
   setResponseMode: (mode) ->
 
     if mode is on
