@@ -349,6 +349,23 @@ class ComputeController extends KDController
   # Utils beyond this point
   #
 
+
+  handleNewMachineRequest: ->
+
+
+    # Temporary waiting flow we will replace
+    # this with payment/plan fetch process.
+
+    # loading = new ComputePlansModal.Loading
+    # KD.utils.wait 1000, ->
+    #   loading.destroy()
+    #
+    # we can create the flow once it is ready,
+    # no need to make user wait to warn him. - SY
+
+    KD.utils.defer -> new ComputePlansModal.Free
+
+
   triggerReviveFor:(machineId)->
 
     info "Triggering revive for #{machineId}..."
