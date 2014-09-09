@@ -363,7 +363,8 @@ class ComputeController extends KDController
     # we can create the flow once it is ready,
     # no need to make user wait to warn him. - SY
 
-    KD.utils.defer -> new ComputePlansModal.Free
+    # KD.utils.defer -> new ComputePlansModal.Free
+    KD.utils.defer -> new ComputePlansModal.Paid
 
 
   triggerReviveFor:(machineId)->

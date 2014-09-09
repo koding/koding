@@ -270,6 +270,8 @@ computeproviders.styl
     .kdloader
       margin-top        30px
 
+
+  &.paid-plan
   &.free-plan
 
     .kdmodal-content
@@ -289,3 +291,54 @@ computeproviders.styl
         padding           15px 30px 24px
         rounded           0 0 6px 6px
 
+  &.paid-plan
+
+    .storage-slider
+
+      margin           15px 15px 15px 25px
+      height           2px
+      background-image none
+      border           none
+      background       #403D3D
+
+      .bar
+
+        background-image none
+        box-shadow       none
+        background       #42B53A
+
+
+      .handle
+
+        border-radius    30px
+        background-image none
+        border           none
+        box-shadow       none
+        background       #42B53A
+        margin-top       -6px
+        size             18px, 18px
+        text-decoration  none
+        font-weight      normal
+        font-size        12px
+        color            #403D3D
+
+        .handle-label
+          margin-top     -20px
+          margin-left    -5px
+
+        &:active
+          color          #403D3D
+
+        &:after
+        &:before
+          display        none
+
+
+      .sliderbar-label
+
+        top              0
+        color            rgba(0,0,0,0)
+
+        &:after
+          height         5px
+          background     #ccc
