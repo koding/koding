@@ -19,6 +19,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer r.Close()
+
 	algolia := algoliasearch.NewClient(
 		r.Conf.Algolia.AppId,
 		r.Conf.Algolia.ApiSecretKey)
