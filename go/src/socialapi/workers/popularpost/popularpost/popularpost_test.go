@@ -32,7 +32,7 @@ func updateCreatedAt(id int64, ti time.Time) error {
 }
 
 func TestPopularPost(t *testing.T) {
-	r := runner.New("popularpost")
+	r := runner.New("popularposttest")
 	if err := r.Init(); err != nil {
 		panic(err)
 	}
