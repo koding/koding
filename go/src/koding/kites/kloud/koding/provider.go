@@ -104,16 +104,17 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	username := opts.Builder["username"].(string)
 
 	// Check for total amachine allowance
-	if err := p.PlanChecker(username, a).Total(); err != nil {
+	p.Log.Info("[%s] checking total machine limit for user %s", opts.MachineId, username)
+	if err := p.PlanChecker(opts, a).Total(); err != nil {
 		return nil, err
 	}
-
-	instanceName := opts.Builder["instanceName"].(string)
 
 	machineData, ok := opts.CurrentData.(*Machine)
 	if !ok {
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
+
+	instanceName := opts.Builder["instanceName"].(string)
 
 	a.Push("Initializing data", 10, machinestate.Building)
 

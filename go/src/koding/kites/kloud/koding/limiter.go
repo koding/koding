@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb"
 
 	aws "github.com/koding/kloud/api/amazon"
+	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
@@ -13,6 +14,7 @@ import (
 type PlanChecker struct {
 	api      *amazon.AmazonClient
 	db       *mongodb.MongoDB
+	machine  *protocol.Machine
 	username string
 	env      string
 	log      logging.Logger
@@ -55,27 +57,29 @@ func (p *PlanChecker) Total() error {
 		return err
 	}
 
-	p.log.Info("Got %+v servers for user: %s\n", len(instances), p.username)
-
 	if len(instances) >= allowedMachines {
-		p.log.Info("Total machine limit reached for user %s is %d. Permission denied ",
-			p.username, allowedMachines)
+		p.log.Info("[%s] denying user '%s'. Current machine count: %d, Total machine limit: %d",
+			p.machine.MachineId, p.username, len(instances), allowedMachines)
 
 		return fmt.Errorf("total limit of %d machines has been reached", allowedMachines)
 	}
+
+	p.log.Info("[%s] allowing user '%s'. Current machine count: %d, Total machine limit: %d",
+		p.machine.MachineId, p.username, len(instances), allowedMachines)
 
 	return nil
 }
 
 // PlanChecker creates and returns a new PlanChecker struct that is responsible
 // of checking various pieces of informations based on a Plan
-func (p *Provider) PlanChecker(username string, a *amazon.AmazonClient) *PlanChecker {
+func (p *Provider) PlanChecker(opts *protocol.Machine, a *amazon.AmazonClient) *PlanChecker {
 	ctx := &PlanChecker{
 		api:      a,
 		db:       p.Session,
-		username: username,
+		username: opts.Builder["username"].(string),
 		env:      p.Kite.Config.Environment,
 		log:      p.Log,
+		machine:  opts,
 	}
 
 	return ctx

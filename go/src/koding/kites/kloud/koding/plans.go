@@ -70,9 +70,9 @@ type Limits struct {
 	// inactivity. AlwaysOn vm's are not subject to this limitation
 	Timeout time.Duration
 
-	// Instances defines the instance types a plan can have when building a
+	// AllowedInstances defines the instance types a plan can have when building a
 	// machine.
-	Instances map[InstanceType]struct{}
+	AllowedInstances map[InstanceType]struct{}
 }
 
 // Plan defines a single koding plan. All plans have:
@@ -103,7 +103,7 @@ var plans = map[Plan]Limits{
 		AlwaysOn: 0,
 		Storage:  3,
 		Timeout:  60 * time.Minute,
-		Instances: map[InstanceType]struct{}{
+		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
@@ -112,7 +112,7 @@ var plans = map[Plan]Limits{
 		AlwaysOn: 1,
 		Storage:  10,
 		Timeout:  60 * time.Minute,
-		Instances: map[InstanceType]struct{}{
+		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
@@ -121,7 +121,7 @@ var plans = map[Plan]Limits{
 		AlwaysOn: 1,
 		Storage:  25,
 		Timeout:  60 * time.Minute,
-		Instances: map[InstanceType]struct{}{
+		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
@@ -130,7 +130,7 @@ var plans = map[Plan]Limits{
 		AlwaysOn: 2,
 		Storage:  50,
 		Timeout:  60 * time.Minute,
-		Instances: map[InstanceType]struct{}{
+		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
@@ -139,7 +139,7 @@ var plans = map[Plan]Limits{
 		AlwaysOn: 5,
 		Storage:  100,
 		Timeout:  60 * time.Minute,
-		Instances: map[InstanceType]struct{}{
+		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
