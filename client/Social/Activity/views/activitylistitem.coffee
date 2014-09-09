@@ -128,6 +128,8 @@ class ActivityListItemView extends KDListItemView
     @editWidget.destroy()
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
+    list = @getDelegate()
+    list.emit 'EditMessageReset'
 
 
   delete: ->
