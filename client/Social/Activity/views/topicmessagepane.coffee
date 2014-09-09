@@ -8,6 +8,7 @@ class TopicMessagePane extends MessagePane
       .on 'MessageAdded',   @bound 'addMessage'
       .on 'MessageRemoved', @bound 'removeMessage'
 
+    @filterLinks = null
 
   addMessage: (message) ->
 
