@@ -19,6 +19,7 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 	}
 
 	securityGroups := []ec2.SecurityGroup{{Id: a.Builder.SecurityGroupId}}
+	blockDevices := []ec2.BlockDeviceMapping{a.Builder.BlockDeviceMapping}
 
 	runOpts := &ec2.RunInstances{
 		ImageId:                  a.Builder.SourceAmi,
@@ -27,9 +28,10 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 		KeyName:                  a.Builder.KeyPair,
 		InstanceType:             a.Builder.InstanceType,
 		AssociatePublicIpAddress: true,
-		SecurityGroups:           securityGroups,
 		SubnetId:                 a.Builder.SubnetId,
 		UserData:                 a.Builder.UserData,
+		SecurityGroups:           securityGroups,
+		BlockDevices:             blockDevices,
 	}
 
 	return a.Client.RunInstances(runOpts)
