@@ -14,7 +14,15 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 )
+
+func createAccount() (*models.Account, error) {
+	acc := models.NewAccount()
+	acc.OldId = bson.NewObjectId().Hex()
+
+	return rest.CreateAccount(acc)
+}
 
 func updateCreatedAt(id int64, ti time.Time) error {
 	msg := models.NewChannelMessage()
@@ -63,7 +71,7 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given a post", t, func() {
-		account, err := rest.CreateAccountInBothDbs()
+		account, err := createAccount()
 		So(err, ShouldBeNil)
 
 		c, err := rest.CreateChannel(account.Id)
@@ -120,7 +128,7 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given two posts created on same day", t, func() {
-		account, err := rest.CreateAccountInBothDbs()
+		account, err := createAccount()
 		So(err, ShouldBeNil)
 
 		c, err := rest.CreateChannel(account.Id)
@@ -129,7 +137,7 @@ func TestPopularPost(t *testing.T) {
 		cm, err := rest.CreatePost(c.Id, account.Id)
 		So(err, ShouldBeNil)
 
-		acc2, err := rest.CreateAccountInBothDbs()
+		acc2, err := createAccount()
 		So(err, ShouldBeNil)
 
 		post2, err := rest.CreatePost(c.Id, account.Id)
@@ -182,7 +190,7 @@ func TestPopularPost(t *testing.T) {
 	})
 
 	Convey("Given two posts created on different days", t, func() {
-		account, err := rest.CreateAccountInBothDbs()
+		account, err := createAccount()
 		So(err, ShouldBeNil)
 
 		c, err := rest.CreateChannel(account.Id)
