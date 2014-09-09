@@ -145,13 +145,6 @@ class AceView extends JView
       view        : new AceSettingsView
         delegate  : @ace
 
-  getSaveMenu:->
-    'Save as...' :
-      id         : 13
-      parentId   : null
-      callback   : =>
-        @openSaveDialog()
-
   openSaveDialog: ->
 
     file = @getData()
