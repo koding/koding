@@ -37,6 +37,8 @@ class PrivateMessagePane extends MessagePane
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+
 
 
   createInputWidget: ->
@@ -51,14 +53,7 @@ class PrivateMessagePane extends MessagePane
   editLastMessage: ->
 
     items = @listController.getItemsOrdered().slice(0).reverse()
-    post  = item.getData()
-    
-    for item in items when KD.isMyPost post
-
-      item.showEditWidget()
-      break
-    
-    return post
+    return item.showEditWidget() for item in items when KD.isMyPost item.getData()
 
 
   # override this so that it won't
@@ -125,6 +120,11 @@ class PrivateMessagePane extends MessagePane
     isFromBot message, @bound 'setResponseMode'
 
     return item
+
+
+  putMessage: (message, index) ->
+
+    @appendMessage message, index or @listController.getItemCount()
 
 
   setResponseMode: (mode) ->
@@ -265,4 +265,3 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
-

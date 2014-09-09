@@ -175,7 +175,7 @@ class FeedController extends KDViewController
     then group = KD.config.entryPoint.slug
     else group = 'koding'
 
-    groupsController.changeGroup group, =>
+    groupsController.ready =>
 
       currentGroup = group
       feedId = "#{currentGroup}-#{feedId}"

@@ -175,7 +175,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getItems: ->
 
     items = []
-    items = items.concat @sections.followedTopics.listController.getListItems()
+    items = items.concat @sections.channels.listController.getListItems()
     items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
 
@@ -185,7 +185,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getListController: (type) ->
 
     section = switch type
-      when 'topic'                  then @sections.followedTopics
+      when 'topic'                  then @sections.channels
       when 'pinnedactivity', 'post' then @sections.conversations
       when 'privatemessage'         then @sections.messages
       else {}
@@ -310,21 +310,6 @@ class ActivitySidebar extends KDCustomHTMLView
       listController.deselectAllItems()
 
 
-  getItemByRouteParams: (type, slug) ->
-
-    typeConstant = k for own k, v of typeMap when v is type
-
-    itemWeWant = null
-    for own name, section of @sections
-
-      section.listController.getListItems().forEach (item)->
-        if item.typeConstant is typeConstant
-          slugProp = slugProps[item.bongo_.constructorName]
-          itemWeWant = item[slugProp] is slug
-
-    return itemWeWant
-
-
   viewAppended: ->
 
     super
@@ -334,26 +319,19 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
-    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
-      @addSubView @activityLink = new CustomLinkView
-        title    : 'Activity'
-        cssClass : 'kdlistitemview-sidebar-item activity'
-        href     : '/Activity/Public'
-        click    : ->
-          @setClass 'selected'
-          @$('cite.count').remove()
-        icon     : {}
-
-      @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
 
   initiateFakeCounter: ->
 
-    return  if KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
     KD.utils.wait 5000, =>
-      @activityLink.setClass 'unread'
-      @activityLink.$('cite').removeClass 'hidden'
+      publicLink = @sections.channels.listController.getListItems().first
+      publicLink.setClass 'unread'
+      publicLink.unreadCount.updatePartial 1
+      publicLink.unreadCount.show()
+
+      publicLink.on 'click', ->
+        KD.utils.wait 177, ->
+          publicLink.unsetClass 'unread'
+          publicLink.unreadCount.hide()
 
 
 
@@ -426,7 +404,8 @@ class ActivitySidebar extends KDCustomHTMLView
     header.addSubView new KDCustomHTMLView
       tagName  : 'a'
       cssClass : 'buy-vm'
-      click    : @bound 'createBuyNewMachineModal'
+      click    : KD.singletons.computeController
+        .bound 'handleNewMachineRequest'
 
     section.addSubView @machineTree.getView()
 
@@ -492,7 +471,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addFollowedTopics: ->
 
-    @addSubView @sections.followedTopics = new ActivitySideView
+    @addSubView @sections.channels = new ActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
@@ -506,14 +485,14 @@ class ActivitySidebar extends KDCustomHTMLView
         , callback
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
-      @sections.followedTopics.hide()
+      @sections.channels.hide()
 
 
   addConversations: ->
 
     @addSubView @sections.conversations = new ActivitySideView
       title      : 'Threads'
-      cssClass   : 'conversations'
+      cssClass   : 'conversations hidden'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
@@ -548,39 +527,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
-
-
-  createBuyNewMachineModal: ->
-
-    modal = new KDModalView
-      width       : 340
-      overlay     : yes
-      cssClass    : 'coming-soon-modal activity-modal'
-      position    :
-        top       : 20
-        left      : 255
-      content     : """
-        <h4>Coming soon...</h4>
-        <p>The ability to add new VMs will be available on <strong>Sep 7</strong>.</p>
-
-      """
-
-    modal.addSubView (new KDCustomHTMLView cssClass: 'modal-arrow'), 'kdmodal-inner', yes
-
-
-    # modal = new BuyMachineModal
-
-    # modal.once 'MachineCreated', (newMachine) =>
-    #   @updateMachineTree =>
-    #     tree = @machineTree
-
-    #     for node, i in tree.indexedNodes
-    #       if node.data?._id is newMachine._id
-    #         index = i
-
-    #     if index
-    #       tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
-    #       KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
 
 
   addNewWorkspace: (machineItem) ->

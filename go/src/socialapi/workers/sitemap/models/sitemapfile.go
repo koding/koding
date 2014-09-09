@@ -88,3 +88,7 @@ func (f *SitemapFile) UnmarshalBlob() (*ItemSet, error) {
 func (f *SitemapFile) Delete() error {
 	return bongo.B.Delete(f)
 }
+
+func (f *SitemapFile) Purge() error {
+	return bongo.B.Purge(f)
+}
