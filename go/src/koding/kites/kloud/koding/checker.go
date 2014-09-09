@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
+	"strconv"
 
 	"github.com/koding/kite"
 	aws "github.com/koding/kloud/api/amazon"
@@ -116,16 +117,7 @@ func (p *PlanChecker) Total() error {
 
 	allowedMachines := plan.Limits().Total
 
-	filter := ec2.NewFilter()
-	// instances in Amazon have a `koding-user` tag with the username as the
-	// value. We can easily find them acording to this tag
-	filter.Add("tag:koding-user", p.username)
-	filter.Add("tag:koding-env", p.kite.Config.Environment)
-
-	// Anything except "terminated" and "shutting-down"
-	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
-
-	instances, err := p.api.InstancesByFilter(filter)
+	instances, err := p.userInstances()
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
@@ -150,4 +142,66 @@ func (p *PlanChecker) Total() error {
 		p.machine.MachineId, p.username, len(instances), allowedMachines)
 
 	return nil
+}
+
+// Storage checks whether the user has reached the current plan's limit total
+// storage with the supplied wantStorage information. It returns an error if
+// the limit is reached or an unexplained error happaned.
+func (p *PlanChecker) Storage(wantStorage int) error {
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
+
+	totalStorage := plan.Limits().Storage
+
+	instances, err := p.userInstances()
+
+	// i hate for loops too, but unfortunaly the responses are always in form
+	// of slices
+	currentStorage := 0
+	for _, instance := range instances {
+		for _, blockDevice := range instance.BlockDevices {
+			volumes, err := p.api.Client.Volumes([]string{blockDevice.VolumeId}, ec2.NewFilter())
+			if err != nil {
+				return err
+			}
+
+			for _, volume := range volumes.Volumes {
+				volumeStorage, err := strconv.Atoi(volume.Size)
+				if err != nil {
+					return err
+				}
+
+				currentStorage += volumeStorage
+			}
+		}
+	}
+
+	p.log.Info("[%s] checking storage. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
+		p.machine.MachineId, currentStorage, wantStorage, totalStorage)
+
+	if currentStorage+wantStorage > totalStorage {
+		return fmt.Errorf("total storage limit of %d GB has been reached", totalStorage)
+	}
+
+	p.log.Info("[%s] allowing user '%s'. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
+		p.machine.MachineId, p.username, currentStorage, wantStorage, totalStorage)
+
+	// allow to create storage
+	return nil
+}
+
+func (p *PlanChecker) userInstances() ([]ec2.Instance, error) {
+	filter := ec2.NewFilter()
+	// instances in Amazon have a `koding-user` tag with the username as the
+	// value. We can easily find them acording to this tag
+	filter.Add("tag:koding-user", p.username)
+	filter.Add("tag:koding-env", p.kite.Config.Environment)
+
+	// Anything except "terminated" and "shutting-down"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
+
+	return p.api.InstancesByFilter(filter)
+
 }
