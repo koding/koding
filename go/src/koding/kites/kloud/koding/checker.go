@@ -3,8 +3,11 @@ package koding
 import (
 	"fmt"
 	"koding/db/mongodb"
+	"koding/kites/kloud/klient"
 
+	"github.com/koding/kite"
 	aws "github.com/koding/kloud/api/amazon"
+	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
@@ -15,6 +18,8 @@ type PlanChecker struct {
 	api      *amazon.AmazonClient
 	db       *mongodb.MongoDB
 	machine  *protocol.Machine
+	provider *Provider
+	kite     *kite.Kite
 	username string
 	env      string
 	log      logging.Logger
@@ -23,6 +28,56 @@ type PlanChecker struct {
 // Plan returns the current plan
 func (p *PlanChecker) Plan() (Plan, error) {
 	return Free, nil
+}
+
+// Timeout checks whether the user has reached the current plan's inactivity timeout.
+func (p *PlanChecker) Timeout() error {
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
+
+	// get the timeout from the plan in which the user belongs to
+	planTimeout := plan.Limits().Timeout
+
+	machineData, ok := p.machine.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", p.machine.CurrentData)
+	}
+
+	klient, err := klient.New(p.kite, machineData.QueryString)
+	if err != nil {
+		return err
+	}
+	defer klient.Close()
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := klient.Usage()
+	if err != nil {
+		return err
+	}
+
+	p.log.Info("[%s] checking inactivity for user '%s', ip '%s'. It's inactive for %s (current limit:%s)",
+		machineData.Id.Hex(), machineData.IpAddress, klient.Username, usg.InactiveDuration, planTimeout)
+
+	// It still have plenty of time to work, do not stop it
+	if usg.InactiveDuration <= planTimeout {
+		return nil
+	}
+
+	// mark our state as stopping so others know what we are doing
+	p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopping)
+
+	p.machine.Builder["username"] = klient.Username
+
+	// Hasta la vista, baby!
+	err = p.provider.Stop(p.machine)
+	if err != nil {
+		return err
+	}
+
+	// update to final state too
+	return p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopped)
 }
 
 // Total checks whether the user has reached the current plan's limit of having
@@ -49,6 +104,8 @@ func (p *PlanChecker) Total() error {
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
+		p.log.Info("[%s] allowing user '%s'. Current machine count: %d, Total machine limit: %d",
+			p.machine.MachineId, p.username, len(instances), allowedMachines)
 		return nil
 	}
 
@@ -72,9 +129,15 @@ func (p *PlanChecker) Total() error {
 
 // PlanChecker creates and returns a new PlanChecker struct that is responsible
 // of checking various pieces of informations based on a Plan
-func (p *Provider) PlanChecker(opts *protocol.Machine, a *amazon.AmazonClient) *PlanChecker {
+func (p *Provider) PlanChecker(opts *protocol.Machine) (*PlanChecker, error) {
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := &PlanChecker{
 		api:      a,
+		provider: p,
 		db:       p.Session,
 		username: opts.Builder["username"].(string),
 		env:      p.Kite.Config.Environment,
@@ -82,5 +145,5 @@ func (p *Provider) PlanChecker(opts *protocol.Machine, a *amazon.AmazonClient) *
 		machine:  opts,
 	}
 
-	return ctx
+	return ctx, nil
 }

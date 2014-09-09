@@ -105,7 +105,12 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 
 	// Check for total amachine allowance
 	p.Log.Info("[%s] checking total machine limit for user %s", opts.MachineId, username)
-	if err := p.PlanChecker(opts, a).Total(); err != nil {
+	checker, err := p.PlanChecker(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checker.Total(); err != nil {
 		return nil, err
 	}
 

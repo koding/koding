@@ -2,7 +2,6 @@ package koding
 
 import (
 	"errors"
-	"koding/kites/kloud/klient"
 	"time"
 
 	"github.com/koding/kite"
@@ -14,8 +13,6 @@ import (
 )
 
 var (
-	FreeUserTimeout = time.Minute * 30
-
 	// Be cautious if your try to lower this. A build might really last more
 	// than 10 minutes.
 	CleanUpTimeout = time.Minute * 10
@@ -41,7 +38,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 				return
 			}
 
-			if err := p.CheckUsage(machine); err != nil {
+			if err := p.CheckUsage(machine); err == nil {
 				if err == kite.ErrNoKitesAvailable {
 					p.Log.Warning("[%s] can't check machine (%s). klient kite is not running yet, waiting...",
 						machine.Id.Hex(), machine.IpAddress)
@@ -80,31 +77,11 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 	// release the lock from mongodb after we are done
 	defer p.Unlock(machine.Id.Hex())
 
-	klient, err := klient.New(p.Kite, machine.QueryString)
-	if err != nil {
-		return err
-	}
-	defer klient.Close()
-
-	// get the usage directly from the klient, which is the most predictable source
-	usg, err := klient.Usage()
-	if err != nil {
-		return err
-	}
-
-	p.Log.Info("[%s] checker: machine with ip %s is inactive for %s",
-		machine.Id.Hex(), machine.IpAddress, usg.InactiveDuration)
-
-	// It still have plenty of time to work, do not stop it
-	if usg.InactiveDuration <= FreeUserTimeout {
-		return nil
-	}
-
 	credential := p.GetCredential(machine.Credential)
 
-	// populare a protocol.Machine instance that is needed for the Stop()
+	// populate a protocol.Machine instance that is needed for the Stop()
 	// method
-	m := &protocol.Machine{
+	opts := &protocol.Machine{
 		MachineId:   machine.Id.Hex(),
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
@@ -113,27 +90,22 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 		CurrentData: machine,
 	}
 
-	m.Builder["username"] = klient.Username
-
 	// add a fake eventer, means we are not reporting anyone and prevent also
 	// panicing when someone try to call the eventer
-	m.Eventer = &eventer.Events{}
+	opts.Eventer = &eventer.Events{}
 
-	// mark our state as stopping so otherws know what we are doing
-	p.UpdateState(machine.Id.Hex(), machinestate.Stopping)
-
-	// Hasta la vista, baby!
-	err = p.Stop(m)
+	checker, err := p.PlanChecker(opts)
 	if err != nil {
 		return err
 	}
 
-	// update the state too
-	return p.UpdateState(machine.Id.Hex(), machinestate.Stopped)
+	// for now just check for timeout. This will dial the remote klient to get
+	// the usage data
+	return checker.Timeout()
 }
 
 // FetchOne() fetches a single machine document from mongodb. This document is
-// locked and cannot be retrieved from others anymore. After finishin work with
+// locked and cannot be retrieved from others anymore. After finishing work with
 // this document ResetAssignee needs to be called that it's unlocked again and
 // can be fetcy by others.
 func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
@@ -141,7 +113,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 	query := func(c *mgo.Collection) error {
 		// check only machines that are running and belongs to koding provider
 		// which are not assigned to anyone yet. We also check the date to not
-		// pick up fresh documents. That means documents that are proccessed
+		// pick up fresh documents. That means documents that are processed
 		// and put into the DB will not selected until the interval has been
 		// passed. The interval is the same as checkers interval. The $or is
 		// used also catch fields that doesn't exist.
@@ -155,7 +127,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
 		}
 
-		// once we found something, lock it by modifing the assignee.name. Also
+		// once we found something, lock it by modifying the assignee.name. Also
 		// create a new timestamp (assignee.assignedAt) which is needed for
 		// several cases like (explained above and below)
 		change := mgo.Change{
@@ -170,7 +142,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
-		// means there is no document that matches our criterias.
+		// means there is no document that matches our criteria.
 		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(change, &machine)
 		if err != nil {
 			return err
