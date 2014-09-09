@@ -1,11 +1,3 @@
-###
-  todo:
-
-    - fix setSoftWrap it goes back to off when you reopen the settings
-
-###
-
-
 class Ace extends KDView
 
   constructor:(options, file)->
@@ -381,7 +373,8 @@ class Ace extends KDView
 
     @editor.getSession().setWrapLimitRange limit, limit
     @editor.renderer.setPrintMarginColumn margin
-    @setUseWordWrap no if value is 'off'
+    wordWrapState = value isnt 'off'
+    @setUseWordWrap wordWrapState, save
 
     return  unless save
     @appStorage.setValue 'softWrap', value
