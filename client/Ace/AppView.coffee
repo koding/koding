@@ -20,7 +20,7 @@ class AceView extends JView
     @listenWindowResize()
 
     aceOptions        =
-      delegate        : this
+      delegate        : options.delegate or this
       enableShortcuts : yes
       createFindAndReplaceView : options.createFindAndReplaceView
 
@@ -44,7 +44,7 @@ class AceView extends JView
       iconOnly        : yes
       iconClass       : 'cog'
       type            : 'contextmenu'
-      delegate        : this
+      delegate        : options.delegate or this
       itemClass       : AceSettingsView
       click           : (pubInst, event) -> @contextMenu event
       menu            : @getAdvancedSettingsMenuItems.bind this
@@ -148,8 +148,9 @@ class AceView extends JView
   openSaveDialog: ->
 
     file = @getData()
+    container = @getOptions().delegate or this
 
-    KD.utils.showSaveDialog this, (input, finderController, dialog) =>
+    KD.utils.showSaveDialog container, (input, finderController, dialog) =>
 
       [node] = finderController.treeController.selectedNodes
       name   = input.getValue()
