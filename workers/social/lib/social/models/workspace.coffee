@@ -25,7 +25,7 @@ module.exports = class JWorkspace extends Module
       instance     : []
 
   @create = secure (client, data, callback) ->
-    data.owner = client.connection.delegate.profile._id
+    data.owner = client.connection.delegate._id
     data.slug  = Inflector.slugify data.name.toLowerCase()
 
     {name, slug, machineUId, rootPath, owner, layout} = data
@@ -35,7 +35,7 @@ module.exports = class JWorkspace extends Module
 
       if workspace or name is 'My Workspace'
         query   =
-          owner : client.connection.delegate.profile._id
+          owner : client.connection.delegate._id
           slug  : new RegExp slug
 
         JWorkspace.some query, {}, (err, workspaces) ->
@@ -63,5 +63,5 @@ module.exports = class JWorkspace extends Module
       return callback null, workspace
 
   some$: secure (client, query = {}, callback) ->
-    query.owner = client.connection.delegate.profile._id
+    query.owner = client.connection.delegate._id
     JWorkspace.some query, callback
