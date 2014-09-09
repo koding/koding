@@ -128,3 +128,23 @@ func TestInteractionMarkIfExempt(t *testing.T) {
 
 	})
 }
+
+func TestInteractionIsInteracted(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while testing account is interacted", t, func() {
+		Convey("it should have erro if message id is not set", func() {
+			i := NewInteraction()
+
+			cnt, err := i.IsInteracted(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			So(cnt, ShouldEqual, false)
+		})
+
+	})
+}
