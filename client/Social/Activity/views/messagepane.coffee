@@ -55,7 +55,7 @@ class MessagePane extends KDTabPaneView
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
-  changeFilter: (filter)-> @currentFilter = filter
+  changeFilter: (@currentFilter) ->
 
   bindInputEvents: ->
 
