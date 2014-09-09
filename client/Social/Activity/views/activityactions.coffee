@@ -46,7 +46,7 @@ class ActivityActionsView extends JView
     @loader = new KDLoaderView
       cssClass      : 'action-container'
       size          :
-        width       : 16
+        width       : 12
       loaderOptions :
         color       : '#6B727B'
 
