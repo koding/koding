@@ -81,11 +81,7 @@ class MessagePane extends KDTabPaneView
     @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message) ->
-
-    {lastToFirst} = @getOptions()
-    index = if lastToFirst then @listController.getItemCount() else 0
-    @appendMessage message, index
+  putMessage: (message, index = 0) -> @appendMessage message, index
 
 
   createFakeItemView: (value, clientRequestId) ->
