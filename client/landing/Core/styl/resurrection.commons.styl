@@ -109,7 +109,6 @@ validationRed = rgba(217, 58, 55, 0.65)
 
   &:hover
     border          none
-    right           8px
     .icon
       r-sprite      activity 'check-gray'
 
@@ -125,13 +124,13 @@ validationRed = rgba(217, 58, 55, 0.65)
   &.following
     bg              color transparent
     border-color    transparent
-    right           8px
 
     .icon
       r-sprite      activity 'check-green'
 
     &:hover
       border        1px solid #b1b1b1
+
       .icon
         r-sprite    activity 'check-green'
         opacity     .6
@@ -166,6 +165,7 @@ aside.app-sidebar
   styleScrollBars()
 
 .app-content
+  min-height       100vh
   padding-left     34px
   borderBox()
 
