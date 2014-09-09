@@ -65,6 +65,7 @@ func (p *PlanChecker) Timeout() error {
 		return fmt.Errorf("current data is malformed: %v", p.machine.CurrentData)
 	}
 
+	// connect and get real time data directly from the machines klient
 	klient, err := klient.New(p.kite, machineData.QueryString)
 	if err != nil {
 		return err
@@ -77,13 +78,16 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	p.log.Info("[%s] checking inactivity for user '%s', ip '%s'. It's inactive for %s (current limit: %s)",
-		machineData.Id.Hex(), klient.Username, machineData.IpAddress, usg.InactiveDuration, planTimeout)
+	p.log.Info("[%s] machine [%s] is inactive for %s (current plan limit: %s).",
+		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
 		return nil
 	}
+
+	p.log.Info("[%s] machine [%s] has reached current plan limit of %s. Shutting down...",
+		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout)
 
 	// mark our state as stopping so others know what we are doing
 	p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopping)
