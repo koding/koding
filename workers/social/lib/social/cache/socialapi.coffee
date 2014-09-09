@@ -12,8 +12,7 @@ module.exports = (options={}, callback)->
 
   fetchPopularPosts = (cb)->
     opt =
-      type        : "weekly"
-      channelName : "public"
+      channelName : params.section
       limit       : 25
 
     SocialChannel.fetchPopularPosts client, opt, cb
