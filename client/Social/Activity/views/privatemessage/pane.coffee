@@ -39,6 +39,7 @@ class PrivateMessagePane extends MessagePane
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
     @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
 
+    @filterLinks = null
 
 
   createInputWidget: ->
@@ -265,3 +266,5 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+
+  defaultFilter : -> "MOST_RECENT"
