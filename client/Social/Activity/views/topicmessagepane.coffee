@@ -24,3 +24,5 @@ class TopicMessagePane extends MessagePane
     return  unless message.body.match ///##{name}///
 
     super message
+
+  defaultFilter :-> "MOST_RECENT"

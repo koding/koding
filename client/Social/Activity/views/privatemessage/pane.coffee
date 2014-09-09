@@ -266,3 +266,5 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+
+  defaultFilter : -> "MOST_RECENT"
