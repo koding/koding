@@ -3,6 +3,14 @@
 
 Our monitoring and alerting system is handled by [Amazon CloudWatch](https://console.aws.amazon.com/cloudwatch/home?region=us-east-1)
 
+All of our <env_name>* has the same type of monitoring and notification system.
+
+When a check turns to alarm state, AWS will send a very detailed notification email to sysops+<env_name>@koding.com.
+
+
+
+* <env_name> is in [sandbox, latest, prod]
+
 Load Balancer:
 
 ```
@@ -74,4 +82,70 @@ Load Balancer:
 //
 // Threshold: UnHealthyHostCount >= 1 for 15 minutes
 <env_name>.koding.com_ELB_Unhealty_Hosts_Avg_1_For_1x15Min
+```
+
+Billing
+
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_DataTransfer_Estimated_Greater_Than_100
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_QueueService_Estimated_Greater_Than_100
+```
+
+```
+// Send notification if the monthly estimated charge gets over 5K$
+//
+// Threshold: EstimatedCharges >= 5K for 6 hours
+koding.com_Billing_EC2_Estimated_Greater_Than_5000
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 150 for 6 hours
+koding.com_Billing_ElastiCache_Estimated_Greater_Than_150
+```
+
+```
+// Send notification if the monthly estimated charge gets over 700$
+//
+// Threshold: EstimatedCharges >= 700 for 6 hours
+koding.com_Billing_RDS_Estimated_Greater_Than_700
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_Route53_Estimated_Greater_Than_100
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_S3_Estimated_Greater_Than_100
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_SNS_Estimated_Greater_Than_100
+```
+
+```
+// Send notification if the monthly estimated charge gets over 100$
+//
+// Threshold: EstimatedCharges >= 100 for 6 hours
+koding.com_Billing_VPC_Estimated_Greater_Than_100
 ```
