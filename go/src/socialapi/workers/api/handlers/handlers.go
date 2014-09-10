@@ -390,7 +390,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 
 	// exempt contents are filtered
 	// TODO add caching
-	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(
+	mux.Handle("GET", "/popular/posts/{channelName}", handler.Wrapper(
 		handler.Request{
 			Handler: popular.ListPosts,
 			Name:    "list-popular-posts",

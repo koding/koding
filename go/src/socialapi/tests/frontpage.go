@@ -113,19 +113,19 @@ func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
 		}
 
 		// add likes to replies
-		err = rest.AddInteraction("like", reply.Id, participants[i].AccountId)
+		_, err = rest.AddInteraction("like", reply.Id, participants[i].AccountId)
 		if err != nil {
 			return nil, err
 		}
 
 		// like every comment
-		err = rest.AddInteraction("like", reply.Id, accountId)
+		_, err = rest.AddInteraction("like", reply.Id, accountId)
 		if err != nil {
 			return nil, err
 		}
 
 		// add likes to post
-		err = rest.AddInteraction("like", post.Id, participants[i].AccountId)
+		_, err = rest.AddInteraction("like", post.Id, participants[i].AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +133,7 @@ func populatePost(channelId, accountId int64) (*models.ChannelMessage, error) {
 	}
 
 	// like your post
-	err = rest.AddInteraction("like", post.Id, accountId)
+	_, err = rest.AddInteraction("like", post.Id, accountId)
 	if err != nil {
 		return nil, err
 	}

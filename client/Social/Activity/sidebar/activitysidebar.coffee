@@ -475,7 +475,10 @@ class ActivitySidebar extends KDCustomHTMLView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
-      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
+      headerLink : new CustomLinkView
+        cssClass : 'add-icon'
+        title    : ' '
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
