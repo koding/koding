@@ -18,6 +18,32 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+// Checker checks various aspects of a machine. It used to limit certain
+// aspects of a machine, such a the total machine or total storage.
+type Checker interface {
+	// Total checks whether the user has reached the current plan's limit of
+	// having a total number numbers of machines. It returns an error if the
+	// limit is reached or an unexplained error happaned.
+	Total() error
+
+	// AlwaysOn checks whether the given machine has reached the current plans
+	// always on limit
+	AlwaysOn() error
+
+	// Timeout checks whether the user has reached the current plan's
+	// inactivity timeout.
+	Timeout() error
+
+	// Storage checks whether the user has reached the current plan's limit
+	// total storage with the supplied wantStorage information. It returns an
+	// error if the limit is reached or an unexplained error happaned.
+	Storage(wantStorage int) error
+
+	// AllowedInstances checks whether the given machine has the permisison to
+	// create the given instance type
+	AllowedInstances(wantInstance InstanceType) error
+}
+
 type PlanChecker struct {
 	api      *amazon.AmazonClient
 	db       *mongodb.MongoDB
@@ -28,15 +54,15 @@ type PlanChecker struct {
 	log      logging.Logger
 }
 
-// PlanChecker creates and returns a new PlanChecker struct that is responsible
+// PlanChecker creates and returns a new Checker interface that is responsible
 // of checking various pieces of informations based on a Plan
-func (p *Provider) PlanChecker(opts *protocol.Machine) (*PlanChecker, error) {
+func (p *Provider) PlanChecker(opts *protocol.Machine) (Checker, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx := &PlanChecker{
+	checker := &PlanChecker{
 		api:      a,
 		provider: p,
 		db:       p.Session,
@@ -46,7 +72,7 @@ func (p *Provider) PlanChecker(opts *protocol.Machine) (*PlanChecker, error) {
 		machine:  opts,
 	}
 
-	return ctx, nil
+	return checker, nil
 }
 
 // Plan returns user's current plan
@@ -72,8 +98,6 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 	return fmt.Errorf("not allowed to create instance type: %s", wantInstance)
 }
 
-// AlwaysOn checks whether the given machine has reached the current plans
-// always on limit
 func (p *PlanChecker) AlwaysOn() error {
 	plan, err := p.Plan()
 	if err != nil {
@@ -133,7 +157,6 @@ func (p *PlanChecker) AlwaysOn() error {
 	return fmt.Errorf("total alwaysOn limit has been reached")
 }
 
-// Timeout checks whether the user has reached the current plan's inactivity timeout.
 func (p *PlanChecker) Timeout() error {
 	plan, err := p.Plan()
 	if err != nil {
@@ -188,9 +211,6 @@ func (p *PlanChecker) Timeout() error {
 	return p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopped)
 }
 
-// Total checks whether the user has reached the current plan's limit of having
-// a total number numbers of machines. It returns an error if the limit is
-// reached or an unexplained error happaned.
 func (p *PlanChecker) Total() error {
 	plan, err := p.Plan()
 	if err != nil {
@@ -226,9 +246,6 @@ func (p *PlanChecker) Total() error {
 	return nil
 }
 
-// Storage checks whether the user has reached the current plan's limit total
-// storage with the supplied wantStorage information. It returns an error if
-// the limit is reached or an unexplained error happaned.
 func (p *PlanChecker) Storage(wantStorage int) error {
 	plan, err := p.Plan()
 	if err != nil {
