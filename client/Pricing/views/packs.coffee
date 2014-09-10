@@ -6,7 +6,7 @@ class PricingPacksView extends KDView
 
   viewAppended: ->
     @addSubView new KDHeaderView
-      title     : "Choose a Resource Pack that suits your needs and you are good to go."
+      title     : "Our pricing, your terms"
       type      : "medium"
       cssClass  : "general-title"
 

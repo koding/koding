@@ -46,15 +46,4 @@ class TeamPlan extends PricingPacksView
       "VM"       : "750x"
       "Always On": "75x"
     price        : "$2249"
-  ,
-    title        : "100x"
-    tag          : "tp100"
-    cssClass     : "red"
-    packFeatures :
-      "CPU"      : "200x"
-      "RAM"      : "200GB"
-      "DISK"     : "1000GB"
-      "VMs"      : "1000x"
-      "Always On": "100x"
-    price        : "$2999"
   ]

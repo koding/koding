@@ -49,7 +49,5 @@ class PricingProductForm extends KDView
       @emit "CurrentSubscriptionSet", subscription  if subscription
 
   viewAppended: ->
-    @addSubView new PricingIntroductionView
     @addSubView @tabView
-    @addSubView new PricingFeaturesView
     @addSubView new FooterView
