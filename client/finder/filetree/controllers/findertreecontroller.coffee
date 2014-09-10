@@ -5,7 +5,9 @@ class NFinderTreeController extends JTreeViewController
     super
 
     if @getOptions().contextMenu
-      @contextMenuController = new NFinderContextMenuController
+      {contextMenuClass} = @getOptions()
+
+      @contextMenuController = new contextMenuClass
 
       @contextMenuController.on "ContextMenuItemClicked", ({fileView, contextMenuItem})=>
         @contextMenuItemSelected fileView, contextMenuItem
