@@ -94,6 +94,7 @@ func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant st
 	c.GroupName = groupName
 	c.CreatorId = creatorId
 	c.TypeConstant = typeConstant
+	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
 	c.Name = c.Name + strconv.Itoa(rand.Intn(100000000))
 	cm, err := sendModel("POST", "/channel", c)
 	if err != nil {

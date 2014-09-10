@@ -417,7 +417,7 @@ func TestNotificationCreation(t *testing.T) {
 		})
 		Convey("As a message owner I want to receive like notifications", func() {
 			Convey("First user should be able to like it", func() {
-				err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				_, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
@@ -440,7 +440,7 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("First user should be able to relike it", func() {
 				err := rest.DeleteInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
 				So(err, ShouldBeNil)
-				err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				_, err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
@@ -462,11 +462,11 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 			Convey("Second, Third and Forth user should be able to like it", func() {
-				err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
+				_, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, secondUser.Id)
 				So(err, ShouldBeNil)
-				err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
+				_, err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, thirdUser.Id)
 				So(err, ShouldBeNil)
-				err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
+				_, err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, forthUser.Id)
 				So(err, ShouldBeNil)
 
 				time.Sleep(SLEEP_TIME * time.Second)
@@ -490,7 +490,7 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 			Convey("I should not be able to notified by my own like activities", func() {
-				err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
+				_, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 

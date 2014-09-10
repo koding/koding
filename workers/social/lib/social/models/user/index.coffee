@@ -648,7 +648,7 @@ Team Koding
               @persistOauthInfo user.username, sessionToken, kallback
         else
           if user
-            afterLogin client.connection, user, sessionToken, session, kallback
+            afterLogin user, sessionToken, session, kallback
           else
             info = session.foreignAuth[provider]
             {username, email, firstName, lastName} = info

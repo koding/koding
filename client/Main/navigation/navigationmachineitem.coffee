@@ -6,11 +6,11 @@ class NavigationMachineItem extends JView
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     machine            = data
     @alias             = machine.label
-    path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
+    path               = KD.utils.groupifyLink "/IDE/my-workspace"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
