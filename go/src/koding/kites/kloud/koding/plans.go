@@ -17,6 +17,12 @@ const (
 	T2Medium
 )
 
+var instances = map[string]InstanceType{
+	"t2.micro":  T2Micro,
+	"t2.small":  T2Small,
+	"t2.medium": T2Medium,
+}
+
 func (i InstanceType) String() string {
 	switch i {
 	case T2Micro:

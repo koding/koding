@@ -206,6 +206,12 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// Use koding plans instead of those later
 	a.Builder.InstanceType = DefaultInstanceType
 
+	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+	// check if the user is egligible to create a vm with this size
+	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
+		return nil, err
+	}
+
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
 	infoLog("Searching for subnets")

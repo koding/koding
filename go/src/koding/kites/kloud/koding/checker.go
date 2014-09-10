@@ -54,6 +54,24 @@ func (p *PlanChecker) Plan() (Plan, error) {
 	return Free, nil
 }
 
+func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
+
+	allowedInstances := plan.Limits().AllowedInstances
+
+	p.log.Info("[%s] checking instance type. want: %s (plan: %s)",
+		p.machine.MachineId, wantInstance, plan)
+
+	if _, ok := allowedInstances[wantInstance]; ok {
+		return nil
+	}
+
+	return fmt.Errorf("not allowed to create instance type: %s", wantInstance)
+}
+
 // AlwaysOn checks whether the given machine has reached the current plans
 // always on limit
 func (p *PlanChecker) AlwaysOn() error {
@@ -186,7 +204,7 @@ func (p *PlanChecker) Total() error {
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
 		p.log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.machine.MachineId, p.username, len(instances), allowedMachines)
+			p.machine.MachineId, p.username, len(instances), allowedMachines, plan)
 		return nil
 	}
 
@@ -203,7 +221,7 @@ func (p *PlanChecker) Total() error {
 	}
 
 	p.log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-		p.machine.MachineId, p.username, len(instances), allowedMachines)
+		p.machine.MachineId, p.username, len(instances), allowedMachines, plan)
 
 	return nil
 }
