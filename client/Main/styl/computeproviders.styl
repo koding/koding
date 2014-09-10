@@ -271,7 +271,6 @@ computeproviders.styl
       margin-top        30px
 
 
-  &.paid-plan
   &.free-plan
 
     .kdmodal-content
@@ -293,52 +292,95 @@ computeproviders.styl
 
   &.paid-plan
 
+    bg                    color, #C8C8C8
+
+    .kdmodal-inner
+      bg                  color, #C8C8C8
+
+    .custom-link-view
+      color               #373737
+      padding             0 45px
+      display             block
+      font-weight         600
+      line-height         16px
+
+    .container
+
+      font-size           12px
+      padding             0 7px
+      overflow            hidden
+      borderBox()
+
+      .modal-title
+        font-size         14px
+        color             #6E6865
+        padding           0 0 15px 0
+
+      button
+        margin            20px 0
+        width             284px
+
+    .storage-container
+
+      padding             10px 0 18px
+      bg                  color, #E4E4E4
+      border-radius       5px
+      font-size           12px
+      color               #6E6865
+
+      .storage-title
+        font-variant      small-caps
+        font-weight       600
+        margin            1px 0 43px
+        font-size         17px
+
+
     .storage-slider
 
-      margin           15px 15px 15px 25px
-      height           2px
-      background-image none
-      border           none
-      background       #403D3D
+      margin              18px
+      height              2px
+      background-image    none
+      border              none
+      background          #403D3D
 
       .bar
 
-        background-image none
-        box-shadow       none
-        background       #42B53A
+        background-image  none
+        box-shadow        none
+        background        #42B53A
 
 
       .handle
 
-        border-radius    30px
-        background-image none
-        border           none
-        box-shadow       none
-        background       #42B53A
-        margin-top       -6px
-        size             18px, 18px
-        text-decoration  none
-        font-weight      normal
-        font-size        12px
-        color            #403D3D
+        border-radius     30px
+        background-image  none
+        border            none
+        box-shadow        none
+        background        #42B53A
+        margin-top        -6px
+        size              18px, 18px
+        text-decoration   none
+        font-weight       normal
+        font-size         12px
+        color             #403D3D
 
         .handle-label
-          margin-top     -20px
-          margin-left    -5px
+          margin-top      -27px
+          margin-left     -5px
 
         &:active
-          color          #403D3D
+          color           #403D3D
 
         &:after
         &:before
-          display        none
+          display         none
 
 
       .sliderbar-label
 
-        top              0
-        color            rgba(0,0,0,0)
+        top               0
+        color             rgba(0,0,0,0)
 
         &:after
-          height         5px
-          background     #ccc
+          height          5px
+          background      #ccc

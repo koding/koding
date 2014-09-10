@@ -4,19 +4,22 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     super
       cssClass : 'paid-plan'
-      message  : options.message ? "Free users are restricted to one VM.<br/>"
+      height   : 323
 
   viewAppended:->
 
     @addSubView content = new KDView
-      cssClass : 'message'
-      partial  : "Remaining VM slots: 4/6"
+      cssClass : 'container'
 
+    content.addSubView title = new KDView
+      cssClass : "modal-title"
+      partial  : "Remaining VM slots: 4/6"
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
 
     storageContainer.addSubView new KDView
+      cssClass : "storage-title"
       partial  : "choose storage capacity"
 
     storageContainer.addSubView new CustomStorageSlider
