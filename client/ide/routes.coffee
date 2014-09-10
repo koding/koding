@@ -1,37 +1,59 @@
 do ->
 
-  KD.registerRoutes 'IDE',
+  loadWorkspace = (slug) ->
+    workspace = ws  for ws in KD.userWorkspaces when ws.slug is slug
 
-    '/:name?/IDE' : ({params:{name}, query})->
+    if workspace
+      machine = getMachineByUId workspace.machineUId
+      loadIDE { machine, workspace } # TODO: Be sure we are handling machine not found
+    else
+      if slug is 'my-workspace'
+        machine   = KD.userMachines.first
+        workspace = isDefault: yes, slug: 'my-workspace'
 
-      router              = KD.getSingleton 'router'
-      {Building, Running} = Machine.State
-      route               = '/IDE/VM/'
+        loadIDE { machine, workspace }
+      else
+        routeToLastWorkspace()
 
-      if KD.userMachines?.length > 0
 
-        for machine in KD.userMachines
-          if machine.status.state in [Building, Running]
-            route += machine.uid
+  getMachineByUId = (uid) ->
+    machine = m  for m in KD.userMachines when m.uid is uid
+    return machine or null
 
-        if route is '/IDE/VM/' then route += KD.userMachines.first.uid
 
-      else route = '/Activity'
+  loadIDE = ({ machine, workspace }) ->
+    appManager = KD.getSingleton 'appManager'
+    ideApps    = appManager.appControllers.IDE
+    machineUId = machine.uid
+    fallback   = ->
+      appManager.open 'IDE', { forceNew: yes }, (app) ->
+        app.mountedMachineUId = machineUId
+        app.workspaceData     = workspace
 
-      router.handleRoute KD.utils.groupifyLink route
+        appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
 
-    '/:name?/IDE/VM/:slug' : ({params:{name, slug}, query})->
+    return fallback()  unless ideApps?.instances
 
-      appManager  = KD.getSingleton 'appManager'
-      ideApps     = appManager.appControllers.IDE
-      fallback    = ->
-        appManager.open 'IDE', { forceNew: yes }, (app) ->
-          app.mountedMachineUId = slug
-          appManager.tell 'IDE', 'mountMachineByMachineUId', slug
+    for instance in ideApps.instances
+      isSameMachine   = instance.mountedMachineUId is machineUId
+      isSameWorkspace = instance.workspaceData is workspace
 
-      return fallback()  unless ideApps?.instances
-
-      for instance in ideApps.instances when instance.mountedMachineUId is slug
+      if isSameMachine and isSameWorkspace
+        ideInstance   = instance
+      else if workspace.slug is 'my-workspace'
+        if instance.workspaceData?.isDefault
           ideInstance = instance
 
-      if ideInstance then appManager.showInstance ideInstance else fallback()
+    if ideInstance then appManager.showInstance ideInstance else fallback()
+
+
+  routeToLastWorkspace = ->
+    KD.getSingleton('router').handleRoute '/IDE/my-workspace'
+
+
+  KD.registerRoutes 'IDE',
+
+    '/:name?/IDE': -> routeToLastWorkspace()
+
+    '/:name?/IDE/:workspaceSlug': (data) ->
+      loadWorkspace data.params.workspaceSlug

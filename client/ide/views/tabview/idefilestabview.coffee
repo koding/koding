@@ -36,11 +36,11 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @tabView.addPane filesPane
 
-    @on 'MachineMountRequested', (vmData) =>
-      @finderPane.emit 'MachineMountRequested', vmData
+    @on 'MachineMountRequested', (machineData, rootPath) =>
+      @finderPane.emit 'MachineMountRequested', machineData, rootPath
 
-    @on 'MachineUnmountRequested', (vmData) =>
-      @finderPane.emit 'MachineUnmountRequested', vmData
+    @on 'MachineUnmountRequested', (machineData) =>
+      @finderPane.emit 'MachineUnmountRequested', machineData
 
   createVMsPane: ->
     vmsPane    = new KDTabPaneView

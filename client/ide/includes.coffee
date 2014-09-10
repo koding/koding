@@ -4,6 +4,8 @@ module.exports = [
   "namespaces.coffee"
 
   # finder
+  "finder/idefindercontextmenucontroller.coffee"
+  "finder/idefindertreecontroller.coffee"
   "finder/idefinderitem.coffee"
   "finder/idemachineitem.coffee"
 

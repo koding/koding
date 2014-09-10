@@ -13,6 +13,8 @@ class IDE.FinderPane extends IDE.Pane
         addAppTitle          : no
         bindMachineEvents    : no
         treeItemClass        : IDE.FinderItem
+        treeControllerClass  : IDE.FinderTreeController
+        contextMenuClass     : IDE.FinderContextMenuController
 
       @addSubView fc.getView()
       @bindListeners()
@@ -29,6 +31,6 @@ class IDE.FinderPane extends IDE.Pane
     fc.treeController.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    @on 'MachineMountRequested',   (machine) -> fc.mountMachine machine
+    @on 'MachineMountRequested',   (machine, rootPath) -> fc.mountMachine machine, { mountPath: rootPath }
 
     @on 'MachineUnmountRequested', (machine) -> fc.unmountMachine machine.uid
