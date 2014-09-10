@@ -178,8 +178,8 @@ class Ace extends KDView
     localSync.on 'LocalContentCouldntSynced', (file) =>
       @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
-  requestSaveAs: (options) ->
-    @emit 'ace.requests.saveAs', @getContents(), options
+  requestSaveAs: ->
+    @emit 'ace.requests.saveAs', @getContents()
 
   fetchContents:(callback)->
     file = @getData()

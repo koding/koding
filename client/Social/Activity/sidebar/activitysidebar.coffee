@@ -343,26 +343,25 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
-        id       : "#{id}-workspaces"
-        title    : 'Workspaces'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'My Workspace'
-        type     : 'workspace'
-        href     : "/IDE/VM/#{machine.uid}"
-        parentId : id
-      # treeData.push
-      #   id       : "#{id}-apps"
-      #   title    : 'Apps'
-      #   type     : 'title'
-      #   parentId : id
-      # treeData.push
-      #   title    : 'App Store'
-      #   type     : 'app'
-      #   href     : '/Apps'
-      #   parentId : id
+        id           : "#{id}-workspaces"
+        title        : 'Workspaces <span class="ws-add-icon"></span>'
+        type         : 'title'
+        parentId     : id
+        machineUId   : machine.uid
 
+      treeData.push
+        title        : 'My Workspace'
+        type         : 'workspace'
+        href         : "/IDE/my-workspace"
+        parentId     : id
+
+      KD.userWorkspaces.forEach (workspace) ->
+        treeData.push
+          title      : workspace.name
+          type       : 'workspace'
+          href       : "/IDE/#{workspace.slug}"
+          data       : workspace
+          parentId   : id
 
     @machineTree.addNode data for data in treeData
 
@@ -394,7 +393,7 @@ class ActivitySidebar extends KDCustomHTMLView
     # for this and put this logic into there ~ FIXME ~ GG
     @machineTree.dblClick = (nodeView, event)->
       machine = nodeView.getData()
-      if machine.status.state is Machine.State.Running
+      if machine.status?.state is Machine.State.Running
         @toggle nodeView
 
     section.addSubView header = new KDCustomHTMLView
@@ -420,6 +419,7 @@ class ActivitySidebar extends KDCustomHTMLView
     else
       @fetchMachines @bound 'listMachines'
 
+
   handleMachineItemClick: (machineItem, event) ->
 
     machine  = machineItem.getData()
@@ -430,7 +430,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if event.target.nodeName is 'SPAN'
 
-      if status.state is Running
+      if machineItem.type is 'title'
+        if event.target.classList.contains 'ws-add-icon'
+          return @addNewWorkspace machineItem
+
+      if status?.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
       else return
@@ -446,7 +450,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return
 
-    else if machineItem.getData().status.state is Machine.State.Building
+    else if machineItem.getData().status?.state is Machine.State.Building
 
       return
 
@@ -465,7 +469,6 @@ class ActivitySidebar extends KDCustomHTMLView
       @machineTree.collapse node
 
 
-
   addFollowedTopics: ->
 
     @addSubView @sections.channels = new ActivitySideView
@@ -475,7 +478,10 @@ class ActivitySidebar extends KDCustomHTMLView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
-      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
+      headerLink : new CustomLinkView
+        cssClass : 'add-icon'
+        title    : ' '
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
@@ -483,8 +489,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
       @sections.channels.hide()
-
-
 
 
   addConversations: ->
@@ -526,6 +530,72 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  addNewWorkspace: (machineItem) ->
+    return if @addWorkspaceView
+
+    {machineUId} = machineItem.getData()
+    type         = 'new-workspace'
+    delegate     = machineItem.getDelegate()
+
+    @addWorkspaceView = delegate.addItem { type, machineUId }
+
+    @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
+      delegate.removeItem @addWorkspaceView
+      @addWorkspaceView = null
+
+    @addWorkspaceView.child.input.setFocus()
+
+
+  createNewWorkspace: (options = {}) ->
+    {name, machineUId, rootPath} = options
+    {computeController, router } = KD.singletons
+    layout                       = {}
+
+    if not name or not machineUId
+      return warn 'Missing options for create new workspace'
+
+    unless rootPath
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
+      emptyWorkspace = yes
+
+    data    = { name, machineUId, rootPath, layout }
+    machine = m for m in computeController.machines when m.uid is machineUId
+    command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
+
+    return warn "Machine not found."  unless machine
+
+    callback = =>
+      KD.remote.api.JWorkspace.create data, (err, workspace) =>
+        return KD.showError "Couldn't create new workspace"  if err
+        view    = @addWorkspaceView
+        options =
+          title : workspace.name
+          type  : 'workspace'
+          href  : "/IDE/#{workspace.slug}"
+          data  : workspace
+
+        if view
+          list  = view.getDelegate()
+          list.removeItem view  if view
+        else
+          for key, node of @machineTree.nodes when node.type is 'title'
+            list = node.getDelegate()
+
+        list.addItem options
+
+        KD.userWorkspaces.push workspace
+
+        router.handleRoute options.href
+
+    if emptyWorkspace
+      machine.getBaseKite().exec({ command })
+      .then  (res) => callback()
+      .catch (err) ->
+        KD.showError 'Unable to create a new workspace'
+    else
+      callback()
 
 
   updateMachineTree: (callback = noop) ->

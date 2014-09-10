@@ -124,10 +124,10 @@ fetchPopularTopics = (data, callback)->
   get url, data, callback
 
 fetchPopularPosts = (data, callback)->
-  if not data.groupName or not data.type or not data.channelName
+  if not data.groupName or not data.channelName
     return callback {message: "Request is not valid for listing popular topics"}
 
-  url = "/popular/posts/#{data.channelName}/#{data.type}"
+  url = "/popular/posts/#{data.channelName}"
   get url, data, callback
 
 fetchPinnedMessages = (data, callback)->

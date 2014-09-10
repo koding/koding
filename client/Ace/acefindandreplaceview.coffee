@@ -135,8 +135,8 @@ class AceFindAndReplaceView extends JView
     {editor}   = @getDelegate().ace
     methodName = if doReplaceAll then 'replaceAll' else 'replace'
 
-    @findNext()
     editor[methodName] replaceKeyword
+    @findNext()
 
   pistachio: ->
     """
