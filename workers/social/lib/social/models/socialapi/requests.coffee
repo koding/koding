@@ -332,6 +332,10 @@ getSiteMap = (data, callback)->
   url = data.name
   getXml url, {}, callback
 
+deleteChannel = (data, callback) ->
+  url = "/channel/#{data.channelId}/delete"
+  post url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -412,4 +416,5 @@ module.exports = {
   unfollowUser
   createGroupNotification
   getSiteMap
+  deleteChannel
 }

@@ -4,7 +4,7 @@ request        = require 'request'
 
 {secure, daisy, dash, signature, Base} = Bongo
 {throttle} = require 'underscore'
-
+Validators = require '../group/validators'
 
 module.exports = class SocialChannel extends Base
   @share()
@@ -56,6 +56,8 @@ module.exports = class SocialChannel extends Base
         glancePinnedPost     :
           (signature Object, Function)
         cycleChannel:
+          (signature Object, Function)
+        delete:
           (signature Object, Function)
 
     schema             :
@@ -231,3 +233,14 @@ module.exports = class SocialChannel extends Base
           creatorId   : targetId
         method = if options.unfollow then unfollowUser else followUser
         method data, callback
+
+  { deleteChannel } = require './requests'
+
+  @delete = permit
+    advanced: [
+      { permission: 'delete own posts', validator: Validators.own }
+      { permission: 'delete posts',     validator: Validators.any }
+    ]
+    success: (client, options, callback) ->
+      return deleteChannel options, callback  if options.channelId?
+      callback message: "channel id not provided"

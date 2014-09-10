@@ -32,6 +32,27 @@ class SidebarMessageItem extends SidebarItem
       showStatus : yes
       origin     : origin
 
+    @deleteBtn = new KDCustomHTMLView
+      partial: 'X'
+      tagName: 'button'
+      cssClass: 'delete'
+      click: =>
+        modal = KDModalView.confirm
+          title       : 'Are you sure?'
+          description : 'Delete this chat conversation?'
+          ok          :
+            title     : 'Remove'
+            callback  : =>
+              { SocialChannel } = KD.remote.api
+              channelId = @getData().getId()
+              modal.destroy()
+              SocialChannel.delete({ channelId }).catch KD.showError
+
+    data.on 'ChannelDeleted', =>
+      if location.pathname is "/Activity/Message/#{ data.getId() }"
+        KD.singletons.router.clear()
+      @destroy()
+
     if data.purpose
       @purpose = new KDCustomHTMLView
         tagName  : 'span'
@@ -40,4 +61,4 @@ class SidebarMessageItem extends SidebarItem
 
 
   pistachio: ->
-    "{{> @avatar}}{{> @purpose or @actor}}{{> @unreadCount}}"
+    "{{> @avatar}}{{> @purpose or @actor}}{{> @unreadCount}}{{> @deleteBtn}}"

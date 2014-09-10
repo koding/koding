@@ -71,6 +71,8 @@ module.exports = class JGroup extends Module
       'pin posts'               : ['member', 'moderator']
       'send private message'    : ['member', 'moderator']
       'list private messages'   : ['member', 'moderator']
+      'delete own channel'      : ['member']
+      'delete channel'          : ['member', 'moderator']
 
       # JTag related permissions
       'read tags'               :

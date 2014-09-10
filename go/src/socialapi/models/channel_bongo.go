@@ -25,7 +25,7 @@ func (c *Channel) AfterUpdate() {
 	bongo.B.AfterUpdate(c)
 }
 
-func (c Channel) AfterDelete() {
+func (c *Channel) AfterDelete() {
 	bongo.B.AfterDelete(c)
 }
 
@@ -53,6 +53,9 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Delete() error {
+	if err := deleteChannelMessages(c); err != nil {
+		return err
+	}
 	return bongo.B.Delete(c)
 }
 
@@ -79,4 +82,17 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 		return nil, err
 	}
 	return channels, nil
+}
+
+func deleteChannelMessages(c *Channel) error {
+	var messages []ChannelMessage
+	if err := (&ChannelMessage{}).Some(&messages, &bongo.Query{}); err != nil {
+		return err
+	}
+	for _, message := range messages {
+		if err := message.DeleteSilent(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
