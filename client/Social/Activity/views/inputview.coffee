@@ -154,10 +154,10 @@ class ActivityInputView extends KDTokenizedInput
 
 
   # Webkit has a bug where removing focus from element with
-  # `contenteditable` doesn't actually remove focus. This is a workout
+  # `contenteditable` doesn't actually remove focus. This is a workaround
   # from http://stackoverflow.com/questions/12353247/force-contenteditable-div-to-stop-accepting-input-after-it-loses-focus-under-web
   forceBlur: ->
-    $('<div contenteditable="true"></div>')
+    $('<div class="visuallyhidden" contenteditable="true"></div>')
       .prependTo 'body'
       .focus()
       .remove()
