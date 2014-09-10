@@ -1,7 +1,6 @@
 
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
-JVM               = require '../vm'
 
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
@@ -25,6 +24,31 @@ module.exports = class Koding extends ProviderInterface
       instance_type : instanceType
 
     callback null, { meta, credential: client.r.user.username }
+
+
+  @fetchUsage = (client, options, callback)->
+
+    JMachine  = require './machine'
+
+    { r: { group, user } } = client
+
+    selector        = { provider: "koding" }
+    selector.users  = $elemMatch: id: user.getId()
+    selector.groups = $elemMatch: id: group.getId()
+
+    JMachine.some selector, limit: 30, (err, machines)->
+
+      return callback err  if err?
+
+      total    = machines.length
+      alwaysOn = 0
+      storage  = 0
+
+      machines.forEach (machine)->
+        alwaysOn++  if machine.meta.alwaysOn
+        storage += machine.meta.storage_size ? 3
+
+      callback null, { total, alwaysOn, storage }
 
 
   @fetchAvailable = (client, options, callback)->
