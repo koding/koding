@@ -349,22 +349,25 @@ class ComputeController extends KDController
   # Utils beyond this point
   #
 
+  getUserPlan:->
+
+    knownPlans = ['super', 'professional', 'developer', 'hobbyist']
+    flags = KD.whoami().globalFlags or []
+
+    for plan in knownPlans
+      return plan  if "plan-#{plan}" in flags
+
+    return 'free'
+
 
   handleNewMachineRequest: ->
 
+    plan = @getUserPlan()
 
-    # Temporary waiting flow we will replace
-    # this with payment/plan fetch process.
-
-    # loading = new ComputePlansModal.Loading
-    # KD.utils.wait 1000, ->
-    #   loading.destroy()
-    #
-    # we can create the flow once it is ready,
-    # no need to make user wait to warn him. - SY
-
-    # KD.utils.defer -> new ComputePlansModal.Free
-    KD.utils.defer -> new ComputePlansModal.Paid
+    if plan in ['developer', 'professional', 'super']
+      new ComputePlansModal.Paid { plan }
+    else
+      new ComputePlansModal.Free { plan }
 
 
   triggerReviveFor:(machineId)->
