@@ -111,28 +111,14 @@ func (p *PlanChecker) AlwaysOn() error {
 
 	alwaysOnLimit := plan.Limits().AlwaysOn
 
-	alwaysOnEnabled := false
-	if has, ok := p.machine.Builder["alwaysOn"]; ok {
-		if alwaysOnEnabled, ok = has.(bool); !ok {
-			return fmt.Errorf("alwaysOn data is malformed %v", has)
-		}
-	} else {
-		// it doesn't exists, so give access to continue
-		return nil
-	}
-
-	// disabled give access
-	if !alwaysOnEnabled {
-		return nil
-	}
-
 	user := machineData.Users[0]
 
-	// get all machines that belongs to this user
+	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
 	err = p.db.Run("jMachines", func(c *mgo.Collection) error {
 		alwaysOnMachines, err = c.Find(bson.M{
-			"users.id": user.Id,
+			"users.id":      user.Id,
+			"meta.alwaysOn": true,
 		}).Count()
 
 		return err
@@ -146,7 +132,7 @@ func (p *PlanChecker) AlwaysOn() error {
 	p.log.Info("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
 		p.machine.MachineId, alwaysOnMachines, alwaysOnLimit, plan)
 	// the user has still not reached the limit
-	if alwaysOnMachines < alwaysOnLimit {
+	if alwaysOnMachines <= alwaysOnLimit {
 		p.log.Info("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
 			p.machine.MachineId, p.username, alwaysOnMachines, alwaysOnLimit, plan)
 		return nil
