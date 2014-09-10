@@ -220,6 +220,10 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 		return false, ErrMessageIdIsNotSet
 	}
 
+	if accountId == 0 {
+		return false, ErrAccountIdIsNotSet
+	}
+
 	selector := map[string]interface{}{
 		"message_id": i.MessageId,
 		"account_id": accountId,

@@ -137,12 +137,22 @@ func TestInteractionIsInteracted(t *testing.T) {
 	defer r.Close()
 
 	Convey("while testing account is interacted", t, func() {
-		Convey("it should have erro if message id is not set", func() {
+		Convey("it should have error if message id is not set", func() {
 			i := NewInteraction()
 
 			cnt, err := i.IsInteracted(0)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrMessageIdIsNotSet)
+			So(cnt, ShouldEqual, false)
+		})
+
+		Convey("it should have ", func() {
+			i := NewInteraction()
+			i.MessageId = 1050
+
+			cnt, err := i.IsInteracted(0)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIdIsNotSet)
 			So(cnt, ShouldEqual, false)
 		})
 
