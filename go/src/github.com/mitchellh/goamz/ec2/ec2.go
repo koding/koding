@@ -178,7 +178,7 @@ func buildError(r *http.Response) error {
 	err.RequestId = errors.RequestId
 	err.StatusCode = r.StatusCode
 	if err.Message == "" {
-		err.Message = r.Status
+		err.Message = err.Code
 	}
 	return &err
 }
@@ -220,6 +220,8 @@ func addBlockDeviceParams(prename string, params map[string]string, blockdevices
 		}
 		if k.DeleteOnTermination {
 			params[prefix+"Ebs.DeleteOnTermination"] = "true"
+		} else {
+			params[prefix+"Ebs.DeleteOnTermination"] = "false"
 		}
 		if k.Encrypted {
 			params[prefix+"Ebs.Encrypted"] = "true"
@@ -253,6 +255,7 @@ type RunInstances struct {
 	SubnetId                 string
 	AssociatePublicIpAddress bool
 	DisableAPITermination    bool
+	EbsOptimized             bool
 	ShutdownBehavior         string
 	PrivateIPAddress         string
 	BlockDevices             []BlockDeviceMapping
@@ -267,6 +270,15 @@ type RunInstancesResp struct {
 	OwnerId        string          `xml:"ownerId"`
 	SecurityGroups []SecurityGroup `xml:"groupSet>item"`
 	Instances      []Instance      `xml:"instancesSet>item"`
+}
+
+// BlockDevice represents the association of a block device with an instance.
+type BlockDevice struct {
+	DeviceName          string `xml:"deviceName"`
+	VolumeId            string `xml:"ebs>volumeId"`
+	Status              string `xml:"ebs>status"`
+	AttachTime          string `xml:"ebs>attachTime"`
+	DeleteOnTermination bool   `xml:"ebs>deleteOnTermination"`
 }
 
 // Instance encapsulates a running instance in EC2.
@@ -296,6 +308,8 @@ type Instance struct {
 	LaunchTime         time.Time       `xml:"launchTime"`
 	SourceDestCheck    bool            `xml:"sourceDestCheck"`
 	SecurityGroups     []SecurityGroup `xml:"groupSet>item"`
+	EbsOptimized       string          `xml:"ebsOptimized"`
+	BlockDevices       []BlockDevice   `xml:"blockDeviceMapping>item"`
 }
 
 // RunInstances starts new instances in EC2.
@@ -391,6 +405,9 @@ func (ec2 *EC2) RunInstances(options *RunInstances) (resp *RunInstancesResp, err
 	}
 	if options.DisableAPITermination {
 		params["DisableApiTermination"] = "true"
+	}
+	if options.EbsOptimized {
+		params["EbsOptimized"] = "true"
 	}
 	if options.ShutdownBehavior != "" {
 		params["InstanceInitiatedShutdownBehavior"] = options.ShutdownBehavior
@@ -640,6 +657,61 @@ func (ec2 *EC2) CancelSpotRequests(spotrequestIds []string) (resp *CancelSpotReq
 	if err != nil {
 		return nil, err
 	}
+	return
+}
+
+type DescribeSpotPriceHistory struct {
+	InstanceType       []string
+	ProductDescription []string
+	AvailabilityZone   string
+	StartTime, EndTime time.Time
+}
+
+// Response to a DescribeSpotPriceHisotyr request.
+//
+// See http://goo.gl/3BKHj for more details.
+type DescribeSpotPriceHistoryResp struct {
+	RequestId string             `xml:"requestId"`
+	History   []SpotPriceHistory `xml:"spotPriceHistorySet>item"`
+}
+
+type SpotPriceHistory struct {
+	InstanceType       string    `xml:"instanceType"`
+	ProductDescription string    `xml:"productDescription"`
+	SpotPrice          string    `xml:"spotPrice"`
+	Timestamp          time.Time `xml:"timestamp"`
+	AvailabilityZone   string    `xml:"availabilityZone"`
+}
+
+// DescribeSpotPriceHistory gets the spot pricing history.
+//
+// See http://goo.gl/3BKHj for more details.
+func (ec2 *EC2) DescribeSpotPriceHistory(o *DescribeSpotPriceHistory) (resp *DescribeSpotPriceHistoryResp, err error) {
+	params := makeParams("DescribeSpotPriceHistory")
+	if o.AvailabilityZone != "" {
+		params["AvailabilityZone"] = o.AvailabilityZone
+	}
+
+	if !o.StartTime.IsZero() {
+		params["StartTime"] = o.StartTime.In(time.UTC).Format(time.RFC3339)
+	}
+	if !o.EndTime.IsZero() {
+		params["EndTime"] = o.EndTime.In(time.UTC).Format(time.RFC3339)
+	}
+
+	if len(o.InstanceType) > 0 {
+		addParamsList(params, "InstanceType", o.InstanceType)
+	}
+	if len(o.ProductDescription) > 0 {
+		addParamsList(params, "ProductDescription", o.ProductDescription)
+	}
+
+	resp = &DescribeSpotPriceHistoryResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 
@@ -2125,6 +2197,19 @@ type CreateSubnetResp struct {
 	Subnet    Subnet `xml:"subnet"`
 }
 
+// The ModifySubnetAttribute request parameters
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-ModifySubnetAttribute.html
+type ModifySubnetAttribute struct {
+	SubnetId            string
+	MapPublicIpOnLaunch bool
+}
+
+type ModifySubnetAttributeResp struct {
+	RequestId string `xml:"requestId"`
+	Return    bool   `xml:"return"`
+}
+
 // Response to a DescribeInternetGateways request.
 type InternetGatewaysResp struct {
 	RequestId        string            `xml:"requestId"`
@@ -2324,6 +2409,26 @@ func (ec2 *EC2) DeleteSubnet(id string) (resp *SimpleResp, err error) {
 	params["SubnetId"] = id
 
 	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// ModifySubnetAttribute
+//
+// http://docs.aws.amazon.com/AWSEC2/latest/APIReference/ApiReference-query-ModifySubnetAttribute.html
+func (ec2 *EC2) ModifySubnetAttribute(options *ModifySubnetAttribute) (resp *ModifySubnetAttributeResp, err error) {
+	params := makeParams("ModifySubnetAttribute")
+	params["SubnetId"] = options.SubnetId
+	if options.MapPublicIpOnLaunch {
+		params["MapPublicIpOnLaunch.Value"] = "true"
+	} else {
+		params["MapPublicIpOnLaunch.Value"] = "false"
+	}
+
+	resp = &ModifySubnetAttributeResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
 		return nil, err

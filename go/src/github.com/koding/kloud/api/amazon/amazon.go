@@ -27,6 +27,10 @@ type Amazon struct {
 		// "m1.small" (required)
 		InstanceType string `mapstructure:"instance_type"`
 
+		// StorageSize is used to create an instance with a larger storage
+		StorageSize        int                     `mapstructure:"storage_size"`
+		BlockDeviceMapping *ec2.BlockDeviceMapping `mapstructure:"block_device_mapping"`
+
 		// The initial AMI used as a base for the newly created machine. (required)
 		SourceAmi string `mapstructure:"source_ami"`
 
