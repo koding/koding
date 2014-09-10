@@ -22,7 +22,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
       cssClass : "storage-title"
       partial  : "choose storage capacity"
 
-    storageContainer.addSubView new CustomStorageSlider
+    storageContainer.addSubView new CustomPlanStorageSlider
       cssClass : 'storage-slider'
       maxValue : 30
       handles  : [3]
@@ -38,29 +38,3 @@ class ComputePlansModal.Paid extends ComputePlansModal
     content.addSubView new CustomLinkView
       title    : 'Upgrade your account for more VMs RAM and Storage'
       href     : '/Pricing'
-
-class CustomStorageSlider extends KDSliderBarView
-
-  constructor: (options = {}, data)->
-
-    super KD.utils.extend options,
-      minValue   : 1
-      interval   : 1
-      width      : 285
-      snap       : yes
-      snapOnDrag : yes
-      drawBar    : yes
-      showLabels : yes # [1, 3, 5, 7, 10, 15, 20, 25, 30]
-    , data
-
-  createHandles:->
-
-    super
-
-    handle = @handles.first
-    handle.addSubView handleLabel = new KDView
-      partial  : "#{handle.value}GB"
-      cssClass : "handle-label"
-
-    @on "ValueIsChanging", (val)->
-      handleLabel.updatePartial "#{val}GB"

@@ -165,6 +165,7 @@ module.exports = [
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
   "providers/computeplansmodalpaid.coffee",
+  "providers/customplanstorageslider.coffee",
 
   # Algolia-based autocomplete:
   "autocompletecontroller.coffee",
