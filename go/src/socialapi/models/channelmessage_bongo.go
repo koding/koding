@@ -119,9 +119,9 @@ func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *ChannelMessage) DeleteSilent() error {
+func (c ChannelMessage) DeleteSilent() error {
 	c.DeletedAt = time.Now().UTC()
-	return bongo.B.Unscoped().Update(c).Error
+	return bongo.B.Unscoped().Model(c).Update(c).Error
 }
 
 //  FetchByIds fetchs given ids from database, it doesnt add any meta bits

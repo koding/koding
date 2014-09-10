@@ -9,7 +9,7 @@ import (
 
 	kmetrics "github.com/koding/metrics"
 
-	"github.com/rcrowley/go-tigertonic"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 
 	gometrics "github.com/rcrowley/go-metrics"
 )
