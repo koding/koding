@@ -1,5 +1,14 @@
 class PricingProductForm extends KDView
   constructor: (options = {}, data) ->
+    KodingAppsController.appendHeadElements
+      identifier : "stripe"
+      items      : [
+        {
+          type   : 'script'
+          url    : "https://checkout.stripe.com/checkout.js"
+        }
+      ]
+
     options.cssClass = KD.utils.curry "product-form", options.cssClass
     super options, data
 
@@ -28,19 +37,32 @@ class PricingProductForm extends KDView
   showSection: (name) ->
     @tabView.showPaneByName name
 
-  selectPlan: (tag, groupTag, options) ->
-    paymentController = KD.singleton "paymentController"
-    paymentController.fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) =>
-      return KD.showError "You are already subscribed to this plan"  if subscriptions.length
-      KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
-        return  if KD.showError err
-        @emit "PlanSelected", plan, options
+  selectPlan: (tag, groupTag, options, title, price)->
+    token = (res)->
+      $input = $('<input type=hidden name=stripeToken />').val(res.id)
+      $('form').append($input).submit()
 
-    if KD.isLoggedIn()
-      @setExistingSubscription groupTag
-    else
-      mainController = KD.singleton "mainController"
-      mainController.once "accountChanged.to.loggedIn", @lazyBound "setExistingSubscription", groupTag
+    StripeCheckout.open
+      key:         'pk_test_Gw43pxyKHJl2XZWA4q8ZvoAv'
+      address:     true
+      amount:      price
+      currency:    'usd'
+      name:        "Title: #{title}",
+      panelLabel:  'Checkout'
+      token:       token
+
+    # paymentController = KD.singleton "paymentController"
+    # paymentController.fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) =>
+    #   return KD.showError "You are already subscribed to this plan"  if subscriptions.length
+    #   KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
+    #     return  if KD.showError err
+    #     @emit "PlanSelected", plan, options
+
+    # if KD.isLoggedIn()
+    #   @setExistingSubscription groupTag
+    # else
+    #   mainController = KD.singleton "mainController"
+    #   mainController.once "accountChanged.to.loggedIn", @lazyBound "setExistingSubscription", groupTag
 
   setExistingSubscription: (tag) ->
     paymentController = KD.singleton "paymentController"

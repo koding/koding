@@ -10,7 +10,7 @@ class DeveloperPlan extends PricingPacksView
       "CPU"      : "1 core"
       "RAM"      : "1GB"
       "DISK"     : "3GB"
-    price        : "$0"
+    price        : 0
   ,
     title        : "$9"
     tag          : "rp2"
@@ -19,7 +19,7 @@ class DeveloperPlan extends PricingPacksView
       "CPU"      : "1 core"
       "RAM"      : "1GB"
       "DISK"     : "3GB"
-    price        : "$9"
+    price        : 9000
   ,
     title        : "$19"
     tag          : "rp3"
@@ -28,7 +28,7 @@ class DeveloperPlan extends PricingPacksView
       "CPU"      : "1 core"
       "RAM"      : "1GB"
       "DISK"     : "15GB"
-    price        : "$19"
+    price        : 1900
   ,
     title        : "$39"
     tag          : "rp4"
@@ -37,5 +37,5 @@ class DeveloperPlan extends PricingPacksView
       "CPU"      : "5 core"
       "RAM"      : "5GB"
       "DISK"     : "25GB"
-    price        : "$39"
+    price        : 3900
   ]

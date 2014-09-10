@@ -28,4 +28,4 @@ class ResourcePackView extends KDView
         tag      = @getOption "tag"
         groupTag = @getDelegate().subscriptionTag
         planApi  = KD.remote.api.JResourcePlan
-        @emit "PlanSelected", tag, groupTag, {planApi}
+        @emit "PlanSelected", tag, groupTag, {planApi}, title, price
