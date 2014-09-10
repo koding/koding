@@ -58,3 +58,14 @@ sandbox.koding.com_ELB_Latency_Avg_0.01S_For_1x15Min
 // Threshold: UnHealthyHostCount >= 1 for 15 minutes
 sandbox.koding.com_ELB_Unhealty_Hosts_Avg_1_For_1x15Min
 ```
+
+```
+// The count of the number of healthy instances in each Availability Zone. Hosts
+// are declared healthy if they meet the threshold for the number of consecutive
+// health checks that are successful. Hosts that have failed more health checks
+// than the value of the unhealthy threshold are considered unhealthy. If cross-
+// zone is enabled, the count of the number of healthy instances is calculated for
+// all Availability Zones.
+// Threshold: HealthyHostCount <= 0 for 1 minute
+sandbox.koding.com_ELB_Healty_Hosts_Avg_0_For_1x1Min
+```
