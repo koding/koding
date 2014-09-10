@@ -19,7 +19,6 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 	}
 
 	securityGroups := []ec2.SecurityGroup{{Id: a.Builder.SecurityGroupId}}
-	blockDevices := []ec2.BlockDeviceMapping{a.Builder.BlockDeviceMapping}
 
 	runOpts := &ec2.RunInstances{
 		ImageId:                  a.Builder.SourceAmi,
@@ -31,7 +30,11 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 		SubnetId:                 a.Builder.SubnetId,
 		UserData:                 a.Builder.UserData,
 		SecurityGroups:           securityGroups,
-		BlockDevices:             blockDevices,
+	}
+
+	// only add blockdevice if it's being added to prevent errors on aws
+	if a.Builder.BlockDeviceMapping != nil {
+		runOpts.BlockDevices = []ec2.BlockDeviceMapping{*a.Builder.BlockDeviceMapping}
 	}
 
 	return a.Client.RunInstances(runOpts)

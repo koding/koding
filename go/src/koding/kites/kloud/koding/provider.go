@@ -236,7 +236,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// created already with the default AMI
 	if a.Builder.StorageSize != 0 {
 		for _, device := range image.BlockDevices {
-			a.Builder.BlockDeviceMapping = ec2.BlockDeviceMapping{
+			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
 				DeviceName:          device.DeviceName,
 				VirtualName:         device.VirtualName,
 				SnapshotId:          device.SnapshotId,
