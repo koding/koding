@@ -153,18 +153,14 @@ class ActivityInputView extends KDTokenizedInput
     @utils.selectEnd childNodes[childNodes.length - 1]
 
 
-  # contentEditable elements cannot be
-  # triggered to be blurred. This method
-  # handles that problem.
+  # Webkit has a bug where removing focus from element with
+  # `contenteditable` doesn't actually remove focus. This is a workout
+  # from http://stackoverflow.com/questions/12353247/force-contenteditable-div-to-stop-accepting-input-after-it-loses-focus-under-web
   forceBlur: ->
-    @getEditableDomElement()
-      .removeAttr('contenteditable')
-      .blur()
-
-    KD.utils.wait 100, =>
-      @getEditableDomElement()
-        .prop('contenteditable', yes)
-
+    $('<div contenteditable="true"></div>')
+      .prependTo 'body'
+      .focus()
+      .remove()
 
   blur: ->
     super
