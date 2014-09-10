@@ -214,6 +214,7 @@ class MessagePane extends KDTabPaneView
 
   addMessage: (message) ->
 
+    return  if @currentFilter is "MOST_LIKED"
     return  if message.account._id is KD.whoami()._id
 
     {lastToFirst} = @getOptions()
@@ -351,4 +352,3 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
-
