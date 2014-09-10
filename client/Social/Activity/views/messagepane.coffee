@@ -17,9 +17,17 @@ class MessagePane extends KDTabPaneView
 
     {itemClass, type, lastToFirst, wrapper, channelId} = @getOptions()
     {typeConstant} = @getData()
-    viewOptions = {itemOptions: {channelId}}
 
-    @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
+    @listController = new ActivityListController {
+      type          : typeConstant
+      viewOptions   :
+        itemOptions : {channelId}
+      wrapper
+      itemClass
+      lastToFirst
+    }
+
+    @listController.getView().setClass 'padded'
 
     @createChannelTitle()
     @createInputWidget()

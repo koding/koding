@@ -185,7 +185,12 @@ class PrivateMessagePane extends MessagePane
   messageAdded: (item, index) ->
 
     @scrollDown item
-    {data} = item
+    data         = item.getData()
+    listView     = @listController.getView()
+    headerHeight = @heads?.getHeight() or 0
+
+    if window.innerHeight - headerHeight < listView.getHeight()
+      listView.unsetClass 'padded'
 
     # TODO: This is a temporary fix,
     # we need to revisit this part.
