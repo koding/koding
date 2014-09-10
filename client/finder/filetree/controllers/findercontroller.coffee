@@ -102,7 +102,7 @@ class NFinderController extends KDViewController
 
 
   mountMachine: (machine, options = {}) ->
-    options.fetchContent = yes
+    options.fetchContent ?= yes
 
     unless machine.status.state is Machine.State.Running
       return warn "Machine '#{machine.getName()}' was not ready, I skipped it."
