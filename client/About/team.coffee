@@ -65,6 +65,9 @@ KD.extend
       ,
         username  : 'alice'
         title     : 'Senior Food Engineer'
+      ,
+        username  : 'usirin'
+        title     : 'Software Engineer'
       ]
 
     # suspended     : []

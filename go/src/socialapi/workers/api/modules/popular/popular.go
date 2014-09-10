@@ -138,28 +138,15 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	query := request.GetQuery(u)
 	query.Type = models.ChannelMessage_TYPE_POST
 
-	statisticName := u.Query().Get("statisticName")
 	channelName := u.Query().Get("channelName")
 
-	year, dateNumber, err := getDateNumberAndYear(statisticName)
-	if err != nil {
-		return response.NewBadRequest(errors.New("Unknown statistic name"))
-	}
-
-	key := popularpost.PreparePopularPostKey(
-		query.GroupName,
-		channelName,
-		statisticName,
-		year,
-		dateNumber,
-	)
-
-	popularPostIds, err := getIds(key, query)
+	keyname, err := popularpost.NewKeyName(query.GroupName, channelName, time.Now())
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+	key := keyname.Weekly()
 
-	popularPostIds, err = extendPopularPostsIfNeeded(query, popularPostIds, channelName)
+	popularPostIds, err := getIds(key, query)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -176,40 +163,4 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 			popularPosts,
 		),
 	)
-}
-
-func extendPopularPostsIfNeeded(query *request.Query, popularPostIds []int64, channelName string) ([]int64, error) {
-	toBeAddedItemCount := query.Limit - len(popularPostIds)
-	if toBeAddedItemCount > 0 {
-		c := models.NewChannel()
-		channelId, err := c.FetchChannelIdByNameAndGroupName(channelName, query.GroupName)
-		if err != nil {
-			return popularPostIds, err
-		}
-
-		normalPosts, err := models.NewChannelMessageList().FetchMessageIdsByChannelId(channelId, query)
-		if err != nil {
-			return popularPostIds, err
-		}
-
-		for _, normalPostId := range normalPosts {
-			exists := false
-			for _, popularPostId := range popularPostIds {
-				if normalPostId == popularPostId {
-					exists = true
-					break
-				}
-			}
-
-			if !exists {
-				popularPostIds = append(popularPostIds, normalPostId)
-				toBeAddedItemCount--
-				if toBeAddedItemCount == 0 {
-					break
-				}
-			}
-		}
-	}
-
-	return popularPostIds, nil
 }
