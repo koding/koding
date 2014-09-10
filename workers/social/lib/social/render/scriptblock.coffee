@@ -141,15 +141,14 @@ module.exports = (options = {}, callback)->
           if group
             currentGroup = group
 
-          bongoModels.JWorkspace.some {}, {}, (err, workspaces) ->
+          bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
             console.log err  if err
             userWorkspaces = workspaces or []
 
-          bongoModels.JMachine.some$ client, {}, (err, machines) ->
-            console.log err  if err
-            userMachines = machines or []
-            kallback()
-
+            bongoModels.JMachine.some$ client, {}, (err, machines) ->
+              console.log err  if err
+              userMachines = machines or []
+              kallback()
 
 
   socialApiCacheFn = require '../cache/socialapi'

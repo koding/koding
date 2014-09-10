@@ -18,7 +18,6 @@ module.exports = class JWorkspace extends Module
     sharedMethods  :
       static       :
         create     : signature Object, Function
-        some       : signature Object, Object, Function
       instance     : []
     sharedEvents   :
       static       : []
@@ -45,15 +44,18 @@ module.exports = class JWorkspace extends Module
         JWorkspace.some query, options, (err, workspaces) ->
           return callback err, null  if err
 
-          if name is 'My Workspace' and workspaces.length is 0
+          if name is 'My Workspace' and workspaces?.length is 0
             workspaces = [ { name: 'My Workspace', slug: 'my-workspace' } ]
 
           workspace = workspaces[0]
-          parts     = workspace.slug.split '-'
-          last      = parts[parts.length - 1]
-          seed      = if isNaN last then 1 else ++last
-          name      = "#{name} #{seed}"
-          slug      = "#{slug}-#{seed}"
+
+          return callback null, null  unless workspace
+
+          parts = workspace.slug.split '-'
+          last  = parts[parts.length - 1]
+          seed  = if isNaN last then 1 else ++last
+          name  = "#{name} #{seed}"
+          slug  = "#{slug}-#{seed}"
 
           create_ { name, slug, machineUId, rootPath, owner, layout }, callback
       else
@@ -66,6 +68,7 @@ module.exports = class JWorkspace extends Module
       return callback err  if err
       return callback null, workspace
 
-  some$: secure (client, query = {}, callback) ->
+  @fetch = secure (client, query = {}, callback) ->
     query.owner = client.connection.delegate._id
-    JWorkspace.some query, callback
+    JWorkspace.some query, {}, callback
+
