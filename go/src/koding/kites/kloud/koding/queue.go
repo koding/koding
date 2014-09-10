@@ -110,30 +110,31 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 
 // FetchOne() fetches a single machine document from mongodb. This document is
 // locked and cannot be retrieved from others anymore. After finishing work with
-// this document ResetAssignee needs to be called that it's unlocked again and
-// can be fetcy by others.
+// this document locker.Unlock() needs to be called that it's unlocked again
+// so it can be fetched by others.
 func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 	machine := &Machine{}
 	query := func(c *mgo.Collection) error {
-		// check only machines that are running and belongs to koding provider
-		// which are not assigned to anyone yet. We also check the date to not
-		// pick up fresh documents. That means documents that are processed
-		// and put into the DB will not selected until the interval has been
-		// passed. The interval is the same as checkers interval. The $or is
-		// used also catch fields that doesn't exist.
+		// check only machines that:
+		// 1. belongs to koding provider
+		// 2. are running
+		// 3. are not always on machines
+		// 4. are not assigned to anyone yet (unlocked)
+		// 5. are not picked up by others yet recently
+		//
+		// The $ne is used to catch documents whose field is not true including
+		// that do not contain that particual field
 		egligibleMachines := bson.M{
-			"provider":     "koding",
-			"status.state": machinestate.Running.String(),
-			"$or": []bson.M{
-				{"assignee.inProgress": false},
-				{"assignee.inProgress": nil},
-			},
+			"provider":            "koding",
+			"status.state":        machinestate.Running.String(),
+			"meta.alwaysOn":       bson.M{"$ne": true},
+			"assignee.inProgress": bson.M{"$ne": true},
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
 		}
 
 		// once we found something, lock it by modifying the assignee.name. Also
 		// create a new timestamp (assignee.assignedAt) which is needed for
-		// several cases like (explained above and below)
+		// several cases (explained above and below)
 		change := mgo.Change{
 			Update: bson.M{
 				"$set": bson.M{
@@ -147,7 +148,9 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
-		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(change, &machine)
+		_, err := c.Find(egligibleMachines).
+			Sort("assignee.assignedAt").
+			Apply(change, &machine)
 		if err != nil {
 			return err
 		}
@@ -165,7 +168,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
 // CleanQueue resets documents that where locked by workers who died and left
 // the documents untouched/unlocked. These documents are *ghost* documents,
 // because they have an assignee that is not nil no worker will pick it up. The
-// given timeout specifies
+// given timeout specificies to look up documents from now on.
 func (p *Provider) CleanQueue(timeout time.Duration) error {
 	query := func(c *mgo.Collection) error {
 		// machines that can't be updated because they seems to be in progress
