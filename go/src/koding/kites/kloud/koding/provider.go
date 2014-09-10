@@ -104,13 +104,18 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	username := opts.Builder["username"].(string)
 
 	// Check for total amachine allowance
-	p.Log.Info("[%s] checking total machine limit for user %s", opts.MachineId, username)
 	checker, err := p.PlanChecker(opts)
 	if err != nil {
 		return nil, err
 	}
 
+	p.Log.Info("[%s] checking machine limit for user '%s'", opts.MachineId, username)
 	if err := checker.Total(); err != nil {
+		return nil, err
+	}
+
+	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", opts.MachineId, username)
+	if err := checker.AlwaysOn(); err != nil {
 		return nil, err
 	}
 

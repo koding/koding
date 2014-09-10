@@ -6,6 +6,9 @@ import (
 	"koding/kites/kloud/klient"
 	"strconv"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/kite"
 	aws "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/machinestate"
@@ -51,6 +54,67 @@ func (p *PlanChecker) Plan() (Plan, error) {
 	return Free, nil
 }
 
+// AlwaysOn checks whether the given machine has reached the current plans
+// always on limit
+func (p *PlanChecker) AlwaysOn() error {
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
+
+	machineData, ok := p.machine.CurrentData.(*Machine)
+	if !ok {
+		return fmt.Errorf("current data is malformed: %v", p.machine.CurrentData)
+	}
+
+	alwaysOnLimit := plan.Limits().AlwaysOn
+
+	alwaysOnEnabled := false
+	if has, ok := p.machine.Builder["alwaysOn"]; ok {
+		if alwaysOnEnabled, ok = has.(bool); !ok {
+			return fmt.Errorf("alwaysOn data is malformed %v", has)
+		}
+	} else {
+		// it doesn't exists, so give access to continue
+		return nil
+	}
+
+	// disabled give access
+	if !alwaysOnEnabled {
+		return nil
+	}
+
+	user := machineData.Users[0]
+
+	// get all machines that belongs to this user
+	alwaysOnMachines := 0
+	err = p.db.Run("jMachines", func(c *mgo.Collection) error {
+		alwaysOnMachines, err = c.Find(bson.M{
+			"users.id": user.Id,
+		}).Count()
+
+		return err
+	})
+
+	// if it's something else just return an error, needs to be fixed
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	p.log.Info("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+		p.machine.MachineId, alwaysOnMachines, alwaysOnLimit, plan)
+	// the user has still not reached the limit
+	if alwaysOnMachines < alwaysOnLimit {
+		p.log.Info("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+			p.machine.MachineId, p.username, alwaysOnMachines, alwaysOnLimit, plan)
+		return nil
+	}
+
+	p.log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+		p.machine.MachineId, p.username, alwaysOnMachines, alwaysOnLimit, plan)
+	return fmt.Errorf("total alwaysOn limit has been reached")
+}
+
 // Timeout checks whether the user has reached the current plan's inactivity timeout.
 func (p *PlanChecker) Timeout() error {
 	plan, err := p.Plan()
@@ -79,16 +143,16 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	p.log.Info("[%s] machine [%s] is inactive for %s (current plan limit: %s).",
-		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout)
+	p.log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
 		return nil
 	}
 
-	p.log.Info("[%s] machine [%s] has reached current plan limit of %s. Shutting down...",
-		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout)
+	p.log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
+		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// mark our state as stopping so others know what we are doing
 	p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopping)
@@ -121,7 +185,7 @@ func (p *PlanChecker) Total() error {
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
-		p.log.Info("[%s] allowing user '%s'. Current machine count: %d, Total machine limit: %d",
+		p.log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			p.machine.MachineId, p.username, len(instances), allowedMachines)
 		return nil
 	}
@@ -132,13 +196,13 @@ func (p *PlanChecker) Total() error {
 	}
 
 	if len(instances) >= allowedMachines {
-		p.log.Info("[%s] denying user '%s'. Current machine count: %d, Total machine limit: %d",
-			p.machine.MachineId, p.username, len(instances), allowedMachines)
+		p.log.Info("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+			p.machine.MachineId, p.username, len(instances), allowedMachines, plan)
 
 		return fmt.Errorf("total limit of %d machines has been reached", allowedMachines)
 	}
 
-	p.log.Info("[%s] allowing user '%s'. Current machine count: %d, Total machine limit: %d",
+	p.log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 		p.machine.MachineId, p.username, len(instances), allowedMachines)
 
 	return nil
@@ -178,16 +242,16 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		}
 	}
 
-	p.log.Info("[%s] Checking storage. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
-		p.machine.MachineId, currentStorage, wantStorage, totalStorage)
+	p.log.Info("[%s] Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		p.machine.MachineId, currentStorage, wantStorage, totalStorage, plan)
 
 	if currentStorage+wantStorage > totalStorage {
-		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB", totalStorage-currentStorage, totalStorage)
-		// return fmt.Errorf("total storage limit of %d GB has been reached", totalStorage)
+		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB (plan: %s)",
+			totalStorage-currentStorage, totalStorage, plan)
 	}
 
-	p.log.Info("[%s] Allowing user '%s'. Current storage: %dGB. Want storage: %dGB. Total storage limit: %dGB",
-		p.machine.MachineId, p.username, currentStorage, wantStorage, totalStorage)
+	p.log.Info("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		p.machine.MachineId, p.username, currentStorage, wantStorage, totalStorage, plan)
 
 	// allow to create storage
 	return nil
