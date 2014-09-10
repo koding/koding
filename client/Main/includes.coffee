@@ -117,6 +117,8 @@ module.exports = [
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
 
+  "addworkspaceview.coffee",
+
   # FATIH
   # "CommonViews/fatih/plugins/fatihpluginabstract.coffee",
   # "CommonViews/fatih/plugins/fatihlistitem.coffee",
