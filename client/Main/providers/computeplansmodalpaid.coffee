@@ -14,14 +14,18 @@ class ComputePlansModal.Paid extends ComputePlansModal
     @addSubView content = new KDView
       cssClass : 'container'
 
+    remaining = Math.max 0, limits.total - usage.total
+
     content.addSubView title = new KDView
       cssClass : "modal-title"
       partial  : """
         Remaining VM slots:
           <strong>
-            #{limits.total - usage.total}/#{limits.total}
+            #{remaining}/#{limits.total}
           </strong>
       """
+
+    title.setClass 'warn'  if usage.total >= limits.total
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -42,6 +46,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
       title    : "Create your VM"
       style    : 'solid medium green'
       loader   : yes
+      disabled : usage.total >= limits.total
 
     content.addSubView new CustomLinkView
       title    : 'Upgrade your account for more VMs RAM and Storage'
@@ -60,7 +65,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
       @createVMButton.disable()
     else
       @usageTextView.unsetClass 'warn'
-      @createVMButton.enable()
+      @createVMButton.enable()  unless usage.total >= limits.total
 
     @usageTextView.updatePartial """
       You will be using <strong>#{newUsage}GB/#{limits.storage}GB</strong> storage
