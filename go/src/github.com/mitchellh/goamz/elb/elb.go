@@ -105,10 +105,10 @@ type Instance struct {
 
 // An InstanceState from an elb health query
 type InstanceState struct {
-	InstanceId  string `xml:"member>InstanceId"`
-	Description string `xml:"member>Description"`
-	State       string `xml:"member>State"`
-	ReasonCode  string `xml:"member>ReasonCode"`
+	InstanceId  string `xml:"InstanceId"`
+	Description string `xml:"Description"`
+	State       string `xml:"State"`
+	ReasonCode  string `xml:"ReasonCode"`
 }
 
 // An Instance attaches to an elb
@@ -358,7 +358,7 @@ type DescribeInstanceHealth struct {
 }
 
 type DescribeInstanceHealthResp struct {
-	InstanceStates []InstanceState `xml:"DescribeInstanceHealthResult>InstanceStates"`
+	InstanceStates []InstanceState `xml:"DescribeInstanceHealthResult>InstanceStates>member"`
 	RequestId      string          `xml:"ResponseMetadata>RequestId"`
 }
 
