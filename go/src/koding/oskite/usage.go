@@ -156,15 +156,13 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 			return c.Find(bson.M{
 				"webHome": vos.VM.WebHome,
 				"state":   "RUNNING",
-				"groups.id":  bson.M{"$in": []bson.ObjectIdHex{bson.ObjectIdHex(groupId)}}},
 			}).All(&vms)
 		}
 	} else {
 		// for group other than "koding" we should count every users usage
 		query = func(c *mgo.Collection) error {
 			return c.Find(bson.M{
-				"state":  "RUNNING",
-				"groups.id": bson.M{"$in": []bson.ObjectIdHex{bson.ObjectIdHex(groupId)}},
+				"state": "RUNNING",
 			}).All(&vms)
 		}
 	}
