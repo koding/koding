@@ -121,8 +121,8 @@ class ComputeController extends KDController
   fetchAvailable: (options, callback)->
     KD.remote.api.ComputeProvider.fetchAvailable options, callback
 
-  fetchExisting: (options, callback)->
-    KD.remote.api.ComputeProvider.fetchExisting options, callback
+  fetchUsage: (options, callback)->
+    KD.remote.api.ComputeProvider.fetchUsage options, callback
 
   create: (options, callback)->
     KD.remote.api.ComputeProvider.create options, callback
@@ -138,6 +138,7 @@ class ComputeController extends KDController
 
     @stacks   = []
     @machines = []
+    @plans    = null
     @_trials  = {}
 
     if render then @fetchStacks =>
@@ -348,6 +349,17 @@ class ComputeController extends KDController
 
   # Utils beyond this point
   #
+
+  fetchPlans: (callback = noop)->
+
+    if @plans then callback @plans
+    else
+      KD.remote.api.ComputeProvider.fetchPlans
+        provider: "koding"
+      , (err, plans)=>
+          if err? then warn err
+          else @plans = plans
+          callback plans
 
   getUserPlan:->
 
