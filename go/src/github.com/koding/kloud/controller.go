@@ -180,15 +180,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			c.Canceller = canceller
 		}
 
-		// execute our limiter interface if the provider supports it
-		if limiter, err := k.Limiter(machine.Provider); err == nil {
-			k.Log.Debug("[%s] limiter is enabled for provider: %s", c.MachineId, machine.Provider)
-			err := limiter.Limit(c.Machine, r.Method)
-			if err != nil {
-				return nil, err
-			}
-		}
-
 		// now finally call our kite handler with the controller context, run
 		// forrest run...!
 		return control(r, c)

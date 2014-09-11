@@ -76,7 +76,7 @@ func (s State) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the json.Unmarshaler interface. The state is
 // expected to be a quoted string and available/exist in the States map.
 func (s *State) UnmarshalJSON(d []byte) error {
-	// comes as `"PENDING"`,  will convert to: `PENDING`
+	// comes as `"PENDING"`,  will convert to `PENDING`
 	unquoted := strings.Replace(string(d), "\"", "", -1)
 
 	var ok bool
