@@ -90,6 +90,8 @@ module.exports = class ComputeProvider extends Base
 
         { meta, postCreateOptions, credential } = machineData
 
+        label ?= machineData.label
+
         @createMachine {
           provider : provider.slug
           label, meta, group, user
