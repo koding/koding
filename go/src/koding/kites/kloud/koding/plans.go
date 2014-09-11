@@ -103,7 +103,15 @@ const (
 	Super
 )
 
-var plans = map[Plan]Limits{
+var plans = map[string]Plan{
+	"Free":         Free,
+	"Hobbyist":     Hobbyist,
+	"Developer":    Developer,
+	"Professional": Professional,
+	"Super":        Super,
+}
+
+var planLimits = map[Plan]Limits{
 	Free: {
 		Total:    1,
 		AlwaysOn: 0,
@@ -152,7 +160,7 @@ var plans = map[Plan]Limits{
 }
 
 func (p Plan) Limits() Limits {
-	return plans[p]
+	return planLimits[p]
 }
 
 func (p Plan) String() string {

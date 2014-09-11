@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 	"strconv"
+	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -77,7 +78,36 @@ func (p *Provider) PlanChecker(opts *protocol.Machine) (Checker, error) {
 
 // Plan returns user's current plan
 func (p *PlanChecker) Plan() (Plan, error) {
-	return Free, nil
+	var account = struct {
+		GlobalFlags []string `bson:"globalFlags"`
+	}{}
+	if err := p.db.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": p.username}).One(&account)
+	}); err != nil {
+		return 0, err
+	}
+
+	if len(account.GlobalFlags) == 0 {
+		p.log.Warning("[%s] retrieving plan failed, no flag defined. Using free plan",
+			p.machine.MachineId)
+		return Free, nil
+	}
+
+	splitted := strings.Split(account.GlobalFlags[0], "-")
+	if len(splitted) != 2 {
+		p.log.Warning("[%s] retrieving plan failed, flag '%v' malformed. Using free plan",
+			p.machine.MachineId, account.GlobalFlags)
+		return Free, nil
+	}
+
+	plan, ok := plans[strings.Title(splitted[1])]
+	if !ok {
+		p.log.Warning("[%s] retrieving plan failed, flag plan '%v' does not exist. Using free plan",
+			p.machine.MachineId, splitted[1])
+		return Free, nil
+	}
+
+	return plan, nil
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
