@@ -45,17 +45,48 @@ module.exports = class Koding extends ProviderInterface
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
+  calculateNextLabel = (user, group, label, callback)->
+
+    return callback null, label  if label?
+
+    JMachine  = require './machine'
+
+    selector   =
+      provider : "koding"
+      users    : $elemMatch: id: user.getId()
+      groups   : $elemMatch: id: group.getId()
+      label    : /^koding-vm-[0-9]*$/
+    options    =
+      limit    : 1
+      sort     : createdAt : -1
+
+    JMachine.one selector, options, (err, machine)->
+
+      return callback err  if err?
+      unless machine?
+        callback null, "koding-vm-0"
+      else
+
+        index = +(machine.label.split 'koding-vm-')[1]
+        callback null, "koding-vm-#{index+1}"
+
+
   @create = (client, options, callback)->
 
-    { instanceType } = options
+    { instanceType, label, storage } = options
+    { r: { group, user } } = client
 
-    meta =
-      type          : "amazon"
-      region        : "us-east-1"
-      source_ami    : "ami-2651904e"
-      instance_type : instanceType
+    calculateNextLabel user, group, label, (err, label)->
 
-    callback null, { meta, credential: client.r.user.username }
+      meta =
+        type          : "amazon"
+        region        : "us-east-1"
+        source_ami    : "ami-2651904e"
+        instance_type : "t2.micro"
+        storage_size  : storage ? 3
+        alwaysOn      : no
+
+      callback null, { meta, label, credential: client.r.user.username }
 
 
   @fetchUsage = (client, options, callback)->
