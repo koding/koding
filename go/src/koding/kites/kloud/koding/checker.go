@@ -84,7 +84,9 @@ func (p *PlanChecker) Plan() (Plan, error) {
 	if err := p.db.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": p.username}).One(&account)
 	}); err != nil {
-		return 0, err
+		p.log.Warning("[%s] retrieving plan failed, mongodb lookup err: %s. Using free plan",
+			p.machine.MachineId, err.Error())
+		return Free, nil
 	}
 
 	if len(account.GlobalFlags) == 0 {
