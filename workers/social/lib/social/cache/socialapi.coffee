@@ -10,6 +10,13 @@ module.exports = (options={}, callback)->
   defaultOptions =
     limit: 5
 
+  fetchPopularPosts = (cb)->
+    opt =
+      channelName : params.section
+      limit       : 25
+
+    SocialChannel.fetchPopularPosts client, opt, cb
+
   fetchPopularTopics = (cb)->
     opt =
       type        : "weekly"
@@ -55,7 +62,7 @@ module.exports = (options={}, callback)->
       else fetchGroupActivities cb
 
   reqs = [
-    # { fn:fetchPopularTopics,     key: 'popularTopics'    }
+    { fn:fetchPopularPosts,      key: 'popularPosts'     }
     { fn:fetchFollowedChannels,  key: 'followedChannels' }
     { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages'  }

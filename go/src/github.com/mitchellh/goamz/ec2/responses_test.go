@@ -251,17 +251,17 @@ var DescribeInstancesExample1 = `
           <architecture>i386</architecture>
           <rootDeviceType>ebs</rootDeviceType>
           <rootDeviceName>/dev/sda1</rootDeviceName>
-          <blockDeviceMapping>
-            <item>
-              <deviceName>/dev/sda1</deviceName>
-              <ebs>
-                <volumeId>vol-a082c1c9</volumeId>
-                <status>attached</status>
-                <attachTime>2010-08-17T01:15:21.000Z</attachTime>
-                <deleteOnTermination>false</deleteOnTermination>
-              </ebs>
-            </item>
-          </blockDeviceMapping>
+  <blockDeviceMapping>
+	<item>
+	  <deviceName>/dev/sda1</deviceName>
+	  <ebs>
+		<volumeId>vol-a082c1c9</volumeId>
+		<status>attached</status>
+		<attachTime>2010-08-17T01:15:21.000Z</attachTime>
+		<deleteOnTermination>false</deleteOnTermination>
+	  </ebs>
+	</item>
+  </blockDeviceMapping>
           <instanceLifecycle>spot</instanceLifecycle>
           <spotInstanceRequestId>sir-7a688402</spotInstanceRequestId>
           <virtualizationType>paravirtual</virtualizationType>
@@ -843,6 +843,14 @@ var CreateSubnetExample = `
     <tagSet/>
   </subnet>
 </CreateSubnetResponse>
+`
+
+// http://goo.gl/tu2Kxm
+var ModifySubnetAttributeExample = `
+<ModifySubnetAttributeResponse xmlns="http://ec2.amazonaws.com/doc/2014-06-15/">
+   <requestId>59dbff89-35bd-4eac-99ed-be587EXAMPLE</requestId>
+   <return>true</return>
+</ModifySubnetAttributeResponse>
 `
 
 // http://goo.gl/r6ZCPm

@@ -37,6 +37,9 @@ class PrivateMessagePane extends MessagePane
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+
+    @filterLinks = null
 
 
   createInputWidget: ->
@@ -118,6 +121,11 @@ class PrivateMessagePane extends MessagePane
     isFromBot message, @bound 'setResponseMode'
 
     return item
+
+
+  putMessage: (message, index) ->
+
+    @appendMessage message, index or @listController.getItemCount()
 
 
   setResponseMode: (mode) ->
@@ -258,3 +266,5 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+
+  defaultFilter : -> "MOST_RECENT"

@@ -18,8 +18,8 @@ class SocialApiController extends KDController
     return [] unless data
 
     fn = switch dataPath
-      when 'popularTopics', 'followedChannels' then mapChannels
-      when 'pinnedMessages', 'navigated'       then mapActivities
+      when 'followedChannels' then mapChannels
+      when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
 
     return fn(data) or []

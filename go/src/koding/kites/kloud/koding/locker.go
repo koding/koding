@@ -31,10 +31,7 @@ func (p *Provider) Lock(id string) error {
 		_, err := c.Find(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
-				"$or": []bson.M{
-					{"assignee.inProgress": false},
-					{"assignee.inProgress": nil},
-				},
+				"assignee.inProgress": bson.M{"$ne": true},
 			},
 		).Apply(change, &machine) // machine is used just used for prevent nil unmarshalling
 		return err

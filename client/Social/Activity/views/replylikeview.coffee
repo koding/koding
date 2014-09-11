@@ -60,7 +60,7 @@ class ReplyLikeView extends ActivityLikeLink
 
     title = "#{names.join ''}#{andMore}"
 
-    @getTooltip().update {title}
+    @getTooltip().update {title, html:true}
 
 
   fetchAccounts: (callback) ->

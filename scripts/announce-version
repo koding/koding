@@ -1,6 +1,10 @@
 #!/bin/bash
 
-VERSION=$1
+cd $(dirname ${BASH_SOURCE[0]})/..
+
+VERSION=$(cat VERSION)
+EB_ENV_NAME=$(cat EB_ENV_NAME)
+
 URL='https://koding.slack.com/services/hooks/incoming-webhook?token=z7TCJnrGy3kpcRLkbBbUzlKh'
 TEXT="$EB_ENV_NAME is now running <https://github.com/koding/koding/tree/$VERSION|$VERSION>"
 DATA='payload={"channel": "#announce", "username": "koding-bot", "text": "'$TEXT'"}'
