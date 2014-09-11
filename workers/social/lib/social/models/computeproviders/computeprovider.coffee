@@ -44,6 +44,8 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchUsage        :
           (signature Object, Function)
+        fetchPlans        :
+          (signature Object, Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -151,6 +153,17 @@ module.exports = class ComputeProvider extends Base
 
     {provider} = options
     provider.fetchUsage client, options, callback
+
+
+  @fetchPlans = secure revive
+
+    shouldReviveClient   : no
+    shouldPassCredential : no
+
+  , (client, options, callback)->
+
+    {provider} = options
+    provider.fetchPlans client, options, callback
 
 
   @update = secure revive no, (client, options, callback)->

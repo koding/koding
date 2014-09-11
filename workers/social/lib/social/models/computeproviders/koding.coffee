@@ -35,6 +35,11 @@ module.exports = class Koding extends ProviderInterface
       allowedInstances : ['t2.micro']
 
 
+  @fetchPlans = (client, options, callback)->
+
+    callback null, PLANS
+
+
   @ping = (client, options, callback)->
 
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
