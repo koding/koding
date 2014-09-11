@@ -46,6 +46,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
       title    : "Create your VM"
       style    : 'solid medium green'
       loader   : yes
+      callback : @bound "createVM"
       disabled : usage.total >= limits.total
 
     content.addSubView new CustomLinkView
@@ -70,3 +71,19 @@ class ComputePlansModal.Paid extends ComputePlansModal
     @usageTextView.updatePartial """
       You will be using <strong>#{newUsage}GB/#{limits.storage}GB</strong> storage
     """
+
+  createVM:->
+
+    { computeController } = KD.singletons
+
+    stack = computeController.stacks.first._id
+    storage = @storageSlider.handles.first.value
+
+    computeController.create {
+      provider : "koding", stack, storage
+    }, (err)=>
+
+      KD.showError err
+
+      @createVMButton.hideLoader()
+      @destroy()
