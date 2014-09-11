@@ -49,7 +49,7 @@ class SidebarMessageItemText extends JView
     @text  = new ProfileTextView {origin}
 
 
-  fetchParticipants: (callback) ->
+  getParticipantOrigins: (callback) ->
 
     { lastMessage, participantsPreview, participantCount } = @getData()
 
@@ -63,7 +63,7 @@ class SidebarMessageItemText extends JView
     origins = (origins.concat filtered).slice 0, 3
     origins = origins.map (origin) -> { constructorName : 'JAccount', id : origin._id }
 
-    KD.remote.cacheable origins, callback
+    callback origins
 
 
   createGrouped: ->
@@ -72,17 +72,15 @@ class SidebarMessageItemText extends JView
       tagName  : 'span'
       cssClass : 'profile'
 
-    @fetchParticipants (err, participants) =>
-
-      return KD.showError err  if err
+    @getParticipantOrigins (origins) =>
 
       { participantCount } = @getData()
 
-      nameCount = participants.length
+      nameCount = origins.length
 
-      participants.forEach (participant, index) =>
+      origins.forEach (origin, index) =>
 
-        @addProfileElement participant
+        @addProfileElement origin
         @addTextElement partial: @getSeparatorPartial participantCount, nameCount, index
 
       @addPlusMoreElement participantCount, nameCount  if participantCount > nameCount + 1
@@ -100,7 +98,7 @@ class SidebarMessageItemText extends JView
     @text.addSubView new KDCustomHTMLView options, data
 
 
-  addProfileElement: (data) ->
+  addProfileElement: (origin) ->
 
     @text.addSubView profileView = new ProfileTextView
       origin    : origin
