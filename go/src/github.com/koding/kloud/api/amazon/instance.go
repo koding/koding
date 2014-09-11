@@ -27,9 +27,14 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 		KeyName:                  a.Builder.KeyPair,
 		InstanceType:             a.Builder.InstanceType,
 		AssociatePublicIpAddress: true,
-		SecurityGroups:           securityGroups,
 		SubnetId:                 a.Builder.SubnetId,
 		UserData:                 a.Builder.UserData,
+		SecurityGroups:           securityGroups,
+	}
+
+	// only add blockdevice if it's being added to prevent errors on aws
+	if a.Builder.BlockDeviceMapping != nil {
+		runOpts.BlockDevices = []ec2.BlockDeviceMapping{*a.Builder.BlockDeviceMapping}
 	}
 
 	return a.Client.RunInstances(runOpts)
