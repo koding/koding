@@ -267,13 +267,7 @@ module.exports = [
   "ContentDisplay/ContentDisplay.coffee",
   "ContentDisplay/ContentDisplayController.coffee",
 
-  "pinger.coffee",
-
   # KITE CONTROLLER
-  "kite/kite.coffee",
-  "kite/kite2.coffee",
-  "kite/oskite.coffee",
-  "kite/terminalkite.coffee",
   "kite/kitecontroller.coffee",
   "kite/kitehelper.coffee",
 

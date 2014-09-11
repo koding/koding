@@ -27,7 +27,7 @@ class ErrorLog
         userAgent
         idle
         protocol
-        useNewKites   : KD.useNewKites
+        useNewKites   : yes
         osKiteVersion : osVersion
       }, params
 

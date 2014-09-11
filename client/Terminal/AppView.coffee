@@ -71,10 +71,7 @@ class WebTermAppView extends JView
         # fetch all active vm sessions via terminal kites
         activeSessions = []
         {vmController, kontrol} = KD.singletons
-        kites =
-          if KD.useNewKites
-          then kontrol.kites.terminal
-          else vmController.terminalKites
+        kites = kontrol.kites.terminal
         queue = aliases.map (alias)->->
           # when we have sessions from another xontext in appStorage
           # prevent restoring sessions of terminals in that context
@@ -344,10 +341,7 @@ class WebTermAppView extends JView
   removeSession: ({vmName, sessionId}) ->
     @updateSessions()
     {vmController, kontrol} = KD.singletons
-    terminalKites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.terminalKites
+    terminalKites = kontrol.kites.terminal
 
     terminalKites[vmName].webtermKillSession
       session: sessionId
@@ -381,10 +375,7 @@ class WebTermAppView extends JView
         ErrorLog.create "terminal: handlePlusClick error", {reason:"0 vms"}
         return
 
-      osKite =
-        if KD.useNewKites
-        then vmc.kites.oskite[vm.hostnameAlias]
-        else vmc.kites[vm.hostnameAlias]
+      osKite = vmc.kites.oskite[vm.hostnameAlias]
 
       state = osKite.recentState?.state
 
@@ -398,10 +389,7 @@ class WebTermAppView extends JView
 
   prepareAndRunTerminal: (vm, mode = 'create') ->
     {vmController} = KD.singletons
-    osKite =
-      if KD.useNewKites
-      then vmController.kites.oskite[vm.hostnameAlias]
-      else vmController.kites[vm.hostnameAlias]
+    osKite = vmController.kites.oskite[vm.hostnameAlias]
 
     {recentState}  = osKite
 

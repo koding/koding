@@ -7,10 +7,7 @@ class VMChecker extends KDObject
     status = "pending"
     {vmController, kontrol} = KD.singletons
 
-    kites =
-      if KD.useNewKites
-      then kontrol.kites.oskite
-      else vmController.kites
+    kites = kontrol.kites.oskite
 
     for own alias, kite of kites
       switch kite.recentState?.state
@@ -26,10 +23,7 @@ class VMChecker extends KDObject
 
   terminalHealthCheck: (callback) ->
     {vmController, kontrol} = KD.singletons
-    kites =
-      if KD.useNewKites
-      then kontrol.kites.terminal
-      else vmController.kites.terminalKites
+    kites = kontrol.kites.terminal
 
     failedTerminals = []
 
