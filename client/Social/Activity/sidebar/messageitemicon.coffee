@@ -44,17 +44,38 @@ class SidebarMessageItemIcon extends JView
 
   createGrouped: ->
 
+    @icon = new KDCustomHTMLView
+      tagName  : 'span'
+
+    @setClass 'stacked'
+
     { width, height, cssClass } = @getOptions().size
 
-    cssClass = KD.utils.curry cssClass, 'stacked'
+    @getParticipantOrigins (origins) =>
 
-    { lastMessage } = @getData()
+      for i in [origins.length - 1..0]
+        @icon.addSubView new AvatarStaticView
+          size       : { width, height }
+          cssClass   : cssClass
+          showStatus : yes
+          origin     : origins[i]
 
-    origin = { constructorName : 'JAccount', id : lastMessage.account._id }
 
-    @icon = new AvatarStaticView
-      size       : { width, height }
-      cssClass   : cssClass
+  getParticipantOrigins: (callback) ->
+
+    { lastMessage, participantsPreview, participantCount } = @getData()
+
+    lastMessageOwner = lastMessage.account
+
+    origins  = [lastMessageOwner]
+
+    filtered = participantsPreview.filter (p) ->
+      return not (p._id in [KD.whoami()._id, lastMessageOwner._id])
+
+    origins = origins.concat filtered.slice 0, 2
+    origins = origins.map (origin) -> { constructorName : 'JAccount', id : origin._id }
+
+    callback origins
 
 
   pistachio: -> "{{> @icon}}"
