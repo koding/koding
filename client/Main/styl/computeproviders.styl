@@ -297,6 +297,12 @@ computeproviders.styl
     .kdmodal-inner
       bg                  color, #C8C8C8
 
+    strong
+      font-weight         bold
+
+    .warn
+      color               #E83B15
+
     .custom-link-view
       color               #373737
       padding             0 45px
@@ -319,6 +325,9 @@ computeproviders.styl
       button
         margin            20px 0
         width             284px
+
+        &[disabled=disabled]
+          background      #A3A3A3 !important
 
     .storage-container
 
@@ -380,6 +389,7 @@ computeproviders.styl
 
         top               0
         color             rgba(0,0,0,0)
+        noTextSelection()
 
         &:after
           height          5px

@@ -2,18 +2,26 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
   constructor:(options = {}, data)->
 
-    super
-      cssClass : 'paid-plan'
-      height   : 323
+    options.cssClass = 'paid-plan'
+    options.height   = 323
+
+    super options, data
 
   viewAppended:->
+
+    { usage, limits, plan } = @getOptions()
 
     @addSubView content = new KDView
       cssClass : 'container'
 
     content.addSubView title = new KDView
       cssClass : "modal-title"
-      partial  : "Remaining VM slots: 4/6"
+      partial  : """
+        Remaining VM slots:
+          <strong>
+            #{limits.total - usage.total}/#{limits.total}
+          </strong>
+      """
 
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
@@ -22,15 +30,15 @@ class ComputePlansModal.Paid extends ComputePlansModal
       cssClass : "storage-title"
       partial  : "choose storage capacity"
 
-    storageContainer.addSubView new CustomPlanStorageSlider
+    storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
       cssClass : 'storage-slider'
-      maxValue : 30
-      handles  : [3]
+      maxValue : limits.storage * 2 # limits.storage - usage.storage
+      minValue : 3
+      handles  : [5]
 
-    storageContainer.addSubView new KDView
-      partial  : "You will be using 15GB/25GB storage"
+    storageContainer.addSubView @usageTextView = new KDView
 
-    content.addSubView new KDButtonView
+    content.addSubView @createVMButton = new KDButtonView
       title    : "Create your VM"
       style    : 'solid medium green'
       loader   : yes
@@ -38,3 +46,22 @@ class ComputePlansModal.Paid extends ComputePlansModal
     content.addSubView new CustomLinkView
       title    : 'Upgrade your account for more VMs RAM and Storage'
       href     : '/Pricing'
+
+    @updateUsageText 5, usage, limits
+    @storageSlider.on "ValueIsChanging", (val)=>
+      @updateUsageText val, usage, limits
+
+  updateUsageText: (val, usage, limits)->
+
+    newUsage = usage.storage + val
+
+    if newUsage > limits.storage
+      @usageTextView.setClass 'warn'
+      @createVMButton.disable()
+    else
+      @usageTextView.unsetClass 'warn'
+      @createVMButton.enable()
+
+    @usageTextView.updatePartial """
+      You will be using <strong>#{newUsage}GB/#{limits.storage}GB</strong> storage
+    """
