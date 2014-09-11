@@ -28,14 +28,14 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
-	"gopkg.in/fatih/set.v0"
+	set "gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.3"
+	OSKITE_VERSION = "0.4.5"
 )
 
 var (
@@ -178,7 +178,6 @@ func (o *Oskite) Run() {
 	o.registerMethod("vm.info", false, vmInfoOld)
 	o.registerMethod("vm.resizeDisk", false, vmResizeDiskOld)
 	o.registerMethod("vm.createSnapshot", false, vmCreateSnapshotOld)
-	o.registerMethod("vm.usage", false, vmUsageOld)
 	o.registerMethod("spawn", true, spawnFuncOld)
 	o.registerMethod("exec", true, execFuncOld)
 
@@ -210,8 +209,7 @@ func (o *Oskite) Run() {
 
 	log.Info("Oskite started. Go!")
 
-	go o.runNewKite()
-	o.Kite.Run()
+	o.runNewKite()
 }
 
 func (o *Oskite) runNewKite() {
@@ -270,11 +268,10 @@ func (o *Oskite) runNewKite() {
 	k.HandleFunc("kite.who", o.kiteWho)
 
 	k.Config.DisableConcurrency = true
-	go k.Run()
-	<-k.Kite.ServerReadyNotify()
 
 	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
 	log.SetLevel(o.LogLevel)
+	k.Run()
 }
 
 func (o *Oskite) initializeSettings() {
