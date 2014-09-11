@@ -28,14 +28,14 @@ import (
 	redigo "github.com/garyburd/redigo/redis"
 	kitelib "github.com/koding/kite"
 	"github.com/koding/redis"
-	"gopkg.in/fatih/set.v0"
+	set "gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 const (
 	OSKITE_NAME    = "oskite"
-	OSKITE_VERSION = "0.4.3"
+	OSKITE_VERSION = "0.4.4"
 )
 
 var (
