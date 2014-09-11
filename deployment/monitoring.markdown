@@ -149,3 +149,93 @@ koding.com_Billing_SNS_Estimated_Greater_Than_100
 // Threshold: EstimatedCharges >= 100 for 6 hours
 koding.com_Billing_VPC_Estimated_Greater_Than_100
 ```
+
+RDS
+
+
+```
+// Threshold: DatabaseConnections >= 75 for 15 minutes
+prod.koding.com_RDS_prod0_Connection_Avg_75_For_1x15Min
+```
+
+```
+// Threshold: CPUUtilization >= 75 for 15 minutes
+prod.koding.com_RDS_prod0_CPU_Utilization_Avg_75_For_1x15Min
+```
+
+```
+// Threshold: FreeableMemory <= 5,242,880,000 for 5 minutes
+prod.koding.com_RDS_prod0_FreeableMemory_Avg_5G_For_1x5Min
+```
+
+```
+// Threshold: FreeStorageSpace <= 26,214,400,000 for 5 minutes
+prod.koding.com_RDS_prod0_FreeStorage_Avg_25G_For_1x5Min
+```
+
+```
+// the number of IO requests in the queue waiting to be serviced. These are IO
+// requests that have been submitted by the application but have not been sent to
+// the device because the device is busy servicing other IO requests. Time spent
+// waiting in the queue is a component of Latency and Service Time (not available
+// as a metric). This metric is reported as the average queue depth for a given
+// time interval.  Amazon RDS reports queue depth in one minute intervals. Typical
+// values for queue depth range from zero to several hundred.
+// Threshold: DiskQueueDepth >= 10 for 5 minutes
+prod.koding.com_RDS_prod0_QueueDepth_Avg_10_For_1x5Min
+```
+
+```
+// The number of IO operations completed per second. This metric is reported as
+// the average IOPS for a given time interval. Amazon RDS reports read and write
+// IOPS separately on one minute intervals. Total IOPS is the sum of the read and
+// write IOPS. Typical values for IOPS range from zero to tens of thousands per
+// second.
+//
+// Threshold: ReadIOPS >= 50 for 15 minutes
+prod.koding.com_RDS_prod0_ReadIOPS_Avg_50_For_1x15Min
+```
+
+```
+// Threshold: ReadLatency >= 0.01 for 15 minutes
+prod.koding.com_RDS_prod0_ReadLatency_Avg_0.01S_For_1x15Min
+```
+
+
+```
+// In 0.1 MB
+// Threshold: ReadThroughput >= 104,857.6 for 5 minutes
+prod.koding.com_RDS_prod0_ReadThroughput_Avg_0.1_For_1x5Min
+```
+
+
+```
+// Threshold: SwapUsage >= 26,214,400 for 5 minutes
+prod.koding.com_RDS_prod0_SwapUsage_Avg_25_For_1x5Min
+```
+
+
+```
+// The number of IO operations completed per second. This metric is reported as
+// the average IOPS for a given time interval. Amazon RDS reports read and write
+// IOPS separately on one minute intervals. Total IOPS is the sum of the read and
+// write IOPS. Typical values for IOPS range from zero to tens of thousands per
+// second.
+// Threshold: WriteIOPS >= 50 for 15 minutes
+prod.koding.com_RDS_prod0_WriteIOPS_Avg_50_For_1x15Min
+```
+
+
+```
+// Threshold: WriteLatency >= 0.05 for 15 minutes
+prod.koding.com_RDS_prod0_WriteLatency_Avg_0.05S_For_1x15Min
+```
+
+
+```
+// Threshold: WriteThroughput >= 104,857.6 for 5 minutes
+prod.koding.com_RDS_prod0_WriteThroughput_Avg_0.1_For_1x5Min
+```
+
+
+
