@@ -25,8 +25,6 @@ class PrivateMessagePane extends MessagePane
       linkCopy : 'Show previous replies'
     , channel
 
-    @actionsMenu = new PrivateMessageSettingsView {}, channel
-
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
     # on page even if events from backend come more than
@@ -244,6 +242,9 @@ class PrivateMessagePane extends MessagePane
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
+
+    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
 
@@ -264,7 +265,6 @@ class PrivateMessagePane extends MessagePane
   viewAppended: ->
 
     @addSubView @participantsView
-    @addSubView @actionsMenu
     @addSubView @listPreviousLink
     @addSubView @listController.getView()
     @addSubView @input  if @input
