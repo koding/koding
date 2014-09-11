@@ -53,7 +53,7 @@ class AccountEditUsername extends JView
           cssClass         : "medium"
           placeholder      : "lastname"
           name             : "lastName"
-          label            : 'Lastname'
+          label            : 'Last name'
         email              :
           cssClass         : "medium"
           placeholder      : "you@yourdomain.com"
