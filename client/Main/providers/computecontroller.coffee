@@ -376,10 +376,19 @@ class ComputeController extends KDController
 
     plan = @getUserPlan()
 
-    if plan in ['developer', 'professional', 'super']
-      new ComputePlansModal.Paid { plan }
-    else
-      new ComputePlansModal.Free { plan }
+    @fetchPlans (plans)=>
+
+      @fetchUsage provider: "koding", (err, usage)->
+
+        return  if KD.showError err
+
+        limits  = plans[plan]
+        options = { plan, limits, usage }
+
+        if plan in ['developer', 'professional', 'super']
+          new ComputePlansModal.Paid options
+        else
+          new ComputePlansModal.Free options
 
 
   triggerReviveFor:(machineId)->
