@@ -51,7 +51,7 @@ class SidebarMessageItem extends SidebarItem
     data.on 'ChannelDeleted', =>
       if location.pathname is "/Activity/Message/#{ data.getId() }"
         KD.singletons.router.clear()
-      @destroy()
+      @getDelegate().removeItem this
 
     if data.purpose
       @purpose = new KDCustomHTMLView

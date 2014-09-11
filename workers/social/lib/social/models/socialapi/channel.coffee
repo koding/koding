@@ -238,7 +238,7 @@ module.exports = class SocialChannel extends Base
 
   @delete = permit
     advanced: [
-      { permission: 'delete own posts', validator: Validators.own }
+      { permission: 'delete own posts', validateWith: require('./validators').own }
       { permission: 'delete posts',     validator: Validators.any }
     ]
     success: (client, options, callback) ->

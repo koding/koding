@@ -336,6 +336,10 @@ deleteChannel = (data, callback) ->
   url = "/channel/#{data.channelId}/delete"
   post url, data, callback
 
+checkOwnership = (data, callback) ->
+  url = "/account/#{data.accountId}/owns"
+  get url, data, callback
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -417,4 +421,5 @@ module.exports = {
   createGroupNotification
   getSiteMap
   deleteChannel
+  checkOwnership
 }

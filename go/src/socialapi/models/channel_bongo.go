@@ -91,6 +91,10 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 	return channels, nil
 }
 
+func (c *Channel) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
+}
+
 func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
 	messageIds, err := (&ChannelMessageList{}).
 		FetchMessageIdsByChannelId(channelId, &request.Query{

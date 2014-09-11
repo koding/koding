@@ -493,7 +493,7 @@ module.exports = class JAccount extends jraphical.Module
     advanced =
       if Array.isArray permission then permission
       else JPermissionSet.wrapPermission permission
-    JPermissionSet.checkPermission client, advanced, target, callback
+    JPermissionSet.checkPermission client, advanced, target, null, callback
 
   @renderHomepage: require '../render/profile.coffee'
 

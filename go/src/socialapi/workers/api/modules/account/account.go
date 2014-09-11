@@ -97,3 +97,37 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 
 	return response.HandleResultAndError(req.Unfollow(targetId))
 }
+
+func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, error) {
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query := request.GetQuery(u)
+
+	var count int
+
+	switch query.Type {
+	case "channel":
+		if count, err = (&models.Channel{}).CountWithQuery(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"creator_id": accountId,
+			},
+		}); err != nil {
+			return response.NewBadRequest(err)
+		}
+	case "channel_message":
+		if count, err = (&models.ChannelMessage{}).CountWithQuery(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"account_id": accountId,
+			},
+		}); err != nil {
+			return response.NewBadRequest(err)
+		}
+	}
+
+	return response.NewOK(count == 1)
+}
