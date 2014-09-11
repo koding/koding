@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	kitelib "github.com/koding/kite"
-	"gopkg.in/fatih/set.v0"
+	set "gopkg.in/fatih/set.v0"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -156,7 +156,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 			return c.Find(bson.M{
 				"webHome": vos.VM.WebHome,
 				"state":   "RUNNING",
-				"groups":  bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
+				"groups.id":  bson.M{"$in": []bson.ObjectIdHex{bson.ObjectIdHex(groupId)}}},
 			}).All(&vms)
 		}
 	} else {
@@ -164,7 +164,7 @@ func totalUsage(vos *virt.VOS, groupId string) (*Plan, error) {
 		query = func(c *mgo.Collection) error {
 			return c.Find(bson.M{
 				"state":  "RUNNING",
-				"groups": bson.M{"$in": []bson.M{bson.M{"id": bson.ObjectIdHex(groupId)}}},
+				"groups.id": bson.M{"$in": []bson.ObjectIdHex{bson.ObjectIdHex(groupId)}},
 			}).All(&vms)
 		}
 	}
