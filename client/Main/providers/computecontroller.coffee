@@ -125,7 +125,9 @@ class ComputeController extends KDController
     KD.remote.api.ComputeProvider.fetchUsage options, callback
 
   create: (options, callback)->
-    KD.remote.api.ComputeProvider.create options, callback
+    KD.remote.api.ComputeProvider.create options, (err, machine)=>
+      @reset yes  unless err?
+      callback err, machine
 
   createDefaultStack: ->
     return  unless KD.isLoggedIn()
