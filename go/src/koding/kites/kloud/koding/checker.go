@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 	"strconv"
+	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -77,7 +78,47 @@ func (p *Provider) PlanChecker(opts *protocol.Machine) (Checker, error) {
 
 // Plan returns user's current plan
 func (p *PlanChecker) Plan() (Plan, error) {
-	return Free, nil
+	var account = struct {
+		GlobalFlags []string `bson:"globalFlags"`
+	}{}
+	if err := p.db.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": p.username}).One(&account)
+	}); err != nil {
+		p.log.Warning("[%s] retrieving plan failed, mongodb lookup err: %s. Using free plan",
+			p.machine.MachineId, err.Error())
+		return Free, nil
+	}
+
+	if len(account.GlobalFlags) == 0 {
+		p.log.Warning("[%s] retrieving plan failed, no flag defined. Using free plan",
+			p.machine.MachineId)
+		return Free, nil
+	}
+
+	// pick up the first flag that start with "plan-"
+	planFlag := ""
+	for _, flag := range account.GlobalFlags {
+		if strings.HasPrefix(flag, "plan-") {
+			planFlag = flag
+			break
+		}
+	}
+
+	splitted := strings.Split(planFlag, "-")
+	if len(splitted) != 2 {
+		p.log.Warning("[%s] retrieving plan failed, flag '%v' malformed. Using free plan",
+			p.machine.MachineId, planFlag)
+		return Free, nil
+	}
+
+	plan, ok := plans[strings.Title(splitted[1])]
+	if !ok {
+		p.log.Warning("[%s] retrieving plan failed, flag plan '%v' does not exist. Using free plan",
+			p.machine.MachineId, splitted[1])
+		return Free, nil
+	}
+
+	return plan, nil
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
