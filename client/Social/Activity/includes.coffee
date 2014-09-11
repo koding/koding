@@ -100,6 +100,7 @@ module.exports = [
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
+  "views/privatemessage/settingsview.coffee"
 
   "views/buymachinemodal.coffee"
 
