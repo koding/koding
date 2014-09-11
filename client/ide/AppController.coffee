@@ -592,13 +592,19 @@ class IDEAppController extends AppController
       @fakeViewsDestroyed = yes
 
   doResize: ->
-    @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
-      height = editorPane.getHeight()
-      {ace}  = editorPane.aceView
+    @forEachSubViewInIDEViews_ (pane) ->
+      {paneType} = pane.options
+      switch paneType
+        when 'terminal'
+          {terminal} = pane.webtermView
+          terminal.windowDidResize()  if terminal?
+        when 'editor'
+          height = pane.getHeight()
+          {ace}  = pane.aceView
 
-      if ace?.editor?
-        ace.setHeight height
-        ace.editor.resize()
+          if ace?.editor?
+            ace.setHeight height
+            ace.editor.resize()
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title
