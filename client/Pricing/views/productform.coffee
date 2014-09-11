@@ -5,7 +5,7 @@ class PricingProductForm extends KDView
       items      : [
         {
           type   : 'script'
-          url    : "https://checkout.stripe.com/checkout.js"
+          url    : "https://js.stripe.com/v2/"
         }
       ]
 
@@ -37,32 +37,26 @@ class PricingProductForm extends KDView
   showSection: (name) ->
     @tabView.showPaneByName name
 
-  selectPlan: (tag, groupTag, options, title, price)->
-    token = (res)->
-      $input = $('<input type=hidden name=stripeToken />').val(res.id)
-      $('form').append($input).submit()
+  selectPlan: (tag, groupTag, options, planName, price)->
+    log ">>>>>>>>> selectPlan", arguments...
 
-    StripeCheckout.open
-      key:         'pk_test_Gw43pxyKHJl2XZWA4q8ZvoAv'
-      address:     true
-      amount:      price
-      currency:    'usd'
-      name:        "Title: #{title}",
-      panelLabel:  'Checkout'
-      token:       token
+    Stripe.setPublishableKey 'pk_test_Gw43pxyKHJl2XZWA4q8ZvoAv'
 
-    # paymentController = KD.singleton "paymentController"
-    # paymentController.fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) =>
-    #   return KD.showError "You are already subscribed to this plan"  if subscriptions.length
-    #   KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
-    #     return  if KD.showError err
-    #     @emit "PlanSelected", plan, options
+    paymentModal = new NewPaymentModal {planName, price}
+    paymentModal.on "PaymentSubmitted", (formData)->
+      {cardNumber, cardCVC, cardNumber, cardMonth, cardYear} = formData
 
-    # if KD.isLoggedIn()
-    #   @setExistingSubscription groupTag
-    # else
-    #   mainController = KD.singleton "mainController"
-    #   mainController.once "accountChanged.to.loggedIn", @lazyBound "setExistingSubscription", groupTag
+      console.log ">>>>>>>> PaymentSubmitted", formData
+
+      Stripe.card.createToken
+        number    : cardNumber
+        cvc       : cardCVC
+        exp_month : cardMonth
+        exp_year  : cardYear
+      , (status, response)->
+        return console.log "ERROR: ", response  if response.error
+
+        console.log response
 
   setExistingSubscription: (tag) ->
     paymentController = KD.singleton "paymentController"

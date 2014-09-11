@@ -11,6 +11,9 @@ module.exports = [
   "views/breadcrumbview.coffee"
   "views/groupform.coffee"
 
+  # new pricing
+  "views/newpaymentform.coffee"
+
   "AppView.coffee"
   "AppController.coffee"
 
