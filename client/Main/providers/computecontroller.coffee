@@ -143,7 +143,7 @@ class ComputeController extends KDController
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
-      @emit "renderStacks"
+      @emit "MachineDataUpdated"
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}

@@ -35,6 +35,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {
       notificationController
+      computeController
       socialapi
     } = KD.singletons
 
@@ -59,6 +60,8 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
+    computeController
+      .on 'MachineDataUpdated',        @bound 'updateMachineTree'
 
   # event handling
 
