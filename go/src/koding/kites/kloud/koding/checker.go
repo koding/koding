@@ -95,10 +95,19 @@ func (p *PlanChecker) Plan() (Plan, error) {
 		return Free, nil
 	}
 
-	splitted := strings.Split(account.GlobalFlags[0], "-")
+	// pick up the first flag that start with "plan-"
+	planFlag := ""
+	for _, flag := range account.GlobalFlags {
+		if strings.HasPrefix(flag, "plan-") {
+			planFlag = flag
+			break
+		}
+	}
+
+	splitted := strings.Split(planFlag, "-")
 	if len(splitted) != 2 {
 		p.log.Warning("[%s] retrieving plan failed, flag '%v' malformed. Using free plan",
-			p.machine.MachineId, account.GlobalFlags)
+			p.machine.MachineId, planFlag)
 		return Free, nil
 	}
 
