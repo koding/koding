@@ -445,19 +445,21 @@ sidebarSelectedBg = #15171A
       margin        0
       borderBox()
 
-      > .purpose
-      > .profile
-        display     block
-        float       none
-        padding     0 0 0 36px
-        line-height 18px
-        width       auto
-        color       sidebarGray
-        font-weight 600
-        borderBox()
+      .sidebar-message-text
+        > .purpose
+        > .profile
+          display     block
+          float       none
+          padding     0 0 0 36px
+          line-height 18px
+          width       auto
+          color       sidebarActive
+          font-weight 600
+          borderBox()
+          ellipsis()
 
-      > .purpose
-        ellipsis()
+        > .profile > .profile
+            color     sidebarActive
 
       > .user-numbers
         padding     0 0 0 36px
@@ -478,9 +480,10 @@ sidebarSelectedBg = #15171A
           font-weight inherit
           color       inherit
 
+      .sidebar-message-icon
       .avatarview
-        top           6px
-        left          8px
+        top           0
+        left          0
         abs()
 
       &.unread
