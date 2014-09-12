@@ -8,6 +8,7 @@ import (
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
+	"socialapi/workers/api/modules/payment"
 	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatemessage"
 	"socialapi/workers/api/modules/reply"
@@ -431,6 +432,18 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: privatemessage.List,
 			Name:    "privatemessage-list",
 			Metrics: metrics,
+		},
+	))
+
+	//----------------------------------------------------------
+	// Payment
+	//----------------------------------------------------------
+	mux.Handle("POST", "/payments/subscriptions", handler.Wrapper(
+		handler.Request{
+			Handler:        payment.CreateSubscription,
+			Name:           "payment-createsubscription",
+			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
