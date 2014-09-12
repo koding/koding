@@ -16,12 +16,19 @@ do ->
         routeToLastWorkspace()
 
 
+  selectWorkspaceOnSidebar = (data) ->
+    mainView = KD.getSingleton 'mainView'
+    mainView.activitySidebar.selectWorkspace data
+
+
   getMachineByUId = (uid) ->
     machine = m  for m in KD.userMachines when m.uid is uid
     return machine or null
 
 
-  loadIDE = ({ machine, workspace }) ->
+  loadIDE = (data) ->
+    { machine, workspace } = data
+
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
     machineUId = machine.uid
@@ -31,6 +38,7 @@ do ->
         app.workspaceData     = workspace
 
         appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
+        selectWorkspaceOnSidebar data
 
     return fallback()  unless ideApps?.instances
 
@@ -44,7 +52,11 @@ do ->
         if instance.workspaceData?.isDefault
           ideInstance = instance
 
-    if ideInstance then appManager.showInstance ideInstance else fallback()
+    if ideInstance
+      appManager.showInstance ideInstance
+      selectWorkspaceOnSidebar data
+    else
+      fallback()
 
 
   routeToLastWorkspace = ->
