@@ -7,7 +7,7 @@ versionFile = (kiteName) ->
 module.exports =
   disableWebSocketByDefault: yes
   stack:
-    force: no
+    force: yes
     newKites: yes
   kontrol:
     username: 'koding'
