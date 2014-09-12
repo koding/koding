@@ -59,7 +59,7 @@ func (c *Channel) Delete() error {
 		return err
 	}
 
-	if err := c.deleteChannelList(); err != nil {
+	if err := c.deleteChannelLists(); err != nil {
 		return err
 	}
 
@@ -145,14 +145,34 @@ func (c *Channel) deleteChannelMessages() error {
 	}
 }
 
-func (c *Channel) deleteChannelList() error {
-	cml := &ChannelMessageList{}
-	err := cml.One(&bongo.Query{
-		Selector: map[string]interface{}{"channel_id": c.Id}})
-
-	if err != nil {
-		return err
+func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
+	var listings []ChannelMessageList
+	if err := (&ChannelMessageList{}).Some(&listings, &bongo.Query{
+		Selector: map[string]interface{}{"channel_id": channelId},
+		Pagination: bongo.Pagination{
+			Skip:  100 * c,
+			Limit: 100,
+		}}); err != nil {
+		return nil, err
 	}
+	return listings, nil
+}
 
-	return cml.DeleteSilent()
+func (c *Channel) deleteChannelLists() error {
+	for i := 0; ; i++ {
+		listings, err := getListingBatch(c.Id, i)
+		if err != nil {
+			return err
+		}
+
+		for _, listing := range listings {
+			fmt.Println("listiing:", listing)
+			if err := listing.DeleteSilent(); err != nil {
+				return err
+			}
+		}
+		if len(listings) < 100 {
+			return nil
+		}
+	}
 }

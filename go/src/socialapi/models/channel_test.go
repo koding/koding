@@ -998,3 +998,94 @@ func TestChannelgetAccountId(t *testing.T) {
 		})
 	})
 }
+
+func setupDeleteTest() (*Channel, *ChannelMessage, *ChannelMessage, *ChannelMessageList, *ChannelMessageList) {
+	c := createNewChannelWithTest()
+	So(c.Create(), ShouldBeNil)
+	// create some messages
+	cm0 := createMessageWithTest()
+	So(cm0.Create(), ShouldBeNil)
+
+	cm1 := createMessageWithTest()
+	So(cm1.Create(), ShouldBeNil)
+
+	// add cm0 and cm1:
+	cml0, err := c.AddMessage(cm0.Id)
+	So(err, ShouldBeNil)
+	So(cml0, ShouldNotBeNil)
+
+	cml1, err := c.AddMessage(cm1.Id)
+	So(err, ShouldBeNil)
+	So(cml1, ShouldNotBeNil)
+
+	return c, cm0, cm1, cml0, cml1
+}
+
+func TestChannelDelete(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("when deleting a channel", t, func() {
+		Convey("it should delete all messages of the channel", func() {
+			c, cm0, cm1, _, _ := setupDeleteTest()
+
+			// delete the channel
+			So(c.Delete(), ShouldBeNil)
+
+			// verify that the channel messages are deleted:
+			err := (&ChannelMessage{}).ById(cm0.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+
+			err = (&ChannelMessage{}).ById(cm1.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+
+		})
+		Convey("it should delete any associated ChannelMessageList records", func() {
+			c, _, _, cml0, cml1 := setupDeleteTest()
+
+			// delete the channel
+			So(c.Delete(), ShouldBeNil)
+
+			// verify that the channel message lists are deleted:
+			err := (&ChannelMessageList{}).ById(cml0.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+
+			err = (&ChannelMessageList{}).ById(cml1.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+		Convey("it should delete the channel itself", func() {
+			c, _, _, _, _ := setupDeleteTest()
+
+			So(c.Delete(), ShouldBeNil)
+
+			err := (&Channel{}).ById(c.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+		Convey("it should not delete messages that are cross-indexed", func() {
+			c0, cm0, cm1, _, _ := setupDeleteTest()
+
+			// create another channel:
+			c1 := createNewChannelWithTest()
+			So(c1.Create(), ShouldBeNil)
+
+			// only add the second message to the second channel:
+			cml0, err := c1.AddMessage(cm1.Id)
+			So(err, ShouldBeNil)
+			So(cml0, ShouldNotBeNil)
+
+			// delete the first channel:
+			So(c0.Delete(), ShouldBeNil)
+
+			// verify that the first message is deleted:
+			err = (&ChannelMessage{}).ById(cm0.Id)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+
+			// verify that the second message is not deleted:
+			err = (&ChannelMessage{}).ById(cm1.Id)
+			So(err, ShouldBeNil)
+		})
+	})
+}
