@@ -439,20 +439,6 @@ sidebarSelectedBg = #262626
       margin        0
       borderBox()
 
-      > .purpose
-      > .profile
-        display     block
-        float       none
-        padding     0 0 0 36px
-        line-height 18px
-        width       auto
-        color       sidebarGray
-        font-weight 600
-        borderBox()
-
-      > .purpose
-        ellipsis()
-
       > .user-numbers
         padding     0 0 0 36px
         margin      -1px 0 0
@@ -472,10 +458,39 @@ sidebarSelectedBg = #262626
           font-weight inherit
           color       inherit
 
+      .sidebar-message-icon
       .avatarview
-        top           6px
-        left          8px
+        top           0
+        left          0
         abs()
+
+      .stacked
+
+        margin-left   -1px
+        margin-top    2px
+        size          auto auto
+        display       block
+
+        .avatarview
+
+          img
+            border      1px solid rgb(50, 50, 50)
+            borderBox()
+
+          &:nth-of-type(1)
+            top       0
+            left      6px
+            z-index   1
+
+          &:nth-of-type(2)
+            top       3px
+            left      9px
+            z-index   2
+
+          &:nth-of-type(3)
+            top       6px
+            left      12px
+            z-index   3
 
       &.unread
         > .profile
@@ -487,7 +502,25 @@ sidebarSelectedBg = #262626
   .messages
 
     .kdlistitemview-sidebar-item
-      height            28px
+      height            34px
+
+
+      .sidebar-message-text
+        > .purpose
+        > .profile
+          display     block
+          float       none
+          padding     0 0 0 36px
+          line-height 18px
+          width       auto
+          color       sidebarActive
+          font-weight 600
+          borderBox()
+          ellipsis()
+          margin-top  3px
+
+        > .profile > .profile
+            color     sidebarActive
 
       > .purpose
       > .profile
