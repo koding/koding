@@ -366,6 +366,28 @@ class ActivitySidebar extends KDCustomHTMLView
     @machineTree.addNode data for data in treeData
 
 
+  selectWorkspace: (data) ->
+    data = @lastSelectedWorkspaceData or {}  unless data
+    { workspace, machine } = data
+
+    return unless workspace or machine
+
+    tree = @machineTree
+
+    for key, node of tree.nodes
+      nodeData = node.getData()
+
+      if node.type is 'machine'
+        isSameMachine = nodeData.uid is machine.uid
+        if isSameMachine then  tree.expand node else tree.collapse node
+
+      else if node.type is 'workspace'
+        slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+        tree.selectNode node  if slug is workspace.slug
+
+    @lastSelectedWorkspaceData = data
+
+
   fetchMachines: (callback) ->
 
     {computeController} = KD.singletons
@@ -439,34 +461,9 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.mainView.openMachineModal machine, machineItem
       else return
 
-    else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
-
-      @handleMachineToggle machineItem, event
-
-    else if machineItem.type in ['app', 'workspace']
-
-      @machineTree.deselectNode machineItem
-      @machineTree.selectNode @machineTree.nodes[machineItem.getData().parentId]
-
-      return
-
     else if machineItem.getData().status?.state is Machine.State.Building
 
       return
-
-
-  handleMachineToggle: (machineItem, event) ->
-
-    KD.utils.stopDOMEvent event
-
-    unless machineItem.child.hasClass 'running'
-      @machineTree.deselectNode machineItem
-      return
-
-    @machineTree.toggle machineItem
-
-    for id, node of @machineTree.nodes when node.type is 'machine' and node.id isnt machineItem.id
-      @machineTree.collapse node
 
 
   addFollowedTopics: ->
@@ -607,4 +604,5 @@ class ActivitySidebar extends KDCustomHTMLView
 
       tree.removeAllNodes()
       @listMachines jMachines
+      @selectWorkspace()
       callback()

@@ -38,6 +38,10 @@ serverConf := new(Server)
 // Populated the serverConf struct
 err := m.Load(serverConf) // Check for error
 m.MustLoad(serverConf)    // Panic's if there is any error
+
+// Access now populated fields
+serverConf.Port // by default 6060
+serverConf.Name // "koding"
 ```
 
 Run your app:
