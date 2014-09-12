@@ -45,6 +45,32 @@ module.exports = class Koding extends ProviderInterface
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
+  getUserPlan = (account)->
+
+    knownPlans = Object.keys PLANS
+    flags = account.globalFlags or []
+
+    PLANS[ do ->
+
+      for plan in knownPlans
+        return plan  if "plan-#{plan}" in flags
+
+      return 'free'
+
+    ]
+
+
+  checkUsage = (usage, plan, storage)->
+
+    err = null
+    if usage.total + 1 > plan.total
+      err = "Total limit of #{plan.total} machines has been reached."
+    else if usage.storage + storage > plan.storage
+      err = "Total limit of #{plan.storage}GB storage limit has been reached."
+
+    if err then return new KodingError err
+
+
   calculateNextLabel = (user, group, label, callback)->
 
     return callback null, label  if label?
@@ -60,6 +86,7 @@ module.exports = class Koding extends ProviderInterface
       limit    : 1
       sort     : createdAt : -1
 
+
     JMachine.one selector, options, (err, machine)->
 
       return callback err  if err?
@@ -71,22 +98,35 @@ module.exports = class Koding extends ProviderInterface
         callback null, "koding-vm-#{index+1}"
 
 
+
   @create = (client, options, callback)->
 
     { instanceType, label, storage } = options
-    { r: { group, user } } = client
+    { r: { group, user, account } } = client
 
-    calculateNextLabel user, group, label, (err, label)->
+    storage ?= 3
+    userPlan = getUserPlan account
 
-      meta =
-        type          : "amazon"
-        region        : "us-east-1"
-        source_ami    : "ami-2651904e"
-        instance_type : "t2.micro"
-        storage_size  : storage ? 3
-        alwaysOn      : no
+    @fetchUsage client, options, (err, usage)->
 
-      callback null, { meta, label, credential: client.r.user.username }
+      return callback err  if err?
+
+      if err = checkUsage usage, userPlan, storage
+        return callback err
+
+      calculateNextLabel user, group, label, (err, label)->
+
+        meta =
+          type          : "amazon"
+          region        : "us-east-1"
+          source_ami    : "ami-2651904e"
+          instance_type : "t2.micro"
+          storage_size  : storage
+          alwaysOn      : no
+
+        callback null, {
+          meta, label, credential: client.r.user.username
+        }
 
 
   @fetchUsage = (client, options, callback)->
