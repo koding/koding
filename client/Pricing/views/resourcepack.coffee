@@ -6,10 +6,17 @@ class ResourcePackView extends KDView
   viewAppended : ->
     {title, cssClass, packFeatures, price, index} = @getOptions()
 
+    price      = price / 100
+
     @addSubView new KDHeaderView
       type     : "medium"
       cssClass : "pack-title"
-      title    : "<cite>#{title}</cite> Resource Pack"
+      title    : "<cite>#{price}</cite>MONTHLY"
+
+    @addSubView new KDCustomHTMLView
+      tagName  : 'p'
+      cssClass : 'pack-summary'
+      partial  : "Great for single women and ice cream lovin protoganists"
 
     @addSubView featuresContainer = new KDView
       tagName  : "dl"
@@ -22,8 +29,7 @@ class ResourcePackView extends KDView
 
     @addSubView new KDButtonView
       style     : "pack-buy-button"
-      icon      : yes
-      title     : "<cite>#{price}</cite>BUY NOW"
+      title     : "SELECT"
       callback  : =>
         tag      = @getOption "tag"
         groupTag = @getDelegate().subscriptionTag

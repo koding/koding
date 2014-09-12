@@ -10,8 +10,48 @@ pricing.styl
 
 body.pricing
 
-  #main-header .inner-container
-    -webkit-font-smoothing  antialiased
+  #main-header
+    .inner-container
+      -webkit-font-smoothing  antialiased
+
+    .logotype
+      color             #424242
+      line-height       20px
+      font-size         26px
+
+    nav
+      a
+        color           #3B3B3B
+
+        &.login
+          border-color  #ADADAD
+
+    #koding-logo
+      margin            0 7px 0 0
+
+      cite
+        r-sprite        home, 'logo-black'
+
+  .pricing-heading
+    font-size           38px
+    color               #37B542
+    line-height         52px
+    margin              178px auto 17px
+    text-align          center
+    padding             0 40px
+    border              none
+    font-weight         200
+    opacity             .99
+
+  p.pricing-description
+    max-width           678px
+    font-size           18px
+    line-height         28px
+    color               #5A5A5A
+    font-weight         200
+    opacity             .99
+    text-align          center
+    margin              0 auto 115px
 
 .content-page.pricing
   width                 auto
@@ -44,139 +84,104 @@ body.pricing
       borderBox()
 
     .resource-pack
-      border-right      1px solid #e9e9e9
-      border-bottom     2px solid #f8f8f8
-      border-top        2px solid #f8f8f8
-      width             20%
+      background        #FAFAFA
+      width             25%
       z-index           10
+      border            1px solid #E3E3E3
+      border-left       none
+      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
+                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition    -moz-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
+                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
+                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
       borderBox()
       fl()
 
       &:first-of-type
-        border-left     1px solid #e9e9e9
-        position        relative
-        overflow        visible
+        border-left     1px solid #E3E3E3
+        rounded         7px 0 0 7px
 
-        &:before
-          content       ""
-          display       block
-          size          500%, 2px
-          abs           1px 0 0 -2px
-          border-right  13px solid #f43500
-          z-index       4
-          bg            image, -webkit-linear-gradient(left, #1aaf5d 0%, #ffd400 50%, #f43500 100%) /,
-                                  -moz-linear-gradient(left, #1aaf5d 0%, #ffd400 50%, #f43500 100%)
+      &:last-of-type
+        rounded         0 7px 7px 0
 
-      h2.pack-title
-        padding-left    75px
-        height          78px
-        line-height     78px
-        border-bottom   2px solid #f8f8f8
-        font-size       18px
-        font-weight     600
-        borderBox()
+      .pack-title
+        border          none
+        color           #8B8B8B
+        font-size       12px
+        text-align      center
+        height          auto
+        margin          0
+        letter-spacing  .16em
 
         span
+          padding       0
           margin        0
 
         cite
-          font-size     14px
           display       block
-          abs           21px 0 0 29px
-          size          32px, 32px
-          rounded       18px
-          border        2px solid #e9e9e9
-          text-align    center
-          line-height   32px
-          background    #fff
+          font-size     38px
+          color         #35B040
+          line-height   38px
+          margin        40px 0 4px
+          position      relative
 
-      .pack-features
-        padding         38px 8px 38px 31px
-        border-bottom   2px solid #f8f8f8
+          &:before
+            content     '$'
+            display     inline-block
+            color       #35B040
+            font-size   19px
+            vertical-align super
+            line-height 26px
+
+      .pack-summary
+        padding         17px 20px
+        text-align      center
+        font-size       10px
+        color           #575757
+        line-height     14px
+        font-weight     400
+        opacity         .99
         borderBox()
 
-        dd
-          font-size     18px
-          line-height   28px
-          color         #505050
-          font-weight   400
-
-          em
-            font-weight 600
+      .pack-features
+        padding         0 47px
+        color           #575757
+        line-height     23px
+        font-size       14px
+        borderBox()
 
       .pack-buy-button
-        background      #fff
-        display         block
-        kalc            width, 100% \- 8px
-        margin          4px
-        rounded         3px
-        border          none
+        background      transparent
+        border          1px solid #37B542
         outline         none
         shadow          none
-        padding         23px 0
-        font-size       18px
-        color           #3e3e3e
-        font-weight     400
+        margin          29px auto 34px
+        display         block
+        color           #37B542
+        padding         8px 34px
+        font-size       14px
+        letter-spacing  .16em
+        rounded         3px
+        vendor          transition, background .2s ease
 
-        .button-title
-          font-size     inherit
-          color         inherit
-          line-height   inherit
-          font-weight   inherit
-          position      relative
-          display       inline-block
-          text-decoration underline
+      &:hover
+        background      #fff
+        vendor          transform, scale(1.05)
+        border          1px solid #909090
+        rounded         7px
+        z-index         100
 
-          cite
-            font-weight 600
-            display     block
-            abs         0 100% 0 0
-            margin      0 10px 0 0
-            noTextDeco()
+        .pack-title cite
+          color         #F8AC1D
 
-        .icon
-          r-sprite      "pricing", "buy-arrow"
-          display       block
-          margin        0
-          padding       0
-          abs           22px 22px 0 0
+          &:before
+            color       #F8AC1D
 
-
-      &.blue //.resource-pack
-        h2.pack-title
-          color           #64d2c8
-          cite
-            border-color  #64d2c8
-
-      &.green //.resource-pack
-        h2.pack-title
-          color           #5ecb66
-          cite
-            border-color  #5ecb66
-
-      &.yellow //.resource-pack
-        h2.pack-title
-          color           #efc860
-          cite
-            border-color  #efc860
-
-      &.orange //.resource-pack
-        h2.pack-title
-          color           #f4a360
-          cite
-            border-color  #f4a360
-
-      &.red //.resource-pack
-        h2.pack-title
-          color           #f35f51
-          cite
-            border-color  #f35f51
-
-      &:hover //.resource-pack
-        background        url("/a/images/stripe.png")
-
-        *:not(cite)
-          border-color    transparent
+        .pack-buy-button
+          border-color  #F8AC1D
+          background    #F8AC1D
+          color         #fff
 
   //\Commons
 
@@ -263,7 +268,7 @@ body.pricing
 
   section.packs
     margin                0 auto
-    max-width             1290px
+    max-width             882px
     padding               0 45px
     width                 auto
     borderBox()
