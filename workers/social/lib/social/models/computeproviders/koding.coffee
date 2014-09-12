@@ -71,11 +71,11 @@ module.exports = class Koding extends ProviderInterface
     if err then return new KodingError err
 
 
-  calculateNextLabel = (user, group, label, callback)->
+  guessNextLabel = (user, group, label, callback)->
 
     return callback null, label  if label?
 
-    JMachine  = require './machine'
+    JMachine   = require './machine'
 
     selector   =
       provider : "koding"
@@ -114,7 +114,7 @@ module.exports = class Koding extends ProviderInterface
       if err = checkUsage usage, userPlan, storage
         return callback err
 
-      calculateNextLabel user, group, label, (err, label)->
+      guessNextLabel user, group, label, (err, label)->
 
         meta =
           type          : "amazon"
