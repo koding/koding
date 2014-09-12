@@ -239,3 +239,22 @@ prod.koding.com_RDS_prod0_WriteThroughput_Avg_0.1_For_1x5Min
 
 
 
+
+ElastiCache
+
+
+```
+// Threshold:
+prod.koding.com_ElastiCache_prod0_CPUUtilization_Avg_75_For_1x15Min
+```
+
+
+```
+// Threshold:
+prod.koding.com_ElastiCache_prod0_FreeableMemory_Avg_1G_For_1x15Min
+```
+
+```
+// Threshold:
+prod.koding.com_ElastiCache_prod0_CurrConnections_Avg_1000_For_1x15Min
+```
