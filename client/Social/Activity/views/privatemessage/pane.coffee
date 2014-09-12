@@ -209,6 +209,13 @@ class PrivateMessagePane extends MessagePane
       nextSibling.unsetClass 'consequent'
 
 
+  appendMessageDeferred: (item) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @appendMessage item
+
+
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>
