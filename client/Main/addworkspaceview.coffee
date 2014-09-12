@@ -18,6 +18,7 @@ class AddWorkspaceView extends KDCustomHTMLView
 
 
   handleKeyDown: (event) ->
+
     if event.which is 13
       options      =
         name       : @input.getValue()
