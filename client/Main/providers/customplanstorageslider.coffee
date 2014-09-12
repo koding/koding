@@ -4,7 +4,7 @@ class CustomPlanStorageSlider extends KDSliderBarView
 
     super KD.utils.extend options,
       interval   : 1
-      width      : 285
+      width      : 287
       snap       : yes
       snapOnDrag : yes
       drawBar    : yes

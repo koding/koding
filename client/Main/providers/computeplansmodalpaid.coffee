@@ -3,7 +3,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
-    options.height   = 323
+    options.height   = 330
 
     super options, data
 
@@ -36,7 +36,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
       cssClass : 'storage-slider'
-      maxValue : limits.storage * 2 # limits.storage - usage.storage
+      maxValue : limits.storage # limits.storage - usage.storage
       minValue : 3
       handles  : [5]
 
