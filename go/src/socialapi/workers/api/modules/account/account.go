@@ -118,7 +118,7 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 		}); err != nil {
 			return response.NewBadRequest(err)
 		}
-	case "channel_message":
+	case "channel-message":
 		if count, err = (&models.ChannelMessage{}).CountWithQuery(&bongo.Query{
 			Selector: map[string]interface{}{
 				"id":         query.ObjectId,
@@ -129,5 +129,5 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 		}
 	}
 
-	return response.NewOK(count == 1)
+	return response.NewOK(struct{ Success bool }{Success: count == 1})
 }

@@ -22,10 +22,10 @@ module.exports =
               ]
             when 'SocialMessage'
               [
-                "channel_message"
+                "channel-message"
                 options.messageId
               ]
 
           checkOwnership { accountId, objectId, type }, (err, res) ->
             return callback err, no  if err?
-            return callback null, res
+            return callback null, res.Success
