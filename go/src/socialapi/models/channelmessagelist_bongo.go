@@ -71,7 +71,7 @@ func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-func (c *ChannelMessageList) DeleteSilent() error {
+func (c ChannelMessageList) DeleteSilent() error {
 	c.DeletedAt = time.Now().UTC()
 	return bongo.B.Unscoped().Model(c).Update(c).Error
 }
