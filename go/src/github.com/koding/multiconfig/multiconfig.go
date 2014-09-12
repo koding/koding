@@ -77,7 +77,12 @@ func (d *DefaultLoader) MustLoad(conf interface{}) {
 		panic(err)
 	}
 
-	d.MustValidate(conf)
+	// we at koding, believe having sane defaults in our system, this is the
+	// reason why we have default validators in DefaultLoader. But do not cause
+	// nil pointer panics if one uses DefaultLoader directly.
+	if d.Validator != nil {
+		d.MustValidate(conf)
+	}
 }
 
 // MustValidate validates the struct or panics
