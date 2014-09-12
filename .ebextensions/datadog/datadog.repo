@@ -1,0 +1,5 @@
+[datadog]
+name = Datadog, Inc.
+baseurl = http://yum.datadoghq.com/rpm/
+enabled=1
+gpgcheck=0
