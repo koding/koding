@@ -4,8 +4,8 @@ import "testing"
 
 type (
 	Server struct {
-		Name     string
-		Port     int `default:"6060"`
+		Name     string `required:"true"`
+		Port     int    `default:"6060"`
 		Enabled  bool
 		Users    []string
 		Postgres Postgres
@@ -14,9 +14,9 @@ type (
 	// Postgres holds Postgresql database related configuration
 	Postgres struct {
 		Enabled           bool
-		Port              int
-		Hosts             []string
-		DBName            string
+		Port              int      `required:"true" customRequired:"yes"`
+		Hosts             []string `required:"true"`
+		DBName            string   `default:"configdb"`
 		AvailabilityRatio float64
 	}
 )
@@ -55,6 +55,25 @@ func TestLoad(t *testing.T) {
 	}
 
 	testStruct(t, s, getDefaultServer())
+}
+
+func TestDefaultLoader(t *testing.T) {
+	m := New()
+
+	s := new(Server)
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	if err := m.Validate(s); err != nil {
+		t.Error(err)
+	}
+	testStruct(t, s, getDefaultServer())
+
+	s.Name = ""
+	if err := m.Validate(s); err == nil {
+		t.Error("Name should be required")
+	}
 }
 
 func testStruct(t *testing.T, s *Server, d *Server) {
