@@ -165,7 +165,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     @footer    = new KDCustomHTMLView
       cssClass : 'footer'
       partial  : """
-        <p>Free account VMs are turned off automatically after 30 minutes of inactivity.</p>
+        <p>Free account VMs are turned off automatically after 60 minutes of inactivity.</p>
         <a href="/Pricing" class="upgrade-link">Upgrade to make your VMs always-on.</a>
       """
 
