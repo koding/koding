@@ -4,7 +4,7 @@ class ResourcePackView extends KDView
     super options, data
 
   viewAppended : ->
-    {title, cssClass, packFeatures, price, index} = @getOptions()
+    {title, cssClass, packFeatures, price, index, description} = @getOptions()
 
     price      = price / 100
 
@@ -16,7 +16,7 @@ class ResourcePackView extends KDView
     @addSubView new KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'pack-summary'
-      partial  : "Great for single women and ice cream lovin protoganists"
+      partial  : description
 
     @addSubView featuresContainer = new KDView
       tagName  : "dl"

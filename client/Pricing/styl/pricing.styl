@@ -53,6 +53,23 @@ body.pricing
     text-align          center
     margin              0 auto 115px
 
+  p.pricing-footer
+    margin-top         70px
+    text-align         center
+    color              #999
+    font-weight        300
+    font-size          16px
+
+    span
+      font-weight      400
+      color            #5a5a5a
+
+  .learn-more
+    margin-top         20px
+    display            block
+    text-align         center
+    color              #35b040
+
 .content-page.pricing
   width                 auto
   max-width             100%
@@ -151,6 +168,14 @@ body.pricing
         font-size       14px
         borderBox()
 
+      &.always-on-disabled .pack-features
+        dd:nth-of-type(5)
+          color       #bbb
+
+      &.share-vm-disabled .pack-features
+        dd:nth-of-type(6)
+          color       #bbb
+
       .pack-buy-button
         background      transparent
         border          1px solid #37B542
@@ -165,7 +190,7 @@ body.pricing
         rounded         3px
         vendor          transition, background .2s ease
 
-      &:hover
+      &.green
         background      #fff
         vendor          transform, scale(1.05)
         border          1px solid #909090
@@ -182,6 +207,8 @@ body.pricing
           border-color  #F8AC1D
           background    #F8AC1D
           color         #fff
+          margin-top    23px
+          margin-bottom 40px
 
   //\Commons
 

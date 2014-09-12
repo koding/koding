@@ -23,3 +23,19 @@ class PricingPacksView extends KDView
       options.delegate = this
       @addSubView view = new ResourcePackView options
       @forwardEvent view, "PlanSelected"
+
+    # packs were floated to left and not cleared
+    @addSubView new KDCustomHTMLView
+      cssClass  : 'clearfix'
+
+    @addSubView new KDCustomHTMLView
+      tagName   : 'p'
+      cssClass  : 'pricing-footer'
+      partial   : "
+        All packs contain <span>SSL, Sudo Access, IDE, Terminal, SSH Access and Custom Domains</span>
+      "
+
+    @addSubView new CustomLinkView
+      title    : "Learn more"
+      cssClass : "learn-more"
+      href     : "/"
