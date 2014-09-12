@@ -1,6 +1,10 @@
 package multiconfig
 
-import "github.com/fatih/structs"
+import (
+	"reflect"
+
+	"github.com/fatih/structs"
+)
 
 // TagLoader satisfies the loader interface. It parses a struct's field tags
 // and populated the each field with that given tag.
@@ -21,9 +25,29 @@ func (t *TagLoader) Load(s interface{}) error {
 	}
 
 	for _, field := range structs.Fields(s) {
+
+		if err := t.processField(t.DefaultTagName, field); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// processField gets tagName and the field, recursively checks if the field has the given
+// tag, if yes, sets it otherwise ignores
+func (t *TagLoader) processField(tagName string, field *structs.Field) error {
+	switch field.Kind() {
+	case reflect.Struct:
+		for _, f := range field.Fields() {
+			if err := t.processField(tagName, f); err != nil {
+				return err
+			}
+		}
+	default:
 		defaultVal := field.Tag(t.DefaultTagName)
 		if defaultVal == "" {
-			continue
+			return nil
 		}
 
 		err := fieldSet(field, defaultVal)
