@@ -18,3 +18,10 @@ func (m multiLoader) Load(s interface{}) error {
 
 	return nil
 }
+
+// MustLoad loads the source into the struct, it panics if gets any error
+func (m multiLoader) MustLoad(s interface{}) {
+	if err := m.Load(s); err != nil {
+		panic(err)
+	}
+}
