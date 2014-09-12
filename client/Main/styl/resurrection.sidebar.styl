@@ -11,7 +11,7 @@ resurrection.styl
 sidebarGray       = #A0A0A0
 sidebarActive     = #F4F1ED
 sidebarSubtitle   = #979087
-sidebarSelectedBg = #15171A
+sidebarSelectedBg = #262626
 
 #main-sidebar
 
@@ -131,6 +131,10 @@ sidebarSelectedBg = #15171A
     cite
       display         none !important
 
+  ul.expanded
+    bg                color, sidebarSelectedBg
+    rounded           4px
+
   li.selected + ul.kdlistview-main-nav.expanded
     bg                color sidebarSelectedBg
     padding-bottom    8px
@@ -149,21 +153,6 @@ sidebarSelectedBg = #15171A
     ellipsis()
     borderBox()
 
-    &.has-sub-items cite
-      font-style      normal
-      display         block
-      size            20px 26px
-      abs             0px 0 0 0px
-      z-index         2
-      cursor          pointer
-      &:after
-        content       ' '
-        border        5px solid sidebarGray
-        border-color  transparent transparent transparent sidebarGray
-        size          10px 10px
-        abs           8px 0 0 8px
-        borderBox()
-
     &.expanded.selected.has-sub-items
       bg              color sidebarSelectedBg
       rounded         4px 4px 0 0
@@ -181,15 +170,16 @@ sidebarSelectedBg = #15171A
     &.workspace
       color           sidebarActive
       font-size       12px
-      line-height     18px
+      line-height     26px
       padding         0 0 0 43px
+      rounded         0
 
       figure
         display       block
         width         16px
         height        16px
         bg            color #222
-        abs           2px 0 0 22px
+        abs           5px 0 0 22px
         r-sprite      activity nav-workspace
       a
         padding           0
@@ -219,7 +209,7 @@ sidebarSelectedBg = #15171A
       hidden()
 
     &.selected
-      bg              color sidebarSelectedBg
+      bg              color #000
 
     a
       padding           5px 8px 5px 42px
@@ -241,7 +231,11 @@ sidebarSelectedBg = #15171A
         width         16px
         height        16px
         bg            color #222
-        abs           6px 0 0 20px
+        abs           6px 0 0 10px
+
+      > div
+        position      relative
+        left          -10px
 
 
       &.social > figure
