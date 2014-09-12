@@ -4,7 +4,6 @@ class NewPaymentForm extends KDFormViewWithFields
     fields =
       cardNumber          :
         label             : 'Card Number'
-        defaultValue      : '4012888888881881'
         blur              : ->
           @oldValue = @getValue()
           @setValue @oldValue.replace /\s|-/g, ''
@@ -12,19 +11,15 @@ class NewPaymentForm extends KDFormViewWithFields
           @setValue @oldValue  if @oldValue
       cardCVC             :
         label             : 'CVC'
-        defaultValue      : '303'
       cardName            :
         label             : 'Name on Card'
-        defaultValue      : 'Senthil Arivudainambi'
         cssClass          : 'card-name'
       cardMonth           :
         label             : 'Exp. Date'
         maxLength         : 2
-        defaultValue      : '10'
       cardYear            :
         label             : ''
         maxLength         : 2
-        defaultValue      : '2015'
 
     super
       cssClass              : KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
