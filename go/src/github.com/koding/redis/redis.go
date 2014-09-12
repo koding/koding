@@ -416,3 +416,55 @@ func (r *RedisSession) prepareArgsWithKey(key string, rest ...interface{}) []int
 
 	return prefixedReq
 }
+
+// SortedSetsUnion creates a combined set from given list of sorted set keys.
+//
+// See: http://redis.io/commands/zunionstore
+func (r *RedisSession) SortedSetsUnion(destination string, keys []string, weights []interface{}, aggregate string) (int64, error) {
+	if destination == "" {
+		return 0, errors.New("no destination to store")
+	}
+
+	lengthOfKeys := len(keys)
+	if lengthOfKeys == 0 {
+		return 0, errors.New("no keys")
+	}
+
+	prefixed := []interface{}{
+		r.AddPrefix(destination), lengthOfKeys,
+	}
+
+	for _, key := range keys {
+		prefixed = append(prefixed, r.AddPrefix(key))
+	}
+
+	if len(weights) != 0 {
+		prefixed = append(prefixed, "WEIGHTS")
+		prefixed = append(prefixed, weights...)
+	}
+
+	if aggregate != "" {
+		prefixed = append(prefixed, "AGGREGATE", aggregate)
+	}
+
+	return redis.Int64(r.Do("ZUNIONSTORE", prefixed...))
+}
+
+// SortedSetScore returns score of a member in a sorted set. If no member,
+// an error is returned.
+//
+// See: http://redis.io/commands/zscore
+func (r *RedisSession) SortedSetScore(key string, member interface{}) (float64, error) {
+	return redis.Float64(r.Do("ZSCORE", r.AddPrefix(key), member))
+}
+
+// SortedSetRem removes a member from a sorted set. If no member, an error
+// is returned.
+//
+// See: http://redis.io/commands/zrem
+func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, error) {
+	prefixed := []interface{}{r.AddPrefix(key)}
+	prefixed = append(prefixed, members...)
+
+	return redis.Int64(r.Do("ZREM", prefixed...))
+}

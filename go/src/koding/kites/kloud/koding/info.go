@@ -104,8 +104,8 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 	// break existing actions like building,starting,stopping etc.. because
 	// CheckAndUpdateState only update the state if there is no lock available.
 	// however only fix when it's there was no klient checking and the state
-	// chanign is a valid transformation (for example prevent if it's "Stopped"
-	// -> "Stopping"
+	// changing is a valid transformation (for example prevent if it's
+	// "Stopped" -> "Stopping"
 	if dbState != awsState && !klientChecked && validChange(dbState, awsState) {
 		// this is only set if the lock is unlocked. Thefore it will not
 		// change the db state if there is an ongoing process. If there is no

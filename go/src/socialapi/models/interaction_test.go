@@ -156,5 +156,14 @@ func TestInteractionIsInteracted(t *testing.T) {
 			So(cnt, ShouldEqual, false)
 		})
 
+		Convey("it should return false&nil if account id is not found in db", func() {
+			i := NewInteraction()
+			i.MessageId = 1050
+
+			cnt, err := i.IsInteracted(10209)
+			So(err, ShouldBeNil)
+			So(cnt, ShouldEqual, false)
+		})
+
 	})
 }

@@ -187,5 +187,7 @@ func (s *S) TestDescribeInstanceHealth(c *C) {
 
 	c.Assert(resp.InstanceStates[0].InstanceId, Equals, "i-90d8c2a5")
 	c.Assert(resp.InstanceStates[0].State, Equals, "InService")
+	c.Assert(resp.InstanceStates[1].InstanceId, Equals, "i-06ea3e60")
+	c.Assert(resp.InstanceStates[1].State, Equals, "OutOfService")
 	c.Assert(resp.RequestId, Equals, "1549581b-12b7-11e3-895e-1334aEXAMPLE")
 }

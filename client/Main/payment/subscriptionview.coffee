@@ -39,5 +39,5 @@ class SubscriptionView extends JView
 
     """
       <h4>{{#(plan.title)}} - <span class="price">#{displayAmount}</span></h4>
-      <p>#{dateNotice or 'This plan newer expires'}</p>
+      <p>#{dateNotice or 'This plan never expires'}</p>
     """
