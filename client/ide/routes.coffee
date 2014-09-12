@@ -16,6 +16,11 @@ do ->
         routeToLastWorkspace()
 
 
+  selectWorkspaceOnSidebar = (data) ->
+    mainView = KD.getSingleton 'mainView'
+    mainView.activitySidebar.selectWorkspace data
+
+
   getMachineByUId = (uid) ->
     machine = m  for m in KD.userMachines when m.uid is uid
     return machine or null
@@ -33,7 +38,7 @@ do ->
         app.workspaceData     = workspace
 
         appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
-        KD.getSingleton('mainView').emit 'WorkspaceSelected', data
+        selectWorkspaceOnSidebar data
 
     return fallback()  unless ideApps?.instances
 
@@ -49,7 +54,7 @@ do ->
 
     if ideInstance
       appManager.showInstance ideInstance
-      KD.getSingleton('mainView').emit 'WorkspaceSelected', data
+      selectWorkspaceOnSidebar data
     else
       fallback()
 
