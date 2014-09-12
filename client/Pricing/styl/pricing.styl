@@ -54,21 +54,25 @@ body.pricing
     margin              0 auto 115px
 
   p.pricing-footer
-    margin-top         70px
+    margin-top         68px
     text-align         center
-    color              #999
-    font-weight        300
-    font-size          16px
+    color              #5A5A5A
+    font-weight        200
+    font-size          14px
+    line-height        28px
+    opacity            .99
 
     span
       font-weight      400
       color            #5a5a5a
 
   .learn-more
-    margin-top         20px
+    line-height        28px
+    font-size          14px
+    margin-top         4px
     display            block
     text-align         center
-    color              #35b040
+    color              #01B05A
 
 .content-page.pricing
   width                 auto
@@ -106,12 +110,7 @@ body.pricing
       z-index           10
       border            1px solid #E3E3E3
       border-left       none
-      -webkit-transition -webkit-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
-                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      -moz-transition    -moz-transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
-                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
-      transition         transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55) \,
-                         background .3s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      overflow          hidden
       borderBox()
       fl()
 
@@ -119,7 +118,20 @@ body.pricing
         border-left     1px solid #E3E3E3
         rounded         7px 0 0 7px
 
-      &:last-of-type
+        &:after
+          content       'Current Plan'
+          display       block
+          size          107px, 17px
+          vendor        transform, rotateZ(-45deg)
+          font-size     10px
+          color         #959595
+          background    #E8E8E8
+          text-align    center
+          line-height   17px
+          abs           23px 0 0 -23px
+          borderBox()
+
+      &:nth-of-type(4)
         rounded         0 7px 7px 0
 
       .pack-title
@@ -190,7 +202,7 @@ body.pricing
         rounded         3px
         vendor          transition, background .2s ease
 
-      &.green
+      &:nth-of-type(2)
         background      #fff
         vendor          transform, scale(1.05)
         border          1px solid #909090
