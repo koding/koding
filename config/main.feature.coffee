@@ -76,7 +76,7 @@ Configuration = (options={}) ->
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
-    uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
+    uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
     projectRoot                    : projectRoot
     socialapi                      : socialapi
