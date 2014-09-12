@@ -10,6 +10,9 @@ class MainView extends KDView
 
     @notifications = []
 
+    @on 'WorkspaceSelected', (options) =>
+      @activitySidebar.selectWorkspace options
+
 
   viewAppended: ->
 
