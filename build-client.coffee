@@ -89,8 +89,10 @@ class Builder
 
   buildFramework:->
 
-    buildLoggedInFramework  = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/"
-    buildLoggedOutFramework = "cd client/Framework && npm i && gulp compile --uglify --outputDir=../../website/a/out/  --entryPath=../entry.coffee"
+    uglify = unless process.env.NO_UGLIFYJS then "--uglify" else ""
+
+    buildLoggedInFramework  = "cd client/Framework && npm i && gulp compile #{uglify} --outputDir=../../website/a/"
+    buildLoggedOutFramework = "cd client/Framework && npm i && gulp compile #{uglify} --outputDir=../../website/a/out/  --entryPath=../entry.coffee"
     exec buildLoggedInFramework, (err, stdout, stderr)->
       console.log """
       ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
