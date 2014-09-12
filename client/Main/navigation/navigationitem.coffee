@@ -55,6 +55,5 @@ class NavigationItem extends JTreeItemView
 
   pistachio: ->
     """
-      <cite></cite>
       {{> @child}}
     """
