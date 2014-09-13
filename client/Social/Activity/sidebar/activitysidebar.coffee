@@ -351,44 +351,83 @@ class ActivitySidebar extends KDCustomHTMLView
         type         : 'title'
         parentId     : id
         machineUId   : machine.uid
+        machineLabel : machine.label
 
       treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
-        href         : "/IDE/my-workspace"
+        href         : "/IDE/#{machine.label}/my-workspace"
         parentId     : id
+        machineLabel : machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
-        treeData.push
-          title      : workspace.name
-          type       : 'workspace'
-          href       : "/IDE/#{workspace.slug}"
-          data       : workspace
-          parentId   : id
+        if workspace.machineUId is machine.uid
+          treeData.push
+            title        : workspace.name
+            type         : 'workspace'
+            href         : "/IDE/#{machine.label}/#{workspace.slug}"
+            machineLabel : machine.label
+            data         : workspace
+            parentId     : id
 
     @machineTree.addNode data for data in treeData
 
 
   selectWorkspace: (data) ->
-    data = @lastSelectedWorkspaceData or {}  unless data
+
+    data = @latestWorkspaceData or {}  unless data
     { workspace, machine } = data
 
-    return unless workspace or machine
+    return if not machine or not workspace
 
     tree = @machineTree
 
     for key, node of tree.nodes
-      nodeData = node.getData()
+      nodeData         = node.getData()
+      isSameMachine    = nodeData.uid is machine.uid
+      isMachineRunning = machine.status.state is Machine.State.Running
 
       if node.type is 'machine'
-        isSameMachine = nodeData.uid is machine.uid
-        if isSameMachine then  tree.expand node else tree.collapse node
+        if isSameMachine
+          if isMachineRunning
+            tree.expand node
+          else
+            tree.selectNode node
+            @watchMachineState workspace, machine
+        else
+          tree.collapse node
 
       else if node.type is 'workspace'
-        slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
-        tree.selectNode node  if slug is workspace.slug
+        if isMachineRunning and nodeData.machineLabel is machine.label
+          slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+          tree.selectNode node  if slug is workspace.slug
 
-    @lastSelectedWorkspaceData = data
+    @latestWorkspaceData = data
+
+    localStorage         = KD.getSingleton("localStorageController").storage "IDE"
+    minimumDataToStore   = machineLabel: machine.label, workspaceSlug: workspace.slug
+
+    localStorage.setValue 'LatestWorkspace', minimumDataToStore
+
+
+  watchMachineState: (workspace, machine) ->
+    @watchedMachines  or= {}
+    computeController   = KD.getSingleton 'computeController'
+    appManager          = KD.getSingleton 'appManager'
+    isSameMachineActive = appManager.getFrontApp().mountedMachineUId is machine.uid
+    {Running}           = Machine.State
+
+    return  if @watchedMachines[machine._id]
+
+    callback = (state) =>
+      if state.status is Running
+        machine.status.state = Running
+        if isSameMachineActive
+          @selectWorkspace { workspace, machine }
+          delete @watchedMachines[machine._id]
+
+    computeController.on "public-#{machine._id}", callback
+    @watchedMachines[machine._id] = yes
 
 
   fetchMachines: (callback) ->
