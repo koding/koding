@@ -8,7 +8,7 @@ do ->
       loadIDE { machine, workspace }
     else
       if workspaceSlug is 'my-workspace'
-        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine.label
+        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine?.label
         loadIDE { machine, workspace }
       else
         routeToLatestWorkspace()
@@ -29,7 +29,7 @@ do ->
 
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
-    machineUId = machine.uid
+    machineUId = machine?.uid
     fallback   = ->
       appManager.open 'IDE', { forceNew: yes }, (app) ->
         app.mountedMachineUId = machineUId
