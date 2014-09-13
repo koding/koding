@@ -1,19 +1,17 @@
 do ->
 
-  loadWorkspace = (slug) ->
-    workspace = ws  for ws in KD.userWorkspaces when ws.slug is slug
+  loadWorkspace = (machineLabel, workspaceSlug) ->
+    workspace = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
+    machine   = getMachineByLabel machineLabel
 
     if workspace
-      machine = getMachineByUId workspace.machineUId
-      loadIDE { machine, workspace } # TODO: Be sure we are handling machine not found
+      loadIDE { machine, workspace }
     else
-      if slug is 'my-workspace'
-        machine   = KD.userMachines.first
-        workspace = isDefault: yes, slug: 'my-workspace'
-
+      if workspaceSlug is 'my-workspace'
+        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine.label
         loadIDE { machine, workspace }
       else
-        routeToLastWorkspace()
+        routeToLatestWorkspace()
 
 
   selectWorkspaceOnSidebar = (data) ->
@@ -21,8 +19,8 @@ do ->
     mainView.activitySidebar.selectWorkspace data
 
 
-  getMachineByUId = (uid) ->
-    machine = m  for m in KD.userMachines when m.uid is uid
+  getMachineByLabel = (label) ->
+    machine = m  for m in KD.userMachines when m.label is label
     return machine or null
 
 
@@ -46,11 +44,11 @@ do ->
       isSameMachine   = instance.mountedMachineUId is machineUId
       isSameWorkspace = instance.workspaceData is workspace
 
-      if isSameMachine and isSameWorkspace
-        ideInstance   = instance
-      else if workspace.slug is 'my-workspace'
-        if instance.workspaceData?.isDefault
-          ideInstance = instance
+      if isSameMachine
+        if isSameWorkspace then ideInstance = instance
+        else if workspace.slug is 'my-workspace'
+          if instance.workspaceData?.isDefault
+            ideInstance = instance
 
     if ideInstance
       appManager.showInstance ideInstance
@@ -59,13 +57,25 @@ do ->
       fallback()
 
 
-  routeToLastWorkspace = ->
-    KD.getSingleton('router').handleRoute '/IDE/my-workspace'
+  routeToLatestWorkspace = ->
+    localStorage    = KD.getSingleton("localStorageController").storage "IDE"
+    latestWorkspace = localStorage.getValue 'LatestWorkspace'
+
+    if latestWorkspace
+      {machineLabel, workspaceSlug} = latestWorkspace
+    else
+      machineLabel  = KD.userMachines.first?.label or ''
+      workspaceSlug = 'my-workspace'
+
+    KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
   KD.registerRoutes 'IDE',
 
-    '/:name?/IDE': -> routeToLastWorkspace()
+    '/:name?/IDE': -> routeToLatestWorkspace()
 
-    '/:name?/IDE/:workspaceSlug': (data) ->
-      loadWorkspace data.params.workspaceSlug
+    '/:name?/IDE/:machineLabel/:workspaceSlug': (data) ->
+
+      { machineLabel, workspaceSlug } = data.params
+
+      loadWorkspace machineLabel, workspaceSlug
