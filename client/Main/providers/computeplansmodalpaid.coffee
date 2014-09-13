@@ -81,9 +81,11 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     computeController.create {
       provider : "koding", stack, storage
-    }, (err)=>
+    }, (err, machine)=>
 
       KD.showError err
+
+      KD.userMachines.push machine
 
       @createVMButton.hideLoader()
       @destroy()
