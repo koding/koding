@@ -17,6 +17,10 @@ class AddWorkspaceView extends KDCustomHTMLView
       click    : @bound 'destroy'
 
 
+  click: ->
+    return no
+
+
   handleKeyDown: (event) ->
 
     if event.which is 13
