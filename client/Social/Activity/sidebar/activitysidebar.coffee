@@ -494,10 +494,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if event.target.nodeName is 'SPAN'
 
-      if machineItem.type is 'title'
-        if event.target.classList.contains 'ws-add-icon'
-          return @addNewWorkspace machineItem
-
       if status?.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem

@@ -26,7 +26,13 @@ class NavigationItem extends JTreeItemView
 
   createTitleView: (data) ->
     @setClass 'sub-title'
-    @child = new KDCustomHTMLView tagName : 'h3', partial : data.title
+    @child = new KDCustomHTMLView
+      tagName : 'h3'
+      partial : data.title
+      click   : (event) =>
+        KD.utils.stopDOMEvent event
+        if event.target.classList.contains 'ws-add-icon'
+          KD.singletons.mainView.activitySidebar.addNewWorkspace this
 
 
   createWorkspaceItem: (data) ->
