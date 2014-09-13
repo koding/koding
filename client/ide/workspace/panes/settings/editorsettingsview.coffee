@@ -41,10 +41,6 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       selectOptions      : IDE.settings.editor.keyboardHandlers
       callback           : (state) => @emit 'SettingsChanged', 'keyboardHandler', state
 
-    @softWrap            = new KDSelectBox
-      selectOptions      : IDE.settings.editor.softWrapOptions
-      callback           : (state) => @emit 'SettingsChanged', 'softWrap', state
-
     @syntax              = new KDSelectBox
       selectOptions      : IDE.settings.editor.getSyntaxOptions()
       callback           : (state) => @emit 'SettingsChanged', 'syntax', state
@@ -68,7 +64,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
-      'softWrap', 'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
+      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
     ]
 
   defaults:
@@ -82,7 +78,6 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     showPrintMargin      : no
     fontSize             : 12
     tabSize              : 4
-    softWrap             : 'off'
     keyboardHandler      : 'default'
 
   pistachio: ->
@@ -95,7 +90,6 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       <p>Highlight active line           {{> @highlightActiveLine}}</p>
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
-      <p class="with-select">Soft wrap   {{> @softWrap}}</p>
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
       <p class="with-select">Font        {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
