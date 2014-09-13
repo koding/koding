@@ -2,13 +2,6 @@ IDE.settings or= {}
 
 IDE.settings.editor =
 
-  softWrapOptions: [
-    { value: 'off',      title: 'Off'      }
-    { value: 40,         title: '40 chars' }
-    { value: 80,         title: '80 chars' }
-    { value: 'free',     title: 'Free'     }
-  ]
-
   fontSizes: [
     { value: 10,         title: '10px'     }
     { value: 11,         title: '11px'     }
