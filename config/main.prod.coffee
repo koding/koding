@@ -75,7 +75,7 @@ Configuration = (options={}) ->
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
-    uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
+    uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
     projectRoot                    : projectRoot
     socialapi                      : socialapi
@@ -274,10 +274,10 @@ Configuration = (options={}) ->
       nginx             :
         locations       : ["/xhr"]
 
-    guestCleaner        :
-      group             : "webserver"
-      supervisord       :
-        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+    # guestCleaner        :
+      # group             : "webserver"
+      # supervisord       :
+        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
     # clientWatcher       :
     #   group             : "webserver"

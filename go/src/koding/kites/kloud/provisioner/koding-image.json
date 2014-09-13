@@ -2,7 +2,8 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
         "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
-        "template_dir": "website/"
+        "template_dir": "website/",
+        "bash_dir": "bash/"
     },
     "builders": [
         {
@@ -33,6 +34,7 @@
                 "sudo a2enmod proxy_wstunnel",
                 "sudo a2enmod proxy_fcgi",
                 "mkdir -p /tmp/userdata/Web",
+                "mkdir -p /tmp/userdata/bash",
                 "sudo mkdir -p /opt/koding/userdata/",
                 "sudo mkdir -p /opt/koding/userdata/Web",
                 "sudo mkdir -p /opt/koding/userdata/Applications",
@@ -46,9 +48,15 @@
             "destination": "/tmp/userdata/Web"
         },
         {
+            "type": "file",
+    	    "source": "{{user `bash_dir`}}",
+            "destination": "/tmp/userdata/bash"
+        },
+        {
             "type": "shell",
             "inline": [
-                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/"
+                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc"
             ]
         }
     ]
