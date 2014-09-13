@@ -346,10 +346,10 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
-        id           : "#{id}-workspaces"
         title        : 'Workspaces <span class="ws-add-icon"></span>'
         type         : 'title'
         parentId     : id
+        id           : machine._id
         machineUId   : machine.uid
         machineLabel : machine.label
 
@@ -357,6 +357,7 @@ class ActivitySidebar extends KDCustomHTMLView
         title        : 'My Workspace'
         type         : 'workspace'
         href         : "/IDE/#{machine.label}/my-workspace"
+        id           : "#{machine.label}-workspace"
         parentId     : id
         machineLabel : machine.label
 
@@ -368,6 +369,7 @@ class ActivitySidebar extends KDCustomHTMLView
             href         : "/IDE/#{machine.label}/#{workspace.slug}"
             machineLabel : machine.label
             data         : workspace
+            id           : workspace._id
             parentId     : id
 
     @machineTree.addNode data for data in treeData
@@ -573,6 +575,10 @@ class ActivitySidebar extends KDCustomHTMLView
     {machineUId, machineLabel} = machineItem.getData()
     type     = 'new-workspace'
     delegate = machineItem.getDelegate()
+    parentId = machineUId
+    id       = "#{machineUId}-input"
+    data     = { type, machineUId, machineLabel, parentId, id }
+    tree     = @machineTree
 
     @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
@@ -604,13 +610,19 @@ class ActivitySidebar extends KDCustomHTMLView
     callback = =>
       KD.remote.api.JWorkspace.create data, (err, workspace) =>
         return KD.showError "Couldn't create new workspace"  if err
+
+        for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+          parentId = nodeData.id
+
         view    = @addWorkspaceView
-        options =
+        data    =
           title : workspace.name
           type  : 'workspace'
           href  : "/IDE/#{machine.label}/#{workspace.slug}"
           data  : workspace
+          id    : workspace._id
           machineLabel : machineLabel
+          parentId: parentId
 
         if view
           list  = view.getDelegate()
@@ -619,11 +631,11 @@ class ActivitySidebar extends KDCustomHTMLView
           for key, node of @machineTree.nodes when node.type is 'title'
             list = node.getDelegate()
 
-        list.addItem options
+        @machineTree.addNode data
 
         KD.userWorkspaces.push workspace
 
-        router.handleRoute options.href
+        router.handleRoute data.href
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })
