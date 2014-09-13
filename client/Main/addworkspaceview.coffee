@@ -20,9 +20,11 @@ class AddWorkspaceView extends KDCustomHTMLView
   handleKeyDown: (event) ->
 
     if event.which is 13
-      options      =
-        name       : @input.getValue()
-        machineUId : @getData().machineUId
+      data           = @getData()
+      options        =
+        name         : @input.getValue()
+        machineUId   : data.machineUId
+        machineLabel : data.machineLabel
 
       {activitySidebar} = KD.getSingleton 'mainView'
 

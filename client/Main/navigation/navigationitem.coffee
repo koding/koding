@@ -40,8 +40,9 @@ class NavigationItem extends JTreeItemView
 
   createNewWorkspaceView: ->
     @setClass 'workspace'
-    {machineUId} = @getData()
-    @child       = new AddWorkspaceView {}, { machineUId }
+    { machineUId, machineLabel } = @getData()
+
+    @child = new AddWorkspaceView {}, { machineUId, machineLabel }
 
 
   createAppItem: ->

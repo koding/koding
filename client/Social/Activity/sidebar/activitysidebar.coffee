@@ -535,11 +535,11 @@ class ActivitySidebar extends KDCustomHTMLView
   addNewWorkspace: (machineItem) ->
     return if @addWorkspaceView
 
-    {machineUId} = machineItem.getData()
-    type         = 'new-workspace'
-    delegate     = machineItem.getDelegate()
+    {machineUId, machineLabel} = machineItem.getData()
+    type     = 'new-workspace'
+    delegate = machineItem.getDelegate()
 
-    @addWorkspaceView = delegate.addItem { type, machineUId }
+    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
     @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
       delegate.removeItem @addWorkspaceView
@@ -549,9 +549,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   createNewWorkspace: (options = {}) ->
-    {name, machineUId, rootPath} = options
+    {name, machineUId, rootPath, machineLabel} = options
     {computeController, router } = KD.singletons
-    layout                       = {}
+    layout = {}
 
     if not name or not machineUId
       return warn 'Missing options for create new workspace'
@@ -560,7 +560,7 @@ class ActivitySidebar extends KDCustomHTMLView
       rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
       emptyWorkspace = yes
 
-    data    = { name, machineUId, rootPath, layout }
+    data    = { name, machineUId, machineLabel, rootPath, layout }
     machine = m for m in computeController.machines when m.uid is machineUId
     command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
 
@@ -573,8 +573,9 @@ class ActivitySidebar extends KDCustomHTMLView
         options =
           title : workspace.name
           type  : 'workspace'
-          href  : "/IDE/#{workspace.slug}"
+          href  : "/IDE/#{machine.label}/#{workspace.slug}"
           data  : workspace
+          machineLabel : machineLabel
 
         if view
           list  = view.getDelegate()
