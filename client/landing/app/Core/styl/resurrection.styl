@@ -1,0 +1,1179 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../styl/appfn"
+@import "../styl/app.fonts"
+
+@css {
+/*
+MAIN APP stylesheet
+resurrection.styl
+*/
+}
+
+// When app class is added to html tag
+// layout becomes 100% width and height
+// so that apps can control their own
+// scrollviews and add their chrome frames
+html.app
+  height            100%
+  body
+    height          100%
+
+body
+  font-family       openSansFamily
+  font-weight       400
+
+  &.noscroll
+    overflow        hidden
+
+  &.logged-in
+    #main-header
+      nav
+        hidden()
+
+  > .invisible
+    display         none
+
+input
+textarea
+button
+  font-family       openSansFamily
+
+pre
+  font-family       monoFamily
+
+.kdview
+  overflow          visible
+
+.no-anim
+  noAnim()
+
+#kdmaincontainer
+  width             auto
+  // vendor            transform, translateX(0)
+  #main-sidebar
+    z-index           0
+    hidden()
+
+  &.fullscreen
+    width             100%!important
+    left              0!important
+    top               0!important
+    bottom            0!important
+    right             0!important
+    z-index           10
+    .application-page
+      padding         0!important
+    .app-settings-menu
+      top             0
+      right           0
+    #main-header
+      hidden()
+
+
+  &.with-sidebar
+
+    #main-sidebar
+      visible()
+
+    #main-header
+      hidden()
+
+    #main-panel-wrapper
+      kalc            width, 100% \- 258px
+      margin-left     258px
+
+
+#main-panel-wrapper
+  min-height          100%
+  z-index             1
+  bg                  color, white
+  vendor              transition, box-shadow .177s ease
+
+#main-panel-wrapper
+aside.app-sidebar
+  vendor              transition, width .177s ease \,
+                                  left .177s ease \,
+                                  margin .177s ease
+
+#main-header
+  margin                0
+  size                  100%,55px
+  z-index               1000
+  overflow              visible
+  max-width             1290px
+  shadow                none
+  padding               0 45px
+  abs                   48px 0 0 50%
+  vendor                transform, translateX(-50%)
+  z-index               15
+  borderBox()
+
+
+  .inner-container
+    bg                  color, transparent
+
+  .logotype
+    font-size               24px
+    color                   #444
+    font-weight             700
+    line-height             16px
+    color                   #fff
+    font-family             asapFamily
+    -webkit-font-smoothing  antialiased
+    noTextDeco()
+    visible()
+    fl()
+
+  #koding-logo
+    margin              0 14px 0 0
+    size                auto auto
+    bg                  color, transparent
+    position            static
+    letter-spacing      .01em
+    fl()
+
+    cite
+      r-sprite          home 'logo'
+      margin            0
+      display           block
+
+  nav
+    line-height         18px
+    fr()
+
+    a
+      -webkit-font-smoothing  antialiased
+      font-smoothing          antialiased
+
+      font-size         16px
+      margin-left       12px
+      font-weight       500
+      font-family       openSansFamily
+      color             rgba(255,255,255,.83)
+      padding-bottom    1px
+      noTextDeco()
+
+      &.active
+        font-weight     600
+        border-bottom   1px solid rgba(255,255,255,.83)
+
+      &:last-child
+        visibility      visible
+
+      &.login
+        padding         7px 13px
+        rounded         4px
+        white-space     nowrap
+        margin-left     21px
+        font-size       14px
+        font-weight     600
+        border          1px solid rgba(255, 255, 255, .5)
+
+
+.header-notification
+  size                100% 26px
+  bg                  color rgba(24, 148, 83, .9)
+  bg                  image url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAQAAAAngNWGAAAAT0lEQVQ4y43SOxIAIAxCQUruf+HYqBPNj6HdjgdjHLJpzCLMWYAV+2DNHtgxB3t24cQ2nJkRGjNCYyksThXZD5tERObhEJzIDhTyFRkhMi6JHdO5oh57CwAAAABJRU5ErkJggg==')
+  bg                  repeat repeat
+  bg                  scroll no-scroll
+  vendor              transition, top .077s ease-in
+  left                0
+  top                 29px
+  z-index             0
+  color               white
+  letter-spacing      .05em
+  text-align          center
+  line-height         26px
+  font-size           12px
+  borderBox()
+  abs()
+  &.in
+    top               55px
+  &.warn
+    bg                color rgba(187, 159, 9, .9)
+  &.err
+    bg                color rgba(238, 100, 98, .9)
+  &.fx
+    vendor            animation, progress 60s linear infinite
+  strong
+    font-weight       600
+  .cancel
+    right             10px
+    top               3px
+    abs()
+  a
+    border-bottom     1px solid white
+    color             white
+    noTextDeco()
+  .custom-link-view
+    display           inline-block
+    size              16px 16px
+    vertical-align    top
+    border-bottom     none
+    margin            5px 0 0 5px
+    span.close.icon
+      display         block
+      r-sprite        app '16-close-white'
+
+
+#koding-logo
+  size              57px 55px
+  bg                color, logoBg
+  z-index           11
+  top               0
+  left              0
+  abs()
+
+  &.staging
+    bg              color #ff9200 // old koding orange
+
+  &.sandbox
+    bg              color #0099cc
+
+  &.vagrant
+    bg              color purple
+
+  &.custom
+    bg              color transparent
+    bg              position, center center
+    bg              repeat, no-repeat
+    cite
+      hidden()
+
+  cite
+    r-sprite        app 'nav-logo'
+    margin          0 0 0 1px
+    display         block
+
+
+#kdmaincontainer.logout-tv
+  vendor                  animation, logoutTv .5s 1 forwards ease
+  abs                     0px 0 0 0px
+  size                    100vw, 100vh
+
+  &~.turn-off-line
+    top                   50%
+    left                  0
+    size                  100%, 2px
+    background            #fff
+    opacity               0
+    z-index               1000
+    vendor                animation, logoutTvLine .3s .35s 1 forwards ease
+    abs()
+    &:after
+      content             ""
+      display             block
+      margin              -3px auto 0
+      size                50%, 6px
+      background          #fff
+      rounded             100%
+      box-shadow          0 0 20px 10px rgba(255,255,255,.6)
+  &~.turn-off-dot
+    top                   50%
+    left                  50%
+    bg                    color, #fff
+    rounded               20px
+    size                  10px, 10px
+    margin-top            -5px
+    vendor                transform, scaleX(0) scaleY(0)
+    shadow                0 0 8px #fff
+    vendor                animation, logoutTvDot .3s .6s 1 forwards ease
+    z-index               1000
+    abs()
+
+#kdmaincontainer.scale
+    vendor            animation, shrink 1s ease-out
+    vendor            animation-iteration-count, 1
+    vendor            transform-style, preserve-3d
+    vendor            transform, scale(0)
+
+
+/*3d loading*/
+/* logo */
+#main-loading
+  vendor               perspective, 600px
+  vendor               transform-style, preserve-3d
+  abs()
+  top                 0
+  left                0
+  z-index             10000
+  bg                  color, #111617
+  vendor              transition, opacity .75s ease-in-out
+  opacity             1
+  overflow            hidden
+  &.out
+    opacity           0
+
+  figure.splash
+    // max-width         40%
+    // margin            0 auto
+    text-align        center
+    text-shadow       0 1px 0 rgba(0,0,0,.5)
+    padding           20px
+    // bg                color, rgba(0, 0, 0, .05)
+    // border            1px solid rgba(0, 0, 0, .1)
+    top               50px
+    rel()
+    .splash-title
+      font-weight     300
+      font-size       18px
+      padding         0 0 20px
+      color           #eee
+    .splash-name
+      bg              color, rgba(0, 0, 0, .05)
+      display         inline-block
+      font-weight     300
+      font-size       24px
+      color           linkColor1
+      padding         5px 10px
+    .splash-body
+      font-weight     300
+      margin          0 auto
+      max-width       400px
+      max-height      100px
+      font-size       14px
+      color           #ccc
+
+.threed-logo
+  left                 50%
+  top                  50%;
+  size                 200px, 260px
+  margin               -130px 0 0 -100px
+  // -moz-animation       logoHeartBeat 2s infinite ease
+  abs()
+
+  &
+  & *
+    vendor             transform-style, preserve-3d
+
+  .line
+    display            block
+    position           relative
+    size               200px, 60px
+    bg                 color, #fff
+
+    &~.line
+      margin-top       20px
+
+    &:nth-child(1)
+      bg               color, #ff9200
+    &:nth-child(2)
+      width            142px
+
+    i
+      abs()
+      top              0
+      left             0
+      display          block
+      size             100%, 20px
+      bg               color, #eee
+      vendor           backface-visibility, hidden
+      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
+
+      &:after
+        abs()
+        top            0
+        left           0
+        content        ""
+        display        block
+        bg             color, #ccc
+        size           100%, 100%
+        vendor         backface-visibility, hidden
+        vendor         transform, translateZ(-60px) rotateX(180deg)
+
+    &:nth-child(1) i
+      bg               color, #c97200
+      &:after
+        bg             color, #b86800
+
+    &:nth-child(1)
+      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
+    &:nth-child(2)
+      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
+    &:nth-child(3)
+      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
+
+
+//
+// BOOK STYLES
+//
+
+#instruction-book
+  abs()
+  bottom                    15px
+  left                      -1609px
+  size                      1509px, 425px
+  z-index                   1000
+  rounded                   4px
+  shadow                    inset 0 5px 5px rgba(0,0,0,.35), 0 15px 40px rgba(0,0,0,.8)
+  background                transparent url("../images/book/book.jpg") no-repeat 0 0
+  vendor                    transition, all .3s ease-in-out
+  overflow                  visible
+  &.more-terminal
+      bottom                40px
+  &.moveUp
+    bottom                  145px
+  &.in
+    left                    -700px
+  &.aside
+    left                    -1500px
+  .contents
+    overflow                auto
+    height                  290px
+    padding-right           0.7em
+    li
+      min-height            26px
+  .controls
+    abs()
+    top                     33px
+    right                   61px
+    z-index                 999
+    size                    auto, auto
+    text-align              right
+    .page-nav
+      display               inline-block
+      margin-left           15px
+      text-align            center
+      a
+        width               28px
+        padding             0
+        margin              0
+        i
+          display                          inline-block
+          size                             0,0
+          border                           7px solid #727272
+          border-top-width                 5px
+          border-bottom-width              5px
+          border-top-color                 transparent
+          border-bottom-color              transparent
+          margin-top                       8px
+        &:first-child
+          border-top-right-radius          0
+          border-bottom-right-radius       0
+          border-right                     0
+          i
+            border-left-color              transparent
+            margin-left                    -7px
+        &:last-child
+          border-top-left-radius           0
+          border-bottom-left-radius        0
+          i
+            border-right-color             transparent
+            margin-right                   -7px
+        &.disabled
+          i.prev
+            border-right-color             #ccc
+          i.next
+            border-left-color              #ccc
+    a
+      noTextDeco()
+      font-size                            11px
+      color                                #727272
+      text-shadow                          0 1px 0 #fff
+      border-radius                        4px
+      background                           linear-gradient(#fff 0%, #F0F0F0 100%)
+      border                               1px solid #D9D9D9
+      shadow                               0 1px 0 0 #fff
+      height                               26px
+      line-height                          26px
+      display                              inline-block
+      padding                              0 0.8em
+      vendor                               transition, color .1s linear
+      font-weight                          600
+      margin-left                          15px
+      &.dismiss-button
+        abs()
+        top                                 -50px
+        right                               -73px
+        background                          transparent url('../images/book/close_button.png') center center no-repeat
+        border                              0
+        size                                30px, 30px
+        line-height                         50px
+        padding                             0
+        text-indent                         -100px
+        overflow                            hidden
+        color                               transparent
+        noTextDeco()
+        text-align                          left
+        shadow                              0 0 0 0 #fff
+        &:hover
+        &:focus
+          color                             transparent
+          background-color                  transparent
+      &:hover
+      &:focus
+        color                               rgba(0,0,0,.8)
+  .controls .cta_button
+  .cta_button
+    color                   #fff
+    text-shadow             0 1px 1px #2E1A00
+    border-radius           4px
+    gradient                #FFAB23 0%, #F27500 100%
+    background              linear-gradient(#FFAB23 0%, #F27500 100%)
+    font-weight             600
+    border                  1px solid #C1650F
+    shadow                  0 1px 1px 0 #fff
+    noTextDeco()
+    &.full_width
+      display               block
+      font-size             13px
+      width                 auto
+      border-bottom-color   #8F4907
+      line-height           20px
+      text-align            center
+      margin                1em auto
+      padding               0.6em 1em
+      shadow                0 1px 3px 0 rgba(194,110,0,0.50)
+    &:hover
+    &:focus
+      gradient              #FFBF57 0%, #F27500 100%
+      background            linear-gradient(#FFBF57 0%, #F27500 100%)
+      color                 #fff
+    &:active
+      shadow                inset 0 1px 3px 0 rgba(0,0,0,.5)
+      gradient              #F27500 0%, #FC7A00 100%
+      background            linear-gradient(#F27500 0%, #FC7A00 100%)
+
+  &.new-feature
+    >div
+      &.right-page
+        background          url(/a/images/book/new-feature.png) bottom right no-repeat
+
+  >div
+    size                    735px, 408px
+    vendor                  transition, opacity .3s ease-out
+    &.left-page
+      margin                6px 0 0 15px
+    &.right-page
+      margin                6px 0 0 0
+    &.out
+      opacity               0
+
+section.page
+  background            transparent no-repeat 0 0
+  &.table-of-contents
+    bg                  image, url("../images/book/01.png")
+    bg                  position, 55px 90px
+    .embedded
+      margin            20px 30px 0 450px
+      line-height       25px
+      font-size         14px
+      a
+        color           linkColor1
+        fl()
+      span
+        fr()
+
+  &.a-story
+    bg                  image, url("../images/book/02.png")
+    bg                  position, center 74px
+    >article
+      text-align        center
+      margin            250px 0 0 0
+    &.no-header
+      bg                position, center top
+      >article
+        margin          324px 0 0 0
+
+    &.more-1
+      bg                image, url("../images/book/03.png")
+    &.more-2
+      bg                image, url("../images/book/04.png")
+    &.more-3
+      bg                image, url("../images/book/05.png")
+    &.more-4
+      bg                image, url("../images/book/06.png")
+    &.more-5
+      bg                image, url("../images/book/07.png")
+    &.more-6
+      bg                image, url("../images/book/08.png")
+
+  &.foreword
+    bg                  image, url("../images/book/09.png")
+    bg                  position, right bottom
+
+  &.activity
+    bg                  image, url("../images/book/10.png")
+    bg                  position, center bottom
+    p
+      width             auto
+  &.topics
+    bg                  image, url("../images/book/11.png")
+    bg                  position, left 174px
+    p
+      width             55%
+      margin-left       45%
+      padding           15px 20px 0 0
+
+    .embedded
+      abs()
+      top               97px
+      left              43px
+      size              260px, 130px
+      .ttag
+        font-size       12px
+        margin          0 6px 6px 0
+        line-height     20px
+        padding         0 7px
+        max-width       150px
+        rounded         4px
+      .kdloader
+        margin          40px 0 0 120px
+
+
+  &.members
+    bg                  image, url("../images/book/12.png")
+    bg                  position, left bottom
+    >article
+      margin            20px 0 0 255px
+      gradient          rgba(247, 247, 247, 0), rgba(247, 247, 247, .65)
+      p
+        width           auto
+        padding-left    0
+
+  &.develop
+    bg                  image, url("../images/book/13.png")
+    bg                  position, left bottom
+    &.enviroments
+      >article
+        margin-top      80px
+        padding-left    35px
+        p
+          padding-left  0
+    >article
+      margin            20px 15px 0 360px
+      .tip
+        margin-top    7px
+        display       block
+        font-style    italic
+        color         #777
+        padding       7px 13px
+        background    #eee
+        rounded       4px
+        span
+          color       k-orange
+          font-weight 600
+      p
+        width           auto
+    &.more-1
+      bg                image, url("../images/book/14.png")
+      bg                position, left center
+      >article
+        padding-top     60px
+        p
+          padding-left  0
+        strong
+          color         linkColor1
+          font-weight   600
+          word-break    break-all
+    &.more-2
+      bg                image, url("../images/book/15.png")
+      bg                position, center center
+      >article
+        margin          130px 20px 0 120px
+    &.more-3
+      bg                image, url("../images/book/17.png")
+      bg                position, center center
+      >article
+        margin          160px 60px 0 330px
+    &.more-4
+      >article
+        margin          70px 30px 0 400px
+        p
+          padding-left  0
+
+      .embedded
+        .editor-advanced-settings-menu
+          top           66px
+          left          336px
+    &.more-5
+      bg                image, url("../images/book/drag-drop.jpg")
+      bg                position, 40px 70px
+      >article
+        margin          70px 30px 0 400px
+        p
+          padding-left  0
+
+  &.terminal
+    bg                  image, url("../images/book/13a.png")
+    bg                  position, left 80px
+    >article
+      margin            55px 20px 0 260px
+      font-size         13px
+      p
+        width           auto
+    &.more-1
+      >article
+        strong
+          color         linkColor1
+          font-weight   600
+        code
+          margin        14px 20px 0 40px
+          display       block
+          font-size     14px
+          padding       3px 6px
+          color         #28fe14
+          background    #444
+          font-weight   400
+          border        1px solid #eee
+          word-break    break-all
+          rounded       2px
+
+  &.apps
+    bg                  image, url("../images/book/18.png")
+    bg                  position, right bottom
+
+  &.share
+    bg                  image, url("../images/book/share.jpg")
+    bg                  position, 90% 100px
+
+  &.etiquette
+    bg                  image, url("../images/book/19.png")
+    bg                  position, right 90%
+    >article
+      font-size         13px
+    p
+      padding-right     0
+      &:last-child
+        abs()
+        top             0
+        right           0
+        padding         15px 20px 0 20px
+
+  &.enjoy
+    bg                  image, url("../images/book/08.png")
+    bg                  position, center 74px
+    .embedded
+      abs               30px, 165px
+    >article
+      overflow          visible
+      p
+        padding         300px 0 0
+        text-align      center
+        width           100%
+      span
+        abs()
+        top             15px
+        right           20px
+        font-weight     300
+        font-size       12px
+        line-height     16px
+        color           #aaa
+        a
+          color         linkColor1
+
+  >article
+    size                auto, auto
+    font-size           14px
+    >p
+      padding           15px 20px 0 43px
+      line-height       1.75em
+      width             50%
+      borderBox()
+      &.centered
+        margin          0 auto
+        padding-top     5em
+    ul
+    ol
+      li
+        margin-left      2em
+        list-style-type  disc
+        line-height      1.75em
+
+  >header
+    color               #37342f
+    padding-top         13px
+    size                auto, 60px
+    line-height         60px
+    font-size           32px
+    border-bottom       1px solid rgba(0,0,0,.08)
+    padding-left        43px
+
+
+#kdmaincontainer > .pointer
+  abs()
+  bottom                380px
+  left                  500px
+  top                   auto
+  display               block
+  z-index               99999
+  size                  20px, 20px
+  border                3px solid white
+  opacity               1
+  bg                    color, #ff9200
+  gradient              #FFAB23, #F27500
+  vendor                transition, left 2s ease-in-out\,\
+                                    top 2s ease-in-out\,\
+                                    opacity .4s
+  border-radius         50%
+  shadow                0px 1px 3px 0px rgba(0,0,0,.2)
+  &.clickPulse
+    vendor              animation, clickAnimate 1s forwards ease-in-out
+  &.out
+    opacity             0
+
+.kdnotification
+  a
+    color               inherit
+
+@-webkit-keyframes clickAnimate
+  0%
+    -webkit-transform   scale(1)
+    shadow              0 0 0 0 rgba(255,146,0,0)
+  15%
+    -webkit-transform   scale(0.6)
+  25%
+    -webkit-transform   scale(1)
+  50%
+    shadow              0 0 0 10px rgba(255,146,0,.8)
+  100%
+    shadow              0 0 0 25px rgba(255,146,0,0)
+
+@-moz-keyframes clickAnimate
+  0%
+    -moz-transform      scale(1)
+    shadow              0 0 0 0 rgba(255,146,0,0)
+  15%
+    -moz-transform      scale(0.6)
+  25%
+    -moz-transform      scale(1)
+  50%
+    shadow              0 0 0 10px rgba(255,146,0,.8)
+  100%
+    shadow              0 0 0 25px rgba(255,146,0,0)
+
+// Intro animation for 'Show me how!' button
+
+.cta_button
+  vendor                animation, bounceIn .6s ease-in-out
+
+@-webkit-keyframes bounceIn
+  0%
+    -webkit-transform   scale(0)
+    opacity             0
+  50%
+    -webkit-transform   scale(1.1)
+    opacity             1
+  75%
+    -webkit-transform   scale(0.9)
+  100%
+    -webkit-transform   scale(1)
+
+@-moz-keyframes bounceIn
+  0%
+    -moz-transform      scale(0)
+    opacity             0
+  50%
+    -moz-transform      scale(1.1)
+    opacity             1
+  75%
+    -moz-transform      scale(0.9)
+  100%
+    -moz-transform      scale(1)
+
+
+.nominate-modal
+
+  z-index                       10001
+  background                    white
+  border-radius                 7px
+  text-align                    center
+  box-shadow                    0 0 20px
+
+  a
+    text-decoration             none
+
+  .logo
+
+    background                  url("../images/icon_rocket.png") no-repeat
+    height                      160px
+    top                         -20px
+    left                        130px
+    width                       160px
+    abs()
+
+  .header
+
+    height                      100px
+    background                  #504E4B
+    border-top-right-radius     5px
+    border-top-left-radius      5px
+    margin-bottom               40px
+
+  p
+
+    padding                     20px 70px 10px 70px
+    font-size                   15px
+
+  div.button
+
+    background                  #2E7FA1
+    text-shadow                 none
+    color                       white
+    font-size                   20px
+    padding                     10px
+    width                       210px
+    margin                      20px auto
+    border-radius               4px
+    cursor                      pointer
+
+div.nominateicon
+  width                         45px
+  height                        55px
+  background                    url("../images/icon_medal.png") no-repeat
+  background-position           12px 0px
+  background-color              #2B3335
+  border-radius                 3px
+  cursor                        pointer
+  right                         285px
+  z-index                       1
+  top                           0
+  abs()
+
+.kdmodal.redeem-modal
+
+  .formline
+    overflow              visible
+    padding               15px 0 0
+    .input-wrapper
+      overflow            visible
+      margin-right        8px
+      fr()
+    label
+      margin              0
+
+#editor-modal
+  &.loading
+    .kdmodal-inner
+    .kdmodal-content
+      height                 400px
+    .kdloader
+      margin                 -18px 0 0 -18px
+      top                    50%
+      left                   50%
+
+  .kdbutton.disabled
+    cursor                   not-allowed
+
+  h4 span
+    font-size                12px
+    color                    #747474
+
+  .kdmodal-inner
+  .kdmodal-content
+    margin                    0 !important
+    position                  relative
+  .close-icon
+    display                   none
+  .editor-pane > div:first-child
+    overflow                  hidden
+    padding                   6px
+    bg                        color, rgba(204, 204, 204, .4)
+    color                     #333
+    h4
+      fl()
+      font-size               18px
+      position                relative
+      top                     6px
+    button
+      fr()
+      margin-left             6px
+  figure
+    height                    358px
+    border-radius             0 0 6px 6px
+    .code-wrapper
+      height                  358px
+
+
+  .kdnotification
+    abs()
+    top                       8px !important
+    vendor                    shadow, none
+    vendor                    rounded, 4px
+
+    &.mini
+      top                     8px !important
+
+    &.tray
+      max-width               50%
+      padding                 5px 10px
+
+      .kdnotification-content
+        font-size             13px
+
+.kdmodal.vm-settings
+
+  .kdmodal-title
+    hidden()
+
+  .kdmodal-content
+    overflow              visible
+
+  .close-icon
+    hidden()
+
+  .domain-loader
+    abs()
+    top                   12px
+    left                  339px
+
+  .open-terminal-link
+    display               block
+    font-weight           normal !important
+    font-size             12px !important
+    color                 logoBg !important
+    span
+      border-bottom       1px solid
+
+  .modal-arrow
+    left                  -41px !important
+    size                  0, 0
+    right                 100%
+    border                10px solid transparent
+    border-right-color    #c1c1c1
+    z-index               10
+
+    &:before
+      z-index             9
+      content             ''
+      display             block
+      size                0, 0
+      abs                 -10px 0 0 -9px
+      border              10px solid transparent
+      border-right-color  #fff
+
+  .modal-inline-overlay
+    top                   0
+    z-index               1
+    background            #e9e9e9
+    abs()
+
+    > button
+      left                50%
+      width               120px !important
+      margin-top          40px  !important
+      margin-left         -60px !important
+
+    > .progressbar-container
+
+      margin-top          20px
+
+  &.activity-modal
+    .kdmodal-inner
+      margin              21px
+
+  .kdformview .formline
+    cf()
+
+    .input-wrapper
+      margin-bottom       0
+      fr()
+      .koding-on-off
+        margin-top        7px
+      .kdselectbox
+        margin-top        4px
+      .custom-link-view
+        color             #666
+        font-size         14px
+        font-weight       bold
+        line-height       43px
+        noTextDeco()
+
+    &.adddomain
+      label
+        display           block
+        float             none
+      .input-wrapper
+        float             none
+      .kdinput.text
+        display           block
+      .float-wrapper
+        display           block
+        float             none
+      .root-domain
+        abs               46px 1px 0 0
+        color             #888
+        z-index           1
+        font-size         14px
+        line-height       40px
+        padding           0 14px
+        bg                color #eee
+        rounded           0 6px 6px 0
+        border            1px solid transparent
+        border-left-color #d7d7d7
+      button.compact
+        right             0px
+        top               7px
+        abs()
+
+
+    &.guides
+
+      border-top          1px solid #d5d5d5
+      margin-top          8px
+
+      .guides-links
+        a
+          text-decoration underline
+
+    &.advanced
+      text-align          center
+
+      .input-wrapper
+        margin-bottom     0
+        margin-top        -22px
+        border-top        1px solid #d5d5d5
+        padding-top       28px
+        width             100%
+        display           block
+        float             none
+
+      .kdbutton
+        width             auto
+        height            40px
+        padding           0 8px
+        margin-left       7px
+
+        .button-title
+          font-size       12px
+          line-height     40px
+
+    &.button-field
+      margin              0 !important
+
+  label.kdlabel
+    font-size             14px
+    line-height           43px
+    margin                0
+    &.advanced
+      font-size           12px
+      cursor              pointer
+      color               #aaa
+      display             inline-block
+      float               none
+      clear               both
+      bg                  color #e9e9e9
+      padding             0 15px
+      &.expanded
+        &:after
+          border-bottom-color transparent
+          border-top-color    #aaa
+          top                 4px
+          left                4px
+
+      &:after
+        content             ' '
+        border              5px solid transparent
+        border-bottom-color #aaa
+        size                10px 10px
+        margin-left         2px
+        display             inline-block
+        left                4px
+        top                 -2px
+        borderBox()
+        rel()
+
+  .kdbutton.subdomain-toggler
+    padding-right           0
+    .button-title
+      color                 #aaa

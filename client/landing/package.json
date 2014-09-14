@@ -1,0 +1,28 @@
+{
+  "name": "a-kd-app",
+  "version": "0.1.0",
+  "description": "A boilerplate app created by yeoman KD generator",
+  "contributors": [
+    {
+      "name": "Your name",
+      "email": "your@email.com"
+    }
+  ],
+  "devDependencies": {
+    "browserify": "^5.11.2",
+    "coffee-script": "^1.8.0",
+    "coffeeify": "^0.7.0",
+    "gulp": "^3.8.8",
+    "gulp-buffer": "0.0.2",
+    "gulp-rimraf": "^0.1.0",
+    "gulp-coffee": "^2.2.0",
+    "gulp-concat": "^2.4.0",
+    "gulp-nodemon": "^1.0.4",
+    "gulp-rename": "^1.2.0",
+    "gulp-sourcemaps": "^1.1.5",
+    "gulp-stylus": "^1.3.2",
+    "gulp-util": "^3.0.1",
+    "minimist": "^1.1.0",
+    "vinyl-source-stream": "^1.0.0"
+  }
+}
