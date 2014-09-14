@@ -115,4 +115,8 @@ type (
 		PostThrottleDuration string `env:"key=KONFIG_SOCIALAPI_LIMITS_POSTTHROTTLEDURATION  required default=5s"`
 		PostThrottleCount    int    `env:"key=KONFIG_SOCIALAPI_LIMITS_POSTTHROTTLECOUNT     required default=20"`
 	}
+
+	Stripe struct {
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETKEY"`
+	}
 )

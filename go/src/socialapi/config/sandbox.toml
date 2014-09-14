@@ -50,3 +50,6 @@ PostThrottleCount    = 3
 EventExchangeName ="BrokerMessageBus"
 DisableCaching    = false
 Debug             = false
+
+[stripe]
+SecretKey = "sk_test_jsCJYUkS8hcnwtUygBZipjq6"
