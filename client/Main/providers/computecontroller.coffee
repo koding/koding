@@ -124,6 +124,18 @@ class ComputeController extends KDController
   fetchUsage: (options, callback)->
     KD.remote.api.ComputeProvider.fetchUsage options, callback
 
+  setAlwaysOn: (machine, state, callback = noop)->
+
+    options =
+      machineId : machine._id
+      provider  : machine.provider
+      alwaysOn  : state
+
+    KD.remote.api.ComputeProvider.update options, (err)=>
+      @triggerReviveFor machine._id  unless err?
+      callback err
+
+
   create: (options, callback)->
     KD.remote.api.ComputeProvider.create options, (err, machine)=>
       @reset yes  unless err?
