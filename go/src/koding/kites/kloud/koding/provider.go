@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
 	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
@@ -56,6 +57,13 @@ type Provider struct {
 	// DNS is used to create/update domain recors
 	DNS        *DNS
 	HostedZone string
+
+	KontrolURL        string
+	KontrolPrivateKey string
+	KontrolPublicKey  string
+
+	KlientToken      string
+	KlientPackageURL string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -102,29 +110,12 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	}
 
 	username := opts.Builder["username"].(string)
-
-	// Check for total amachine allowance
-	checker, err := p.PlanChecker(opts)
-	if err != nil {
-		return nil, err
-	}
-
-	p.Log.Info("[%s] checking machine limit for user '%s'", opts.MachineId, username)
-	if err := checker.Total(); err != nil {
-		return nil, err
-	}
-
-	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", opts.MachineId, username)
-	if err := checker.AlwaysOn(); err != nil {
-		return nil, err
-	}
+	instanceName := opts.Builder["instanceName"].(string)
 
 	machineData, ok := opts.CurrentData.(*Machine)
 	if !ok {
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
-
-	instanceName := opts.Builder["instanceName"].(string)
 
 	a.Push("Initializing data", 10, machinestate.Building)
 
@@ -152,7 +143,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		infoLog("No security group with name: '%s' exists. Creating a new one. Err was: %s", groupName, err)
+		infoLog("No security group with name: '%s' exists. Creating a new one...", groupName)
 		vpcs, err := a.ListVPCs()
 		if err != nil {
 			return nil, err
@@ -206,12 +197,6 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// Use koding plans instead of those later
 	a.Builder.InstanceType = DefaultInstanceType
 
-	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
-	// check if the user is egligible to create a vm with this size
-	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-		return nil, err
-	}
-
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
 	infoLog("Searching for subnets")
@@ -229,57 +214,54 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		return nil, err
 	}
 
-	// Use this ami id, which is going to be a stable one
+	// Use this AMI Id, which is going to be a stable one
 	a.Builder.SourceAmi = image.Id
 
-	storageSize := 3 // default AMI 3GB size
-	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
-		storageSize = a.Builder.StorageSize
-	}
-
-	infoLog("Check if user is allowed to create machine with '%dGB' storage", storageSize)
-	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(storageSize); err != nil {
+	kiteKey, err := p.createKey(username, p.KlientToken)
+	if err != nil {
 		return nil, err
 	}
 
-	// Increase storage if it's passed to us, otherwise the default 3GB is
-	// created already with the default AMI
-	if a.Builder.StorageSize != 0 {
-		for _, device := range image.BlockDevices {
-			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-				DeviceName:          device.DeviceName,
-				VirtualName:         device.VirtualName,
-				SnapshotId:          device.SnapshotId,
-				VolumeType:          device.VolumeType,
-				VolumeSize:          int64(a.Builder.StorageSize),
-				DeleteOnTermination: true,
-				Encrypted:           false,
-			}
+	fmt.Println("******* TOKEN ID:\n", p.KlientToken)
+	fmt.Println("******* KontrolPublicKey\n", p.KontrolPublicKey)
+	fmt.Println("******* KontrolPrivateKey\n", p.KontrolPrivateKey)
+	fmt.Println("******* KontrolURL\n", p.KontrolURL)
+	fmt.Println("******* kiteKey\n", kiteKey)
+	fmt.Println("******* latestKlientURL\n", p.KlientPackageURL)
 
-			break
-		}
+	// Use cloud-init for initial configuration of the VM
+	//
+	// We use `username` for hostname
+	userData, err := NewCloudInitConfig(username, username, kiteKey, p.KlientPackageURL).Prepare()
+	if err != nil {
+		fmt.Println("******** ERR:", err.Error())
+		return nil, err
 	}
-
-	cloudConfig := `
-#cloud-config
-disable_root: false
-disable-ec2-metadata: true
-hostname: %s`
-
-	// use a simple hostname, previously we were using instanceName which was
-	// is long and more detailed
-	hostname := username
-
-	cloudStr := fmt.Sprintf(cloudConfig, hostname)
-
-	a.Builder.UserData = []byte(cloudStr)
+	a.Builder.UserData = userData
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println(string(userData))
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
+	fmt.Println("***********************************")
 
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
-
 	buildArtifact.MachineId = opts.MachineId
 
 	// cleanup build if something goes wrong here
@@ -588,4 +570,36 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 
 	///// ROUTE 53 /////////////////
 	return nil
+}
+
+// CreateKey signs a new key and returns the token back
+func (p *Provider) createKey(username, kiteId string) (string, error) {
+	if username == "" {
+		return "", kloud.NewError(kloud.ErrSignUsernameEmpty)
+	}
+
+	if p.KontrolURL == "" {
+		return "", kloud.NewError(kloud.ErrSignKontrolURLEmpty)
+	}
+
+	if p.KontrolPrivateKey == "" {
+		return "", kloud.NewError(kloud.ErrSignPrivateKeyEmpty)
+	}
+
+	if p.KontrolPublicKey == "" {
+		return "", kloud.NewError(kloud.ErrSignPublicKeyEmpty)
+	}
+
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	token.Claims = map[string]interface{}{
+		"iss":        "koding",                              // Issuer, should be the same username as kontrol
+		"sub":        username,                              // Subject
+		"iat":        time.Now().UTC().Unix(),               // Issued At
+		"jti":        kiteId,                                // JWT ID
+		"kontrolURL": p.KontrolURL,                          // Kontrol URL
+		"kontrolKey": strings.TrimSpace(p.KontrolPublicKey), // Public key of kontrol
+	}
+
+	return token.SignedString([]byte(p.KontrolPrivateKey))
 }

@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"log"
 	"net/url"
 	"os"
 	"time"
+
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/keys"
+	"koding/kites/kloud/koding"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -19,6 +20,7 @@ import (
 	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 // Config defines the configuration that Kloud needs to operate.
@@ -165,30 +167,44 @@ func newKite(conf *Config) *kite.Kite {
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
+	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+	kontrolURL := getKontrolURL(conf.KontrolURL)
+	tokenID, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+	}
+
+	deployer := &koding.KodingDeploy{
+		Kite:        k,
+		KlientToken: tokenID.String(),
+		Log:         newLogger("kloud-deploy", conf.DebugMode),
+		Bucket:      koding.NewBucket("koding-kites", klientFolder),
+		DB:          db,
+	}
+
+	latestKlientURL, err := deployer.Bucket.LatestDeb()
+	if err != nil {
+		panic(err)
+	}
+	signedKlientURL := deployer.Bucket.SignedURL(latestKlientURL, time.Now().Add(time.Minute*3))
+
 	kodingProvider := &koding.Provider{
-		Kite:         k,
-		Log:          newLogger("koding", conf.DebugMode),
-		AssigneeName: id,
-		Session:      db,
-		Test:         conf.TestMode,
-		TemplateDir:  conf.TemplateDir,
-		HostedZone:   conf.HostedZone,
+		Kite:              k,
+		Log:               newLogger("koding", conf.DebugMode),
+		AssigneeName:      id,
+		Session:           db,
+		Test:              conf.TestMode,
+		TemplateDir:       conf.TemplateDir,
+		HostedZone:        conf.HostedZone,
+		KontrolURL:        kontrolURL,
+		KontrolPrivateKey: kontrolPrivateKey,
+		KontrolPublicKey:  kontrolPublicKey,
+		KlientPackageURL:  signedKlientURL,
+		KlientToken:       tokenID.String(),
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
-
-	privateKey, publicKey := kontrolKeys(conf)
-
-	deployer := &KodingDeploy{
-		Kite:              k,
-		Log:               newLogger("kloud-deploy", conf.DebugMode),
-		KontrolURL:        kontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Bucket:            newBucket("koding-kites", klientFolder),
-		DB:                db,
-	}
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
@@ -198,7 +214,7 @@ func newKite(conf *Config) *kite.Kite {
 	// be sure it compiles correctly,
 	var _ kloudprotocol.Builder = kodingProvider
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -297,7 +313,7 @@ func kontrolKeys(conf *Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL(ownURL string) string {
+func getKontrolURL(ownURL string) string {
 	// read kontrolURL from kite.key if it doesn't exist.
 	kontrolURL := kiteconfig.MustGet().KontrolURL
 
