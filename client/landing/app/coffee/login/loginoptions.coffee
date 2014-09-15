@@ -1,4 +1,4 @@
-class LoginOptions extends KDView
+module.exports = class LoginOptions extends KDView
   viewAppended:->
 
     inFrame = KD.runningInFrame()

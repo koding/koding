@@ -1,4 +1,4 @@
-class FinishRegistrationForm extends RegisterInlineForm
+module.exports = class FinishRegistrationForm extends RegisterInlineForm
   constructor: ->
     super
 

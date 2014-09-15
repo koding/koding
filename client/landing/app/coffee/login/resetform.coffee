@@ -1,4 +1,4 @@
-class ResetInlineForm extends LoginViewInlineForm
+module.exports = class ResetInlineForm extends LoginViewInlineForm
   constructor:->
     super
     @password = new LoginInputView

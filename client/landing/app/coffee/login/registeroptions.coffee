@@ -1,4 +1,4 @@
-class RegisterOptions extends KDView
+module.exports = class RegisterOptions extends KDView
   viewAppended:->
 
     inFrame = KD.runningInFrame()

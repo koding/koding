@@ -1,4 +1,4 @@
-class RedeemInlineForm extends LoginViewInlineForm
+module.exports = class RedeemInlineForm extends LoginViewInlineForm
 
   constructor:(options={}, data)->
     super options, data

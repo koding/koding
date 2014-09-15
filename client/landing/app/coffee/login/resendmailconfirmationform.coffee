@@ -1,4 +1,4 @@
-class RecoverInlineForm extends LoginViewInlineForm
+module.exports = class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
 
   constructor:->
 
@@ -6,18 +6,18 @@ class RecoverInlineForm extends LoginViewInlineForm
     @usernameOrEmail = new LoginInputView
       inputOptions    :
         name          : "username-or-email"
-        placeholder   : "email"
+        placeholder   : "username or email"
         testPath      : "recover-password-input"
         validate      :
           container   : this
           rules       :
             required  : yes
           messages    :
-            required  : "Please enter your email."
+            required  : "Please enter your username or email."
 
     @button = new KDButtonView
-      title       : "Recover password"
-      style       : "solid medium green"
+      title       : "Resend email"
+      style       : "solid green medium"
       type        : 'submit'
       loader      : yes
 
