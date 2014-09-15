@@ -9,10 +9,8 @@ do ->
     unless location.hash.length
 
       {router} = KD.singletons
-      {entryPoint}      = KD.config
-      replaceState      = yes
 
-      router.handleRoute router.getDefaultRoute(), {entryPoint}
+      router.openSection 'Home'
 
 
   KD.registerRoutes 'Core',
