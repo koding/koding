@@ -200,7 +200,6 @@ func newKite(conf *Config) *kite.Kite {
 		KontrolPrivateKey: kontrolPrivateKey,
 		KontrolPublicKey:  kontrolPublicKey,
 		KlientPackageURL:  signedKlientURL,
-		KlientToken:       tokenID.String(),
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

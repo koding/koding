@@ -20,6 +20,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 var (
@@ -62,7 +63,6 @@ type Provider struct {
 	KontrolPrivateKey string
 	KontrolPublicKey  string
 
-	KlientToken      string
 	KlientPackageURL string
 }
 
@@ -110,12 +110,29 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	}
 
 	username := opts.Builder["username"].(string)
-	instanceName := opts.Builder["instanceName"].(string)
+
+	// Check for total amachine allowance
+	checker, err := p.PlanChecker(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	p.Log.Info("[%s] checking machine limit for user '%s'", opts.MachineId, username)
+	if err := checker.Total(); err != nil {
+		return nil, err
+	}
+
+	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", opts.MachineId, username)
+	if err := checker.AlwaysOn(); err != nil {
+		return nil, err
+	}
 
 	machineData, ok := opts.CurrentData.(*Machine)
 	if !ok {
 		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
 	}
+
+	instanceName := opts.Builder["instanceName"].(string)
 
 	a.Push("Initializing data", 10, machinestate.Building)
 
@@ -143,7 +160,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		infoLog("No security group with name: '%s' exists. Creating a new one...", groupName)
+		infoLog("No security group with name: '%s' exists. Creating a new one. Err was: %s", groupName, err)
 		vpcs, err := a.ListVPCs()
 		if err != nil {
 			return nil, err
@@ -197,6 +214,12 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// Use koding plans instead of those later
 	a.Builder.InstanceType = DefaultInstanceType
 
+	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+	// check if the user is egligible to create a vm with this size
+	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
+		return nil, err
+	}
+
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
 	infoLog("Searching for subnets")
@@ -214,10 +237,44 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		return nil, err
 	}
 
-	// Use this AMI Id, which is going to be a stable one
+	// Use this ami id, which is going to be a stable one
 	a.Builder.SourceAmi = image.Id
 
-	kiteKey, err := p.createKey(username, p.KlientToken)
+	storageSize := 3 // default AMI 3GB size
+	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
+		storageSize = a.Builder.StorageSize
+	}
+
+	infoLog("Check if user is allowed to create machine with '%dGB' storage", storageSize)
+	// check if the user is egligible to create a vm with this size
+	if err := checker.Storage(storageSize); err != nil {
+		return nil, err
+	}
+
+	// Increase storage if it's passed to us, otherwise the default 3GB is
+	// created already with the default AMI
+	if a.Builder.StorageSize != 0 {
+		for _, device := range image.BlockDevices {
+			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
+				DeviceName:          device.DeviceName,
+				VirtualName:         device.VirtualName,
+				SnapshotId:          device.SnapshotId,
+				VolumeType:          device.VolumeType,
+				VolumeSize:          int64(a.Builder.StorageSize),
+				DeleteOnTermination: true,
+				Encrypted:           false,
+			}
+
+			break
+		}
+	}
+
+	tokenID, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+	}
+
+	kiteKey, err := p.createKey(username, tokenID.String())
 	if err != nil {
 		return nil, err
 	}
