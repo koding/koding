@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"bytes"
 	"strings"
 	"text/template"
 
@@ -165,28 +164,11 @@ type CloudInitConfig struct {
 	LatestKlientURL string // URL of the latest version of the Klient package
 	ApachePort      int    // Defines the base apache running port, should be 80 or 443
 	KitePort        int    // Defines the running kite port, like 3000
-}
 
-func NewCloudInitConfig(username, hostname, kiteKey, klientURL string) CloudInitConfig {
-	return CloudInitConfig{
-		Username:        username,
-		Hostname:        hostname,
-		KiteKey:         kiteKey,
-		LatestKlientURL: klientURL,
-		ApachePort:      80,
-		KitePort:        3000,
-	}
-}
-func (c CloudInitConfig) Prepare() ([]byte, error) {
-	var buf bytes.Buffer
-
-	// Finalize Cloud-init
-	err := cloudInitTemplate.Execute(&buf, c)
-	if err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
+	// Needed for migrate.sh script
+	Passwords string
+	VmNames   string
+	VmIds     string
 }
 
 func (c *CloudInitConfig) setupMigrateScript() error {
