@@ -165,8 +165,6 @@ type CloudInitConfig struct {
 	LatestKlientURL string // URL of the latest version of the Klient package
 	ApachePort      int    // Defines the base apache running port, should be 80 or 443
 	KitePort        int    // Defines the running kite port, like 3000
-
-	Migration
 }
 
 func NewCloudInitConfig(username, hostname, kiteKey, klientURL string) CloudInitConfig {
@@ -189,12 +187,6 @@ func (c CloudInitConfig) Prepare() ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-type Migration struct {
-	Passwords string
-	VmIds     string
-	VmNames   string
 }
 
 func (c *CloudInitConfig) setupMigrateScript() error {
