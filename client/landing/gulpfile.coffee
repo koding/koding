@@ -25,8 +25,9 @@ watchLogger = (color, watcher) ->
   watcher.on 'change', (event) ->
     log color, "file #{event.path} was #{event.type}"
 
-gulpBrowserify = (options) ->
+gulpBrowserify = (options = {}) ->
   options.extensions or= ['.coffee']
+  options.debug       ?= yes
   b = browserify options
   b.transform coffeeify
   b.bundle()
