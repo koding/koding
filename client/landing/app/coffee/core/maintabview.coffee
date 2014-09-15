@@ -1,4 +1,6 @@
-class MainTabView extends KDTabView
+MainTabPane = require './maintabpaneview'
+
+module.exports = class MainTabView extends KDTabView
 
   constructor:(options,data)->
     options.resizeTabHandles    = yes

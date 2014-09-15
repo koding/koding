@@ -1,4 +1,4 @@
-class JobsView extends KDView
+module.exports = class JobsView extends KDView
   constructor : (options = {}) ->
 
     options.cssClass = KD.utils.curry 'jobs-view', options.cssClass

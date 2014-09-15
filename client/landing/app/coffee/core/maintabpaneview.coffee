@@ -1,4 +1,4 @@
-class MainTabPane extends KDTabPaneView
+module.exports = class MainTabPane extends KDTabPaneView
 
   constructor:(options, data)->
 

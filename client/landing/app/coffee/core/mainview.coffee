@@ -1,5 +1,8 @@
-class MainView extends KDView
+TopNavigation  = require './topnavigation'
+CustomLinkView = require './customlinkview'
+MainTabView    = require './maintabview'
 
+module.exports = class MainView extends KDView
 
   constructor: (options = {}, data)->
 

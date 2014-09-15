@@ -1,4 +1,6 @@
-class AboutAppController extends AppController
+AboutView     = require './AppView'
+
+module.exports = class AboutAppController extends KDViewController
 
   KD.registerAppClass this,
     name  : 'About'

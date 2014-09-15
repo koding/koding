@@ -1,4 +1,4 @@
-class MainViewController extends KDViewController
+module.exports = class MainViewController extends KDViewController
 
   logViewByElement = (el) ->
 

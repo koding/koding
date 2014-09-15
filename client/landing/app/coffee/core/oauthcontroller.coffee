@@ -1,7 +1,7 @@
 # Api:
 #   KD.singletons.oauthController.openPopup "github"
 #   KD.singletons.oauthController.authCompleted null, "github"
-class OAuthController extends KDController
+module.exports = class OAuthController extends KDController
   openPopup: (provider)->
     KD.mixpanel "Authenticate with oauth, click", {provider}
 

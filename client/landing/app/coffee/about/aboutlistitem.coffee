@@ -1,4 +1,4 @@
-class AboutListItem extends KDListItemView
+module.exports = class AboutListItem extends KDListItemView
 
   JView.mixin @prototype
 

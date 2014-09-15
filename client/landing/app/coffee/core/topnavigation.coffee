@@ -1,4 +1,6 @@
-class TopNavigation extends KDCustomHTMLView
+CustomLinkView = require './customlinkview'
+
+module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
     { title : 'EDUCATION', href : '/Education', appName : 'Education'}

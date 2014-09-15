@@ -1,4 +1,6 @@
-class CustomLinkView extends KDCustomHTMLView
+JView = require './jview'
+
+module.exports = module.exports = class CustomLinkView extends KDCustomHTMLView
 
   JView.mixin @prototype
 

@@ -1,4 +1,6 @@
-class AboutView extends JView
+JView = require './../core/jview'
+
+module.exports = class AboutView extends JView
 
   constructor:->
 

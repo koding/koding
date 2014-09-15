@@ -1,4 +1,6 @@
-class LoginView extends JView
+JView = require './../core/jview'
+
+module.exports = class LoginView extends JView
 
   stop = KD.utils.stopDOMEvent
 
