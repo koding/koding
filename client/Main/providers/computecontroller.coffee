@@ -366,7 +366,8 @@ class ComputeController extends KDController
 
   fetchPlans: (callback = noop)->
 
-    if @plans then callback @plans
+    if @plans
+      KD.utils.defer => callback @plans
     else
       KD.remote.api.ComputeProvider.fetchPlans
         provider: "koding"
