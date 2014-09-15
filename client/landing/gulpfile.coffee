@@ -39,8 +39,12 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 gulp.task 'styles', ->
 
   gulp.src STYLES_PATH
-    .pipe stylus()
-    .pipe rename "main.css"
+    .pipe stylus
+      # compress  : yes
+      sourcemap :
+        inline  : yes
+    .pipe concat 'main.css'
+    .pipe rename 'main.css'
     .pipe gulp.dest "#{BUILD_PATH}/css"
 
 gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles']
