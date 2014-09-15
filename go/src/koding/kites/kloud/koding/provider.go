@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,7 +10,9 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
+	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
@@ -19,6 +22,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 var (
@@ -34,7 +38,9 @@ var (
 )
 
 const (
-	ProviderName = "koding"
+	ProviderName      = "koding"
+	DefaultApachePort = 80
+	DefaultKitePort   = 3000
 )
 
 // Provider implements the kloud packages Storage, Builder and Controller
@@ -56,6 +62,12 @@ type Provider struct {
 	// DNS is used to create/update domain recors
 	DNS        *DNS
 	HostedZone string
+
+	Bucket *Bucket
+
+	KontrolURL        string
+	KontrolPrivateKey string
+	KontrolPublicKey  string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -261,25 +273,48 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		}
 	}
 
-	cloudConfig := `
-#cloud-config
-disable_root: false
-disable-ec2-metadata: true
-hostname: %s`
+	kiteId, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
+	}
 
-	// use a simple hostname, previously we were using instanceName which was
-	// is long and more detailed
-	hostname := username
+	kiteKey, err := p.createKey(username, kiteId.String())
+	if err != nil {
+		return nil, err
+	}
 
-	cloudStr := fmt.Sprintf(cloudConfig, hostname)
+	latestKlientURL, err := p.Bucket.LatestDeb()
+	if err != nil {
+		return nil, err
+	}
+	signedLatestKlientURL := p.Bucket.SignedURL(latestKlientURL, time.Now().Add(time.Minute*3))
 
-	a.Builder.UserData = []byte(cloudStr)
+	// Use cloud-init for initial configuration of the VM
+	cloudInitConfig := &CloudInitConfig{
+		Username:        username,
+		Hostname:        username, // no typo here. hostname = username
+		KiteKey:         kiteKey,
+		LatestKlientURL: signedLatestKlientURL,
+		ApachePort:      DefaultApachePort,
+		KitePort:        DefaultKitePort,
+	}
+
+	if err := cloudInitConfig.setupMigrateScript(); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	err = cloudInitTemplate.Execute(&buf, *cloudInitConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Builder.UserData = buf.Bytes()
 
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
 	}
-
 	buildArtifact.MachineId = opts.MachineId
 
 	// cleanup build if something goes wrong here
@@ -357,6 +392,21 @@ hostname: %s`
 	a.Push("Starting provisioning", 75, machinestate.Building)
 
 	buildArtifact.DomainName = machineData.Domain
+
+	query := kiteprotocol.Kite{ID: kiteId.String()}
+	buildArtifact.KiteQuery = query.String()
+
+	infoLog("Connecting to remote Klient instance")
+	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klientRef.Close()
+		infoLog("Sending a ping message")
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("Sending a ping message err:", err)
+		}
+	}
 
 	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
@@ -588,4 +638,36 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 
 	///// ROUTE 53 /////////////////
 	return nil
+}
+
+// CreateKey signs a new key and returns the token back
+func (p *Provider) createKey(username, kiteId string) (string, error) {
+	if username == "" {
+		return "", kloud.NewError(kloud.ErrSignUsernameEmpty)
+	}
+
+	if p.KontrolURL == "" {
+		return "", kloud.NewError(kloud.ErrSignKontrolURLEmpty)
+	}
+
+	if p.KontrolPrivateKey == "" {
+		return "", kloud.NewError(kloud.ErrSignPrivateKeyEmpty)
+	}
+
+	if p.KontrolPublicKey == "" {
+		return "", kloud.NewError(kloud.ErrSignPublicKeyEmpty)
+	}
+
+	token := jwt.New(jwt.GetSigningMethod("RS256"))
+
+	token.Claims = map[string]interface{}{
+		"iss":        "koding",                              // Issuer, should be the same username as kontrol
+		"sub":        username,                              // Subject
+		"iat":        time.Now().UTC().Unix(),               // Issued At
+		"jti":        kiteId,                                // JWT ID
+		"kontrolURL": p.KontrolURL,                          // Kontrol URL
+		"kontrolKey": strings.TrimSpace(p.KontrolPublicKey), // Public key of kontrol
+	}
+
+	return token.SignedString([]byte(p.KontrolPrivateKey))
 }
