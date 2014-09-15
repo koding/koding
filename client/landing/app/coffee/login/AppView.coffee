@@ -5,78 +5,29 @@ module.exports = class LoginView extends JView
   stop = KD.utils.stopDOMEvent
 
   backgroundImages  = [
-
-      path         : '1'
-      href         : 'http://www.flickr.com/photos/charliefoster/'
-      photographer : 'Charlie Foster'
-    ,
-      path         : '2'
-      href         : 'http://pican.de/'
-      photographer : 'Dietmar Becker'
-    ,
-      path         : '3'
-      href         : 'http://www.station75.com/'
-      photographer : 'Marcin Czerwinski'
-    ,
-      path         : '4'
-      href         : 'http://www.station75.com/'
-      photographer : 'Marcin Czerwinski'
-    ,
-      path         : '5'
-      href         : 'http://www.flickr.com/photos/discomethod/sets/72157635620513053/'
-      photographer : 'Anton Sulsky'
-    ,
-      path         : '6'
-      href         : 'http://www.jfrwebdesign.nl/'
-      photographer : 'Joeri Römer'
-    ,
-      path         : '7'
-      href         : 'http://be.net/Zugr'
-      photographer : 'Zugr'
-    ,
-      path         : '8'
-      href         : ''
-      photographer : 'Mark Doda'
-    ,
-      path         : '9'
-      href         : 'http://www.twitter.com/rickwaalders'
-      photographer : 'Rick Waalders'
-    ,
-      path         : '10'
-      href         : 'http://madebyvadim.com/'
-      photographer : 'Vadim Sherbakov'
-    ,
-      path         : '11'
-      href         : ''
-      photographer : 'Zwaddi'
-    ,
-      path         : '12'
-      href         : 'http://be.net/Zugr'
-      photographer : 'Zugr'
-    ,
-      path         : '13'
-      href         : 'http://www.romainbriaux.fr/'
-      photographer : 'Romain Briaux'
-    ,
-      path         : '14'
-      href         : 'https://twitter.com/Petchy19'
-      photographer : 'petradr'
-    ,
-      path         : '15'
-      href         : 'http://rileyb.me/'
-      photographer : 'Riley Briggs'
-    ,
-      path         : '16'
-      href         : 'http://chloecolorphotography.tumblr.com/'
-      photographer : 'Chloe Benko-Prieur'
-
+    [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
+    [ 'Dietmar Becker', 'http://pican.de/' ]
+    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
+    [ 'Marcin Czerwinski', 'http://www.station75.com/' ]
+    [ 'Anton Sulsky', 'http://www.flickr.com/photos/discomethod/sets/72157635620513053/' ]
+    [ 'Joeri Römer', 'http://www.jfrwebdesign.nl/' ]
+    [ 'Zugr', 'http://be.net/Zugr' ]
+    [ 'Mark Doda', '' ]
+    [ 'Rick Waalders', 'http://www.twitter.com/rickwaalders' ]
+    [ 'Vadim Sherbakov', 'http://madebyvadim.com/' ]
+    [ 'Zwaddi', '' ]
+    [ 'Zugr', 'http://be.net/Zugr' ]
+    [ 'Romain Briaux', 'http://www.romainbriaux.fr/' ]
+    [ 'petradr', 'https://twitter.com/Petchy19' ]
+    [ 'Riley Briggs', 'http://rileyb.me/' ]
+    [ 'Chloe Benko-Prieur', 'http://chloecolorphotography.tumblr.com/' ]
   ]
 
   @backgroundImageNr = backgroundImageNr = KD.utils.getRandomNumber 15
 
   do ->
     image      = new Image
-    bgImageUrl = "../a/images/unsplash/#{backgroundImageNr}.jpg"
+    bgImageUrl = "/images/unsplash/#{backgroundImageNr}.jpg"
     image.src  = bgImageUrl
 
     image.classList.add 'off-screen-login-image'
@@ -96,7 +47,7 @@ module.exports = class LoginView extends JView
       tagName    : 'a'
       cssClass   : 'koding-logo'
       partial    : '<cite></cite>'
-      attributes : href : '/'
+      attributes : '/ '
 
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
