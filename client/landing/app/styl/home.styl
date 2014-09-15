@@ -1,0 +1,372 @@
+@import "core.fn"
+
+@css {
+/*
+home Landing stylesheet
+home.styl
+*/
+}
+
+body.home
+  -webkit-font-smoothing  antialiased
+  background              #fff
+  font-family             asapFamily
+
+  #kdmaincontainer.blur
+    vendor                filter, blur(5px)
+
+  .content-page.home
+    padding               0
+    max-width             100%
+
+
+  section .inner-container
+    max-width             1290px
+    padding               0px 45px
+    margin                0 auto
+    display               block
+    position              relative
+    borderBox()
+
+    .kdbutton .button-title
+      font-family         asapFamily
+
+    h3.general-title
+      font-size           32px
+      text-align          center
+      display             block
+      color               #2fbd72
+      font-weight         700
+      letter-spacing      .02em
+
+    h4.general-subtitle
+      font-size           22px
+      text-align          center
+      display             block
+      color               #747474
+      font-weight         400
+      margin              12px 0 84px
+
+    p
+      font-family         openSansFamily
+
+  .login-form.register
+    margin                0 auto 50px auto
+    max-width             600px
+    rel()
+    &.focused
+      .accept-tos
+      div.hint
+        opacity           1
+
+    div.hint
+    .accept-tos
+      vendor              transition, opacity .4s .3s ease
+      margin              0
+      text-align          left
+      opacity             0
+
+    div.hint
+      color               #999
+    .accept-tos
+      color               #6e7879
+
+    section
+      > div
+        kalc              width, \(100% \- 128px\) / 2
+        padding-right     10px
+        borderBox()
+        &:last-child
+          padding-right   0
+          width           128px
+        .kdbutton.solid.medium
+          width           100%
+          rounded         4px
+        .login-input-view
+          rounded         4px
+          bg              color white
+          input
+            rounded       4px
+            margin        0
+            font-size     14px
+            font-family   asapFamily
+            text-align    left
+            padding       8px 14px
+          .placeholder-helper
+            text-align    left
+            top           4px
+            padding       0 15px
+            borderBox()
+            &.out
+              top         -26px
+              color       #aaa
+
+
+
+  //Introduction section
+
+  section.introduction
+    padding               90px 0 382px
+    text-align            center
+    bg                    color, #202527
+    bg                    image, url("/a/images/home-pat.png")
+    position              relative
+    overflow              hidden
+
+    &:after
+      content             ""
+      display             block
+      size                100%, 3px
+      abs                 0 0 0px 0
+      bg                  image, url("/a/images/wave-bg.png")
+      bg                  repeat, repeat-x
+
+    article
+      font-size           22px
+      line-height         32px
+      font-weight         400
+      padding             58px 0 0
+      width               100%
+      borderBox()
+      fl()
+
+      h2
+        font-weight       700
+        font-size         34px
+        margin            0 0 17px
+        color             #29c566
+        letter-spacing    .02em
+
+      p
+        margin            0 auto 50px auto
+        color             #fff
+        max-width         800px
+
+      // .kdbutton
+      //   text-transform    uppercase
+      //   width             190px
+      //   rounded           4px
+
+      //   .button-title
+      //     color           inherit !important
+
+      //   &.green
+      //     bg              color, #29c566
+      //     margin-right    9px
+      //     color           #071d11
+
+      //     &:hover
+      //       bg            color, #d7d7d7
+      //       color         #071d11
+
+      //   &.thin-white
+      //     bg              color, transparent
+      //     border          2px solid #b7b7b7
+      //     color           #e0dfdf
+
+      //     &:hover
+      //       bg            color, #b7b7b7
+      //       color         #071d11
+
+
+  // screenshots Section
+
+  section.screenshots
+    abs                   460px 0 0
+    width                 100%
+
+    .inner-container
+      height              44.6vw
+      max-height          575px
+
+      &:after
+        content           ""
+        display           block
+        size              100%, 80px
+        abs               0 0 1px 0px
+        bg                image, url("/a/images/screenshots-shadow.png")
+        bg                position, center bottom
+        bg                repeat, no-repeat
+        bg                size, contain
+        z-index           2
+
+
+    figure
+      display             block
+      top                 0px
+      rounded             6px 6px 0 0
+      overflow            hidden
+      abs()
+
+      img
+        width             100%
+
+      &.first
+        z-index           4
+        left              17.5%
+        width             65%
+
+      &.second
+        z-index           3
+        width             58%
+        left              7%
+        margin-top        4.8%
+
+      &.third
+        z-index           3
+        width             58%
+        right             7%
+        margin-top        4.8%
+
+
+  // Features Section
+
+  section.features
+    letter-spacing       0
+    word-spacing         0
+    margin               0 auto
+    max-width            1290px
+
+    .inner-container
+      margin-top        32%
+
+    .feature
+      letter-spacing     normal
+      word-spacing       normal
+      size               49%
+      padding            0 35px 74px 108px
+      position           relative
+      display            inline-block
+      vertical-align     top
+      borderBox()
+
+      h5
+        font-size        24px
+        font-weight      400
+        color            #2fbd72
+        display          block
+        margin-bottom    10px
+
+      p
+        font-size        14px
+        color            #505050
+        line-height      21px
+        font-weight      400
+
+      .icon
+        display          block
+        size             80px, 80px
+        rounded          50%
+        abs              0px 0 0 0px
+        border           2px solid #bbb
+
+        &:after
+          content        ""
+          display        block
+          abs            50% 0 0 50%
+          vendor         transform, translateX(-50%) translateY(-50%)
+
+        &.bubbles:after
+          r-sprite       "landings", "bubbles"
+
+        &.team:after
+          r-sprite       "landings", "team"
+
+        &.box:after
+          r-sprite       "landings", "box"
+
+        &.settings:after
+          r-sprite       "landings", "settings"
+
+
+  // Check out section
+  section.check-out
+    padding               71px 0
+    text-align            center
+    font-family           openSansFamily
+    background            #eeeeee
+    border-top            1px solid #e2e2e2
+
+    h3
+      font-size           22px
+      color               #515151
+      font-weight         400
+
+      a
+        color             inherit
+        display           inline-block
+        padding-bottom    2px
+        border-bottom     1px solid #515151
+        font-weight       600
+        noTextDeco()
+
+
+//TEMP
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  body.home
+    section.introduction
+      padding-bottom        102px
+
+      article
+        padding-top         98px
+
+        h2
+          font-size         26px
+
+        p
+          font-size         18px
+          line-height       24px
+
+        .kdbutton
+          width             100%
+          display           block
+          float             none
+          clear             both
+          margin            12px 0 16px
+
+    section.screenshots
+      display               none
+
+    section.features
+      .inner-container
+        margin-top          82px
+
+      .feature
+        display             block
+        width               auto
+        padding             0 35px 44px 61px
+
+        h5
+          font-size         18px
+
+        i
+          vendor            transform, scale(.6)
+          vendor            transform-origin, 0px 0px
+
+    section.testimonials
+
+      .inner-container
+        .general-title
+          font-size           26px
+
+        .general-subtitle
+          font-size           18px
+          line-height         24px
+
+      article
+        display               block
+        width                 auto
+        padding               2px 0 2px 50px
+
+        p
+          font-size           14px
+          line-height         20px
+
+        &:before
+          vendor              transform, scale(.6)
+          vendor              transform-origin, 0px 0px
+
+    section.check-out
+      h3
+        font-size             18px
+        line-height           24px
