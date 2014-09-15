@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"log"
 	"net/url"
 	"os"
 	"time"
+
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/keys"
+	"koding/kites/kloud/koding"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -165,30 +166,30 @@ func newKite(conf *Config) *kite.Kite {
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
+	deployer := &koding.KodingDeploy{
+		Kite: k,
+		Log:  newLogger("kloud-deploy", conf.DebugMode),
+		DB:   db,
+	}
+
+	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+
 	kodingProvider := &koding.Provider{
-		Kite:         k,
-		Log:          newLogger("koding", conf.DebugMode),
-		AssigneeName: id,
-		Session:      db,
-		Test:         conf.TestMode,
-		TemplateDir:  conf.TemplateDir,
-		HostedZone:   conf.HostedZone,
+		Kite:              k,
+		Log:               newLogger("koding", conf.DebugMode),
+		AssigneeName:      id,
+		Session:           db,
+		Test:              conf.TestMode,
+		TemplateDir:       conf.TemplateDir,
+		HostedZone:        conf.HostedZone,
+		KontrolURL:        getKontrolURL(conf.KontrolURL),
+		KontrolPrivateKey: kontrolPrivateKey,
+		KontrolPublicKey:  kontrolPublicKey,
+		Bucket:            koding.NewBucket("koding-kites", klientFolder),
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
-
-	privateKey, publicKey := kontrolKeys(conf)
-
-	deployer := &KodingDeploy{
-		Kite:              k,
-		Log:               newLogger("kloud-deploy", conf.DebugMode),
-		KontrolURL:        kontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Bucket:            newBucket("koding-kites", klientFolder),
-		DB:                db,
-	}
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
@@ -297,7 +298,7 @@ func kontrolKeys(conf *Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL(ownURL string) string {
+func getKontrolURL(ownURL string) string {
 	// read kontrolURL from kite.key if it doesn't exist.
 	kontrolURL := kiteconfig.MustGet().KontrolURL
 

@@ -1,11 +1,15 @@
-package main
+package koding
 
 import (
 	"errors"
 	"fmt"
-
+	"koding/db/mongodb"
 	"strings"
 	"time"
+
+	"github.com/koding/kite"
+	"github.com/koding/kloud/protocol"
+	"github.com/koding/logging"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
@@ -41,7 +45,7 @@ func (b *Bucket) SignedURL(path string, expires time.Time) string {
 	return b.Bucket.SignedURL(path, expires)
 }
 
-func newBucket(name, folder string) *Bucket {
+func NewBucket(name, folder string) *Bucket {
 	auth := aws.Auth{
 		AccessKey: "AKIAI6IUMWKF3F4426CA",
 		SecretKey: "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",
@@ -53,4 +57,25 @@ func newBucket(name, folder string) *Bucket {
 		Bucket: s.Bucket(name),
 		Folder: folder,
 	}
+}
+
+type KodingDeploy struct {
+	Kite *kite.Kite
+	Log  logging.Logger
+
+	DB *mongodb.MongoDB
+}
+
+func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
+	data, err := r.Context.Get("buildArtifact")
+	if err != nil {
+		return nil, errors.New("koding-deploy: build artifact is not available")
+	}
+
+	artifact, ok := data.(*protocol.Artifact)
+	if !ok {
+		return nil, fmt.Errorf("koding-deploy: build artifact is malformed: %+v", data)
+	}
+
+	return artifact, nil
 }
