@@ -3,11 +3,8 @@ CustomLinkView = require './customlinkview'
 module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
-    { title : 'EDUCATION', href : '/Education', appName : 'Education'}
-    { title : 'BUSINESS',  href : '/Business',  appName : 'Business'}
-    { title : 'ABOUT',     href : '/About',     appName : 'About'}
-    { title : 'PRICING',   href : '/Pricing',   appName : 'Pricing'}
-    { title : 'SIGN IN',   href : '/Login',     appName : 'Login'}
+    { title : 'ABOUT',     href : '/About',     name : 'about'}
+    { title : 'PRICING',   href : '/Pricing',   name : 'pricing'}
   ]
 
   constructor: (options = {}, data) ->
@@ -18,9 +15,8 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    appManager = KD.singleton "appManager"
-
-    appManager.on 'AppIsBeingShown', @bound 'setActiveItem'
+    {mainView} = KD.singletons
+    mainView.on 'MainTabPaneShown', @bound 'setActiveItem'
 
 
   viewAppended: ->
@@ -30,18 +26,18 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
   createItem: (options) ->
 
-    options.cssClass = options.appName.toLowerCase()
+    options.cssClass = options.name.toLowerCase()
 
-    @addSubView @menu[options.appName] = new CustomLinkView options
+    @addSubView @menu[options.name] = new CustomLinkView options
 
 
-  setActiveItem: (instance, view, options) ->
+  setActiveItem: (pane) ->
 
     @unsetActiveItems()
 
-    appName = options.name
+    {name} = pane
 
-    @menu[appName]?.setClass 'active'
+    @menu[name]?.setClass 'active'
 
 
   unsetActiveItems: ->
