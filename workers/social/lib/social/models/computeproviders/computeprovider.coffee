@@ -42,6 +42,10 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchAvailable    :
           (signature Object, Function)
+        fetchUsage        :
+          (signature Object, Function)
+        fetchPlans        :
+          (signature Object, Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -85,6 +89,8 @@ module.exports = class ComputeProvider extends Base
         return callback err  if err
 
         { meta, postCreateOptions, credential } = machineData
+
+        label ?= machineData.label
 
         @createMachine {
           provider : provider.slug
@@ -140,8 +146,34 @@ module.exports = class ComputeProvider extends Base
     provider.fetchAvailable client, options, callback
 
 
+  @fetchUsage = secure revive
 
-  @update = secure revive no, (client, options, callback)->
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
+
+    {provider} = options
+    provider.fetchUsage client, options, callback
+
+
+  @fetchPlans = secure revive
+
+    shouldReviveClient   : no
+    shouldPassCredential : no
+
+  , (client, options, callback)->
+
+    {provider} = options
+    provider.fetchPlans client, options, callback
+
+
+  @update = secure revive
+
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
 
     {provider} = options
     provider.update client, options, callback

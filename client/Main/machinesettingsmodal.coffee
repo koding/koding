@@ -52,11 +52,6 @@ class MachineSettingsModal extends KDModalViewWithForms
                 #     { title : 'point to a subdomain',    callback : @bound 'convertToSubdomainField' }
                 #     { title : 'point to my root domain', callback : @bound 'revertToDomainField' }
                 #   ]
-            # alwaysOn        :
-            #   label         : 'Keep your VM always on'
-            #   name          : 'alwaysOn'
-            #   itemClass     : KodingSwitch
-            #   defaultValue  : off
             provider        :
               label         : "Provider"
               itemClass     : CustomLinkView
@@ -82,7 +77,15 @@ class MachineSettingsModal extends KDModalViewWithForms
                 then computeController.start data
                 else computeController.stop data
                 @destroy()
-
+            alwaysOn        :
+              label         : 'Keep your VM always on'
+              name          : 'alwaysOn'
+              itemClass     : KodingSwitch
+              defaultValue  : data.alwaysOn
+              callback      : (state) ->
+                alwaysOnToggle = this
+                computeController.setAlwaysOn data, state, (err)->
+                  if KD.showError err then alwaysOnToggle.setOff no
             guides          :
               label         : 'Guides'
               itemClass     : GuidesLinksView

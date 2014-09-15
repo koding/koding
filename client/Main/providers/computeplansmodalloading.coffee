@@ -15,5 +15,3 @@ class ComputePlansModal.Loading extends ComputePlansModal
       size       :
         width    : 40
         height   : 40
-
-
