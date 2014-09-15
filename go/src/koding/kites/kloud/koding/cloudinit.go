@@ -16,7 +16,7 @@ var (
 #cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
-disable-ec2-metadata: true
+disable_ec2_metadata: true
 hostname: {{.Hostname}}
 
 bootcmd:
