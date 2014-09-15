@@ -129,6 +129,50 @@ module.exports = class Koding extends ProviderInterface
         }
 
 
+  @update = (client, options, callback)->
+
+    { machineId, alwaysOn } = options
+    { r: { group, user, account } } = client
+
+    unless machineId? or alwaysOn?
+      return callback new KodingError \
+        "A valid machineId and alwaysOn state required."
+
+    JMachine = require './machine'
+    userPlan = getUserPlan account
+
+    @fetchUsage client, options, (err, usage)->
+
+      return callback err  if err?
+
+      if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
+        return callback new KodingError \
+          "Total limit of #{userPlan.alwaysOn} always on vm limit has been reached."
+
+      { ObjectId } = require 'bongo'
+
+      selector  =
+        $or     : [
+          { _id : ObjectId machineId }
+          { uid : machineId }
+        ]
+        users   : $elemMatch: id: user.getId()
+        groups  : $elemMatch: id: group.getId()
+
+      JMachine.one selector, (err, machine)->
+
+        if err? or not machine?
+          err ?= new KodingError "Machine object not found."
+          return callback err
+
+
+        machine.update
+
+          $set: "meta.alwaysOn": alwaysOn
+
+        , (err)-> callback err
+
+
   @fetchUsage = (client, options, callback)->
 
     JMachine  = require './machine'
