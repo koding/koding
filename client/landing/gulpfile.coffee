@@ -92,3 +92,9 @@ gulp.task 'watchers', watchersArray
 gulp.task 'watch', ['build'].concat watchersArray
 
 gulp.task 'default', ['watch', 'serve']
+
+
+process.on 'uncaughtException', (err)->
+
+  log 'red', "#{err.name}: #{err.message}"
+  # console.error err
