@@ -1036,10 +1036,10 @@ func TestChannelDelete(t *testing.T) {
 			So(c.Delete(), ShouldBeNil)
 
 			// verify that the channel messages are deleted:
-			err := (&ChannelMessage{}).ById(cm0.Id)
+			err := NewChannelMessage().ById(cm0.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 
-			err = (&ChannelMessage{}).ById(cm1.Id)
+			err = NewChannelMessage().ById(cm1.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 
 		})
@@ -1050,10 +1050,10 @@ func TestChannelDelete(t *testing.T) {
 			So(c.Delete(), ShouldBeNil)
 
 			// verify that the channel message lists are deleted:
-			err := (&ChannelMessageList{}).ById(cml0.Id)
+			err := NewChannelMessageList().ById(cml0.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 
-			err = (&ChannelMessageList{}).ById(cml1.Id)
+			err = NewChannelMessageList().ById(cml1.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 		Convey("it should delete the channel itself", func() {
@@ -1061,7 +1061,7 @@ func TestChannelDelete(t *testing.T) {
 
 			So(c.Delete(), ShouldBeNil)
 
-			err := (&Channel{}).ById(c.Id)
+			err := NewChannel().ById(c.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 		Convey("it should not delete messages that are cross-indexed", func() {
@@ -1080,11 +1080,11 @@ func TestChannelDelete(t *testing.T) {
 			So(c0.Delete(), ShouldBeNil)
 
 			// verify that the first message is deleted:
-			err = (&ChannelMessage{}).ById(cm0.Id)
+			err = NewChannelMessage().ById(cm0.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 
 			// verify that the second message is not deleted:
-			err = (&ChannelMessage{}).ById(cm1.Id)
+			err = NewChannelMessage().ById(cm1.Id)
 			So(err, ShouldBeNil)
 		})
 	})

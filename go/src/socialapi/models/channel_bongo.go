@@ -96,7 +96,7 @@ func (c *Channel) CountWithQuery(q *bongo.Query) (int, error) {
 }
 
 func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
-	messageIds, err := (&ChannelMessageList{}).
+	messageIds, err := NewChannelMessageList().
 		FetchMessageIdsByChannelId(channelId, &request.Query{
 		Skip:  c * 100,
 		Limit: 100,
@@ -108,7 +108,7 @@ func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {
-	count, err := (&ChannelMessageList{}).CountWithQuery(&bongo.Query{
+	count, err := NewChannelMessageList().CountWithQuery(&bongo.Query{
 		Selector: map[string]interface{}{
 			"message_id": messageId,
 		},
@@ -147,12 +147,13 @@ func (c *Channel) deleteChannelMessages() error {
 
 func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
 	var listings []ChannelMessageList
-	if err := (&ChannelMessageList{}).Some(&listings, &bongo.Query{
+	q := &bongo.Query{
 		Selector: map[string]interface{}{"channel_id": channelId},
 		Pagination: bongo.Pagination{
 			Skip:  100 * c,
 			Limit: 100,
-		}}); err != nil {
+		}}
+	if err := NewChannelMessageList().Some(&listings, q); err != nil {
 		return nil, err
 	}
 	return listings, nil
@@ -166,7 +167,6 @@ func (c *Channel) deleteChannelLists() error {
 		}
 
 		for _, listing := range listings {
-			fmt.Println("listiing:", listing)
 			if err := listing.DeleteSilent(); err != nil {
 				return err
 			}
