@@ -185,14 +185,6 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
-	plan, err := p.Plan()
-	if err != nil {
-		return err
-	}
-
-	// get the timeout from the plan in which the user belongs to
-	planTimeout := plan.Limits().Timeout
-
 	machineData, ok := p.machine.CurrentData.(*Machine)
 	if !ok {
 		return fmt.Errorf("current data is malformed: %v", p.machine.CurrentData)
@@ -211,6 +203,17 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
+	// replace with the real and authenticated username
+	p.machine.Builder["username"] = klient.Username
+
+	plan, err := p.Plan()
+	if err != nil {
+		return err
+	}
+
+	// get the timeout from the plan in which the user belongs to
+	planTimeout := plan.Limits().Timeout
+
 	p.log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		machineData.Id.Hex(), machineData.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
@@ -224,9 +227,6 @@ func (p *PlanChecker) Timeout() error {
 
 	// mark our state as stopping so others know what we are doing
 	p.provider.UpdateState(machineData.Id.Hex(), machinestate.Stopping)
-
-	// replace with the real and authenticated username
-	p.machine.Builder["username"] = klient.Username
 
 	// Hasta la vista, baby!
 	err = p.provider.Stop(p.machine)

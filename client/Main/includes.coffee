@@ -275,8 +275,6 @@ module.exports = [
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
   "styl/troubleshoot.styl",
-  "styl/computeproviders.styl",
-
-  "styl/app.markdown.styl"
+  "styl/computeproviders.styl"
 
 ]
