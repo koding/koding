@@ -222,41 +222,14 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		return nil, err
 	}
 
-	fmt.Println("******* TOKEN ID:\n", p.KlientToken)
-	fmt.Println("******* KontrolPublicKey\n", p.KontrolPublicKey)
-	fmt.Println("******* KontrolPrivateKey\n", p.KontrolPrivateKey)
-	fmt.Println("******* KontrolURL\n", p.KontrolURL)
-	fmt.Println("******* kiteKey\n", kiteKey)
-	fmt.Println("******* latestKlientURL\n", p.KlientPackageURL)
-
 	// Use cloud-init for initial configuration of the VM
 	//
 	// We use `username` for hostname
 	userData, err := NewCloudInitConfig(username, username, kiteKey, p.KlientPackageURL).Prepare()
 	if err != nil {
-		fmt.Println("******** ERR:", err.Error())
 		return nil, err
 	}
 	a.Builder.UserData = userData
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println(string(userData))
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
-	fmt.Println("***********************************")
 
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
