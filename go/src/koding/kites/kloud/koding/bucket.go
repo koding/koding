@@ -11,10 +11,8 @@ import (
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 
-	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
-	"koding/kites/kloud/klient"
 )
 
 var defaultKlientBucket = "klient/production"
@@ -65,10 +63,7 @@ type KodingDeploy struct {
 	Kite *kite.Kite
 	Log  logging.Logger
 
-	KlientToken string
-
-	Bucket *Bucket
-	DB     *mongodb.MongoDB
+	DB *mongodb.MongoDB
 }
 
 func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
@@ -81,30 +76,6 @@ func (k *KodingDeploy) ServeKite(r *kite.Request) (interface{}, error) {
 	if !ok {
 		return nil, fmt.Errorf("koding-deploy: build artifact is malformed: %+v", data)
 	}
-
-	query := kiteprotocol.Kite{ID: k.KlientToken}
-
-	// make a custom logger which just prepends our machineid
-	infoLog := func(format string, formatArgs ...interface{}) {
-		format = "[%s] " + format
-		args := []interface{}{artifact.MachineId}
-		args = append(args, formatArgs...)
-		k.Log.Info(format, args...)
-	}
-
-	infoLog("Connecting to remote Klient instance")
-	klientRef, err := klient.NewWithTimeout(k.Kite, query.String(), time.Minute)
-	if err != nil {
-		k.Log.Warning("Connecting to remote Klient instance err: %s", err)
-	} else {
-		defer klientRef.Close()
-		infoLog("Sending a ping message")
-		if err := klientRef.Ping(); err != nil {
-			k.Log.Warning("Sending a ping message err:", err)
-		}
-	}
-
-	artifact.KiteQuery = query.String()
 
 	return artifact, nil
 }
