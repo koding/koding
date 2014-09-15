@@ -2,6 +2,8 @@ gulp       = require 'gulp'
 gutil      = require 'gulp-util'
 coffee     = require 'gulp-coffee'
 rename     = require 'gulp-rename'
+buffer     = require 'gulp-buffer'
+stream     = require 'gulp-stream'
 stylus     = require 'gulp-stylus'
 rimraf     = require 'gulp-rimraf'
 concat     = require 'gulp-concat'
@@ -11,6 +13,7 @@ browserify = require 'browserify'
 coffeeify  = require 'coffeeify'
 source     = require 'vinyl-source-stream'
 nodemon    = require 'gulp-nodemon'
+pistachio  = require 'gulp-kd-pistachio-compiler'
 
 STYLES_PATH = ['./app/styl/**/*.styl']
 COFFEE_PATH = ['./app/coffee/**/*.coffee']
@@ -54,7 +57,10 @@ gulp.task 'coffee', ->
 
   gulpBrowserify
       entries : ['./app/coffee/main.coffee']
-    .pipe source "main.js"
+    .pipe source 'main.js'
+    .pipe buffer()
+    .pipe pistachio()
+    .pipe stream()
     .pipe gulp.dest "#{BUILD_PATH}/js"
 
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
