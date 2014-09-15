@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
+	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
@@ -36,7 +38,9 @@ var (
 )
 
 const (
-	ProviderName = "koding"
+	ProviderName      = "koding"
+	DefaultApachePort = 80
+	DefaultKitePort   = 3000
 )
 
 // Provider implements the kloud packages Storage, Builder and Controller
@@ -59,11 +63,11 @@ type Provider struct {
 	DNS        *DNS
 	HostedZone string
 
+	Bucket *Bucket
+
 	KontrolURL        string
 	KontrolPrivateKey string
 	KontrolPublicKey  string
-
-	KlientPackageURL string
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -269,24 +273,43 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		}
 	}
 
-	tokenID, err := uuid.NewV4()
+	kiteId, err := uuid.NewV4()
 	if err != nil {
 		panic(err)
 	}
 
-	kiteKey, err := p.createKey(username, tokenID.String())
+	kiteKey, err := p.createKey(username, kiteId.String())
 	if err != nil {
 		return nil, err
 	}
 
-	// Use cloud-init for initial configuration of the VM
-	//
-	// We use `username` for hostname
-	userData, err := NewCloudInitConfig(username, username, kiteKey, p.KlientPackageURL).Prepare()
+	latestKlientURL, err := p.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
 	}
-	a.Builder.UserData = userData
+	signedLatestKlientURL := p.Bucket.SignedURL(latestKlientURL, time.Now().Add(time.Minute*3))
+
+	// Use cloud-init for initial configuration of the VM
+	cloudInitConfig := &CloudInitConfig{
+		Username:        username,
+		Hostname:        username, // no typo here. hostname = username
+		KiteKey:         kiteKey,
+		LatestKlientURL: signedLatestKlientURL,
+		ApachePort:      DefaultApachePort,
+		KitePort:        DefaultKitePort,
+	}
+
+	if err := cloudInitConfig.setupMigrateScript(); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	err = cloudInitTemplate.Execute(&buf, *cloudInitConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	a.Builder.UserData = buf.Bytes()
 
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
@@ -369,6 +392,21 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	a.Push("Starting provisioning", 75, machinestate.Building)
 
 	buildArtifact.DomainName = machineData.Domain
+
+	query := kiteprotocol.Kite{ID: kiteId.String()}
+	buildArtifact.KiteQuery = query.String()
+
+	infoLog("Connecting to remote Klient instance")
+	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klientRef.Close()
+		infoLog("Sending a ping message")
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("Sending a ping message err:", err)
+		}
+	}
 
 	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
