@@ -1,11 +1,3 @@
-# this class will register itself just before application starts loading, right after framework is ready
-
-# if localStorage.disableWebSocket?
-#   if localStorage.disableWebSocket is "true"
-#     window.WebSocket = null
-# else if KD.config.kites.disableWebSocketByDefault
-#   window.WebSocket = null
-
 KD.extend
   newKodingLaunchDate: do ->
     d = new Date()
@@ -20,8 +12,9 @@ KD.extend
     if (new Date createdAt) > KD.newKodingLaunchDate
       Cookies.set 'koding082014', 'koding082014'
 
-  apiUri       : KD.config.apiUri
-  appsUri      : KD.config.appsUri
+  config       : {}
+  apiUri       : null
+  appsUri      : null
   singleton    : KD.getSingleton.bind KD
   appClasses   : {}
   appScripts   : {}
@@ -79,17 +72,6 @@ KD.extend
   registerRoutes: (appName, routes) ->
 
     @registerRoute appName, route, handler for own route, handler of routes
-
-
-  showEnforceLoginModal: ->
-
-    return  if KD.isLoggedIn()
-    if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
-      Cookies.set 'doNotForceRegistration', 'true'
-      return
-
-    {appManager} = KD.singletons
-    appManager.tell 'Account', 'showRegistrationNeededModal'
 
 
   registerRoute: (appName, route, handler) ->
