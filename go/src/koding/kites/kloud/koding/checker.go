@@ -205,6 +205,7 @@ func (p *PlanChecker) Timeout() error {
 
 	// replace with the real and authenticated username
 	p.machine.Builder["username"] = klient.Username
+	p.username = klient.Username
 
 	plan, err := p.Plan()
 	if err != nil {
