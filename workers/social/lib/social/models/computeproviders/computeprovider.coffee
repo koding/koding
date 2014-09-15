@@ -168,7 +168,12 @@ module.exports = class ComputeProvider extends Base
     provider.fetchPlans client, options, callback
 
 
-  @update = secure revive no, (client, options, callback)->
+  @update = secure revive
+
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
 
     {provider} = options
     provider.update client, options, callback
