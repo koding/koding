@@ -132,8 +132,12 @@ sidebarSelectedBg = #262626
       display         none !important
 
   ul.expanded
-    bg                color, sidebarSelectedBg
-    rounded           4px
+    .expanded
+      bg                color, sidebarSelectedBg
+    ul.expanded
+      rounded           0 0 4px 4px
+    li.expanded
+      rounded           4px 4px 0 0
 
   li.selected + ul.kdlistview-main-nav.expanded
     bg                color sidebarSelectedBg
