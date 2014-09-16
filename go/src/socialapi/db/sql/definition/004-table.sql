@@ -254,7 +254,6 @@ CREATE TABLE "api"."payment_subscription" (
     "provider"                 "api"."payment_provider",
     "provider_subscription_id" VARCHAR (200) NOT NULL COLLATE "default",
     "provider_token"           VARCHAR (200) NOT NULL COLLATE "default",
-    "name"                     VARCHAR (200) NOT NULL COLLATE "default",
     "plan_slug"                VARCHAR (200) NOT NULL COLLATE "default",
     "customer_id"              BIGINT NOT NULL DEFAULT 0,
     "plan_id"                  BIGINT NOT NULL DEFAULT 0,
