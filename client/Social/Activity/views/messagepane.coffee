@@ -17,9 +17,17 @@ class MessagePane extends KDTabPaneView
 
     {itemClass, type, lastToFirst, wrapper, channelId} = @getOptions()
     {typeConstant} = @getData()
-    viewOptions = {itemOptions: {channelId}}
 
-    @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
+    @listController = new ActivityListController {
+      type          : typeConstant
+      viewOptions   :
+        itemOptions : {channelId}
+      wrapper
+      itemClass
+      lastToFirst
+    }
+
+    @listController.getView().setClass 'padded'
 
     @createChannelTitle()
     @createInputWidget()
@@ -289,16 +297,21 @@ class MessagePane extends KDTabPaneView
       @listController.getListItems().first?.commentBox.input.focus()
 
 
-  populate: ->
+  populate: (callback = noop) ->
 
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
 
       @listController.hideLazyLoader()
-      items.forEach (item) => KD.utils.defer => @appendMessage item
+      items.forEach @bound 'appendMessageDeferred'
 
       KD.utils.defer @bound 'focus'
+
+      callback()
+
+
+  appendMessageDeferred: (item) -> KD.utils.defer @lazyBound 'appendMessage', item
 
 
   fetch: (options = {}, callback)->
