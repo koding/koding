@@ -30,12 +30,32 @@ footerBg             = #222627
 emphasized           = #242a2c
 
 r-sprite(folder, name)
-  background      transparent
-  // sprite(folder, name)
-  // hidpi = s("(min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 1.5dppx)");
-  // @media hidpi
-  //   sprite(folder+"@2x", name, false)
-  //   background-size sprite-dimensions(folder+"@2x", name)
+
+  min_pixel_ratio = 1.5
+  spName          = '$' + folder + '_' + name
+  sp1x            = lookup(spName)
+
+  if sp1x
+    sprite sp1x
+  else
+    return
+
+  s = 'all and (-webkit-min-device-pixel-ratio:' + min_pixel_ratio + '),'
+  s = s + '(min--moz-device-pixel-ratio:' + min_pixel_ratio + '),'
+  s = s + '(-o-min-device-pixel-ratio:' + min_pixel_ratio + '/1),'
+  s = s + '(min-device-pixel-ratio:' + min_pixel_ratio + '),'
+  s = s + '(min-resolution:' + unit(min_pixel_ratio*92, dpi) + '),'
+  s = s + '(min-resolution:' + unit(min_pixel_ratio, dppx) + ')'
+
+  @media s
+
+    sp2x = lookup(spName + '__2x')
+
+    if sp2x
+      bg image, url(sp2x[8])
+      bg position, (sp2x[2]/2 sp2x[3]/2)
+      bg size, (sp2x[6]/2 sp2x[7]/2)
+
 
 borderize(color)
   noTextDeco()
