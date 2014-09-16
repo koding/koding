@@ -173,11 +173,9 @@ type CloudInitConfig struct {
 func (c *CloudInitConfig) setupMigrateScript() {
 	vms, err := modelhelper.GetUserVMs(c.Username)
 	if err != nil {
-		c.ShouldMigrate = false
 		return
 	}
 	if len(vms) == 0 {
-		c.ShouldMigrate = false
 		return
 	}
 
