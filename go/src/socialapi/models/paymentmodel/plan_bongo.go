@@ -22,8 +22,17 @@ func (p *Plan) One(q *bongo.Query) error {
 	return bongo.B.One(p, p, q)
 }
 
+var ErrDuplicatePlan = errors.New(
+	`pq: duplicate key value violates unique constraint "payment_plan_name"`,
+)
+
 func (p *Plan) Create() error {
-	return bongo.B.Create(p)
+	err := bongo.B.Create(p)
+	if err != nil && err.Error() != ErrDuplicatePlan.Error() {
+		return err
+	}
+
+	return nil
 }
 
 var NameNotSet = errors.New("name not set")
