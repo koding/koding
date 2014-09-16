@@ -1,3 +1,6 @@
+LoginViewInlineForm = require './loginviewinlineform'
+LoginInputView      = require './logininputview'
+
 module.exports = class ResetInlineForm extends LoginViewInlineForm
   constructor:->
     super

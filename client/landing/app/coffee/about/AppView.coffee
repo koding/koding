@@ -1,5 +1,7 @@
-JView = require './../core/jview'
-
+JView         = require './../core/jview'
+AboutListItem = require './aboutlistitem'
+JobsView      = require './jobsview'
+FooterView    = require './../home/footerview'
 module.exports = class AboutView extends JView
 
   constructor:->

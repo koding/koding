@@ -1,6 +1,4 @@
-KD.extend
-
-  team            :
+module.exports =
 
     active        : [
         username  : 'devrim'

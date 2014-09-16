@@ -1,4 +1,14 @@
-JView = require './../core/jview'
+JView                                 = require './../core/jview'
+CustomLinkView                        = require './../core/customlinkview'
+LoginInlineForm                       = require './loginform'
+RegisterInlineForm                    = require './registerform'
+RedeemInlineForm                      = require './redeemform'
+RecoverInlineForm                     = require './recoverform'
+ResetInlineForm                       = require './resetform'
+ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
+FinishRegistrationForm                = require './finishregistrationform'
+LoginOptions                          = require './loginoptions'
+RegisterOptions                       = require './registeroptions'
 
 module.exports = class LoginView extends JView
 

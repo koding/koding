@@ -1,3 +1,6 @@
+LoginViewInlineForm = require './loginviewinlineform'
+LoginInputView      = require './logininputview'
+
 module.exports = class ResendEmailConfirmationLinkInlineForm extends LoginViewInlineForm
 
   constructor:->

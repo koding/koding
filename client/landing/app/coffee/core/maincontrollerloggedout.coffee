@@ -1,3 +1,4 @@
+require './utils'
 require './KD.extend'
 KodingRouter       = require './KodingRouter'
 OAuthController    = require './OAuthController'

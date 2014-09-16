@@ -1,4 +1,8 @@
+JView          = require './../core/jview'
+CustomLinkView = require './../core/customlinkview'
+
 module.exports = class JobsItemView extends JView
+
   constructor : (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'jobs-item-view', options.cssClass

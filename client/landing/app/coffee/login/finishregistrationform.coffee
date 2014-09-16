@@ -1,3 +1,6 @@
+RegisterInlineForm = require './registerform'
+LoginInputView     = require './logininputview'
+
 module.exports = class FinishRegistrationForm extends RegisterInlineForm
   constructor: ->
     super

@@ -1,3 +1,6 @@
+CustomLinkView = require './../core/customlinkview'
+JobsItemView = require './jobsitemview'
+
 module.exports = class JobsView extends KDView
   constructor : (options = {}) ->
 

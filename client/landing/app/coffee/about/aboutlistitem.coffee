@@ -1,3 +1,6 @@
+JView          = require './../core/jview'
+CustomLinkView = require './../core/customlinkview'
+
 module.exports = class AboutListItem extends KDListItemView
 
   JView.mixin @prototype
