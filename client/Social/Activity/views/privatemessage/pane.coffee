@@ -216,6 +216,14 @@ class PrivateMessagePane extends MessagePane
     @appendMessage item
 
 
+  populate: ->
+
+    super =>
+
+      listView = @listController.getView()
+      @listPreviousReplies()  if listView.getHeight() <= window.innerHeight
+
+
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>

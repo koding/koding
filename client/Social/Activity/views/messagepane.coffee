@@ -288,7 +288,7 @@ class MessagePane extends KDTabPaneView
       @listController.getListItems().first?.commentBox.input.focus()
 
 
-  populate: ->
+  populate: (callback = noop) ->
 
     @fetch null, (err, items = []) =>
 
@@ -298,6 +298,8 @@ class MessagePane extends KDTabPaneView
       items.forEach @bound 'appendMessageDeferred'
 
       KD.utils.defer @bound 'focus'
+
+      callback()
 
 
   appendMessageDeferred: (item) -> KD.utils.defer @lazyBound 'appendMessage', item
