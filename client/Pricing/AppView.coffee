@@ -3,13 +3,10 @@ class PricingAppView extends KDView
   JView.mixin @prototype
 
   constructor:(options = {}, data) ->
-    options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
-    super options, data
 
-    # CtF I know this does not belongs here, but the problem was for the partial registration
-    # there is an async situation of app storage operations caused by guest users/registered
-    # members conversion
-    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+    options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
+
+    super options, data
 
     @initViews()
     @initEvents()
