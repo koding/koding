@@ -106,28 +106,37 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 
 	query := request.GetQuery(u)
 
-	var count int
+	ownershipResponse := func(err error) (int, http.Header, interface{}, error) {
+		var success bool
+		switch err {
+		case bongo.RecordNotFound:
+			success = false
+		case nil:
+			success = true
+		default:
+			return response.NewBadRequest(err)
+		}
+		return response.NewOK(struct{ Success bool }{Success: success})
+	}
 
 	switch query.Type {
 	case "channel":
-		if count, err = models.NewChannel().CountWithQuery(&bongo.Query{
+		channel := models.NewChannel()
+		err = channel.One(&bongo.Query{
 			Selector: map[string]interface{}{
 				"id":         query.ObjectId,
 				"creator_id": accountId,
 			},
-		}); err != nil {
-			return response.NewBadRequest(err)
-		}
+		})
+		return ownershipResponse(err)
 	case "channel-message":
-		if count, err = models.NewChannelMessage().CountWithQuery(&bongo.Query{
+		channelMessage := models.NewChannelMessage()
+		err = channelMessage.One(&bongo.Query{
 			Selector: map[string]interface{}{
 				"id":         query.ObjectId,
 				"account_id": accountId,
 			},
-		}); err != nil {
-			return response.NewBadRequest(err)
-		}
+		})
 	}
-
-	return response.NewOK(struct{ Success bool }{Success: count == 1})
+	return ownershipResponse(err)
 }
