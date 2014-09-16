@@ -57,7 +57,7 @@ module.exports = class LoginView extends JView
       tagName    : 'a'
       cssClass   : 'koding-logo'
       partial    : '<cite></cite>'
-      attributes : '/ '
+      attributes : href : '/'
 
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
