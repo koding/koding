@@ -13,7 +13,7 @@ class EnvironmentsMainScene extends KDView
 
     @addSubView @renderHeader()
     { computeController, mainController } = KD.singletons
-    computeController.on "renderStacks", @bound 'renderStacks'
+    computeController.on "MachineDataUpdated", @bound 'renderStacks'
 
     mainController.ready @bound 'renderStacks'
     @once 'NoStacksFound', computeController.bound 'createDefaultStack'

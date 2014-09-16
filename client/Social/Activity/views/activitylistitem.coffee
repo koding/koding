@@ -238,7 +238,7 @@ class ActivityListItemView extends KDListItemView
         {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
-      {article{KD.utils.formatContent #(body)}}
+      {article.has-markdown{KD.utils.formatContent #(body)}}
       {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}
