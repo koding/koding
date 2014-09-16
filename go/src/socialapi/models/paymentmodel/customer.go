@@ -7,6 +7,8 @@ import (
 type Customer struct {
 	Id int64 `json:"id,string"`
 
+	Username string `json:"username"`
+
 	// Id of customer in 3rd payment provider like Stripe.
 	ProviderCustomerId string `json:"providerPlanId"`
 
@@ -19,8 +21,17 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updatedAt" `
 }
 
-// func NewCustomers(id int64, provider string) *Customer {}
+func NewCustomer(username, providerId, provider string) *Customer {
+	return &Customer{
+		Username:           username,
+		ProviderCustomerId: providerId,
+		Provider:           provider,
+	}
+}
+
+func (c *Customer) Create() error {
+	return nil
+}
 
 // func (c *Customer) FindOrCreate() error {}
 // func (c *Customer) Find() error         {}
-// func (c *Customer) Create() error       {}
