@@ -20,11 +20,3 @@ type Customer struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
 }
-
-func NewCustomer(oldId, providerId, provider string) *Customer {
-	return &Customer{
-		OldId:              oldId,
-		ProviderCustomerId: providerId,
-		Provider:           provider,
-	}
-}
