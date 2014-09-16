@@ -1,8 +1,6 @@
 package paymentmodel
 
-import (
-	"time"
-)
+import "time"
 
 type Plan struct {
 	Id int64 `json:"id,string"`
@@ -24,7 +22,7 @@ type Plan struct {
 	Slug string `json:"slug, string"`
 
 	// Cost of plan in cents.
-	AmountInCents int `json:"cents"`
+	AmountInCents uint64 `json:"cents"`
 
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
@@ -32,7 +30,8 @@ type Plan struct {
 	DeletedAt time.Time `json:"deletedAt"`
 }
 
-// func NewPlan(name, interval, provider string) *Plan {}
-
-// func (p *Plan) Find() error   {}
-// func (p *Plan) Create() error {}
+func NewPlan(name, providerId, provider string) *Plan {
+	return &Plan{
+		Name: name,
+	}
+}
