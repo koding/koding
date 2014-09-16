@@ -47,8 +47,9 @@ module.exports = class JobsView extends KDView
 
   createView : (data) ->
 
-    for jobData, index in data
-      @addSubView jobView = new JobsItemView {}, jobData
+    if Array.isArray data
+      for jobData, index in data
+        @addSubView jobView = new JobsItemView {}, jobData
 
     KD.utils.wait 100, => @setClass 'animate'
     @loader.destroy()
