@@ -142,22 +142,31 @@ class PrivateMessagePane extends MessagePane
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
 
-  listPreviousReplies: (event) ->
+  listPreviousReplies: do ->
 
-    @listController.showLazyLoader()
+    inProgress = false
 
-    {appManager} = KD.singletons
-    first         = @listController.getItemsOrdered().first
-    return  unless first
+    (event) ->
 
-    from         = first.getData().createdAt
+      return  if inProgress
 
-    @fetch {from, limit: 10}, (err, items = []) =>
-      @listController.hideLazyLoader()
+      inProgress = true
+      @listController.showLazyLoader()
 
-      return KD.showError err  if err
+      {appManager} = KD.singletons
+      first         = @listController.getItemsOrdered().first
+      return  unless first
 
-      items.forEach @lazyBound 'loadMessage'
+      from         = first.getData().createdAt
+
+      @fetch {from, limit: 10}, (err, items = []) =>
+        @listController.hideLazyLoader()
+
+        return KD.showError err  if err
+
+        items.forEach @lazyBound 'loadMessage'
+
+        inProgress = false
 
 
   messageAdded: (item, index) ->
