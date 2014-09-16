@@ -41,16 +41,63 @@ gulp.task 'serve', ['build'], ->
 
 gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
-gulp.task 'styles', ->
+gulp.task 'styles', ['sprites'], ->
 
   gulp.src STYLES_PATH
     .pipe stylus
-      # compress  : yes
-      sourcemap :
-        inline  : yes
+      compress  : yes
+      sourcemap : inline  : yes
     .pipe concat 'main.css'
     .pipe rename 'main.css'
     .pipe gulp.dest "#{BUILD_PATH}/css"
+
+
+gulp.task 'sprites', ['sprites@1x', 'sprites@2x'], ->
+
+
+nameStylusVars = (suffix, sprite) ->
+
+  arr   = sprite.source_image.split '/'
+  group = arr[arr.length-2]
+
+  # this is bad, but stylus throws when you have dots in variable names
+  # we shouldn't use dots in image file names - SY
+  if /\./.test(sprite.name)
+    log 'red', "ERROR: Dots in sprite names cause problems, pls fix: #{sprite.name}"
+
+  name        = sprite.name.replace /\./g, '_'
+  sprite.name = "#{group}_#{name}#{suffix}";
+
+  return sprite
+
+
+gulp.task 'sprites@1x', ->
+
+  spriteStream = gulp.src 'static/sprites@1x/**/*.png'
+    .pipe spritesmith
+      imgName   : 'sprite@1x.png'
+      cssName   : 'sprite@1x.styl'
+      imgPath   : '/images/sprite@1x.png'
+      algorithm : 'binary-tree'
+      padding   : 5
+      cssFormat : 'stylus'
+      cssVarMap : nameStylusVars.bind spriteStream, ''
+    .pipe gulp.dest 'static/images/'
+
+
+gulp.task 'sprites@2x', ['sprites@1x'], ->
+
+  spriteStream = gulp.src 'static/sprites@2x/**/*.png'
+    .pipe spritesmith
+      imgName   : 'sprite@2x.png'
+      cssName   : 'sprite@2x.styl'
+      imgPath   : '/images/sprite@2x.png'
+      algorithm : 'binary-tree'
+      padding   : 10
+      cssFormat : 'stylus'
+      cssVarMap : nameStylusVars.bind spriteStream, '__2x'
+    .pipe gulp.dest 'static/images/'
+
 
 gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles']
 
