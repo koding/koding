@@ -2,6 +2,7 @@ JView         = require './../core/jview'
 AboutListItem = require './aboutlistitem'
 JobsView      = require './jobsview'
 FooterView    = require './../home/footerview'
+TEAM          = require './team'
 module.exports = class AboutView extends JView
 
   constructor:->
@@ -15,7 +16,7 @@ module.exports = class AboutView extends JView
       scrollView  : no
       wrapper     : no
     ,
-      items       : KD.team.active
+      items       : TEAM.active
 
     @memberList = @activeController.getView()
 
@@ -67,7 +68,7 @@ module.exports = class AboutView extends JView
           <div class='talents'>
             <i></i>
             <h6>Talent</h6>
-            #{KD.team.active.length} Koders
+            #{TEAM.active.length} Koders
           </div>
           <div class='lines'>
             <i></i>
