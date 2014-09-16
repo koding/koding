@@ -33,7 +33,7 @@ class PaymentWorkflow extends KDController
     modal = new PaymentModal
       state          :
         subscription : name
-        interval     : PaymentWorkflow.MONTH_INTERVAL
+        interval     : PaymentWorkflow.interval.MONTH
         price        : price
 
 
