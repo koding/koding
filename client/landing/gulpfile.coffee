@@ -36,8 +36,7 @@ gulpBrowserify = (options = {}) ->
   b.transform coffeeify
   b.bundle()
 
-gulp.task 'serve', ['build'], ->
-  server = nodemon script: SERVER_FILE
+gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
 
 gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
