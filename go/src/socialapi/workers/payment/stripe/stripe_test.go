@@ -6,8 +6,10 @@ import (
 	"socialapi/workers/common/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 	stripePlan "github.com/stripe/stripe-go/plan"
+	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
 func init() {
@@ -18,7 +20,7 @@ func init() {
 }
 
 //----------------------------------------------------------
-// Crud tests
+// Customer
 //----------------------------------------------------------
 
 func TestCreateAndFindCustomer(t *testing.T) {
@@ -46,6 +48,10 @@ func TestCreateAndFindCustomer(t *testing.T) {
 	})
 }
 
+//----------------------------------------------------------
+// Plan
+//----------------------------------------------------------
+
 func TestCreateAndFindPlan(t *testing.T) {
 	Convey("Given default plans object", t, func() {
 		err := CreateDefaultPlans()
@@ -67,6 +73,37 @@ func TestCreateAndFindPlan(t *testing.T) {
 
 				So(planModel.Name, ShouldEqual, plan_name)
 			}
+		})
+	})
+}
+
+//----------------------------------------------------------
+// Subscription
+//----------------------------------------------------------
+
+func TestCreateAndFindSubscription(t *testing.T) {
+	Convey("Given plan and customer id", t, func() {
+		planModel, err := FindPlanByName("free_month")
+		So(err, ShouldBeNil)
+		So(planModel.ProviderPlanId, ShouldNotEqual, "")
+
+		desc, email := "indianajones", "indianajones@gmail.com"
+		customerModel, err := CreateCustomer(desc, email)
+		So(err, ShouldBeNil)
+
+		subModel, err := CreateSubscription(planModel, customerModel)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should create subscription in Stripe", func() {
+			subParams := &stripe.SubParams{
+				Customer: customerModel.ProviderCustomerId,
+				Plan:     planModel.ProviderPlanId,
+			}
+
+			s, err := stripeSub.Get(subModel.ProviderSubscriptionId, subParams)
+
+			So(err, ShouldBeNil)
+			So(s.Id, ShouldEqual, subModel.ProviderSubscriptionId)
 		})
 	})
 }

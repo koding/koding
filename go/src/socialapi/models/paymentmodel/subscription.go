@@ -19,7 +19,7 @@ type Subscription struct {
 	ProviderToken string `json:"providerToken"`
 
 	// Account the subscription belongs to, internal account id.
-	AccountId int64 `json:"accountId,string"`
+	CustomerId int64 `json:"customerId,string"`
 
 	// Plan the subscription belongs to, internal plan id.
 	PlanId int64 `json:"planId,string"`
@@ -39,9 +39,12 @@ type Subscription struct {
 	CanceledAt time.Time `json:"canceled_at"`
 }
 
-// func NewSubscription(acc *Customer, plan *plan) *Subscription {}
-
-// func (s *Subscription) Find() error   {}
-// func (s *Subscription) Create() error {}
-// func (s *Subscription) Delete() error {}
-// func (s *Subscription) List() error   {}
+func NewSubscription(providerId, provider string, plan *Plan, customer *Customer) *Subscription {
+	return &Subscription{
+		PlanId:                 plan.Id,
+		CustomerId:             customer.Id,
+		ProviderSubscriptionId: providerId,
+		Provider:               provider,
+		State:                  "active",
+	}
+}

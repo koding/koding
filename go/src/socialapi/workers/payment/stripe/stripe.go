@@ -7,6 +7,7 @@ import (
 	"github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 	stripePlan "github.com/stripe/stripe-go/plan"
+	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
 var (
@@ -89,7 +90,7 @@ var DefaultPlans = map[string]*Plan{
 	},
 	"hobbyist_year": &Plan{
 		Name:     "Hobbyist",
-		Amount:   900,
+		Amount:   9720,
 		Interval: stripe.Year,
 	},
 	"developer_month": &Plan{
@@ -99,7 +100,7 @@ var DefaultPlans = map[string]*Plan{
 	},
 	"developer_year": &Plan{
 		Name:     "Developer",
-		Amount:   1900,
+		Amount:   20520,
 		Interval: stripe.Year,
 	},
 	"professional_month": &Plan{
@@ -109,7 +110,7 @@ var DefaultPlans = map[string]*Plan{
 	},
 	"professional_year": &Plan{
 		Name:     "Professional",
-		Amount:   3900,
+		Amount:   42120,
 		Interval: stripe.Year,
 	},
 }
@@ -174,4 +175,28 @@ func FindPlanByName(name string) (*paymentmodel.Plan, error) {
 	}
 
 	return planModel, nil
+}
+
+//----------------------------------------------------------
+// Subscription
+//----------------------------------------------------------
+
+func CreateSubscription(plan *paymentmodel.Plan, customer *paymentmodel.Customer) (*paymentmodel.Subscription, error) {
+	subParams := &stripe.SubParams{
+		Plan:     plan.ProviderPlanId,
+		Customer: customer.ProviderCustomerId,
+	}
+
+	sub, err := stripeSub.Create(subParams)
+	if err != nil {
+		return nil, err
+	}
+
+	subModel := paymentmodel.NewSubscription(sub.Id, ProviderName, plan, customer)
+	err = subModel.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	return subModel, nil
 }
