@@ -41,6 +41,19 @@ class PrivateMessagePane extends MessagePane
 
     @filterLinks = null
 
+    KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
+
+
+  handleScroll: do ->
+
+    previous = 0
+
+    KD.utils.throttle ->
+      current = document.body.scrollTop
+      @listPreviousReplies()  if current < 20 and current < previous
+      previous = current
+    , 200
+
 
   createInputWidget: ->
 
