@@ -324,10 +324,9 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 	// check ownership of an object
 	mux.Handle("GET", "/account/{id}/owns", handler.Wrapper(
 		handler.Request{
-			Handler:        account.CheckOwnership,
-			Name:           "account-owns",
-			CollectMetrics: true,
-			Metrics:        metrics,
+			Handler: account.CheckOwnership,
+			Name:    "account-owns",
+			Metrics: metrics,
 		},
 	))
 
