@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ProviderName = "Stripe"
+	ProviderName = "stripe"
 )
 
 func init() {
@@ -37,6 +37,23 @@ func CreateCustomer(username, email string) (*paymentmodel.Customer, error) {
 	err = customerModel.Create()
 	if err != nil {
 		return nil, err
+	}
+
+	return customerModel, nil
+}
+
+func FindCustomerByUsername(username string) (*paymentmodel.Customer, error) {
+	customerModel := &paymentmodel.Customer{
+		Username: username,
+	}
+
+	exists, err := customerModel.ByUserName()
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, nil
 	}
 
 	return customerModel, nil

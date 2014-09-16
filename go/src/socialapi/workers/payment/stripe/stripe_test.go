@@ -3,9 +3,18 @@ package stripe
 import (
 	"testing"
 
+	"socialapi/workers/common/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 )
+
+func init() {
+	r := runner.New("stripetest")
+	if err := r.Init(); err != nil {
+		panic(err)
+	}
+}
 
 //----------------------------------------------------------
 // Crud tests
@@ -23,6 +32,13 @@ func TestCreateAndFindCustomer(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(custFromStripe.Id, ShouldEqual, cust.ProviderCustomerId)
+		})
+
+		Convey("Then it should save customer", func() {
+			customerModel, err := FindCustomerByUsername(desc)
+
+			So(err, ShouldBeNil)
+			So(customerModel.Username, ShouldEqual, desc)
 		})
 	})
 }

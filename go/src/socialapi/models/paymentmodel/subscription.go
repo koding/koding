@@ -32,10 +32,11 @@ type Subscription struct {
 	State string `json:"state"`
 
 	// Timestamps
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" `
-	DeletedAt time.Time `json:"deletedAt"`
-	ExpiredAt time.Time `json:"expiredAt"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt" `
+	DeletedAt  time.Time `json:"deletedAt"`
+	ExpiredAt  time.Time `json:"expiredAt"`
+	CanceledAt time.Time `json:"canceled_at"`
 }
 
 // func NewSubscription(acc *Customer, plan *plan) *Subscription {}

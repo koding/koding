@@ -10,7 +10,7 @@ type Customer struct {
 	Username string `json:"username"`
 
 	// Id of customer in 3rd payment provider like Stripe.
-	ProviderCustomerId string `json:"providerPlanId"`
+	ProviderCustomerId string `json:"providerCustomerId"`
 
 	// Name of provider. Enum:
 	//    'stripe', 'paypal'
@@ -28,10 +28,3 @@ func NewCustomer(username, providerId, provider string) *Customer {
 		Provider:           provider,
 	}
 }
-
-func (c *Customer) Create() error {
-	return nil
-}
-
-// func (c *Customer) FindOrCreate() error {}
-// func (c *Customer) Find() error         {}
