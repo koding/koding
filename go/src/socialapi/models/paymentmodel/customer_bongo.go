@@ -26,14 +26,12 @@ func (c *Customer) One(q *bongo.Query) error {
 	return bongo.B.One(c, c, q)
 }
 
-var UsernameNotSet = errors.New("username not set")
-
-func (c *Customer) ByUserName() (bool, error) {
-	if c.Username == "" {
-		return false, UsernameNotSet
+func (c *Customer) ByOldId() (bool, error) {
+	if c.OldId == "" {
+		return false, ErrOldIdNotSet
 	}
 
-	selector := map[string]interface{}{"username": c.Username}
+	selector := map[string]interface{}{"old_id": c.OldId}
 
 	err := c.One(bongo.NewQS(selector))
 	if err == bongo.RecordNotFound {
@@ -42,3 +40,9 @@ func (c *Customer) ByUserName() (bool, error) {
 
 	return true, nil
 }
+
+func (c *Customer) FindActiveSubscriptions() ([]*Subscription, error) {
+	return nil, nil
+}
+
+var ErrOldIdNotSet = errors.New("old_id not set")

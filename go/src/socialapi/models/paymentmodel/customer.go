@@ -7,7 +7,7 @@ import (
 type Customer struct {
 	Id int64 `json:"id,string"`
 
-	Username string `json:"username"`
+	OldId string `json:"oldId"`
 
 	// Id of customer in 3rd payment provider like Stripe.
 	ProviderCustomerId string `json:"providerCustomerId"`
@@ -21,9 +21,9 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updatedAt" `
 }
 
-func NewCustomer(username, providerId, provider string) *Customer {
+func NewCustomer(oldId, providerId, provider string) *Customer {
 	return &Customer{
-		Username:           username,
+		OldId:              oldId,
 		ProviderCustomerId: providerId,
 		Provider:           provider,
 	}

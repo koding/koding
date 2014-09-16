@@ -188,7 +188,8 @@ GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
 --  Table structure for payment_customer
 -- ----------------------------
 CREATE TYPE "api"."payment_provider" AS ENUM (
-    'stripe'
+    'stripe',
+    'paypal'
 );
 ALTER TYPE "api"."payment_provider" OWNER TO "social";
 
@@ -199,7 +200,7 @@ CREATE TABLE "api"."payment_customer" (
     ),
     "provider"             "api"."payment_provider",
     "provider_customer_id" VARCHAR (200) NOT NULL COLLATE "default",
-    "username"             VARCHAR (200) NOT NULL COLLATE "default",
+    "old_id"               VARCHAR (200) NOT NULL COLLATE "default",
 
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
