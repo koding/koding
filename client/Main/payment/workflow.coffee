@@ -28,12 +28,12 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
-    { name, price } = @getOptions()
+    { name, monthPrice, yearPrice } = @getOptions()
 
     modal = new PaymentModal
       state          :
         subscription : name
-        interval     : PaymentWorkflow.interval.MONTH
-        price        : price
+        monthPrice   : monthPrice
+        yearPrice    : yearPrice
 
 

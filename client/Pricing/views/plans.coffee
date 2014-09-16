@@ -22,7 +22,8 @@ class PricingPlansView extends KDView
 
   plans: [
     title        : 'Free'
-    price        : 0
+    monthPrice   : 0
+    yearPrice    : 0
     description  : 'Great for sad pandas and SEO engineers'
     cssClass     : 'free'
     planFeatures : [
@@ -34,7 +35,8 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Hobbyist'
-    price        : 900
+    monthPrice   : 900
+    yearPrice    : 9720
     description  : 'Great for single women and ice create lovin protoganists'
     cssClass     : 'hobbyist'
     planFeatures : [
@@ -46,7 +48,8 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Developer'
-    price        : 1900
+    monthPrice   : 1900
+    yearPrice    : 20520
     description  : 'Great for sad pandas and SEO engineers'
     cssClass     : 'developer current'
     planFeatures : [
@@ -58,7 +61,8 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Professional'
-    price        : 3900
+    monthPrice   : 3900
+    yearPrice    : 42120
     description  : 'Great for Data Analysis, wordpress installs'
     cssClass     : 'professional'
     planFeatures : [

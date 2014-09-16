@@ -12,6 +12,8 @@ class PaymentForm extends JView
 
   initViews: ->
 
+    { subscription, name, monthPrice, yearPrice, interval } = @state
+
     { MONTH, YEAR } = PaymentWorkflow.interval
 
     @intervalToggle = new KDButtonGroupView
@@ -24,16 +26,17 @@ class PaymentForm extends JView
           title    : YEAR
           callback : => @emit 'IntervalToggleChanged', { interval : YEAR }
 
-    { subscription, name, price, interval } = @getData()
-
     @subscription = new KDCustomHTMLView
       cssClass: 'plan-name'
       partial : "#{subscription.capitalize()} Plan"
 
+    pricePartial = if interval is MONTH
+    then "#{monthPrice / 100.00}/mo"
+    else "#{yearPrice / 100.00}/yr"
 
     @price = new KDCustomHTMLView
-      cssClass: 'plan-price'
-      partial : "#{price / 100}"
+      cssClass : 'plan-price'
+      partial  : pricePartial
 
     fields = {
       cardNumber          :

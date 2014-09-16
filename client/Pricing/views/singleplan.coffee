@@ -9,9 +9,9 @@ class SinglePlanView extends KDView
 
   viewAppended : ->
 
-    {title, cssClass, planFeatures, price, description} = @getOptions()
+    {title, cssClass, planFeatures, monthPrice, yearPrice, description} = @getOptions()
 
-    normalizedPrice = price / 100
+    normalizedPrice = monthPrice / 100
 
     name = title.toLowerCase()
 
@@ -39,6 +39,6 @@ class SinglePlanView extends KDView
     @addSubView new KDButtonView
       style     : 'plan-buy-button'
       title     : 'SELECT'
-      callback  : => @emit 'PlanSelected', name, price
+      callback  : => @emit 'PlanSelected', name, monthPrice, yearPrice
 
 

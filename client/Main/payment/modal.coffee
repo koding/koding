@@ -43,7 +43,9 @@ class PaymentModal extends KDModalView
     @setTitle title
     @setSubtitle subtitle
 
-    @scene = new sceneClass options, @state
+    options.state = @state
+
+    @scene = new sceneClass options
 
     events.call this # coming from the events property of scene array
 
