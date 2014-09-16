@@ -163,6 +163,10 @@ ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_message_id_fkey" FOR
 --  Primary key structure for table payment_customer
 -- ----------------------------
 ALTER TABLE api.payment_customer ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Uniques structure for table payment_customer
+-- ----------------------------
+ALTER TABLE api.payment_customer ADD CONSTRAINT "payment_customer_provider_customer_id_provider_key" UNIQUE ("provider_customer_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Structure for table PaymentsPlan
@@ -171,14 +175,23 @@ ALTER TABLE api.payment_customer ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY I
 --  Primary key structure for table payment_plan
 -- ----------------------------
 ALTER TABLE api.payment_plan ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Uniques structure for table payment_plan
+-- ----------------------------
+ALTER TABLE api.payment_plan ADD CONSTRAINT "payment_plan_name" UNIQUE ("name") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE api.payment_plan ADD CONSTRAINT "payment_plan_provider_plan_id_provider_key" UNIQUE ("provider_plan_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Structure for table PaymentSubscription
 -- ----------------------------
 -- ----------------------------
---  Primary key structure for table message_subscription
+--  Primary key structure for table payment_subscription
 -- ----------------------------
 ALTER TABLE api.payment_subscription ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- ----------------------------
+--  Uniques structure for table payment_subscription
+-- ----------------------------
+ALTER TABLE api.payment_subscription ADD CONSTRAINT "payment_subscription_provider_subscription_id_provider_key" UNIQUE ("provider_subscription_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Foreign keys structure for table message_subscription
 -- ----------------------------
