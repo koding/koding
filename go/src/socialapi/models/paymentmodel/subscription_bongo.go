@@ -18,6 +18,10 @@ func (s *Subscription) One(q *bongo.Query) error {
 	return bongo.B.One(s, s, q)
 }
 
+func (s *Subscription) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(s, data, q)
+}
+
 func (s *Subscription) Create() error {
 	return bongo.B.Create(s)
 }
