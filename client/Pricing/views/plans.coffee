@@ -12,15 +12,12 @@ class PricingPlansView extends KDView
 
   viewAppended: ->
 
-    for options in @plans
-      options.delegate = this
-      @addSubView view = new SinglePlanView options
+    for plan in @plans
+      plan.delegate = this
+      @addSubView view = new SinglePlanView plan
       @forwardEvent view, "PlanSelected"
 
-      @planViews[options.title.toLowerCase()] = view
-
-
-  subscriptionTag: "vm"
+      @planViews[plan.title.toLowerCase()] = view
 
 
   plans: [
@@ -51,7 +48,7 @@ class PricingPlansView extends KDView
     title        : 'Developer'
     price        : 1900
     description  : 'Great for sad pandas and SEO engineers'
-    cssClass     : 'yellow current'
+    cssClass     : 'developer current'
     planFeatures : [
       { partial: '1 GB RAM'     , cssClass: 'ram' }
       { partial: '1 Core'       , cssClass: 'cpu' }
@@ -63,7 +60,7 @@ class PricingPlansView extends KDView
     title        : 'Professional'
     price        : 3900
     description  : 'Great for Data Analysis, wordpress installs'
-    cssClass     : 'orange'
+    cssClass     : 'professional'
     planFeatures : [
       { partial: '1 GB RAM'     , cssClass: 'ram' }
       { partial: '5 Core'       , cssClass: 'cpu' }
@@ -72,3 +69,4 @@ class PricingPlansView extends KDView
       { partial: '2 Always on'  , cssClass: 'always-on' }
     ]
   ]
+
