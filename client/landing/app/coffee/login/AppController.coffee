@@ -2,7 +2,9 @@ LoginView     = require './AppView'
 
 module.exports = class LoginAppsController extends KDViewController
 
-  KD.registerAppClass this, name : 'Login'
+  KD.registerAppClass this,
+    name  : 'Login'
+    route : '/Login'
 
 
   constructor:(options = {}, data)->
