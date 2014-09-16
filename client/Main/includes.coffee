@@ -187,18 +187,22 @@ module.exports = [
   # PAYMENT
   # controller
   "payment/paymentcontroller.coffee",
-  # views
-  "payment/paymentmethodview.coffee",
-  "payment/subscriptionview.coffee",
-  "payment/paymentmethodentryform.coffee",
-  "payment/paymentchoiceform.coffee",
-  "payment/paymentformmodal.coffee",
-  "payment/paymentworkflow.coffee",
-  "payment/paymentconfirmform.coffee",
-  "payment/genericplanview.coffee",
-  "payment/planupgradeconfirmform.coffee",
-  "payment/planproductlist.coffee",
-  "payment/existingaccountworkflow.coffee",
+  # # views
+  # "payment/paymentmethodview.coffee",
+  # "payment/subscriptionview.coffee",
+  # "payment/paymentmethodentryform.coffee",
+  # "payment/paymentchoiceform.coffee",
+  # "payment/paymentformmodal.coffee",
+  # "payment/paymentworkflow.coffee",
+  # "payment/paymentconfirmform.coffee",
+  # "payment/genericplanview.coffee",
+  # "payment/planupgradeconfirmform.coffee",
+  # "payment/planproductlist.coffee",
+  # "payment/existingaccountworkflow.coffee",
+
+  "payment/workflow.coffee",
+  "payment/form.coffee",
+  "payment/modal.coffee",
 
 
   # global notifications
