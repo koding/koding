@@ -11,7 +11,6 @@ import (
 var (
 	cloudInitTemplate = template.Must(template.New("cloudinit").Parse(cloudInit))
 
-	// TODO: write_files directive doesn't work properly. So we are echoing.
 	cloudInit = `
 #cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
@@ -32,6 +31,11 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
+  # Create kite.key
+  - content: |
+      {{.KiteKey}}
+    path: /etc/kite/kite.key
+
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
   - content: |
       <VirtualHost *:{{.ApachePort}}>
@@ -123,10 +127,6 @@ write_files:
 {{end}}
 
 runcmd:
-  # Create kite.key
-  - [mkdir, "/etc/kite"]
-  - [sh, -c, 'echo "{{.KiteKey}}" >> /etc/kite/kite.key']
-
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
