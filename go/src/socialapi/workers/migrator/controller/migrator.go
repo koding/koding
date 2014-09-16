@@ -67,9 +67,9 @@ func (mwc *Controller) CronStart() {
 func (mwc *Controller) Start() {
 	mwc.log.Notice("Migration started")
 
-	mwc.migrateAllAccounts()
-
 	mwc.migrateAllAccountsToAlgolia()
+
+	mwc.migrateAllAccounts()
 
 	mwc.migrateAllGroups()
 

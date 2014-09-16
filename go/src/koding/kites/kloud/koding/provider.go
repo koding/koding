@@ -299,9 +299,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		KitePort:        DefaultKitePort,
 	}
 
-	if err := cloudInitConfig.setupMigrateScript(); err != nil {
-		return nil, err
-	}
+	cloudInitConfig.setupMigrateScript()
 
 	var buf bytes.Buffer
 	err = cloudInitTemplate.Execute(&buf, *cloudInitConfig)
