@@ -3,9 +3,9 @@ package stripe
 import "github.com/stripe/stripe-go"
 
 type Plan struct {
-	Name     string
-	Amount   uint64
-	Interval stripe.PlanInternval
+	NameForStripe string
+	Amount        uint64
+	Interval      stripe.PlanInternval
 }
 
 // Predefined list of plans. There are currently 4 tiers:
@@ -13,43 +13,43 @@ type Plan struct {
 // intervals: "month" and "year".
 var DefaultPlans = map[string]*Plan{
 	"free_month": &Plan{
-		Name:     "Free",
-		Amount:   0,
-		Interval: stripe.Month,
+		NameForStripe: "Free",
+		Amount:        0,
+		Interval:      stripe.Month,
 	},
 	"free_year": &Plan{
-		Name:     "Free",
-		Amount:   0,
-		Interval: stripe.Year,
+		NameForStripe: "Free",
+		Amount:        0,
+		Interval:      stripe.Year,
 	},
 	"hobbyist_month": &Plan{
-		Name:     "Hobbyist",
-		Amount:   900,
-		Interval: stripe.Month,
+		NameForStripe: "Hobbyist",
+		Amount:        900,
+		Interval:      stripe.Month,
 	},
 	"hobbyist_year": &Plan{
-		Name:     "Hobbyist",
-		Amount:   9720,
-		Interval: stripe.Year,
+		NameForStripe: "Hobbyist",
+		Amount:        9720,
+		Interval:      stripe.Year,
 	},
 	"developer_month": &Plan{
-		Name:     "Developer",
-		Amount:   1900,
-		Interval: stripe.Month,
+		NameForStripe: "Developer",
+		Amount:        1900,
+		Interval:      stripe.Month,
 	},
 	"developer_year": &Plan{
-		Name:     "Developer",
-		Amount:   20520,
-		Interval: stripe.Year,
+		NameForStripe: "Developer",
+		Amount:        20520,
+		Interval:      stripe.Year,
 	},
 	"professional_month": &Plan{
-		Name:     "Professional",
-		Amount:   3900,
-		Interval: stripe.Month,
+		NameForStripe: "Professional",
+		Amount:        3900,
+		Interval:      stripe.Month,
 	},
 	"professional_year": &Plan{
-		Name:     "Professional",
-		Amount:   42120,
-		Interval: stripe.Year,
+		NameForStripe: "Professional",
+		Amount:        42120,
+		Interval:      stripe.Year,
 	},
 }

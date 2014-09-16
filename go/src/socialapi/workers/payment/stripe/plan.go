@@ -11,8 +11,17 @@ import (
 // to be run when the worker starts to be sure the plans weren't
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
-	for plan_id, plan := range DefaultPlans {
-		_, err := CreatePlan(plan_id, plan.Name, plan.Interval, plan.Amount)
+	for title, pl := range DefaultPlans {
+		plan, err := FindPlanByTitle(title)
+		if err != nil {
+			return err
+		}
+
+		if plan != nil {
+			continue
+		}
+
+		_, err = CreatePlan(title, pl.NameForStripe, pl.Interval, pl.Amount)
 		if err != nil {
 			return err
 		}
@@ -21,10 +30,10 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
-func CreatePlan(title, name string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
+func CreatePlan(title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       title,
-		Name:     name,
+		Name:     nameForStripe,
 		Amount:   amount,
 		Currency: stripe.USD,
 		Interval: interval,
@@ -51,13 +60,12 @@ func CreatePlan(title, name string, interval stripe.PlanInternval, amount uint64
 	return planModel, nil
 }
 
-func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
+func FindPlanByTitle(title string) (*paymentmodel.Plan, error) {
 	plan := &paymentmodel.Plan{
-		Title:    title,
-		Interval: interval,
+		Title: title,
 	}
 
-	exists, err := plan.ByTitleAndInterval()
+	exists, err := plan.ByTitle()
 	if err != nil {
 		return nil, err
 	}
