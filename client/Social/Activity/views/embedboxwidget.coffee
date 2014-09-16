@@ -181,10 +181,7 @@ class EmbedBoxWidget extends KDView
 
     @imageIndex = 0
 
-    desiredFields = [
-      'url', 'safe', 'type', 'provider_name', 'error_type', 'content',
-      'error_message', 'safe_type', 'safe_message', 'images'
-    ]
+    desiredFields = ['original_url']
 
     for key in desiredFields
       wantedData[key] = data[key]
@@ -257,10 +254,8 @@ class EmbedBoxWidget extends KDView
       wmode     : 'transparent'
     }, options
 
-    { fetchDataFromEmbedly } = KD.singletons.socialapi.message
-
     # fetch embed.ly data from the server api
-    fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    KD.remote.api.Embedly.fetch url, embedlyOptions, (err, oembed) =>
       callback oembed[0], embedlyOptions
 
   pistachio:->

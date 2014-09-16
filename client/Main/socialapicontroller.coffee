@@ -376,9 +376,6 @@ class SocialApiController extends KDController
 
     revive               : mapActivity
 
-    fetchDataFromEmbedly : (args...) ->
-      KD.remote.api.SocialMessage.fetchDataFromEmbedly args...
-
   channel:
     byId                 : channelRequesterFn
       fnName             : 'byId'

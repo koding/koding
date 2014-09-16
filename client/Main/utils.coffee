@@ -509,7 +509,7 @@ utils.extend utils,
   #       to bypass awful hacks by Arvid Kahl:
   getEmbedType: (type) ->
     switch type
-      when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom'
+      when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom', 'video', 'rich'
         return 'object'
 
       # this is usually just a single image

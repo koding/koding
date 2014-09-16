@@ -8,6 +8,9 @@ class EmbedBox extends KDView
 
     embedType = (@utils.getEmbedType data?.link_embed?.type) or 'link'
 
+    if data?.link_embed?.media?.type is 'video'
+      embedType = @utils.getEmbedType data.link_embed.media.type
+
     containerClass = switch embedType
       when 'image'  then EmbedBoxImageView
       when 'object' then EmbedBoxObjectView
