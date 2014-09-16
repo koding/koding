@@ -196,3 +196,162 @@ body.pricing
           color         #fff
           margin-top    23px
           margin-bottom 40px
+
+.payment-modal
+  .kdmodal-content
+    max-height          389px !important
+
+  .kdmodal-inner
+    margin              36px 51px 51px
+
+    .kdmodal-title
+      text-align        center
+      padding           0 0 29px !important
+      margin            0 0 22px !important
+      border-bottom     1px solid #E8E8E8 !important
+
+      span.title
+        font-weight     500
+        color           #00B156
+        line-height     34px
+        margin          0 0 6px
+
+      span.subtitle
+        color           #848484
+        font-size       14px
+        line-height     19px
+        font-weight     400
+        opacity         .99
+
+    .interval-toggle
+      width             100%
+      text-align        center
+
+      button
+        background      #fff
+        size            66px, 33px
+        line-height     32px
+        border          1px solid #DEDEDE
+        border-left     none
+        border-right    none
+        padding         0
+        margin          0
+        color           #9E9E9E
+        font-weight     600
+        font-size       12px
+        shadow          none
+        text-shadow     none
+
+        &:first-of-type
+          rounded       15px 0 0 15px
+          border-left   1px solid #DEDEDE
+
+        &:last-of-type
+          rounded       0 15px 15px 0
+          border-right  1px solid #DEDEDE
+
+
+        .button-title
+          color         inherit
+          font-size     inherit
+          font-weight   inherit
+          display       inline-block
+          line-height   25px
+          size          58px, 25px
+          rounded       13px
+
+        &.toggle .button-title
+          background    #01B05A
+          color         #fff
+
+    .summary
+      margin            18px 0
+      line-height       24px
+
+      .plan-name
+        font-size       14px
+        color           #6F6F6F
+        font-weight     600
+        fl()
+
+      .plan-price
+        color           #00B156
+        font-size       18px
+        font-weight     600
+        fr()
+
+        &:before
+          content       '$'
+
+    .payment-method-entry-form
+      background        #F8F8F8
+      border            1px solid #E5E5E5
+      padding           0 31px 31px 17px
+      rounded           3px
+
+      .kdlabel
+        display         block
+        float           none
+        margin-top      19px
+        margin-bottom   11px
+        font-size       14px
+        color           #575757
+
+      .kdinput
+        background      #fff
+        rounded         3px
+        border          1px solid #D7D7D7
+        margin          0
+        height          36px
+
+      .input-wrapper
+        margin          0
+
+      .formline
+        margin-left     13px
+        fl()
+
+        &.cardnumber
+          width         292px
+
+        &.cardcvc
+        &.cardmonth
+        &.cardyear
+          width         64px
+
+        &.cardname
+          width         215px
+
+    .submit-btn
+      size              100%, 50px
+      background        #01B05A
+      margin            34px 0 0
+      shadow            0 2px 0 0 #008E48
+      color             #fff
+      font-size         14px
+      font-weight       600
+
+      span.button-title
+        font-size       inherit
+        font-weight     inherit
+        color           inherit
+
+    .security-note
+      font-size         12px
+      color             #A7A7A7
+      text-align        center
+      line-height       17px
+      margin            51px
+
+      span
+        display         block
+        font-size       14px
+        color           #7F7F7F
+        line-height     19px
+        margin          0 0 4px
+
+      &:before
+        content         ''
+        display         block
+        r-sprite        'pricing', 'lock'
+        margin          0 auto 10px

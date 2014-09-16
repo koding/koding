@@ -14,24 +14,25 @@ class PaymentForm extends JView
 
     { MONTH, YEAR } = PaymentWorkflow.interval
 
-    @intervalToggle = new KDToggleButton
+    @intervalToggle = new KDButtonGroupView
       cssClass     : 'interval-toggle'
-      defaultState : MONTH
-      states       : [
-        title      : MONTH
-        callback   : => @emit 'IntervalToggleChanged', { interval : MONTH }
-      ,
-        title      : YEAR
-        callback   : => @emit 'IntervalToggleChanged', { interval : YEAR }
-      ]
+      buttons      :
+        MONTH      :
+          title    : MONTH
+          callback : => @emit 'IntervalToggleChanged', { interval : MONTH }
+        YEAR       :
+          title    : YEAR
+          callback : => @emit 'IntervalToggleChanged', { interval : YEAR }
 
     { subscription, name, price, interval } = @getData()
 
     @subscription = new KDCustomHTMLView
+      cssClass: 'plan-name'
       partial : "#{subscription.capitalize()} Plan"
 
 
     @price = new KDCustomHTMLView
+      cssClass: 'plan-price'
       partial : "#{price / 100}"
 
     fields = {
@@ -51,7 +52,7 @@ class PaymentForm extends JView
         label             : 'Exp. Date'
         maxLength         : 2
       cardYear            :
-        label             : ''
+        label             : '&nbsp'
         maxLength         : 2
     }
 
@@ -62,15 +63,19 @@ class PaymentForm extends JView
       name                  : 'method'
       fields                : fields
       callback              : (formData) => @emit "PaymentSubmitted", formData
-      buttons               :
-        Save                :
-          title             : 'ADD CARD'
-          style             : 'solid medium green'
-          type              : 'submit'
-          loader            : yes
-        BACK                :
-          style             : 'medium solid light-gray to-left'
-          callback          : => # close modal
+
+    @submitButton = new KDButtonView
+      style     : 'solid medium green'
+      title     : 'UPGRADE YOUR PLAN'
+      loader    : yes
+      cssClass  : 'submit-btn'
+
+    @securityNote = new KDCustomHTMLView
+      cssClass  : 'security-note'
+      partial   : "
+        <span>Secure credit card payments</span>
+        Koding.com uses 128 Bit SSL Encrypted Transactions
+      "
 
 
   initEvents: ->
@@ -86,12 +91,12 @@ class PaymentForm extends JView
 
   pistachio: ->
     """
-    <div>
-      {{> @intervalToggle}}
-    </div>
-    <div>
+    {{> @intervalToggle}}
+    <div class='summary clearfix'>
       {{> @subscription}}{{> @price}}
     </div>
     {{> @form}}
+    {{> @submitButton}}
+    {{> @securityNote}}
     """
 
