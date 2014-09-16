@@ -5,6 +5,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
   menu = [
     { title : 'ABOUT',     href : '/About',     name : 'about'}
     { title : 'PRICING',   href : '/Pricing',   name : 'pricing'}
+    { title : 'SIGN IN',   href : '/Login',     name : 'login'}
   ]
 
   constructor: (options = {}, data) ->
