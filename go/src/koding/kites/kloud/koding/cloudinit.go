@@ -79,6 +79,7 @@ write_files:
       </VirtualHost>
     path: /etc/apache2/sites-available/000-default.conf
 
+{{if .ShouldMigrate }}
   # User migration script (~/migrate.sh)
   - content: |
       #!/bin/bash
@@ -88,10 +89,6 @@ write_files:
       vm_ids=({{ .VmIds }})
       count=$((${#credentials[@]} - 1))
       counter=0
-      if [[ ${vm_names[@]} -eq 0 ]]; then
-        echo "You don't have any VM to operate on."
-        exit 1
-      fi
       echo
       echo "We've upgraded your VM! Please follow the instructions below to transfer files from your old VM."
       echo
@@ -123,6 +120,7 @@ write_files:
     path: /home/{{.Username}}/migrate.sh
     permissions: '0755'
     owner: {{.Username}}:{{.Username}}
+{{end}}
 
 runcmd:
   # Create kite.key
@@ -166,18 +164,19 @@ type CloudInitConfig struct {
 	KitePort        int    // Defines the running kite port, like 3000
 
 	// Needed for migrate.sh script
-	Passwords string
-	VmNames   string
-	VmIds     string
+	Passwords     string
+	VmNames       string
+	VmIds         string
+	ShouldMigrate bool
 }
 
-func (c *CloudInitConfig) setupMigrateScript() error {
+func (c *CloudInitConfig) setupMigrateScript() {
 	vms, err := modelhelper.GetUserVMs(c.Username)
 	if err != nil {
-		return err
+		return
 	}
 	if len(vms) == 0 {
-		return nil
+		return
 	}
 
 	passwords := make([]string, len(vms))
@@ -195,5 +194,5 @@ func (c *CloudInitConfig) setupMigrateScript() error {
 	c.VmIds = strings.Join(vmIds, " ")
 	c.VmNames = strings.Join(vmNames, " ")
 
-	return nil
+	c.ShouldMigrate = true
 }
