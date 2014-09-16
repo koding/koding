@@ -44,7 +44,11 @@ class PricingAppView extends KDView
 
 
   initEvents: ->
-    @plans.on 'PlanSelected', ->
+    @plans.on 'PlanSelected', @bound 'planSelected'
+
+
+  planSelected: (name, price) ->
+    workflowController = new PaymentWorkflow {name, price, view: this}
 
 
   pistachio: ->
