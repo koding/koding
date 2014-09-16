@@ -9,7 +9,7 @@ do ->
 
     '/:name?/Pricing/:section': ({params:{section}}) ->
       handler (app) ->
-        app.getView().productForm.showSection section
+        app.getView() # .productForm.showSection section
 
     '/:name?/Pricing/CreateGroup': ->
       KD.remote.api.JGroupPlan.hasGroupCredit (err, hasCredit) ->
