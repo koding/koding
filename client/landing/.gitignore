@@ -2,3 +2,7 @@ node_modules
 static/css/main.css
 static/js/main.js
 static/js/main.js.map
+static/images/sprite@1x.png
+static/images/sprite@1x.styl
+static/images/sprite@2x.png
+static/images/sprite@2x.styl
