@@ -12,9 +12,9 @@ Installation
 
 After you have the requirements installed, clone the repo and do:
 
-```coffeescript
-$ npm i
-$ gulp
+```
+npm i
+gulp
 ```
 
 that's it.
