@@ -24,9 +24,6 @@ type Subscription struct {
 	// Plan the subscription belongs to, internal plan id.
 	PlanId int64 `json:"planId,string"`
 
-	// Name of plan with interval suffix.
-	PlanSlug string `json:"planSlug"`
-
 	// State of the subscription. Enum:
 	//    'active', 'expired'
 	State string `json:"state"`

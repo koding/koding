@@ -35,14 +35,21 @@ func (p *Plan) Create() error {
 	return nil
 }
 
-var NameNotSet = errors.New("name not set")
+var ErrNameNotSet = errors.New("name not set")
+var ErrIntervalNotSet = errors.New("interval not set")
 
-func (p *Plan) ByName() (bool, error) {
-	if p.Name == "" {
-		return false, NameNotSet
+func (p *Plan) ByTitleAndInterval() (bool, error) {
+	if p.Title == "" {
+		return false, ErrNameNotSet
 	}
 
-	selector := map[string]interface{}{"name": p.Name}
+	if p.Interval == "" {
+		return false, ErrIntervalNotSet
+	}
+
+	selector := map[string]interface{}{
+		"title": p.Title, "interval": p.Interval,
+	}
 
 	err := p.One(bongo.NewQS(selector))
 	if err == bongo.RecordNotFound {

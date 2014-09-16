@@ -218,16 +218,23 @@ CREATE TYPE "api"."payment_plan_interval" AS ENUM (
 );
 ALTER TYPE "api"."payment_plan_interval" OWNER TO "social";
 
+CREATE TYPE "api"."payment_plan_title" AS ENUM (
+    'free',
+    'hobbyist',
+    'developer',
+    'professional'
+);
+ALTER TYPE "api"."payment_plan_interval" OWNER TO "social";
+
 DROP TABLE IF EXISTS "api"."payment_plan";
 CREATE TABLE "api"."payment_plan" (
     "id" BIGINT NOT NULL DEFAULT nextval(
         'api.payment_plan_id_seq' :: regclass
     ),
     "interval"         "api"."payment_plan_interval",
+    "title"            "api"."payment_plan_title",
     "provider"         "api"."payment_provider",
     "provider_plan_id" VARCHAR (200) NOT NULL COLLATE "default",
-    "name"             VARCHAR (200) NOT NULL COLLATE "default",
-    "slug"             VARCHAR (200) NOT NULL COLLATE "default",
     "amount_in_cents"  BIGINT NOT NULL DEFAULT 0,
 
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -255,7 +262,6 @@ CREATE TABLE "api"."payment_subscription" (
     "provider"                 "api"."payment_provider",
     "provider_subscription_id" VARCHAR (200) NOT NULL COLLATE "default",
     "provider_token"           VARCHAR (200) NOT NULL COLLATE "default",
-    "plan_slug"                VARCHAR (200) NOT NULL COLLATE "default",
     "customer_id"              BIGINT NOT NULL DEFAULT 0,
     "plan_id"                  BIGINT NOT NULL DEFAULT 0,
     "amount_in_cents"          BIGINT NOT NULL DEFAULT 0,

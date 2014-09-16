@@ -8,18 +8,17 @@ type Plan struct {
 	// Id of plan in 3rd payment provider like Stripe.
 	ProviderPlanId string `json:"providerPlanId"`
 
-	// Name of provider. Enum: 'stripe'
+	// Name of provider. Enum:
+	//		'stripe', 'paypal'
 	Provider string `json:"provider"`
 
 	// Duration of subscription. Enum:
 	//    'monthly', 'yearly'
 	Interval string `json:"interval"`
 
-	// Name of plan.
-	Name string `json:"name, string"`
-
-	// Name of plan and interval.
-	Slug string `json:"slug, string"`
+	// Title of plan. Enum:
+	//		'free', 'hobbyist', 'developer', 'professional'
+	Title string `json:"title, string"`
 
 	// Cost of plan in cents.
 	AmountInCents uint64 `json:"cents"`
@@ -31,7 +30,5 @@ type Plan struct {
 }
 
 func NewPlan(name, providerId, provider string) *Plan {
-	return &Plan{
-		Name: name,
-	}
+	return &Plan{}
 }
