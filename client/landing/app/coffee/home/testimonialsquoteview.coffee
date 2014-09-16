@@ -17,7 +17,7 @@ module.exports = class TestimonialsQuoteView extends KDCustomHTMLView
     """
     <p>#{ content }</p>
     <div class='person'>
-      <img src='/a/images/testimonials/#{ slugifiedName }.jpg'>
+      <img src='/images/testimonials/#{ slugifiedName }.jpg'>
       <span class='name'>#{ name }</span>
       <span class='title'>#{ title }</span>
     </div>

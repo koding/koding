@@ -47,13 +47,13 @@ module.exports = class HomeView extends JView
       <section class="screenshots">
         <div class="inner-container">
           <figure class="first">
-            <img src="/a/images/ss-activity.jpg" alt="Activity">
+            <img src="/images/ss-activity.jpg" alt="Activity">
           </figure>
           <figure class="second">
-            <img src="/a/images/ss-terminal.jpg" alt="Terminal">
+            <img src="/images/ss-terminal.jpg" alt="Terminal">
           </figure>
           <figure class="third">
-            <img src="/a/images/ss-teamwork.jpg" alt="Environments">
+            <img src="/images/ss-teamwork.jpg" alt="Environments">
           </figure>
         </div>
       </section>
