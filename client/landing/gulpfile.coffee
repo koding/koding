@@ -14,6 +14,7 @@ coffeeify  = require 'coffeeify'
 source     = require 'vinyl-source-stream'
 nodemon    = require 'gulp-nodemon'
 pistachio  = require 'gulp-kd-pistachio-compiler'
+spritesmith= require 'gulp.spritesmith'
 
 STYLES_PATH = ['./app/styl/**/*.styl']
 COFFEE_PATH = ['./app/coffee/**/*.coffee']
