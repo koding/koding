@@ -104,7 +104,7 @@ body.pricing
       position              relative
       borderBox()
 
-    .resource-pack
+    .single-plan
       background        #FAFAFA
       width             25%
       z-index           10
@@ -118,6 +118,7 @@ body.pricing
         border-left     1px solid #E3E3E3
         rounded         7px 0 0 7px
 
+      &.current
         &:after
           content       'Current Plan'
           display       block
@@ -134,7 +135,7 @@ body.pricing
       &:nth-of-type(4)
         rounded         0 7px 7px 0
 
-      .pack-title
+      .plan-title
         border          none
         color           #8B8B8B
         font-size       12px
@@ -163,7 +164,7 @@ body.pricing
             vertical-align super
             line-height 26px
 
-      .pack-summary
+      .plan-summary
         padding         17px 20px
         text-align      center
         font-size       10px
@@ -173,22 +174,14 @@ body.pricing
         opacity         .99
         borderBox()
 
-      .pack-features
+      .plan-features
         padding         0 47px
         color           #575757
         line-height     23px
         font-size       14px
         borderBox()
 
-      &.always-on-disabled .pack-features
-        dd:nth-of-type(5)
-          color       #bbb
-
-      &.share-vm-disabled .pack-features
-        dd:nth-of-type(6)
-          color       #bbb
-
-      .pack-buy-button
+      .plan-buy-button
         background      transparent
         border          1px solid #37B542
         outline         none
@@ -209,13 +202,13 @@ body.pricing
         rounded         7px
         z-index         100
 
-        .pack-title cite
+        .plan-title cite
           color         #F8AC1D
 
           &:before
             color       #F8AC1D
 
-        .pack-buy-button
+        .plan-buy-button
           border-color  #F8AC1D
           background    #F8AC1D
           color         #fff
@@ -305,7 +298,7 @@ body.pricing
       padding-bottom    100px
 
 
-  section.packs
+  section.plans
     margin                0 auto
     max-width             882px
     padding               0 45px
@@ -337,7 +330,7 @@ body.pricing
       borderBox()
       fr()
 
-      .pack-buy-button
+      .plan-buy-button
         .button-title
           cite
             margin-right  30px
@@ -484,7 +477,7 @@ body.pricing
     margin-bottom       55px
 
 
-.pricing .product-form
+.pricing
   size                  100%, auto
   min-height            100vh
   padding               0
@@ -701,7 +694,7 @@ body.pricing
             font-size       inherit
             font-weight     inherit
 
-    .developer-plan
+    .plans
 
       .sliderbar-container
         shadow                inset 1px 1px 0 rgba(0, 0, 0, .16) !important
@@ -836,7 +829,7 @@ body.pricing
   .kdbutton.solid // Move these to fw [BC]
     rounded           3px
 
-    &.green
+    &.hobbyist
       background      #61C17F
 
     &.red
@@ -1132,11 +1125,11 @@ body.pricing
       .multiple-choice a
         width             43%
 
-    section.packs
+    section.plans
       h2
         font-size         18px
 
-      .resource-pack
+      .single-plan
         width             100%
         margin-bottom     24px
 
