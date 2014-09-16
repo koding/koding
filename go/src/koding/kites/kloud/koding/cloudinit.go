@@ -11,7 +11,6 @@ import (
 var (
 	cloudInitTemplate = template.Must(template.New("cloudinit").Parse(cloudInit))
 
-	// TODO: write_files directive doesn't work properly. So we are echoing.
 	cloudInit = `
 #cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
