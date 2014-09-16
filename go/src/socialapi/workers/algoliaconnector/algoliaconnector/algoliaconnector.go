@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -38,6 +39,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 		indexes: &IndexSet{
 			"topics":   client.InitIndex("topics" + indexSuffix),
 			"accounts": client.InitIndex("accounts" + indexSuffix),
+			"messages": client.InitIndex("messages" + indexSuffix),
 		},
 	}
 }
@@ -66,5 +68,23 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 	return f.insert("accounts", map[string]interface{}{
 		"nick":     data.Nick,
 		"objectID": data.OldId,
+	})
+}
+
+func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {
+	message := models.NewChannelMessage()
+
+	err := message.One(&bongo.Query{
+		Selector: map[string]interface{}{"id": data.MessageId}})
+
+	if err != nil {
+		return err
+	}
+
+	return f.insert("messages", map[string]interface{}{
+		"body":     message.Body,
+		"objectID": strconv.FormatInt(message.Id, 10),
+		// we'll facet on the channel id:
+		"channel": data.ChannelId,
 	})
 }

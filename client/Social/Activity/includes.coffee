@@ -37,6 +37,7 @@ module.exports = [
   "views/yourtopicsmodal.coffee"
   "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
+  "views/searchinputview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"

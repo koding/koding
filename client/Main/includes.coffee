@@ -167,8 +167,8 @@ module.exports = [
   "providers/computeplansmodalpaid.coffee",
   "providers/customplanstorageslider.coffee",
 
-  # Algolia-based autocomplete:
-  "autocompletecontroller.coffee",
+  # Algolia-based search:
+  "searchcontroller.coffee",
 
   "navigation/navigationlink.coffee",
   "navigation/navigationitem.coffee",

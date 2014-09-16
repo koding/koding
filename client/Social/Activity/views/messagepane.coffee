@@ -30,6 +30,7 @@ class MessagePane extends KDTabPaneView
     @listController.getView().setClass 'padded'
 
     @createChannelTitle()
+    @createSearchWidget()
     @createInputWidget()
     @createFilterLinks()
     @bindInputEvents()
@@ -179,6 +180,20 @@ class MessagePane extends KDTabPaneView
 
     unless name is 'public'
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
+
+
+  createSearchWidget: ->
+    @search = new SearchInputView
+
+    @search.on 'input', (seed) =>
+      KD.singletons.search.searchChannel seed, @getOption 'channelId'
+        .then (posts) =>
+          @listController.removeAllItems()
+          @listController.instantiateListItems posts
+        .catch ->
+          debugger
+
+    @addSubView @search
 
 
   createInputWidget: ->
