@@ -179,3 +179,92 @@ CREATE TABLE "api"."message_reply" (
 
 -- ALTER TABLE "api"."message_reply" OWNER TO "social";
 GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
+
+
+
+
+
+-- ----------------------------
+--  Table structure for payment_customer
+-- ----------------------------
+CREATE TYPE "api"."payment_provider" AS ENUM (
+    'stripe'
+);
+ALTER TYPE "api"."payment_provider" OWNER TO "social";
+
+DROP TABLE IF EXISTS "api"."payment_customer";
+CREATE TABLE "api"."payment_customer" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.payment_customer_id_seq' :: regclass
+    ),
+    "provider"             "api"."payment_provider",
+    "provider_customer_id" VARCHAR (200) NOT NULL COLLATE "default",
+    "username"             VARCHAR (200) NOT NULL COLLATE "default",
+
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE
+) WITH (OIDS = FALSE);
+
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."payment_customer" TO "social";
+
+-- ----------------------------
+--  Table structure for payment_plan
+-- ----------------------------
+CREATE TYPE "api"."payment_plan_interval" AS ENUM (
+    'month',
+    'year'
+);
+ALTER TYPE "api"."payment_plan_interval" OWNER TO "social";
+
+DROP TABLE IF EXISTS "api"."payment_plan";
+CREATE TABLE "api"."payment_plan" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.payment_plan_id_seq' :: regclass
+    ),
+    "interval"         "api"."payment_plan_interval",
+    "provider"         "api"."payment_provider",
+    "provider_plan_id" VARCHAR (200) NOT NULL COLLATE "default",
+    "name"             VARCHAR (200) NOT NULL COLLATE "default",
+    "slug"             VARCHAR (200) NOT NULL COLLATE "default",
+    "amount_in_cents"  BIGINT NOT NULL DEFAULT 0,
+
+    "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE
+) WITH (OIDS = FALSE);
+
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."payment_plan" TO "social";
+
+-- ----------------------------
+--  Table structure for payment_subscription
+-- ----------------------------
+CREATE TYPE "api"."payment_subscription_state" AS ENUM (
+    'active',
+    'expired'
+);
+ALTER TYPE "api"."payment_subscription_state" OWNER TO "social";
+
+DROP TABLE IF EXISTS "api"."payment_subscription";
+CREATE TABLE "api"."payment_subscription" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.payment_subscription_id_seq' :: regclass
+    ),
+    "state"                    "api"."payment_subscription_state",
+    "provider"                 "api"."payment_provider",
+    "provider_subscription_id" VARCHAR (200) NOT NULL COLLATE "default",
+    "provider_token"           VARCHAR (200) NOT NULL COLLATE "default",
+    "name"                     VARCHAR (200) NOT NULL COLLATE "default",
+    "plan_slug"                VARCHAR (200) NOT NULL COLLATE "default",
+    "customer_id"              BIGINT NOT NULL DEFAULT 0,
+    "plan_id"                  BIGINT NOT NULL DEFAULT 0,
+    "amount_in_cents"          BIGINT NOT NULL DEFAULT 0,
+
+    "created_at"      TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at"      TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at"      TIMESTAMP (6) WITH TIME ZONE,
+    "expired_at"      TIMESTAMP (6) WITH TIME ZONE,
+    "canceled_at"     TIMESTAMP (6) WITH TIME ZONE
+) WITH (OIDS = FALSE);
+
+GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."payment_subscription" TO "social";
