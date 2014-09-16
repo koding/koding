@@ -13,7 +13,9 @@ module.exports = class AboutListItem extends KDListItemView
     super options, data
 
     {username} = @getData()
-    @avatar    = new AvatarView
+    @avatar    = new KDCustomHTMLView
+      tagName  : 'img'
+      cssClass : 'avatarview'
       origin   : username
       size     : width : 160
 
