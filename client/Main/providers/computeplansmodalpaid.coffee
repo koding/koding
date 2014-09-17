@@ -32,7 +32,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     storageContainer.addSubView new KDView
       cssClass : "storage-title"
-      partial  : "choose storage capacity"
+      partial  : "allocate storage for your new vm"
 
     storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
       cssClass : 'storage-slider'
@@ -49,9 +49,12 @@ class ComputePlansModal.Paid extends ComputePlansModal
       callback : @bound "createVM"
       disabled : usage.total >= limits.total
 
-    content.addSubView new CustomLinkView
-      title    : 'Upgrade your account for more VMs RAM and Storage'
-      href     : '/Pricing'
+    unless plan in ['professional', 'super']
+      content.addSubView new CustomLinkView
+        title    : 'Upgrade your account for more VMs RAM and Storage'
+        href     : '/Pricing'
+    else
+      @setHeight 278
 
     @updateUsageText 5, usage, limits
     @storageSlider.on "ValueIsChanging", (val)=>
