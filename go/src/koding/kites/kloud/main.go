@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"log"
 	"net/url"
 	"os"
 	"time"
 
-	"github.com/fatih/structs"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/keys"
+	"koding/kites/kloud/koding"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
@@ -165,30 +165,27 @@ func newKite(conf *Config) *kite.Kite {
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
+	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+
 	kodingProvider := &koding.Provider{
-		Kite:         k,
-		Log:          newLogger("koding", conf.DebugMode),
-		AssigneeName: id,
-		Session:      db,
-		Test:         conf.TestMode,
-		TemplateDir:  conf.TemplateDir,
-		HostedZone:   conf.HostedZone,
+		Kite:              k,
+		Log:               newLogger("koding", conf.DebugMode),
+		AssigneeName:      id,
+		Session:           db,
+		Test:              conf.TestMode,
+		TemplateDir:       conf.TemplateDir,
+		HostedZone:        conf.HostedZone,
+		KontrolURL:        getKontrolURL(conf.KontrolURL),
+		KontrolPrivateKey: kontrolPrivateKey,
+		KontrolPublicKey:  kontrolPublicKey,
+		Bucket:            koding.NewBucket("koding-kites", klientFolder),
+		KeyName:           keys.DeployKeyName,
+		PublicKey:         keys.DeployPublicKey,
+		PrivateKey:        keys.DeployPrivateKey,
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
-
-	privateKey, publicKey := kontrolKeys(conf)
-
-	deployer := &KodingDeploy{
-		Kite:              k,
-		Log:               newLogger("kloud-deploy", conf.DebugMode),
-		KontrolURL:        kontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Bucket:            newBucket("koding-kites", klientFolder),
-		DB:                db,
-	}
 
 	kld := kloud.NewKloud()
 	kld.Storage = kodingProvider
@@ -227,19 +224,7 @@ func newKite(conf *Config) *kite.Kite {
 		return nil, nil
 	})
 
-	injectDeploy := func(r *kite.Request) (interface{}, error) {
-		d := kloudprotocol.ProviderDeploy{
-			KeyName:    keys.DeployKeyName,
-			PublicKey:  keys.DeployPublicKey,
-			PrivateKey: keys.DeployPrivateKey,
-			Username:   r.Username,
-		}
-
-		r.Context.Set("deployData", structs.Map(d))
-		return true, nil
-	}
-
-	k.Handle("build", kld.NewBuild(deployer)).PreHandleFunc(injectDeploy)
+	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)
@@ -297,7 +282,7 @@ func kontrolKeys(conf *Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL(ownURL string) string {
+func getKontrolURL(ownURL string) string {
 	// read kontrolURL from kite.key if it doesn't exist.
 	kontrolURL := kiteconfig.MustGet().KontrolURL
 

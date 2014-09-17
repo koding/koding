@@ -19,7 +19,6 @@ type Controller struct {
 	ProviderName string              `json:"-"`
 	Controller   protocol.Controller `json:"-"`
 	Builder      protocol.Builder    `json:"-"`
-	Canceller    protocol.Canceller  `json:"-"`
 	Machine      *protocol.Machine   `json:"-"`
 	Eventer      eventer.Eventer     `json:"-"`
 	Username     string
@@ -44,13 +43,11 @@ var states = map[string]*statePair{
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
-func (k *Kloud) NewBuild(handler kite.Handler) kite.Handler {
-	b := &Build{
-		deployer: handler,
-	}
+func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
+	b := &Build{}
 	b.Kloud = k
 
-	return k.ControlFunc(b.prepare)
+	return k.ControlFunc(b.prepare).ServeKite(r)
 }
 
 func (k *Kloud) Start(r *kite.Request) (interface{}, error) {
@@ -129,19 +126,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		// check if there is any value (like deployment variables) from a
-		// previous handler (we injected them), dd  them to our machine.Meta
-		// data
-		if data, err := r.Context.Get("deployData"); err == nil {
-			m := data.(map[string]interface{})
-			for k, v := range m {
-				// dont' override existing data
-				if _, ok := machine.Builder[k]; !ok {
-					machine.Builder[k] = v
-				}
-			}
-		}
-
 		k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
@@ -172,12 +156,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			Builder:      builder,
 			Machine:      machine,
 			CurrenState:  machine.State,
-		}
-
-		// check if the provider
-		canceller, err := k.Canceller(machine.Provider)
-		if err == nil {
-			c.Canceller = canceller
 		}
 
 		// now finally call our kite handler with the controller context, run

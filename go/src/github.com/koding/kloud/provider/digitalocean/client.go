@@ -29,8 +29,6 @@ type Client struct {
 	Redis       *redis.RedisSession
 	RedisPrefix string
 
-	Deploy *protocol.ProviderDeploy
-
 	sync.Once
 }
 
@@ -67,16 +65,11 @@ func (c *Client) Build(dropletName string) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	var privateKey string
-	if c.Deploy != nil {
-		privateKey = c.Deploy.PrivateKey
-	}
-
 	return &protocol.Artifact{
 		IpAddress:     droplet.IpAddress,
 		InstanceName:  dropletName,
 		InstanceId:    strconv.Itoa(droplet.Id),
-		SSHPrivateKey: privateKey,
+		SSHPrivateKey: c.Builder.PrivateKey,
 	}, nil
 }
 
@@ -238,19 +231,17 @@ func (c *Client) WaitUntilReady(eventId, from, to int, state machinestate.State)
 
 func (c *Client) NewDroplet(dropletName string, imageId uint) (dropletId uint, err error) {
 	var keyId uint
-	if c.Deploy != nil {
-		// The name of the public key on DO
-		keys, err := c.Keys()
+	// The name of the public key on DO
+	keys, err := c.Keys()
+	if err != nil {
+		return 0, err
+	}
+
+	keyId = keys.GetId(c.Builder.KeyName)
+	if keyId == 0 {
+		keyId, err = c.CreateKey(c.Builder.KeyName, c.Builder.PublicKey)
 		if err != nil {
 			return 0, err
-		}
-
-		keyId = keys.GetId(c.Deploy.KeyName)
-		if keyId == 0 {
-			keyId, err = c.CreateKey(c.Deploy.KeyName, c.Deploy.PublicKey)
-			if err != nil {
-				return 0, err
-			}
 		}
 	}
 

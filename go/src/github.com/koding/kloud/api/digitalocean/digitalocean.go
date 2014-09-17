@@ -27,6 +27,13 @@ type DigitalOcean struct {
 		ClientID string `mapstructure:"client_id" packer:"client_id"`
 		APIKey   string `mapstructure:"api_key" packer:"api_key"`
 
+		// KeyName is used to deploy the machine with that particular key
+		KeyName string `mapstructure:"key_name"`
+
+		// PublicKey and PrivateKey is used to create a new key.
+		PublicKey  string `mapstructure:"publicKey"`
+		PrivateKey string `mapstructure:"privateKey"`
+
 		RegionID uint `mapstructure:"region_id" packer:"region_id"`
 		SizeID   uint `mapstructure:"size_id" packer:"size_id"`
 		ImageID  uint `mapstructure:"image_id" packer:"image_id"`
