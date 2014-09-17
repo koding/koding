@@ -199,7 +199,7 @@ body.pricing
 
 .payment-modal
   .kdmodal-content
-    max-height          389px !important
+    // max-height          389px !important
 
   .kdmodal-inner
     margin              36px 51px 51px
@@ -303,9 +303,28 @@ body.pricing
         border          1px solid #D7D7D7
         margin          0
         height          36px
+        transition      border-color .3s linear
+
+        &.text
+          font-size     14px
+
+        &.validation-error
+          border-color  #D95F5F !important
 
       .input-wrapper
         margin          0
+
+      &.american-express .input-wrapper:after
+        r-sprite      'pricing', 'american-express'
+
+      &.visa .input-wrapper:after
+        r-sprite      'pricing', 'visa'
+
+      &.mastercard .input-wrapper:after
+        r-sprite      'pricing', 'mastercard'
+
+      &.discover .input-wrapper:after
+        r-sprite      'pricing', 'discover'
 
       .formline
         margin-left     13px
@@ -313,6 +332,16 @@ body.pricing
 
         &.cardnumber
           width         292px
+
+          .input-wrapper:after
+            content     ''
+            display     block
+            right       8px
+            top         59px
+            width       36px
+            height      22px
+            z-index     1
+            abs()
 
         &.cardcvc
         &.cardmonth
