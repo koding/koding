@@ -120,4 +120,57 @@ func TestSubscribe(t *testing.T) {
 			})
 		})
 	})
+
+	Convey("Given customer already subscribed to a plan", t, func() {
+		token, accId, email := generateFakeUserInfo()
+		planId := "professional_month"
+
+		_, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		err = Subscribe(token, accId, email, planId)
+		So(err, ShouldBeNil)
+
+		customer, err := FindCustomerByOldId(accId)
+		So(err, ShouldBeNil)
+
+		customerId := customer.ProviderCustomerId
+
+		subs, err := FindCustomerActiveSubscriptions(customer)
+		So(err, ShouldBeNil)
+
+		So(len(subs), ShouldEqual, 1)
+
+		currentSub := subs[0]
+		subId := currentSub.ProviderSubscriptionId
+
+		Convey("When customer downgrades to lower plan", func() {
+			newPlanId := "hobbyist_month"
+
+			err = Subscribe(token, accId, email, newPlanId)
+			So(err, ShouldBeNil)
+
+			Convey("Then subscription is updated on stripe", func() {
+				subParams := &stripe.SubParams{Customer: customerId}
+				sub, err := stripeSub.Get(subId, subParams)
+
+				So(err, ShouldBeNil)
+
+				So(sub.Plan.Id, ShouldEqual, newPlanId)
+			})
+
+			Convey("Then subscription is saved", func() {
+				subs, err := FindCustomerActiveSubscriptions(customer)
+				So(err, ShouldBeNil)
+
+				So(len(subs), ShouldEqual, 1)
+
+				currentSub := subs[0]
+				newPlan, err := FindPlanByTitle(newPlanId)
+
+				So(err, ShouldBeNil)
+				So(currentSub.PlanId, ShouldEqual, newPlan.Id)
+			})
+		})
+	})
 }
