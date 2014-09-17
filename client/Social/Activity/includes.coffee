@@ -99,7 +99,7 @@ module.exports = [
   "views/comments/timeview.coffee"
 
   "views/privatemessage/listitem.coffee"
-  "views/privatemessage/modal.coffee"
+  "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/recipientmodal.coffee"

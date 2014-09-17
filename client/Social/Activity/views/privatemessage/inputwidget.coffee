@@ -4,18 +4,15 @@ class PrivateMessageInputWidget extends ReplyInputWidget
 
     form = @getOption 'form'
 
-    {fields : {body, purpose}} = form
-    {buttons: {send}}          = form
+    {autoComplete, inputs: {purpose}} = form
 
-    body       = body.getValue()
+    body       = @input.getValue()
     purpose    = purpose.getValue()
-    recipients = (nickname for {profile: {nickname}} in @autoComplete.getSelectedItemData())
+    recipients = (nickname for {profile: {nickname}} in autoComplete.getSelectedItemData())
 
     {router, socialapi, windowController} = KD.singletons
 
     socialapi.message.initPrivateMessage {body, recipients, purpose}, (err, channels) =>
-
-      send.hideLoader()
 
       return KD.showError err  if err
 
