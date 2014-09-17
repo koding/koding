@@ -127,19 +127,6 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			return nil, err
 		}
 
-		// check if there is any value (like deployment variables) from a
-		// previous handler (we injected them), add  them to our machine.Meta
-		// data
-		if data, err := r.Context.Get("deployData"); err == nil {
-			m := data.(map[string]interface{})
-			for k, v := range m {
-				// dont' override existing data
-				if _, ok := machine.Builder[k]; !ok {
-					machine.Builder[k] = v
-				}
-			}
-		}
-
 		k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
 
 		// prevent request if the machine is terminated. However we want the user
