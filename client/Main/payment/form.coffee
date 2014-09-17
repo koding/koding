@@ -54,9 +54,7 @@ class PaymentForm extends JView
     # not more than 2 decimal digits.
     # basically: 124.12412412412412 -> 124.12
     monthlyDifference = (monthPrice / 100.00) - (yearPrice / 12 / 100.00)
-    monthlyDifference = monthlyDifference.toString().split '.'
-    monthlyDifference[1] = monthlyDifference[1].slice 0, 2
-    monthlyDifference.join '.'
+    monthlyDifference = KD.utils.decimalAdjust 'round', monthlyDifference, -2
 
     @intervalToggleMessage = new KDCustomHTMLView
       cssClass : 'interval-toggle-message'
@@ -79,6 +77,10 @@ class PaymentForm extends JView
 
 
     @form = @initForm()
+
+    @priceSummary = new KDCustomHTMLView
+      cssClass    : 'price-summary'
+      partial     : "You'll be charged $#{monthPrice / 100}/month"
 
     @submitButton = new KDButtonView
       disabled  : not @state.providerLoaded
@@ -226,18 +228,26 @@ class PaymentForm extends JView
   handleToggleChanged: (subscription) ->
 
     { interval } = subscription
-
     @state.interval = interval
+
     { monthPrice, yearPrice } = @state
 
     button = @intervalToggle.buttons[interval]
     @intervalToggle.buttonReceivedClick button
 
     pricePartial = if interval is PaymentWorkflow.interval.MONTH
-    then "#{monthPrice / 100.00}/mo"
-    else "#{(yearPrice / 100.00) / 12}/mo"
+    then "#{KD.utils.decimalAdjust('round', monthPrice / 100.00, -2) }/mo"
+    else "#{KD.utils.decimalAdjust('round', yearPrice / 100.00 / 12, -2)}/mo"
 
     @price.updatePartial pricePartial
+
+    calculatedPrice = if interval is PaymentWorkflow.interval.MONTH
+    then "#{KD.utils.decimalAdjust 'round', monthPrice/100, -2}/month"
+    else "#{KD.utils.decimalAdjust 'round', yearPrice/100, -2}/year"
+
+    priceSummaryPartial = "You'll be charged $#{calculatedPrice}"
+
+    @priceSummary.updatePartial priceSummaryPartial
 
 
   pistachio: ->
@@ -248,6 +258,7 @@ class PaymentForm extends JView
       {{> @subscription}}{{> @price}}
     </div>
     {{> @form}}
+    {{> @priceSummary}}
     {{> @submitButton}}
     {{> @securityNote}}
     """
