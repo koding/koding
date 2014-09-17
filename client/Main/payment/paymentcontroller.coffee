@@ -1,5 +1,21 @@
 class PaymentController extends KDController
 
+  subscribe: (token, plan, options, callback)->
+    params          = {token, plan}
+
+    params.email    = options.email     if options.email
+    params.provider = options.provider  or "stripe"
+
+    @api().subscribe params, callback
+
+  unsubscribe: (plan, provider, callback)->
+    @api().unsubscribe {plan, provider}, callback
+
+  api:-> KD.remote.api.Payment
+
+
+  ##########################################################
+
   fetchPaymentMethods: (callback) ->
 
     {dash}                 = Bongo

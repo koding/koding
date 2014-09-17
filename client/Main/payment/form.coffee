@@ -93,6 +93,9 @@ class PaymentForm extends JView
       title     : 'UPGRADE YOUR PLAN'
       loader    : yes
       cssClass  : 'submit-btn'
+      callback  : =>
+        # TODO: make sure the form is valid here
+        @emit "PaymentSubmitted", @form.getFormData()
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'

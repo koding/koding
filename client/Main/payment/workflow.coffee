@@ -42,6 +42,8 @@ class PaymentWorkflow extends KDController
 
       return  unless Stripe?
 
+      Stripe.setPublishableKey('pk_test_6OB11qvDKuUlo71pFqd6nW9K')
+
       @modal.emit 'PaymentProviderLoaded', { provider: Stripe }
       window.clearInterval repeater
 
@@ -51,5 +53,27 @@ class PaymentWorkflow extends KDController
     { planName, monthPrice, yearPrice } = @getOptions()
 
     @modal = new PaymentModal state: { planName, monthPrice, yearPrice }
+    @modal.on "PaymentSubmitted", (formData)->
+      {
+        cardNumber, cardCVC, cardMonth, cardYear, plan
+      } = formData
 
+      Stripe.card.createToken
+        number    : formData.cardNumber
+        cvc       : formData.cardCVC
+        exp_month : formData.cardMonth
+        exp_year  : formData.cardYear
+      , (status, response)->
+
+        # handle valiation here
+        if response.error
+          return KDNotificationView title: "Invalid cc"
+
+        token = response.id
+
+        plan = "hobbyist_month"
+
+        {paymentController} = KD.singletons
+        paymentController.subscribe token, plan, {email:"senthil@koding.com"}, ->
+          console.log ">>>>>>>>>>> request from stripe", arguments...
 

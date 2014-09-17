@@ -340,6 +340,38 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
+########################################
+# Payments
+########################################
+
+
+paymentSubscribe = (data, callback)->
+  requiredParams = [
+    "accountId", "token", "email", "plan", "provider"
+  ]
+
+  for param in requiredParams
+    if not data[param]
+      return callback {message: "#{param} is required"}
+
+  url = "/payments/subscribe"
+  post url, data, callback
+
+paymentUnsubscribe = (data, callback)->
+  requiredParams = [
+    "accountId", "plan", "provider"
+  ]
+
+  for param in requiredParams
+    if not data[param]
+      return callback {message: "#{param} is required"}
+
+  url = "/payments/unsubscribe"
+  post url, data, callback
+
+
+########################################
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -422,4 +454,6 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  paymentSubscribe
+  paymentUnsubscribe
 }

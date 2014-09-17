@@ -50,6 +50,8 @@ class PaymentModal extends KDModalView
     options.state = @state
 
     @scene = new sceneClass options
+    @scene.on "PaymentSubmitted", (formData)=>
+      @emit "PaymentSubmitted", formData
 
     events.call this # coming from the events property of scene array
 
