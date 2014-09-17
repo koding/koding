@@ -59,4 +59,19 @@ func TestSubscribe(t *testing.T) {
 			So(customer.Subs.Count, ShouldEqual, 1)
 		})
 	})
+
+	Convey("Given customer already subscribed to a plan", t, func() {
+		token, accId, email := generateFakeUserInfo()
+
+		_, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		err = Subscribe(token, accId, email, "hobbyist_month")
+		So(err, ShouldBeNil)
+
+		Convey("Then customer can't subscribe to same plan again", func() {
+			err = Subscribe(token, accId, email, "hobbyist_month")
+			So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
+		})
+	})
 }
