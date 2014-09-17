@@ -4,7 +4,7 @@ class PaymentWorkflow extends KDController
     MONTH  : 'month'
     YEAR   : 'year'
 
-  @subscription  :
+  @plan          :
     FREE         : 'free'
     HOBBYIST     : 'hobbyist'
     DEVELOPER    : 'developer'
@@ -35,12 +35,8 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
-    { name, monthPrice, yearPrice } = @getOptions()
+    { planName, monthPrice, yearPrice } = @getOptions()
 
-    @modal = new PaymentModal
-      state          :
-        subscription : name
-        monthPrice   : monthPrice
-        yearPrice    : yearPrice
+    @modal = new PaymentModal state: { planName, monthPrice, yearPrice }
 
 

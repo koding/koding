@@ -2,7 +2,7 @@ class PaymentForm extends JView
 
   initialState     :
     interval       : PaymentWorkflow.interval.MONTH
-    subscription   : PaymentWorkflow.subscription.HOBBYIST
+    plan           : PaymentWorkflow.plan.HOBBYIST
     providerLoaded : no
     validation     : {
       cardNumber   : yes
@@ -35,7 +35,7 @@ class PaymentForm extends JView
 
   initViews: ->
 
-    { subscription, name, monthPrice, yearPrice, interval } = @state
+    { planName, name, monthPrice, yearPrice, interval } = @state
 
     { MONTH, YEAR } = PaymentWorkflow.interval
 
@@ -63,9 +63,9 @@ class PaymentForm extends JView
         by switching to <strong>yearly plan</strong>.
       "
 
-    @subscription = new KDCustomHTMLView
+    @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
-      partial : "#{subscription.capitalize()} Plan"
+      partial : "#{planName.capitalize()} Plan"
 
     pricePartial = if interval is MONTH
     then "#{monthPrice / 100.00}/mo"
@@ -225,9 +225,9 @@ class PaymentForm extends JView
     @submitButton.enable()
 
 
-  handleToggleChanged: (subscription) ->
+  handleToggleChanged: (opts) ->
 
-    { interval } = subscription
+    { interval } = opts
     @state.interval = interval
 
     { monthPrice, yearPrice } = @state
@@ -255,7 +255,7 @@ class PaymentForm extends JView
     {{> @intervalToggle}}
     {{> @intervalToggleMessage}}
     <div class='summary clearfix'>
-      {{> @subscription}}{{> @price}}
+      {{> @plan}}{{> @price}}
     </div>
     {{> @form}}
     {{> @priceSummary}}
