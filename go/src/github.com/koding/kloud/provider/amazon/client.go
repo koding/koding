@@ -92,12 +92,6 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// Rename the machine
-	infoLog("Adding the tag '%s' to the instance '%s'", instanceName, instance.InstanceId)
-	if err := a.AddTag(instance.InstanceId, "Name", instanceName); err != nil {
-		return nil, err
-	}
-
 	return &protocol.Artifact{
 		IpAddress:     instance.PublicIpAddress,
 		InstanceName:  instanceName,
