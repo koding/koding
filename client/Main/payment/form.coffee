@@ -190,12 +190,12 @@ class PaymentForm extends JView
       validate           :
         rules            :
           checkMonthYear : (yearInput, event) =>
-            monthInput = @form.inputs.cardYear
+            monthInput = @form.inputs.cardMonth
             monthVal   = $.trim monthInput.getValue().replace(/-|\s/g, '')
             yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
 
             result     = Stripe.card.validateExpiry monthVal, yearVal
-            input.setValidationResult 'checkMonthYear', not result
+            yearInput.setValidationResult 'checkMonthYear', not result
 
         events           :
           checkMonthYear : 'blur'
