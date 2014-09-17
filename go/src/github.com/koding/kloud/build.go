@@ -37,7 +37,7 @@ func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
 	b.Storage.UpdateState(c.MachineId, machinestate.Building)
 	c.Eventer = b.NewEventer(r.Method + "-" + c.MachineId)
 
-	instanceName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	instanceName := "user-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	i, ok := c.Machine.Builder["instanceName"]
 	if !ok || i == "" {
 		// if it's empty we use the instance name that was generated above

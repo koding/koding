@@ -163,7 +163,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	if instanceName == "terminated-instance" {
-		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		instanceName = "user-" + username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
@@ -295,22 +295,6 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		}
 	}()
 
-	// Add user specific tag to make it easier  simplfying easier
-	infoLog("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-user", username); err != nil {
-		return nil, err
-	}
-
-	infoLog("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
-		return nil, err
-	}
-
-	infoLog("Adding machineId tag '%s' to the instance '%s'", opts.MachineId, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-machineId", opts.MachineId); err != nil {
-		return nil, err
-	}
-
 	a.Push("Checking domain", 65, machinestate.Building)
 
 	/////// ROUTE 53 /////////////////
@@ -349,13 +333,20 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		}
 	}()
 
-	infoLog("Adding user domain tag '%s' to the instance '%s'",
-		machineData.Domain, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+	tags := []ec2.Tag{
+		{Key: "Name", Value: buildArtifact.InstanceName},
+		{Key: "koding-user", Value: username},
+		{Key: "koding-env", Value: p.Kite.Config.Environment},
+		{Key: "koding-machineId", Value: opts.MachineId},
+		{Key: "koding-domain", Value: machineData.Domain},
+	}
+
+	infoLog("Adding user tags %v", tags)
+	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		return nil, err
 	}
 
-	a.Push("Starting provisioning", 75, machinestate.Building)
+	a.Push("Checking connectivity", 75, machinestate.Building)
 
 	buildArtifact.DomainName = machineData.Domain
 
@@ -363,7 +354,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	buildArtifact.KiteQuery = query.String()
 
 	infoLog("Connecting to remote Klient instance")
-	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute)
+	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute*2)
 	if err != nil {
 		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
