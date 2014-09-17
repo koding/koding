@@ -73,19 +73,6 @@ type Machine struct {
 	State machinestate.State
 }
 
-// If available a key pair with the given public key and name should be
-// deployed to the machine, the corresponding PrivateKey should be returned
-// in the ProviderArtifact. Some providers such as Amazon creates
-// publicKey's on the fly and generates the privateKey themself. The
-// Deployer interface is then executed (only if the necessary privateKey is
-// passed)
-type ProviderDeploy struct {
-	PublicKey  string `structure:"publicKey"`
-	PrivateKey string `structure:"privateKey"`
-	KeyName    string `structure:"keyName"`
-	Username   string `structure:"username"`
-}
-
 // Artifact should be returned from a Build method. It contains data
 // that is needed in other interfaces
 type Artifact struct {

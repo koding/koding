@@ -8,7 +8,6 @@ import (
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
-	"github.com/mitchellh/mapstructure"
 )
 
 type Provider struct {
@@ -36,11 +35,6 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*AmazonClient, error) {
 	a.Amazon, err = aws.New(opts.Credential, opts.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("amazon err: %s", err)
-	}
-
-	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(opts.Builder, &a.Deploy); err != nil {
-		return nil, fmt.Errorf("amazon: couldn't decode deploy variables: %s", err)
 	}
 
 	return a, nil

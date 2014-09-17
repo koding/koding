@@ -44,13 +44,11 @@ var states = map[string]*statePair{
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 }
 
-func (k *Kloud) NewBuild(handler kite.Handler) kite.Handler {
-	b := &Build{
-		deployer: handler,
-	}
+func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
+	b := &Build{}
 	b.Kloud = k
 
-	return k.ControlFunc(b.prepare)
+	return k.ControlFunc(b.prepare).ServeKite(r)
 }
 
 func (k *Kloud) Start(r *kite.Request) (interface{}, error) {
@@ -130,7 +128,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		}
 
 		// check if there is any value (like deployment variables) from a
-		// previous handler (we injected them), dd  them to our machine.Meta
+		// previous handler (we injected them), add  them to our machine.Meta
 		// data
 		if data, err := r.Context.Get("deployData"); err == nil {
 			m := data.(map[string]interface{})
