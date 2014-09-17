@@ -119,10 +119,96 @@ func (c *ChannelMessage) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-// DeleteSilent is like Delete, except that it doesn't fire any middleware
-func (c ChannelMessage) DeleteSilent() error {
-	c.DeletedAt = time.Now().UTC()
-	return bongo.B.Unscoped().Model(c).Update(c).Error
+// DeleteMessageDependencies deletes all records from the database that are
+// dependencies of a given message. This includes interactions, optionally
+// replies, and channel message lists.
+func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
+	// first delete from all channels
+	selector := map[string]interface{}{
+		"message_id": c.Id,
+	}
+
+	cml := NewChannelMessageList()
+	if err := cml.DeleteMessagesBySelector(selector); err != nil {
+		return err
+	}
+
+	// fetch interactions
+	i := NewInteraction()
+	i.MessageId = c.Id
+	interactions, err := i.FetchAll("like")
+	if err != nil {
+		return err
+	}
+
+	// delete interactions
+	for _, interaction := range interactions {
+		err := interaction.Delete()
+		if err != nil {
+			return err
+		}
+	}
+
+	if deleteReplies {
+		c.DeleteReplies()
+	}
+
+	// delete any associated channel message lists
+	c.DeleteChannelMessageLists()
+
+	err = NewMessageReply().DeleteByOrQuery(c.Id)
+	if err != nil {
+		return err
+	}
+	// delete channel message itself
+	return c.Delete()
+}
+
+//  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep
+func (c *ChannelMessage) DeleteReplies() error {
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+
+	// list returns ChannelMessage
+	messageReplies, err := mr.ListAll()
+	if err != nil {
+		return err
+	}
+
+	// delete message replies
+	for _, replyMessage := range messageReplies {
+		err := replyMessage.DeleteMessageAndDependencies(false)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *ChannelMessage) GetChannelMessageLists() ([]ChannelMessageList, error) {
+	var listings []ChannelMessageList
+	q := &bongo.Query{
+		Selector: map[string]interface{}{"message_id": c.Id}}
+
+	if err := NewChannelMessageList().Some(&listings, q); err != nil {
+		return nil, err
+	}
+	return listings, nil
+}
+
+func (c *ChannelMessage) DeleteChannelMessageLists() error {
+	listings, err := c.GetChannelMessageLists()
+	if err != nil {
+		return err
+	}
+
+	for _, listing := range listings {
+		if err := listing.Delete(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 //  FetchByIds fetchs given ids from database, it doesnt add any meta bits

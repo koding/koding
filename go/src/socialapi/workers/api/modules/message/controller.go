@@ -109,6 +109,8 @@ func checkThrottle(channelId, requesterId int64) error {
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+	fmt.Println("controller delete method is called")
+
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -131,12 +133,12 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		}
 
 		// delete the message here
-		err = deleteSingleMessage(req, false)
+		err = req.DeleteMessageAndDependencies(false)
 		// then invalidate the cache of the parent message
 		bongo.B.AddToCache(parent)
 
 	} else {
-		err = deleteSingleMessage(req, true)
+		err = req.DeleteMessageAndDependencies(true)
 	}
 
 	if err != nil {
@@ -145,65 +147,6 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	// yes it is deleted but not removed completely from our system
 	return response.NewDeleted()
-}
-
-func deleteSingleMessage(cm *models.ChannelMessage, deleteReplies bool) error {
-	// first delete from all channels
-	selector := map[string]interface{}{
-		"message_id": cm.Id,
-	}
-
-	cml := models.NewChannelMessageList()
-	if err := cml.DeleteMessagesBySelector(selector); err != nil {
-		return err
-	}
-
-	// fetch interactions
-	i := models.NewInteraction()
-	i.MessageId = cm.Id
-	interactions, err := i.FetchAll("like")
-	if err != nil {
-		return err
-	}
-
-	// delete interactions
-	for _, interaction := range interactions {
-		err := interaction.Delete()
-		if err != nil {
-			return err
-		}
-	}
-
-	if deleteReplies {
-		mr := models.NewMessageReply()
-		mr.MessageId = cm.Id
-
-		// list returns ChannelMessage
-		messageReplies, err := mr.ListAll()
-		if err != nil {
-			return err
-		}
-
-		// delete message replies
-		for _, replyMessage := range messageReplies {
-			err := deleteSingleMessage(&replyMessage, false)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	err = models.NewMessageReply().DeleteByOrQuery(cm.Id)
-	if err != nil {
-		return err
-	}
-
-	// delete replyMessage itself
-	err = cm.Delete()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {

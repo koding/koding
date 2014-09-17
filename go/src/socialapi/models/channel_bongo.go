@@ -104,7 +104,7 @@ func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	return (&ChannelMessage{}).FetchByIds(messageIds)
+	return NewChannelMessage().FetchByIds(messageIds)
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {
@@ -135,7 +135,7 @@ func (c *Channel) deleteChannelMessages() error {
 				continue
 			}
 
-			if err = message.DeleteSilent(); err != nil {
+			if err = message.Delete(); err != nil {
 				return err
 			}
 		}
@@ -167,7 +167,7 @@ func (c *Channel) deleteChannelLists() error {
 		}
 
 		for _, listing := range listings {
-			if err := listing.DeleteSilent(); err != nil {
+			if err := listing.Delete(); err != nil {
 				return err
 			}
 		}

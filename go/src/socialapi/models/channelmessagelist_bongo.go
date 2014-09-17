@@ -71,12 +71,6 @@ func (c *ChannelMessageList) Delete() error {
 	return bongo.B.Delete(c)
 }
 
-// DeleteSilent is like Delete, except that it doesn't fire any middleware
-func (c ChannelMessageList) DeleteSilent() error {
-	c.DeletedAt = time.Now().UTC()
-	return bongo.B.Unscoped().Model(c).Update(c).Error
-}
-
 func (c *ChannelMessageList) Emit(eventName string, data interface{}) error {
 	return bongo.B.Emit(c.TableName()+"_"+eventName, data)
 }
