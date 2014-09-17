@@ -1,7 +1,9 @@
 package stripe
 
 import (
+	"math/rand"
 	"socialapi/workers/common/runner"
+	"strconv"
 
 	"github.com/stripe/stripe-go"
 	stripeToken "github.com/stripe/stripe-go/token"
@@ -15,7 +17,7 @@ func init() {
 }
 
 func generateFakeUserInfo() (string, string, string) {
-	token, accId := createToken(), "indianajones"
+	token, accId := createToken(), strconv.Itoa(rand.Int())
 	email := accId + "@koding.com"
 
 	return token, accId, email
