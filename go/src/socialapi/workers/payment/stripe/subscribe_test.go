@@ -10,6 +10,13 @@ import (
 )
 
 func TestSubscribe(t *testing.T) {
+	Convey("Given nonexistent plan", t, func() {
+		token, accId, email := generateFakeUserInfo()
+		err := Subscribe(token, accId, email, "random_plans")
+
+		So(err, ShouldEqual, ErrPlanNotFound)
+	})
+
 	Convey("Given nonexistent customer, plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
 		err := Subscribe(token, accId, email, "hobbyist_month")
