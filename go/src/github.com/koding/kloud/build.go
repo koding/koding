@@ -141,20 +141,6 @@ instanceName  : %s
 	// update if we somehow updated in build process
 	c.Machine.Builder["instanceName"] = artifact.InstanceName
 
-	// Start the canceller for the build if something goes wrong. Like deleting
-	// the terminate.
-	defer func() {
-		if err == nil || c.Canceller == nil {
-			return
-		}
-
-		b.Log.Info("[%s] building machine failed. Starting canceller.", c.MachineId)
-
-		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
-			b.Log.Debug("[%s] couldn't run canceller. err: %s", c.MachineId, err)
-		}
-	}()
-
 	// b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
 	// 	pretty.Formatter(artifact))
 
