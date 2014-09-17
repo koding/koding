@@ -4,6 +4,9 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	stripe "github.com/stripe/stripe-go"
+	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
 func TestSubscribe(t *testing.T) {
@@ -62,16 +65,59 @@ func TestSubscribe(t *testing.T) {
 
 	Convey("Given customer already subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
+		planId := "hobbyist_month"
 
 		_, err := CreateCustomer(token, accId, email)
 		So(err, ShouldBeNil)
 
-		err = Subscribe(token, accId, email, "hobbyist_month")
+		err = Subscribe(token, accId, email, planId)
 		So(err, ShouldBeNil)
 
+		customer, err := FindCustomerByOldId(accId)
+		So(err, ShouldBeNil)
+
+		customerId := customer.ProviderCustomerId
+
+		subs, err := FindCustomerActiveSubscriptions(customer)
+		So(err, ShouldBeNil)
+
+		So(len(subs), ShouldEqual, 1)
+
+		currentSub := subs[0]
+		subId := currentSub.ProviderSubscriptionId
+
 		Convey("Then customer can't subscribe to same plan again", func() {
-			err = Subscribe(token, accId, email, "hobbyist_month")
+			err = Subscribe(token, accId, email, planId)
 			So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
+		})
+
+		Convey("When customer upgrades to higher plan", func() {
+			newPlanId := "developer_month"
+
+			err = Subscribe(token, accId, email, newPlanId)
+			So(err, ShouldBeNil)
+
+			Convey("Then subscription is updated on stripe", func() {
+				subParams := &stripe.SubParams{Customer: customerId}
+				sub, err := stripeSub.Get(subId, subParams)
+
+				So(err, ShouldBeNil)
+
+				So(sub.Plan.Id, ShouldEqual, newPlanId)
+			})
+
+			Convey("Then subscription is saved", func() {
+				subs, err := FindCustomerActiveSubscriptions(customer)
+				So(err, ShouldBeNil)
+
+				So(len(subs), ShouldEqual, 1)
+
+				currentSub := subs[0]
+				newPlan, err := FindPlanByTitle(newPlanId)
+
+				So(err, ShouldBeNil)
+				So(currentSub.PlanId, ShouldEqual, newPlan.Id)
+			})
 		})
 	})
 }

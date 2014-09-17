@@ -1,6 +1,11 @@
 package stripe
 
-import "socialapi/models/paymentmodel"
+import (
+	"socialapi/models/paymentmodel"
+
+	stripe "github.com/stripe/stripe-go"
+	stripeSub "github.com/stripe/stripe-go/sub"
+)
 
 func Subscribe(token, accId, email, planTitle string) error {
 	customer, err := FindCustomerByOldId(accId)
@@ -48,7 +53,7 @@ func Subscribe(token, accId, email, planTitle string) error {
 		return ErrCustomerAlreadySubscribedToPlan
 	}
 
-	err = UpdateSubscriptionForCustomer(customer, plan)
+	err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
 	if err != nil {
 		return err
 	}
@@ -61,8 +66,30 @@ func Subscribe(token, accId, email, planTitle string) error {
 	return nil
 }
 
-func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, plan *paymentmodel.Plan) error {
-	return nil
+func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscriptions []paymentmodel.Subscription, plan *paymentmodel.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	if IsNoSubscriptions(subscriptions) {
+		return ErrCustomerNotSubscribedToAnyPlans
+	}
+
+	currentSubscription := subscriptions[0]
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
+
+	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return err
+	}
+
+	err = currentSubscription.UpdatePlanId(plan.Id)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func RemoveCreditCard(customer *paymentmodel.Customer) error {
