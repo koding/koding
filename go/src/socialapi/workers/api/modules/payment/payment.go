@@ -8,8 +8,8 @@ import (
 	"socialapi/workers/payment"
 )
 
-func CreateSubscription(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func Subscribe(u *url.URL, h http.Header, req *payment.SubscriptionRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndError(
-		payment.CreateSubscription(),
+		req.Subscribe(),
 	)
 }

@@ -438,10 +438,10 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 	//----------------------------------------------------------
 	// Payment
 	//----------------------------------------------------------
-	mux.Handle("POST", "/payments/subscriptions", handler.Wrapper(
+	mux.Handle("POST", "/payments/subscribe", handler.Wrapper(
 		handler.Request{
-			Handler:        payment.CreateSubscription,
-			Name:           "payment-createsubscription",
+			Handler:        payment.Subscribe,
+			Name:           "payment-subsrcibe",
 			CollectMetrics: true,
 			Metrics:        metrics,
 		},
