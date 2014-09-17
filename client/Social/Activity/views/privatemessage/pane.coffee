@@ -309,4 +309,4 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
-  defaultFilter : -> "MOST_RECENT"
+  defaultFilter: 'Most Recent'
