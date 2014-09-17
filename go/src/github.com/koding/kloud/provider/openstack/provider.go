@@ -7,7 +7,6 @@ import (
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 )
@@ -26,6 +25,10 @@ type Provider struct {
 
 	AuthURL      string
 	ProviderName string
+
+	PublicKey  string
+	PrivateKey string
+	KeyName    string
 }
 
 func (p *Provider) Name() string {
@@ -54,10 +57,16 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
 		return nil, fmt.Errorf("openstack err: %s", err)
 	}
 
-	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(opts.Builder, &o.Deploy); err != nil {
-		return nil, fmt.Errorf("openstack: couldn't decode deploy variables: %s", err)
-	}
+	// For now we assume that every client deploys this one particular key,
+	// however we can easily override it from the `opts` data (mongodb) and
+	// replace it with user's own key.
+
+	// needed to deploy during build
+	o.Builder.KeyName = p.KeyName
+
+	// needed to create the keypair if it doesn't exist
+	o.Builder.PublicKey = p.PublicKey
+	o.Builder.PrivateKey = p.PrivateKey
 
 	return o, nil
 }

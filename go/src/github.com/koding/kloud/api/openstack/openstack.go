@@ -34,6 +34,13 @@ type Openstack struct {
 		Flavor      string `mapstructure:"flavorId"`
 		RawRegion   string `mapstructure:"region"`
 
+		// KeyName is used to deploy the machine with that particular key
+		KeyName string `mapstructure:"key_name"`
+
+		// PublicKey and PrivateKey is used to create a new key.
+		PublicKey  string `mapstructure:"publicKey"`
+		PrivateKey string `mapstructure:"privateKey"`
+
 		// Not Used
 		RawSSHTimeout     string   `mapstructure:"ssh_timeout"`
 		SSHUsername       string   `mapstructure:"ssh_username"`
