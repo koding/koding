@@ -15,9 +15,8 @@ import (
 
 type AmazonClient struct {
 	*aws.Amazon
-	Log    logging.Logger
-	Push   func(string, int, machinestate.State)
-	Deploy *protocol.ProviderDeploy
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
 
 	// Used for customization
 	InfoLog func(string, ...interface{})
@@ -47,17 +46,16 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		}
 	}
 
-	// get the necessary keynames that we are going to provide with Amazon. If
-	// it doesn't exist a new one will be created.
-	// check if the key exist, if yes return the keyname
-	infoLog("Checking if keypair '%s' does exist", a.Deploy.KeyName)
+	// Get the necessary keynames that we are going to provide with Amazon. If
+	// it doesn't exist a new one will be created.  check if the key exist, if
+	// yes return the keyname
+	infoLog("Checking if keypair '%s' does exist", a.Builder.KeyPair)
 	keyName, err := a.DeployKey()
 	if err != nil {
 		return nil, err
 	}
 
-	// Create instance with this keypair, if Deploy is not initialized it will
-	// be a empty key pair, means no one is able to ssh into the machine.
+	// Create instance with this keypair
 	a.Builder.KeyPair = keyName
 
 	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
@@ -104,18 +102,15 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 		IpAddress:     instance.PublicIpAddress,
 		InstanceName:  instanceName,
 		InstanceId:    instance.InstanceId,
-		SSHPrivateKey: a.Deploy.PrivateKey,
+		SSHPrivateKey: a.Builder.PrivateKey,
 		SSHUsername:   "", // deploy with root
 	}, nil
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
-	if a.Deploy == nil {
-		return "", nil
-	}
-
-	resp, err := a.Showkey(a.Deploy.KeyName)
+	resp, err := a.Showkey(a.Builder.KeyPair)
 	if err == nil {
+		// key is found
 		return resp.Keys[0].Name, nil
 	}
 
@@ -131,8 +126,13 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	}
 
 	// ok now the key is not found, means it needs to be created
-	a.Log.Info("Keypair '%s' doesn't exist, creating a new one", a.Deploy.KeyName)
-	key, err := a.CreateKey(a.Deploy.KeyName, a.Deploy.PublicKey)
+	a.Log.Info("Keypair '%s' doesn't exist, creating a new one", a.Builder.KeyPair)
+
+	if a.Builder.PublicKey == "" {
+		return "", errors.New("PublicKey is not defined. Can't create key")
+	}
+
+	key, err := a.CreateKey(a.Builder.KeyPair, a.Builder.PublicKey)
 	if err != nil {
 		return "", err
 	}

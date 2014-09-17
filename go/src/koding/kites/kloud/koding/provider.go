@@ -21,7 +21,6 @@ import (
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/mitchellh/mapstructure"
 	uuid "github.com/nu7hatch/gouuid"
 )
 
@@ -68,6 +67,14 @@ type Provider struct {
 	KontrolURL        string
 	KontrolPrivateKey string
 	KontrolPublicKey  string
+
+	// If available a key pair with the given public key and name should be
+	// deployed to the machine, the corresponding PrivateKey should be returned
+	// in the ProviderArtifact. Some providers such as Amazon creates
+	// publicKey's on the fly and generates the privateKey themself.
+	PublicKey  string `structure:"publicKey"`
+	PrivateKey string `structure:"privateKey"`
+	KeyName    string `structure:"keyName"`
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -95,10 +102,12 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(machine.Builder, &a.Deploy); err != nil {
-		return nil, fmt.Errorf("koding-amazon: couldn't decode deploy variables: %s", err)
-	}
+	// needed to deploy during build
+	a.Builder.KeyPair = p.KeyName
+
+	// needed to create the keypair if it doesn't exist
+	a.Builder.PublicKey = p.PublicKey
+	a.Builder.PrivateKey = p.PrivateKey
 
 	return a, nil
 }
@@ -308,6 +317,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	}
 
 	a.Builder.UserData = buf.Bytes()
+
+	a.Builder.KeyPair = p.KeyName
 
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {

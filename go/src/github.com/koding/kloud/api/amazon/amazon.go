@@ -43,6 +43,10 @@ type Amazon struct {
 		// you can't connect to the instance.
 		KeyPair string `mapstructure:"key_pair"`
 
+		// PublicKey and PrivateKey is used to create a new KeyPair.
+		PublicKey  string `mapstructure:"publicKey"`
+		PrivateKey string `mapstructure:"privateKey"`
+
 		// SecurityGroup defines one security group ID (optional)
 		SecurityGroupId string `mapstructure:"security_group_id"`
 
