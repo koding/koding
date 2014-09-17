@@ -8,6 +8,15 @@ import (
 )
 
 func Subscribe(token, accId, email, planTitle string) error {
+	plan, err := FindPlanByTitle(planTitle)
+	if err != nil {
+		return err
+	}
+
+	if plan == nil {
+		return ErrPlanNotFound
+	}
+
 	customer, err := FindCustomerByOldId(accId)
 	if err != nil {
 		return err
@@ -22,15 +31,6 @@ func Subscribe(token, accId, email, planTitle string) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	plan, err := FindPlanByTitle(planTitle)
-	if err != nil {
-		return err
-	}
-
-	if plan == nil {
-		return ErrPlanNotFound
 	}
 
 	subscriptions, err := FindCustomerActiveSubscriptions(customer)
