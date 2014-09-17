@@ -49,6 +49,22 @@ class PaymentForm extends JView
           title    : 'YEAR'
           callback : => @emit 'IntervalToggleChanged', { interval : YEAR }
 
+
+    # we are gonna process the price to make it
+    # not more than 2 decimal digits.
+    # basically: 124.12412412412412 -> 124.12
+    monthlyDifference = (monthPrice / 100.00) - (yearPrice / 12 / 100.00)
+    monthlyDifference = monthlyDifference.toString().split '.'
+    monthlyDifference[1] = monthlyDifference[1].slice 0, 2
+    monthlyDifference.join '.'
+
+    @intervalToggleMessage = new KDCustomHTMLView
+      cssClass : 'interval-toggle-message'
+      partial  : "
+        You can save <strong>$#{monthlyDifference}</strong>/mo
+        by switching to <strong>yearly plan</strong>.
+      "
+
     @subscription = new KDCustomHTMLView
       cssClass: 'plan-name'
       partial : "#{subscription.capitalize()} Plan"
@@ -227,6 +243,7 @@ class PaymentForm extends JView
   pistachio: ->
     """
     {{> @intervalToggle}}
+    {{> @intervalToggleMessage}}
     <div class='summary clearfix'>
       {{> @subscription}}{{> @price}}
     </div>
