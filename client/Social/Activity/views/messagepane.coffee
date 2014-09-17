@@ -293,9 +293,13 @@ class MessagePane extends KDTabPaneView
 
   populate: (callback = noop) ->
 
+    filter = @currentFilter
+
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
+
+      return  if @currentFilter isnt filter
 
       @listController.hideLazyLoader()
       items.forEach @bound 'appendMessageDeferred'
