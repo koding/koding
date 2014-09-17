@@ -27,6 +27,7 @@ class PaymentModal extends KDModalView
       sceneClass : PaymentForm
       events     : ->
         @forwardEvent @scene, 'PaymentSubmitted'
+        @scene.forwardEvent this, 'PaymentProviderLoaded'
     ,
       title       : ''
       subtitle    : ''
@@ -52,6 +53,8 @@ class PaymentModal extends KDModalView
     @addSubView @scene
 
 
-  initViews: -> @scene = @openScene @initialState.scene
+  initViews: ->
+    options = @getOptions()
+    @scene  = @openScene @initialState.scene, @state
 
 

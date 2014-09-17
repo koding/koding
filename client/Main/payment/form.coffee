@@ -1,13 +1,36 @@
 class PaymentForm extends JView
 
+  initialState     :
+    interval       : PaymentWorkflow.interval.MONTH
+    subscription   : PaymentWorkflow.subscription.HOBBYIST
+    providerLoaded : no
+    validation     : {
+      cardNumber   : yes
+      cardCVC      : yes
+      cardName     : yes
+      cardMonth    : yes
+      cardYear     : yes
+    }
+
   constructor: (options = {}, data) ->
 
     options.cssClass = @utils.curry 'payment-form-wrapper', options.cssClass
 
     super options, data
 
+    { state } = @getOptions()
+
+    @state = @utils.extend @initialState, state
+
     @initViews()
     @initEvents()
+
+    { interval } = state
+
+    # select the inital button depending on the initial
+    # button. `Month/Year`
+    intervalButton = @intervalToggle.buttons[interval]
+    @intervalToggle.buttonReceivedClick intervalButton
 
 
   initViews: ->
@@ -19,11 +42,11 @@ class PaymentForm extends JView
     @intervalToggle = new KDButtonGroupView
       cssClass     : 'interval-toggle'
       buttons      :
-        MONTH      :
-          title    : MONTH
+        'month'    :
+          title    : 'MONTH'
           callback : => @emit 'IntervalToggleChanged', { interval : MONTH }
-        YEAR       :
-          title    : YEAR
+        'year'     :
+          title    : 'YEAR'
           callback : => @emit 'IntervalToggleChanged', { interval : YEAR }
 
     @subscription = new KDCustomHTMLView
@@ -42,6 +65,7 @@ class PaymentForm extends JView
     @form = @initForm()
 
     @submitButton = new KDButtonView
+      disabled  : not @state.providerLoaded
       style     : 'solid medium green'
       title     : 'UPGRADE YOUR PLAN'
       loader    : yes
@@ -167,13 +191,26 @@ class PaymentForm extends JView
 
   initEvents: ->
 
-    @on 'IntervalToggleChanged', (subscription) => @handleToggleChanged subscription
+    @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
+    @on 'PaymentProviderLoaded', @bound 'handlePaymentProviderLoaded'
+
+    { cardNumber } = @form.inputs
+
+    cardNumber.on "CreditCardTypeIdentified", (type) ->
+      cardNumber.setClass type.toLowerCase()
+
+
+  handlePaymentProviderLoaded: ({ provider }) ->
+
+    @state.providerLoaded = yes
+
+    @submitButton.enable()
 
 
   handleToggleChanged: (subscription) ->
 
-    data = @getData()
-    data.subscription = subscription
+    button = @intervalToggle.buttons[subscription.interval]
+    @intervalToggle.buttonReceivedClick button
 
 
   pistachio: ->
