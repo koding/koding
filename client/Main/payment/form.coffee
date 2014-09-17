@@ -1,6 +1,8 @@
-# This class is responsible for showing the form for
-# payment entry. It does all of its validation and
-# mix it with Stripe validations.
+# PaymentForm contains the input fields that are required
+# to make a purchase: Credit card number, CVC etc.
+# It uses stripe.js for custom validations. If the inputs
+# pass validation, it emits `PaymentSubmitted` event with
+# the user inputted values.
 class PaymentForm extends JView
 
   initialState     :
