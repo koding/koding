@@ -173,52 +173,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		infoLog("No security group with name: '%s' exists. Creating a new one. Err was: %s", groupName, err)
-		vpcs, err := a.ListVPCs()
-		if err != nil {
-			return nil, err
-		}
-
-		group = ec2.SecurityGroup{
-			Name:        groupName,
-			Description: "Koding Kloud Security Group",
-			VpcId:       vpcs.VPCs[0].VpcId,
-		}
-
-		infoLog("Creating security group for this instance...")
-		// TODO: remove it after we are done
-		groupResp, err := a.Client.CreateSecurityGroup(group)
-		if err != nil {
-			return nil, err
-		}
-		group = groupResp.SecurityGroup
-
-		// Authorize the SSH access
-		perms := []ec2.IPPerm{
-			ec2.IPPerm{
-				Protocol:  "tcp",
-				FromPort:  22,
-				ToPort:    22,
-				SourceIPs: []string{"0.0.0.0/0"},
-			},
-		}
-
-		// We loop and retry this a few times because sometimes the security
-		// group isn't available immediately because AWS resources are eventaully
-		// consistent.
-		infoLog("Authorizing SSH access on the security group: '%s'", group.Id)
-		for i := 0; i < 5; i++ {
-			_, err = a.Client.AuthorizeSecurityGroup(group, perms)
-			if err == nil {
-				break
-			}
-
-			a.Log.Warning("Error authorizing. Will sleep and retry. %s", err)
-			time.Sleep((time.Duration(i) * time.Second) + 1)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Error creating temporary security group: %s", err)
-		}
+		return nil, err
 	}
 
 	// add now our security group
@@ -310,16 +265,18 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 
 	cloudInitConfig.setupMigrateScript()
 
-	var buf bytes.Buffer
-	err = cloudInitTemplate.Execute(&buf, *cloudInitConfig)
+	var userdata bytes.Buffer
+	err = cloudInitTemplate.Execute(&userdata, *cloudInitConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Builder.UserData = buf.Bytes()
+	a.Builder.UserData = userdata.Bytes()
 
+	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
+	// build now our instance!!
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
@@ -427,39 +384,6 @@ func CleanZoneID(ID string) string {
 		ID = strings.TrimPrefix(ID, "/hostedzone/")
 	}
 	return ID
-}
-
-// Remove the instance if something goes wrong
-// TODO: remove this after we moved deploy.go into cloud-init
-func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
-	a, err := p.NewClient(opts)
-	if err != nil {
-		return err
-	}
-
-	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
-		opts.MachineId, artifact.InstanceId)
-	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
-	if err != nil {
-		p.Log.Warning("Cleaning up instance failed: %v", err)
-	}
-
-	if err := p.InitDNS(opts); err != nil {
-		return err
-	}
-
-	username := opts.Builder["username"].(string)
-	machineData := opts.CurrentData.(*Machine)
-
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
-		return err
-	}
-
-	if err := p.DNS.DeleteDomain(machineData.Domain, artifact.IpAddress); err != nil {
-		p.Log.Warning("Cleaning up domain failed: %v", err)
-	}
-
-	return nil
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
