@@ -209,8 +209,19 @@ class PaymentForm extends JView
 
   handleToggleChanged: (subscription) ->
 
-    button = @intervalToggle.buttons[subscription.interval]
+    { interval } = subscription
+
+    @state.interval = interval
+    { monthPrice, yearPrice } = @state
+
+    button = @intervalToggle.buttons[interval]
     @intervalToggle.buttonReceivedClick button
+
+    pricePartial = if interval is PaymentWorkflow.interval.MONTH
+    then "#{monthPrice / 100.00}/mo"
+    else "#{(yearPrice / 100.00) / 12}/mo"
+
+    @price.updatePartial pricePartial
 
 
   pistachio: ->
