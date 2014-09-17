@@ -29,7 +29,7 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 }
 
 func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
-	var subs []paymentmodel.Subscription
+	var subs = []paymentmodel.Subscription{}
 
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
