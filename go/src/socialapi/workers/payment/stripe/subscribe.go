@@ -1,8 +1,6 @@
 package stripe
 
-import (
-	"socialapi/models/paymentmodel"
-)
+import "socialapi/models/paymentmodel"
 
 func Subscribe(token, accId, email, planTitle string) error {
 	customer, err := FindCustomerByOldId(accId)
@@ -10,7 +8,7 @@ func Subscribe(token, accId, email, planTitle string) error {
 		return err
 	}
 
-	if !Exists(customer) {
+	if customer == nil {
 		if IsEmpty(token) {
 			return ErrTokenIsEmpty
 		}
@@ -26,7 +24,7 @@ func Subscribe(token, accId, email, planTitle string) error {
 		return err
 	}
 
-	if !Exists(plan) {
+	if plan == nil {
 		return ErrPlanNotFound
 	}
 

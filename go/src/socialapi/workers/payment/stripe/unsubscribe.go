@@ -6,7 +6,7 @@ func Unsubscribe(accId, planTitle string) error {
 		return err
 	}
 
-	if Exists(customer) {
+	if customer == nil {
 		return ErrCustomerNotFound
 	}
 
@@ -15,7 +15,7 @@ func Unsubscribe(accId, planTitle string) error {
 		return err
 	}
 
-	if Exists(plan) {
+	if plan == nil {
 		return ErrPlanNotFound
 	}
 

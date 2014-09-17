@@ -2,10 +2,6 @@ package stripe
 
 import "socialapi/models/paymentmodel"
 
-func Exists(item interface{}) bool {
-	return item != nil
-}
-
 func IsEmpty(str string) bool {
 	return str == ""
 }
