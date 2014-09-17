@@ -10,7 +10,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/kloud"

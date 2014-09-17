@@ -46,7 +46,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             finalCheck   : (input, event)=> @usernameCheck input, event, 0
           messages       :
             required     : 'Please enter a username.'
-            regExp       : 'For username only lowercase letters and numbers are allowed!'
+            regExp       : 'Your desired username can only have lowercase letters and numbers.'
             rangeLength  : 'Username should be between 4 and 25 characters!'
           events         :
             required     : 'blur'
@@ -149,7 +149,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         return
     messages    :
       required  : 'Please enter your email address.'
-      email     : 'That doesn\'t seem like a valid email address.'
+      email     : 'That does not seem to be a valid email address.'
 
 
   submitForm: (event) ->
