@@ -37,9 +37,6 @@ class AceSettingsView extends JView
     @keyboardHandler= new KDSelectBox
       selectOptions : __aceSettings.keyboardHandlers
       callback      : (value) -> button.emit "ace.changeSetting", "keyboardHandler", value
-    @softWrap       = new KDSelectBox
-      selectOptions : __aceSettings.softWrapOptions
-      callback      : (value) -> button.emit "ace.changeSetting", "softWrap", value
     @syntax         = new KDSelectBox
       selectOptions : __aceSettings.getSyntaxOptions()
       callback      : (value) -> button.emit "ace.changeSetting", "syntax", value

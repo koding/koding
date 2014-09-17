@@ -8,7 +8,6 @@ import (
 	"github.com/koding/kloud/eventer"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/mitchellh/mapstructure"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
@@ -24,6 +23,10 @@ type Provider struct {
 	Push        func(string, int, machinestate.State)
 	PoolEnabled bool
 	Redis       *redis.RedisSession
+
+	PublicKey  string
+	PrivateKey string
+	KeyName    string
 }
 
 func (p *Provider) NewClient(opts *protocol.Machine) (*Client, error) {
@@ -56,15 +59,21 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*Client, error) {
 	}
 	c.DigitalOcean = d
 
-	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(opts.Builder, &c.Deploy); err != nil {
-		return nil, fmt.Errorf("digitalocean: couldn't decode deploy variables: %s", err)
-	}
-
 	if p.Redis != nil {
 		c.Redis = p.Redis
 		c.RedisPrefix = p.Redis.AddPrefix("")
 	}
+
+	// For now we assume that every client deploys this one particular key,
+	// however we can easily override it from the `opts` data (mongodb) and
+	// replace it with user's own key.
+
+	// needed to deploy during build
+	c.Builder.KeyName = p.KeyName
+
+	// needed to create the keypair if it doesn't exist
+	c.Builder.PublicKey = p.PublicKey
+	c.Builder.PrivateKey = p.PrivateKey
 
 	p.Push = push
 	return c, nil

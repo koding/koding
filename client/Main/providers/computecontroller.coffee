@@ -121,11 +121,25 @@ class ComputeController extends KDController
   fetchAvailable: (options, callback)->
     KD.remote.api.ComputeProvider.fetchAvailable options, callback
 
-  fetchExisting: (options, callback)->
-    KD.remote.api.ComputeProvider.fetchExisting options, callback
+  fetchUsage: (options, callback)->
+    KD.remote.api.ComputeProvider.fetchUsage options, callback
+
+  setAlwaysOn: (machine, state, callback = noop)->
+
+    options =
+      machineId : machine._id
+      provider  : machine.provider
+      alwaysOn  : state
+
+    KD.remote.api.ComputeProvider.update options, (err)=>
+      @triggerReviveFor machine._id  unless err?
+      callback err
+
 
   create: (options, callback)->
-    KD.remote.api.ComputeProvider.create options, callback
+    KD.remote.api.ComputeProvider.create options, (err, machine)=>
+      @reset yes  unless err?
+      callback err, machine
 
   createDefaultStack: ->
     return  unless KD.isLoggedIn()
@@ -138,11 +152,12 @@ class ComputeController extends KDController
 
     @stacks   = []
     @machines = []
+    @plans    = null
     @_trials  = {}
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
-      @emit "renderStacks"
+      @emit "MachineDataUpdated"
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}
@@ -349,21 +364,46 @@ class ComputeController extends KDController
   # Utils beyond this point
   #
 
+  fetchPlans: (callback = noop)->
+
+    if @plans
+      KD.utils.defer => callback @plans
+    else
+      KD.remote.api.ComputeProvider.fetchPlans
+        provider: "koding"
+      , (err, plans)=>
+          if err? then warn err
+          else @plans = plans
+          callback plans
+
+  getUserPlan:->
+
+    knownPlans = ['super', 'professional', 'developer', 'hobbyist']
+    flags = KD.whoami().globalFlags or []
+
+    for plan in knownPlans
+      return plan  if "plan-#{plan}" in flags
+
+    return 'free'
+
 
   handleNewMachineRequest: ->
 
+    plan = @getUserPlan()
 
-    # Temporary waiting flow we will replace
-    # this with payment/plan fetch process.
+    @fetchPlans (plans)=>
 
-    # loading = new ComputePlansModal.Loading
-    # KD.utils.wait 1000, ->
-    #   loading.destroy()
-    #
-    # we can create the flow once it is ready,
-    # no need to make user wait to warn him. - SY
+      @fetchUsage provider: "koding", (err, usage)->
 
-    KD.utils.defer -> new ComputePlansModal.Free
+        return  if KD.showError err
+
+        limits  = plans[plan]
+        options = { plan, limits, usage }
+
+        if plan in ['developer', 'professional', 'super']
+          new ComputePlansModal.Paid options
+        else
+          new ComputePlansModal.Free options
 
 
   triggerReviveFor:(machineId)->

@@ -35,6 +35,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {
       notificationController
+      computeController
       socialapi
     } = KD.singletons
 
@@ -59,6 +60,8 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
+    computeController
+      .on 'MachineDataUpdated',        @bound 'updateMachineTree'
 
   # event handling
 
@@ -343,49 +346,90 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
-        id           : "#{id}-workspaces"
         title        : 'Workspaces <span class="ws-add-icon"></span>'
         type         : 'title'
         parentId     : id
+        id           : machine._id
         machineUId   : machine.uid
+        machineLabel : machine.label
 
       treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
-        href         : "/IDE/my-workspace"
+        href         : "/IDE/#{machine.label}/my-workspace"
+        id           : "#{machine.label}-workspace"
         parentId     : id
+        machineLabel : machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
-        treeData.push
-          title      : workspace.name
-          type       : 'workspace'
-          href       : "/IDE/#{workspace.slug}"
-          data       : workspace
-          parentId   : id
+        if workspace.machineUId is machine.uid
+          treeData.push
+            title        : workspace.name
+            type         : 'workspace'
+            href         : "/IDE/#{machine.label}/#{workspace.slug}"
+            machineLabel : machine.label
+            data         : workspace
+            id           : workspace._id
+            parentId     : id
 
     @machineTree.addNode data for data in treeData
 
 
   selectWorkspace: (data) ->
-    data = @lastSelectedWorkspaceData or {}  unless data
+
+    data = @latestWorkspaceData or {}  unless data
     { workspace, machine } = data
 
-    return unless workspace or machine
+    return if not machine or not workspace
 
     tree = @machineTree
 
     for key, node of tree.nodes
-      nodeData = node.getData()
+      nodeData         = node.getData()
+      isSameMachine    = nodeData.uid is machine.uid
+      isMachineRunning = machine.status.state is Machine.State.Running
 
       if node.type is 'machine'
-        isSameMachine = nodeData.uid is machine.uid
-        if isSameMachine then  tree.expand node else tree.collapse node
+        if isSameMachine
+          if isMachineRunning
+            tree.expand node
+          else
+            tree.selectNode node
+            @watchMachineState workspace, machine
+        else
+          tree.collapse node
 
       else if node.type is 'workspace'
-        slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
-        tree.selectNode node  if slug is workspace.slug
+        if isMachineRunning and nodeData.machineLabel is machine.label
+          slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+          tree.selectNode node  if slug is workspace.slug
 
-    @lastSelectedWorkspaceData = data
+    @latestWorkspaceData = data
+
+    localStorage         = KD.getSingleton("localStorageController").storage "IDE"
+    minimumDataToStore   = machineLabel: machine.label, workspaceSlug: workspace.slug
+
+    localStorage.setValue 'LatestWorkspace', minimumDataToStore
+
+
+  watchMachineState: (workspace, machine) ->
+    @watchedMachines  or= {}
+    computeController   = KD.getSingleton 'computeController'
+    appManager          = KD.getSingleton 'appManager'
+    isSameMachineActive = appManager.getFrontApp().mountedMachineUId is machine.uid
+    {Running}           = Machine.State
+
+    return  if @watchedMachines[machine._id]
+
+    callback = (state) =>
+      if state.status is Running
+        machine.status.state = Running
+        if isSameMachineActive
+          @selectWorkspace { workspace, machine }
+          delete @watchedMachines[machine._id]
+
+    computeController.on "public-#{machine._id}", callback
+    @watchedMachines[machine._id] = yes
 
 
   fetchMachines: (callback) ->
@@ -451,10 +495,6 @@ class ActivitySidebar extends KDCustomHTMLView
     @activityLink?.unsetClass 'selected'
 
     if event.target.nodeName is 'SPAN'
-
-      if machineItem.type is 'title'
-        if event.target.classList.contains 'ws-add-icon'
-          return @addNewWorkspace machineItem
 
       if status?.state is Running
         KD.utils.stopDOMEvent event
@@ -532,11 +572,15 @@ class ActivitySidebar extends KDCustomHTMLView
   addNewWorkspace: (machineItem) ->
     return if @addWorkspaceView
 
-    {machineUId} = machineItem.getData()
-    type         = 'new-workspace'
-    delegate     = machineItem.getDelegate()
+    {machineUId, machineLabel} = machineItem.getData()
+    type     = 'new-workspace'
+    delegate = machineItem.getDelegate()
+    parentId = machineUId
+    id       = "#{machineUId}-input"
+    data     = { type, machineUId, machineLabel, parentId, id }
+    tree     = @machineTree
 
-    @addWorkspaceView = delegate.addItem { type, machineUId }
+    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
     @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
       delegate.removeItem @addWorkspaceView
@@ -546,9 +590,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   createNewWorkspace: (options = {}) ->
-    {name, machineUId, rootPath} = options
+    {name, machineUId, rootPath, machineLabel} = options
     {computeController, router } = KD.singletons
-    layout                       = {}
+    layout = {}
 
     if not name or not machineUId
       return warn 'Missing options for create new workspace'
@@ -557,7 +601,7 @@ class ActivitySidebar extends KDCustomHTMLView
       rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
       emptyWorkspace = yes
 
-    data    = { name, machineUId, rootPath, layout }
+    data    = { name, machineUId, machineLabel, rootPath, layout }
     machine = m for m in computeController.machines when m.uid is machineUId
     command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
 
@@ -566,12 +610,19 @@ class ActivitySidebar extends KDCustomHTMLView
     callback = =>
       KD.remote.api.JWorkspace.create data, (err, workspace) =>
         return KD.showError "Couldn't create new workspace"  if err
+
+        for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+          parentId = nodeData.id
+
         view    = @addWorkspaceView
-        options =
+        data    =
           title : workspace.name
           type  : 'workspace'
-          href  : "/IDE/#{workspace.slug}"
+          href  : "/IDE/#{machine.label}/#{workspace.slug}"
           data  : workspace
+          id    : workspace._id
+          machineLabel : machineLabel
+          parentId: parentId
 
         if view
           list  = view.getDelegate()
@@ -580,11 +631,11 @@ class ActivitySidebar extends KDCustomHTMLView
           for key, node of @machineTree.nodes when node.type is 'title'
             list = node.getDelegate()
 
-        list.addItem options
+        @machineTree.addNode data
 
         KD.userWorkspaces.push workspace
 
-        router.handleRoute options.href
+        router.handleRoute data.href
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })

@@ -10,7 +10,7 @@ class NavigationMachineItem extends JView
 
     machine            = data
     @alias             = machine.label
-    path               = KD.utils.groupifyLink "/IDE/my-workspace"
+    path               = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"

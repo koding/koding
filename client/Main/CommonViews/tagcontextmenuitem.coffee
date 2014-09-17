@@ -15,4 +15,4 @@ class TagContextMenuItem extends JContextMenuItem
     else if $deleted
       """You can not tag your post with <span class="ttag">#{Encoder.XSSEncode $deleted}</span>"""
     else
-      "{{#(title)}}"
+      "{{#(name)}}"

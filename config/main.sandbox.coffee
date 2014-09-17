@@ -297,6 +297,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
 
+    algoliaconnector    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
+
     notification        :
       group             : "socialapi"
       supervisord       :

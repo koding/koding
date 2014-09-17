@@ -164,6 +164,8 @@ module.exports = [
   "providers/computeplansmodal.coffee",
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
+  "providers/computeplansmodalpaid.coffee",
+  "providers/customplanstorageslider.coffee",
 
   # Algolia-based autocomplete:
   "autocompletecontroller.coffee",
@@ -273,8 +275,6 @@ module.exports = [
   "styl/resurrection.account.dropdown.styl",
   "styl/resurrection.anims.styl",
   "styl/troubleshoot.styl",
-  "styl/computeproviders.styl",
-
-  "styl/app.markdown.styl"
+  "styl/computeproviders.styl"
 
 ]

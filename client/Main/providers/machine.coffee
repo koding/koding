@@ -58,6 +58,7 @@ class Machine extends KDObject
   updateLocalData:->
     { @label, @ipAddress, @_id, @provisioners, @provider
       @status, @uid, @domain, @queryString } = @jMachine
+    @alwaysOn = @jMachine.meta.alwaysOn ? no
 
   getName: ->
     {uid, label, ipAddress} = this
