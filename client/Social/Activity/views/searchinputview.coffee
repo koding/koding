@@ -1,9 +1,15 @@
-class SearchInputView extends KDInputView
+class SearchInputView extends KDHitEnterInputView
 
-  constructor: (options, data) ->
+  constructor: (options = {}, data) ->
+    options.cssClass = KD.utils.curry "search-input", options.cssClass
+    options.placeholder ?= "Search"
+    options.type ?= 'input'
+    options.stayFocused ?= yes
+
     super options, data
 
-    { event } = @getOptions()
-    event ?= 'keydown'
+    @on "EnterPerformed", => @emit "SearchRequested", @getValue()
 
-    @on event, => @emit 'input', @getValue()
+  clear: ->
+    @setValue ""
+    super()

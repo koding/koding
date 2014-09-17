@@ -41,10 +41,11 @@ class SearchController extends KDObject
     { SocialMessage } = KD.remote.api
     @search 'messages', seed, facetFilters: ["channel:#{ channelId }"]
       .map ({ objectID: id }) ->
-        # apparently this social api code doesn't use promises, even though it is newly written!
-        new Promise (resolve, reject) ->
+        new Promise (resolve) ->
           KD.singletons.socialapi.message.byId { id }, (err, message) ->
-            return reject err  if err
+            if err
+              # NOTE: intentionally not rejecting here:
+              console.warn "social api error:", err
             return resolve message
       .filter Boolean
 

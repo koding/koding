@@ -53,6 +53,10 @@ class SocialApiController extends KDController
     m.repliesCount = data.repliesCount
     m.isFollowed   = data.isFollowed
 
+    m.on 'LikeAdded', ->
+      # FIXME: should this be done another way?
+      KD.singletons.socialapi.emit "LikeDirty"
+
     # this is sent by the server when
     # response for pinned messages
     m.unreadRepliesCount = data.unreadRepliesCount
@@ -302,7 +306,6 @@ class SocialApiController extends KDController
       {event: "AddedToChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
-
 
   message:
     byId                 : messageRequesterFn

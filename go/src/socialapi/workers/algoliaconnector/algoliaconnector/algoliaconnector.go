@@ -71,11 +71,11 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 	})
 }
 
-func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {
+func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
 	message := models.NewChannelMessage()
 
 	err := message.One(&bongo.Query{
-		Selector: map[string]interface{}{"id": data.MessageId}})
+		Selector: map[string]interface{}{"id": listing.MessageId}})
 
 	if err != nil {
 		return err
@@ -85,6 +85,31 @@ func (f *Controller) MessageSaved(data *models.ChannelMessageList) error {
 		"body":     message.Body,
 		"objectID": strconv.FormatInt(message.Id, 10),
 		// we'll facet on the channel id:
-		"channel": data.ChannelId,
+		"channel": strconv.FormatInt(listing.ChannelId, 10),
 	})
+}
+
+func (f *Controller) MessageDeleted(listing *models.ChannelMessageList) error {
+	index, err := f.indexes.Get("messages")
+	if err != nil {
+		return err
+	}
+	if _, err = index.DeleteObject(strconv.FormatInt(listing.MessageId, 10)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
+	index, err := f.indexes.Get("messages")
+	if err != nil {
+		return err
+	}
+	if _, err = index.PartialUpdateObject(map[string]interface{}{
+		"objectID": strconv.FormatInt(message.Id, 10),
+		"body":     message.Body,
+	}); err != nil {
+		return err
+	}
+	return nil
 }
