@@ -1,3 +1,6 @@
+# This class is the modal view.
+# Shows the payment form and the result of
+# the process, (e.g validation errors etc)
 class PaymentModal extends KDModalView
 
   initialState :

@@ -1,3 +1,6 @@
+# This class is responsible for showing the form for
+# payment entry. It does all of its validation and
+# mix it with Stripe validations.
 class PaymentForm extends JView
 
   initialState     :

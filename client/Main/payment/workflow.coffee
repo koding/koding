@@ -1,3 +1,16 @@
+# This class is responsible of showing the payment modal.
+# This workflow will decide if what to do next.
+# No matter where you are instantiating this class,
+# as long as you pass the view instance to this class
+# it will emit necessary events when a substantial thing
+# happens in the work flow.
+#
+# Necessary options when you instantiate it.
+#
+# planName   : string (see PaymentWorkflow.plans)
+# monthPrice : int (e.g 1900 for $19)
+# yearPrice  : int (e.g 19000 for $190)
+# view       : KDView
 class PaymentWorkflow extends KDController
 
   @interval:
