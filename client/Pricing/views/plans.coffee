@@ -1,11 +1,18 @@
 class PricingPlansView extends KDView
 
+  initialState:
+    currentPlan: 'professional'
+
   constructor: (options = {}, data) ->
 
     options.tagName  = "section"
     options.cssClass = "plans clearfix"
 
     super options, data
+
+    { state } = options
+
+    @state = @utils.extend @initialState, state
 
     @planViews = {}
 
@@ -14,6 +21,8 @@ class PricingPlansView extends KDView
 
     for plan in @plans
       plan.delegate = this
+      planName = plan.title.toLowerCase()
+      plan.cssClass = @utils.curry 'current'  if @state.currentPlan is planName
       @addSubView view = new SinglePlanView plan
       @forwardEvent view, "PlanSelected"
 
@@ -51,7 +60,7 @@ class PricingPlansView extends KDView
     monthPrice   : 1900
     yearPrice    : 20520
     description  : 'Great for sad pandas and SEO engineers'
-    cssClass     : 'developer current'
+    cssClass     : 'developer'
     planFeatures : [
       { partial: '1 GB RAM'     , cssClass: 'ram' }
       { partial: '1 Core'       , cssClass: 'cpu' }
