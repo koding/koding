@@ -90,7 +90,10 @@ class MessagePane extends KDTabPaneView
     return  unless value
 
     @input.reset yes
-    @createFakeItemView value, clientRequestId
+
+    switch @currentFilter
+      when 'Most Liked' then @setFilter 'Most Recent'
+      else @createFakeItemView value, clientRequestId
 
 
   putMessage: (message, index = 0) -> @appendMessage message, index
