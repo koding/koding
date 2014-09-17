@@ -14,6 +14,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	"socialapi/workers/payment/stripe"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
@@ -65,6 +66,12 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+
+	err := stripe.CreateDefaultPlans()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	r.Wait()
 }
