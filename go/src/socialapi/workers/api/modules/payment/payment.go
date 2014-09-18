@@ -14,11 +14,13 @@ func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, h
 	)
 }
 
-func SubscriptionRequest(u *url.URL, h http.Header, req *payment.SubscriptionRequest) (int, http.Header, interface{}, error) {
-	req.AccountId = u.Query().Get("accountId")
+func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	subscriptionRequest := &payment.SubscriptionRequest{
+		AccountId: u.Query().Get("accountId"),
+	}
 
 	return response.HandleResultAndError(
-		req.Do(),
+		subscriptionRequest.Do(),
 	)
 }
 
