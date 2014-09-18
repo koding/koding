@@ -4,6 +4,7 @@ html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abb
 /* COLORS */
 /* FUNCTIONS */
 
+
 /*
 KD FRAMEWORK stylesheet starts
 kd.styl
@@ -103,48 +104,37 @@ h4.kdheaderview span {
 /*
 **  KDSplitView STYLES
 */
-.kdsplitview {
-  position: relative;
-  width: 100%;
-  height: 100%;
+body.resize-in-action {
+  overflow: hidden !important;
+}
+body.resize-in-action .kdsplitview,
+body.resize-in-action .kdsplitview-panel {
+  overflow: hidden !important;
 }
 .kdsplitview .kdsplitview-panel {
   overflow: auto;
+  position: absolute;
 }
 .kdsplitview >.kdsplitview-resizer {
   left: 0;
   top: 0;
-  position: absolute;
-  z-index: 9999;
+  z-index: 1;
+  background-color: transparent;
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
-}
-.kdsplitview >.kdsplitview-resizer:hover {
-  background-color: rgba(0,0,0,0.2);
+  position: absolute;
 }
 .kdsplitview.min-width-reached {
   overflow: auto;
 }
-.kdsplitview-vertical >.kdsplitview-panel {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-}
 .kdsplitview-vertical >.kdsplitview-resizer {
   cursor: ew-resize;
-  background: rgba(0,0,0,0.1) url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAeCAYAAADzXER0AAAAMklEQVQ4jWP6//8/AzrWtHYxBmIwDeNjU8fEQAEY1TyqeVTzqOZRzaOaKdP8BwdNPZsBu0cnSb9j6TcAAAAASUVORK5CYII=") no-repeat 50% 50%;
   width: 10px;
   height: 100%;
 }
-.kdsplitview-horizontal >.kdsplitview-panel {
-  position: absolute;
-  width: 100%;
-  height: 50%;
-}
 .kdsplitview-horizontal >.kdsplitview-resizer {
   cursor: ns-resize;
-  background: rgba(0,0,0,0.1) url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAPCAYAAADzun+cAAAALklEQVQ4y2P8//8/w0AAxlGLh7/FmtYu+kCahc72/gFZPOrjYe7j0Xw8ajGtAABz/yTHef7KzwAAAABJRU5ErkJggg==") no-repeat 50% 50%;
   width: 100%;
   height: 10px;
 }
@@ -152,6 +142,9 @@ h4.kdheaderview span {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
+}
+.kdsplitview-panel.floating {
+  z-index: 10000;
 }
 /*
 **  KDTabView STYLES
@@ -298,7 +291,6 @@ h4.kdheaderview span {
 */
 .kdautocomplete.listview-wrapper {
   position: absolute;
-  border: 1px solid #ddd;
   border: 1px solid #7dbef1;
   border-top: 1px solid #f2f2f2;
   margin: -1px 0 0 4px;
@@ -316,7 +308,7 @@ h4.kdheaderview span {
 .kdautocomplete.listview-wrapper .kdview.kdlistview.kdautocompletelist {
   padding: 5px 0;
 }
-.kdautocomplete.listview-wrapper .kdview.kdlistview.kdautocompletelist .kdautocompletelistitem {
+.kdautocomplete.listview-wrapper .kdview.kdlistview.kdautocompletelist .kdlistitemview-default {
   padding: 0 5px;
   border: none;
   cursor: pointer;
@@ -326,7 +318,7 @@ h4.kdheaderview span {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
-.kdautocomplete.listview-wrapper .kdview.kdlistview.kdautocompletelist .kdautocompletelistitem.active {
+.kdautocomplete.listview-wrapper .kdview.kdlistview.kdautocompletelist .kdlistitemview-default.active {
   color: #fff;
   text-shadow: 0 1px 0 rgba(0,0,0,0.5);
   background-color: #7dbef1;
@@ -665,6 +657,7 @@ span.close-btn-x:hover {
   min-width: 1px;
 }
 
+
 /*
 KDInputView styles
 */
@@ -814,6 +807,7 @@ select.kdinput.select:focus {
   -moz-box-shadow: 0 0 3px rgba(125,190,241,0.7);
   box-shadow: 0 0 3px rgba(125,190,241,0.7);
 }
+
 /*
 KDInputView > KDSelectBox styles
 */
@@ -886,6 +880,7 @@ div.kdselectbox span.arrows {
 .kd-checkbox-holder label {
   display: inline-block;
 }
+
 /*
 KDInputView > KDSwitch styles
 */
@@ -905,6 +900,7 @@ KDInputView > KDSwitch styles
 .kdinputswitch.on {
   background-position: left top;
 }
+
 /*
 KDInputView > KDOnOffSwitch styles
 */
@@ -1168,6 +1164,7 @@ span.kdinputhint {
   top: 0;
   left: 0;
 }
+
 /*
 KDContentEditableView
 */
@@ -1176,6 +1173,7 @@ KDContentEditableView
   height: 100%;
   min-width: 1px;
 }
+
 /*
 KDInputView > KDTokenizedInputView styles
 */
@@ -2138,7 +2136,7 @@ button.transparent:active {
 /*
 **  KDScrollView STYLES
 */
-.kdscrollview {
+.kdview.kdscrollview {
   overflow: auto;
 }
 .kdcustomscrollview {
@@ -2437,11 +2435,9 @@ button.transparent:active {
   0% {
     -webkit-transform: scale(1);
   }
-
   50% {
     -webkit-transform: scale(1.03);
   }
-
   100% {
     -webkit-transform: scale(1);
   }
@@ -2450,11 +2446,9 @@ button.transparent:active {
   0% {
     -webkit-transform: scale(1);
   }
-
   50% {
     -webkit-transform: scale(1.03);
   }
-
   100% {
     -webkit-transform: scale(1);
   }
@@ -2530,7 +2524,6 @@ button.transparent:active {
   0% {
     margin-left: -50%;
   }
-
   100% {
     margin-left: 101%;
   }
@@ -2539,7 +2532,6 @@ button.transparent:active {
   0% {
     margin-left: -50%;
   }
-
   100% {
     margin-left: 101%;
   }
@@ -2548,16 +2540,6 @@ button.transparent:active {
   0% {
     margin-left: -50%;
   }
-
-  100% {
-    margin-left: 101%;
-  }
-}
-@-ms-keyframes progressbar-spinner {
-  0% {
-    margin-left: -50%;
-  }
-
   100% {
     margin-left: 101%;
   }
@@ -2566,7 +2548,6 @@ button.transparent:active {
   0% {
     margin-left: -50%;
   }
-
   100% {
     margin-left: 101%;
   }
@@ -2676,6 +2657,7 @@ button.transparent:active {
   z-index: 2;
   position: absolute;
 }
+
 
 /*
 KDFormView stylesheet
@@ -2792,10 +2774,6 @@ div.kdtooltip:after {
   position: absolute;
 }
 div.kdtooltip div.wrapper {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  position: relative;
   background-color: #fff;
   -webkit-box-shadow: 0 10px 20px 5px rgba(0,0,0,0.15);
   -moz-box-shadow: 0 10px 20px 5px rgba(0,0,0,0.15);
@@ -2809,6 +2787,10 @@ div.kdtooltip div.wrapper {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   border-radius: 5px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
 }
 div.kdtooltip.direction-right div.wrapper {
   text-align: left;
@@ -3418,7 +3400,6 @@ div.kd-page.rotateFromBottom {
   0% {
     -webkit-transform: rotateX(180deg);
   }
-
   100% {
     -webkit-transform: rotateX(0deg);
   }
@@ -3427,7 +3408,6 @@ div.kd-page.rotateFromBottom {
   0% {
     -webkit-transform: rotateX(0deg);
   }
-
   100% {
     -webkit-transform: rotateX(-180deg);
   }
