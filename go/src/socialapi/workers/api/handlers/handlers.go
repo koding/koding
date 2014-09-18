@@ -14,7 +14,7 @@ import (
 	"socialapi/workers/common/handler"
 
 	"github.com/koding/metrics"
-	"github.com/rcrowley/go-tigertonic"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
 func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
@@ -318,6 +318,15 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "account-unfollow",
 			CollectMetrics: true,
 			Metrics:        metrics,
+		},
+	))
+
+	// check ownership of an object
+	mux.Handle("GET", "/account/{id}/owns", handler.Wrapper(
+		handler.Request{
+			Handler: account.CheckOwnership,
+			Name:    "account-owns",
+			Metrics: metrics,
 		},
 	))
 

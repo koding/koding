@@ -78,6 +78,24 @@ body.activity
   overflow              visible
   min-height            100vh
 
+  .kdbuttonwithmenu-wrapper.activity-settings-menu
+    z-index             1
+    size                15px 10px
+    padding             0
+    cursor              pointer
+    abs                 22px 33px 0 0
+    button.kdbutton
+      size              15px 10px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      cursor            pointer
+    .chevron-separator
+      hidden()
+    .chevron
+      r-sprite          activity chevron-icon
+
   &.group
     margin-top          55px
     min-height          2070px

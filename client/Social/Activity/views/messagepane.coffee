@@ -36,7 +36,7 @@ class MessagePane extends KDTabPaneView
 
     @fakeMessageMap = {}
 
-    @changeFilter(@defaultFilter())
+    @setFilter @defaultFilter
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -58,9 +58,6 @@ class MessagePane extends KDTabPaneView
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
-  defaultFilter: -> return "MOST_LIKED"
-
-  changeFilter: (@currentFilter) ->
 
   bindInputEvents: ->
 
@@ -93,7 +90,10 @@ class MessagePane extends KDTabPaneView
     return  unless value
 
     @input.reset yes
-    @createFakeItemView value, clientRequestId
+
+    switch @currentFilter
+      when 'Most Liked' then @setFilter 'Most Recent'
+      else @createFakeItemView value, clientRequestId
 
 
   putMessage: (message, index = 0) -> @appendMessage message, index
@@ -196,19 +196,14 @@ class MessagePane extends KDTabPaneView
 
     if type is 'privatemessage' or type is 'post' then return
 
-    @filterLinks or= new FilterLinksView {},
-      'Most Liked'  :
-        active      : yes
-      'Most Recent' : {}
+    @filterLinks or= new FilterLinksView
+      filters: ['Most Liked', 'Most Recent']
+      default: 'Most Liked'
 
-    @filterLinks.on "filterLinkClicked", (data)=>
+    @filterLinks.on 'FilterSelected', (filter) =>
       @listController.removeAllItems()
       @listController.showLazyLoader()
-
-      filter = if data.active then "MOST_LIKED" else "MOST_RECENT"
-      @changeFilter(filter)
-
-      @populate()
+      @setFilter filter
 
 
   bindChannelEvents: (channel) ->
@@ -223,7 +218,7 @@ class MessagePane extends KDTabPaneView
   addMessage: (message) ->
 
     return  if KD.isMyPost message
-    return  if @currentFilter is 'MOST_LIKED' and not KD.isMyPost message
+    return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
 
     {lastToFirst} = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
@@ -255,7 +250,6 @@ class MessagePane extends KDTabPaneView
     @addSubView @input             if @input
     @addSubView @filterLinks       if @filterLinks
     @addSubView @listController.getView()
-    @populate()
 
 
   show: ->
@@ -299,9 +293,13 @@ class MessagePane extends KDTabPaneView
 
   populate: (callback = noop) ->
 
+    filter = @currentFilter
+
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
+
+      return  if @currentFilter isnt filter
 
       @listController.hideLazyLoader()
       items.forEach @bound 'appendMessageDeferred'
@@ -327,7 +325,7 @@ class MessagePane extends KDTabPaneView
     options.name      = name
     options.type      = type
     options.channelId = channelId
-    options.mostLiked = yes  if @currentFilter is "MOST_LIKED"
+    options.mostLiked = yes  if @currentFilter is 'Most Liked'
 
     # if it is a post it means we already have the data
     if type is 'post'
@@ -343,7 +341,7 @@ class MessagePane extends KDTabPaneView
 
     return @listController.hideLazyLoader()  unless last
 
-    if @currentFilter is "MOST_LIKED"
+    if @currentFilter is 'Most Liked'
       from = null
       skip = @listController.getItemsOrdered().length
     else
@@ -365,3 +363,12 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+
+  setFilter: (@currentFilter) ->
+
+    @filterLinks.selectFilter @currentFilter
+    @populate()
+
+
+  defaultFilter: 'Most Liked'

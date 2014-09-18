@@ -284,6 +284,9 @@ class PrivateMessagePane extends MessagePane
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
+
+    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
 
@@ -309,4 +312,4 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
-  defaultFilter : -> "MOST_RECENT"
+  defaultFilter: 'Most Recent'
