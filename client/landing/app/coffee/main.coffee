@@ -13,7 +13,7 @@ do ->
   registerRoutes = ->
 
     require './core/routes.coffee'
-    # require './login/routes.coffee'
+    require './login/routes.coffee'
 
 
 
