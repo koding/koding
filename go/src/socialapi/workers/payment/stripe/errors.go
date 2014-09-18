@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrPlanNotFound                    = errors.New("plan not available")
+	ErrPlanNotFound                    = errors.New("plan not found")
 	ErrPlanAlreadyExists               = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
 	ErrCustomerNotFound                = errors.New("user not found")
 	ErrCustomerAlreadySubscribedToPlan = errors.New("user is already subscribed to plan")

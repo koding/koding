@@ -3,7 +3,6 @@ package stripe
 import (
 	"socialapi/models/paymentmodel"
 
-	"github.com/jinzhu/gorm"
 	stripe "github.com/stripe/stripe-go"
 	stripePlan "github.com/stripe/stripe-go/plan"
 )
@@ -14,7 +13,7 @@ import (
 func CreateDefaultPlans() error {
 	for id, pl := range DefaultPlans {
 		plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
-		if err != nil && err != gorm.RecordNotFound {
+		if err != nil && err != ErrPlanNotFound {
 			return err
 		}
 
