@@ -108,121 +108,13 @@ class PaymentForm extends JView
   initForm: ->
 
     { firstName, lastName } = KD.whoami().profile
-    { planName, interval } = @state
-
-    fields = {}
-    fields.cardNumber = {
-      label             : 'Card Number'
-
-      blur              : ->
-        @oldValue = @getValue()
-        @setValue @oldValue.replace /\s|-/g, ''
-
-      focus          : -> @setValue @oldValue  if @oldValue
-
-      validate       :
-        rules        :
-          required   : yes
-          checkCC    : (input, event) ->
-            val = $.trim input.getValue().replace(/-|\s/g,"")
-            result = Stripe.card.validateCardNumber val
-            input.setValidationResult 'checkCC', not result
-          cardType   : do =>
-            cssClass = null
-            return (input, event) =>
-              @form.unsetClass cssClass  if cssClass
-              val = $.trim input.getValue().replace(/-|\s/g,"")
-              cssClass = (Stripe.card.cardType val).toLowerCase()
-              cssClass = KD.utils.slugify cssClass
-              @form.setClass cssClass
-
-        events       :
-          cardType   : 'keyup'
-          required   : 'blur'
-          checkCC    : 'blur'
-    }
-
-    fields.cardCVC = {
-      label         : 'CVC'
-      validate      :
-        rules       :
-          required  : yes
-          minLength : 3
-          checkCVC  : (input, event) ->
-            val    = $.trim input.getValue().replace(/-|\s/g, '')
-            result = Stripe.card.validateCVC val
-            input.setValidationResult 'checkCVC', not result
-
-        events      :
-          required  : 'blur'
-          checkCVC  : 'blur'
-          minLength : 'blur'
-    }
-
-    fields.cardName = {
-      label        : 'Name on Card'
-      cssClass     : 'card-name'
-      defaultValue : "#{firstName} #{lastName}"
-      validate     :
-        rules      :
-          required : yes
-        events     :
-          required : 'blur'
-    }
-
-    fields.cardMonth = {
-      label          : 'Exp. Date'
-      attributes     :
-        maxlength    : 2
-      validate       :
-        event        : 'blur'
-        rules        :
-          required   : yes
-          checkMonth : (input, event) ->
-            val = $.trim input.getValue().replace(/-|\s/g, '')
-            # just to check for month, we are setting
-            # a happy value to the year.
-            result = Stripe.card.validateExpiry val, 2015
-            input.setValidationResult 'checkMonth', not result
-        events       :
-          required   : 'blur'
-          checkMonth : 'blur'
-    }
-
-    fields.cardYear = {
-      label              : '&nbsp'
-      attributes         :
-        maxlength        : 4
-      validate           :
-        rules            :
-          checkMonthYear : (yearInput, event) =>
-            monthInput = @form.inputs.cardMonth
-            monthVal   = $.trim monthInput.getValue().replace(/-|\s/g, '')
-            yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
-
-            result     = Stripe.card.validateExpiry monthVal, yearVal
-            yearInput.setValidationResult 'checkMonthYear', not result
-
-        events           :
-          checkMonthYear : 'blur'
-    }
-
-    fields.planName = {
-      defaultValue       : planName
-      cssClass           : "hidden"
-    }
-
-    fields.planInterval = {
-      defaultValue       : interval
-      cssClass           : "hidden"
-    }
+    { planTitle, planInterval } = @state
 
     { cssClass } = @getOptions()
 
-    return new KDFormViewWithFields
-      cssClass : KD.utils.curry 'payment-method-entry-form clearfix', cssClass
-      name     : 'method'
-      fields   : fields
+    return new StripeFormView
+      state    : @state
+      cssClass : cssClass
       callback : (formData) =>
         @emit "PaymentSubmitted", formData
 
