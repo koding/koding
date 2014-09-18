@@ -162,7 +162,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 	availZone := instance.AvailZone
 
 	// 4. Create snapshot from that given VolumeId
-	a.Log.Info("4. Create snapshot")
+	a.Log.Info("4. Create snapshot from volume %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	resp, err := a.Client.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
@@ -184,19 +184,13 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return machinestate.Stopped, nil
 	}
 
-	ws := waitstate.WaitState{
-		StateFunc:    checkSnapshot,
-		DesiredState: machinestate.Stopped,
-		Start:        25,
-		Finish:       60,
-	}
-
+	ws := waitstate.WaitState{StateFunc: checkSnapshot, DesiredState: machinestate.Stopped}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
 
 	// 5. Create new volume with the desired size from the snapshot and same availability zone.
-	a.Log.Info("4. Create new volume")
+	a.Log.Info("5. Create new volume from snapshot %s", newSnapshotId)
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
 		Size:       10, // TODO: Change it after you are done!
@@ -224,18 +218,58 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return machinestate.Stopped, nil
 	}
 
-	ws = waitstate.WaitState{
-		StateFunc:    checkVolume,
-		DesiredState: machinestate.Stopped,
-		Start:        25,
-		Finish:       60,
-	}
-
+	ws = waitstate.WaitState{StateFunc: checkVolume, DesiredState: machinestate.Stopped}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
 
 	// 6. Detach the volume of current stopped instance
+	a.Log.Info("6. Detach new volume %s", oldVolumeId)
+	if _, err := a.Client.DetachVolume(oldVolumeId); err != nil {
+		return nil, err
+	}
+
+	checkDetaching := func(currentPercentage int) (machinestate.State, error) {
+		resp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+		if err != nil {
+			return 0, err
+		}
+
+		if resp.Volumes[0].Attachments[0].Status != "detached" {
+			return machinestate.Pending, nil
+		}
+
+		return machinestate.Stopped, nil
+	}
+
+	ws = waitstate.WaitState{StateFunc: checkDetaching, DesiredState: machinestate.Stopped}
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	// 7. Attach new volume to current stopped instance
+	a.Log.Info("7. Attach new volume %s", newVolumeId)
+	if _, err := a.Client.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
+		return nil, err
+	}
+
+	checkAttaching := func(currentPercentage int) (machinestate.State, error) {
+		resp, err := a.Client.Volumes([]string{newVolumeId}, ec2.NewFilter())
+		if err != nil {
+			return 0, err
+		}
+
+		if resp.Volumes[0].Attachments[0].Status != "attached" {
+			return machinestate.Pending, nil
+		}
+
+		return machinestate.Stopped, nil
+	}
+
+	ws = waitstate.WaitState{StateFunc: checkAttaching, DesiredState: machinestate.Stopped}
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
 
 	return nil, errors.New("resize it not supported")
 }
