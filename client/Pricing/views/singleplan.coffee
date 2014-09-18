@@ -44,6 +44,8 @@ class SinglePlanView extends KDView
         @emit 'PlanSelected', name, monthPrice, yearPrice
 
 
-  disable: -> @buyButton.disable()
+  disable: ->
+    @setClass 'current'
+    @buyButton.disable()
 
 

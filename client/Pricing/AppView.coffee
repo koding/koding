@@ -8,8 +8,15 @@ class PricingAppView extends KDView
 
     super options, data
 
+    { paymentController } = KD.singletons
+
+    @state = {}
+
     @initViews()
     @initEvents()
+
+    paymentController.subscriptions (err, plan) =>
+      @plans.planViews[plan].disable()
 
 
   initViews: ->
@@ -28,7 +35,7 @@ class PricingAppView extends KDView
         Trusted by your peers worldwide.
       "
 
-    @plans = new PricingPlansView
+    @plans = new PricingPlansView { @state }
 
     @info = new KDCustomHTMLView
       tagName   : 'p'

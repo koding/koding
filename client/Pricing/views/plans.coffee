@@ -1,7 +1,7 @@
 class PricingPlansView extends KDView
 
   initialState:
-    currentPlan: 'professional'
+    currentPlan: null
 
   constructor: (options = {}, data) ->
 
