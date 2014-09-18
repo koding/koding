@@ -128,7 +128,6 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 				"creator_id": accountId,
 			},
 		})
-		return ownershipResponse(err)
 	case "channel-message":
 		channelMessage := models.NewChannelMessage()
 		err = channelMessage.One(&bongo.Query{
