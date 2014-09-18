@@ -31,6 +31,10 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
 	var subs = []paymentmodel.Subscription{}
 
+	if customer.Id == 0 {
+		return nil, ErrCustomerIdIsNotSet
+	}
+
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"customer_id": customer.Id,
