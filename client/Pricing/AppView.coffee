@@ -16,6 +16,7 @@ class PricingAppView extends KDView
     @initEvents()
 
     paymentController.subscriptions (err, plan) =>
+      @state.currentPlan = plan
       @plans.planViews[plan].disable()
 
 
@@ -55,8 +56,19 @@ class PricingAppView extends KDView
 
 
   planSelected: (planTitle, monthPrice, yearPrice) ->
-    workflowController = new PaymentWorkflow {planTitle, monthPrice, yearPrice, view: this}
+    @workflowController = new PaymentWorkflow
+      planTitle  : planTitle
+      monthPrice : monthPrice
+      yearPrice  : yearPrice
+      view       : this
 
+    @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
+
+      oldPlanTitle = @state.currentPlan
+      @plans.planViews[oldPlanTitle].unsetClass 'current'
+
+      { planTitle } = state
+      @plans.planViews[planTitle].setClass 'current'
 
   pistachio: ->
     """

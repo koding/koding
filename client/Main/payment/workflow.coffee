@@ -27,6 +27,8 @@ class PaymentWorkflow extends KDController
 
     super options, data
 
+    @state = {}
+
     @start()
     @initPaymentProvider()
 
@@ -68,8 +70,9 @@ class PaymentWorkflow extends KDController
         exp_year  : formData.cardYear
       , (status, response) =>
 
-        @modal.form.submitButton.hideLoader()
-        return @modal.emit 'StripeRequestValidationFailed', response.error  if response.error
+        if response.error
+          return @modal.emit 'StripeRequestValidationFailed', response.error
+          @modal.form.submitButton.hideLoader()
 
         token = response.id
         {paymentController} = KD.singletons
@@ -82,6 +85,7 @@ class PaymentWorkflow extends KDController
           obj = { email }
 
           paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+            @modal.form.submitButton.hideLoader()
             return @modal.emit 'PaymentFailed', err  if err
 
             @modal.emit 'PaymentSucceeded'
@@ -91,6 +95,8 @@ class PaymentWorkflow extends KDController
 
     { view } = @getOptions()
 
-    view.emit 'PaymentWorkflowFinishedSuccessfully', state
+    @emit 'PaymentWorkflowFinishedSuccessfully', state
+
+    @modal.destroy()
 
 

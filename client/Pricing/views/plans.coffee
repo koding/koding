@@ -1,8 +1,5 @@
 class PricingPlansView extends KDView
 
-  initialState:
-    currentPlan: null
-
   constructor: (options = {}, data) ->
 
     options.tagName  = "section"
@@ -10,9 +7,7 @@ class PricingPlansView extends KDView
 
     super options, data
 
-    { state } = options
-
-    @state = @utils.extend @initialState, state
+    @state = {}
 
     @planViews = {}
 
