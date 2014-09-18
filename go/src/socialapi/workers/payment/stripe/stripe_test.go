@@ -79,6 +79,6 @@ var (
 	StartingInterval = "month"
 	HigherPlan       = "professional_month"
 	HigherInterval   = "month"
-	LowerPlan        = "hobbyist"
+	LowerPlan        = "hobbyist_month"
 	LowerInterval    = "month"
 )
