@@ -10,3 +10,8 @@ static/a/out/js/kd.js
 static/a/out/js/kd.libs.js
 static/a/out/js/main.js
 static/a/out/js/main.js.map
+static/a/out/images/sprite@1x.png
+static/a/out/images/sprite@2x.png
+static/a/out/css/main.css
+app/styl/sprite@1x.styl
+app/styl/sprite@2x.styl
