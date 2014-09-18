@@ -21,6 +21,7 @@ KD.extend
   appLabels    : {}
   navItems     : []
   navItemIndex : {}
+  mixpanel     : -> warn 'MIXPANEL DEPRECATED!!! fixen sie @senthil'  if KD.config.environment isnt 'production'
 
   whoami:-> KD.userAccount
 
