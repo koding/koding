@@ -44,7 +44,7 @@ gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
 
 gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
-gulp.task 'styles', ['sprites'], ->
+compileStyles = ->
 
   gulp.src STYLES_PATH
     .pipe stylus
@@ -54,6 +54,12 @@ gulp.task 'styles', ['sprites'], ->
     .pipe rename 'main.css'
     .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/css"
+
+
+gulp.task 'styles-only', -> compileStyles()
+
+gulp.task 'styles', ['sprites'], -> compileStyles()
+
 
 
 gulp.task 'sprites', ['sprites@1x', 'sprites@2x'], ->
@@ -164,7 +170,7 @@ gulp.task 'clean', ->
   gulp.src [BUILD_PATH], read: no
     .pipe rimraf force: yes
 
-gulp.task 'build', ['styles', 'coffee', 'index']
+gulp.task 'build', ['sprites', 'styles', 'coffee', 'index']
 
 watchersArray = [
   'watch-styles'
