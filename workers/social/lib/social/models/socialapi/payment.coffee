@@ -22,15 +22,16 @@ module.exports = class Payment extends Base
           (signature Object, Function)
 
 
-  { doRequest } = require "./helper"
+  { bareRequest } = require "./helper"
 
   @subscribe = secure (client, data, callback)->
     data.accountId = getAccountId client
-    doRequest "paymentSubscribe", client, data, callback
+    bareRequest "paymentSubscribe", data, callback
 
   @unsubscribe = secure (client, data, callback)->
     data.accountId = getAccountId client
-    doRequest "paymentUnsubscribe", client, data, callback
+    bareRequest "paymentUnsubscribe", data, callback
 
 
-  getAccountId = (client)-> client.connection.delegate.getId()
+  getAccountId = (client)->
+    return client.connection.delegate.getId()
