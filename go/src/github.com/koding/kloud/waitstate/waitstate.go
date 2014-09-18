@@ -23,8 +23,8 @@ type WaitState struct {
 // reached the desired state. It returns nil if the state has been reached
 // successfull.
 func (w *WaitState) Wait() error {
-	if w.Start == 0 || w.Finish == 0 {
-		return errors.New("start and finish needs to be initalized")
+	if w.Finish == 0 {
+		w.Finish = 100
 	}
 
 	if w.Interval == 0 {

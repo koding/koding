@@ -148,6 +148,8 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
+	p.UpdateState(opts.MachineId, machinestate.Pending)
+
 	// 2. Get VolumeId of current instance
 	a.Log.Info("2. Getting Volume Id")
 	instance, err := a.Instance(a.Id())
@@ -193,7 +195,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Log.Info("5. Create new volume from snapshot %s", newSnapshotId)
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
-		Size:       10, // TODO: Change it after you are done!
+		Size:       15, // TODO: Change it after you are done!
 		SnapshotId: newSnapshotId,
 		VolumeType: "gp2", // SSD
 	}
@@ -224,7 +226,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	// 6. Detach the volume of current stopped instance
-	a.Log.Info("6. Detach new volume %s", oldVolumeId)
+	a.Log.Info("6. Detach old volume %s", oldVolumeId)
 	if _, err := a.Client.DetachVolume(oldVolumeId); err != nil {
 		return nil, err
 	}
@@ -234,8 +236,15 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		if err != nil {
 			return 0, err
 		}
+		vol := resp.Volumes[0]
 
-		if resp.Volumes[0].Attachments[0].Status != "detached" {
+		// ready!
+		if len(vol.Attachments) == 0 {
+			return machinestate.Stopped, nil
+		}
+
+		// otherwise wait until it's detached
+		if vol.Attachments[0].Status != "detached" {
 			return machinestate.Pending, nil
 		}
 
@@ -259,7 +268,13 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 			return 0, err
 		}
 
-		if resp.Volumes[0].Attachments[0].Status != "attached" {
+		vol := resp.Volumes[0]
+
+		if len(vol.Attachments) == 0 {
+			return machinestate.Pending, nil
+		}
+
+		if vol.Attachments[0].Status != "attached" {
 			return machinestate.Pending, nil
 		}
 
