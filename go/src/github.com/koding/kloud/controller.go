@@ -202,36 +202,36 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 }
 
 func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
-	fn := func(m *protocol.Machine) error {
-		resizer, ok := c.Provider.(protocol.Resizer)
-		if !ok {
-			return NewError(ErrProviderNotImplemented)
-		}
-
-		resp, err := resizer.Resize(m)
-		if err != nil {
-			return err
-		}
-
-		// some providers might provide empty information, therefore do not
-		// update anything for them
-		if resp == nil {
-			return nil
-		}
-
-		return k.Storage.Update(c.MachineId, &StorageData{
-			Type: "resize",
-			Data: map[string]interface{}{
-				"ipAddress":    resp.IpAddress,
-				"domainName":   resp.DomainName,
-				"instanceId":   resp.InstanceId,
-				"instanceName": resp.InstanceName,
-			},
-		})
-
+	resizer, ok := c.Provider.(protocol.Resizer)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	return k.coreMethods(r, c, fn)
+	resp, err := resizer.Resize(c.Machine)
+	if err != nil {
+		return nil, err
+	}
+
+	// some providers might provide empty information, therefore do not
+	// update anything for them
+	if resp == nil {
+		return "resized", nil
+	}
+
+	err = k.Storage.Update(c.MachineId, &StorageData{
+		Type: "resize",
+		Data: map[string]interface{}{
+			"ipAddress":    resp.IpAddress,
+			"domainName":   resp.DomainName,
+			"instanceId":   resp.InstanceId,
+			"instanceName": resp.InstanceName,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return "resized", nil
 }
 
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {

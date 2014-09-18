@@ -24,6 +24,7 @@ func main() {
 		"stop":    command.NewStop(),
 		"destroy": command.NewDestroy(),
 		"restart": command.NewRestart(),
+		"resize":  command.NewResize(),
 	}
 
 	_, err := c.Run()

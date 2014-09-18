@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -110,7 +111,7 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
-	return nil, nil
+	return nil, errors.New("resize it not supported")
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
