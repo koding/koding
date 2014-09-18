@@ -108,6 +108,7 @@ class PaymentForm extends JView
   initForm: ->
 
     { firstName, lastName } = KD.whoami().profile
+    { planName } = @state
 
     fields = {}
     fields.cardNumber = {
@@ -206,13 +207,19 @@ class PaymentForm extends JView
           checkMonthYear : 'blur'
     }
 
+    fields.planName = {
+      defaultValue       : planName
+      cssClass           : "hidden"
+    }
+
     { cssClass } = @getOptions()
 
     return new KDFormViewWithFields
       cssClass : KD.utils.curry 'payment-method-entry-form clearfix', cssClass
       name     : 'method'
       fields   : fields
-      callback : (formData) => @emit "PaymentSubmitted", formData
+      callback : (formData) =>
+        @emit "PaymentSubmitted", formData
 
 
   initEvents: ->

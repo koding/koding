@@ -55,7 +55,7 @@ class PaymentWorkflow extends KDController
     @modal = new PaymentModal state: { planName, monthPrice, yearPrice }
     @modal.on "PaymentSubmitted", (formData)->
       {
-        cardNumber, cardCVC, cardMonth, cardYear, plan
+        cardNumber, cardCVC, cardMonth, cardYear, planName
       } = formData
 
       Stripe.card.createToken
@@ -71,9 +71,7 @@ class PaymentWorkflow extends KDController
 
         token = response.id
 
-        plan = "hobbyist_month"
-
         {paymentController} = KD.singletons
-        paymentController.subscribe token, plan, {email:"senthil@koding.com"}, ->
-          console.log ">>>>>>>>>>> request from stripe", arguments...
+        paymentController.subscribe token, planName, {email:"senthil@koding.com"}, ->
+          console.log ">>>>>>>>>>> request from local", arguments...
 
