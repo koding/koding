@@ -4,8 +4,8 @@ LoginInputViewWithLoader = require './logininputwithloader'
 
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
-  EMAIL_VALID    = no
-  USERNAME_VALID = no
+  EMAIL_VALID    = yes
+  USERNAME_VALID = yes
   ENTER          = 13
 
   constructor:(options={},data)->
@@ -19,7 +19,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         validate      : @getEmailValidator()
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
-        keyup         : (event)   => @submitForm event  if event.which is ENTER
+        keyup         : (event) => @submitForm event  if event.which is ENTER
 
 
 
@@ -46,8 +46,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required     : yes
             rangeLength  : [4, 25]
             regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
-            usernameCheck: (input, event)=> @usernameCheck input, event
-            finalCheck   : (input, event)=> @usernameCheck input, event, 0
+            # usernameCheck: (input, event)=> @usernameCheck input, event
+            # finalCheck   : (input, event)=> @usernameCheck input, event, 0
           messages       :
             required     : 'Please enter a username.'
             regExp       : 'For username only lowercase letters and numbers are allowed!'
@@ -56,8 +56,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required     : 'blur'
             rangeLength  : 'blur'
             regExp       : 'keyup'
-            usernameCheck: 'keyup'
-            finalCheck   : 'blur'
+            # usernameCheck: 'keyup'
+            # finalCheck   : 'blur'
         decorateValidation: no
 
     {buttonTitle} = @getOptions()
@@ -70,9 +70,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       loader        : yes
       callback      : @bound 'submitForm'
 
-
-
-
     @invitationCode = new LoginInputView
       cssClass      : 'hidden'
       inputOptions  :
@@ -83,11 +80,11 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       tagName : 'strong'
       partial : 'username.koding.io'
 
-    @on "SubmitFailed", (msg)=>
-      # if msg is "Wrong password"
-      #   @passwordConfirm.input.setValue ''
-      #   @password.input.setValue ''
-      #   @password.input.validate()
+    @on 'SubmitFailed', (msg) =>
+      if msg is 'Wrong password'
+        @passwordConfirm.input.setValue ''
+        @password.input.setValue ''
+        @password.input.validate()
 
       @button.hideLoader()
 
@@ -98,34 +95,34 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     input.clearValidationFeedback() for input in inputs
     super
 
-  usernameCheck:(input, event, delay=800)->
-    return if event?.which is 9
-    return if input.getValue().length < 4
+  # usernameCheck:(input, event, delay=800)->
+  #   return if event?.which is 9
+  #   return if input.getValue().length < 4
 
-    KD.utils.killWait usernameCheckTimer
-    input.setValidationResult "usernameCheck", null
-    name = input.getValue()
+  #   KD.utils.killWait usernameCheckTimer
+  #   input.setValidationResult "usernameCheck", null
+  #   name = input.getValue()
 
-    if input.valid
-      usernameCheckTimer = KD.utils.wait delay, =>
-        # @username.loader.show()
-        KD.remote.api.JUser.usernameAvailable name, (err, response) =>
-          # @username.loader.hide()
-          {kodingUser, forbidden} = response
-          if err
-            if response?.kodingUser
-              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-              USERNAME_VALID = no
-          else
-            if forbidden
-              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
-              USERNAME_VALID = no
-            else if kodingUser
-              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-              USERNAME_VALID = no
-            else
-              input.setValidationResult "usernameCheck", null
-              USERNAME_VALID = yes
+  #   if input.valid
+  #     usernameCheckTimer = KD.utils.wait delay, =>
+  #       # @username.loader.show()
+  #       KD.remote.api.JUser.usernameAvailable name, (err, response) =>
+  #         # @username.loader.hide()
+  #         {kodingUser, forbidden} = response
+  #         if err
+  #           if response?.kodingUser
+  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+  #             USERNAME_VALID = no
+  #         else
+  #           if forbidden
+  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
+  #             USERNAME_VALID = no
+  #           else if kodingUser
+  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+  #             USERNAME_VALID = no
+  #           else
+  #             input.setValidationResult "usernameCheck", null
+  #             USERNAME_VALID = yes
 
 
   getEmailValidator: ->
@@ -134,23 +131,23 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     rules       :
       required  : yes
       email     : yes
-      available : (input, event) =>
-        return if event?.which is 9
-        input.setValidationResult 'available', null
-        email = input.getValue()
-        if input.valid
-          # @email.loader.show()
-          KD.remote.api.JUser.emailAvailable email, (err, response)=>
-            # @email.loader.hide()
-            if err then warn err
-            else
-              if response
-                input.setValidationResult 'available', null
-                EMAIL_VALID = yes
-              else
-                input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
-                EMAIL_VALID = no
-        return
+      # available : (input, event) =>
+      #   return if event?.which is 9
+      #   input.setValidationResult 'available', null
+      #   email = input.getValue()
+      #   if input.valid
+      #     # @email.loader.show()
+      #     KD.remote.api.JUser.emailAvailable email, (err, response)=>
+      #       # @email.loader.hide()
+      #       if err then warn err
+      #       else
+      #         if response
+      #           input.setValidationResult 'available', null
+      #           EMAIL_VALID = yes
+      #         else
+      #           input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+      #           EMAIL_VALID = no
+      #   return
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
