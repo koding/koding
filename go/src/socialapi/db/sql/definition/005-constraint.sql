@@ -178,7 +178,6 @@ ALTER TABLE api.payment_plan ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMED
 -- ----------------------------
 --  Uniques structure for table payment_plan
 -- ----------------------------
-ALTER TABLE api.payment_plan ADD CONSTRAINT "payment_plan_name" UNIQUE ("name") NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE api.payment_plan ADD CONSTRAINT "payment_plan_provider_plan_id_provider_key" UNIQUE ("provider_plan_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
