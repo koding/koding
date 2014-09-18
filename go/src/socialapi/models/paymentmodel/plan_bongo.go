@@ -3,6 +3,7 @@ package paymentmodel
 import (
 	"errors"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -17,6 +18,10 @@ func (Plan) TableName() string {
 //----------------------------------------------------------
 // Crud methods
 //----------------------------------------------------------
+
+func (p *Plan) ById(id int64) error {
+	return bongo.B.ById(p, id)
+}
 
 func (p *Plan) One(q *bongo.Query) error {
 	return bongo.B.One(p, p, q)
@@ -53,12 +58,16 @@ func (p *Plan) ByTitleAndInterval() (bool, error) {
 	}
 
 	err := p.One(bongo.NewQS(selector))
-	if err != nil {
-		return false, err
-	}
-
 	if err == bongo.RecordNotFound {
 		return false, nil
+	}
+
+	if err == gorm.RecordNotFound {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
 	}
 
 	return true, nil
