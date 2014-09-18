@@ -9,6 +9,7 @@
     }
   ],
   "devDependencies": {
+    "body-parser": "^1.8.2",
     "browserify": "^5.11.2",
     "coffee-script": "^1.8.0",
     "coffeeify": "^0.7.0",
