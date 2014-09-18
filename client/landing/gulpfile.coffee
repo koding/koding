@@ -49,7 +49,7 @@ compileStyles = ->
   gulp.src STYLES_PATH
     .pipe stylus
       compress  : yes
-      sourcemap : inline  : yes
+      # sourcemap : inline  : yes
     .pipe concat 'main.css'
     .pipe rename 'main.css'
     .pipe livereload()
