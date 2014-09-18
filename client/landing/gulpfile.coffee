@@ -15,6 +15,7 @@ source     = require 'vinyl-source-stream'
 nodemon    = require 'gulp-nodemon'
 pistachio  = require 'gulp-kd-pistachio-compiler'
 spritesmith= require 'gulp.spritesmith'
+livereload = require 'gulp-livereload'
 shell      = require 'gulp-shell'
 
 STYLES_PATH = ['./app/styl/**/*.styl']
@@ -27,8 +28,10 @@ BUILD_PATH  = argv.outputDir ? 'static'
 log = (color, message) -> gutil.log gutil.colors[color] message
 
 watchLogger = (color, watcher) ->
+  server = livereload()
   watcher.on 'change', (event) ->
     log color, "file #{event.path} was #{event.type}"
+    server?.changed event.path
 
 gulpBrowserify = (options = {}) ->
   options.extensions or= ['.coffee']
@@ -49,6 +52,7 @@ gulp.task 'styles', ['sprites'], ->
       sourcemap : inline  : yes
     .pipe concat 'main.css'
     .pipe rename 'main.css'
+    .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/css"
 
 
@@ -111,6 +115,7 @@ gulp.task 'coffee', ->
     .pipe sourcemaps.init loadMaps: true
     .pipe sourcemaps.write './'
     .pipe stream()
+    .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/js"
 
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']

@@ -17,6 +17,7 @@
     "gulp-coffee": "^2.2.0",
     "gulp-concat": "^2.4.0",
     "gulp-kd-pistachio-compiler": "0.1.1",
+    "gulp-livereload": "^2.1.1",
     "gulp-nodemon": "^1.0.4",
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
