@@ -15,7 +15,9 @@ import (
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"
+	"github.com/koding/kloud/waitstate"
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 var (
@@ -128,16 +130,91 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		13. Return success
 	*/
 
+	defer p.Unlock(opts.MachineId)
+
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	// 1. Stop the instance
-	err = a.Stop()
+	a.Log.Info("1. Stopping Machine")
+	if opts.State != machinestate.Stopped {
+		err = a.Stop()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 2. Get VolumeId of current instance
+	a.Log.Info("2. Getting Volume Id")
+	instance, err := a.Instance(a.Id())
 	if err != nil {
 		return nil, err
 	}
+
+	oldVolumeId := instance.BlockDevices[0].VolumeId
+
+	// 3. Get AvailabilityZone of current instance
+	a.Log.Info("3. Getting Avail Zone")
+	availZone := instance.AvailZone
+
+	// 4. Create snapshot from that given VolumeId
+	a.Log.Info("4. Create snapshot")
+	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
+	resp, err := a.Client.CreateSnapshot(oldVolumeId, snapshotDesc)
+	if err != nil {
+		return nil, err
+	}
+
+	newSnapshotId := resp.Id
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		resp, err := a.Client.Snapshots([]string{newSnapshotId}, ec2.NewFilter())
+		if err != nil {
+			return 0, err
+		}
+
+		status := resp.Snapshots[0].Status
+
+		if status != "completed" {
+			a.Push(fmt.Sprintf("Taking snaphost of instance '%s'. Current state: %s",
+				a.Builder.InstanceName, status), currentPercentage, machinestate.Pending)
+
+			return machinestate.Pending, nil
+		}
+
+		return machinestate.Stopped, nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopped,
+		Start:        25,
+		Finish:       60,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	// 5. Create new volume with the desired size from the snapshot and same availability zone.
+	a.Log.Info("4. Create new volume")
+	volOptions := &ec2.CreateVolume{
+		AvailZone:  availZone,
+		Size:       10, // TODO: Change it after you are done!
+		SnapshotId: newSnapshotId,
+		VolumeType: "gp2", // SSD
+	}
+
+	volResp, err := a.Client.CreateVolume(volOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	// newVolumeId := volResp.VolumeId
+
+	fmt.Printf("volResp %+v\n", volResp)
 
 	return nil, errors.New("resize it not supported")
 }

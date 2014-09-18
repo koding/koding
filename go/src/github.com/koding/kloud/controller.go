@@ -207,6 +207,9 @@ func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
+	k.Storage.UpdateState(c.MachineId, machinestate.Pending)
+	c.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
+
 	resp, err := resizer.Resize(c.Machine)
 	if err != nil {
 		return nil, err
