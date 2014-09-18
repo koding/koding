@@ -1,5 +1,5 @@
 require './utils'
-require './KD.extend'
+require './KD.extend.coffee'
 KodingRouter       = require './KodingRouter'
 OAuthController    = require './OAuthController'
 MainView           = require './MainView'
@@ -39,8 +39,8 @@ module.exports = class MainControllerLoggedOut extends KDController
     KD.utils.defer ->
 
       images = [
-        '/images/city.jpg'
-        "/images/unsplash/#{LoginView.backgroundImageNr}.jpg"
+        '/a/out/images/city.jpg'
+        "/a/out/images/unsplash/#{LoginView.backgroundImageNr}.jpg"
       ]
 
       for src in images
