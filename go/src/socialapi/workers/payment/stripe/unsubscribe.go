@@ -1,6 +1,6 @@
 package stripe
 
-func Unsubscribe(accId, planTitle string) error {
+func Unsubscribe(accId, planTitle, interval string) error {
 	customer, err := FindCustomerByOldId(accId)
 	if err != nil {
 		return err
@@ -10,7 +10,7 @@ func Unsubscribe(accId, planTitle string) error {
 		return ErrCustomerNotFound
 	}
 
-	plan, err := FindPlanByTitle(planTitle)
+	plan, err := FindPlanByTitleAndInterval(planTitle, interval)
 	if err != nil {
 		return err
 	}

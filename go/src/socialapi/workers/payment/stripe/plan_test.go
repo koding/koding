@@ -21,8 +21,8 @@ func TestCreateAndFindPlan(t *testing.T) {
 		})
 
 		Convey("Then it should save the plans", func() {
-			for title, _ := range DefaultPlans {
-				plan, err := FindPlanByTitle(title)
+			for title, pl := range DefaultPlans {
+				plan, err := FindPlanByTitleAndInterval(title, string(pl.Interval))
 
 				So(err, ShouldBeNil)
 				So(plan, ShouldNotBeNil)

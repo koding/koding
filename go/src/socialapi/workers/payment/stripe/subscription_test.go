@@ -11,7 +11,7 @@ import (
 
 func TestCreateAndFindSubscription(t *testing.T) {
 	Convey("Given plan and customer id", t, func() {
-		plan, err := FindPlanByTitle("free_month")
+		plan, err := FindPlanByTitleAndInterval(StartingPlan, StartingInterval)
 
 		So(err, ShouldBeNil)
 		So(plan, ShouldNotBeNil)

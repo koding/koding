@@ -11,14 +11,16 @@ var (
 )
 
 type SubscriptionRequest struct {
-	AccountId, Token, Email string
-	Provider, Plan          string
+	AccountId, Token, Email           string
+	Provider, PlanTitle, PlanInterval string
 }
 
 func (s *SubscriptionRequest) Subscribe() (interface{}, error) {
 	switch s.Provider {
 	case "stripe":
-		return nil, stripe.Subscribe(s.Token, s.AccountId, s.Email, s.Plan)
+		return nil, stripe.Subscribe(
+			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
+		)
 	case "paypal":
 		return nil, ProviderNotImplemented
 	default:

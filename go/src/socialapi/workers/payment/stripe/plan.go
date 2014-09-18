@@ -12,7 +12,7 @@ import (
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
 	for title, pl := range DefaultPlans {
-		plan, err := FindPlanByTitle(title)
+		plan, err := FindPlanByTitleAndInterval(title, string(pl.Interval))
 		if err != nil {
 			return err
 		}
@@ -60,12 +60,13 @@ func CreatePlan(title, nameForStripe string, interval stripe.PlanInternval, amou
 	return planModel, nil
 }
 
-func FindPlanByTitle(title string) (*paymentmodel.Plan, error) {
+func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
 	plan := &paymentmodel.Plan{
-		Title: title,
+		Title:    title,
+		Interval: interval,
 	}
 
-	exists, err := plan.ByTitle()
+	exists, err := plan.ByTitleAndInterval()
 	if err != nil {
 		return nil, err
 	}

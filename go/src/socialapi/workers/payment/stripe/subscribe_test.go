@@ -12,14 +12,14 @@ import (
 func TestSubscribe(t *testing.T) {
 	Convey("Given nonexistent plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, "random_plans")
+		err := Subscribe(token, accId, email, "random_plans", "random_interval")
 
 		So(err, ShouldEqual, ErrPlanNotFound)
 	})
 
 	Convey("Given nonexistent customer, plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, "hobbyist_month")
+		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
 
 		So(err, ShouldBeNil)
 
@@ -45,7 +45,7 @@ func TestSubscribe(t *testing.T) {
 		})
 
 		Convey("Then customer can't subscribe to same plan again", func() {
-			err = Subscribe(token, accId, email, "hobbyist_month")
+			err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 			So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
 		})
 	})
@@ -56,7 +56,7 @@ func TestSubscribe(t *testing.T) {
 		_, err := CreateCustomer(token, accId, email)
 		So(err, ShouldBeNil)
 
-		err = Subscribe(token, accId, email, "hobbyist_month")
+		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		customerModel, err := FindCustomerByOldId(accId)
@@ -72,12 +72,11 @@ func TestSubscribe(t *testing.T) {
 
 	Convey("Given customer already subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		planId := "hobbyist_month"
 
 		_, err := CreateCustomer(token, accId, email)
 		So(err, ShouldBeNil)
 
-		err = Subscribe(token, accId, email, planId)
+		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		customer, err := FindCustomerByOldId(accId)
@@ -94,14 +93,12 @@ func TestSubscribe(t *testing.T) {
 		subId := currentSub.ProviderSubscriptionId
 
 		Convey("Then customer can't subscribe to same plan again", func() {
-			err = Subscribe(token, accId, email, planId)
+			err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 			So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
 		})
 
 		Convey("When customer upgrades to higher plan", func() {
-			newPlanId := "developer_month"
-
-			err = Subscribe(token, accId, email, newPlanId)
+			err = Subscribe(token, accId, email, HigherPlan, HigherInterval)
 			So(err, ShouldBeNil)
 
 			Convey("Then subscription is updated on stripe", func() {
@@ -110,7 +107,7 @@ func TestSubscribe(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				So(sub.Plan.Id, ShouldEqual, newPlanId)
+				So(sub.Plan.Id, ShouldEqual, HigherPlan)
 			})
 
 			Convey("Then subscription is saved", func() {
@@ -120,7 +117,7 @@ func TestSubscribe(t *testing.T) {
 				So(len(subs), ShouldEqual, 1)
 
 				currentSub := subs[0]
-				newPlan, err := FindPlanByTitle(newPlanId)
+				newPlan, err := FindPlanByTitleAndInterval(HigherPlan, HigherInterval)
 
 				So(err, ShouldBeNil)
 				So(currentSub.PlanId, ShouldEqual, newPlan.Id)
@@ -130,12 +127,11 @@ func TestSubscribe(t *testing.T) {
 
 	Convey("Given customer already subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		planId := "professional_month"
 
 		_, err := CreateCustomer(token, accId, email)
 		So(err, ShouldBeNil)
 
-		err = Subscribe(token, accId, email, planId)
+		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
 		customer, err := FindCustomerByOldId(accId)
@@ -152,9 +148,7 @@ func TestSubscribe(t *testing.T) {
 		subId := currentSub.ProviderSubscriptionId
 
 		Convey("When customer downgrades to lower plan", func() {
-			newPlanId := "hobbyist_month"
-
-			err = Subscribe(token, accId, email, newPlanId)
+			err = Subscribe(token, accId, email, LowerPlan, LowerInterval)
 			So(err, ShouldBeNil)
 
 			Convey("Then subscription is updated on stripe", func() {
@@ -163,7 +157,7 @@ func TestSubscribe(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				So(sub.Plan.Id, ShouldEqual, newPlanId)
+				So(sub.Plan.Id, ShouldEqual, LowerPlan)
 			})
 
 			Convey("Then subscription is saved", func() {
@@ -173,7 +167,7 @@ func TestSubscribe(t *testing.T) {
 				So(len(subs), ShouldEqual, 1)
 
 				currentSub := subs[0]
-				newPlan, err := FindPlanByTitle(newPlanId)
+				newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval)
 
 				So(err, ShouldBeNil)
 				So(currentSub.PlanId, ShouldEqual, newPlan.Id)
