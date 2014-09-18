@@ -14,7 +14,7 @@ func Subscribe(token, accId, email, planTitle, interval string) error {
 	}
 
 	customer, err := FindCustomerByOldId(accId)
-	if err != nil {
+	if err != nil && err != ErrCustomerNotFound {
 		return err
 	}
 

@@ -1,22 +1,14 @@
 package stripe
 
 func Unsubscribe(accId, planTitle, interval string) error {
-	customer, err := FindCustomerByOldId(accId)
-	if err != nil {
-		return err
-	}
-
-	if customer == nil {
-		return ErrCustomerNotFound
-	}
-
 	plan, err := FindPlanByTitleAndInterval(planTitle, interval)
 	if err != nil {
 		return err
 	}
 
-	if plan == nil {
-		return ErrPlanNotFound
+	customer, err := FindCustomerByOldId(accId)
+	if err != nil {
+		return err
 	}
 
 	subscriptions, err := FindCustomerActiveSubscriptions(customer)

@@ -47,7 +47,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 	}
 
 	if !exists {
-		return nil, nil
+		return nil, ErrCustomerNotFound
 	}
 
 	return customerModel, nil
