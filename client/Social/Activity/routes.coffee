@@ -11,12 +11,24 @@ do ->
 
     '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'topic', 'public'
 
+    # TODO ~ i tried to unify this route and following 4 routes, couldnt manage
+    # to make it work, did not spend so much time on it and gave up, it would be
+    # better to have only one route for those 5
+    '/:name?/Activity/Announcement/:slug' : ({params: {name, slug}}) ->
+      handleChannel 'announcement', slug
+
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
       if slug is 'public'
       then KD.singletons.router.handleRoute '/Activity/Public'
       else handleChannel 'topic', slug
 
     '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'post', slug
+
+    '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
+      handleChannel 'message', slug
+
+    '/:name?/Activity/:slug' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
 
     '/:name?/Activity/Message/New' : ->
@@ -27,12 +39,6 @@ do ->
 
     '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
-
-    '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
-      handleChannel 'message', slug
-
-    '/:name?/Activity/:slug' : ({params:{name, slug}, query}) ->
-      handleChannel 'post', slug
 
     '/:name?/Activity' : ({params:{name, slug}, query}) ->
       # handle legacy topic routes
