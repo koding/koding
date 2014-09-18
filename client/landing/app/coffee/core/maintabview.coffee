@@ -36,12 +36,14 @@ module.exports = class MainTabView extends KDTabView
 
   createTabPane:(options = {}, mainView)->
 
-    o              = {}
-    o.cssClass     = @utils.curry 'content-area-pane', options.cssClass
-    o.name         = options.name
-    o.view         = mainView
-    paneInstance   = new MainTabPane o
+    options.shouldShow ?= yes
 
-    @addPane paneInstance
+    o            = {}
+    o.cssClass   = @utils.curry 'content-area-pane', options.cssClass
+    o.name       = options.name
+    o.view       = mainView
+    paneInstance = new MainTabPane o
+
+    @addPane paneInstance, options.shouldShow
 
     return paneInstance
