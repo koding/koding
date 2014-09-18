@@ -300,6 +300,7 @@ class SocialApiController extends KDController
       {event: "MessageAdded", mapperFn: mapActivity}
       {event: "MessageRemoved", mapperFn: mapActivity}
       {event: "AddedToChannel", mapperFn: mapParticipant}
+      {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
 
 

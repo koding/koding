@@ -37,6 +37,10 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+func (b *Bongo) Unscoped() *gorm.DB {
+	return b.DB.Unscoped()
+}
+
 func (b *Bongo) UnscopedById(i Modellable, id int64) error {
 	if err := b.DB.
 		Unscoped().

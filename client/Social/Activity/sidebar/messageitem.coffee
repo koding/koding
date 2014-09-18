@@ -13,6 +13,10 @@ class SidebarMessageItem extends SidebarItem
     @icon = new SidebarMessageItemIcon {}, data
     @text = new SidebarMessageItemText {}, data
 
+    data.on 'ChannelDeleted', =>
+      if location.pathname is "/Activity/Message/#{ data.getId() }"
+        KD.singletons.router.clear()
+      @getDelegate().removeItem this
 
   pistachio: ->
     "{{> @icon}}{{> @text}}{{> @unreadCount}}"

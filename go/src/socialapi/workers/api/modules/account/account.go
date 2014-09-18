@@ -97,3 +97,45 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 
 	return response.HandleResultAndError(req.Unfollow(targetId))
 }
+
+func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, error) {
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query := request.GetQuery(u)
+
+	ownershipResponse := func(err error) (int, http.Header, interface{}, error) {
+		var success bool
+		switch err {
+		case bongo.RecordNotFound:
+			success = false
+		case nil:
+			success = true
+		default:
+			return response.NewBadRequest(err)
+		}
+		return response.NewOK(map[string]bool{"success": success})
+	}
+
+	switch query.Type {
+	case "channel":
+		channel := models.NewChannel()
+		err = channel.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"creator_id": accountId,
+			},
+		})
+	case "channel-message":
+		channelMessage := models.NewChannelMessage()
+		err = channelMessage.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"account_id": accountId,
+			},
+		})
+	}
+	return ownershipResponse(err)
+}
