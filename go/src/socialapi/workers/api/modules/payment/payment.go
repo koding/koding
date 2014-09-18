@@ -13,3 +13,9 @@ func Subscribe(u *url.URL, h http.Header, req *payment.SubscriptionRequest) (int
 		req.Subscribe(),
 	)
 }
+
+func StripeWebhook(u *url.URL, h http.Header, req *payment.StripeWebhook) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndError(
+		req.Do(),
+	)
+}

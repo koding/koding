@@ -369,6 +369,10 @@ paymentUnsubscribe = (data, callback)->
   url = "/payments/unsubscribe"
   post url, data, callback
 
+stripeWebhook = (data, callback)->
+  url = "/payments/stripe/webhook"
+  post url, data, callback
+
 
 ########################################
 
@@ -456,4 +460,5 @@ module.exports = {
   checkOwnership
   paymentSubscribe
   paymentUnsubscribe
+  stripeWebhook
 }

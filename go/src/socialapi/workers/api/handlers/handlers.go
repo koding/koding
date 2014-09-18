@@ -447,6 +447,18 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	//----------------------------------------------------------
+	// Stripe webhook
+	//----------------------------------------------------------
+	mux.Handle("POST", "/payments/stripe/webhook", handler.Wrapper(
+		handler.Request{
+			Handler:        payment.StripeWebhook,
+			Name:           "payment-stripewebhook",
+			CollectMetrics: false,
+			Metrics:        metrics,
+		},
+	))
+
 	return mux
 }
 
