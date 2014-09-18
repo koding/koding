@@ -23,7 +23,7 @@ COFFEE_PATH = ['./app/coffee/**/*.coffee']
 INDEX_PATH  = ['./app/index.html']
 SERVER_FILE = './server/server.coffee'
 SERVER_PATH = ['./server/**/*.coffee']
-BUILD_PATH  = argv.outputDir ? 'static'
+BUILD_PATH  = argv.outputDir ? './static/a/out'
 
 log = (color, message) -> gutil.log gutil.colors[color] message
 
@@ -81,12 +81,19 @@ gulp.task 'sprites@1x', ->
     .pipe spritesmith
       imgName   : 'sprite@1x.png'
       cssName   : 'sprite@1x.styl'
-      imgPath   : '/images/sprite@1x.png'
+      imgPath   : "/a/out/images/sprite@1x.png"
       algorithm : 'binary-tree'
       padding   : 5
       cssFormat : 'stylus'
       cssVarMap : nameStylusVars.bind spriteStream, ''
-    .pipe gulp.dest 'static/images/'
+
+  spriteStream.css
+    .pipe gulp.dest './app/styl/'
+
+  spriteStream.img
+    .pipe gulp.dest "#{BUILD_PATH}/images/"
+
+  return spriteStream
 
 
 gulp.task 'sprites@2x', ['sprites@1x'], ->
@@ -95,15 +102,22 @@ gulp.task 'sprites@2x', ['sprites@1x'], ->
     .pipe spritesmith
       imgName   : 'sprite@2x.png'
       cssName   : 'sprite@2x.styl'
-      imgPath   : '/images/sprite@2x.png'
+      imgPath   : "/a/out/images/sprite@2x.png"
       algorithm : 'binary-tree'
       padding   : 10
       cssFormat : 'stylus'
       cssVarMap : nameStylusVars.bind spriteStream, '__2x'
-    .pipe gulp.dest 'static/images/'
+
+  spriteStream.css
+    .pipe gulp.dest './app/styl/'
+
+  spriteStream.img
+    .pipe gulp.dest "#{BUILD_PATH}/images/"
+
+  return spriteStream
 
 
-gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles']
+gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles-only']
 
 gulp.task 'coffee', ->
 
