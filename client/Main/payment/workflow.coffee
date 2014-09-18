@@ -73,12 +73,18 @@ class PaymentWorkflow extends KDController
 
         token = response.id
         {paymentController} = KD.singletons
-        obj = { email: "senthil@koding.com" }
+        me = KD.whoami()
 
-        paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
-          return @modal.emit 'PaymentFailed', err  if err
+        me.fetchEmail (err, email) =>
 
-          @modal.emit 'PaymentSucceeded'
+          return KD.showError err  if err
+
+          obj = { email }
+
+          paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+            return @modal.emit 'PaymentFailed', err  if err
+
+            @modal.emit 'PaymentSucceeded'
 
 
   finish: (state) ->
