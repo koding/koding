@@ -2,7 +2,7 @@ package stripe
 
 import (
 	"errors"
-	"fmt"
+	"strings"
 )
 
 var (
@@ -15,9 +15,13 @@ var (
 	ErrCustomerNotSubscribedToAnyPlans = errors.New("user is not subscribed to any plans")
 	ErrTokenIsEmpty                    = errors.New("token is required")
 
-	ErrPlanNotFoundFn = func(planTitle string) string {
-		return fmt.Sprintf(
-			`pq: invalid input value for enum payment_plan_title: "%s"`, planTitle,
+	ErrPlanNotFoundFn = func(err error) bool {
+		if err == nil {
+			return false
+		}
+
+		return strings.Contains(
+			err.Error(), "pq: invalid input value for enum payment_plan",
 		)
 	}
 )

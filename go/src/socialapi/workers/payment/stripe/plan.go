@@ -68,7 +68,7 @@ func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, err
 
 	exists, err := plan.ByTitleAndInterval()
 	if err != nil {
-		if err.Error() == ErrPlanNotFoundFn(title) {
+		if ErrPlanNotFoundFn(err) {
 			return nil, ErrPlanNotFound
 		}
 
@@ -76,7 +76,7 @@ func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, err
 	}
 
 	if !exists {
-		return nil, nil
+		return nil, ErrPlanNotFound
 	}
 
 	return plan, nil
