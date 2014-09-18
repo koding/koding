@@ -116,7 +116,7 @@ func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, e
 		default:
 			return response.NewBadRequest(err)
 		}
-		return response.NewOK(struct{ Success bool }{Success: success})
+		return response.NewOK(map[string]bool{"success": success})
 	}
 
 	switch query.Type {

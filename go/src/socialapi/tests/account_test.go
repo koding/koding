@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/rest"
@@ -80,8 +79,6 @@ func TestCheckOwnership(t *testing.T) {
 
 		bobsPost, err := rest.CreatePost(bobsGroup.Id, bobsAccount.Id)
 		So(err, ShouldBeNil)
-
-		fmt.Println(tedsAccount, bobsPost)
 
 		Convey("it should say when an account owns a post", func() {
 			isOwner, err := rest.CheckPostOwnership(bobsAccount, bobsPost)

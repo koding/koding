@@ -109,7 +109,6 @@ func checkThrottle(channelId, requesterId int64) error {
 }
 
 func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	fmt.Println("controller delete method is called")
 
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
