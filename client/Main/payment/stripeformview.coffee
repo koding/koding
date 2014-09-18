@@ -41,11 +41,11 @@ class StripeFormView extends KDFormViewWithFields
           cardType   : do =>
             cssClass = null
             return (input, event) =>
-              @form.unsetClass cssClass  if cssClass
+              @unsetClass cssClass  if cssClass
               val = $.trim input.getValue().replace(/-|\s/g,"")
               cssClass = (Stripe.card.cardType val).toLowerCase()
               cssClass = KD.utils.slugify cssClass
-              @form.setClass cssClass
+              @setClass cssClass
 
         events       :
           cardType   : 'keyup'
@@ -118,7 +118,7 @@ class StripeFormView extends KDFormViewWithFields
         rules            :
           clear          : clearValidationErrors
           checkMonthYear : (yearInput, event) =>
-            monthInput = @form.inputs.cardMonth
+            monthInput = @inputs.cardMonth
             monthVal   = $.trim monthInput.getValue().replace(/-|\s/g, '')
             yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
 
