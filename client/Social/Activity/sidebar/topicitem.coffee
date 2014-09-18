@@ -4,8 +4,14 @@ class SidebarTopicItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    {name}                  = data
-    options.route           = "Topic/#{name}"
+    {name, typeConstant}    = data
+
+    # rewrite grop channel as topic?
+    typeConstant            = "topic" if typeConstant is "group"
+    # uppercase first letter of the type constant for route
+    typeConstant            = "#{typeConstant.charAt(0).toUpperCase()}#{typeConstant.slice 1}"
+    # build route with typeConstant and name
+    options.route           = "#{typeConstant}/#{name}"
     options.cssClass        = 'clearfix'
 
     super options, data
