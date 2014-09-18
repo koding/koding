@@ -54,6 +54,8 @@ class PaymentWorkflow extends KDController
 
     @modal = new PaymentModal state: { planTitle, monthPrice, yearPrice }
 
+    @modal.on 'PaymentWorkflowFinished', @bound 'finish'
+
     @modal.on "PaymentSubmitted", (formData) =>
       {
         cardNumber, cardCVC, cardMonth, cardYear, planTitle, planInterval
@@ -67,23 +69,22 @@ class PaymentWorkflow extends KDController
       , (status, response) =>
 
         @modal.form.submitButton.hideLoader()
-
-        console.log response.error
         return @modal.emit 'StripeRequestValidationFailed', response.error  if response.error
 
-
         token = response.id
-
-
         {paymentController} = KD.singletons
         obj = { email: "senthil@koding.com" }
 
         paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
           return @modal.emit 'PaymentFailed', err  if err
 
-          @showConfirmation()
+          @modal.emit 'PaymentSucceeded'
 
 
-  showConfirmation: ->
-    @modal.emit 'PaymentSucceeded'
+  finish: (state) ->
+
+    { view } = @getOptions()
+
+    view.emit 'PaymentWorkflowFinishedSuccessfully', state
+
 

@@ -177,6 +177,22 @@ class PaymentForm extends JView
     @priceSummary.updatePartial priceSummaryPartial
 
 
+  showSuccess: ->
+
+    [
+      @intervalToggle
+      @intervalToggleMessage
+      @form
+      @priceSummary
+      @securityNote
+    ].forEach (view) => view.destroy()
+
+    @submitButton.setTitle 'CONTINUE'
+    @submitButton.setCallback =>
+      @submitButton.hideLoader()
+      @emit 'PaymentWorkflowFinished', @state
+
+
   pistachio: ->
     """
     {{> @intervalToggle}}

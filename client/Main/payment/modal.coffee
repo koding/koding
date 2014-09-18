@@ -32,21 +32,26 @@ class PaymentModal extends KDModalView
 
 
   initEvents: ->
+
+    @forwardEvent @form, 'PaymentSubmitted'
+    @forwardEvent @form, 'PaymentWorkflowFinished'
+    @form.forwardEvent this, 'PaymentProviderLoaded'
+
     @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
     @on 'PaymentFailed',                 @bound 'handleError'
     @on 'PaymentSucceeded',              @bound 'handleSuccess'
 
-    @forwardEvent @form, 'PaymentSubmitted'
-    @form.forwardEvent this, 'PaymentProviderLoaded'
 
 
   handleStripeFail: (error) ->
     @form.showValidationErrorsOnInputs error
 
 
-  handleError: (error) ->
+  handleError: (error) -> KD.showError error
 
 
   handleSuccess: ->
-
+    @setTitle 'Congratulations!'
+    @setSubtitle 'You have been successfully upgraded your plan'
+    @form.showSuccess()
 
