@@ -6,6 +6,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     running = data.status.state in [ Running, Starting ]
     storage = data.jMachine.meta.storage_size ? "0"
+    { providers } = KD.config
 
     options             = KD.utils.extend options,
       title             : 'Configure Your VM'
@@ -32,11 +33,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
-          callback      : (state) =>
-            if state
-            then computeController.start data
-            else computeController.stop data
-            @destroy()
+          callback      : (state) => @emit 'StateChange', state
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then "custom-link-view" else "hidden"
@@ -49,8 +46,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
-          title         : KD.config.providers[data.provider]?.name or "Unknown"
-          href          : KD.config.providers[data.provider]?.link or "/"
+          title         : providers[data.provider]?.name or "Unknown"
+          href          : providers[data.provider]?.link or "/"
+          target        : "_blank"
         guides          :
           label         : 'Guides'
           itemClass     : GuidesLinksView
@@ -58,6 +56,14 @@ class MachineSettingsPopup extends KDModalViewWithForms
     super options, data
 
     { computeController } = KD.singletons
+
+    @machine = @getData()
+
+    @on 'StateChange', (state)=>
+      if state then computeController.start @machine
+      else computeController.stop @machine
+      @destroy()
+
 
   viewAppended:->
 
