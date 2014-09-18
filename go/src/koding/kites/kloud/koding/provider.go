@@ -112,23 +112,23 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	/*
 		1. Stop the instance
 		2. Get VolumeId of current instance
 		3. Get AvailabilityZone of current instance
 		4. Create snapshot from that given VolumeId
-		4a. Delete snapshot if something goes wrong in following steps // TODO
-		5. Create new volume with the desired size from the snapshot and same availability zone.
-		5a. Delete volume if something goes wrong in following steps // TODO
-		6. Detach the volume of current stopped instance
-		7. Attach new volume to current stopped instance
-		8. Start the stopped instance
-		9. Delete old volume (previous smaller size volume)
-		10. Delete snapshot which was used to create larger volume
-		11. Update Domain record with the new IP
-		11. Check if Klient is running
-		12. Return success
+		5. Delete snapshot after we are done with all following steps
+		6. Create new volume with the desired size from the snapshot and same zone.
+		7. Delete volume if something goes wrong in following steps
+		8. Detach the volume of current stopped instance
+		9. Reattach old volume if something goes wrong, if not delete it
+		10. Attach new volume to current stopped instance
+		11. Start the stopped instance
+		12. Delete old volume (previous smaller size volume)
+		13. Update Domain record with the new IP
+		14. Check if Klient is running
+		15. Return success
 	*/
 
 	defer p.Unlock(opts.MachineId)
@@ -190,7 +190,10 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// 5. Create new volume with the desired size from the snapshot and same availability zone.
+	// 5. Delete snapshot after we are done with all steps
+	defer a.Client.DeleteSnapshots([]string{newSnapshotId})
+
+	// 6. Create new volume with the desired size from the snapshot and same availability zone.
 	a.Log.Info("5. Create new volume from snapshot %s", newSnapshotId)
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
@@ -224,7 +227,18 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// 6. Detach the volume of current stopped instance
+	// 7. Delete volume if something goes wrong in following steps
+	defer func() {
+		if resErr != nil {
+			a.Log.Info("An error ocured, deleting new volume %s", newVolumeId)
+			_, err := a.Client.DeleteVolume(newVolumeId)
+			if err != nil {
+				a.Log.Error(err.Error())
+			}
+		}
+	}()
+
+	// 8. Detach the volume of current stopped instance
 	a.Log.Info("6. Detach old volume %s", oldVolumeId)
 	if _, err := a.Client.DetachVolume(oldVolumeId); err != nil {
 		return nil, err
@@ -255,8 +269,23 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// 7. Attach new volume to current stopped instance
-	a.Log.Info("7. Attach new volume %s", newVolumeId)
+	// 9. Reattach old volume if something goes wrong, if not delete it
+	defer func() {
+		// if something goes wrong re attach the old volume so it can be used again
+		if resErr != nil {
+			a.Log.Info("An error ocured, re attaching old volume %s", a.Id())
+			_, err := a.Client.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1")
+			if err != nil {
+				a.Log.Error(err.Error())
+			}
+		} else {
+			// if not just delete, it's not used anymore
+			a.Log.Info("Deleting old volume %s", a.Id())
+			go a.Client.DeleteVolume(oldVolumeId)
+		}
+	}()
+
+	// 10. Attach new volume to current stopped instance
 	if _, err := a.Client.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return nil, err
 	}
@@ -285,19 +314,9 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// 8. Start the stopped instance with the new volume
+	// 11. Start the stopped instance
 	artifact, err := a.Start()
 	if err != nil {
-		return nil, err
-	}
-
-	// 9. Delete old volume (previous smaller size volume)
-	if _, err := a.Client.DeleteVolume(oldVolumeId); err != nil {
-		return nil, err
-	}
-
-	// 10. Delete snapshot which was used to create larger volume
-	if _, err := a.Client.DeleteSnapshots([]string{newSnapshotId}); err != nil {
 		return nil, err
 	}
 
