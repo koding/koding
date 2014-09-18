@@ -214,7 +214,7 @@ app.post "/:name?/Register", (req, res) ->
   redirect ?= '/'
   koding.fetchClient req.cookies.clientId, context, (client) ->
     JUser.convert client, req.body, (err, result) ->
-      return res.send 403, err  if err
+      return res.send 403, err.message  if err
       res.cookie 'clientId', result.newToken
       # handle the request as an XHR response:
       return res.send 200, null if req.xhr
@@ -227,7 +227,7 @@ app.post "/:name?/Login", (req, res) ->
   { clientId } = req.cookies
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.send 403, err  if err
+    return res.send 403, err.message  if err
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
