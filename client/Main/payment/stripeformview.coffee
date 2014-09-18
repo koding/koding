@@ -117,19 +117,20 @@ class StripeFormView extends KDFormViewWithFields
         notifications    : notificationOptions
         rules            :
           clear          : clearValidationErrors
-          checkMonthYear : (yearInput, event) =>
+          checkYear      : (yearInput, event) =>
             monthInput = @inputs.cardMonth
-            monthVal   = $.trim monthInput.getValue().replace(/-|\s/g, '')
             yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
 
-            result     = Stripe.card.validateExpiry monthVal, yearVal
+            validMonth = (new Date).getMonth() + 1
+
+            result = Stripe.card.validateExpiry validMonth, yearVal
             result = if result
             then no
             else 'Year is not valid'
-            yearInput.setValidationResult 'checkMonthYear', result
+            yearInput.setValidationResult 'checkYear', result
 
         events           :
-          checkMonthYear : 'blur'
+          checkYear      : 'blur'
           clear          : 'focus'
     }
 
