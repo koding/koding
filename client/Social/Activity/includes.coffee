@@ -106,6 +106,7 @@ module.exports = [
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
+  "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
   "views/privatemessage/settingsview.coffee"
 
