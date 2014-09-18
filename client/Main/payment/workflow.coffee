@@ -42,7 +42,7 @@ class PaymentWorkflow extends KDController
 
       return  unless Stripe?
 
-      Stripe.setPublishableKey('pk_test_6OB11qvDKuUlo71pFqd6nW9K')
+      Stripe.setPublishableKey KD.config.stripe.token
 
       @modal.emit 'PaymentProviderLoaded', { provider: Stripe }
       window.clearInterval repeater
