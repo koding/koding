@@ -8,7 +8,7 @@ module.exports = class HomeView extends JView
   constructor:->
     super
 
-    {router, appManager} = KD.singletons
+    {router} = KD.singletons
 
     @pricingButton = new KDButtonView
       title       : 'See Pricing'
@@ -19,7 +19,7 @@ module.exports = class HomeView extends JView
       cssClass    : 'login-form register'
       buttonTitle : 'Sign up'
       callback    : (formData) =>
-        appManager.require 'Login', (controller) =>
+        router.requireApp 'Login', (controller) =>
 
           controller.getView().showPasswordModal formData, @signUpForm
 
