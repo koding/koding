@@ -179,7 +179,7 @@ gulp.task 'clean', ->
   gulp.src [BUILD_PATH], read: no
     .pipe rimraf force: yes
 
-gulp.task 'build', ['sprites', 'styles', 'coffee', 'index']
+gulp.task 'build', ['build-kd', 'sprites', 'styles', 'coffee', 'index']
 
 watchersArray = [
   'watch-styles'
