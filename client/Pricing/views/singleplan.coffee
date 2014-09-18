@@ -34,7 +34,7 @@ class SinglePlanView extends KDView
         tagName  : 'dd'
         partial  : partial
 
-    @addSubView new KDButtonView
+    @addSubView @buyButton = new KDButtonView
       style     : 'plan-buy-button'
       title     : 'SELECT'
       state     : { name, monthPrice, yearPrice }
@@ -42,5 +42,8 @@ class SinglePlanView extends KDView
         { title, monthPrice, yearPrice } = @getOptions()
         name = title.toLowerCase()
         @emit 'PlanSelected', name, monthPrice, yearPrice
+
+
+  disable: -> @buyButton.disable()
 
 

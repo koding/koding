@@ -22,11 +22,13 @@ class PricingPlansView extends KDView
     for plan in @plans
       plan.delegate = this
       planName = plan.title.toLowerCase()
-      plan.cssClass = @utils.curry 'current'  if @state.currentPlan is planName
+      isCurrentPlan = @state.currentPlan is planName
+      plan.cssClass = @utils.curry 'current'  if isCurrentPlan
       @addSubView view = new SinglePlanView plan
       @forwardEvent view, "PlanSelected"
+      view.disable()  if isCurrentPlan
 
-      @planViews[plan.title.toLowerCase()] = view
+      @planViews[planName] = view
 
 
   plans: [
