@@ -3,6 +3,7 @@ package payment
 import (
 	"errors"
 	"fmt"
+	"socialapi/models/paymentmodel"
 	"socialapi/workers/payment/stripe"
 )
 
@@ -11,12 +12,16 @@ var (
 	ProviderNotImplemented = errors.New("provider not implemented")
 )
 
-type SubscriptionRequest struct {
+//----------------------------------------------------------
+// SubscribeRequest
+//----------------------------------------------------------
+
+type SubscribeRequest struct {
 	AccountId, Token, Email           string
 	Provider, PlanTitle, PlanInterval string
 }
 
-func (s *SubscriptionRequest) Subscribe() (interface{}, error) {
+func (s *SubscribeRequest) Do() (interface{}, error) {
 	switch s.Provider {
 	case "stripe":
 		return nil, stripe.Subscribe(
@@ -28,6 +33,46 @@ func (s *SubscriptionRequest) Subscribe() (interface{}, error) {
 		return nil, ProviderNotFound
 	}
 }
+
+//----------------------------------------------------------
+// SubscriptionRequest
+//----------------------------------------------------------
+
+type SubscriptionRequest struct {
+	AccountId string
+}
+
+func (s *SubscriptionRequest) Do() (interface{}, error) {
+	customer, err := stripe.FindCustomerByOldId(s.AccountId)
+	if err == stripe.ErrCustomerNotFound {
+		return "free", nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	subscriptions, err := stripe.FindCustomerActiveSubscriptions(customer)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(subscriptions) == 0 {
+		return "free", nil
+	}
+
+	plan := &paymentmodel.Plan{}
+	err = plan.ById(subscriptions[0].PlanId)
+	if err != nil {
+		return nil, err
+	}
+
+	return plan.Title, nil
+}
+
+//----------------------------------------------------------
+// Stripe Webhook
+//----------------------------------------------------------
 
 type StripeWebhook struct {
 	Name     string      `json:"type"`

@@ -60,6 +60,11 @@ func TestSubscriptionsRequest(t *testing.T) {
 	})
 }
 
+//----------------------------------------------------------
+// Helpers
+// TODO: move this to common place that stripe can use as well
+//----------------------------------------------------------
+
 func generateFakeUserInfo() (string, string, string) {
 	token, accId := createToken(), strconv.Itoa(rand.Int())
 	email := accId + "@koding.com"
