@@ -415,9 +415,22 @@ module.exports = class LoginView extends JView
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
 
-  doLogin:(credentials)->
-    KD.singletons.localSync.removeLocalContents()
-    (KD.getSingleton 'mainController').handleLogin credentials, @bound 'afterLoginCallback'
+  doLogin: (formData)->
+
+    {username, password} = formData
+
+    $.ajax
+      url         : '/Login'
+      data        : { username, password }
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : -> location.replace '/'
+      error       : (xhr) =>
+        {responseText} = xhr
+        new KDNotificationView title : responseText
+        @loginForm.button.hideLoader()
+
+
 
   runExternal = (token)->
     KD.getSingleton("kiteController").run
