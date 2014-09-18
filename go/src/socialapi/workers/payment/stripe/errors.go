@@ -22,7 +22,7 @@ var (
 		}
 
 		return strings.Contains(
-			err.Error(), "pq: invalid input value for enum payment_plan",
+			err.Error(), "pq: invalid input value for enum payment.plan",
 		)
 	}
 )
