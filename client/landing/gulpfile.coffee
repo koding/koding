@@ -15,6 +15,7 @@ source     = require 'vinyl-source-stream'
 nodemon    = require 'gulp-nodemon'
 pistachio  = require 'gulp-kd-pistachio-compiler'
 spritesmith= require 'gulp.spritesmith'
+shell      = require 'gulp-shell'
 
 STYLES_PATH = ['./app/styl/**/*.styl']
 COFFEE_PATH = ['./app/coffee/**/*.coffee']
@@ -120,6 +121,24 @@ gulp.task 'index', ->
     .pipe gulp.dest "#{BUILD_PATH}"
 
 gulp.task 'watch-index', -> watchLogger 'yellow', gulp.watch INDEX_PATH, ['index']
+
+
+
+gulp.task 'export', ->
+
+  exportDir = argv.exportDir
+
+  unless exportDir
+
+    log 'yellow', "nothing exported."
+    return
+
+  cmd = "cp -Rf #{__dirname}/#{BUILD_PATH} #{exportDir}"
+
+  log 'green', "Exporting to: #{exportDir}"
+
+  gulp.src ''
+    .pipe shell [cmd]
 
 
 gulp.task 'clean', ->
