@@ -28,7 +28,3 @@ type Plan struct {
 	UpdatedAt time.Time `json:"updatedAt" `
 	DeletedAt time.Time `json:"deletedAt"`
 }
-
-func NewPlan(name, providerId, provider string) *Plan {
-	return &Plan{}
-}
