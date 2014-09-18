@@ -107,7 +107,7 @@ func TestSubscribe(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				So(sub.Plan.Id, ShouldEqual, HigherPlan)
+				So(sub.Plan.Id, ShouldEqual, HigherPlan+"_"+HigherInterval)
 			})
 
 			Convey("Then subscription is saved", func() {
@@ -157,7 +157,7 @@ func TestSubscribe(t *testing.T) {
 
 				So(err, ShouldBeNil)
 
-				So(sub.Plan.Id, ShouldEqual, LowerPlan)
+				So(sub.Plan.Id, ShouldEqual, LowerPlan+"_"+LowerInterval)
 			})
 
 			Convey("Then subscription is saved", func() {
