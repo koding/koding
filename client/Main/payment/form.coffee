@@ -156,6 +156,7 @@ class PaymentForm extends JView
 
     { planInterval } = opts
     @state.planInterval = planInterval
+    @form.inputs.planInterval.setValue planInterval
 
     { monthPrice, yearPrice } = @state
 
