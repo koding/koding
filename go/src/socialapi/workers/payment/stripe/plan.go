@@ -3,6 +3,7 @@ package stripe
 import (
 	"socialapi/models/paymentmodel"
 
+	"github.com/jinzhu/gorm"
 	stripe "github.com/stripe/stripe-go"
 	stripePlan "github.com/stripe/stripe-go/plan"
 )
@@ -11,9 +12,9 @@ import (
 // to be run when the worker starts to be sure the plans weren't
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
-	for title, pl := range DefaultPlans {
-		plan, err := FindPlanByTitleAndInterval(title, string(pl.Interval))
-		if err != nil {
+	for id, pl := range DefaultPlans {
+		plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
+		if err != nil && err != gorm.RecordNotFound {
 			return err
 		}
 
@@ -21,7 +22,7 @@ func CreateDefaultPlans() error {
 			continue
 		}
 
-		_, err = CreatePlan(title, pl.NameForStripe, pl.Interval, pl.Amount)
+		_, err = CreatePlan(id, pl.Title, pl.NameForStripe, pl.Interval, pl.Amount)
 		if err != nil {
 			return err
 		}
@@ -30,23 +31,23 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
-func CreatePlan(title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
+func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
 	planParams := &stripe.PlanParams{
-		Id:       title,
+		Id:       id,
 		Name:     nameForStripe,
 		Amount:   amount,
 		Currency: stripe.USD,
 		Interval: interval,
 	}
 
-	plan, err := stripePlan.Create(planParams)
+	_, err := stripePlan.Create(planParams)
 	if err != nil && err.Error() != ErrPlanAlreadyExists.Error() {
 		return nil, err
 	}
 
 	planModel := &paymentmodel.Plan{
 		Title:          title,
-		ProviderPlanId: plan.Id,
+		ProviderPlanId: id,
 		Provider:       ProviderName,
 		Interval:       string(interval),
 		AmountInCents:  amount,

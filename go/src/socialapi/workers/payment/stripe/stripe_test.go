@@ -75,10 +75,10 @@ func checkCustomerExistsInStripe(id string) bool {
 }
 
 var (
-	StartingPlan     = "developer_month"
+	StartingPlan     = "developer"
 	StartingInterval = "month"
-	HigherPlan       = "professional_month"
+	HigherPlan       = "professional"
 	HigherInterval   = "month"
-	LowerPlan        = "hobbyist_month"
+	LowerPlan        = "hobbyist"
 	LowerInterval    = "month"
 )

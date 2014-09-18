@@ -14,20 +14,20 @@ func TestCreateAndFindPlan(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should create the plans in Stripe", func() {
-			for title, _ := range DefaultPlans {
-				_, err := stripePlan.Get(title, nil)
+			for id, _ := range DefaultPlans {
+				_, err := stripePlan.Get(id, nil)
 				So(err, ShouldBeNil)
 			}
 		})
 
 		Convey("Then it should save the plans", func() {
-			for title, pl := range DefaultPlans {
-				plan, err := FindPlanByTitleAndInterval(title, string(pl.Interval))
+			for _, pl := range DefaultPlans {
+				plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
 
 				So(err, ShouldBeNil)
 				So(plan, ShouldNotBeNil)
 
-				So(plan.Title, ShouldEqual, title)
+				So(plan.Title, ShouldEqual, pl.Title)
 			}
 		})
 	})

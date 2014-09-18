@@ -7,8 +7,8 @@ import (
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
-func Subscribe(token, accId, email, planTitle, interval string) error {
-	plan, err := FindPlanByTitleAndInterval(planTitle, interval)
+func Subscribe(token, accId, email, planTitle, planInterval string) error {
+	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return err
 	}
