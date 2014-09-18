@@ -14,15 +14,15 @@ class KodingKite_KloudKite extends KodingKite
   constructor: (options) ->
     super options
     @requestingInfo = KD.utils.dict()
-    @needsRequest = yes
+    @needsRequest   = KD.utils.dict()
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
   # will be queued up and resolved by the pending request
 
   info: ({ machineId }) ->
-    if @needsRequest
-      @needsRequest = no
+    if @needsRequest[machineId] in [undefined, yes]
+      @needsRequest[machineId] = no
       @tell 'info', { machineId }
         .then (info) =>
           @requestingInfo[machineId].forEach ({ resolve }) -> resolve info
@@ -32,7 +32,7 @@ class KodingKite_KloudKite extends KodingKite
           @requestingInfo[machineId].forEach ({ reject }) -> reject err
           @requestingInfo[machineId] = null
         .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!
-        .finally => @needsRequest = yes
+        .finally => @needsRequest[machineId] = yes
 
     new Promise (resolve, reject) =>
       @requestingInfo[machineId] ?= []

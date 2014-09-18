@@ -15,7 +15,6 @@ import (
 
 type Build struct {
 	*Kloud
-	deployer kite.Handler
 }
 
 // prepare prepares the steps to initialize the build. The build is done
@@ -38,7 +37,7 @@ func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
 	b.Storage.UpdateState(c.MachineId, machinestate.Building)
 	c.Eventer = b.NewEventer(r.Method + "-" + c.MachineId)
 
-	instanceName := r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	instanceName := "user-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	i, ok := c.Machine.Builder["instanceName"]
 	if !ok || i == "" {
 		// if it's empty we use the instance name that was generated above
@@ -142,30 +141,6 @@ instanceName  : %s
 	// update if we somehow updated in build process
 	c.Machine.Builder["instanceName"] = artifact.InstanceName
 
-	r.Context.Set("buildArtifact", artifact)
-
-	// Start the canceller for the build if something goes wrong. Like deleting
-	// the terminate.
-	defer func() {
-		if err == nil || c.Canceller == nil {
-			return
-		}
-
-		b.Log.Info("[%s] building machine failed. Starting canceller.", c.MachineId)
-
-		if err := c.Canceller.Cancel(machOptions, artifact); err != nil {
-			b.Log.Debug("[%s] couldn't run canceller. err: %s", c.MachineId, err)
-		}
-	}()
-
-	deployArtifact, err := b.deployer.ServeKite(r)
-	if err != nil {
-		return nil, err
-	}
-
-	// garbage collect it
-	r.Context = nil
-
 	// b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
 	// 	pretty.Formatter(artifact))
 
@@ -193,11 +168,10 @@ kite query : %s
 		"domainName":   artifact.DomainName,
 		"instanceId":   artifact.InstanceId,
 		"instanceName": artifact.InstanceName,
+		"queryString":  artifact.KiteQuery,
 	}
 
 	b.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
-
-	storageData["queryString"] = deployArtifact.(*protocol.Artifact).KiteQuery
 
 	return true, b.Storage.Update(c.MachineId, &StorageData{
 		Type: "build",

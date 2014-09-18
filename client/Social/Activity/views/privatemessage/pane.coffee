@@ -41,6 +41,19 @@ class PrivateMessagePane extends MessagePane
 
     @filterLinks = null
 
+    KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
+
+
+  handleScroll: do ->
+
+    previous = 0
+
+    KD.utils.throttle ->
+      current = document.body.scrollTop
+      @listPreviousReplies()  if current < 20 and current < previous
+      previous = current
+    , 200
+
 
   createInputWidget: ->
 
@@ -142,28 +155,42 @@ class PrivateMessagePane extends MessagePane
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
 
-  listPreviousReplies: (event) ->
+  listPreviousReplies: do ->
 
-    @listController.showLazyLoader()
+    inProgress = false
 
-    {appManager} = KD.singletons
-    first         = @listController.getItemsOrdered().first
-    return  unless first
+    (event) ->
 
-    from         = first.getData().createdAt
+      return  if inProgress
 
-    @fetch {from, limit: 10}, (err, items = []) =>
-      @listController.hideLazyLoader()
+      inProgress = true
+      @listController.showLazyLoader()
 
-      return KD.showError err  if err
+      {appManager} = KD.singletons
+      first         = @listController.getItemsOrdered().first
+      return  unless first
 
-      items.forEach @lazyBound 'loadMessage'
+      from         = first.getData().createdAt
+
+      @fetch {from, limit: 10}, (err, items = []) =>
+        @listController.hideLazyLoader()
+
+        return KD.showError err  if err
+
+        items.forEach @lazyBound 'loadMessage'
+
+        inProgress = false
 
 
   messageAdded: (item, index) ->
 
     @scrollDown item
-    {data} = item
+    data         = item.getData()
+    listView     = @listController.getView()
+    headerHeight = @heads?.getHeight() or 0
+
+    if window.innerHeight - headerHeight < listView.getHeight()
+      listView.unsetClass 'padded'
 
     # TODO: This is a temporary fix,
     # we need to revisit this part.
@@ -207,6 +234,21 @@ class PrivateMessagePane extends MessagePane
       else nextSibling.unsetClass 'consequent'
     else if nextSibling
       nextSibling.unsetClass 'consequent'
+
+
+  appendMessageDeferred: (item) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @appendMessage item
+
+
+  populate: ->
+
+    super =>
+
+      listView = @listController.getView()
+      @listPreviousReplies()  if listView.getHeight() <= window.innerHeight
 
 
   fetch: (options = {}, callback) ->
@@ -270,4 +312,4 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
-  defaultFilter : -> "MOST_RECENT"
+  defaultFilter: 'Most Recent'

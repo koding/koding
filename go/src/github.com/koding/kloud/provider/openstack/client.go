@@ -13,9 +13,8 @@ import (
 
 type OpenstackClient struct {
 	*os.Openstack
-	Log    logging.Logger
-	Push   func(string, int, machinestate.State)
-	Deploy *protocol.ProviderDeploy
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
 }
 
 func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protocol.Artifact, error) {
@@ -74,26 +73,17 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 
 	o.Push(fmt.Sprintf("Server is created %s", instanceName), 70, machinestate.Building)
 
-	var privateKey string
-	if o.Deploy != nil {
-		privateKey = o.Deploy.PrivateKey
-	}
-
 	return &protocol.Artifact{
 		IpAddress:     server.AccessIPv4,
 		InstanceName:  server.Name,
 		InstanceId:    server.Id,
-		SSHPrivateKey: privateKey,
+		SSHPrivateKey: o.Builder.PrivateKey,
 	}, nil
 }
 
 func (o *OpenstackClient) DeployKey() (string, error) {
-	if o.Deploy == nil {
-		return "", nil
-	}
-
 	// check if our key exist
-	key, err := o.ShowKey(o.Deploy.KeyName)
+	key, err := o.ShowKey(o.Builder.KeyName)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +93,7 @@ func (o *OpenstackClient) DeployKey() (string, error) {
 	}
 
 	// key doesn't exist, create a new one
-	key, err = o.CreateKey(o.Deploy.KeyName, o.Deploy.PublicKey)
+	key, err = o.CreateKey(o.Builder.KeyName, o.Builder.PublicKey)
 	if err != nil {
 		return "", err
 	}

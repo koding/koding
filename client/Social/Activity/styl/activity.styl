@@ -30,6 +30,14 @@ body.activity
     .message-pane.privatemessage > .listview-wrapper
       margin-top        0
 
+      &.padded
+        height            auto
+        abs               0 0 0px 34px
+        kalc              width (100%\-34px)
+
+        .kdscrollview
+          height          auto
+
     .channel-title
       font-size         18px
       line-height       24px
@@ -1720,6 +1728,8 @@ span.collapsedtext
 
       > article
         margin-top          5px
+        padding-top         0
+        margin-bottom       0
 
         p:first-of-type
           padding-top       0

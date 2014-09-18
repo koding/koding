@@ -11,12 +11,11 @@ import (
 var (
 	cloudInitTemplate = template.Must(template.New("cloudinit").Parse(cloudInit))
 
-	// TODO: write_files directive doesn't work properly. So we are echoing.
 	cloudInit = `
 #cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
-disable-ec2-metadata: true
+disable_ec2_metadata: true
 hostname: {{.Hostname}}
 
 bootcmd:
@@ -32,6 +31,11 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 write_files:
+  # Create kite.key
+  - content: |
+      {{.KiteKey}}
+    path: /etc/kite/kite.key
+
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
   - content: |
       <VirtualHost *:{{.ApachePort}}>
@@ -79,6 +83,7 @@ write_files:
       </VirtualHost>
     path: /etc/apache2/sites-available/000-default.conf
 
+{{if .ShouldMigrate }}
   # User migration script (~/migrate.sh)
   - content: |
       #!/bin/bash
@@ -88,14 +93,25 @@ write_files:
       vm_ids=({{ .VmIds }})
       count=$((${#credentials[@]} - 1))
       counter=0
-      if [[ ${vm_names[@]} -eq 0 ]]; then
-        echo "You don't have any VM to operate on."
-        exit 1
+      clear
+      if [ -f /etc/skel/.kodingart.txt ]; then
+        cat /etc/skel/.kodingart.txt
       fi
       echo
-      echo "We've upgraded your VM! Please follow the instructions below to transfer files from your old VM."
+      echo 'This migration assistant will help you move your VMs from the old Koding'
+      echo 'environment to the new one. For each VM that you have, we will copy your'
+      echo 'home directory (and any files you have changed) from the old VM into a'
+      echo 'Backup directory on the new one.'
       echo
-      echo "VMs:"
+      echo 'Please note:'
+      echo '  - This script will copy changed files on the old VM and place them in '
+      echo '    the Backup directory of the new VM'
+      echo '  - This script will NOT install or configure any software'
+      echo '  - This script will NOT place any files outside your home directory.'
+      echo '    You will need to move those files yourself.'
+      echo '  - This script will NOT start any servers or configure any ports.'
+      echo
+      echo "Your VMs:"
       echo
       for vm in "${vm_names[@]}"; do
         echo " - [$counter] $vm"
@@ -109,26 +125,27 @@ write_files:
       done
       vm_name="${vm_names[$index]}"
       echo
-      echo "Downloading files from $vm_name..."
+      echo "Downloading files from $vm_name (this could take a while)..."
       echo
-      archive="${vm_names[$index]}.tgz"
+      archive="$vm_name.tgz"
       echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $archive
       echo
       echo "Extracting your files to directory $(pwd)/$vm_name..."
-      mkdir $vm_name > /dev/null 2>&1
-      tar -xzvf $archive -C $vm_name --strip-components 1 > /dev/null 2>&1
+      mkdir -p Backup/$vm_name
+      tar -xzvf $archive -C $vm_name --strip-components 1 > /dev/null
       rm $archive
       echo
-      echo "Done."
+      echo "You have successfully migrated $vm_name to the new Koding environment."
+      echo "The files have been placed in /home/$username/Backup/$vm_name. Please use"
+      echo 'the unzip command to access the files and then move or copy them into the'
+      echo 'appropriate directories in your new VM.'
+      echo
     path: /home/{{.Username}}/migrate.sh
     permissions: '0755'
     owner: {{.Username}}:{{.Username}}
+{{end}}
 
 runcmd:
-  # Create kite.key
-  - [mkdir, "/etc/kite"]
-  - [sh, -c, 'echo "{{.KiteKey}}" >> /etc/kite/kite.key']
-
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
@@ -166,18 +183,19 @@ type CloudInitConfig struct {
 	KitePort        int    // Defines the running kite port, like 3000
 
 	// Needed for migrate.sh script
-	Passwords string
-	VmNames   string
-	VmIds     string
+	Passwords     string
+	VmNames       string
+	VmIds         string
+	ShouldMigrate bool
 }
 
-func (c *CloudInitConfig) setupMigrateScript() error {
+func (c *CloudInitConfig) setupMigrateScript() {
 	vms, err := modelhelper.GetUserVMs(c.Username)
 	if err != nil {
-		return err
+		return
 	}
 	if len(vms) == 0 {
-		return nil
+		return
 	}
 
 	passwords := make([]string, len(vms))
@@ -195,5 +213,5 @@ func (c *CloudInitConfig) setupMigrateScript() error {
 	c.VmIds = strings.Join(vmIds, " ")
 	c.VmNames = strings.Join(vmNames, " ")
 
-	return nil
+	c.ShouldMigrate = true
 }

@@ -10,7 +10,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite"
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/koding/kloud"
@@ -21,7 +21,6 @@ import (
 	"github.com/koding/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/mitchellh/mapstructure"
 	uuid "github.com/nu7hatch/gouuid"
 )
 
@@ -68,6 +67,14 @@ type Provider struct {
 	KontrolURL        string
 	KontrolPrivateKey string
 	KontrolPublicKey  string
+
+	// If available a key pair with the given public key and name should be
+	// deployed to the machine, the corresponding PrivateKey should be returned
+	// in the ProviderArtifact. Some providers such as Amazon creates
+	// publicKey's on the fly and generates the privateKey themself.
+	PublicKey  string `structure:"publicKey"`
+	PrivateKey string `structure:"privateKey"`
+	KeyName    string `structure:"keyName"`
 }
 
 func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -95,10 +102,12 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	// also apply deploy variable if there is any
-	if err := mapstructure.Decode(machine.Builder, &a.Deploy); err != nil {
-		return nil, fmt.Errorf("koding-amazon: couldn't decode deploy variables: %s", err)
-	}
+	// needed to deploy during build
+	a.Builder.KeyPair = p.KeyName
+
+	// needed to create the keypair if it doesn't exist
+	a.Builder.PublicKey = p.PublicKey
+	a.Builder.PrivateKey = p.PrivateKey
 
 	return a, nil
 }
@@ -154,7 +163,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	if instanceName == "terminated-instance" {
-		instanceName = username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		instanceName = "user-" + username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
@@ -164,52 +173,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
-		infoLog("No security group with name: '%s' exists. Creating a new one. Err was: %s", groupName, err)
-		vpcs, err := a.ListVPCs()
-		if err != nil {
-			return nil, err
-		}
-
-		group = ec2.SecurityGroup{
-			Name:        groupName,
-			Description: "Koding Kloud Security Group",
-			VpcId:       vpcs.VPCs[0].VpcId,
-		}
-
-		infoLog("Creating security group for this instance...")
-		// TODO: remove it after we are done
-		groupResp, err := a.Client.CreateSecurityGroup(group)
-		if err != nil {
-			return nil, err
-		}
-		group = groupResp.SecurityGroup
-
-		// Authorize the SSH access
-		perms := []ec2.IPPerm{
-			ec2.IPPerm{
-				Protocol:  "tcp",
-				FromPort:  22,
-				ToPort:    22,
-				SourceIPs: []string{"0.0.0.0/0"},
-			},
-		}
-
-		// We loop and retry this a few times because sometimes the security
-		// group isn't available immediately because AWS resources are eventaully
-		// consistent.
-		infoLog("Authorizing SSH access on the security group: '%s'", group.Id)
-		for i := 0; i < 5; i++ {
-			_, err = a.Client.AuthorizeSecurityGroup(group, perms)
-			if err == nil {
-				break
-			}
-
-			a.Log.Warning("Error authorizing. Will sleep and retry. %s", err)
-			time.Sleep((time.Duration(i) * time.Second) + 1)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Error creating temporary security group: %s", err)
-		}
+		return nil, err
 	}
 
 	// add now our security group
@@ -299,18 +263,20 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		KitePort:        DefaultKitePort,
 	}
 
-	if err := cloudInitConfig.setupMigrateScript(); err != nil {
-		return nil, err
-	}
+	cloudInitConfig.setupMigrateScript()
 
-	var buf bytes.Buffer
-	err = cloudInitTemplate.Execute(&buf, *cloudInitConfig)
+	var userdata bytes.Buffer
+	err = cloudInitTemplate.Execute(&userdata, *cloudInitConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Builder.UserData = buf.Bytes()
+	a.Builder.UserData = userdata.Bytes()
 
+	// add our Koding keypair
+	a.Builder.KeyPair = p.KeyName
+
+	// build now our instance!!
 	buildArtifact, err := a.Build(instanceName)
 	if err != nil {
 		return nil, err
@@ -328,22 +294,6 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 			}
 		}
 	}()
-
-	// Add user specific tag to make it easier  simplfying easier
-	infoLog("Adding username tag '%s' to the instance '%s'", username, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-user", username); err != nil {
-		return nil, err
-	}
-
-	infoLog("Adding environment tag '%s' to the instance '%s'", p.Kite.Config.Environment, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-env", p.Kite.Config.Environment); err != nil {
-		return nil, err
-	}
-
-	infoLog("Adding machineId tag '%s' to the instance '%s'", opts.MachineId, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-machineId", opts.MachineId); err != nil {
-		return nil, err
-	}
 
 	a.Push("Checking domain", 65, machinestate.Building)
 
@@ -383,13 +333,20 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 		}
 	}()
 
-	infoLog("Adding user domain tag '%s' to the instance '%s'",
-		machineData.Domain, buildArtifact.InstanceId)
-	if err := a.AddTag(buildArtifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+	tags := []ec2.Tag{
+		{Key: "Name", Value: buildArtifact.InstanceName},
+		{Key: "koding-user", Value: username},
+		{Key: "koding-env", Value: p.Kite.Config.Environment},
+		{Key: "koding-machineId", Value: opts.MachineId},
+		{Key: "koding-domain", Value: machineData.Domain},
+	}
+
+	infoLog("Adding user tags %v", tags)
+	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		return nil, err
 	}
 
-	a.Push("Starting provisioning", 75, machinestate.Building)
+	a.Push("Checking connectivity", 75, machinestate.Building)
 
 	buildArtifact.DomainName = machineData.Domain
 
@@ -397,7 +354,7 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	buildArtifact.KiteQuery = query.String()
 
 	infoLog("Connecting to remote Klient instance")
-	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute)
+	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute*2)
 	if err != nil {
 		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
 	} else {
@@ -418,39 +375,6 @@ func CleanZoneID(ID string) string {
 		ID = strings.TrimPrefix(ID, "/hostedzone/")
 	}
 	return ID
-}
-
-// Remove the instance if something goes wrong
-// TODO: remove this after we moved deploy.go into cloud-init
-func (p *Provider) Cancel(opts *protocol.Machine, artifact *protocol.Artifact) error {
-	a, err := p.NewClient(opts)
-	if err != nil {
-		return err
-	}
-
-	p.Log.Warning("Cancelling previous action for machine id: %s. Terminating instance: %s",
-		opts.MachineId, artifact.InstanceId)
-	_, err = a.Client.TerminateInstances([]string{artifact.InstanceId})
-	if err != nil {
-		p.Log.Warning("Cleaning up instance failed: %v", err)
-	}
-
-	if err := p.InitDNS(opts); err != nil {
-		return err
-	}
-
-	username := opts.Builder["username"].(string)
-	machineData := opts.CurrentData.(*Machine)
-
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
-		return err
-	}
-
-	if err := p.DNS.DeleteDomain(machineData.Domain, artifact.IpAddress); err != nil {
-		p.Log.Warning("Cleaning up domain failed: %v", err)
-	}
-
-	return nil
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {

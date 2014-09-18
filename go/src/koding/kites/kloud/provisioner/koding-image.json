@@ -3,7 +3,8 @@
         "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
         "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
         "template_dir": "website/",
-        "bash_dir": "bash/"
+        "bash_dir": "bash/",
+        "kodingart_dir": "kodingart/"
     },
     "builders": [
         {
@@ -35,6 +36,7 @@
                 "sudo a2enmod proxy_fcgi",
                 "mkdir -p /tmp/userdata/Web",
                 "mkdir -p /tmp/userdata/bash",
+                "mkdir -p /tmp/userdata/kodingart",
                 "sudo mkdir -p /opt/koding/userdata/",
                 "sudo mkdir -p /opt/koding/userdata/Web",
                 "sudo mkdir -p /opt/koding/userdata/Applications",
@@ -53,10 +55,16 @@
             "destination": "/tmp/userdata/bash"
         },
         {
+            "type": "file",
+            "source": "{{user `kodingart_dir`}}",
+            "destination": "/tmp/userdata/kodingart"
+        },
+        {
             "type": "shell",
             "inline": [
                 "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
-                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc"
+                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/skel/.kodingart.txt"
             ]
         }
     ]
