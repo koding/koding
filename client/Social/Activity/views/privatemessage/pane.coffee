@@ -18,13 +18,11 @@ class PrivateMessagePane extends MessagePane
 
     super options, data
 
-    channel = @getData()
-
     @listPreviousLink = new ReplyPreviousLink
       delegate : @listController
       click    : @bound 'listPreviousReplies'
       linkCopy : 'Show previous replies'
-    , channel
+    , data
 
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
