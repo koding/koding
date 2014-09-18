@@ -17,7 +17,7 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 		Token: token,
 	}
 
-	externalCustomer, err := stripeCustomer.Create(params)
+	externalCustomer, err := stripeCustomer.New(params)
 	if err != nil {
 		return nil, err
 	}

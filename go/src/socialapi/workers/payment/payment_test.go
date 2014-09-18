@@ -1,0 +1,90 @@
+package payment
+
+import (
+	"math/rand"
+	"socialapi/workers/common/runner"
+	"socialapi/workers/payment/stripe"
+	"strconv"
+	"testing"
+	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
+	stripeClient "github.com/stripe/stripe-go"
+	stripeToken "github.com/stripe/stripe-go/token"
+)
+
+var (
+	FreePlan = "free"
+)
+
+func init() {
+	r := runner.New("paymenttest")
+	if err := r.Init(); err != nil {
+		panic(err)
+	}
+
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
+func TestSubscriptionsRequest(t *testing.T) {
+	Convey("Given nonexistent user", t, func() {
+		req := SubscriptionRequest{AccountId: "indianajones"}
+		plan, err := req.Do()
+		So(err, ShouldBeNil)
+
+		Convey("Then it should return 'free' plan", func() {
+			So(plan.(string), ShouldEqual, FreePlan)
+		})
+	})
+
+	Convey("Given user subscribed to a plan", t, func() {
+		err := stripe.CreateDefaultPlans()
+		So(err, ShouldBeNil)
+
+		token, accId, email := generateFakeUserInfo()
+		err = stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
+
+		customer, err := stripe.FindCustomerByOldId(accId)
+		So(err, ShouldBeNil)
+
+		req := SubscriptionRequest{AccountId: customer.OldId}
+		plan, err := req.Do()
+		So(err, ShouldBeNil)
+
+		Convey("Then it should return the plan", func() {
+			So(plan.(string), ShouldEqual, StartingPlan)
+		})
+	})
+}
+
+func generateFakeUserInfo() (string, string, string) {
+	token, accId := createToken(), strconv.Itoa(rand.Int())
+	email := accId + "@koding.com"
+
+	return token, accId, email
+}
+
+func createToken() string {
+	tokenParams := &stripeClient.TokenParams{
+		Card: &stripeClient.CardParams{
+			Number: "4242424242424242",
+			Month:  "10",
+			Year:   "20",
+		},
+	}
+
+	token, err := stripeToken.New(tokenParams)
+	if err != nil {
+		panic(err)
+	}
+
+	return token.Id
+}
+
+var (
+	StartingPlan     = "developer"
+	StartingInterval = "month"
+)

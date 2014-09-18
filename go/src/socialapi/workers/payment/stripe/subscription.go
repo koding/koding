@@ -14,7 +14,7 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 		Customer: customer.ProviderCustomerId,
 	}
 
-	sub, err := stripeSub.Create(subParams)
+	sub, err := stripeSub.New(subParams)
 	if err != nil {
 		return nil, err
 	}

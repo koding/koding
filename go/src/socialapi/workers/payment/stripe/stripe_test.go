@@ -36,7 +36,7 @@ func createToken() string {
 		},
 	}
 
-	token, err := stripeToken.Create(tokenParams)
+	token, err := stripeToken.New(tokenParams)
 	if err != nil {
 		panic(err)
 	}

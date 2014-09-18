@@ -39,7 +39,7 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 		Interval: interval,
 	}
 
-	_, err := stripePlan.Create(planParams)
+	_, err := stripePlan.New(planParams)
 	if err != nil && err.Error() != ErrPlanAlreadyExists.Error() {
 		return nil, err
 	}
