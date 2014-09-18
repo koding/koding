@@ -32,6 +32,10 @@ module.exports = class Payment extends Base
     data.accountId = getAccountId client
     bareRequest "paymentUnsubscribe", data, callback
 
+  @subscriptions = secure (client, data, callback)->
+    data.accountId = getAccountId client
+    bareRequest "paymentSubscriptions", data, callback
+
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
