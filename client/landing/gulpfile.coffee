@@ -153,7 +153,8 @@ gulp.task 'build-kd', ->
 
   gulp.src ''
     .pipe shell [
-      "gulp --gulpfile #{kdGulpFilePath} compile --uglify --entryPath #{__dirname}/app/coffee/entry.coffee --outputDir #{__dirname}/static/js"
+      "cp -f ./app/coffee/entry.coffee ./node_modules/kdf/src/entry.coffee"
+      "gulp --gulpfile #{kdGulpFilePath} compile --uglify --entryPath=#{__dirname}/node_modules/kdf/src/entry.coffee --outputDir=#{__dirname}/static/a/out"
     ]
 
 
