@@ -10,6 +10,7 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'followers',
     'pinnedactivity',
     'privatemessage',
+    'announcement',
     'default'
 );
 ALTER TYPE "api"."channel_type_constant_enum" OWNER TO "social";
