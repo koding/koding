@@ -23,7 +23,7 @@ func statusToState(status string) machinestate.State {
 	case "hard_reboot", "reboot":
 		return machinestate.Rebooting
 	case "migrating", "password", "resize":
-		return machinestate.Updating
+		return machinestate.Pending
 	default:
 		return machinestate.Unknown
 	}

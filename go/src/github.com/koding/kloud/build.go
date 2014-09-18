@@ -124,7 +124,12 @@ instanceName  : %s
 
 	var artifact *protocol.Artifact
 
-	artifact, err = c.Builder.Build(machOptions)
+	builder, ok := c.Provider.(protocol.Builder)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	artifact, err = builder.Build(machOptions)
 	if err != nil {
 		return nil, err
 	}

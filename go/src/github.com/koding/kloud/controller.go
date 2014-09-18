@@ -15,12 +15,11 @@ type Controller struct {
 	MachineId string
 
 	// Populated later
-	CurrenState  machinestate.State  `json:"-"`
-	ProviderName string              `json:"-"`
-	Controller   protocol.Controller `json:"-"`
-	Builder      protocol.Builder    `json:"-"`
-	Machine      *protocol.Machine   `json:"-"`
-	Eventer      eventer.Eventer     `json:"-"`
+	CurrenState  machinestate.State `json:"-"`
+	ProviderName string             `json:"-"`
+	Provider     interface{}        `json:"-"`
+	Machine      *protocol.Machine  `json:"-"`
+	Eventer      eventer.Eventer    `json:"-"`
 	Username     string
 }
 
@@ -138,22 +137,16 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		}
 
 		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
-		controller, err := k.Controller(machine.Provider)
-		if err != nil {
-			return nil, err
-		}
-
-		builder, err := k.Builder(machine.Provider)
-		if err != nil {
-			return nil, err
+		provider, ok := k.providers[machine.Provider]
+		if !ok {
+			NewError(ErrProviderAvailable)
 		}
 
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
 			ProviderName: machine.Provider,
-			Controller:   controller,
-			Builder:      builder,
+			Provider:     provider,
 			Machine:      machine,
 			CurrenState:  machine.State,
 		}
@@ -187,7 +180,12 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use it
 	machOptions.Eventer = &eventer.Events{}
 
-	response, err := c.Controller.Info(machOptions)
+	controller, ok := c.Provider.(protocol.Controller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	response, err := controller.Info(machOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +203,12 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.Machine) error {
-		resp, err := c.Controller.Start(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		resp, err := controller.Start(m)
 		if err != nil {
 			return err
 		}
@@ -245,7 +248,12 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Stop(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		return controller.Stop(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -253,7 +261,11 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 
 func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Destroy(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+		return controller.Destroy(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -265,7 +277,11 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Restart(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+		return controller.Restart(m)
 	}
 
 	return k.coreMethods(r, c, fn)
