@@ -109,6 +109,10 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
+func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, nil
+}
+
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(opts)
 	if err != nil {

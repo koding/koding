@@ -30,6 +30,13 @@ type Controller interface {
 	Info(*Machine) (*InfoArtifact, error)
 }
 
+// Resizer resizes the a single machines underlying storage
+type Resizer interface {
+	// Resize the machine and creates an artifact that can be pass to other
+	// methods
+	Resize(*Machine) (*Artifact, error)
+}
+
 // Machine is used as a context and data source for the appropriate interfaces
 // provided by the Kloud package. A machine is gathered by the Storage
 // interface.
