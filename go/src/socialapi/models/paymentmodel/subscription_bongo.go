@@ -12,7 +12,7 @@ func (s Subscription) GetId() int64 {
 }
 
 func (Subscription) TableName() string {
-	return "api.payment_subscription"
+	return "payment.subscription"
 }
 
 //----------------------------------------------------------

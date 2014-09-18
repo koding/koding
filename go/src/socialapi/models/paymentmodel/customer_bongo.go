@@ -11,7 +11,7 @@ func (c Customer) GetId() int64 {
 }
 
 func (Customer) TableName() string {
-	return "api.payment_customer"
+	return "payment.customer"
 }
 
 //----------------------------------------------------------

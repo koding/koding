@@ -156,44 +156,4 @@ ALTER TABLE api.message_reply ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMME
 ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_reply_id_fkey" FOREIGN KEY ("reply_id") REFERENCES api.channel_message (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES api.channel_message (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
--- ----------------------------
---  Structure for table PaymentsCustomer
--- ----------------------------
--- ----------------------------
---  Primary key structure for table payment_customer
--- ----------------------------
-ALTER TABLE api.payment_customer ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Uniques structure for table payment_customer
--- ----------------------------
-ALTER TABLE api.payment_customer ADD CONSTRAINT "payment_customer_provider_customer_id_provider_key" UNIQUE ("provider_customer_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
--- ----------------------------
---  Structure for table PaymentsPlan
--- ----------------------------
--- ----------------------------
---  Primary key structure for table payment_plan
--- ----------------------------
-ALTER TABLE api.payment_plan ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Uniques structure for table payment_plan
--- ----------------------------
-ALTER TABLE api.payment_plan ADD CONSTRAINT "payment_plan_provider_plan_id_provider_key" UNIQUE ("provider_plan_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
-
--- ----------------------------
---  Structure for table PaymentSubscription
--- ----------------------------
--- ----------------------------
---  Primary key structure for table payment_subscription
--- ----------------------------
-ALTER TABLE api.payment_subscription ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Uniques structure for table payment_subscription
--- ----------------------------
-ALTER TABLE api.payment_subscription ADD CONSTRAINT "payment_subscription_provider_subscription_id_provider_key" UNIQUE ("provider_subscription_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
--- ----------------------------
---  Foreign keys structure for table message_subscription
--- ----------------------------
-ALTER TABLE api.payment_subscription ADD CONSTRAINT "payment_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES api.payment_plan (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE api.payment_subscription ADD CONSTRAINT "payment_customer_id_fkey" FOREIGN KEY ("customer_id") REFERENCES api.payment_customer (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;

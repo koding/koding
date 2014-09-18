@@ -12,7 +12,7 @@ func (p Plan) GetId() int64 {
 }
 
 func (Plan) TableName() string {
-	return "api.payment_plan"
+	return "payment.plan"
 }
 
 //----------------------------------------------------------
