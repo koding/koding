@@ -201,6 +201,7 @@ module.exports = [
   # "payment/existingaccountworkflow.coffee",
 
   "payment/workflow.coffee",
+  "payment/stripeformview.coffee",
   "payment/form.coffee",
   "payment/modal.coffee",
 
