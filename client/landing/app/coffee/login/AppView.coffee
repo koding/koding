@@ -374,42 +374,32 @@ module.exports = class LoginView extends JView
 
   doRegister: (formData, form) ->
 
-    {mainController, groupsController} = KD.singletons
-
-    mainController.isLoggingIn on
-
     formData.agree    = 'on'
-    formData.referrer = Cookies.get 'referrer'
 
     form or= @registerForm
     form.notificationsDisabled = yes
     form.notification?.destroy()
 
-    # we need to close the group channel so we don't receive the cycleChannel event.
-    # getting the cycleChannel even for our own MemberAdded can cause a race condition
-    # that'll leak a guest account.
-    groupsController.groupChannel?.close()
+    {username} = formData
 
-    KD.remote.api.JUser.convert formData, (err, user) =>
-      form.button.hideLoader()
-
-      if err
-        {message} = err
-        warn "An error occured while registering:", err
-        form.notificationsDisabled = no
-        form.emit "SubmitFailed", message
-      else
-        KD.setVersionCookie user.account
-        {account, newToken} = user
-        account ?= KD.whoami()
-
-        KD.mixpanel.alias account.profile.nickname
+    $.ajax
+      url         : '/Register'
+      data        : formData
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : ->
+        # KD.mixpanel.alias username
         KD.mixpanel 'Signup, success'
+        document.cookie = 'newRegister=true'
 
-        Cookies.set 'newRegister', yes
-        mainController.swapAccount { account, replacementToken: newToken }
+        return location.replace '/'
 
-        return location.replace('/')
+      error       : (xhr) ->
+        {responseText} = xhr
+        form.button.hideLoader()
+        form.notificationsDisabled = no
+        new KDNotificationView title : responseText
+        form.emit 'SubmitFailed', responseText
 
 
   doFinishRegistration: (formData) ->
