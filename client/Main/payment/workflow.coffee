@@ -54,7 +54,7 @@ class PaymentWorkflow extends KDController
 
     @modal = new PaymentModal state: { planTitle, monthPrice, yearPrice }
 
-    @modal.on "PaymentSubmitted", (formData) ->
+    @modal.on "PaymentSubmitted", (formData) =>
       {
         cardNumber, cardCVC, cardMonth, cardYear, planTitle, planInterval
       } = formData
@@ -64,15 +64,26 @@ class PaymentWorkflow extends KDController
         cvc       : formData.cardCVC
         exp_month : formData.cardMonth
         exp_year  : formData.cardYear
-      , (status, response)->
+      , (status, response) =>
 
-        # handle valiation here
-        if response.error
-          return KDNotificationView title: "Invalid cc"
+        @modal.form.submitButton.hideLoader()
+
+        console.log response.error
+        return @modal.emit 'StripeRequestValidationFailed', response.error  if response.error
+
 
         token = response.id
 
+
         {paymentController} = KD.singletons
-        paymentController.subscribe token, planTitle, planInterval, {email:"senthil@koding.com"}, ->
-          console.log ">>>>>>>>>>> request from local", arguments...
+        obj = { email: "senthil@koding.com" }
+
+        paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+          return @modal.emit 'PaymentFailed', err  if err
+
+          @showConfirmation()
+
+
+  showConfirmation: ->
+    @modal.emit 'PaymentSucceeded'
 
