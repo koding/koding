@@ -233,9 +233,9 @@ app.post "/:name?/Login", (req, res) ->
       appId   : 'NewKoding'
       version : '2.0'
     info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.send 500, "Internal error"  if err
-      res.cookie 'clientId', response.replacementToken
-      res.send 200, 'ok'
+      return res.send 500, 'Internal error'  if err
+      res.cookie 'clientId', info.replacementToken
+      res.send 200, null
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
