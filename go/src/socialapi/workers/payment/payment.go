@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"socialapi/models/paymentmodel"
 	"socialapi/workers/payment/stripe"
+	"time"
 )
 
 var (
@@ -42,10 +43,24 @@ type SubscriptionRequest struct {
 	AccountId string
 }
 
-func (s *SubscriptionRequest) Do() (interface{}, error) {
+type SubscriptionsResponse struct {
+	PlanTitle, PlanInterval              string
+	State                                bool
+	CreatedAt, CanceledAt                time.Time
+	CurrentPeriodStart, CurrentPeriodEnd time.Time
+	AcccountId                           string
+}
+
+func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
+	resp := &SubscriptionsResponse{
+		AcccountId:   s.AccountId,
+		PlanTitle:    "free",
+		PlanInterval: "month",
+	}
+
 	customer, err := stripe.FindCustomerByOldId(s.AccountId)
 	if err == stripe.ErrCustomerNotFound {
-		return "free", nil
+		return resp, nil
 	}
 
 	if err != nil {
@@ -58,7 +73,7 @@ func (s *SubscriptionRequest) Do() (interface{}, error) {
 	}
 
 	if len(subscriptions) == 0 {
-		return "free", nil
+		return resp, nil
 	}
 
 	plan := &paymentmodel.Plan{}
@@ -67,7 +82,10 @@ func (s *SubscriptionRequest) Do() (interface{}, error) {
 		return nil, err
 	}
 
-	return plan.Title, nil
+	resp.PlanTitle = plan.Title
+	resp.PlanInterval = plan.Interval
+
+	return resp, nil
 }
 
 //----------------------------------------------------------

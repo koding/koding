@@ -29,11 +29,11 @@ func init() {
 func TestSubscriptionsRequest(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {
 		req := SubscriptionRequest{AccountId: "indianajones"}
-		plan, err := req.Do()
+		resp, err := req.Do()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return 'free' plan", func() {
-			So(plan.(string), ShouldEqual, FreePlan)
+			So(resp.PlanTitle, ShouldEqual, FreePlan)
 		})
 	})
 
@@ -51,11 +51,11 @@ func TestSubscriptionsRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		req := SubscriptionRequest{AccountId: customer.OldId}
-		plan, err := req.Do()
+		resp, err := req.Do()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the plan", func() {
-			So(plan.(string), ShouldEqual, StartingPlan)
+			So(resp.PlanTitle, ShouldEqual, StartingPlan)
 		})
 	})
 }
