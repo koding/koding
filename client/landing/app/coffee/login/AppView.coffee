@@ -130,7 +130,7 @@ module.exports = class LoginView extends JView
         KD.mixpanel "Recover password submit, click"
         @doRecover formData
 
-    @resendForm= new ResendEmailConfirmationLinkInlineForm
+    @resendForm = new ResendEmailConfirmationLinkInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @resendEmailConfirmationToken formData
@@ -150,9 +150,6 @@ module.exports = class LoginView extends JView
       domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
-
-    @failureNotice = new KDCustomHTMLView
-      cssClass     : "failure-notice hidden"
 
     setValue = (field, value)=>
       @registerForm[field]?.input?.setValue value
@@ -238,7 +235,6 @@ module.exports = class LoginView extends JView
       <div class="login-form-holder resend-confirmation-form">
         {{> @resendForm}}
       </div>
-      {{> @failureNotice}}
       <div class="login-footer">
         {{> @github}} {{> @goToRecoverLink}}
       </div>
@@ -501,28 +497,6 @@ module.exports = class LoginView extends JView
 
         KD.mixpanel "Redeem, success"
 
-  showHeadBanner:(message, callback)->
-    $('body').addClass 'recovery'
-    @headBannerMsg = message
-    @headBanner.updatePartial @headBannerMsg
-    @headBanner.unsetClass 'hidden'
-    @headBanner.setClass 'show'
-    @headBanner.off 'click'
-    @headBanner.once 'click', callback
-    @headBanner.appendToDomBody()
-
-  headBannerShowInvitation:(invite)->
-    @showHeadBanner "Cool! you got an invite! <span>If you already have an account click here to sign in.</span>", =>
-      KD.singleton("router").handleRoute "/Login"
-      @headBanner.hide()
-
-    KD.getSingleton('router').clear @getRouteWithEntryPoint 'Register'
-    $('body').removeClass 'recovery'
-    @animateToForm "register"
-    @$('.flex-wrapper').addClass 'taller'
-    KD.getSingleton('mainController').emit 'InvitationReceived', invite
-
-
   hide: (callback) ->
 
     @$('.flex-wrapper').removeClass 'expanded'
@@ -561,34 +535,8 @@ module.exports = class LoginView extends JView
 
   animateToForm: (name)->
 
-    switch name
-      when "register"
-
-        KD.remote.api.JUser.isRegistrationEnabled (status)=>
-          if status is no
-            log "Registrations are disabled!!!"
-            @setFailureNotice
-              cssClass  : "registrations-disabled"
-              title     : "REGISTRATIONS ARE CURRENTLY DISABLED"
-              message   : "We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
-                if you want to be notified when registrations are enabled again."
-            @github.hide()
-            @$(".login-footer").addClass 'hidden'
-            @animateToForm "failureNotice"
-          else
-            @github.show()
-            @$(".login-footer").removeClass 'hidden'
-
-        KD.mixpanel "Register form, click"
-
-      when "home"
-        parent.notification?.destroy()
-        if @headBannerMsg?
-          @headBanner.updatePartial @headBannerMsg
-          @headBanner.show()
-
     @unsetClass 'register recover login reset home resendEmail finishRegistration'
-    @emit "LoginViewAnimated", name
+    @emit 'LoginViewAnimated', name
     @setClass name
     @$('.flex-wrapper').removeClass 'three one'
 
@@ -616,11 +564,6 @@ module.exports = class LoginView extends JView
       when "resendEmail"
         @$('.flex-wrapper').addClass 'one'
         @resendForm.usernameOrEmail.input.setFocus()
-      when "failureNotice"
-        @$('.flex-wrapper').addClass 'one'
-        @github.hide()
-        @$(".login-footer").addClass 'hidden'
-        @failureNotice.show()
       when "reset"
         @formHeader.show()
         @formHeader.updatePartial "Set your new password below"
@@ -650,11 +593,3 @@ module.exports = class LoginView extends JView
       new KDNotificationView
         title   : err.message
         duration: 1000
-
-  setFailureNotice: ({cssClass, title, message}) ->
-    @failureNotice.setClass cssClass  if cssClass
-    @failureNotice.updatePartial \
-      """
-      <strong>#{title}</strong>
-      <p>#{message}</p>
-      """
