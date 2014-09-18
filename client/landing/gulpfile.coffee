@@ -147,6 +147,14 @@ gulp.task 'index', ->
 
 gulp.task 'watch-index', -> watchLogger 'yellow', gulp.watch INDEX_PATH, ['index']
 
+gulp.task 'build-kd', ->
+
+  kdGulpFilePath = "#{__dirname}/node_modules/kdf/gulpfile.coffee"
+
+  gulp.src ''
+    .pipe shell [
+      "gulp --gulpfile #{kdGulpFilePath} compile --uglify --entryPath #{__dirname}/app/coffee/entry.coffee --outputDir #{__dirname}/static/js"
+    ]
 
 
 gulp.task 'export', ->
