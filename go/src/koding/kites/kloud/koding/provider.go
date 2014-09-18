@@ -118,7 +118,9 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		2. Get VolumeId of current instance
 		3. Get AvailabilityZone of current instance
 		4. Create snapshot from that given VolumeId
+		4a. Delete snapshot if something goes wrong in following steps // TODO
 		5. Create new volume with the desired size from the snapshot and same availability zone.
+		5a. Delete volume if something goes wrong in following steps // TODO
 		6. Detach the volume of current stopped instance
 		7. Attach new volume to current stopped instance
 		8. Start the stopped instance
@@ -169,18 +171,13 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 
 	newSnapshotId := resp.Id
 
-	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+	checkSnapshot := func(currentPercentage int) (machinestate.State, error) {
 		resp, err := a.Client.Snapshots([]string{newSnapshotId}, ec2.NewFilter())
 		if err != nil {
 			return 0, err
 		}
 
-		status := resp.Snapshots[0].Status
-
-		if status != "completed" {
-			a.Push(fmt.Sprintf("Taking snaphost of instance '%s'. Current state: %s",
-				a.Builder.InstanceName, status), currentPercentage, machinestate.Pending)
-
+		if resp.Snapshots[0].Status != "completed" {
 			return machinestate.Pending, nil
 		}
 
@@ -188,7 +185,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
+		StateFunc:    checkSnapshot,
 		DesiredState: machinestate.Stopped,
 		Start:        25,
 		Finish:       60,
@@ -212,9 +209,33 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	// newVolumeId := volResp.VolumeId
+	newVolumeId := volResp.VolumeId
 
-	fmt.Printf("volResp %+v\n", volResp)
+	checkVolume := func(currentPercentage int) (machinestate.State, error) {
+		resp, err := a.Client.Volumes([]string{newVolumeId}, ec2.NewFilter())
+		if err != nil {
+			return 0, err
+		}
+
+		if resp.Volumes[0].Status != "available" {
+			return machinestate.Pending, nil
+		}
+
+		return machinestate.Stopped, nil
+	}
+
+	ws = waitstate.WaitState{
+		StateFunc:    checkVolume,
+		DesiredState: machinestate.Stopped,
+		Start:        25,
+		Finish:       60,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return nil, err
+	}
+
+	// 6. Detach the volume of current stopped instance
 
 	return nil, errors.New("resize it not supported")
 }
