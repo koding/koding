@@ -219,14 +219,10 @@ CREATE TYPE "api"."payment_plan_interval" AS ENUM (
 ALTER TYPE "api"."payment_plan_interval" OWNER TO "social";
 
 CREATE TYPE "api"."payment_plan_title" AS ENUM (
-    'free_month',
-    'free_year',
-    'hobbyist_month',
-    'hobbyist_year',
-    'developer_month',
-    'developer_year',
-    'professional_month',
-    'professional_year'
+    'free',
+    'hobbyist',
+    'developer',
+    'professional'
 );
 ALTER TYPE "api"."payment_plan_interval" OWNER TO "social";
 
