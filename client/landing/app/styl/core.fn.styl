@@ -33,21 +33,21 @@ emphasized           = #242a2c
 
 r-sprite(folder, name)
 
-  min_pixel_ratio = 1.5
-  spName          = '$' + folder + '_' + name
-  sp1x            = lookup(spName)
+  pixRatio = 1.5
+  spName   = '$' + folder + '_' + name
+  sp1x     = lookup(spName)
 
   if sp1x
     sprite sp1x
   else
     return
 
-  s = 'all and (-webkit-min-device-pixel-ratio:' + min_pixel_ratio + '),'
-  s = s + '(min--moz-device-pixel-ratio:' + min_pixel_ratio + '),'
-  s = s + '(-o-min-device-pixel-ratio:' + min_pixel_ratio + '/1),'
-  s = s + '(min-device-pixel-ratio:' + min_pixel_ratio + '),'
-  s = s + '(min-resolution:' + unit(min_pixel_ratio*92, dpi) + '),'
-  s = s + '(min-resolution:' + unit(min_pixel_ratio, dppx) + ')'
+  s = 'all and (-webkit-min-device-pixel-ratio:' + pixRatio + '),'
+  s = s + '(min--moz-device-pixel-ratio:' + pixRatio + '),'
+  s = s + '(-o-min-device-pixel-ratio:' + pixRatio + '/1),'
+  s = s + '(min-device-pixel-ratio:' + pixRatio + '),'
+  s = s + '(min-resolution:' + unit(pixRatio*92, dpi) + '),'
+  s = s + '(min-resolution:' + unit(pixRatio, dppx) + ')'
 
   @media s
 
