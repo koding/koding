@@ -27,6 +27,17 @@ do ->
     then res.status(403).send 'Wrong password!'
     else res.status(200).send null
 
+
+  app.post '/Register', (req, res) ->
+
+    {email, username, password} = req.body  if req.body
+    console.log "Registration request for: #{email}/#{username}/#{password}"
+
+    if 'wrong' in [username, password]
+    then res.status(403).send 'Wrong password!'
+    else res.status(200).send null
+
+
   app.get '*', (req, res) ->
     {url}      = req
     redirectTo = "/#!#{url}"
