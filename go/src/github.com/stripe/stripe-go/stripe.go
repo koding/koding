@@ -96,7 +96,7 @@ func (s *InternalBackend) Call(method, path, key string, body *url.Values, v int
 	req.Header.Add("Stripe-Version", apiversion)
 	req.Header.Add("User-Agent", "Stripe.Go-"+clientversion)
 
-	// log.Printf("Requesting %v %q\n", method, path)
+	log.Printf("Requesting %v %q\n", method, path)
 	start := time.Now()
 
 	res, err := s.httpClient.Do(req)
@@ -146,7 +146,7 @@ func (s *InternalBackend) Call(method, path, key string, body *url.Values, v int
 				err.Param = param.(string)
 			}
 
-			// log.Printf("Error encountered from Stripe: %v\n", err)
+			log.Printf("Error encountered from Stripe: %v\n", err)
 			return err
 		}
 	}
