@@ -1030,7 +1030,7 @@ div.nominateicon
 
   .kdformview .formline
 
-    height                29px
+    min-height            29px
     cf()
 
     .input-wrapper
@@ -1043,6 +1043,10 @@ div.nominateicon
 
       .koding-on-off
         margin-top        1px
+        &.on
+          background      #387635
+        &.off
+          background      #494949
 
       .kdselectbox
         margin-top        4px
@@ -1072,7 +1076,60 @@ div.nominateicon
 
     &.guides
       label.kdlabel
-        padding-top       12px
+        padding-top       5px
+
+    &.moreview
+    &.advancedview
+
+      .input-wrapper
+        width             100%
+        border-bottom     1px solid #333
+        z-index           -1
+        top               24px
+        abs()
+
+      label.kdlabel
+        font-size         14px
+        width             100%
+        text-align        center
+        padding           14px 0 3px
+        cursor            pointer
+
+        &:before
+          content         'More'
+          background      #242424
+          size            55px 20px
+          padding-right   15px
+          margin-left     -15px
+          abs()
+
+        &.expanded
+
+          &:after
+            border-bottom-color transparent
+            border-top-color    #aaa
+            top                 4px
+            left                0
+
+        &:after
+          content             ' '
+          border              5px solid transparent
+          border-bottom-color #aaa
+          size                10px 10px
+          margin-left         2px
+          display             inline-block
+          left                0
+          top                 -2px
+          borderBox()
+          rel()
+
+    &.advancedview
+      label.kdlabel
+        &:after
+          left            5px !important
+        &:before
+          content         'Advanced'
+          width           93px
 
     &.button-field
       margin              0 !important
@@ -1086,35 +1143,17 @@ div.nominateicon
     padding-left          3px
     color                 #99999B
 
-    &.advanced
-      font-size           12px
-      cursor              pointer
-      color               #aaa
-      display             inline-block
-      float               none
-      clear               both
-      bg                  color #e9e9e9
-      padding             0 15px
-      &.expanded
-        &:after
-          border-bottom-color transparent
-          border-top-color    #aaa
-          top                 4px
-          left                4px
-
-      &:after
-        content             ' '
-        border              5px solid transparent
-        border-bottom-color #aaa
-        size                10px 10px
-        margin-left         2px
-        display             inline-block
-        left                4px
-        top                 -2px
-        borderBox()
-        rel()
+  .kdbutton.solid.red
+    left                  50%
+    width                 124px
+    margin                24px 0 10px -66px
+    font-weight           600
+    background            #D43130
 
   .kdbutton.subdomain-toggler
     padding-right           0
     .button-title
       color                 #aaa
+
+  .more-form
+    padding-top           18px
