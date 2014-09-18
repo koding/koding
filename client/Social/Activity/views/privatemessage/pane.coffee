@@ -12,8 +12,9 @@ class PrivateMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
-    options.wrapper     ?= yes
-    options.lastToFirst  = yes
+    options.wrapper      ?= yes
+    options.lastToFirst   = yes
+    options.itemClass   or= PrivateMessageListItemView
 
     super options, data
 

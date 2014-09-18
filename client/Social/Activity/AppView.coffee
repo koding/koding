@@ -130,11 +130,7 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       else ActivityPane
 
-    itemClass = switch type
-      when 'privatemessage' then PrivateMessageListItemView
-      else ActivityListItemView
-
-    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
+    @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
     return pane
 
