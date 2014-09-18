@@ -120,6 +120,9 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 }
 
 func (c *Channel) deleteChannelMessages() error {
+	if c.Id == 0 {
+		return ErrIdIsNotSet
+	}
 	for i := 0; ; i++ {
 		messages, err := getMessageBatch(c.Id, i)
 		if err != nil {
