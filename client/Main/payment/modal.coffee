@@ -3,9 +3,9 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends KDModalView
 
-  initialState :
-    interval   : PaymentWorkflow.interval.MONTH
-    scene      : 0
+  initialState   :
+    planInterval : PaymentWorkflow.interval.MONTH
+    scene        : 0
 
   constructor: (options = {}, data) ->
 

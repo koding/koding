@@ -6,8 +6,8 @@
 class PaymentForm extends JView
 
   initialState     :
-    interval       : PaymentWorkflow.interval.MONTH
-    plan           : PaymentWorkflow.plan.HOBBYIST
+    planInterval   : PaymentWorkflow.interval.MONTH
+    planTitle      : PaymentWorkflow.plan.HOBBYIST
     providerLoaded : no
     validation     : {
       cardNumber   : yes
@@ -30,17 +30,17 @@ class PaymentForm extends JView
     @initViews()
     @initEvents()
 
-    { interval } = state
+    { planInterval } = state
 
     # select the inital button depending on the initial
     # button. `Month/Year`
-    intervalButton = @intervalToggle.buttons[interval]
+    intervalButton = @intervalToggle.buttons[planInterval]
     @intervalToggle.buttonReceivedClick intervalButton
 
 
   initViews: ->
 
-    { planName, name, monthPrice, yearPrice, interval } = @state
+    { planTitle, monthPrice, yearPrice, planInterval } = @state
 
     { MONTH, YEAR } = PaymentWorkflow.interval
 
@@ -49,10 +49,10 @@ class PaymentForm extends JView
       buttons      :
         'month'    :
           title    : 'MONTH'
-          callback : => @emit 'IntervalToggleChanged', { interval : MONTH }
+          callback : => @emit 'IntervalToggleChanged', { planInterval : MONTH }
         'year'     :
           title    : 'YEAR'
-          callback : => @emit 'IntervalToggleChanged', { interval : YEAR }
+          callback : => @emit 'IntervalToggleChanged', { planInterval : YEAR }
 
 
     # we are gonna process the price to make it
@@ -70,9 +70,9 @@ class PaymentForm extends JView
 
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
-      partial : "#{planName.capitalize()} Plan"
+      partial : "#{planTitle.capitalize()} Plan"
 
-    pricePartial = if interval is MONTH
+    pricePartial = if planInterval is MONTH
     then "#{monthPrice / 100.00}/mo"
     else "#{yearPrice / 100.00}/yr"
 
@@ -247,21 +247,21 @@ class PaymentForm extends JView
 
   handleToggleChanged: (opts) ->
 
-    { interval } = opts
-    @state.interval = interval
+    { planInterval } = opts
+    @state.planInterval = planInterval
 
     { monthPrice, yearPrice } = @state
 
-    button = @intervalToggle.buttons[interval]
+    button = @intervalToggle.buttons[planInterval]
     @intervalToggle.buttonReceivedClick button
 
-    pricePartial = if interval is PaymentWorkflow.interval.MONTH
+    pricePartial = if planInterval is PaymentWorkflow.interval.MONTH
     then "#{KD.utils.decimalAdjust('round', monthPrice / 100.00, -2) }/mo"
     else "#{KD.utils.decimalAdjust('round', yearPrice / 100.00 / 12, -2)}/mo"
 
     @price.updatePartial pricePartial
 
-    calculatedPrice = if interval is PaymentWorkflow.interval.MONTH
+    calculatedPrice = if planInterval is PaymentWorkflow.interval.MONTH
     then "#{KD.utils.decimalAdjust 'round', monthPrice/100, -2}/month"
     else "#{KD.utils.decimalAdjust 'round', yearPrice/100, -2}/year"
 
