@@ -1,7 +1,7 @@
 class PaymentController extends KDController
 
-  subscribe: (token, plan, options, callback)->
-    params          = {token, plan}
+  subscribe: (token, planName, planInterval, options, callback)->
+    params          = {token, planName, planInterval}
 
     params.email    = options.email     if options.email
     params.provider = options.provider  or "stripe"

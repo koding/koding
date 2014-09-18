@@ -108,7 +108,7 @@ class PaymentForm extends JView
   initForm: ->
 
     { firstName, lastName } = KD.whoami().profile
-    { planName } = @state
+    { planName, interval } = @state
 
     fields = {}
     fields.cardNumber = {
@@ -209,6 +209,11 @@ class PaymentForm extends JView
 
     fields.planName = {
       defaultValue       : planName
+      cssClass           : "hidden"
+    }
+
+    fields.planInterval = {
+      defaultValue       : interval
       cssClass           : "hidden"
     }
 
