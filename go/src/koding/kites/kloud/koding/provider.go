@@ -111,24 +111,34 @@ func (p *Provider) Name() string {
 }
 
 func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
-
 	/*
-	* Stop the instance
-	* Get VolumeId of current instance
-	* Get AvailabilityZone of current instance
-	* Create snapshot from that given VolumeId
-	* Create new volume with the desired size from the snapshot and same availability zone.
-	* Detach the volume of current stopped instance
-	* Attach new volume to current stopped instance
-	* Start the stopped instance
-	* Check if new volume partition needs resizing, run "resize2fs" inside machine if needed via SSH
-	* Delete old volume
-	* Delete old snapshot
-	* Update Domain record with the new IP
-	* Check if Klient is running
-	* Return success
+		1. Stop the instance
+		2. Get VolumeId of current instance
+		3. Get AvailabilityZone of current instance
+		4. Create snapshot from that given VolumeId
+		5. Create new volume with the desired size from the snapshot and same availability zone.
+		6. Detach the volume of current stopped instance
+		7. Attach new volume to current stopped instance
+		8. Start the stopped instance
+		9. Check if new volume partition needs resizing, run "resize2fs" inside machine if needed via SSH
+		10. Delete old volume
+		11. Delete old snapshot
+		11. Update Domain record with the new IP
+		12. Check if Klient is running
+		13. Return success
+	*/
 
-	 */
+	a, err := p.NewClient(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// 1. Stop the instance
+	err = a.Stop()
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, errors.New("resize it not supported")
 }
 
