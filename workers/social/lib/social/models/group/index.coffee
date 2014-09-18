@@ -270,7 +270,9 @@ module.exports = class JGroup extends Module
       body          : String
       # channelId for mapping social API
       # to internal usage
-      socialApiChannelId: String
+      socialApiChannelId             : String
+      # channel id for announcements of a group
+      socialApiAnnouncementChannelId : String
       avatar        : String
       slug          :
         type        : String
@@ -1637,15 +1639,17 @@ module.exports = class JGroup extends Module
         console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
         callback()
 
-  createSocialApiChannelId: (callback) ->
-    if @socialApiChannelId
-      return callback null, @socialApiChannelId
+  createSocialApiChannels: (callback) ->
+
+    if @socialApiChannelId and @socialApiAnnouncementChannelId
+      return callback null, {@socialApiChannelId, @socialApiAnnouncementChannelId}
+
     @fetchOwner (err, owner)=>
-      return callback err if err
+      return callback err if err?
       unless owner
         return callback { message: "Owner not found for #{@slug} group" }
       owner.createSocialApiId (err, socialApiId)=>
-        return callback err if err
+        return callback err if err?
         # required data for creating a channel
         privacy = if @slug is "koding" then "public" else "private"
 
@@ -1654,8 +1658,17 @@ module.exports = class JGroup extends Module
           privacyConstant: privacy
 
         @createGroupChannel options, (err, groupChannelId) =>
-          return callback err if err
-          return callback null, groupChannelId
+          return callback err if err?
+
+          @createAnnouncementChannel options, (err, announcementChannelId) =>
+            return callback err if err?
+
+            return callback null, {
+              # channel id for #public - used as group channel
+              socialApiChannelId: groupChannelId,
+              # channel id for #koding - used for announcements
+              socialApiAnnouncementChannelId:announcementChannelId
+            }
 
 
   createGroupChannel:(options, callback)->
@@ -1665,10 +1678,17 @@ module.exports = class JGroup extends Module
 
     return @createSocialAPIChannel options, callback
 
+  createAnnouncementChannel:(options, callback)->
+    options.name = @slug
+    options.varName = "socialApiAnnouncementChannelId"
+    options.typeConstant = "announcement"
+
+    return @createSocialAPIChannel options, callback
+
   createSocialAPIChannel:(options, callback)->
     {varName, name, typeConstant, creatorId, privacyConstant} = options
 
-    return @[varName]  if @[varName]
+    return callback null, @[varName]  if @[varName]
 
     defaultChannel =
       name            : name or @slug
