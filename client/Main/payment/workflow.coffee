@@ -7,7 +7,7 @@
 #
 # Necessary options when you instantiate it.
 #
-# planName   : string (see PaymentWorkflow.plans)
+# planTitle  : string (see PaymentWorkflow.plans)
 # monthPrice : int (e.g 1900 for $19)
 # yearPrice  : int (e.g 19000 for $190)
 # view       : KDView

@@ -347,7 +347,7 @@ checkOwnership = (data, callback) ->
 
 paymentSubscribe = (data, callback)->
   requiredParams = [
-    "accountId", "token", "email", "plan", "provider"
+    "accountId", "token", "email", "planTitle", "planInterval", "provider"
   ]
 
   for param in requiredParams
