@@ -124,12 +124,11 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		6. Detach the volume of current stopped instance
 		7. Attach new volume to current stopped instance
 		8. Start the stopped instance
-		9. Check if new volume partition needs resizing, run "resize2fs" inside machine if needed via SSH
-		10. Delete old volume
-		11. Delete old snapshot
+		9. Delete old volume (previous smaller size volume)
+		10. Delete snapshot which was used to create larger volume
 		11. Update Domain record with the new IP
-		12. Check if Klient is running
-		13. Return success
+		11. Check if Klient is running
+		12. Return success
 	*/
 
 	defer p.Unlock(opts.MachineId)
@@ -163,7 +162,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Log.Info("3. Getting Avail Zone")
 	availZone := instance.AvailZone
 
-	// 4. Create snapshot from that given VolumeId
+	// 4. Create new snapshot from that given VolumeId
 	a.Log.Info("4. Create snapshot from volume %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	resp, err := a.Client.CreateSnapshot(oldVolumeId, snapshotDesc)
@@ -286,7 +285,23 @@ func (p *Provider) Resize(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return nil, errors.New("resize it not supported")
+	// 8. Start the stopped instance with the new volume
+	artifact, err := a.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	// 9. Delete old volume (previous smaller size volume)
+	if _, err := a.Client.DeleteVolume(oldVolumeId); err != nil {
+		return nil, err
+	}
+
+	// 10. Delete snapshot which was used to create larger volume
+	if _, err := a.Client.DeleteSnapshots([]string{newSnapshotId}); err != nil {
+		return nil, err
+	}
+
+	return artifact, errors.New("resize it not supported")
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
