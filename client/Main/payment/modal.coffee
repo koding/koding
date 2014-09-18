@@ -9,8 +9,10 @@ class PaymentModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.width     = 534
-    options.cssClass  = KD.utils.curry 'payment-modal', options.cssClass
+    options.title    = 'Upgrade your plan'
+    options.subtitle = 'And get some things you know such and such'
+    options.width    = 534
+    options.cssClass = KD.utils.curry 'payment-modal', options.cssClass
 
     { state } = options
 
@@ -18,46 +20,33 @@ class PaymentModal extends KDModalView
 
     super options, data
 
-    @initScenes()
     @initViews()
-
-
-  initScenes: ->
-
-    @scenes = [
-      title      : 'Upgrade your plan'
-      subtitle   : 'And get some things you know such and such'
-      sceneClass : PaymentForm
-      events     : ->
-        @forwardEvent @scene, 'PaymentSubmitted'
-        @scene.forwardEvent this, 'PaymentProviderLoaded'
-    ,
-      title       : ''
-      subtitle    : ''
-      sceneClass : PaymentForm
-    ]
-
-
-  openScene: (sceneNumber, options = {}) ->
-
-    @scene?.destroy()
-
-    { title, subtitle, sceneClass, events } = @scenes[sceneNumber]
-
-    @setTitle title
-    @setSubtitle subtitle
-
-    options.state = @state
-
-    @scene = new sceneClass options
-
-    events.call this # coming from the events property of scene array
-
-    @addSubView @scene
+    @initEvents()
 
 
   initViews: ->
-    options = @getOptions()
-    @scene  = @openScene @initialState.scene, @state
+    @addSubView @errors = new KDCustomHTMLView
+      cssClass : 'errors hidden'
+
+    @addSubView @form = new PaymentForm { @state }
+
+
+  initEvents: ->
+    @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
+    @on 'PaymentFailed',                 @bound 'handleError'
+    @on 'PaymentSucceeded',              @bound 'handleSuccess'
+
+    @forwardEvent @form, 'PaymentSubmitted'
+    @form.forwardEvent this, 'PaymentProviderLoaded'
+
+
+  handleStripeFail: (error) ->
+    @form.showValidationErrorsOnInputs error
+
+
+  handleError: (error) ->
+
+
+  handleSuccess: ->
 
 
