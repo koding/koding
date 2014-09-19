@@ -292,6 +292,14 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	mux.Handle("GET", "/account/{id}/channels/count", handler.Wrapper(
+		handler.Request{
+			Handler: account.ParticipatedChannelCount,
+			Name:    "account-channel-list-count",
+			Metrics: metrics,
+		},
+	))
+
 	// list posts of the account
 	mux.Handle("GET", "/account/{id}/posts", handler.Wrapper(
 		handler.Request{
