@@ -11,7 +11,7 @@ class PricingAppView extends KDView
 
     @state = {}
 
-    @loadPlan()
+    @loadPlan()  if KD.isLoggedIn()
     @initViews()
     @initEvents()
 
@@ -66,7 +66,8 @@ class PricingAppView extends KDView
 
   planSelected: (planTitle, monthPrice, yearPrice) ->
 
-    return @loadPlan @bound 'planSelected'  unless @state.currentPlan?
+    return window.location.replace '/Register'  unless KD.isLoggedIn()
+    return @loadPlan @bound 'planSelected'      unless @state.currentPlan?
 
     @workflowController = new PaymentWorkflow
       state      : @state
