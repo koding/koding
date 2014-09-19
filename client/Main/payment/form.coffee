@@ -37,25 +37,10 @@ class PaymentForm extends JView
 
     { planInterval } = state
 
-    # select the inital button depending on the initial
-    # button. `Month/Year`
-    intervalButton = @intervalToggle.buttons[planInterval]
-    @intervalToggle.buttonReceivedClick intervalButton
-
 
   initViews: ->
 
     { MONTH, YEAR } = PaymentWorkflow.interval
-
-    @intervalToggle = new KDButtonGroupView
-      cssClass     : 'interval-toggle'
-      buttons      :
-        'month'    :
-          title    : 'MONTH'
-          callback : => @emit 'IntervalToggleChanged', { planInterval : MONTH }
-        'year'     :
-          title    : 'YEAR'
-          callback : => @emit 'IntervalToggleChanged', { planInterval : YEAR }
 
     {
       planTitle, monthPrice, yearPrice,
@@ -63,28 +48,42 @@ class PaymentForm extends JView
       currentPlan
     } = @state
 
-    @intervalToggleMessage = new KDCustomHTMLView
-      cssClass : 'interval-toggle-message'
-      partial  : "
-        You can save <strong>$#{discount / 100.00}</strong>/mo
-        by switching to <strong>yearly plan</strong>.
-      "
-
-
-    @intervalToggleMessage.hide()  if planTitle is PaymentWorkflow.plan.FREE
-
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
       partial : "#{planTitle.capitalize()} Plan"
 
     pricePartial = if planInterval is MONTH
-    then "#{monthPrice / 100.00}/mo"
-    else "#{yearPrice / 100.00}/yr"
+    then "#{monthPrice / 100.00}<span>/Month</span>"
+    else "#{yearPrice / 100.00}<span>/Month</span>"
 
     @price = new KDCustomHTMLView
       cssClass : 'plan-price'
       partial  : pricePartial
 
+    @discountMessage = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'discount-msg'
+      partial  : "
+        You can <strong>save $#{discount / 100.00}</strong>/mo
+        by switching to"
+
+    @intervalToggleLink = new CustomLinkView
+      state    : { planInterval: MONTH }
+      cssClass : 'interval-toggle-link'
+      title    : 'yearly plan'
+      click    : (event) =>
+        { planInterval }  = @intervalToggleLink.getOptions().state
+        switchedIntervals = { month: YEAR, year: MONTH }
+        state             = { planInterval: switchedIntervals[planInterval] }
+        @intervalToggleLink.setOption 'state', state
+        @emit 'IntervalToggleChanged', state
+
+
+    { FREE } = PaymentWorkflow.plan
+
+    if planTitle is FREE
+      [@discountMessage, @intervalToggleLink].forEach (view) ->
+        view.hide()
 
     @form = @initForm()
 
@@ -94,15 +93,12 @@ class PaymentForm extends JView
         We will use the credit card saved on your account for this purchase.
       '
 
-    { FREE } = PaymentWorkflow.plan
-
     # if their currentPlan is not free it means that
     # we already have their credit card,
     # so don't show the form show the existing
     # credit card message.
     @form.hide()  unless currentPlan is FREE
     @existingCreditCardMessage.hide()  if currentPlan is FREE
-
 
     @priceSummary = new KDCustomHTMLView
       cssClass    : 'price-summary'
@@ -135,7 +131,7 @@ class PaymentForm extends JView
     # downgrading to free account.
     # TODO: move this into more proper place. ~U
     if planTitle is FREE
-      [ @intervalToggle, @intervalToggleMessage
+      [ @intervalToggleLink, @discountMessage
         @priceSummary, @securityNote, @existingCreditCardMessage
       ].forEach (view) -> view.hide()
 
@@ -189,47 +185,41 @@ class PaymentForm extends JView
 
   handleToggleChanged: (opts) ->
 
+    { MONTH }        = PaymentWorkflow.interval
     { planInterval } = opts
 
     @state.planInterval = planInterval
-
     @form.inputs.planInterval.setValue planInterval
 
     { monthPrice, yearPrice, reducedMonth, discount } = @state
 
-    button = @intervalToggle.buttons[planInterval]
-    @intervalToggle.buttonReceivedClick button
+    discountPartials =
+      month : "You can <strong>save $#{discount / 100.00}</strong>/mo by switching to"
+      year  : "You are <strong>saving $#{discount / 100.00}</strong>/mo. Awesome!"
 
-    { MONTH } = PaymentWorkflow.interval
+    linkPartials =
+      month : 'yearly plan'
+      year  : 'Back to monthly plan'
 
-    discountPartial = if planInterval is MONTH
-    then "You can save <strong>$#{discount / 100.00}</strong>/mo
-    by switching to <strong>yearly plan</strong>."
-    else "You are saving <strong>$#{discount / 100.00}</strong>/mo
-    by switching to <strong>yearly plan</strong>. Awesome!"
+    pricePartials =
+      month : "#{monthPrice / 100}<span>/Month</span>"
+      year  : "#{reducedMonth / 100}<span>/Month</span>"
 
-    @intervalToggleMessage.updatePartial discountPartial
+    priceSummaryPartials =
+      month : "You'll be charged $#{monthPrice / 100}<span>/Month</span>"
+      year  : "You'll be charged $#{yearPrice  / 100}<span>/Year</span>"
 
-    pricePartial = if planInterval is PaymentWorkflow.interval.MONTH
-    then "#{monthPrice / 100}/mo"
-    else "#{reducedMonth / 100}/mo"
-
-    @price.updatePartial pricePartial
-
-    calculatedPrice = if planInterval is PaymentWorkflow.interval.MONTH
-    then "#{monthPrice / 100}/month"
-    else "#{yearPrice / 100}/year"
-
-    priceSummaryPartial = "You'll be charged $#{calculatedPrice}"
-
-    @priceSummary.updatePartial priceSummaryPartial
+    @discountMessage.updatePartial discountPartials[planInterval]
+    @intervalToggleLink.updatePartial linkPartials[planInterval]
+    @price.updatePartial pricePartials[planInterval]
+    @priceSummary.updatePartial priceSummaryPartials[planInterval]
 
 
   showSuccess: ->
 
     [
-      @intervalToggle
-      @intervalToggleMessage
+      @intervalToggleLink
+      @discountMessage
       @form
       @priceSummary
       @existingCreditCardMessage
@@ -244,10 +234,11 @@ class PaymentForm extends JView
 
   pistachio: ->
     """
-    {{> @intervalToggle}}
-    {{> @intervalToggleMessage}}
     <div class='summary clearfix'>
       {{> @plan}}{{> @price}}
+    </div>
+    <div class='interval-toggle-wrapper clearfix'>
+      {{> @discountMessage}}{{> @intervalToggleLink}}
     </div>
     {{> @form}}
     {{> @existingCreditCardMessage}}
