@@ -23,14 +23,16 @@ class PaymentWorkflow extends KDController
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
+  initialState: {}
+
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @state = {}
+    @state = @utils.extend @initialState, options.state
 
-    @start()
     @initPaymentProvider()
+    @start()
 
 
   initPaymentProvider: ->
@@ -54,14 +56,22 @@ class PaymentWorkflow extends KDController
 
     { planTitle, monthPrice, yearPrice } = @getOptions()
 
-    @modal = new PaymentModal state: { planTitle, monthPrice, yearPrice }
+    @state = @utils.extend @state, { planTitle, monthPrice, yearPrice }
 
+    @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished', @bound 'finish'
+    @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
 
-    @modal.on "PaymentSubmitted", (formData) =>
-      {
-        cardNumber, cardCVC, cardMonth, cardYear, planTitle, planInterval
-      } = formData
+
+  handlePaymentSubmit: (formData) ->
+
+    {
+      cardNumber, cardCVC, cardMonth,
+      cardYear, planTitle, planInterval,
+      currentPlan
+    } = formData
+
+    if currentPlan is PaymentWorkflow.plan.FREE
 
       Stripe.card.createToken
         number    : formData.cardNumber
@@ -75,20 +85,29 @@ class PaymentWorkflow extends KDController
           @modal.form.submitButton.hideLoader()
 
         token = response.id
-        {paymentController} = KD.singletons
-        me = KD.whoami()
+        @subscribeToPlan planTitle, planInterval, token
+    else
+      @subscribeToPlan planTitle, planInterval, 'a'
 
-        me.fetchEmail (err, email) =>
+    @state.currentPlan = planTitle
 
-          return KD.showError err  if err
 
-          obj = { email }
+  subscribeToPlan: (planTitle, planInterval, token = 'a') ->
+    { paymentController } = KD.singletons
 
-          paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
-            @modal.form.submitButton.hideLoader()
-            return @modal.emit 'PaymentFailed', err  if err
+    me = KD.whoami()
+    me.fetchEmail (err, email) =>
 
-            @modal.emit 'PaymentSucceeded'
+      return KD.showError err  if err
+
+      obj = { email }
+
+      paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+        @modal.form.submitButton.hideLoader()
+
+        if err
+        then @modal.emit 'PaymentFailed', err
+        else @modal.emit 'PaymentSucceeded'
 
 
   finish: (state) ->
@@ -96,6 +115,8 @@ class PaymentWorkflow extends KDController
     { view } = @getOptions()
 
     @emit 'PaymentWorkflowFinishedSuccessfully', state
+
+    view.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 

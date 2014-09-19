@@ -83,6 +83,10 @@ class PaymentForm extends JView
 
     @form = @initForm()
 
+    # if their currentPlan is not free it means that
+    # we already have their credit card, so don't show the form.
+    @form.hide()  unless @state.currentPlan is PaymentWorkflow.plan.FREE
+
     @priceSummary = new KDCustomHTMLView
       cssClass    : 'price-summary'
       partial     : "You'll be charged $#{monthPrice / 100}/month"
