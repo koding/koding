@@ -1,10 +1,10 @@
 class ActivityPane extends MessagePane
 
   constructor: (options, data) ->
-    options.type    or= ''
-    options.cssClass  = "activity-pane #{options.type}"
-    options.wrapper     ?= yes
-    options.lastToFirst ?= no
+    options.type        or= ''
+    options.cssClass      = "activity-pane #{options.type}"
+    options.wrapper      ?= yes
+    options.lastToFirst  ?= no
 
     KDTabPaneView.call this, options, data
 
@@ -79,9 +79,7 @@ class ActivityPane extends MessagePane
     @tabView.tabHandleContainer.setClass 'filters'
     @tabView.on "PaneDidShow", (pane) => switch pane
       when @mostLiked.parent
-        @select 'mostLiked',
-          mostLiked: yes
-          forceLoad: yes
+        @select 'mostLiked', mostLiked: yes
       when @mostRecent.parent
         @select 'mostRecent'
 
@@ -133,6 +131,5 @@ class ActivityPane extends MessagePane
       KD.singletons.search
         .searchChannel userText, @getData().id
         .then (results) =>
-          @searchResults.finishSearch()
           @searchResults.setContent results
         .catch KD.showError

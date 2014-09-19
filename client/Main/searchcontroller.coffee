@@ -46,7 +46,7 @@ class SearchController extends KDObject
             if err
               # NOTE: intentionally not rejecting here:
               console.warn "social api error:", err
-            return resolve message
+            resolve message
       .filter Boolean
 
   getIndex: (indexName) ->
