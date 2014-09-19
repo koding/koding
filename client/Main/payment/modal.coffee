@@ -11,6 +11,7 @@ class PaymentModal extends KDModalView
 
     options.width    = 534
     options.cssClass = KD.utils.curry 'payment-modal', options.cssClass
+    options.overlay  = yes
 
     { state } = options
 
