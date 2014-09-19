@@ -224,7 +224,6 @@ module.exports = [
   "avatararea/avatarareaiconlink.coffee",
 
   "maincontroller/groupdata.coffee",
-  "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/helpcontroller.coffee",
 
