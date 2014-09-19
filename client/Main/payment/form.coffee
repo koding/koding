@@ -72,6 +72,7 @@ class PaymentForm extends JView
       cssClass : 'interval-toggle-link'
       title    : 'yearly plan'
       click    : (event) =>
+        KD.utils.stopDOMEvent event
         { planInterval }  = @intervalToggleLink.getOptions().state
         switchedIntervals = { month: YEAR, year: MONTH }
         state             = { planInterval: switchedIntervals[planInterval] }
@@ -100,14 +101,10 @@ class PaymentForm extends JView
     @form.hide()  unless currentPlan is FREE
     @existingCreditCardMessage.hide()  if currentPlan is FREE
 
-    @priceSummary = new KDCustomHTMLView
-      cssClass    : 'price-summary'
-      partial     : "You'll be charged $#{monthPrice / 100}/month"
-
     isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     buttonPartial = if isUpgrade
-    then 'UPGRADE YOUR PLAN'
+    then 'UPGRADE YOUR PLAN FOR'
     else 'DOWNGRADE'
 
     @submitButton = new KDButtonView
@@ -116,9 +113,14 @@ class PaymentForm extends JView
       title     : buttonPartial
       loader    : yes
       cssClass  : 'submit-btn'
-      callback  : =>
-        # TODO: make sure the form is valid here
-        @emit "PaymentSubmitted", @form.getFormData()
+      callback  : => @emit "PaymentSubmitted", @form.getFormData()
+
+    @totalPrice = new KDCustomHTMLView
+      cssClass  : 'total-price'
+      tagName   : 'cite'
+      partial   : "#{monthPrice / 100}<span>/Month</span>"
+
+    @submitButton.addSubView @totalPrice  if isUpgrade
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
@@ -132,7 +134,7 @@ class PaymentForm extends JView
     # TODO: move this into more proper place. ~U
     if planTitle is FREE
       [ @intervalToggleLink, @discountMessage
-        @priceSummary, @securityNote, @existingCreditCardMessage
+        @securityNote, @existingCreditCardMessage
       ].forEach (view) -> view.hide()
 
 
@@ -191,7 +193,10 @@ class PaymentForm extends JView
     @state.planInterval = planInterval
     @form.inputs.planInterval.setValue planInterval
 
-    { monthPrice, yearPrice, reducedMonth, discount } = @state
+    {
+      monthPrice, yearPrice, reducedMonth,
+      discount, currentPlan, planTitle
+    } = @state
 
     discountPartials =
       month : "You can <strong>save $#{discount / 100.00}</strong>/mo by switching to"
@@ -205,14 +210,16 @@ class PaymentForm extends JView
       month : "#{monthPrice / 100}<span>/Month</span>"
       year  : "#{reducedMonth / 100}<span>/Month</span>"
 
-    priceSummaryPartials =
-      month : "You'll be charged $#{monthPrice / 100}<span>/Month</span>"
-      year  : "You'll be charged $#{yearPrice  / 100}<span>/Year</span>"
+    totalPricePartials =
+      month : "#{monthPrice / 100}<span>/Month</span>"
+      year  : "#{yearPrice  / 100}<span>/Year</span>"
+
+    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     @discountMessage.updatePartial discountPartials[planInterval]
     @intervalToggleLink.updatePartial linkPartials[planInterval]
     @price.updatePartial pricePartials[planInterval]
-    @priceSummary.updatePartial priceSummaryPartials[planInterval]
+    @totalPrice.updatePartial totalPricePartials[planInterval]  if isUpgrade
 
 
   showSuccess: ->
@@ -221,12 +228,13 @@ class PaymentForm extends JView
       @intervalToggleLink
       @discountMessage
       @form
-      @priceSummary
       @existingCreditCardMessage
       @securityNote
-    ].forEach (view) => view.destroy()
+      @totalPrice
+    ].forEach (view) -> view.destroy()
 
     @submitButton.setTitle 'CONTINUE'
+
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'PaymentWorkflowFinished', @state
@@ -242,7 +250,6 @@ class PaymentForm extends JView
     </div>
     {{> @form}}
     {{> @existingCreditCardMessage}}
-    {{> @priceSummary}}
     {{> @submitButton}}
     {{> @securityNote}}
     """

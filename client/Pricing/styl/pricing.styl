@@ -420,29 +420,36 @@ body.pricing
       background        #f8f8f8
       border            1px solid #e5e5e5
 
-    .price-summary
-      font-size         18px
-      color             #01B05A
-      text-align        center
-      margin-top        30px
-
-      strong
-        font-weight     bold
-
-
     .submit-btn
       size              100%, 50px
       background        #01B05A
-      margin            15px 0 0
+      margin            30px 0 0
       shadow            0 2px 0 0 #008E48
       color             #fff
       font-size         14px
-      font-weight       600
+      font-weight       300
 
       span.button-title
         font-size       inherit
         font-weight     inherit
         color           inherit
+
+      cite.total-price
+        margin-left     7px
+        font-size       16px
+        font-weight     400
+
+        &:before
+          content       '$'
+          display       inline-block
+
+        span
+          font-size     12px
+          margin-left   7px
+          opacity       .99
+        span:before
+          content       ' '
+          display       inline-block
 
     .security-note
       font-size         12px
