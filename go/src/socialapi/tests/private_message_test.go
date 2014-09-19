@@ -227,6 +227,38 @@ func TestPrivateMesssage(t *testing.T) {
 
 		})
 
+		Convey("user should be able to search private messages via purpose field", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			pmr := models.PrivateMessageRequest{}
+			pmr.AccountId = account.Id
+			pmr.Body = "search private messages"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"chris", "devrim"}
+			pmr.Purpose = "test me up"
+
+			cmc, err := rest.SendPrivateMessage(pmr)
+			So(err, ShouldBeNil)
+
+			query := request.Query{AccountId: account.Id, GroupName: groupName}
+			_, err = rest.SearchPrivateMessages(&query)
+			So(err, ShouldNotBeNil)
+
+			query.Name = "test"
+			pm, err := rest.SearchPrivateMessages(&query)
+			So(err, ShouldBeNil)
+			So(pm, ShouldNotBeNil)
+			So(len(pm), ShouldNotEqual, 0)
+			So(pm[0], ShouldNotBeNil)
+			So(pm[0].Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_PRIVATE_MESSAGE)
+			So(pm[0].Channel.Id, ShouldEqual, cmc.Channel.Id)
+			So(pm[0].Channel.GroupName, ShouldEqual, cmc.Channel.GroupName)
+			So(pm[0].LastMessage.Message.Body, ShouldEqual, cmc.LastMessage.Message.Body)
+			So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
+			So(pm[0].IsParticipant, ShouldBeTrue)
+
+		})
+
 		Convey("targetted account should be able to list private message channel of himself", nil)
 
 	})
