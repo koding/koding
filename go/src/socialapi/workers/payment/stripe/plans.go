@@ -8,9 +8,9 @@ type Plan struct {
 	Interval             stripe.PlanInternval
 }
 
-// Predefined list of plans. There are currently 4 tiers:
-// "free", "hobbyist", "developer" and "professional" and 2
-// intervals: "month" and "year".
+// Predefined list of plans. There are currently 5 tiers:
+// "free", "hobbyist", "developer", "professional" "super"
+// and 2 intervals: "month" and "year".
 var DefaultPlans = map[string]*Plan{
 	"free_month": &Plan{
 		Title:         "free",
