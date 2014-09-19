@@ -1,5 +1,5 @@
 { post } = require (
-  "../../../workers/social/lib/social/models/socialapi/request"
+  "../../../workers/social/lib/social/models/socialapi/requests.coffee"
 )
 
 module.exports = (req, res) ->

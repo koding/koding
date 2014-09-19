@@ -423,4 +423,6 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  post
+  get
 }
