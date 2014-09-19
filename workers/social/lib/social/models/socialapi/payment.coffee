@@ -22,19 +22,39 @@ module.exports = class Payment extends Base
           (signature Object, Function)
 
 
-  { bareRequest } = require "./helper"
+  { get, post } = require "./requests"
 
   @subscribe = secure (client, data, callback)->
     data.accountId = getAccountId client
-    bareRequest "paymentSubscribe", data, callback
+    requiredParams = [
+      "accountId", "token", "email", "planTitle", "planInterval", "provider"
+    ]
+
+    for param in requiredParams
+      if not data[param]
+        return callback {message: "#{param} is required"}
+
+    url = "/payments/subscribe"
+    post url, data, callback
 
   @unsubscribe = secure (client, data, callback)->
     data.accountId = getAccountId client
-    bareRequest "paymentUnsubscribe", data, callback
+    requiredParams = [
+      "accountId", "plan", "provider"
+    ]
+
+    for param in requiredParams
+      if not data[param]
+        return callback {message: "#{param} is required"}
+
+    url = "/payments/unsubscribe"
+    post url, data, callback
 
   @subscriptions = secure (client, data, callback)->
     data.accountId = getAccountId client
-    bareRequest "paymentSubscriptions", data, callback
+    url = "/payments/subscriptions/#{data.accountId}"
+
+    get url, data, callback
 
 
   getAccountId = (client)->
