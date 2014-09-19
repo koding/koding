@@ -530,7 +530,7 @@ class ActivitySidebar extends KDCustomHTMLView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
-      searchLink : '/Activity/Topic/All'
+      searchLink : '/Activity/Topic/Following'
       limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
