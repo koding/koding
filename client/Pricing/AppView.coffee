@@ -15,6 +15,8 @@ class PricingAppView extends KDView
     @initViews()
     @initEvents()
 
+    @plans.planViews['hobbyist'].setClass 'promoted'  unless KD.isLoggedIn()
+
 
   initViews: ->
 
