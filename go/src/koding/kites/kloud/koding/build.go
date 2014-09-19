@@ -17,7 +17,17 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Artifact, err error) {
+var (
+	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
+	DefaultInstanceType = "t2.micro"
+)
+
+const (
+	DefaultApachePort = 80
+	DefaultKitePort   = 3000
+)
+
+func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err error) {
 	a, err := p.NewClient(opts)
 	if err != nil {
 		return nil, err
