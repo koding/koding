@@ -3,7 +3,7 @@ class SidebarSearchModal extends KDModalView
   constructor: (options = {}, data) ->
 
     options.title       or= 'Browse'
-    options.cssClass    or= 'your activity-modal'
+    options.cssClass    or= 'your-topics'
     options.content     or= ''
     options.overlay      ?= yes
     options.width        ?= 522
@@ -59,13 +59,6 @@ class SidebarSearchModal extends KDModalView
     @listController.customScrollView.wrapper.on 'LazyLoadThresholdReached', @bound 'handleLazyLoad'
 
     @fetch {}, @bound 'populate'
-
-    @addSubView new KDCustomHTMLView
-      cssClass   : 'tag-description'
-      partial    : "
-        You can also create a new topic by making it a part of <br>
-        a new post. <em>eg: I love #koding</em>
-      "
 
 
   populate: (items) ->
