@@ -23,18 +23,23 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
-	if q.AccountId == 0 || q.GroupName == "" {
-		return response.NewBadRequest(errors.New("request is not valid"))
+	channelList, err := getPrivateMessageChannels(q)
+	if err != nil {
+		return response.NewBadRequest(err)
 	}
+
+	return response.HandleResultAndError(buildContainer(channelList, q))
+}
 
 	channelList, err := getPrivateMessageChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
+func buildContainer(channelList []models.Channel, q *request.Query) (*models.ChannelContainers, error) {
 	cc := models.NewChannelContainers()
 	if err := cc.Fetch(channelList, q); err != nil {
-		return response.NewBadRequest(err)
+		return cc, err
 	}
 
 	cc.AddIsParticipant(q.AccountId)
@@ -43,7 +48,7 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	cc.AddLastMessage()
 	cc.AddUnreadCount(q.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err())
+	return cc, cc.Err()
 }
 
 func getUserChannelsQuery(q *request.Query) *gorm.DB {
