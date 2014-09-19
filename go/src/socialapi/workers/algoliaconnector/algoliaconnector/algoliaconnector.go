@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"fmt"
 	"socialapi/models"
 	"strconv"
@@ -11,9 +12,9 @@ import (
 	"github.com/streadway/amqp"
 )
 
-const (
-	ErrAlgoliaObjectIdNotFound = "{\"message\":\"ObjectID does not exist\"}\n"
-	ErrAlgoliaIndexNotExist    = "{\"message\":\"Index messages.test does not exist\"}\n"
+var (
+	ErrAlgoliaObjectIdNotFound = errors.New("{\"message\":\"ObjectID does not exist\"}\n")
+	ErrAlgoliaIndexNotExist    = errors.New("{\"message\":\"Index messages.test does not exist\"}\n")
 )
 
 type IndexSet map[string]*algoliasearch.Index
@@ -82,8 +83,8 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
 	record, err := f.get("messages", objectId)
-	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound &&
-		err.Error() != ErrAlgoliaIndexNotExist {
+	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound.Error() &&
+		err.Error() != ErrAlgoliaIndexNotExist.Error() {
 		return err
 	}
 

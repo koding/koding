@@ -120,7 +120,7 @@ func TestMessageListDeleted(t *testing.T) {
 		time.Sleep(algoliaSlownessSeconds)
 
 		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
-		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound)
+		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound.Error())
 		So(record, ShouldBeNil)
 	})
 	Convey("cross-indexed messages will not be deleted", t, func() {})
