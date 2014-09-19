@@ -82,9 +82,8 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
 	record, err := f.get("messages", objectId)
-	errText := err.Error()
-	if err != nil && errText != ErrAlgoliaObjectIdNotFound &&
-		errText != ErrAlgoliaIndexNotExist {
+	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound &&
+		err.Error() != ErrAlgoliaIndexNotExist {
 		return err
 	}
 

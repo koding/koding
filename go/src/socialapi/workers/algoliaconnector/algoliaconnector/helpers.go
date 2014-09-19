@@ -36,12 +36,12 @@ func (f *Controller) partialUpdate(indexName string, record map[string]interface
 	return nil
 }
 
-func appendMessageTag(record map[string]interface{}, channelId string) []string {
+func appendMessageTag(record map[string]interface{}, channelId string) []interface{} {
 	if record == nil {
-		return []string{channelId}
+		return []interface{}{channelId}
 	}
 
-	tags := (record["_tags"]).([]string)
+	tags := (record["_tags"]).([]interface{})
 	for _, ele := range tags {
 		if ele == channelId {
 			return tags

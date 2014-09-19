@@ -16,7 +16,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-const algoliaSlownessSeconds = 2
+const algoliaSlownessSeconds = 2 * time.Second
 
 func TestTopicSaved(t *testing.T) {
 	r := runner.New("AlogoliaConnector-Test")
@@ -69,32 +69,55 @@ func TestAccountSaved(t *testing.T) {
 func TestMessageListSaved(t *testing.T) {
 	handler := getTestHandler()
 	Convey("messages can be saved", t, func() {
-		mockMessage := createAndSaveMessage()
+		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
 		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
 
-		time.Sleep(algoliaSlownessSeconds * time.Second)
+		time.Sleep(algoliaSlownessSeconds)
 
 		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
 		So(err, ShouldBeNil)
 		So(record, ShouldNotBeNil)
+	})
+	Convey("messages can be cross-indexed", t, func() {
+		mockMessage, owner := createAndSaveMessage()
+
+		// init channel
+		cm, err := createChannel(owner.Id)
+		So(err, ShouldBeNil)
+		So(cm, ShouldNotBeNil)
+		// init channel message list
+		cml := createChannelMessageList(cm.Id, mockMessage.Id)
+		So(cml, ShouldNotBeNil)
+
+		listings := getListings(mockMessage)
+		So(len(listings), ShouldEqual, 2)
+
+		So(handler.MessageListSaved(&listings[0]), ShouldBeNil)
+		time.Sleep(algoliaSlownessSeconds)
+		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
+		time.Sleep(algoliaSlownessSeconds)
+
+		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+		So(err, ShouldBeNil)
+		So(len((record["_tags"]).([]interface{})), ShouldEqual, 2)
 	})
 }
 
 func TestMessageListDeleted(t *testing.T) {
 	handler := getTestHandler()
 	Convey("messages can be deleted", t, func() {
-		mockMessage := createAndSaveMessage()
+		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
 		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
 
-		time.Sleep(algoliaSlownessSeconds * time.Second)
+		time.Sleep(algoliaSlownessSeconds)
 
 		So(handler.MessageListDeleted(&mockListing), ShouldBeNil)
 
-		time.Sleep(algoliaSlownessSeconds * time.Second)
+		time.Sleep(algoliaSlownessSeconds)
 
 		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
 		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound)
@@ -161,10 +184,12 @@ func createChannelMessageList(channelId, messageId int64) *models.ChannelMessage
 	cml.ChannelId = channelId
 	cml.MessageId = messageId
 
+	So(cml.Create(), ShouldBeNil)
+
 	return cml
 }
 
-func createAndSaveMessage() *models.ChannelMessage {
+func createAndSaveMessage() (*models.ChannelMessage, *models.Account) {
 	cm := models.NewChannelMessage()
 
 	// init account
@@ -185,9 +210,9 @@ func createAndSaveMessage() *models.ChannelMessage {
 	So(cm.Create(), ShouldBeNil)
 	// init listing
 	cml := createChannelMessageList(channel.Id, cm.Id)
-	So(cml.Create(), ShouldBeNil)
+	So(cml, ShouldNotBeNil)
 
-	return cm
+	return cm, account
 }
 
 func getListings(message *models.ChannelMessage) []models.ChannelMessageList {
