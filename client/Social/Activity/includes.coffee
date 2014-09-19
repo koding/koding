@@ -4,6 +4,7 @@ module.exports = [
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 
+  "sidebar/chatsearchmodal.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
