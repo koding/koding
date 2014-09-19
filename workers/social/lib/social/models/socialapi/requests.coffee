@@ -226,6 +226,13 @@ fetchFollowedChannels = (data, callback)->
   url = "/account/#{data.accountId}/channels"
   get url, data, callback
 
+fetchFollowedChannelCount = (data, callback)->
+  if not data.accountId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "/account/#{data.accountId}/channels/count"
+  get url, data, callback
+
 initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
     return callback { message: "Request is not valid"}
@@ -407,6 +414,7 @@ module.exports = {
   initPrivateMessage
   sendPrivateMessage
   fetchFollowedChannels
+  fetchFollowedChannelCount
   listParticipants
   addParticipants
   removeParticipants
