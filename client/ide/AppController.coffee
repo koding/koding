@@ -224,7 +224,7 @@ class IDEAppController extends AppController
 
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           nickname     = KD.nick()
-          machineLabel = machine.label
+          machineLabel = machine.slug or machine.label
           splashs      = IDE.splashMarkups
 
           @fakeTabView      = @activeTabView
