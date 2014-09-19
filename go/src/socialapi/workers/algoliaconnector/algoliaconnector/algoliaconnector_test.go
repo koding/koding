@@ -71,3 +71,17 @@ func TestAccountSaved(t *testing.T) {
 		})
 	})
 }
+
+func TestMessageSaved(t *testing.T) {
+	Convey("messages can be saved", t, func() {})
+	Convey("messages can be cross-indexed", t, func() {})
+}
+
+func TestMessageDeleted(t *testing.T) {
+	Convey("messages can be deleted", t, func() {})
+	Convey("cross-indexed messages will not be deleted", func() {})
+}
+
+func TestMessageUpdated(t *testing.T) {
+	Convey("messages can be updated", t, func() {})
+}
