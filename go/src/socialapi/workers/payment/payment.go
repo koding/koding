@@ -128,11 +128,11 @@ func (i *InvoiceRequest) Do() (*InvoiceResponse, error) {
 // GetCreditCard
 //----------------------------------------------------------
 
-type GetCreditCardRequest struct {
+type CreditCardRequest struct {
 	AccountId string
 }
 
-func (c *GetCreditCardRequest) Do() (*stripe.CreditCardResponse, error) {
+func (c *CreditCardRequest) Do() (*stripe.CreditCardResponse, error) {
 	resp, err := stripe.GetCreditCard(c.AccountId)
 	if err != nil {
 		return nil, err

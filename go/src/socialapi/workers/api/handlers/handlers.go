@@ -465,8 +465,8 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 
 	mux.Handle("GET", "/payments/creditcard/{accountId}", handler.Wrapper(
 		handler.Request{
-			Handler: payment.GetCreditCardRequest,
-			Name:    "payment-invoices",
+			Handler: payment.CreditCardRequest,
+			Name:    "payment-creditcard",
 			Metrics: metrics,
 		},
 	))

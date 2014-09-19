@@ -34,9 +34,13 @@ func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	)
 }
 
-func GetCreditCardRequest(u *url.URL, h http.Header, req *payment.GetCreditCardRequest) (int, http.Header, interface{}, error) {
+func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	creditCardRequest := &payment.CreditCardRequest{
+		AccountId: u.Query().Get("accountId"),
+	}
+
 	return response.HandleResultAndError(
-		req.Do(),
+		creditCardRequest.Do(),
 	)
 }
 
