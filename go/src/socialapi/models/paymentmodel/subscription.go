@@ -37,13 +37,3 @@ type Subscription struct {
 	CurrentPeriodStart time.Time `json:"current_period_start"`
 	CurrentPeriodEnd   time.Time `json:"current_period_end"`
 }
-
-func NewSubscription(providerId, provider string, plan *Plan, customer *Customer) *Subscription {
-	return &Subscription{
-		PlanId:                 plan.Id,
-		CustomerId:             customer.Id,
-		ProviderSubscriptionId: providerId,
-		Provider:               provider,
-		State:                  "active",
-	}
-}

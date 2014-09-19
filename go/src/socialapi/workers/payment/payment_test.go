@@ -55,7 +55,12 @@ func TestSubscriptionsRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the plan", func() {
+			So(resp.CurrentPeriodStart.IsZero(), ShouldEqual, false)
+			So(resp.CurrentPeriodEnd.IsZero(), ShouldEqual, false)
+			So(resp.State, ShouldEqual, "active")
+
 			So(resp.PlanTitle, ShouldEqual, StartingPlan)
+			So(resp.PlanInterval, ShouldEqual, StartingInterval)
 		})
 	})
 }

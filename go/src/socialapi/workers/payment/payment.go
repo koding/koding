@@ -45,7 +45,7 @@ type SubscriptionRequest struct {
 
 type SubscriptionsResponse struct {
 	PlanTitle, PlanInterval              string
-	State                                bool
+	State                                string
 	CreatedAt, CanceledAt                time.Time
 	CurrentPeriodStart, CurrentPeriodEnd time.Time
 	AcccountId                           string
@@ -76,14 +76,19 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 		return resp, nil
 	}
 
+	currentSubscription := subscriptions[0]
+
 	plan := &paymentmodel.Plan{}
-	err = plan.ById(subscriptions[0].PlanId)
+	err = plan.ById(currentSubscription.PlanId)
 	if err != nil {
 		return nil, err
 	}
 
 	resp.PlanTitle = plan.Title
 	resp.PlanInterval = plan.Interval
+	resp.CurrentPeriodStart = currentSubscription.CurrentPeriodStart
+	resp.CurrentPeriodEnd = currentSubscription.CurrentPeriodEnd
+	resp.State = currentSubscription.State
 
 	return resp, nil
 }
