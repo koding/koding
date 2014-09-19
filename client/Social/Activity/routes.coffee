@@ -41,6 +41,9 @@ do ->
     '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
 
+    '/:name?/Activity/Chat/All' : ->
+      handleChannel null, null, (app) -> app.getView().showAllChatsModal()
+
     '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'message', slug
 
