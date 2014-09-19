@@ -9,6 +9,7 @@ module.exports = [
   "sidebar/searchmodal.coffee"
   "sidebar/yourtopicsmodal.coffee"
   "sidebar/conversationsmodal.coffee"
+  "sidebar/topicsearchmodal.coffee"
   "sidebar/chatsearchmodal.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
