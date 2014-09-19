@@ -83,12 +83,17 @@ class PricingAppView extends KDView
     @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
       oldPlanTitle = @state.currentPlan
-      @plans.planViews[oldPlanTitle].unsetClass 'current'
+      @plans.planViews[oldPlanTitle].enable()
 
       { planTitle } = state
       @plans.planViews[planTitle].disable()
 
       @state.currentPlan = state.planTitle
+
+      { router } = KD.singletons
+
+      KD.utils.wait 500, -> router.handleRoute '/'
+
 
   pistachio: ->
     """
