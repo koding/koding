@@ -244,6 +244,10 @@ fetchPrivateMessages = (data, callback)->
   url = "/privatemessage/list"
   get url, data, callback
 
+fetchPrivateMessageCount = (data, callback)->
+  url = "/privatemessage/count"
+  get url, data, callback
+
 followUser = (data, callback)->
   followHelper data, addParticipants, callback
 
@@ -399,6 +403,7 @@ module.exports = {
   searchTopics
   searchChats
   fetchPrivateMessages
+  fetchPrivateMessageCount
   initPrivateMessage
   sendPrivateMessage
   fetchFollowedChannels
