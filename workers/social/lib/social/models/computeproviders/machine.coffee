@@ -121,7 +121,7 @@ module.exports = class JMachine extends Module
         assignedAt      : Date
 
 
-  @create = (data)->
+  @create = (data, callback)->
 
     # JMachine.uid is a unique id which is generated from:
     #
@@ -133,22 +133,46 @@ module.exports = class JMachine extends Module
 
     {user, group, provider} = data
 
-    data.uid = "u#{user[0]}#{group[0]}#{provider[0]}#{(require 'hat')(32)}"
+    data.user  = username  = user.username
+    data.group = groupSlug = group.slug
+
+    data.users     = [{ id: user.getId(), sudo: yes, owner: yes }]
+    data.groups    = [{ id: group.getId() }]
+
+    data.uid = "u#{username[0]}#{groupSlug[0]}#{provider[0]}#{(require 'hat')(32)}"
     data.createdAt = new Date()
+
+    data.label    ?= data.uid
 
     data.assignee  =
       inProgress   : no
       assignedAt   : data.createdAt
 
-    data.status  =
-      state      : "NotInitialized"
-      modifiedAt : data.createdAt
+    data.status    =
+      state        : "NotInitialized"
+      modifiedAt   : data.createdAt
 
     { userSitesDomain } = KONFIG
-    data.domain         = "#{data.uid}.#{user}.#{userSitesDomain}"
+    data.domain         = "#{data.uid}.#{username}.#{userSitesDomain}"
     data.provisioners  ?= [ ]
 
-    return new JMachine data
+    {label} = data
+
+    generateSlugFromLabel {user, group, label}, (err, slug)->
+
+      return callback err  if err?
+
+      data.slug = slug
+
+      machine = new JMachine data
+      machine.save (err)->
+
+        if err
+          callback err
+          console.warn "Failed to create Machine for ", {username, groupSlug}
+        else
+          callback null, machine
+
 
   generateSlugFromLabel = ({user, group, label, index}, callback)->
 
