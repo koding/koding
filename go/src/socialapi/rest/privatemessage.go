@@ -27,12 +27,20 @@ func SendPrivateMessage(pmr models.PrivateMessageRequest) (*models.ChannelContai
 }
 
 func GetPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateMessages(q, "/privatemessage/list")
+}
+
+func SearchPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateMessages(q, "/privatemessage/search")
+}
+
+func fetchPrivateMessages(q *request.Query, endpoint string) ([]models.ChannelContainer, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("/privatemessage/list?%s", v.Encode())
+	url := fmt.Sprintf("%s?%s", endpoint, v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
