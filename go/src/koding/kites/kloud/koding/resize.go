@@ -92,30 +92,12 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	// 4. Create new snapshot from that given VolumeId
 	a.Log.Info("4. Create snapshot from volume %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
-	resp, err := a.Client.CreateSnapshot(oldVolumeId, snapshotDesc)
+	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
 		return nil, err
 	}
 
-	newSnapshotId := resp.Id
-
-	checkSnapshot := func(currentPercentage int) (machinestate.State, error) {
-		resp, err := a.Client.Snapshots([]string{newSnapshotId}, ec2.NewFilter())
-		if err != nil {
-			return 0, err
-		}
-
-		if resp.Snapshots[0].Status != "completed" {
-			return machinestate.Pending, nil
-		}
-
-		return machinestate.Stopped, nil
-	}
-
-	ws := waitstate.WaitState{StateFunc: checkSnapshot, DesiredState: machinestate.Stopped}
-	if err := ws.Wait(); err != nil {
-		return nil, err
-	}
+	newSnapshotId := snapshot.Id
 
 	// 5. Delete snapshot after we are done with all steps
 	defer a.Client.DeleteSnapshots([]string{newSnapshotId})
@@ -149,7 +131,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		return machinestate.Stopped, nil
 	}
 
-	ws = waitstate.WaitState{StateFunc: checkVolume, DesiredState: machinestate.Stopped}
+	ws := waitstate.WaitState{StateFunc: checkVolume, DesiredState: machinestate.Stopped}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
