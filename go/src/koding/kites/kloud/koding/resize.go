@@ -9,7 +9,6 @@ import (
 
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
-	"github.com/koding/kloud/waitstate"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -92,18 +91,16 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	if err != nil {
 		return nil, err
 	}
-
 	newSnapshotId := snapshot.Id
 
 	// 5. Delete snapshot after we are done with all steps
-	defer a.Client.DeleteSnapshots([]string{newSnapshotId})
+	defer a.DeleteSnapshot(newSnapshotId)
 
 	// 6. Create new volume with the desired size from the snapshot and same availability zone.
 	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, desiredSize)
 	if err != nil {
 		return nil, err
 	}
-
 	newVolumeId := volume.VolumeId
 
 	// 7. Delete volume if something goes wrong in following steps
@@ -119,32 +116,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	// 8. Detach the volume of current stopped instance
 	a.Log.Info("6. Detach old volume %s", oldVolumeId)
-	if _, err := a.Client.DetachVolume(oldVolumeId); err != nil {
-		return nil, err
-	}
-
-	checkDetaching := func(currentPercentage int) (machinestate.State, error) {
-		resp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
-		if err != nil {
-			return 0, err
-		}
-		vol := resp.Volumes[0]
-
-		// ready!
-		if len(vol.Attachments) == 0 {
-			return machinestate.Stopped, nil
-		}
-
-		// otherwise wait until it's detached
-		if vol.Attachments[0].Status != "detached" {
-			return machinestate.Pending, nil
-		}
-
-		return machinestate.Stopped, nil
-	}
-
-	ws := waitstate.WaitState{StateFunc: checkDetaching, DesiredState: machinestate.Stopped}
-	if err := ws.Wait(); err != nil {
+	if err := a.DetachVolume(oldVolumeId); err != nil {
 		return nil, err
 	}
 
@@ -171,31 +143,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	}()
 
 	// 10. Attach new volume to current stopped instance
-	if _, err := a.Client.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
-		return nil, err
-	}
-
-	checkAttaching := func(currentPercentage int) (machinestate.State, error) {
-		resp, err := a.Client.Volumes([]string{newVolumeId}, ec2.NewFilter())
-		if err != nil {
-			return 0, err
-		}
-
-		vol := resp.Volumes[0]
-
-		if len(vol.Attachments) == 0 {
-			return machinestate.Pending, nil
-		}
-
-		if vol.Attachments[0].Status != "attached" {
-			return machinestate.Pending, nil
-		}
-
-		return machinestate.Stopped, nil
-	}
-
-	ws = waitstate.WaitState{StateFunc: checkAttaching, DesiredState: machinestate.Stopped}
-	if err := ws.Wait(); err != nil {
+	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return nil, err
 	}
 
