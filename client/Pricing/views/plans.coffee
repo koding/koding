@@ -35,7 +35,7 @@ class PricingPlansView extends KDView
       { partial: '1 Core'       , cssClass: 'cpu' }
       { partial: '3 GB Storage' , cssClass: 'storage' }
       { partial: '3 VMs'        , cssClass: 'vm-count' }
-      { partial: 'Always on'    , cssClass: 'always-on disabled' }
+      { partial: '0 Always on'  , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Hobbyist'
@@ -50,7 +50,7 @@ class PricingPlansView extends KDView
       { partial: '1 Core'       , cssClass: 'cpu' }
       { partial: '3 GB Storage' , cssClass: 'storage' }
       { partial: '3 VMs'        , cssClass: 'vm-count' }
-      { partial: 'Always on'    , cssClass: 'always-on disabled' }
+      { partial: '1 Always on'  , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Developer'
