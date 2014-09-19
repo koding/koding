@@ -125,6 +125,25 @@ func (i *InvoiceRequest) Do() (*InvoiceResponse, error) {
 }
 
 //----------------------------------------------------------
+// UpdateCreditCard
+//----------------------------------------------------------
+
+type UpdateCreditCardRequest struct {
+	AccountId, Provider, Token string
+}
+
+func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
+	switch u.Provider {
+	case "stripe":
+		return nil, stripe.UpdateCreditCard(u.AccountId, u.Token)
+	case "paypal":
+		return nil, ProviderNotImplemented
+	default:
+		return nil, ProviderNotFound
+	}
+}
+
+//----------------------------------------------------------
 // StripeWebhook
 //----------------------------------------------------------
 
