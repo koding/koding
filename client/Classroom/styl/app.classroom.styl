@@ -1,0 +1,322 @@
+@import "./kdfn"
+@import "./client/stylus/appfn"
+
+@css {
+/*
+  Classroom stylesheet
+  app.activity.styl
+*/
+}
+
+.classroom-app-view
+  background                #EFEFEF
+  vendor                    transition, left .4s ease-in-out
+  .inner-header
+    z-index                 10001
+    .chapters, .information
+      size                  21px, 22px
+      margin-right          5px
+      top                   9px
+      border                none
+      fr()
+      pointer()
+      sprite()
+      bg                    position, 0 -477px
+    .information
+      bg                    position, -260px -437px
+  .panel-container
+    kalc                    height, 100% \- 38px, 100%
+  .container
+    background              url('../images/bg/blurred/4.jpg')
+    height                  320px
+    shadow              0 0 700px rgba(255, 255, 255, .5) inset
+  .banner
+    margin                  0 auto
+    size                    1280px, 320px
+    color                   #FFF
+    position                relative
+    h1
+      font-weight           bold
+      font-size             68px
+      text-shadow           2px 2px 3px rgba(0, 0, 0, .4)
+      size                  500px, 240px
+      line-height           240px
+      margin-left           120px
+    h2
+      margin-left           125px
+      font-size             20px
+      position              relative
+      text-shadow           1px 1px 1px rgba(0, 0, 0, .2)
+      top                   -80px
+    img
+      top                   60px
+      position              absolute
+      right                 120px
+  .courses
+    text-align              center
+    .title
+      font-size             22px
+      font-weight           600
+      margin-bottom         30px
+    .no-related-course, .no-enrolled-course
+      font-size             14px
+      font-weight           600
+
+  .progress-container
+    margin                  0 -20px
+    height                  4px
+    bottom                  0
+    abs()
+  .progress-bar, .completed-chapter
+    height                  4px
+    background              #598400
+  .completed-chapter
+    position                relative
+    margin                  0 -20px
+    height                  4px
+    top                     5px
+
+  .not-started-yet
+    font-weight             bold
+    font-size               26px
+    width                   100%
+    text-align              center
+    text-shadow             1px 1px 1px rgba(0, 0, 0, .3)
+    text-transform          uppercase
+    p
+      margin                300px 0 20px
+    .cupid-green
+      width                 190px
+      padding               10px 0 11px 0
+      font-size             13px
+    .clean-gray
+      size                  190px, 37px
+      margin-right          20px
+      font-size             13px
+
+  .course-import-button
+    margin                  -20px 0 0 1010px
+    font-size               13px
+
+// .courses
+//   appThumbStyl()
+
+.classroom-chapters, .chapter-description
+  abs()
+  rounded                   0 0 6px 6px
+  shadow                    0 0 12px rgba(0, 0, 0, .6)
+  vendor                    transition, top .4s ease
+  background                #eee
+  z-index                   10000
+  height                    auto
+  top                       -200px
+  max-height                200px
+  &.active
+    top                     38px
+
+.chapter-description
+  padding                   15px
+
+.classroom-chapters
+  // appThumbStyl()
+  text-align                center
+  figure
+    size                    130px, 145px
+  .completed-chapter
+    top                     28px
+
+.chapter-index
+  margin-bottom             10px
+
+.chapter-list-item
+  size                      auto, 60px
+  padding                   6px
+  border-bottom             1px solid #CCC
+  text-align                left !important
+  .chapter-title
+    size                    198px, 20px
+    overflow                ellipsis
+    font-size               13px
+    font-weight             600
+    cursor                  default
+  .chapter-description
+    font-size               11px
+    margin-left             38px
+    size                    auto, 28px
+    overflow                hidden
+    cursor                  default
+  .top-badge
+    size                    22px, 12px
+    top                     7px
+    left                    260px
+    abs()
+
+.classroom-chapters.details-hidden .courses
+  div
+    display                 none
+  div:first-child
+    display                 block
+
+.chapters-container
+  text-align                center
+  figure
+    size                    130px, 165px
+
+.classroom-course
+  .header-container
+    padding                 40px 0 30px
+    background              #fefefe // cok fe fe fe
+    shadow                  0 0 10px rgba(0, 0, 0, .3)
+    overflow                hidden
+    .header
+      width                 1024px
+      margin                0 auto
+      overflow              hidden
+    img
+      float                 left
+      margin-right          20px
+    .header-text
+      float                 left
+      width                 876px
+      min-height            120px
+    h1
+      font-size             30px
+      margin-bottom         8px
+    p
+      font-size             14px
+      margin-top            10px
+    .start-now-button
+      font-size             14px
+      float                 right
+      margin-top            10px
+    .kdloader
+      abs                   50%, 50%
+      margin                -20px
+  .chapters
+    p
+      margin                20px 0
+      font-size             28px
+      font-weight           600
+      text-align            center
+
+.classroom-course-builder {
+  transition: height .404s ease-in;
+}
+.classroomcoursebuilder .general-details-form label {
+  width : 150px;
+}
+.classroomcoursebuilder .general-details-form .description textarea {
+  height : 50px;
+}
+.classroomcoursebuilder .layout-selector {
+  background: #E5E5E5;
+}
+.classroomcoursebuilder .layouts-container .kdview {
+  float: left;
+  width: 100px;
+  height: 70px;
+  margin: 5px 10px;
+}
+.classroomcoursebuilder .layouts-container .start-tab-split-option {
+  width: 90px;
+  height: 60px;
+  margin: 5px;
+}
+.classroomcoursebuilder .layouts-container {
+  overflow: hidden;
+  float: left;
+  width: 130px;
+}
+.classroomcoursebuilder .layouts-container .selected .start-tab-split-option {
+  background: #FF9200;
+}
+.classroomcoursebuilder .pane-selector {
+  width: 540px;
+  height: 320px;
+  float: left;
+}
+.classroomcoursebuilder .pane-selector .start-tab-split-option {
+  width: 360px;
+  height: 300px;
+  margin: 10px;
+  float: left;
+}
+.classroomcoursebuilder .pane-items-container div {
+  padding: 8px 16px;
+  border: 1px solid #ea8400;
+  background: #ff9200;
+  color: #fff;
+  border-radius: 4px;
+  width: auto;
+  margin-bottom: 10px;
+  cursor: move;
+  width: 85px;
+}
+.classroomcoursebuilder .pane-items-container {
+  float: left;
+  margin-top: 12px;
+  margin-left: 22px;
+}
+.classroomcoursebuilder .start-tab-split-option.highlight span {
+  background: rgba(165, 218, 148, .6)
+}
+.classroomcoursebuilder .start-tab-split-option span .pane-type {
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+  position: relative;
+  top: 50%;
+  margin-top: -14px;
+  height: 26px;
+}
+.classroomcoursebuilder .start-tab-split-option.highlight span .pane-type {
+  opacity: .5;
+}
+.classroomcoursebuilder .start-tab-split-option .pane-type .cog {
+  sprite()
+  margin-left: 6px;
+  display: inline-block;
+  background-position: -3px -321px;
+  height: 16px;
+  width: 16px;
+}
+.classroomcoursebuilder .start-tab-split-option span:hover .cog {
+  background-position: -23px -321px;
+}
+.classroomcoursebuilder .no-item {
+  margin-top: 3px;
+}
+.classroomcoursebuilder .add-course-button {
+  position: absolute;
+  right: 20px;
+  top: 15px;
+  z-index: 4000;
+}
+.classroomcoursebuilder .readme-editor {
+  color: #FFF;
+  width: 100%;
+  height: 200px !important;
+  margin-left: 5px;
+  background: #323232 !important;
+  font-size: 13px !important;
+  border-radius: 0 !important;
+}
+.classroomcoursebuilder .readme-editor:focus {
+  border: none !important;
+  box-shadow: none !important;
+}
+.classroomcoursebuilder .editor-workspace {
+  border-top: 1px solid #CCC;
+}
+.classroomcoursebuilder .chapter-list-item {
+  height: 34px;
+}
+.classroomcoursebuilder .chapter-list-item .start-tab-split-option {
+  float: left;
+}
+.classroomcoursebuilder .chapter-list-item h2 {
+  float: left;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 32px;
+}

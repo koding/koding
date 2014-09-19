@@ -1,0 +1,541 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../../Core/styl/appfn"
+
+@css {
+/*
+LOGIN SIGNUP stylesheet
+app.login-signup.styl
+*/
+}
+
+body.login
+
+  #kdmaincontainer
+    min-height        400px
+
+  #kdmaincontainer.blur
+    vendor                filter, blur(5px)
+
+  #main-header
+    hidden()
+
+  .login-form
+
+    button
+      display             block
+      width               100% !important
+      rounded             27px !important
+
+img.off-screen-login-image
+  abs               -10000px -10000px
+
+
+.kdview.login-screen
+  background          #111617
+  text-align          center
+  position            relative
+  overflow            auto
+  borderBox()
+  &:after
+    size              100% 100%
+    top               0
+    left              0
+    bg                size cover
+    opacity           0.001
+    content           ""
+    z-index           0
+    vendor            transition, opacity .3s ease
+
+    abs()
+
+  &.shown
+    &:after
+      opacity         1
+
+  .koding-logo
+    rounded           2px
+    size              45px 45px
+    bg                color, logoBg
+    top               16px
+    left              16px
+    z-index           2
+    fix()
+
+    cite
+      r-sprite        home 'logo'
+      margin          14px
+      display         block
+
+  .tint
+    size                100% 100%
+    z-index             1
+    top                 0
+    left                0
+    bg                  color, rgba(0,0,0,.6)
+    abs()
+
+  .flex-wrapper
+    z-index             1
+    size                320px auto
+    margin              -205px auto 0 auto
+    top                 50%
+    rounded             4px
+    bg                  color #F4F4F4
+    padding             37px
+    shadow              0 10px 16px rgba(0, 0, 0, .27)
+    borderBox()
+    rel()
+    // &.one
+    //   height            281px
+    // &.three
+    //   height            427px
+
+  a
+    noTextDeco()
+    color               white
+    font-size           14px
+
+  footer
+    bottom              22px
+    left                9px
+    z-index             2
+    fix()
+    a
+      color             rgba(255, 255, 255, .5)
+      margin-left       13px
+      font-size         12px
+
+  h4.form-header
+    padding             0 0 28px
+    margin              0 0 28px
+    font-size           15px
+    color               #53585c
+    rel()
+
+    &:after
+      content           ""
+      display           block
+      abs               100% 0 0
+      size              100%, 1px
+      opacity           .4
+      bg                image, -webkit-linear-gradient(left, transparent 0%, #bdc3c7 50%, transparent 100%)
+
+    a
+      color             #1aaf5d
+      font-weight       400
+      padding-bottom    2px
+      border-bottom     1px solid #1aaf5d
+
+
+  .login-form-holder
+  .login-options-holder
+  .back-to-login
+  .regLink
+  .recLink
+  .logLink
+  >section
+    hidden()
+
+  &.join
+    .logLink
+    .regLink
+      visible()
+    .flex-wrapper
+      overflow            visible
+      &.expanded
+        width             400px
+        height            310px
+        p.request-thanks
+          height          140px
+          font-size       11px
+          iframe
+            margin-top    12px
+          a:hover
+            color         #ffb500
+            text-decoration underline
+
+    .rqf
+      visible()
+      >.kdview
+        overflow          visible
+
+  &.login
+    .lf
+    .regLink
+    .recLink
+    .login-options-holder.log
+      visible()
+
+  &.register
+    .rf
+    .logLink
+    .login-options-holder.reg
+      visible()
+    .flex-wrapper
+      height                auto
+      &.taller
+        height              470px
+
+  &.finishRegistration
+    .frf
+    .logLink
+    .login-options-holder.reg
+      visible()
+    .flex-wrapper
+      height                525px
+      &.taller
+        height              600px
+    .email
+      .placeholder-helper
+        display             none
+    .kdbutton.github
+      hidden()
+
+  &.redeem
+    .rdf
+      visible()
+    .login-footer
+      hidden()
+
+  &.recover
+    .rcf
+    .logLink
+      visible()
+
+  &.reset
+    .rsf
+    .logLink
+      visible()
+    .reset-link
+      hidden()
+
+  &.resendEmail
+    .resend-confirmation-form
+    .logLink
+      visible()
+
+  .login-hint
+    color                 #B4B3B3
+    margin                0 auto 10px auto
+    width                 auto
+    font-size             11px
+    top                   -14px
+
+  .failure-notice
+    size                auto, auto
+    background          transparent
+    font-size           14px
+    font-weight         200
+    color               #6e7879
+    line-height         18px
+    text-shadow         none
+
+    &.registrations-disabled
+      margin-top        55px
+      p
+        margin          0 60px
+
+    b, strong
+      display           block
+      font-weight       400
+      font-size         16px
+      line-height       18px
+      margin-bottom     12px
+
+    a
+      color             logoBg
+
+  .login-footer
+    width               100%
+    abs                 100% 0 0 0px
+    padding             24px 14px 0
+    borderBox()
+
+    a
+      font-size           14px
+      font-weight         200
+      opacity             .9
+      letter-spacing      .2px
+
+      strong
+        font-weight       500
+
+    .github-login
+      fl()
+
+    .forgot-link
+      color               #cfcfcf
+      fr()
+
+.login-form-holder
+  padding-bottom          0
+  height                  auto
+
+.login-form
+
+  > section
+  > div
+    rel()
+    text-align            center
+    .kdview
+      width               auto
+      margin              0 auto 17px auto
+
+      &.half-size
+        display           inline-block
+        width             39%
+        input.kdinput.text
+          rounded         0 6px 6px 0
+        &:first-child
+          padding-right   1px
+          borderBox()
+          input.kdinput.text
+            rounded       6px 0 0 6px
+
+      &.validation-error
+        input.kdinput.text
+          border          1px solid #e79a8f
+          color           red
+        // .placeholder-helper
+        //   color           #e79a8f
+        .validation-icon
+          r-sprite        account 'cross-8'
+          opacity         1
+
+      // &.validation-passed
+      //   .validation-icon
+      //     r-sprite          app 'login-validation-pass'
+      //     opacity         1
+
+  p
+    size              auto, 0
+    margin            0 auto
+    color             #f2f2f2
+    font-size         10px
+    line-height       18px
+    bg                color, rgba(0, 0, 0, 0.2)
+    rounded           4px
+    padding           0 6px
+    text-shadow       0 1px 0 #111
+    overflow          hidden
+    vendor            transition, height .15s ease-out
+    borderBox()
+
+    h5
+      font-size       12px
+      font-weight     400
+      margin          10px 0
+
+  .password-confirm
+    margin-bottom       0!important
+    vendor              transition, height .15s ease-out
+
+  .login-input-view
+    overflow            visible
+
+    .kdinput
+      text-align        center
+      background        transparent
+
+    .placeholder-helper
+      abs()
+      size              100% auto
+      left              0
+      color             #53585c
+      top               17px
+      font-size         14px
+      text-align        center
+      z-index           0
+      opacity           1
+      vendor            transition, top .1s ease\,\
+                                    opacity .3s .3s ease\,\
+                                    font-size .1s ease
+      &.out
+        top             -15px
+        font-size       12px
+        &.puff
+          opacity       0
+    // &.validation-error .out.puff
+    //   opacity           1
+
+  .validation-icon
+    abs                 18px 15px 0 0
+    vendor              transition, opacity .15s ease-out
+    opacity             0
+    z-index             2
+
+  .kdloader.input-loader
+    abs()
+    right               6px
+    top                 6px
+    z-index             100
+
+
+  div.email
+    rel()
+
+    .avatarview
+      right               46px
+      top                 0
+      rounded             0 6px 6px 0
+      abs()
+
+  .invitation-field
+    rel()
+    text-align          left
+    color               #B4B3B3
+    margin              0 auto
+    width               auto
+    line-height         36px
+    font-size           12px
+    overflow            hidden
+    border-bottom       1px solid rgba(255,255,255,.15)
+    padding-bottom      4px
+    margin-bottom       10px
+    borderBox()
+
+    .kdview.half-size
+      abs()
+      right             0
+      top               0
+      width             49.5%
+
+    span.icon
+      bg                position, -480px -80px
+      size              40px, 20px
+      margin            8px 0 0 2px
+      fl()
+      // sprite()
+    .wrapper
+      width             48.5%
+      fr()
+
+    .avatarview
+      sta()
+      border            1px solid #000
+      margin            2px 10px 0 0
+      padding           0
+      shadow            inset 0 0 0 1px rgba(255,255,255,.3)
+      fl()
+
+    .profile
+      max-width         100px
+      display           block
+      overflow          hidden
+      height            36px
+      text-overflow     ellipsis
+      white-space       nowrap
+      padding-right     5px
+
+  button
+    display             block
+
+    &.loading
+      color             rgba(255,255,255,.8)
+      &:hover
+        shadow          0 1px 0 rgba(255,255,255,0.23)
+
+  div.hint
+    font-size           14px
+    line-height         18px
+    color               #6e7879
+    margin              18px 0
+    strong
+      font-weight       600
+
+p.login-tip
+  line-height           16px
+  color                 white
+
+
+.kdtooltip.input-validation.just-text
+
+  max-width             none
+
+  div.wrapper
+    shadow              none
+    border              none
+    padding             16px
+    font-size           14px
+    line-height         22px
+    min-height          55px
+    borderBox()
+
+  &.placement-right
+    margin              11px 0 0 14px
+    div.wrapper
+      text-align        left
+
+  &.placement-left
+    margin-left         -16px
+    div.wrapper
+      text-align        right
+
+.invite-recovery-notification-bar
+  position              fixed
+  z-index               5
+  width                 100%
+  top                   0
+  height                0
+  text-align            center
+  font-size             16px
+  padding-top           6px
+  color                 white
+  cursor                pointer
+  border-bottom         1px solid rgba(15,15,15,0.16)
+  bg                    color, rgba(15,15,15,0.45)
+  vendor                transition, height .4s ease-in-out
+
+  &.show
+    height              26px
+
+  span
+    color               #ffb500
+
+body.login.koding
+  .header-notification
+    top                 -29px
+    &.in
+      top               0
+
+.accept-tos
+  margin-top            10px
+  font-size             12px
+
+  a
+    font-size           12px    !important
+    color               #6e7879 !important
+    text-decoration     underline
+
+.kdmodal.password
+  bg                    color, #DCDCDC
+  .kdmodal-title .title
+    font-size           18px !important
+
+  .kdmodal-inner
+    bg                  color, #DCDCDC
+    margin              30px
+  .kdinput.half
+    margin              0
+    kalc                width, \(100% \- 120px\) / 2
+    rounded             4px
+    font-size           14px
+    font-family         asapFamily
+    text-align          left
+    border-color        #bbb
+    fl()
+    &:first-child
+      margin-right      10px
+  .button-field
+    top                 0
+    right               0
+    width               70px
+    margin              0 !important
+    abs()
+    .kdbutton
+      rounded           4px
+      padding           0 25px
+  .kdformview .formline .input-wrapper
+    margin              0
+  .kdscrollview.kdtabview
+    overflow            hidden

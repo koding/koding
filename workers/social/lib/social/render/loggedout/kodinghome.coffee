@@ -1,36 +1,32 @@
 module.exports = (options, callback)->
+  {account, client, bongoModels} = options
+  getStyles    = require './../styleblock'
+  fetchScripts = require './../scriptblock'
+  getGraphMeta = require './../graphmeta'
+  getTitle     = require './../title'
+  entryPoint         = { slug : "koding", type: "group" }
+  options.entryPoint = entryPoint
 
-  getTitle = require './../title'
-
-  prepareHTML = ->
+  prepareHTML = (scripts)->
     """
     <!doctype html>
-    <html lang="en">
+    <html lang="en" prefix="og: http://ogp.me/ns#">
     <head>
       #{getTitle()}
-      <meta charset="utf-8"/>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-status-bar-style" content="black">
-      <meta name="apple-mobile-web-app-title" content="Koding" />
-      <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
-      <link rel="shortcut icon" href="/a/images/favicon.ico" />
-      <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-      <link rel="stylesheet" href="/a/out/css/kd.css?#{KONFIG.version}" />
-      <link rel="stylesheet" href="/a/out/css/main.css?#{KONFIG.version}" />
+      #{getStyles()}
+      #{getGraphMeta()}
     </head>
     <body>
-
-      <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
-
-      <script src="/a/out/js/pistachio.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/kd.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/main.js?#{KONFIG.version}"></script>
+      <!--[if IE]>
+      <script>(function(){window.location.href='/unsupported.html'})();</script>
+      <![endif]-->
+      #{KONFIG.getConfigScriptTag { entryPoint, roles: ['guest'], permissions: [] } }
+      <script>KD.isLoggedInOnLoad=false;</script>
+      #{scripts}
     </body>
     </html>
     """
 
-  callback null, prepareHTML()
-
+  fetchScripts options, (err, scripts)->
+    callback null, prepareHTML scripts
 
