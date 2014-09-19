@@ -127,7 +127,26 @@ func TestMessageListDeleted(t *testing.T) {
 }
 
 func TestMessageUpdated(t *testing.T) {
-	Convey("messages can be updated", t, func() {})
+	handler := getTestHandler()
+	Convey("messages can be updated", t, func() {
+		mockMessage, _ := createAndSaveMessage()
+		mockListing := getListings(mockMessage)[0]
+
+		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
+
+		time.Sleep(algoliaSlownessSeconds)
+
+		mockMessage.Body = "updated body"
+
+		So(mockMessage.Update(), ShouldBeNil)
+		So(handler.MessageUpdated(mockMessage), ShouldBeNil)
+
+		time.Sleep(algoliaSlownessSeconds)
+
+		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+		So(err, ShouldBeNil)
+		So(record["body"].(string), ShouldEqual, "updated body")
+	})
 }
 
 func getTestHandler() *Controller {
