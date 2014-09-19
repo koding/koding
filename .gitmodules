@@ -10,6 +10,3 @@
 [submodule "tests"]
         path = tests
         url = git@github.com:koding/tests.git
-[submodule "client/landing"]
-	path = client/landing
-	url = git@github.com:koding/landing.git

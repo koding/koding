@@ -96,4 +96,3 @@ docs/koding-dep.graph
 client/Core/__generatedapps__.coffee
 client/Core/__generatedroutes__.coffee
 deployment/generated_files
-website/a/out
