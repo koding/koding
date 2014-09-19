@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	ErrAlgoliaObjectIdNotFound = "{\"message\":\"ObjectID does not exist\"}\n" // are you kidding me?
+	ErrAlgoliaObjectIdNotFound = "{\"message\":\"ObjectID does not exist\"}\n"
+	ErrAlgoliaIndexNotExist    = "{\"message\":\"Index messages.test does not exist\"}\n"
 )
 
 type IndexSet map[string]*algoliasearch.Index
@@ -81,7 +82,9 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
 	record, err := f.get("messages", objectId)
-	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound {
+	errText := err.Error()
+	if err != nil && errText != ErrAlgoliaObjectIdNotFound &&
+		errText != ErrAlgoliaIndexNotExist {
 		return err
 	}
 
