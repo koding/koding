@@ -16,6 +16,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const algoliaSlownessSeconds = 2
+
 func TestTopicSaved(t *testing.T) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()
@@ -68,26 +70,36 @@ func TestMessageListSaved(t *testing.T) {
 	handler := getTestHandler()
 	Convey("messages can be saved", t, func() {
 		mockMessage := createAndSaveMessage()
+		mockListing := getListings(mockMessage)[0]
 
-		mockListing := models.NewChannelMessageList()
-		err := mockListing.One(&bongo.Query{
-			Selector: map[string]interface{}{"message_id": mockMessage.Id}})
-		So(err, ShouldBeNil)
+		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
 
-		So(handler.MessageListSaved(mockListing), ShouldBeNil)
-
-		// apparently we need to give algolia enough time to save the document:
-		time.Sleep(2 * time.Second)
+		time.Sleep(algoliaSlownessSeconds * time.Second)
 
 		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
 		So(err, ShouldBeNil)
 		So(record, ShouldNotBeNil)
 	})
-	Convey("messages can be cross-indexed", t, func() {})
 }
 
 func TestMessageListDeleted(t *testing.T) {
-	Convey("messages can be deleted", t, func() {})
+	handler := getTestHandler()
+	Convey("messages can be deleted", t, func() {
+		mockMessage := createAndSaveMessage()
+		mockListing := getListings(mockMessage)[0]
+
+		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
+
+		time.Sleep(algoliaSlownessSeconds * time.Second)
+
+		So(handler.MessageListDeleted(&mockListing), ShouldBeNil)
+
+		time.Sleep(algoliaSlownessSeconds * time.Second)
+
+		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound)
+		So(record, ShouldBeNil)
+	})
 	Convey("cross-indexed messages will not be deleted", t, func() {})
 }
 
@@ -176,4 +188,13 @@ func createAndSaveMessage() *models.ChannelMessage {
 	So(cml.Create(), ShouldBeNil)
 
 	return cm
+}
+
+func getListings(message *models.ChannelMessage) []models.ChannelMessageList {
+	mockListing := models.NewChannelMessageList()
+	var listings []models.ChannelMessageList
+	err := mockListing.Some(&listings, &bongo.Query{
+		Selector: map[string]interface{}{"message_id": message.Id}})
+	So(err, ShouldBeNil)
+	return listings
 }
