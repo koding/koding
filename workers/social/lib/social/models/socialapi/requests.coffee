@@ -275,6 +275,12 @@ searchTopics = (data, callback)->
   url = "/channel/search"
   get url, data, callback
 
+searchChats = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for chat search"}
+  url = "/privatemessage/search"
+  get url, data, callback
+
 fetchProfileFeed = (data, callback)->
   if not data.targetId
     return callback { message: "targetId should be set"}
@@ -391,6 +397,7 @@ module.exports = {
   updateLastSeenTime
   fetchProfileFeed
   searchTopics
+  searchChats
   fetchPrivateMessages
   initPrivateMessage
   sendPrivateMessage
