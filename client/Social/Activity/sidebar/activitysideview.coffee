@@ -7,7 +7,7 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink, noItemText} = @getOptions()
+    {itemClass, headerLink, noItemText, searchLink} = @getOptions()
     sidebar = @getDelegate()
 
     if noItemText
@@ -59,6 +59,10 @@ class ActivitySideView extends JView
       @listController.selectSingleItem item
       sidebar.selectedItem = item
 
+    {countSource, limit} = @getOptions()
+    @moreLink = new SidebarMoreLink {href: searchLink, countSource, limit}
+    @moreLink.hide()
+
 
   init: ->
 
@@ -91,4 +95,5 @@ class ActivitySideView extends JView
     """
     {{> @header}}
     {{> @listView}}
+    {{> @moreLink}}
     """
