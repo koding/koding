@@ -643,7 +643,7 @@ module.exports = class JVM extends Module
       JGroup.one { _id: groupId }, (err, group)->
         return callback err  if err
         return callback new KodingError "Group not found"  unless group
-        JPermissionSet.checkPermission client, "delete vms", group, (err, hasPermission)->
+        JPermissionSet.checkPermission client, "delete vms", group, null, (err, hasPermission)->
           return callback err  if err
           return callback new KodingError "You do not have permission to delete this vm"  unless hasPermission
           vm.removeFromSubscription delegate, group, callback

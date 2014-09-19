@@ -39,8 +39,6 @@ class PrivateMessagePane extends MessagePane
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
     @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
 
-    @filterLinks = null
-
     KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
 
 
@@ -284,6 +282,9 @@ class PrivateMessagePane extends MessagePane
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
+
+    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
 
@@ -308,5 +309,9 @@ class PrivateMessagePane extends MessagePane
     @addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+
+
+  setFilter: ->
+
 
   defaultFilter: 'Most Recent'
