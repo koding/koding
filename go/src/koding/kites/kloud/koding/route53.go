@@ -170,7 +170,7 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 }
 
 func (p *Provider) InitDNS(accessKey, secretKey string) error {
-	p.Log.Info("DNS middleware is not initialized. Initializing...", p.HostedZone)
+	p.Log.Info("DNS middleware is not initialized. Initializing...")
 	dns := route53.New(
 		aws.Auth{
 			AccessKey: accessKey,
@@ -235,7 +235,7 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response int
 		}
 	}()
 
-	if p.DNS != nil {
+	if p.DNS == nil {
 		// just call it initialize DNS struct
 		_, err := p.NewClient(c.Machine)
 		if err != nil {

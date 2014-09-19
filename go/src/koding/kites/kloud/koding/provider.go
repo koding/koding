@@ -1,8 +1,8 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"koding/db/mongodb"
@@ -106,7 +106,7 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 	a.Builder.PrivateKey = p.PrivateKey
 
 	// lazy init
-	if p.DNS != nil {
+	if p.DNS == nil {
 		if err := p.InitDNS(a.Creds.AccessKey, a.Creds.SecretKey); err != nil {
 			return nil, err
 		}
@@ -121,6 +121,7 @@ func (p *Provider) Name() string {
 
 func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	/*
+		0. Check if size is eglible (not equal or less than the current size)
 		1. Stop the instance
 		2. Get VolumeId of current instance
 		3. Get AvailabilityZone of current instance
@@ -144,6 +145,38 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		return nil, err
 	}
 
+	// 0. Check if size is eglible (not equal or less than the current size)
+	// 2. Get VolumeId of current instance
+	a.Log.Info("0. Checking if size is eglible")
+	instance, err := a.Instance(a.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	oldVolumeId := instance.BlockDevices[0].VolumeId
+	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	if err != nil {
+		return nil, err
+	}
+
+	volSize := oldVolResp.Volumes[0].Size
+	currentSize, err := strconv.Atoi(volSize)
+	if err != nil {
+		return nil, err
+	}
+
+	desiredSize := a.Builder.StorageSize
+
+	if desiredSize <= currentSize {
+		return nil, fmt.Errorf("resizing is not allowed. Desired size: %dGB should be larger than current size: %dGB",
+			desiredSize, currentSize)
+	}
+
+	if 100 < desiredSize {
+		return nil, fmt.Errorf("resizing is not allowed. Desired size: %d can't be larger than 100GB",
+			desiredSize)
+	}
+
 	// 1. Stop the instance
 	a.Log.Info("1. Stopping Machine")
 	if opts.State != machinestate.Stopped {
@@ -154,15 +187,6 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	}
 
 	p.UpdateState(opts.MachineId, machinestate.Pending)
-
-	// 2. Get VolumeId of current instance
-	a.Log.Info("2. Getting Volume Id")
-	instance, err := a.Instance(a.Id())
-	if err != nil {
-		return nil, err
-	}
-
-	oldVolumeId := instance.BlockDevices[0].VolumeId
 
 	// 3. Get AvailabilityZone of current instance
 	a.Log.Info("3. Getting Avail Zone")
@@ -203,7 +227,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	a.Log.Info("5. Create new volume from snapshot %s", newSnapshotId)
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
-		Size:       15, // TODO: Change it after you are done!
+		Size:       int64(desiredSize),
 		SnapshotId: newSnapshotId,
 		VolumeType: "gp2", // SSD
 	}
@@ -277,10 +301,16 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	// 9. Reattach old volume if something goes wrong, if not delete it
 	defer func() {
-		// if something goes wrong re attach the old volume so it can be used again
+		// if something goes wrong  detach the newly attached volume and attach
+		// back the old volume  so it can be used again
 		if resErr != nil {
 			a.Log.Info("An error ocured, re attaching old volume %s", a.Id())
-			_, err := a.Client.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1")
+			_, err := a.Client.DetachVolume(newVolumeId)
+			if err != nil {
+				a.Log.Error(err.Error())
+			}
+
+			_, err = a.Client.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1")
 			if err != nil {
 				a.Log.Error(err.Error())
 			}
@@ -346,6 +376,8 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	artifact.DomainName = machineData.Domain
 
+	fmt.Printf("artifact %+v\n", artifact)
+
 	// 13. Check if Klient is running
 	a.Push("Checking remote machine", 90, machinestate.Starting)
 	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
@@ -360,7 +392,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		}
 	}
 
-	return artifact, errors.New("resize it not supported")
+	return artifact, nil
 }
 
 func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
