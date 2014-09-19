@@ -9,14 +9,21 @@ class SinglePlanView extends KDView
 
   viewAppended : ->
 
-    {title, cssClass, planFeatures, monthPrice, yearPrice, description} = @getOptions()
-
-    normalizedPrice = monthPrice / 100
+    {
+      title
+      cssClass
+      planFeatures
+      monthPrice
+      yearPrice
+      reducedMonth
+      discount
+      description
+    } = @getOptions()
 
     @addSubView new KDHeaderView
       type     : 'medium'
       cssClass : 'plan-title'
-      title    : "<cite>#{normalizedPrice}</cite>MONTHLY"
+      title    : "<cite>#{monthPrice / 100}</cite>MONTHLY"
 
     @addSubView new KDCustomHTMLView
       tagName  : 'p'
@@ -40,8 +47,10 @@ class SinglePlanView extends KDView
       state     : { name, monthPrice, yearPrice }
       callback  : =>
         { title, monthPrice, yearPrice } = @getOptions()
-        name = title.toLowerCase()
-        @emit 'PlanSelected', name, monthPrice, yearPrice
+        planTitle = title.toLowerCase()
+        @emit 'PlanSelected', {
+          planTitle, monthPrice, yearPrice, reducedMonth, discount
+        }
 
 
   disable: ->

@@ -64,17 +64,19 @@ class PricingAppView extends KDView
       callback()
 
 
-  planSelected: (planTitle, monthPrice, yearPrice) ->
+  planSelected: (options) ->
 
     return window.location.replace '/Register'  unless KD.isLoggedIn()
     return @loadPlan @bound 'planSelected'      unless @state.currentPlan?
 
-    @workflowController = new PaymentWorkflow
-      state      : @state
-      planTitle  : planTitle
-      monthPrice : monthPrice
-      yearPrice  : yearPrice
-      view       : this
+    {
+      planTitle, monthPrice, yearPrice, reducedMonth, discount
+    } = options
+
+    @workflowController = new PaymentWorkflow {
+      @state, planTitle, monthPrice, yearPrice
+      reducedMonth, discount, view: this
+    }
 
     @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
