@@ -4,6 +4,9 @@ module.exports = [
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 
+  "sidebar/searchmodal.coffee"
+  "sidebar/yourtopicsmodal.coffee"
+  "sidebar/conversationsmodal.coffee"
   "sidebar/chatsearchmodal.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
@@ -36,8 +39,6 @@ module.exports = [
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
   "views/alltopicsmodal.coffee"
-  "views/yourtopicsmodal.coffee"
-  "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
   "views/searchinputview.coffee"
 
