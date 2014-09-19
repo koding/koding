@@ -20,17 +20,27 @@ class SinglePlanView extends KDView
       description
     } = @getOptions()
 
-    @addSubView new KDHeaderView
-      type     : 'medium'
+    @addSubView @overflowVisible = new KDCustomHTMLView
+      cssClass : 'overflow-visible'
+
+    @addSubView @overflowHidden = new KDCustomHTMLView
+      cssClass : 'overlow-hidden'
+
+    @overflowVisible.addSubView new KDCustomHTMLView
       cssClass : 'plan-title'
+      partial  : title.toUpperCase()
+
+    @overflowHidden.addSubView new KDHeaderView
+      type     : 'medium'
+      cssClass : 'plan-price'
       title    : "<cite>#{monthPrice / 100}</cite>MONTHLY"
 
-    @addSubView new KDCustomHTMLView
+    @overflowHidden.addSubView new KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'plan-summary'
       partial  : description
 
-    @addSubView featuresContainer = new KDView
+    @overflowHidden.addSubView featuresContainer = new KDView
       tagName  : 'dl'
       cssClass : 'plan-features'
 
@@ -56,5 +66,10 @@ class SinglePlanView extends KDView
   disable: ->
     @setClass 'current'
     @buyButton.disable()
+
+
+  enable: ->
+    @unsetClass 'current'
+    @buyButton.enable()
 
 
