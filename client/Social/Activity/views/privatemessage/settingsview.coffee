@@ -32,7 +32,7 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     @addMenuItem 'Delete Conversation', ->
       modal = KDModalView.confirm
         title       : 'Are you sure?'
-        description : 'Delete this chat conversation?'
+        description : 'Delete this conversation?'
         ok          :
           title     : 'Remove'
           callback  : ->
