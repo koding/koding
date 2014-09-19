@@ -80,11 +80,13 @@ CREATE TABLE "payment"."subscription" (
     "plan_id"                  BIGINT NOT NULL DEFAULT 0,
     "amount_in_cents"          BIGINT NOT NULL DEFAULT 0,
 
-    "created_at"      TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "updated_at"      TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at"      TIMESTAMP (6) WITH TIME ZONE,
-    "expired_at"      TIMESTAMP (6) WITH TIME ZONE,
-    "canceled_at"     TIMESTAMP (6) WITH TIME ZONE
+    "created_at"            TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "updated_at"            TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
+    "deleted_at"            TIMESTAMP (6) WITH TIME ZONE,
+    "expired_at"            TIMESTAMP (6) WITH TIME ZONE,
+    "canceled_at"           TIMESTAMP (6) WITH TIME ZONE,
+    "current_period_start"  TIMESTAMP (6) WITH TIME ZONE,
+    "current_period_end"    TIMESTAMP (6) WITH TIME ZONE
 ) WITH (OIDS = FALSE);
 
 GRANT SELECT, UPDATE, INSERT, DELETE ON "payment"."subscription" TO "social";

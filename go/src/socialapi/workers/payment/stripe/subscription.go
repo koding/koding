@@ -2,6 +2,7 @@ package stripe
 
 import (
 	"socialapi/models/paymentmodel"
+	"time"
 
 	"github.com/koding/bongo"
 	stripe "github.com/stripe/stripe-go"
@@ -19,7 +20,18 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 		return nil, err
 	}
 
-	subModel := paymentmodel.NewSubscription(sub.Id, ProviderName, plan, customer)
+	start := time.Unix(sub.PeriodStart, 0)
+	end := time.Unix(sub.PeriodEnd, 0)
+
+	subModel := &paymentmodel.Subscription{
+		PlanId:                 plan.Id,
+		CustomerId:             customer.Id,
+		ProviderSubscriptionId: sub.Id,
+		Provider:               ProviderName,
+		State:                  "active",
+		CurrentPeriodStart:     start,
+		CurrentPeriodEnd:       end,
+	}
 	err = subModel.Create()
 	if err != nil {
 		return nil, err
