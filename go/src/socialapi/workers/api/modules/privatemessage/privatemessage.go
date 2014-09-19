@@ -46,6 +46,28 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
+func Count(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+
+	query := getUserChannelsQuery(q)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+	}
+
+	var count int
+	query = query.Count(&count)
+	if query.Error != nil {
+		return response.NewBadRequest(query.Error)
+	}
+
+	res := new(models.CountResponse)
+	res.TotalCount = count
+
+	return response.NewOK(res)
+}
+
 func buildContainer(channelList []models.Channel, q *request.Query) (*models.ChannelContainers, error) {
 	cc := models.NewChannelContainers()
 	if err := cc.Fetch(channelList, q); err != nil {
