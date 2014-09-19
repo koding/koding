@@ -182,3 +182,11 @@ class ActivityAppView extends KDView
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this
+
+
+  showAllChatsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    return new ChatSearchModal delegate : this
+
