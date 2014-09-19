@@ -52,7 +52,7 @@ compileStyles = ->
       # sourcemap : inline  : yes
     .pipe concat 'main.css'
     .pipe rename 'main.css'
-    .pipe livereload()
+    # .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/css"
 
 
@@ -135,7 +135,7 @@ gulp.task 'coffee', ->
     .pipe sourcemaps.init loadMaps: true
     .pipe sourcemaps.write './'
     .pipe stream()
-    .pipe livereload()
+    # .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/js"
 
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
