@@ -195,10 +195,20 @@ class PaymentForm extends JView
 
     @form.inputs.planInterval.setValue planInterval
 
-    { monthPrice, yearPrice, reducedMonth } = @state
+    { monthPrice, yearPrice, reducedMonth, discount } = @state
 
     button = @intervalToggle.buttons[planInterval]
     @intervalToggle.buttonReceivedClick button
+
+    { MONTH } = PaymentWorkflow.interval
+
+    discountPartial = if planInterval is MONTH
+    then "You can save <strong>$#{discount / 100.00}</strong>/mo
+    by switching to <strong>yearly plan</strong>."
+    else "You are saving <strong>$#{discount / 100.00}</strong>/mo
+    by switching to <strong>yearly plan</strong>. Awesome!"
+
+    @intervalToggleMessage.updatePartial discountPartial
 
     pricePartial = if planInterval is PaymentWorkflow.interval.MONTH
     then "#{monthPrice / 100}/mo"
