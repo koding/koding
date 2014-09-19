@@ -15,9 +15,11 @@ class PricingAppView extends KDView
     @initViews()
     @initEvents()
 
-    paymentController.subscriptions (err, plan) =>
-      @state.currentPlan = plan
-      @plans.planViews[plan].disable()
+    paymentController.subscriptions (err, subscription) =>
+      { planTitle } = subscription
+
+      @state.currentPlan = planTitle
+      @plans.planViews[planTitle].disable()
 
 
   initViews: ->
