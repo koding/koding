@@ -10,6 +10,7 @@ ALTER TABLE payment.customer ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMED
 --  Uniques structure for table customer
 -- ----------------------------
 ALTER TABLE payment.customer ADD CONSTRAINT "customer_provider_customer_id_provider_key" UNIQUE ("provider_customer_id", "provider") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE payment.customer ADD CONSTRAINT "customer_old_id_key" UNIQUE ("old_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Structure for table PaymentsPlan
