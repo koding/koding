@@ -8,6 +8,7 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -45,11 +46,10 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
-func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
-	// build query for
+func getUserChannelsQuery(q *request.Query) *gorm.DB {
 	c := models.NewChannel()
-	channelIds := make([]int64, 0)
-	query := bongo.B.DB.
+
+	return bongo.B.DB.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
@@ -62,6 +62,22 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 		q.GroupName,
 		models.Channel_TYPE_PRIVATE_MESSAGE,
 		models.ChannelParticipant_STATUS_ACTIVE)
+}
+
+func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
+	// build query for
+	if q.AccountId == 0 || q.GroupName == "" {
+		return nil, errors.New("request is not valid")
+	}
+
+	c := models.NewChannel()
+	channelIds := make([]int64, 0)
+
+	query := getUserChannelsQuery(q)
+
+	if q.Name != "" {
+		query = query.Where("api.channel.purpose like ?", "%"+q.Name+"%")
+	}
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
