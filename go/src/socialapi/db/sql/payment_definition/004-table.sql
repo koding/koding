@@ -36,7 +36,8 @@ CREATE TYPE "payment"."plan_title" AS ENUM (
     'free',
     'hobbyist',
     'developer',
-    'professional'
+    'professional',
+    'super'
 );
 ALTER TYPE "payment"."plan_interval" OWNER TO "social";
 
