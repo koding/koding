@@ -43,12 +43,15 @@ module.exports = class JMachine extends Module
           (signature String, Function)
         setDomain       :
           (signature String, Function)
+        setLabel        :
+          (signature String, Function)
 
     permissions         :
       'list machines'   : ['member']
       'populate users'  : ['member']
       'set provisioner' : ['member']
       'set domain'      : ['member']
+      'set label'       : ['member']
 
     schema              :
 
@@ -300,3 +303,27 @@ module.exports = class JMachine extends Module
             "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
         @update $set: { domain }, (err)-> callback err
+
+
+  setLabel: permit 'set label',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, label, callback)->
+
+      { r: { user, group } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
+
+      slug = slugify label
+
+      if slug isnt @slug
+        generateSlugFromLabel { user, group, label }, (err, slug)=>
+          return callback err  if err?
+          @update $set: { slug, label }, (err)-> callback err
+      else
+        @update $set: { label }, (err)-> callback err
