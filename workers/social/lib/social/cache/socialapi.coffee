@@ -59,7 +59,8 @@ module.exports = (options={}, callback)->
       when "Topic"   then fetchChannelActivities params.slug, cb
       when "Message" then SocialChannel.fetchActivities client, {id: params.slug}, cb
       when "Post"    then SocialMessage.bySlug client, {slug: params.slug}, cb
-      else fetchGroupActivities cb
+      when "Activity"then fetchGroupActivities cb
+      else cb {message: "Route not found"}
 
   reqs = [
     { fn:fetchPopularPosts,      key: 'popularPosts'     }
@@ -84,7 +85,7 @@ module.exports = (options={}, callback)->
         slug:    params?.slug    or "/"
         data:    data
 
-      queue.localPrefetchedFeeds.navigated = res
+      queue.localPrefetchedFeeds.navigated = res unless err?
       queue.fin()
 
   dash queue, ()-> callback null, queue.localPrefetchedFeeds
