@@ -167,9 +167,8 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 	}
 
 	return &protocol.Artifact{
-		InstanceId:   instance.InstanceId,
-		InstanceName: instance.Tags[0].Value,
-		IpAddress:    instance.PublicIpAddress,
+		InstanceId: instance.InstanceId,
+		IpAddress:  instance.PublicIpAddress,
 	}, nil
 }
 

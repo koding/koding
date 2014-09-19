@@ -199,23 +199,8 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	a.Push("Checking domain", 65, machinestate.Building)
 
 	/////// ROUTE 53 /////////////////
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
-		return nil, err
-	}
-
-	// Check if the record exist, if not return an error
-	record, err := p.DNS.Domain(machineData.Domain)
-	if err != nil && err != ErrNoRecord {
-		return nil, err
-	} else {
-		if strings.Contains(record.Name, machineData.Domain) {
-			return nil, fmt.Errorf("domain %s already exists", machineData.Domain)
-		}
-	}
-
 	a.Push("Creating domain", 70, machinestate.Building)
-
-	if err := p.DNS.CreateDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
+	if err := p.UpdateDomain(buildArtifact.IpAddress, machineData.Domain, username); err != nil {
 		return nil, err
 	}
 

@@ -147,10 +147,14 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	// 0. Check if size is eglible (not equal or less than the current size)
 	// 2. Get VolumeId of current instance
-	a.Log.Info("0. Checking if size is eglible")
+	a.Log.Info("0. Checking if size is eglible for instance %s", a.Id())
 	instance, err := a.Instance(a.Id())
 	if err != nil {
 		return nil, err
+	}
+
+	if len(instance.BlockDevices) == 0 {
+		return nil, fmt.Errorf("fatal error: no block device available")
 	}
 
 	oldVolumeId := instance.BlockDevices[0].VolumeId
@@ -260,7 +264,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	// 7. Delete volume if something goes wrong in following steps
 	defer func() {
 		if resErr != nil {
-			a.Log.Info("An error ocured, deleting new volume %s", newVolumeId)
+			a.Log.Info("An error occured, deleting new volume %s", newVolumeId)
 			_, err := a.Client.DeleteVolume(newVolumeId)
 			if err != nil {
 				a.Log.Error(err.Error())
@@ -304,7 +308,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		// if something goes wrong  detach the newly attached volume and attach
 		// back the old volume  so it can be used again
 		if resErr != nil {
-			a.Log.Info("An error ocured, re attaching old volume %s", a.Id())
+			a.Log.Info("An error occured, re attaching old volume %s", a.Id())
 			_, err := a.Client.DetachVolume(newVolumeId)
 			if err != nil {
 				a.Log.Error(err.Error())
