@@ -46,6 +46,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
+        fetchFollowedChannelCount:
+          (signature Object, Function)
         searchTopics         :
           (signature Object, Function)
         fetchProfileFeed     :
@@ -155,6 +157,9 @@ module.exports = class SocialChannel extends Base
 
   # fetchFollowedChannels - lists followed channels(topics) of an account
   @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
+
+  # fetchFollowedChannelCount - fetch followed channel count of an account
+  @fetchFollowedChannelCount = secureRequest fnName: 'fetchFollowedChannelCount'
 
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
