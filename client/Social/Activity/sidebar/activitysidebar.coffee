@@ -524,6 +524,8 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.channel.fetchFollowedChannels
           limit : 5
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
       @sections.channels.hide()
@@ -565,6 +567,8 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.singletons.socialapi.message.fetchPrivateMessages
           limit  : 5
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
