@@ -68,7 +68,6 @@ module.exports = [
 
   "views/activitytabhandle.coffee"
   "views/activitycontentpane.coffee"
-  "views/activitymostlikedpane.coffee"
   "views/activitysearchresultspane.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"

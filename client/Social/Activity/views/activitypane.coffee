@@ -33,7 +33,7 @@ class ActivityPane extends MessagePane
       itemClass     : o.itemClass
       typeConstant  : data.typeConstant
 
-    @mostLiked = new ActivityMostLikedContentPane options, data
+    @mostLiked = new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = null
         skip = @mostLiked.getLoadedCount()
