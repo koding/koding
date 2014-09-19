@@ -54,16 +54,16 @@ func (f *Controller) TopicSaved(data *models.Channel) error {
 		return nil
 	}
 	return f.insert("topics", map[string]interface{}{
+		"objectID": strconv.FormatInt(data.Id, 10),
 		"name":     data.Name,
 		"purpose":  data.Purpose,
-		"objectID": strconv.FormatInt(data.Id, 10),
 	})
 }
 
 func (f *Controller) AccountSaved(data *models.Account) error {
 	return f.insert("accounts", map[string]interface{}{
-		"nick":     data.Nick,
 		"objectID": data.OldId,
+		"nick":     data.Nick,
 	})
 }
 
@@ -87,15 +87,15 @@ func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
 
 	if record == nil {
 		return f.insert("messages", map[string]interface{}{
-			"body":     message.Body,
 			"objectID": objectId,
+			"body":     message.Body,
 			"_tags":    []string{channelId},
 		})
 	}
 
 	return f.partialUpdate("messages", map[string]interface{}{
-		"body":     message.Body,
 		"objectID": objectId,
+		"body":     message.Body,
 		"_tags":    appendMessageTag(record, channelId),
 	})
 }
