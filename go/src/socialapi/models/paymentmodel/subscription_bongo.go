@@ -38,12 +38,13 @@ func (s *Subscription) BeforeUpdate() error {
 
 var ErrUpdatingToSamePlan = errors.New("subscription already subscribed to that plan")
 
-func (s *Subscription) UpdatePlanId(planId int64) error {
+func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 	if s.PlanId == planId {
 		return ErrUpdatingToSamePlan
 	}
 
 	s.PlanId = planId
+	s.AmountInCents = amountInCents
 
 	err := bongo.B.Update(s)
 	if err != nil {

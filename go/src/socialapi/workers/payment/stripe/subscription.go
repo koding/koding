@@ -31,6 +31,7 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 		State:                  "active",
 		CurrentPeriodStart:     start,
 		CurrentPeriodEnd:       end,
+		AmountInCents:          plan.AmountInCents,
 	}
 	err = subModel.Create()
 	if err != nil {

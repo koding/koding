@@ -80,7 +80,7 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 		return err
 	}
 
-	err = currentSubscription.UpdatePlanId(plan.Id)
+	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
 	if err != nil {
 		return err
 	}
