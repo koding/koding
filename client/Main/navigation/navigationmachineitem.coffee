@@ -9,7 +9,7 @@ class NavigationMachineItem extends JView
   constructor: (options = {}, data) ->
 
     machine            = data
-    @alias             = machine.label
+    @alias             = machine.slug or machine.label
     path               = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
 
     options.tagName    = 'a'
@@ -23,7 +23,7 @@ class NavigationMachineItem extends JView
     @machine   = @getData()
 
     @label     = new KDCustomHTMLView
-      partial  : @alias
+      partial  : machine.label or @alias
 
     @progress  = new KDProgressBarView
       cssClass : 'hidden'

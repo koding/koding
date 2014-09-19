@@ -351,23 +351,23 @@ class ActivitySidebar extends KDCustomHTMLView
         parentId     : id
         id           : machine._id
         machineUId   : machine.uid
-        machineLabel : machine.label
+        machineLabel : machine.slug or machine.label
 
       treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
-        href         : "/IDE/#{machine.label}/my-workspace"
-        id           : "#{machine.label}-workspace"
+        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
+        id           : "#{machine.slug or machine.label}-workspace"
         parentId     : id
-        machineLabel : machine.label
+        machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
           treeData.push
             title        : workspace.name
             type         : 'workspace'
-            href         : "/IDE/#{machine.label}/#{workspace.slug}"
-            machineLabel : machine.label
+            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
             parentId     : id
@@ -400,14 +400,14 @@ class ActivitySidebar extends KDCustomHTMLView
           tree.collapse node
 
       else if node.type is 'workspace'
-        if isMachineRunning and nodeData.machineLabel is machine.label
+        if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
           slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
           tree.selectNode node  if slug is workspace.slug
 
     @latestWorkspaceData = data
 
     localStorage         = KD.getSingleton("localStorageController").storage "IDE"
-    minimumDataToStore   = machineLabel: machine.label, workspaceSlug: workspace.slug
+    minimumDataToStore   = machineLabel: (machine.slug or machine.label), workspaceSlug: workspace.slug
 
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
@@ -618,7 +618,7 @@ class ActivitySidebar extends KDCustomHTMLView
         data    =
           title : workspace.name
           type  : 'workspace'
-          href  : "/IDE/#{machine.label}/#{workspace.slug}"
+          href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           data  : workspace
           id    : workspace._id
           machineLabel : machineLabel
