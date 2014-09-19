@@ -18,6 +18,7 @@ WebSocketServer   = WebSocket.Server
 Promise           = require 'bluebird'
 which             = Promise.promisify require 'which'
 buildAPI          = require 'bongo-api-builder'
+bongo             = require 'bongo'
 
 
 args =
@@ -87,30 +88,60 @@ class Builder
       spriteHelper = helper
       @buildClient options
 
-  buildFramework:->
+  buildExternals:->
 
-    uglify = unless process.env.NO_UGLIFYJS then "--uglify" else ""
+    {daisy} = bongo
 
-    buildLoggedInFramework  = "cd client/Framework && npm i && gulp compile #{uglify} --outputDir=../../website/a/"
-    buildLoggedOutFramework = "cd client/Framework && npm i && gulp compile #{uglify} --outputDir=../../website/a/out/  --entryPath=../entry.coffee"
-    exec buildLoggedInFramework, (err, stdout, stderr)->
-      console.log """
-      ----------------------------------- KD FRAMEWORK COMPILED -----------------------------------
-       To use watcher for Framework use following command in different tab:
-       $ #{buildLoggedInFramework.replace 'compile ', ''}
-      ---------------------------------------------------------------------------------------------
-      """
+    queue = [
+      ->
+        console.log "\n# EXTERNAL BUILDS STARTED\n"
+        uglify = unless process.env.NO_UGLIFYJS then "--uglify" else ""
+        buildLoggedInFramework = "cd client/Framework && npm i && gulp compile #{uglify} --outputDir=../../website/a/"
+        exec buildLoggedInFramework, (err, stdout, stderr)->
+          if err
+          then console.error err
+          else console.log """
+          # KD FRAMEWORK COMPILED
+           To use watcher for Framework use following command in different tab:
+           $ #{buildLoggedInFramework.replace 'compile ', ''}
+          """
+          queue.next()
+      ,
+      ->
+        exec 'cd client/landing && npm i', (err, stdout, stderr)->
+          if err
+          then console.error err
+          else console.log "# LANDING PAGE DEPENDENCIES INSTALLED"
+          queue.next()
+      ,
+      ->
+        exec 'cd client/landing && gulp build', (err, stdout, stderr)->
+          if err
+          then console.error err
+          else console.log """
+          # LANDING PAGE BUILT
+           For further development of landing page, clone koding/landing and follow its readme.
+          """
+          queue.next()
+      ,
+      ->
+        exec "cp -Rf #{__dirname}/client/landing/static/out #{__dirname}/website/a/out", (err, stdout, stderr)->
+          if err
+          then console.error err
+          else console.log "# LANDING PAGE EXPORTED"
+          queue.next()
+      ->
+          console.log "\n# EXTERNAL BUILDS FINISHED!\n"
+          queue.next()
+    ]
 
-      # exec buildLoggedOutFramework, (err, stdout, stderr)->
-      #   console.log """
-      #   ----------------------------- KD FRAMEWORK LOGGEDOUT COMPILED -------------------------------
-      #   """
+    daisy queue, ->
 
   buildClient: (options) ->
 
     try fs.mkdirSync ".build"
 
-    @buildFramework()
+    @buildExternals()
 
     buildAPI
       rootDir   : __dirname
