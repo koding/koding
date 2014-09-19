@@ -180,6 +180,12 @@ class MessagePane extends KDTabPaneView
     unless name is 'public'
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
 
+  shouldHide: ->
+    {id}                             = @getData()
+    {socialApiAnnouncementChannelId} = KD.getGroup()
+
+    # todo add is admin check
+    return  id is socialApiAnnouncementChannelId
 
   createInputWidget: ->
 
@@ -187,7 +193,10 @@ class MessagePane extends KDTabPaneView
 
     channel = @getData()
 
-    @input = new ActivityInputWidget {channel}
+    if @shouldHide()
+      @input = new KDView
+    else
+      @input = new ActivityInputWidget {channel}
 
 
   createFilterLinks: ->
@@ -196,9 +205,14 @@ class MessagePane extends KDTabPaneView
 
     if type is 'privatemessage' or type is 'post' then return
 
+    filters = ['Most Liked', 'Most Recent']
+
+    # remove the first item from filters
+    filters.shift() if @shouldHide()
+
     @filterLinks or= new FilterLinksView
-      filters: ['Most Liked', 'Most Recent']
-      default: 'Most Liked'
+      filters: filters
+      default: filters[0]
 
     @filterLinks.on 'FilterSelected', (filter) =>
       @listController.removeAllItems()
@@ -288,7 +302,8 @@ class MessagePane extends KDTabPaneView
     if @input
       @input.focus()
     else
-      @listController.getListItems().first?.commentBox.input.focus()
+      # TODO - undefined is not a function
+      @listController?.getListItems()?.first?.commentBox?.input?.focus()
 
 
   populate: (callback = noop) ->
