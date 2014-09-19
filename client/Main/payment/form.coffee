@@ -3,6 +3,11 @@
 # It uses stripe.js for custom validations. If the inputs
 # pass validation, it emits `PaymentSubmitted` event with
 # the user inputted values.
+#
+# TODO: There are more than enough free month checks
+# either refactor those to another type of check,
+# or seperate places where we are checking for free plan
+# from the rest. ~Umut
 class PaymentForm extends JView
 
   initialState     :
@@ -83,16 +88,27 @@ class PaymentForm extends JView
 
     @form = @initForm()
 
+    @existingCreditCardMessage = new KDCustomHTMLView
+      cssClass : 'existing-cc-msg'
+      partial  : '
+        We will use the credit card saved on your account for this purchase.
+      '
+
+    { FREE } = PaymentWorkflow.plan
+
     # if their currentPlan is not free it means that
-    # we already have their credit card, so don't show the form.
-    @form.hide()  unless @state.currentPlan is PaymentWorkflow.plan.FREE
+    # we already have their credit card,
+    # so don't show the form show the existing
+    # credit card message.
+    @form.hide()  unless currentPlan is FREE
+    @existingCreditCardMessage.hide()  if currentPlan is FREE
+
 
     @priceSummary = new KDCustomHTMLView
       cssClass    : 'price-summary'
       partial     : "You'll be charged $#{monthPrice / 100}/month"
 
-
-    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, planTitle
+    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     buttonPartial = if isUpgrade
     then 'UPGRADE YOUR PLAN'
@@ -114,6 +130,14 @@ class PaymentForm extends JView
         <span>Secure credit card payments</span>
         Koding.com uses 128 Bit SSL Encrypted Transactions
       "
+
+    # no need to show those views when they are
+    # downgrading to free account.
+    # TODO: move this into more proper place. ~U
+    if planTitle is FREE
+      [ @intervalToggle, @intervalToggleMessage
+        @priceSummary, @securityNote
+      ].forEach (view) -> view.hide()
 
 
   initForm: ->
@@ -215,6 +239,7 @@ class PaymentForm extends JView
       {{> @plan}}{{> @price}}
     </div>
     {{> @form}}
+    {{> @existingCreditCardMessage}}
     {{> @priceSummary}}
     {{> @submitButton}}
     {{> @securityNote}}
