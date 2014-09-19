@@ -118,6 +118,26 @@ body.pricing
         border-left     1px solid #E3E3E3
         rounded         7px 0 0 7px
 
+      &.promoted
+        background      #fff
+        vendor          transform, scale(1.05)
+        border          1px solid #909090
+        rounded         7px
+        z-index         100
+
+        .plan-title cite
+          color         #F8AC1D
+
+          &:before
+            color       #F8AC1D
+
+        .plan-buy-button
+          border-color  #F8AC1D
+          background    #F8AC1D
+          color         #fff
+          margin-top    23px
+          margin-bottom 40px
+
       &.current
         &:after
           content       'Current Plan'
@@ -203,27 +223,6 @@ body.pricing
         letter-spacing  .16em
         rounded         3px
         vendor          transition, background .2s ease
-
-
-      &:nth-of-type(2)
-        background      #fff
-        vendor          transform, scale(1.05)
-        border          1px solid #909090
-        rounded         7px
-        z-index         100
-
-        .plan-title cite
-          color         #F8AC1D
-
-          &:before
-            color       #F8AC1D
-
-        .plan-buy-button
-          border-color  #F8AC1D
-          background    #F8AC1D
-          color         #fff
-          margin-top    23px
-          margin-bottom 40px
 
 .payment-modal
   .kdmodal-content

@@ -61,6 +61,8 @@ class PricingAppView extends KDView
       @state.currentPlan = planTitle
       @plans.planViews[planTitle].disable()
 
+      @plans.planViews['hobbyist'].setClass 'promoted'  if planTitle is 'free'
+
       callback()
 
 
