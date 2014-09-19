@@ -11,14 +11,20 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, daisy } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
-  {permit} = require '../group/permissionset'
+
+  {slugify} = require '../../traits/slugifiable'
+  {permit}  = require '../group/permissionset'
 
   @share()
 
   @set
 
     indexes             :
-      kiteId            : 'unique'
+      uid               : 'unique'
+      slug              : 'sparse'
+      users             : 'sparse'
+      groups            : 'sparse'
+      domain            : 'sparse'
 
     sharedEvents        :
       static            : [ ]
@@ -66,6 +72,8 @@ module.exports = class JMachine extends Module
       label             :
         type            : String
         default         : -> ""
+
+      slug              : String
 
       provisioners      :
         type            : [ ObjectId ]
@@ -138,6 +146,27 @@ module.exports = class JMachine extends Module
     data.provisioners  ?= [ ]
 
     return new JMachine data
+
+  generateSlugFromLabel = ({user, group, label, index}, callback)->
+
+    slug = if index? then "#{label}-#{index}" else label
+    slug = slugify slug
+
+    JMachine.count {
+      users : $elemMatch: id: user.getId()
+      groups: $elemMatch: id: group.getId()
+      slug
+    }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+        callback null, slug
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromLabel {user, group, label, index}, callback
+
 
 
   @one$: permit 'list machines',
