@@ -3,9 +3,7 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/klient"
 	"strconv"
-	"time"
 
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
@@ -175,20 +173,10 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	artifact.DomainName = machineData.Domain
 
-	fmt.Printf("artifact %+v\n", artifact)
-
-	// 13. Check if Klient is running
-	a.Push("Checking remote machine", 90, machinestate.Starting)
-	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
-	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
-	if err != nil {
-		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	if p.IsKlientReady(machineData.QueryString) {
+		p.Log.Info("[%s] klient is ready.", opts.MachineId)
 	} else {
-		defer klientRef.Close()
-		p.Log.Info("[%s] Sending a ping message", opts.MachineId)
-		if err := klientRef.Ping(); err != nil {
-			p.Log.Warning("Sending a ping message err:", err)
-		}
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
 	}
 
 	return artifact, nil

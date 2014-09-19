@@ -147,16 +147,10 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	///// ROUTE 53 /////////////////
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
-	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
-	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
-	if err != nil {
-		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	if p.IsKlientReady(machineData.QueryString) {
+		p.Log.Info("[%s] klient is ready.", opts.MachineId)
 	} else {
-		defer klientRef.Close()
-		p.Log.Info("[%s] Sending a ping message", opts.MachineId)
-		if err := klientRef.Ping(); err != nil {
-			p.Log.Warning("Sending a ping message err:", err)
-		}
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
 	}
 
 	return artifact, nil
@@ -260,4 +254,22 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 
 	///// ROUTE 53 /////////////////
 	return nil
+}
+
+// IsKiteReady returns true if Klient is ready and it can receive a ping.
+func (p *Provider) IsKlientReady(querystring string) bool {
+	klientRef, err := klient.NewWithTimeout(p.Kite, querystring, time.Minute*2)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+		return false
+	}
+
+	defer klientRef.Close()
+	p.Log.Debug("Sending a ping message")
+	if err := klientRef.Ping(); err != nil {
+		p.Log.Debug("Sending a ping message err:", err)
+		return false
+	}
+
+	return true
 }

@@ -3,7 +3,6 @@ package koding
 import (
 	"bytes"
 	"fmt"
-	"koding/kites/kloud/klient"
 	"strconv"
 	"strings"
 	"time"
@@ -246,15 +245,10 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 	buildArtifact.KiteQuery = query.String()
 
 	infoLog("Connecting to remote Klient instance")
-	klientRef, err := klient.NewWithTimeout(p.Kite, query.String(), time.Minute*2)
-	if err != nil {
-		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	if p.IsKlientReady(query.String()) {
+		p.Log.Info("[%s] klient is ready.", opts.MachineId)
 	} else {
-		defer klientRef.Close()
-		infoLog("Sending a ping message")
-		if err := klientRef.Ping(); err != nil {
-			p.Log.Warning("Sending a ping message err:", err)
-		}
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
 	}
 
 	///// ROUTE 53 /////////////////
