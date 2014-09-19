@@ -178,6 +178,16 @@ testapi:
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
 	@`which go` test -c workers/topicfeed/topicfeed/*.go
 
+	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/*.go
+	@./payment.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./payment.test
+
+	@echo "$(OK_COLOR)--> stripe tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/stripe/*.go
+	@./stripe.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./stripe.test
+
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
