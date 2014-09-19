@@ -41,6 +41,12 @@ projects =
     script        : "website/a/js/__app.account.js"
     sourceMapRoot : "Account/"
 
+  Login           :
+    path          : "client/Login"
+    style         : "website/a/css/__app.Login.css"
+    script        : "website/a/js/__app.Login.js"
+    sourceMapRoot : "Login/"
+
   Apps            :
     path          : "client/Social/Apps"
     style         : "website/a/css/__app.apps.css"
@@ -77,11 +83,41 @@ projects =
     script        : "website/a/js/__app.viewer.js"
     sourceMapRoot : "Viewer/"
 
+  # Teamwork        :
+  #   path          : "client/Teamwork"
+  #   style         : "website/a/css/__app.teamwork.css"
+  #   script        : "website/a/js/__app.teamwork.js"
+  #   sourceMapRoot : "Teamwork/"
+
   IDE             :
     path          : "client/IDE"
     style         : "website/a/css/__app.ide.css"
     script        : "website/a/js/__app.ide.js"
     sourceMapRoot : "IDE/"
+
+  About           :
+    path          : "client/About"
+    style         : "website/a/css/__app.about.css"
+    script        : "website/a/js/__app.about.js"
+    sourceMapRoot : "About/"
+
+  Home            :
+    path          : "client/Home"
+    style         : "website/a/css/__app.home.css"
+    script        : "website/a/js/__app.home.js"
+    sourceMapRoot : "Home/"
+
+  Business        :
+    path          : "client/Business"
+    style         : "website/a/css/__app.business.css"
+    script        : "website/a/js/__app.business.js"
+    sourceMapRoot : "Business/"
+
+  Education       :
+    path          : "client/Education"
+    style         : "website/a/css/__app.education.css"
+    script        : "website/a/js/__app.education.js"
+    sourceMapRoot : "Education/"
 
   Environments    :
     path          : "client/Environments"
@@ -105,6 +141,18 @@ projects =
     script        : "website/a/js/__app.pricing.js"
     sourceMapRoot : "Pricing/"
 
+  Bugs            :
+    path          : "client/Social/Bugs"
+    style         : "website/a/css/__app.bugreport.css"
+    script        : "website/a/js/__app.bugreport.js"
+    sourceMapRoot : "Social/Bugs/"
+
+  # DevTools        :
+  #   path          : "client/DevTools"
+  #   style         : "website/a/css/__app.devtools.css"
+  #   script        : "website/a/js/__app.devtools.js"
+  #   sourceMapRoot : "DevTools/"
+
 bundles           =
 
   KodingIn        :
@@ -112,12 +160,30 @@ bundles           =
                      'KDBackend'
                      'Core'
                      'KDMainApp'
+                     'Home'
                      'Activity'
                      'PostOperations'
                     ]
 
     style         : "website/a/css/koding.css"
     script        : "website/a/js/koding.js"
+
+  # out for a while - SY
+  # KodingOut       :
+  #   projects      : [
+  #                    'Core'
+  #                    'Home'
+  #                    'Login'
+  #                    'PostOperations'
+  #                   ]
+
+  #   style         : "website/a/out/css/koding.css"
+  #   script        : "website/a/out/js/koding.js"
+
+  # TeamworkBundle  :
+  #   projects      : ['Viewer', 'Teamwork', 'DevTools']
+  #   style         : "website/a/css/__teamwork.css"
+  #   script        : "website/a/js/__teamwork.js"
 
   IDEBundle       :
     projects      : ['Ace', 'Terminal', 'Finder', 'Viewer', 'IDE']
