@@ -88,6 +88,7 @@ class StripeFormView extends KDFormViewWithFields
 
     fields.cardMonth = {
       label           : 'Exp. Date'
+      placeholder     : 'MM'
       attributes      :
         maxlength     : 2
       validate        :
@@ -111,6 +112,7 @@ class StripeFormView extends KDFormViewWithFields
 
     fields.cardYear = {
       label              : '&nbsp'
+      placeholder        : 'YYYY'
       attributes         :
         maxlength        : 4
       validate           :
