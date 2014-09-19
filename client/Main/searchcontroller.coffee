@@ -39,7 +39,7 @@ class SearchController extends KDObject
 
   searchChannel: (seed, channelId) ->
     { SocialMessage } = KD.remote.api
-    @search 'messages', seed, facetFilters: ["channel:#{ channelId }"]
+    @search 'messages', seed, tagFilters: [channelId]
       .map ({ objectID: id }) ->
         new Promise (resolve) ->
           KD.singletons.socialapi.message.byId { id }, (err, message) ->

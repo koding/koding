@@ -11,6 +11,10 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const (
+	ErrAlgoliaObjectIdNotFound = "{\"message\":\"ObjectID does not exist\"}\n" // are you kidding me?
+)
+
 type IndexSet map[string]*algoliasearch.Index
 
 type Controller struct {
@@ -29,6 +33,7 @@ func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	// IDK what to do with this error; for now I will simply log it:
+	fmt.Println(err)
 	return false
 }
 
@@ -42,15 +47,6 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 			"messages": client.InitIndex("messages" + indexSuffix),
 		},
 	}
-}
-
-func (f *Controller) insert(indexName string, record map[string]interface{}) error {
-	index, err := f.indexes.Get(indexName)
-	if err != nil {
-		return err
-	}
-	_, err = index.AddObject(record)
-	return err
 }
 
 func (f *Controller) TopicSaved(data *models.Channel) error {
@@ -81,11 +77,19 @@ func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
 		return err
 	}
 
+	objectId := strconv.FormatInt(message.Id, 10)
+	channelId := strconv.FormatInt(listing.ChannelId, 10)
+
+	record, err := f.get("messages", objectId)
+	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound {
+		return err
+	}
+
 	return f.insert("messages", map[string]interface{}{
 		"body":     message.Body,
-		"objectID": strconv.FormatInt(message.Id, 10),
-		// we'll facet on the channel id:
-		"channel": strconv.FormatInt(listing.ChannelId, 10),
+		"objectID": objectId,
+		// we'll use tag filtering on the channel id:
+		"_tags": getTags(record, channelId),
 	})
 }
 
