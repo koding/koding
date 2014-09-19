@@ -31,10 +31,20 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	return response.HandleResultAndError(buildContainer(channelList, q))
 }
 
+func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+
+	if q.Name == "" {
+		return response.NewBadRequest(errors.New("search string not set"))
+	}
+
 	channelList, err := getPrivateMessageChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
+
+	return response.HandleResultAndError(buildContainer(channelList, q))
+}
 
 func buildContainer(channelList []models.Channel, q *request.Query) (*models.ChannelContainers, error) {
 	cc := models.NewChannelContainers()
