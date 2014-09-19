@@ -1,0 +1,1 @@
+class ComputeErrorModal extends ComputePlansModal.Free

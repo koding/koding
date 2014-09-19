@@ -147,7 +147,8 @@ module.exports = class Koding extends ProviderInterface
 
       if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
         return callback new KodingError \
-          "Total limit of #{userPlan.alwaysOn} always on vm limit has been reached."
+          """Total limit of #{userPlan.alwaysOn}
+             always on vm limit has been reached.""", "UsageLimitReached"
 
       { ObjectId } = require 'bongo'
 
