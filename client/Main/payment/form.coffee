@@ -136,7 +136,7 @@ class PaymentForm extends JView
     # TODO: move this into more proper place. ~U
     if planTitle is FREE
       [ @intervalToggle, @intervalToggleMessage
-        @priceSummary, @securityNote
+        @priceSummary, @securityNote, @existingCreditCardMessage
       ].forEach (view) -> view.hide()
 
 
@@ -222,6 +222,7 @@ class PaymentForm extends JView
       @intervalToggleMessage
       @form
       @priceSummary
+      @existingCreditCardMessage
       @securityNote
     ].forEach (view) => view.destroy()
 
