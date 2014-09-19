@@ -14,8 +14,6 @@ class ActivityContentPane extends KDView
       lastToFirst
     }
 
-    @listController.getView().setClass 'padded'
-
     @isLoaded = no
 
   viewAppended: ->

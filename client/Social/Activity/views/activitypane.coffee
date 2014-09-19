@@ -33,14 +33,14 @@ class ActivityPane extends MessagePane
       itemClass     : o.itemClass
       typeConstant  : data.typeConstant
 
-    @mostLiked   = new ActivityMostLikedContentPane options, data
+    @mostLiked = new ActivityMostLikedContentPane options, data
       .on "NeedsMoreContent", =>
         from = null
         skip = @mostLiked.getLoadedCount()
 
         @fetch { from, skip }, @createContentAppender 'mostLiked'
 
-    @mostRecent  = new ActivityContentPane options, data
+    @mostRecent = new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = @mostRecent.getContentFrom()
         skip = null
@@ -51,7 +51,7 @@ class ActivityPane extends MessagePane
       .on "NeedsMoreContent", =>
         console.log 'we need to implement pagination for search results'
 
-    @tabView    = new KDTabView
+    @tabView = new KDTabView
       cssClass          : 'activity-tab-view'
       tabHandleClass    : ActivityTabHandle
       maxHandleWidth    : Infinity
@@ -84,7 +84,6 @@ class ActivityPane extends MessagePane
           forceLoad: yes
       when @mostRecent.parent
         @select 'mostRecent'
-      when @searchResults.parent  then # ignore
 
   select: (contentName, options = {}) ->
     content = @[contentName]
