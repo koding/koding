@@ -24,6 +24,16 @@ func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.He
 	)
 }
 
+func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	invoiceRequest := &payment.InvoiceRequest{
+		AccountId: u.Query().Get("accountId"),
+	}
+
+	return response.HandleResultAndError(
+		invoiceRequest.Do(),
+	)
+}
+
 func StripeWebhook(u *url.URL, h http.Header, req *payment.StripeWebhook) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndError(
 		req.Do(),

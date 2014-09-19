@@ -97,7 +97,35 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 }
 
 //----------------------------------------------------------
-// Stripe Webhook
+// InvoiceRequest
+//----------------------------------------------------------
+
+type InvoiceRequest struct {
+	AccountId string
+}
+
+type InvoiceResponse struct {
+	AccountId string                          `json:"account_id"`
+	Invoices  []*stripe.StripeInvoiceResponse `json:"invoice"`
+}
+
+func (i *InvoiceRequest) Do() (*InvoiceResponse, error) {
+	resp := &InvoiceResponse{
+		AccountId: i.AccountId,
+	}
+
+	invoices, err := stripe.FindInvoicesForCustomer(i.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Invoices = invoices
+
+	return resp, nil
+}
+
+//----------------------------------------------------------
+// StripeWebhook
 //----------------------------------------------------------
 
 type StripeWebhook struct {
