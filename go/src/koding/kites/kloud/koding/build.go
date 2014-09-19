@@ -199,10 +199,6 @@ func (p *Provider) Build(opts *protocol.Machine) (protocolArtifact *protocol.Art
 	a.Push("Checking domain", 65, machinestate.Building)
 
 	/////// ROUTE 53 /////////////////
-	if err := p.InitDNS(opts); err != nil {
-		return nil, err
-	}
-
 	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
 		return nil, err
 	}

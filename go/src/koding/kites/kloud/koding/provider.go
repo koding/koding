@@ -105,6 +105,13 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 	a.Builder.PublicKey = p.PublicKey
 	a.Builder.PrivateKey = p.PrivateKey
 
+	// lazy init
+	if p.DNS != nil {
+		if err := p.InitDNS(a.Creds.AccessKey, a.Creds.SecretKey); err != nil {
+			return nil, err
+		}
+	}
+
 	return a, nil
 }
 
@@ -125,10 +132,9 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		9. Reattach old volume if something goes wrong, if not delete it
 		10. Attach new volume to current stopped instance
 		11. Start the stopped instance
-		12. Delete old volume (previous smaller size volume)
-		13. Update Domain record with the new IP
-		14. Check if Klient is running
-		15. Return success
+		12. Update Domain record with the new IP
+		13. Check if Klient is running
+		14. Return success
 	*/
 
 	defer p.Unlock(opts.MachineId)
@@ -320,6 +326,40 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		return nil, err
 	}
 
+	// 12. Update Domain record with the new IP
+	machineData, ok := opts.CurrentData.(*Machine)
+	if !ok {
+		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
+	}
+
+	username := opts.Builder["username"].(string)
+
+	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
+		return nil, err
+	}
+
+	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+		opts.MachineId, machineData.Domain, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+		return nil, err
+	}
+
+	artifact.DomainName = machineData.Domain
+
+	// 13. Check if Klient is running
+	a.Push("Checking remote machine", 90, machinestate.Starting)
+	p.Log.Info("[%s] Connecting to remote Klient instance", opts.MachineId)
+	klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Minute*1)
+	if err != nil {
+		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
+	} else {
+		defer klientRef.Close()
+		p.Log.Info("[%s] Sending a ping message", opts.MachineId)
+		if err := klientRef.Ping(); err != nil {
+			p.Log.Warning("Sending a ping message err:", err)
+		}
+	}
+
 	return artifact, errors.New("resize it not supported")
 }
 
@@ -342,49 +382,19 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	a.Push("Initializing domain instance", 65, machinestate.Starting)
 
 	/////// ROUTE 53 /////////////////
-	if err := p.InitDNS(opts); err != nil {
-		return nil, err
-	}
-
 	username := opts.Builder["username"].(string)
 
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
 		return nil, err
-	}
-
-	a.Push("Checking domain", 70, machinestate.Starting)
-	// Check if the record exist, if yes update the ip instead of creating a new one.
-	record, err := p.DNS.Domain(machineData.Domain)
-	if err == ErrNoRecord {
-		a.Push("Creating domain", 75, machinestate.Starting)
-		if err := p.DNS.CreateDomain(machineData.Domain, artifact.IpAddress); err != nil {
-			return nil, err
-		}
-	} else if err != nil {
-		// If it's something else just return it
-		return nil, err
-	}
-
-	// Means the record exist, update it
-	if err == nil {
-		a.Push("Updating domain", 75, machinestate.Starting)
-		p.Log.Warning("[%s] Domain '%s' already exists (that shouldn't happen). Going to update to new IP",
-			opts.MachineId, machineData.Domain)
-		if err := p.DNS.Update(machineData.Domain, record.Records[0], artifact.IpAddress); err != nil {
-			return nil, err
-		}
 	}
 
 	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
 		opts.MachineId, machineData.Domain, artifact.InstanceId)
-
-	a.Push("Adding domain tag", 80, machinestate.Starting)
 	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
 		return nil, err
 	}
 
 	artifact.DomainName = machineData.Domain
-
 	///// ROUTE 53 /////////////////
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
@@ -423,9 +433,6 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	}
 
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
-	if err := p.InitDNS(opts); err != nil {
-		return err
-	}
 
 	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
 		return err
@@ -478,10 +485,6 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	machineData, ok := opts.CurrentData.(*Machine)
 	if !ok {
 		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	if err := p.InitDNS(opts); err != nil {
-		return err
 	}
 
 	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
