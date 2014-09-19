@@ -174,6 +174,12 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
+    return new TopicSearchModal delegate : this
+
+  showFollowingTopicsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
     return new YourTopicsModal delegate : this
 
 
