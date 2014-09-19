@@ -521,6 +521,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addFollowedTopics: ->
 
+    limit = 10
+
     @addSubView @sections.channels = new ActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
@@ -528,13 +530,15 @@ class ActivitySidebar extends KDCustomHTMLView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
+      searchLink : '/Activity/Topic/All'
+      limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
-          limit : 5
+          limit : limit
         , callback
       countSource: (callback) ->
         KD.remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
@@ -564,20 +568,25 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addMessages: ->
 
+    limit = 3
+
     @addSubView @sections.messages = new ActivitySideView
       title      : 'Chat'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
+      searchClass: ChatSearchModal
       dataPath   : 'privateMessages'
       delegate   : this
       noItemText : "No chat messages yet."
+      searchLink : '/Activity/Chat/All'
+      limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit  : 5
+          limit  : limit
         , callback
       countSource: (callback) ->
         KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
