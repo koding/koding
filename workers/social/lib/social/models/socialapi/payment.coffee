@@ -18,7 +18,7 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         invoices          :
           (signature Object, Function)
-        getCreditCard     :
+        creditcard        :
           (signature Object, Function)
         updateCreditCard  :
           (signature Object, Function)
@@ -27,30 +27,28 @@ module.exports = class Payment extends Base
   { get, post } = require "./requests"
 
   @subscribe = secure (client, data, callback)->
-    data.accountId = getAccountId client
     requiredParams = [
-      "accountId", "token", "email", "planTitle", "planInterval", "provider"
+      "token", "email", "planTitle", "planInterval", "provider"
     ]
 
-    for param in requiredParams
-      if not data[param]
-        return callback {message: "#{param} is required"}
+    validateParams requiredParams, data, (err)->
+      return callback err  if err
 
-    url = "/payments/subscribe"
-    post url, data, callback
+      data.accountId = getAccountId client
+      url = "/payments/subscribe"
+
+      post url, data, callback
 
   @unsubscribe = secure (client, data, callback)->
-    data.accountId = getAccountId client
-    requiredParams = [
-      "accountId", "plan", "provider"
-    ]
+    requiredParams = [ "planTitle", "provider" ]
 
-    for param in requiredParams
-      if not data[param]
-        return callback {message: "#{param} is required"}
+    validateParams requiredParams, data, (err)->
+      return callback err  if err
 
-    url = "/payments/unsubscribe"
-    post url, data, callback
+      data.accountId = getAccountId client
+      url = "/payments/unsubscribe"
+
+      post url, data, callback
 
   @subscriptions = secure (client, data, callback)->
     data.accountId = getAccountId client
@@ -58,6 +56,32 @@ module.exports = class Payment extends Base
 
     get url, data, callback
 
+  @invoices = secure (client, data, callback)->
+    data.accountId = getAccountId client
+    url = "/payments/invoices/#{data.accountId}"
+
+    get url, data, callback
+
+  @creditCard = secure (client, data, callback)->
+    data.accountId = getAccountId client
+    url = "/payments/creditcard/#{data.accountId}"
+
+    get url, data, callback
+
+  @updateCreditCard = secure (client, data, callback)->
+    requiredParams = [ "token" , "provider"]
+
+    validateParams requiredParams, data, (err)->
+      data.accountId = getAccountId client
+      url = "/payments/creditcard/update"
+
+      post url, data, callback
+
+
+  validateParams = (requiredParams, data, callback)->
+    for param in requiredParams
+      if not data[param]
+        return callback {message: "#{param} is required"}
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
