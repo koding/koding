@@ -434,6 +434,22 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	mux.Handle("GET", "/privatemessage/search", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Search,
+			Name:    "privatemessage-search",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/privatemessage/count", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Count,
+			Name:    "privatemessage-count",
+			Metrics: metrics,
+		},
+	))
+
 	return mux
 }
 
