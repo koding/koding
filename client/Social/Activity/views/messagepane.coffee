@@ -36,13 +36,13 @@ class MessagePane extends KDTabPaneView
 
     @fakeMessageMap = {}
 
-    @setFilter @defaultFilter
+    @setFilter @getDefaultFilter()
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    if typeConstant in ['group', 'topic']
+    if typeConstant in ['group', 'topic', 'announcement']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
@@ -54,7 +54,7 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       when 'privatemessage'
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
-      when 'group'
+      when 'group', 'announcement'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
@@ -386,4 +386,7 @@ class MessagePane extends KDTabPaneView
     @populate()
 
 
-  defaultFilter: 'Most Liked'
+  getDefaultFilter:->
+    if @shouldHide()
+    then 'Most Recent'
+    else 'Most Liked'
