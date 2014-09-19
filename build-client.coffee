@@ -87,6 +87,8 @@ class Builder
     .then (helper) =>
       spriteHelper = helper
       @buildClient options
+    .catch (e)->
+      console.log "SPRITE COMPILE FAILED >>", e
 
   buildExternals:->
 
@@ -115,6 +117,13 @@ class Builder
           queue.next()
       ,
       ->
+        exec 'rm -rf client/landing/node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith', (err)->
+          if err
+          then console.error err
+          else console.log "# canvassmith removed ---"
+          queue.next()
+      ,
+      ->
         exec 'cd client/landing && gulp build', (err, stdout, stderr)->
           if err
           then console.error err
@@ -125,7 +134,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec "cp -Rf #{__dirname}/client/landing/static/out #{__dirname}/website/a/out", (err, stdout, stderr)->
+        exec "cp -Rf #{__dirname}/client/landing/static/a/out #{__dirname}/website/a/out", (err, stdout, stderr)->
           if err
           then console.error err
           else console.log "# LANDING PAGE EXPORTED"
