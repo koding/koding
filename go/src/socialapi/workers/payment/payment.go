@@ -44,11 +44,14 @@ type SubscriptionRequest struct {
 }
 
 type SubscriptionsResponse struct {
-	PlanTitle, PlanInterval              string
-	State                                string
-	CreatedAt, CanceledAt                time.Time
-	CurrentPeriodStart, CurrentPeriodEnd time.Time
-	AcccountId                           string
+	PlanTitle          string    `json:"planTitle"`
+	PlanInterval       string    `json:"planInterval"`
+	State              string    `json:"state"`
+	CreatedAt          time.Time `json:"createdAt"`
+	CanceledAt         time.Time `json:"canceledAt"`
+	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
+	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
+	AcccountId         string    `json:"acccountId"`
 }
 
 func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
