@@ -108,10 +108,23 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 	if err != nil {
 		return err
 	}
-	if _, err = index.DeleteObject(strconv.FormatInt(listing.MessageId, 10)); err != nil {
+
+	objectId := strconv.FormatInt(listing.MessageId, 10)
+
+	record, err := f.get("messages", objectId)
+	if err != nil {
 		return err
 	}
-	return nil
+	if len(record["_tags"].([]interface{})) == 1 {
+		if _, err = index.DeleteObject(objectId); err != nil {
+			return err
+		}
+		return nil
+	}
+	return f.partialUpdate("messages", map[string]interface{}{
+		"objectID": objectId,
+		"_tags":    removeMessageTag(record, strconv.FormatInt(listing.ChannelId, 10)),
+	})
 }
 
 func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
