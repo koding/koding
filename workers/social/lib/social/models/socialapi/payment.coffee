@@ -18,6 +18,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         invoices          :
           (signature Object, Function)
+        getCreditCard     :
+          (signature Object, Function)
         updateCreditCard  :
           (signature Object, Function)
 

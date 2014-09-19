@@ -1,7 +1,9 @@
-{ bareRequest } = require (
-  "../../../workers/social/lib/social/models/socialapi/helper"
+{ post } = require (
+  "../../../workers/social/lib/social/models/socialapi/request"
 )
 
 module.exports = (req, res) ->
-  bareRequest "stripeWebhook", req.body, ->
+  url = "/payments/stripe/webhook"
+  post url, data, callback
+
   res.send 200
