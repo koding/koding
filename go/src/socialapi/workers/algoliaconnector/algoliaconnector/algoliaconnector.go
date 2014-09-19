@@ -67,7 +67,7 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 	})
 }
 
-func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
+func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error {
 	message := models.NewChannelMessage()
 
 	err := message.One(&bongo.Query{
@@ -100,7 +100,7 @@ func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
 	})
 }
 
-func (f *Controller) MessageDeleted(listing *models.ChannelMessageList) error {
+func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) error {
 	index, err := f.indexes.Get("messages")
 	if err != nil {
 		return err
