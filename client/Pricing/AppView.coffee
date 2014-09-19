@@ -8,18 +8,12 @@ class PricingAppView extends KDView
 
     super options, data
 
-    { paymentController } = KD.singletons
 
     @state = {}
 
+    @loadPlan()
     @initViews()
     @initEvents()
-
-    paymentController.subscriptions (err, subscription) =>
-      { planTitle } = subscription
-
-      @state.currentPlan = planTitle
-      @plans.planViews[planTitle].disable()
 
 
   initViews: ->
@@ -57,8 +51,25 @@ class PricingAppView extends KDView
     @plans.on 'PlanSelected', @bound 'planSelected'
 
 
+  loadPlan: (callback = noop) ->
+
+    { paymentController } = KD.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+      { planTitle } = subscription
+
+      @state.currentPlan = planTitle
+      @plans.planViews[planTitle].disable()
+
+      callback()
+
+
   planSelected: (planTitle, monthPrice, yearPrice) ->
+
+    return @loadPlan @bound 'planSelected'  unless @state.currentPlan?
+
     @workflowController = new PaymentWorkflow
+      state      : @state
       planTitle  : planTitle
       monthPrice : monthPrice
       yearPrice  : yearPrice
