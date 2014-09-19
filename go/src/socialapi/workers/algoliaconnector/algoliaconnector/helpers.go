@@ -23,7 +23,20 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 	return (record).(map[string]interface{}), nil
 }
 
-func getTags(record map[string]interface{}, channelId string) []string {
+func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {
+	index, err := f.indexes.Get("messages")
+	if err != nil {
+		return err
+	}
+
+	if _, err = index.PartialUpdateObject(record); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func appendMessageTag(record map[string]interface{}, channelId string) []string {
 	if record == nil {
 		return []string{channelId}
 	}

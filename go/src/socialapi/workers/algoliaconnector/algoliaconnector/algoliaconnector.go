@@ -85,11 +85,18 @@ func (f *Controller) MessageSaved(listing *models.ChannelMessageList) error {
 		return err
 	}
 
-	return f.insert("messages", map[string]interface{}{
+	if record == nil {
+		return f.insert("messages", map[string]interface{}{
+			"body":     message.Body,
+			"objectID": objectId,
+			"_tags":    []string{channelId},
+		})
+	}
+
+	return f.partialUpdate("messages", map[string]interface{}{
 		"body":     message.Body,
 		"objectID": objectId,
-		// we'll use tag filtering on the channel id:
-		"_tags": getTags(record, channelId),
+		"_tags":    appendMessageTag(record, channelId),
 	})
 }
 
@@ -105,15 +112,8 @@ func (f *Controller) MessageDeleted(listing *models.ChannelMessageList) error {
 }
 
 func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
-	index, err := f.indexes.Get("messages")
-	if err != nil {
-		return err
-	}
-	if _, err = index.PartialUpdateObject(map[string]interface{}{
+	return f.partialUpdate("messages", map[string]interface{}{
 		"objectID": strconv.FormatInt(message.Id, 10),
 		"body":     message.Body,
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
 }
