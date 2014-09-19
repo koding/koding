@@ -34,6 +34,12 @@ func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header,
 	)
 }
 
+func GetCreditCardRequest(u *url.URL, h http.Header, req *payment.GetCreditCardRequest) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndError(
+		req.Do(),
+	)
+}
+
 func UpdateCreditCardRequest(u *url.URL, h http.Header, req *payment.UpdateCreditCardRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndError(
 		req.Do(),
