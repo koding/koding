@@ -182,6 +182,17 @@ module.exports = class JMachine extends Module
         callback err, machines
 
 
+
+  isOwner  = (user, machine) ->
+
+    userId = user.getId()
+
+    owner  = no
+    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+
+    return owner
+
+
   setProvisioner: permit 'set provisioner',
 
     success: revive
@@ -191,21 +202,17 @@ module.exports = class JMachine extends Module
 
     , (client, provisioner, callback)->
 
-      { r: { group, user } } = client
+      { r: { user } } = client
 
-      userId    = user.getId()
-      approved  = no
-      approved |= u.owner and u.id.equals userId  for u, i in @users
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
-      if approved
-        JProvisioner = require './provisioner'
-        JProvisioner.one$ client, slug: provisioner, (err, provision)=>
-          if err or not provision?
-            callback new KodingError 'Provisioner not found'
-          else
-            @update $set: provisioners: [ provision.slug ], callback
-      else
-        callback new KodingError 'Access denied'
+      JProvisioner = require './provisioner'
+      JProvisioner.one$ client, slug: provisioner, (err, provision)=>
+        if err or not provision?
+          callback new KodingError 'Provisioner not found'
+        else
+          @update $set: provisioners: [ provision.slug ], callback
 
 
   reviveUsers: permit 'populate users',
@@ -235,7 +242,17 @@ module.exports = class JMachine extends Module
 
   setDomain: permit 'set domain',
 
-    success: (client, domain, callback)->
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, domain, callback)->
+
+      { r: { user } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
       { nickname } = client.connection.delegate.profile
       { userSitesDomain } = KONFIG
