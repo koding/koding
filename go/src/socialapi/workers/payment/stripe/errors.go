@@ -15,6 +15,7 @@ var (
 	ErrCustomerHasTooManySubscriptions = errors.New("user has too many subscriptions, should have only one")
 	ErrCustomerNotSubscribedToAnyPlans = errors.New("user is not subscribed to any plans")
 	ErrTokenIsEmpty                    = errors.New("token is required")
+	ErrNoCreditCard                    = errors.New("no credit card")
 
 	ErrPlanNotFoundFn = func(err error) bool {
 		if err == nil {

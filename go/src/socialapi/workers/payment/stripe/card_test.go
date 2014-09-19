@@ -71,3 +71,22 @@ func TestUpdateCustomerCreditCard(t *testing.T) {
 		})
 	})
 }
+
+func TestRemoveCreditCard(t *testing.T) {
+	Convey("Given an existing customer", t, func() {
+		token, accId, email := generateFakeUserInfo()
+
+		customer, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should be able to remove credit card", func() {
+			err = RemoveCreditCard(customer)
+			So(err, ShouldBeNil)
+
+			externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+			So(err, ShouldBeNil)
+
+			So(len(externalCustomer.Cards.Values), ShouldEqual, 0)
+		})
+	})
+}

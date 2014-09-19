@@ -87,7 +87,3 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 
 	return err
 }
-
-func RemoveCreditCard(customer *paymentmodel.Customer) error {
-	return nil
-}
