@@ -7,9 +7,11 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     options.fields     =
       recipient        :
+        label          : 'TO'
         itemClass      : KDView
       purpose          :
-        placeholder    : 'Purpose? (optional)'
+        label          : 'PURPOSE'
+        placeholder    : 'Optional'
         name           : 'purpose'
 
     super options, data
@@ -20,7 +22,7 @@ class PrivateMessageForm extends KDFormViewWithFields
     @autoComplete = new KDAutoCompleteController
       form                : this
       name                : 'userController'
-      placeholder         : 'Type a username to start your conversation...'
+      placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
       itemDataPath        : 'profile.nickname'
       outputWrapper       : @chatHeads
@@ -81,7 +83,7 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     super
 
-    @inputs.recipient.addSubView @chatHeads = new KDView cssClass : 'chat-heads'
+    @inputs.recipient.addSubView @chatHeads = new KDView cssClass : 'autocomplete-heads'
     @createUserAutoComplete()
     @addSubView @inputWidget = new PrivateMessageInputWidget form: this
     @autoComplete.getView().setFocus()

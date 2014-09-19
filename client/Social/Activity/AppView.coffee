@@ -145,7 +145,7 @@ class ActivityAppView extends KDView
 
   showNewMessageForm: ->
 
-    @tabs.addPane pane = new KDTabPaneView, yes
+    @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
       .addSubView form = new PrivateMessageForm
       .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane
 
