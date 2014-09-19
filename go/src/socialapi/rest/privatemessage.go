@@ -9,13 +9,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func SendPrivateMessage(senderId int64, body string, groupName string, recipients []string) (*models.ChannelContainer, error) {
-
-	pmr := models.PrivateMessageRequest{}
-	pmr.AccountId = senderId
-	pmr.Body = body
-	pmr.GroupName = groupName
-	pmr.Recipients = recipients
+func SendPrivateMessage(pmr models.PrivateMessageRequest) (*models.ChannelContainer, error) {
 
 	url := "/privatemessage/init"
 	res, err := marshallAndSendRequest("POST", url, pmr)
