@@ -86,7 +86,9 @@ class PricingAppView extends KDView
       @plans.planViews[oldPlanTitle].unsetClass 'current'
 
       { planTitle } = state
-      @plans.planViews[planTitle].setClass 'current'
+      @plans.planViews[planTitle].disable()
+
+      @state.currentPlan = state.planTitle
 
   pistachio: ->
     """
