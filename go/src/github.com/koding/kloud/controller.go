@@ -207,6 +207,9 @@ func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
+	// unlock once we are finished
+	k.Locker.Unlock(c.MachineId)
+
 	c.Machine.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
 
 	resp, err := resizer.Resize(c.Machine)
@@ -233,6 +236,7 @@ func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
 		return nil, err
 	}
 
+	k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
 	return "resized", nil
 }
 

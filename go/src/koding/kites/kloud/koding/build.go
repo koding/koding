@@ -59,13 +59,7 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 
 	a.Push("Initializing data", 10, machinestate.Building)
 
-	// make a custom logger which just prepends our machineid
-	infoLog := func(format string, formatArgs ...interface{}) {
-		format = "[%s] " + format
-		args := []interface{}{opts.MachineId}
-		args = append(args, formatArgs...)
-		p.Log.Info(format, args...)
-	}
+	infoLog := p.GetInfoLogger(opts.MachineId)
 
 	a.InfoLog = infoLog
 

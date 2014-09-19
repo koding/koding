@@ -2,10 +2,8 @@ package koding
 
 import (
 	"fmt"
-	"time"
 
 	"koding/db/mongodb"
-	"koding/kites/kloud/klient"
 
 	"github.com/koding/kite"
 	"github.com/koding/kloud"
@@ -243,22 +241,4 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	}
 
 	return nil
-}
-
-// IsKiteReady returns true if Klient is ready and it can receive a ping.
-func (p *Provider) IsKlientReady(querystring string) bool {
-	klientRef, err := klient.NewWithTimeout(p.Kite, querystring, time.Minute*2)
-	if err != nil {
-		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
-		return false
-	}
-
-	defer klientRef.Close()
-	p.Log.Debug("Sending a ping message")
-	if err := klientRef.Ping(); err != nil {
-		p.Log.Debug("Sending a ping message err:", err)
-		return false
-	}
-
-	return true
 }
