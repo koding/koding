@@ -72,6 +72,8 @@ module.exports = class Payment extends Base
     requiredParams = [ "token" , "provider"]
 
     validateParams requiredParams, data, (err)->
+      return callback err  if err
+
       data.accountId = getAccountId client
       url = "/payments/creditcard/update"
 
@@ -82,6 +84,8 @@ module.exports = class Payment extends Base
     for param in requiredParams
       if not data[param]
         return callback {message: "#{param} is required"}
+
+    callback null
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
