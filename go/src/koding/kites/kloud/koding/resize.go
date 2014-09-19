@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/klient"
 	"strconv"
@@ -85,12 +86,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	p.UpdateState(opts.MachineId, machinestate.Pending)
 
-	// 3. Get AvailabilityZone of current instance
-	a.Log.Info("3. Getting Avail Zone")
-	availZone := instance.AvailZone
-
 	// 4. Create new snapshot from that given VolumeId
-	a.Log.Info("4. Create snapshot from volume %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
@@ -103,38 +99,12 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	defer a.Client.DeleteSnapshots([]string{newSnapshotId})
 
 	// 6. Create new volume with the desired size from the snapshot and same availability zone.
-	a.Log.Info("5. Create new volume from snapshot %s", newSnapshotId)
-	volOptions := &ec2.CreateVolume{
-		AvailZone:  availZone,
-		Size:       int64(desiredSize),
-		SnapshotId: newSnapshotId,
-		VolumeType: "gp2", // SSD
-	}
-
-	volResp, err := a.Client.CreateVolume(volOptions)
+	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, desiredSize)
 	if err != nil {
 		return nil, err
 	}
 
-	newVolumeId := volResp.VolumeId
-
-	checkVolume := func(currentPercentage int) (machinestate.State, error) {
-		resp, err := a.Client.Volumes([]string{newVolumeId}, ec2.NewFilter())
-		if err != nil {
-			return 0, err
-		}
-
-		if resp.Volumes[0].Status != "available" {
-			return machinestate.Pending, nil
-		}
-
-		return machinestate.Stopped, nil
-	}
-
-	ws := waitstate.WaitState{StateFunc: checkVolume, DesiredState: machinestate.Stopped}
-	if err := ws.Wait(); err != nil {
-		return nil, err
-	}
+	newVolumeId := volume.VolumeId
 
 	// 7. Delete volume if something goes wrong in following steps
 	defer func() {
@@ -173,7 +143,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		return machinestate.Stopped, nil
 	}
 
-	ws = waitstate.WaitState{StateFunc: checkDetaching, DesiredState: machinestate.Stopped}
+	ws := waitstate.WaitState{StateFunc: checkDetaching, DesiredState: machinestate.Stopped}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
@@ -228,6 +198,8 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
+
+	return nil, errors.New("deneeekljlaksjdlkasjdalks")
 
 	// 11. Start the stopped instance
 	artifact, err := a.Start()
