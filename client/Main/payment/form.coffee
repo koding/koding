@@ -91,10 +91,17 @@ class PaymentForm extends JView
       cssClass    : 'price-summary'
       partial     : "You'll be charged $#{monthPrice / 100}/month"
 
+
+    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, planTitle
+
+    buttonPartial = if isUpgrade
+    then 'UPGRADE YOUR PLAN'
+    else 'DOWNGRADE'
+
     @submitButton = new KDButtonView
       disabled  : not @state.providerLoaded
       style     : 'solid medium green'
-      title     : 'UPGRADE YOUR PLAN'
+      title     : buttonPartial
       loader    : yes
       cssClass  : 'submit-btn'
       callback  : =>

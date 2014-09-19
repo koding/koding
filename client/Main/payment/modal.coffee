@@ -9,14 +9,21 @@ class PaymentModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    options.title    = 'Upgrade your plan'
-    options.subtitle = 'And get some things you know such and such'
     options.width    = 534
     options.cssClass = KD.utils.curry 'payment-modal', options.cssClass
 
     { state } = options
 
     @state = @utils.extend @initialState, state
+
+    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+
+    if isUpgrade
+      options.title    = 'Upgrade your plan'
+      options.subtitle = 'And get some things you know such and such'
+    else
+      options.title    = 'Downgrade your plan'
+      options.subtitle = 'Sorry to hear!'
 
     super options, data
 

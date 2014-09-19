@@ -23,7 +23,16 @@ class PaymentWorkflow extends KDController
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
+  @isUpgrade: (current, selected) ->
+
+    { FREE, HOBBYIST, DEVELOPER, PROFESSIONAL } = PaymentWorkflow.plan
+    arr = [FREE, HOBBYIST, DEVELOPER, PROFESSIONAL]
+
+    (arr.indexOf selected) > (arr.indexOf current)
+
+
   initialState: {}
+
 
   constructor: (options = {}, data) ->
 
