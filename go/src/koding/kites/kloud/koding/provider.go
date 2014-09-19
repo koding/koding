@@ -129,10 +129,7 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	a.Push("Initializing domain instance", 65, machinestate.Starting)
-
-	/////// ROUTE 53 /////////////////
 	username := opts.Builder["username"].(string)
-
 	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
 		return nil, err
 	}
@@ -144,7 +141,6 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	artifact.DomainName = machineData.Domain
-	///// ROUTE 53 /////////////////
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
 	if p.IsKlientReady(machineData.QueryString) {
@@ -167,7 +163,6 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	/////// ROUTE 53 /////////////////
 	username := opts.Builder["username"].(string)
 
 	machineData, ok := opts.CurrentData.(*Machine)
@@ -185,8 +180,6 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
 		return err
 	}
-
-	///// ROUTE 53 /////////////////
 
 	a.Push("Updating ip address", 85, machinestate.Stopping)
 	if err := p.Update(opts.MachineId, &kloud.StorageData{
@@ -221,10 +214,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	/////// ROUTE 53 /////////////////
-
 	username := opts.Builder["username"].(string)
-
 	machineData, ok := opts.CurrentData.(*Machine)
 	if !ok {
 		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
@@ -252,7 +242,6 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	///// ROUTE 53 /////////////////
 	return nil
 }
 

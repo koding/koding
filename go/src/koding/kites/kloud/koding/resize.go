@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -144,8 +143,6 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return nil, err
 	}
-
-	return nil, errors.New("deneeekljlaksjdlkasjdalks")
 
 	// 11. Start the stopped instance
 	artifact, err := a.Start()

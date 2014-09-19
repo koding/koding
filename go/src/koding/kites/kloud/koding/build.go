@@ -207,7 +207,6 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 
 	a.Push("Checking domain", 65, machinestate.Building)
 
-	/////// ROUTE 53 /////////////////
 	a.Push("Creating domain", 70, machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, machineData.Domain, username); err != nil {
 		return nil, err
@@ -237,13 +236,12 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 		return nil, err
 	}
 
-	a.Push("Checking connectivity", 75, machinestate.Building)
-
 	buildArtifact.DomainName = machineData.Domain
 
 	query := kiteprotocol.Kite{ID: kiteId.String()}
 	buildArtifact.KiteQuery = query.String()
 
+	a.Push("Checking connectivity", 75, machinestate.Building)
 	infoLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
 		p.Log.Info("[%s] klient is ready.", opts.MachineId)
@@ -251,7 +249,6 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
 	}
 
-	///// ROUTE 53 /////////////////
 	return buildArtifact, nil
 }
 
