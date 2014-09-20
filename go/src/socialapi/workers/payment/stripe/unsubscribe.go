@@ -30,7 +30,7 @@ func Unsubscribe(accId, planTitle, interval string) error {
 		return ErrCustomerNotSubscribedToThatPlan
 	}
 
-	err = CancelSubscription(customer, currentSubscription)
+	err = CancelSubscription(customer, &currentSubscription)
 	if err != nil {
 		return err
 	}

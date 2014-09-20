@@ -2,6 +2,7 @@ package stripe
 
 import (
 	"math/rand"
+	"socialapi/models/paymentmodel"
 	"socialapi/workers/common/runner"
 	"strconv"
 	"time"
@@ -9,6 +10,8 @@ import (
 	"github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 	stripeToken "github.com/stripe/stripe-go/token"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func init() {
@@ -19,6 +22,16 @@ func init() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
+
+var (
+	StartingPlan      = "developer"
+	StartingInterval  = "month"
+	StartingPlanPrice = 1999
+	HigherPlan        = "professional"
+	HigherInterval    = "month"
+	LowerPlan         = "hobbyist"
+	LowerInterval     = "month"
+)
 
 func generateFakeUserInfo() (string, string, string) {
 	token, accId := createToken(), strconv.Itoa(rand.Int())
@@ -74,12 +87,24 @@ func checkCustomerExistsInStripe(id string) bool {
 	return true
 }
 
-var (
-	StartingPlan      = "developer"
-	StartingInterval  = "month"
-	StartingPlanPrice = 1999
-	HigherPlan        = "professional"
-	HigherInterval    = "month"
-	LowerPlan         = "hobbyist"
-	LowerInterval     = "month"
-)
+func createCustomerFn(fn func(string, *paymentmodel.Customer)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+
+		customer, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		fn(accId, customer)
+	}
+}
+
+func subscribeFn(fn func(string, string, string)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+
+		So(err, ShouldBeNil)
+
+		fn(token, accId, email)
+	}
+}

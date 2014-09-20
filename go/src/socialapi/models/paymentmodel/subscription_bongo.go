@@ -53,3 +53,14 @@ func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 
 	return nil
 }
+
+func (s *Subscription) UpdateState(state string) error {
+	s.State = state
+
+	err := bongo.B.Update(s)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

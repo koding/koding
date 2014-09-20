@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/models/paymentmodel"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -40,53 +41,47 @@ func TestGetCustomerCreditCard(t *testing.T) {
 }
 
 func TestUpdateCustomerCreditCard(t *testing.T) {
-	Convey("Given an existing customer", t, func() {
-		token, accId, email := generateFakeUserInfo()
+	Convey("Given an existing customer", t,
+		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+			Convey("Then it should be able to update credit card", func() {
+				tokenParams := &stripe.TokenParams{
+					Card: &stripe.CardParams{
+						Number: "4012888888881881",
+						Month:  "10",
+						Year:   "20",
+					},
+				}
 
-		customer, err := CreateCustomer(token, accId, email)
-		So(err, ShouldBeNil)
+				token, err := stripeToken.New(tokenParams)
+				So(err, ShouldBeNil)
 
-		Convey("Then it should be able to update credit card", func() {
-			tokenParams := &stripe.TokenParams{
-				Card: &stripe.CardParams{
-					Number: "4012888888881881",
-					Month:  "10",
-					Year:   "20",
-				},
-			}
+				err = UpdateCreditCard(accId, token.Id)
+				So(err, ShouldBeNil)
 
-			token, err := stripeToken.New(tokenParams)
-			So(err, ShouldBeNil)
+				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				So(err, ShouldBeNil)
 
-			err = UpdateCreditCard(accId, token.Id)
-			So(err, ShouldBeNil)
+				So(len(externalCustomer.Cards.Values), ShouldEqual, 1)
 
-			externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
-			So(err, ShouldBeNil)
-
-			So(len(externalCustomer.Cards.Values), ShouldEqual, 1)
-
-			card := externalCustomer.Cards.Values[0]
-			So(card.LastFour, ShouldEqual, "1881")
-		})
-	})
+				card := externalCustomer.Cards.Values[0]
+				So(card.LastFour, ShouldEqual, "1881")
+			})
+		}),
+	)
 }
 
 func TestRemoveCreditCard(t *testing.T) {
-	Convey("Given an existing customer", t, func() {
-		token, accId, email := generateFakeUserInfo()
+	Convey("Given an existing customer", t,
+		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+			Convey("Then it should be able to remove credit card", func() {
+				err := RemoveCreditCard(c)
+				So(err, ShouldBeNil)
 
-		customer, err := CreateCustomer(token, accId, email)
-		So(err, ShouldBeNil)
+				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				So(err, ShouldBeNil)
 
-		Convey("Then it should be able to remove credit card", func() {
-			err = RemoveCreditCard(customer)
-			So(err, ShouldBeNil)
-
-			externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
-			So(err, ShouldBeNil)
-
-			So(len(externalCustomer.Cards.Values), ShouldEqual, 0)
-		})
-	})
+				So(len(externalCustomer.Cards.Values), ShouldEqual, 0)
+			})
+		}),
+	)
 }

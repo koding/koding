@@ -9,6 +9,12 @@ import (
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
+var (
+	SubscriptionStateActive   = "active"
+	SubscriptionStateCanceled = "canceled"
+	SubscriptionStateExpired  = "expired"
+)
+
 func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan) (*paymentmodel.Subscription, error) {
 	subParams := &stripe.SubParams{
 		Plan:     plan.ProviderPlanId,
@@ -41,18 +47,50 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 	return subModel, nil
 }
 
-func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
-	var subs = []paymentmodel.Subscription{}
-
-	if customer.Id == 0 {
-		return nil, ErrCustomerIdIsNotSet
+func FindCustomerSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"customer_id": customer.Id,
+		},
 	}
 
+	return _findCustomerSubscriptions(customer, query)
+}
+
+func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"customer_id": customer.Id,
 			"state":       "active",
 		},
+	}
+
+	return _findCustomerSubscriptions(customer, query)
+}
+
+func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmodel.Subscription) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+	}
+
+	err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
+	if err != nil {
+		return err
+	}
+
+	err = subscription.UpdateState(SubscriptionStateCanceled)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Query) ([]paymentmodel.Subscription, error) {
+	var subs = []paymentmodel.Subscription{}
+
+	if customer.Id == 0 {
+		return nil, ErrCustomerIdIsNotSet
 	}
 
 	s := paymentmodel.Subscription{}
@@ -62,8 +100,4 @@ func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]payment
 	}
 
 	return subs, nil
-}
-
-func CancelSubscription(customer *paymentmodel.Customer, subscription paymentmodel.Subscription) error {
-	return nil
 }

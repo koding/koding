@@ -54,10 +54,17 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	// if IsFreePlan(plan) {
-	// err = RemoveCreditCard(customer)
-	// return err
-	// }
+	if IsFreePlan(plan) {
+		err := CancelSubscription(customer, &currentSubscription)
+		if err != nil {
+			return err
+		}
+
+		err = RemoveCreditCard(customer)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
