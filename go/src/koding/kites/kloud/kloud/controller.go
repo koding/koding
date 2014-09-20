@@ -328,19 +328,17 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 		eventErr := ""
 
-		k.Log.Debug("[%s] running method %s with mach options %v", machine.Id, r.Method, machine)
 		_, err := fn(machine, controller)
 		if err != nil {
-			k.Log.Error("[%s] %s failed. Machine state did't change and is set back to origin state '%s'. err: %s",
+			k.Log.Error("[%s] %s failed. State is set back to origin '%s'. err: %s",
 				machine.Id, r.Method, machine.State, err.Error())
 
 			status = machine.State
 			msg = ""
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
-			k.Log.Info("[%s] State is now: %+v", machine.Id, status)
-			k.Log.Info("[%s] ========== %s finished ==========",
-				machine.Id, strings.ToUpper(r.Method))
+			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
+				machine.Id, strings.ToUpper(r.Method), status)
 		}
 
 		// update final status in storage
