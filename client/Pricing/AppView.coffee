@@ -70,7 +70,7 @@ class PricingAppView extends KDView
 
   planSelected: (options) ->
 
-    return window.location.replace '/Register'  unless KD.isLoggedIn()
+    return window.location.replace '/Login'  unless KD.isLoggedIn()
     return @loadPlan @bound 'planSelected'      unless @state.currentPlan?
 
     {
