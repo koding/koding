@@ -16,6 +16,12 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+// KloudArgs is used as argument that is sent to kloud
+type KloudArgs struct {
+	MachineId string
+	Username  string
+}
+
 type Actioner interface {
 	Action([]string, *kite.Client) error
 }

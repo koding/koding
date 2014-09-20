@@ -13,35 +13,40 @@ import (
 	"github.com/koding/kite"
 )
 
-type Build struct {
-	*Kloud
-}
+func (k *Kloud) Build(r *kite.Request) (buildResp interface{}, buildErr error) {
+	machine, err := k.PrepareMachine(r)
+	if err != nil {
+		return nil, err
+	}
 
-// prepare prepares the steps to initialize the build. The build is done
-// async, therefore if there is anything that needs to be checked it needs to
-// be done. Any error here is passed directly to the client.
-func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrentState == machinestate.Building {
+	defer func() {
+		if buildErr != nil {
+			k.Locker.Unlock(machine.Id)
+		}
+	}()
+
+	if machine.State == machinestate.Building {
 		return nil, NewError(ErrMachineIsBuilding)
 	}
 
-	if c.CurrentState == machinestate.Unknown {
+	if machine.State == machinestate.Unknown {
 		return nil, NewError(ErrMachineUnknownState)
 	}
 
 	// if it's something else (stopped, runnning, ...) it's been already built
-	if !c.CurrentState.In(machinestate.Terminated, machinestate.NotInitialized) {
+	if !machine.State.In(machinestate.Terminated, machinestate.NotInitialized) {
 		return nil, NewError(ErrMachineInitialized)
 	}
 
-	b.Storage.UpdateState(c.MachineId, machinestate.Building)
-	c.Eventer = b.NewEventer(r.Method + "-" + c.MachineId)
+	k.Storage.UpdateState(machine.Id, machinestate.Building)
+	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
 
+	// prepare instance name
 	instanceName := "user-" + r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	i, ok := c.Machine.Builder["instanceName"]
+	i, ok := machine.Builder["instanceName"]
 	if !ok || i == "" {
 		// if it's empty we use the instance name that was generated above
-		c.Machine.Builder["instanceName"] = instanceName
+		machine.Builder["instanceName"] = instanceName
 	} else {
 		instanceName, ok = i.(string)
 		if !ok {
@@ -50,18 +55,19 @@ func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
 	}
 
 	// start our build process in async way
-	go b.start(r, c)
+	go k.build(r, machine)
 
 	// but let the user know thay they can track us via the given event id
 	return ControlResult{
-		EventId: c.Eventer.Id(),
+		EventId: machine.Eventer.Id(),
 		State:   machinestate.Building,
 	}, nil
+
 }
 
-func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	b.idlock.Get(c.MachineId).Lock()
-	defer b.idlock.Get(c.MachineId).Unlock()
+func (k *Kloud) build(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
+	k.idlock.Get(m.Id).Lock()
+	defer k.idlock.Get(m.Id).Unlock()
 
 	// This is executed as the final step which stops the eventer and updates
 	// the state in the storage.
@@ -71,21 +77,21 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		eventErr := ""
 
 		if err != nil {
-			b.Log.Error("[%s] building failed. err %s.", c.MachineId, err.Error())
+			k.Log.Error("[%s] building failed. err %s.", m.Id, err.Error())
 
-			status = c.CurrentState
+			status = m.State
 			msg = ""
 			eventErr = fmt.Sprintf("Building failed. Please contact support.")
 		}
 
 		// update final status in storage
-		b.Storage.UpdateState(c.MachineId, status)
+		k.Storage.UpdateState(m.Id, status)
 
 		// unlock distributed lock
-		b.Locker.Unlock(c.MachineId)
+		k.Locker.Unlock(m.Id)
 
 		// let them know we are finished with our work
-		c.Eventer.Push(&eventer.Event{
+		m.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,
 			Percentage: 100,
@@ -93,18 +99,10 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		})
 	}()
 
-	machOptions := &protocol.Machine{
-		MachineId:   c.MachineId,
-		Eventer:     c.Eventer,
-		Credential:  c.Machine.Credential,
-		Builder:     c.Machine.Builder,
-		CurrentData: c.Machine.CurrentData,
-	}
-
 	msg := fmt.Sprintf("Building process started. Provider '%s'. MachineId: %+v",
-		c.ProviderName, c.MachineId)
+		m.Provider, m.Id)
 
-	c.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
+	m.Eventer.Push(&eventer.Event{Message: msg, Status: machinestate.Building})
 
 	buildStub := `
 provider      : %s
@@ -114,22 +112,27 @@ instanceName  : %s
 `
 
 	buildInfo := fmt.Sprintf(buildStub,
-		c.ProviderName,
-		c.MachineId,
+		m.Provider,
+		m.Id,
 		r.Username,
-		c.Machine.Builder["instanceName"].(string),
+		m.Builder["instanceName"].(string),
 	)
 
-	b.Log.Info("[%s] building machine with following data: %s", c.MachineId, buildInfo)
+	k.Log.Info("[%s] building machine with following data: %s", m.Id, buildInfo)
 
 	var artifact *protocol.Artifact
 
-	builder, ok := c.Provider.(protocol.Builder)
+	provider, ok := k.providers[m.Provider]
+	if !ok {
+		return nil, NewError(ErrProviderAvailable)
+	}
+
+	builder, ok := provider.(protocol.Builder)
 	if !ok {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	artifact, err = builder.Build(machOptions)
+	artifact, err = builder.Build(m)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +147,9 @@ instanceName  : %s
 	}
 
 	// update if we somehow updated in build process
-	c.Machine.Builder["instanceName"] = artifact.InstanceName
+	m.Builder["instanceName"] = artifact.InstanceName
 
-	// b.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
+	// k.Log.Debug("[controller]: building machine finished, result artifact is: %# v",
 	// 	pretty.Formatter(artifact))
 
 	resultStub := `
@@ -165,8 +168,8 @@ kite query : %s
 		artifact.KiteQuery,
 	)
 
-	b.Log.Info("[%s] building machine was successfull. Artifact data: %s",
-		c.MachineId, resultInfo)
+	k.Log.Info("[%s] building machine was successfull. Artifact data: %s",
+		m.Id, resultInfo)
 
 	storageData := map[string]interface{}{
 		"ipAddress":    artifact.IpAddress,
@@ -176,9 +179,9 @@ kite query : %s
 		"queryString":  artifact.KiteQuery,
 	}
 
-	b.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
+	k.Log.Info("[%s] ========== %s finished ==========", m.Id, strings.ToUpper(r.Method))
 
-	return true, b.Storage.Update(c.MachineId, &StorageData{
+	return true, k.Storage.Update(m.Id, &StorageData{
 		Type: "build",
 		Data: storageData,
 	})

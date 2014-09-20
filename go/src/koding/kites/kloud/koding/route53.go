@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dchest/validator"
-	"github.com/koding/kite"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/protocol"
+
+	"github.com/dchest/validator"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
@@ -212,15 +214,15 @@ type domainSet struct {
 	NewDomain string
 }
 
-func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response interface{}, err error) {
-	defer p.Unlock(c.MachineId) // reset assignee after we are done
+func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (response interface{}, err error) {
+	defer p.Unlock(m.Id) // reset assignee after we are done
 
 	args := &domainSet{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
-	c.Eventer = &eventer.Events{}
+	m.Eventer = &eventer.Events{}
 
 	if args.NewDomain == "" {
 		return nil, fmt.Errorf("newDomain argument is empty")
@@ -237,7 +239,7 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response int
 
 	if p.DNS == nil {
 		// just call it initialize DNS struct
-		_, err := p.NewClient(c.Machine)
+		_, err := p.NewClient(m)
 		if err != nil {
 			return nil, err
 		}
@@ -247,16 +249,11 @@ func (p *Provider) DomainSet(r *kite.Request, c *kloud.Controller) (response int
 		return nil, err
 	}
 
-	machineData, ok := c.Machine.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("machine data is malformed %v", c.Machine.CurrentData)
-	}
-
-	if err := p.DNS.Rename(machineData.Domain, args.NewDomain, machineData.IpAddress); err != nil {
+	if err := p.DNS.Rename(m.Domain.Name, args.NewDomain, m.IpAddress); err != nil {
 		return nil, err
 	}
 
-	if err := p.Update(c.MachineId, &kloud.StorageData{
+	if err := p.Update(m.Id, &kloud.StorageData{
 		Type: "domain",
 		Data: map[string]interface{}{
 			"domainName": args.NewDomain,

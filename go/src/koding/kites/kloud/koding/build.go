@@ -2,16 +2,16 @@ package koding
 
 import (
 	"bytes"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
-	kiteprotocol "github.com/koding/kite/protocol"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
+	"github.com/dgrijalva/jwt-go"
+	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
 )
@@ -26,40 +26,33 @@ const (
 	DefaultKitePort   = 3000
 )
 
-func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
-
-	username := opts.Builder["username"].(string)
 
 	// Check for total amachine allowance
-	checker, err := p.PlanChecker(opts)
+	checker, err := p.PlanChecker(m)
 	if err != nil {
 		return nil, err
 	}
 
-	p.Log.Info("[%s] checking machine limit for user '%s'", opts.MachineId, username)
+	p.Log.Info("[%s] checking machine limit for user '%s'", m.Id, m.Username)
 	if err := checker.Total(); err != nil {
 		return nil, err
 	}
 
-	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", opts.MachineId, username)
+	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", m.Id, m.Username)
 	if err := checker.AlwaysOn(); err != nil {
 		return nil, err
 	}
 
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	instanceName := opts.Builder["instanceName"].(string)
+	instanceName := m.Builder["instanceName"].(string)
 
 	a.Push("Initializing data", 10, machinestate.Building)
 
-	infoLog := p.GetInfoLogger(opts.MachineId)
+	infoLog := p.GetInfoLogger(m.Id)
 
 	a.InfoLog = infoLog
 
@@ -67,7 +60,7 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
 	if instanceName == "terminated-instance" {
-		instanceName = "user-" + username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
@@ -146,7 +139,7 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 		panic(err)
 	}
 
-	kiteKey, err := p.createKey(username, kiteId.String())
+	kiteKey, err := p.createKey(m.Username, kiteId.String())
 	if err != nil {
 		return nil, err
 	}
@@ -159,8 +152,8 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
-		Username:        username,
-		Hostname:        username, // no typo here. hostname = username
+		Username:        m.Username,
+		Hostname:        m.Username, // no typo here. hostname = username
 		KiteKey:         kiteKey,
 		LatestKlientURL: signedLatestKlientURL,
 		ApachePort:      DefaultApachePort,
@@ -185,16 +178,16 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 	if err != nil {
 		return nil, err
 	}
-	buildArtifact.MachineId = opts.MachineId
+	buildArtifact.MachineId = m.Id
 
 	// cleanup build if something goes wrong here
 	defer func() {
 		if err != nil {
 			p.Log.Warning("[%s] Cleaning up instance. Terminating instance: %s",
-				opts.MachineId, buildArtifact.InstanceId)
+				m.Id, buildArtifact.InstanceId)
 
 			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
-				p.Log.Warning("[%s] Cleaning up instance failed: %v", opts.MachineId, err)
+				p.Log.Warning("[%s] Cleaning up instance failed: %v", m.Id, err)
 			}
 		}
 	}()
@@ -202,16 +195,16 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 	a.Push("Checking domain", 65, machinestate.Building)
 
 	a.Push("Creating domain", 70, machinestate.Building)
-	if err := p.UpdateDomain(buildArtifact.IpAddress, machineData.Domain, username); err != nil {
+	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
 
 	defer func() {
 		if err != nil {
 			p.Log.Warning("[%s] Cleaning up domain record. Deleting domain record: %s",
-				opts.MachineId, machineData.Domain)
-			if err := p.DNS.DeleteDomain(machineData.Domain, buildArtifact.IpAddress); err != nil {
-				p.Log.Warning("[%s] Cleaning up domain failed: %v", opts.MachineId, err)
+				m.Id, m.Domain.Name)
+			if err := p.DNS.DeleteDomain(m.Domain.Name, buildArtifact.IpAddress); err != nil {
+				p.Log.Warning("[%s] Cleaning up domain failed: %v", m.Id, err)
 			}
 
 		}
@@ -219,10 +212,10 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 
 	tags := []ec2.Tag{
 		{Key: "Name", Value: buildArtifact.InstanceName},
-		{Key: "koding-user", Value: username},
+		{Key: "koding-user", Value: m.Username},
 		{Key: "koding-env", Value: p.Kite.Config.Environment},
-		{Key: "koding-machineId", Value: opts.MachineId},
-		{Key: "koding-domain", Value: machineData.Domain},
+		{Key: "koding-machineId", Value: m.Id},
+		{Key: "koding-domain", Value: m.Domain.Name},
 	}
 
 	infoLog("Adding user tags %v", tags)
@@ -230,7 +223,7 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 		return nil, err
 	}
 
-	buildArtifact.DomainName = machineData.Domain
+	buildArtifact.DomainName = m.Domain.Name
 
 	query := kiteprotocol.Kite{ID: kiteId.String()}
 	buildArtifact.KiteQuery = query.String()
@@ -238,9 +231,9 @@ func (p *Provider) Build(opts *protocol.Machine) (resArt *protocol.Artifact, err
 	a.Push("Checking connectivity", 75, machinestate.Building)
 	infoLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
-		p.Log.Info("[%s] klient is ready.", opts.MachineId)
+		p.Log.Info("[%s] klient is ready.", m.Id)
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
 
 	return buildArtifact, nil

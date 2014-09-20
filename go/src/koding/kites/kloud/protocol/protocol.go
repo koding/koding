@@ -26,49 +26,58 @@ type Controller interface {
 	// Destroy destroys the machine
 	Destroy(*Machine) error
 
+	// Resize the machine and creates an artifact that can be pass to other
+	// methods
+	Resize(*Machine) (*Artifact, error)
+
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)
 }
 
-// Resizer resizes the a single machines underlying storage
-type Resizer interface {
-	// Resize the machine and creates an artifact that can be pass to other
-	// methods
-	Resize(*Machine) (*Artifact, error)
-}
-
-// Machine is used as a context and data source for the appropriate interfaces
-// provided by the Kloud package. A machine is gathered by the Storage
+// Machine is used as a data source for the appropriate interfaces
+// provided by the Kloud package. A context is gathered by the Storage
 // interface.
 type Machine struct {
-	// MachineId defines a unique ID in which the build informations are
-	// fetched from. MachineId is used to gather the Username, ImageName,
-	// InstanceName etc.. For example it could be a mongodb object id that
-	// would point to a document that carries those informations or a key for a
-	// key/value storage.
-	MachineId string
+	// Id defines a unique ID in which the build informations are fetched from.
+	// Is is used to gather the Username, ImageName, InstanceName etc..  For
+	// example it could be a mongodb object id that would point to a document
+	// that carries those informations or a key for a key/value storage.
+	Id string
 
-	// Provider defines the provider in which the data is used be
+	// Username defines the owner of the machine
+	Username string
+
+	// Provider defines the provider in which the data is used to be operated.
 	Provider string
 
-	// Builder contains information about how to build the data, like Username,
+	// Builder contains information about how to build the data, like
 	// ImageName, InstanceName, Region, SSH KeyPair informations, etc...
 	Builder map[string]interface{}
 
 	// Credential contains information for accessing third party provider services
 	Credential map[string]interface{}
 
+	// Domain contains domain specific information of the machine
+	Domain Domain
+
+	// IpAddress defines the public IP address of that given machine
+	IpAddress string
+
+	// QueryString defines the query needed for finding the Klient kite inside
+	// the machine
+	QueryString string
+
 	// Eventer pushes the latest events to the eventer hub. Anyone can listen
 	// afterwards from the eventer hub.
 	Eventer eventer.Eventer
 
-	// CurrentData contains machines current data. This is needed sometimes to
-	// update old records, creating domains based on pre defined labels,  etcc.
-	// Basically put a
-	CurrentData interface{}
-
 	// State defines the machines current state
 	State machinestate.State
+}
+
+// Domain represents a machines domain necessary information
+type Domain struct {
+	Name string
 }
 
 // Artifact should be returned from a Build method. It contains data

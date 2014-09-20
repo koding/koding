@@ -6,12 +6,13 @@ import (
 
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
 	"github.com/mitchellh/goamz/ec2"
 )
 
 // Resizes increases the current machines underling volume to a larger volume
 // without affecting the or destroying the users data.
-func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
+func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	// Please read the steps before you dig into the code and try to change or
 	// fix something. Intented lines are cleanup or self healing procedures
 	// which should be called in a defer - arslan:
@@ -34,12 +35,14 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	// 9. Update Domain record with the new IP (stopping/starting changes the IP)
 	// 10. Check if Klient is running
 
-	infoLog := p.GetInfoLogger(opts.MachineId)
+	infoLog := p.GetInfoLogger(m.Id)
 
-	a, err := p.NewClient(opts)
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
+
+	a.Push("Resizing initialized", 10, machinestate.Pending)
 
 	infoLog("checking if size is eglible for instance %s", a.Id())
 	instance, err := a.Instance(a.Id())
@@ -67,6 +70,8 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 
 	desiredSize := a.Builder.StorageSize
 
+	a.Push("Checking if size is eligible", 20, machinestate.Pending)
+
 	infoLog("user wants size '%dGB'. current storage size: '%dGB'", desiredSize, currentSize)
 	if desiredSize <= currentSize {
 		return nil, fmt.Errorf("resizing is not allowed. Desired size: %dGB should be larger than current size: %dGB",
@@ -78,15 +83,16 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 			desiredSize)
 	}
 
+	a.Push("Stopping old instance", 30, machinestate.Pending)
 	infoLog("stopping instance %s", a.Id())
-	if opts.State != machinestate.Stopped {
-		err = a.Stop()
+	if m.State != machinestate.Stopped {
+		err = a.Stop(false)
 		if err != nil {
 			return nil, err
 		}
 	}
-	p.UpdateState(opts.MachineId, machinestate.Pending)
 
+	a.Push("Creating new snapshot", 40, machinestate.Pending)
 	infoLog("creating new snapshot from volume id %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
@@ -100,6 +106,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		a.DeleteSnapshot(newSnapshotId)
 	}()
 
+	a.Push("Creating new volume", 50, machinestate.Pending)
 	infoLog("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
 	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, desiredSize)
 	if err != nil {
@@ -118,6 +125,7 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		}
 	}()
 
+	a.Push("Detaching old volume", 60, machinestate.Pending)
 	infoLog("detaching current volume id %s", oldVolumeId)
 	if err := a.DetachVolume(oldVolumeId); err != nil {
 		return nil, err
@@ -146,41 +154,38 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		}
 	}()
 
+	a.Push("Attaching new volume", 70, machinestate.Pending)
 	// attach new volume to current stopped instance
 	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return nil, err
 	}
 
+	a.Push("Starting instance", 80, machinestate.Pending)
 	// start the stopped instance now as we attached the new volume
-	artifact, err := a.Start()
+	artifact, err := a.Start(false)
 	if err != nil {
 		return nil, err
 	}
 
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	username := opts.Builder["username"].(string)
-
+	a.Push("Updating domain", 85, machinestate.Pending)
 	// update Domain record with the new IP
-	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
+	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
 
-	infoLog("updating user domain tag %s of instance %s", machineData.Domain, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+	infoLog("updating user domain tag %s of instance %s", m.Domain.Name, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 		return nil, err
 	}
 
-	artifact.DomainName = machineData.Domain
+	a.Push("Checking connectivity", 90, machinestate.Pending)
+	artifact.DomainName = m.Domain.Name
 
 	infoLog("connecting to remote Klient instance")
-	if p.IsKlientReady(machineData.QueryString) {
-		p.Log.Info("[%s] klient is ready.", opts.MachineId)
+	if p.IsKlientReady(m.QueryString) {
+		p.Log.Info("[%s] klient is ready.", m.Id)
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
 
 	return artifact, nil

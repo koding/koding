@@ -3,8 +3,9 @@ package command
 import (
 	"fmt"
 
-	"github.com/koding/kite"
 	"koding/kites/kloud/kloud"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -23,7 +24,7 @@ func NewResize() cli.CommandFactory {
 }
 
 func (r *Resize) Action(args []string, k *kite.Client) error {
-	resizeArgs := &kloud.Controller{
+	resizeArgs := &KloudArgs{
 		MachineId: *r.id,
 		Username:  flagUsername,
 	}
