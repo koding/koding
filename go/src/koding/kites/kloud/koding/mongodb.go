@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/koding/kloud"
+	"github.com/koding/kloud/kloud"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"labix.org/v2/mgo"

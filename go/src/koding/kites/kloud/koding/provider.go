@@ -6,9 +6,9 @@ import (
 	"koding/db/mongodb"
 
 	"github.com/koding/kite"
-	"github.com/koding/kloud"
 	amazonClient "github.com/koding/kloud/api/amazon"
 	"github.com/koding/kloud/eventer"
+	"github.com/koding/kloud/kloud"
 	"github.com/koding/kloud/machinestate"
 	"github.com/koding/kloud/protocol"
 	"github.com/koding/kloud/provider/amazon"

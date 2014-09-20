@@ -6,7 +6,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud"
+	"github.com/koding/kloud/kloud"
 )
 
 // Kloud represents a remote kloud instance

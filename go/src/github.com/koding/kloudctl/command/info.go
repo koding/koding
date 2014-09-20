@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/koding/kite"
-	"github.com/koding/kloud"
+	"github.com/koding/kloud/kloud"
 	"github.com/koding/kloud/protocol"
 	"github.com/mitchellh/cli"
 )
