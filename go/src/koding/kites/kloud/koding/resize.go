@@ -42,6 +42,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, err
 	}
 
+	a.Push("Resizing initialized", 10, machinestate.Pending)
+
 	infoLog("checking if size is eglible for instance %s", a.Id())
 	instance, err := a.Instance(a.Id())
 	if err != nil {
@@ -68,6 +70,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	desiredSize := a.Builder.StorageSize
 
+	a.Push("Checking if size is eligible", 20, machinestate.Pending)
+
 	infoLog("user wants size '%dGB'. current storage size: '%dGB'", desiredSize, currentSize)
 	if desiredSize <= currentSize {
 		return nil, fmt.Errorf("resizing is not allowed. Desired size: %dGB should be larger than current size: %dGB",
@@ -79,6 +83,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 			desiredSize)
 	}
 
+	a.Push("Stopping old instance", 30, machinestate.Pending)
 	infoLog("stopping instance %s", a.Id())
 	if m.State != machinestate.Stopped {
 		err = a.Stop()
@@ -87,6 +92,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		}
 	}
 
+	a.Push("Creating new snapshot", 40, machinestate.Pending)
 	infoLog("creating new snapshot from volume id %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
@@ -100,6 +106,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		a.DeleteSnapshot(newSnapshotId)
 	}()
 
+	a.Push("Creating new volume", 50, machinestate.Pending)
 	infoLog("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
 	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, desiredSize)
 	if err != nil {
@@ -118,6 +125,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		}
 	}()
 
+	a.Push("Detaching old volume", 60, machinestate.Pending)
 	infoLog("detaching current volume id %s", oldVolumeId)
 	if err := a.DetachVolume(oldVolumeId); err != nil {
 		return nil, err
@@ -146,17 +154,20 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		}
 	}()
 
+	a.Push("Attaching new volume", 70, machinestate.Pending)
 	// attach new volume to current stopped instance
 	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
 		return nil, err
 	}
 
+	a.Push("Starting instance", 80, machinestate.Pending)
 	// start the stopped instance now as we attached the new volume
 	artifact, err := a.Start()
 	if err != nil {
 		return nil, err
 	}
 
+	a.Push("Updating domain", 85, machinestate.Pending)
 	// update Domain record with the new IP
 	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
@@ -167,6 +178,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, err
 	}
 
+	a.Push("Checking connectivity", 90, machinestate.Pending)
 	artifact.DomainName = m.Domain.Name
 
 	infoLog("connecting to remote Klient instance")

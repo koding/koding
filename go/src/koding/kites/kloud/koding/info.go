@@ -109,6 +109,9 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 			p.Log.Info("[%s] info decision : inconsistent state. using amazon state '%s'",
 				m.Id, awsState)
 			resultState = awsState
+		} else {
+			p.Log.Info("[%s] info decision : using current db state '%s'",
+				m.Id, resultState)
 		}
 	}
 
