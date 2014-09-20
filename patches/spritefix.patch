@@ -1,0 +1,11 @@
+--- a/node_modules/node-sprite-generator/lib/compositor/gm.js	2014-09-20 03:07:10.000000000 +0300
++++ b/node_modules/node-sprite-generator/lib/compositor/gm.js  	2014-09-20 03:07:01.000000000 +0300
+@@ -29,7 +29,7 @@
+ }
+ 
+ function readImages(filePaths, callback) {
+-    async.mapLimit(filePaths, 80, readImage, function (err, result) {
++    async.mapLimit(filePaths, 10, readImage, function (err, result) {
+         // NOTE: async.mapLimit() apparently does not guarantee output order will match input order.
+         // Restore the expected order before executing callback.
+         var images = _(filePaths).map(function(filePath) {
