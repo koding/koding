@@ -1,4 +1,4 @@
---- a/node_modules/node-sprite-generator/lib/compositor/gm.js	2014-09-20 03:07:10.000000000 +0300
+--- a/node_modules/node-sprite-generator/lib/compositor/gm.js 2014-09-20 03:07:10.000000000 +0300
 +++ b/node_modules/node-sprite-generator/lib/compositor/gm.js 2014-09-20 03:07:01.000000000 +0300
 @@ -29,7 +29,7 @@
  }
