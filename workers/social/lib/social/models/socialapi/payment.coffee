@@ -34,10 +34,13 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       return callback err  if err
 
-      data.accountId = getAccountId client
-      url = "/payments/subscribe"
+      canChangeplan client, data.planTitle, (err)->
+        return callback err  if err
 
-      post url, data, callback
+        data.accountId = getAccountId client
+        url = "/payments/subscribe"
+
+        post url, data, callback
 
   @unsubscribe = secure (client, data, callback)->
     requiredParams = [ "planTitle", "provider" ]
@@ -45,10 +48,13 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       return callback err  if err
 
-      data.accountId = getAccountId client
-      url = "/payments/unsubscribe"
+      canChangeplan client, data.planTitle, (err)->
+        return callback err  if err
 
-      post url, data, callback
+        data.accountId = getAccountId client
+        url = "/payments/unsubscribe"
+
+        post url, data, callback
 
   @subscriptions = secure (client, data, callback)->
     data.accountId = getAccountId client
@@ -89,3 +95,40 @@ module.exports = class Payment extends Base
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
+
+  canChangeplan = (client, planTitle, callback)->
+    fetchPlan client, planTitle, (err, plan)->
+      return callback err  if err
+
+      fetchUsage client, (err, usage)->
+        return callback err  if err
+
+        for name in ["alwaysOn", "storage", "total"]
+          if usage[name] > plan[name]
+            return callback {"message" : "
+              You can't change to '#{planTitle}' plan since you're
+              current using #{usage[name]} #{name}. The new plan only
+              allows #{plan[name]} #{name}."
+            }
+
+        callback null
+
+  fetchUsage = (client, callback)->
+    ComputeProvider = require "../computeproviders/computeprovider"
+    ComputeProvider.fetchUsage client, {
+      provider   : "koding"
+      credential : client.connection.delegate.profile.nickname
+    }, callback
+
+  fetchPlan = (client, planTitle, callback)->
+    ComputeProvider = require "../computeproviders/computeprovider"
+    ComputeProvider.fetchPlans client,
+      provider   : "koding"
+    , (err, plans)->
+      return err  if err
+
+      plan = plans[planTitle]
+      return callback {"message" : "plan not found"}  unless plan
+
+      callback null, plan
+

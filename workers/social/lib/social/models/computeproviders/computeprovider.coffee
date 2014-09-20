@@ -146,7 +146,10 @@ module.exports = class ComputeProvider extends Base
     provider.fetchAvailable client, options, callback
 
 
-  @fetchUsage = secure revive
+  @fetchUsage$ = secure (client, options, callback)->
+    ComputeProvider.fetchUsage client, options, callback
+
+  @fetchUsage = revive
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
@@ -157,12 +160,17 @@ module.exports = class ComputeProvider extends Base
     provider.fetchUsage client, options, callback
 
 
-  @fetchPlans = secure revive
+  @fetchPlans$ = secure (client, options, callback)->
+    ComputeProvider.fetchPlans client, options, callback
+
+  @fetchPlans = revive
 
     shouldReviveClient   : no
     shouldPassCredential : no
 
   , (client, options, callback)->
+
+    ComputeProvider.fetchPlans client, options, callback
 
     {provider} = options
     provider.fetchPlans client, options, callback
