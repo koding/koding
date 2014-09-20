@@ -24,6 +24,7 @@ type statePair struct {
 }
 
 var states = map[string]*statePair{
+	"build":   &statePair{initial: machinestate.Building, final: machinestate.Running},
 	"start":   &statePair{initial: machinestate.Starting, final: machinestate.Running},
 	"stop":    &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
 	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
@@ -253,10 +254,9 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	return machine, nil
 }
 
-// coreMethods is running and returning the event id for the methods start,
-// stop, restart and destroy. This method is used to avoid duplicate codes in
-// start, stop, restart and destroy methods (because we do the same steps for
-// each of them).
+// coreMethods is running and returning the response for the given controlFunc.
+// This method is used to avoid duplicate codes in many codes (because we do
+// the same steps for each of them).
 func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}, reqErr error) {
 	machine, err := k.PrepareMachine(r)
 	if err != nil {
@@ -279,20 +279,23 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	// all core methods works only for machines that are initialized
-	if machine.State == machinestate.NotInitialized {
+	// if the machine is not initialized don't let it any method run, expect "build"
+	if machine.State == machinestate.NotInitialized && r.Method != "build" {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
-	// get our state pair. A state pair defines the initial state and the final
-	// state. For example, for "restart" method the initial state is
+	// get our state pair. A state pair defines the initial and final state of
+	// a method.  For example, for "restart" method the initial state is
 	// "rebooting" and the final "running.
 	s, ok := states[r.Method]
 	if !ok {
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 
+	// now mark that we are starting...
 	k.Storage.UpdateState(machine.Id, s.initial)
+
+	// each method has his own unique eventer
 	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
 
 	// Start our core method in a goroutine to not block it for the client
@@ -322,9 +325,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		// update final status in storage
 		k.Storage.UpdateState(machine.Id, status)
 
-		// unlock distributed lock
-		k.Locker.Unlock(machine.Id)
-
 		// update final status in storage
 		machine.Eventer.Push(&eventer.Event{
 			Message:    msg,
@@ -332,6 +332,9 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 			Percentage: 100,
 			Error:      eventErr,
 		})
+
+		// unlock distributed lock
+		k.Locker.Unlock(machine.Id)
 	}()
 
 	return ControlResult{
