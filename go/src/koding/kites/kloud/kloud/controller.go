@@ -334,6 +334,10 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, err
 	}
 
+	if machine.Username == "" {
+		return nil, NewError(ErrSignUsernameEmpty)
+	}
+
 	k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
 
 	// TODO: Check permission of the user!

@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/koding/kite"
-
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
@@ -36,7 +34,7 @@ func validChange(db, aws machinestate.State) bool {
 	return invalidChanges[db] != aws
 }
 
-func (p *Provider) Info(r *kite.Request, m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
+func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err

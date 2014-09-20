@@ -185,6 +185,10 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 	}
 
+	// be sure they they satisfy the builder interface
+	var _ kloudprotocol.Controller = kodingProvider
+	var _ kloudprotocol.Builder = kodingProvider
+
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
 
