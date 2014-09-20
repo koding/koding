@@ -24,7 +24,7 @@ class SinglePlanView extends KDView
       cssClass : 'overflow-visible'
 
     @addSubView @overflowHidden = new KDCustomHTMLView
-      cssClass : 'overlow-hidden'
+      cssClass : 'overflow-hidden'
 
     @overflowVisible.addSubView new KDCustomHTMLView
       cssClass : 'plan-title'

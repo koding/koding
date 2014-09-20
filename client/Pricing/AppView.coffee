@@ -29,7 +29,7 @@ class PricingAppView extends KDView
       tagName   : 'p'
       cssClass  : 'pricing-description'
       partial   : "
-        Get started for free or go right into high gear with one of our aid plans.
+        Get started for free or go right into high gear with one of our paid plans.
         Our simple pricing is designed to help you get the most out of your Koding experience.
         Trusted by your peers worldwide.
       "
@@ -40,11 +40,11 @@ class PricingAppView extends KDView
       tagName   : 'p'
       cssClass  : 'pricing-footer'
       partial   : "
-        All packs contain <span>SSL, Sudo Access, IDE, Terminal, SSH Access and Custom Domains</span>
+        All plans include: <span>Non-hypervised VMs, full sudo access, custom sub-domains, SSL and SSH access</span>
       "
 
     @learnMoreLink = new CustomLinkView
-      title    : "Learn more"
+      title    : "Learn more about all our features"
       cssClass : "learn-more"
       href     : "/"
 

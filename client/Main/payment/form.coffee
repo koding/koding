@@ -53,8 +53,8 @@ class PaymentForm extends JView
       partial : "#{planTitle.capitalize()} Plan"
 
     pricePartial = if planInterval is MONTH
-    then "#{monthPrice / 100.00}<span>/Month</span>"
-    else "#{yearPrice / 100.00}<span>/Month</span>"
+    then "#{monthPrice / 100.00}<span>/month</span>"
+    else "#{yearPrice / 100.00}<span>/month</span>"
 
     @price = new KDCustomHTMLView
       cssClass : 'plan-price'
@@ -64,8 +64,8 @@ class PaymentForm extends JView
       tagName  : 'span'
       cssClass : 'discount-msg'
       partial  : "
-        You can <strong>save $#{discount / 100.00}</strong>/mo
-        by switching to"
+        <strong>Save $#{discount / 100.00}</strong>/month
+        by switching to a"
 
     @intervalToggleLink = new CustomLinkView
       state    : { planInterval: MONTH }
@@ -118,7 +118,7 @@ class PaymentForm extends JView
     @totalPrice = new KDCustomHTMLView
       cssClass  : 'total-price'
       tagName   : 'cite'
-      partial   : "#{monthPrice / 100}<span>/Month</span>"
+      partial   : "#{monthPrice / 100}<span>/month</span>"
 
     @submitButton.addSubView @totalPrice  if isUpgrade
 
@@ -199,20 +199,20 @@ class PaymentForm extends JView
     } = @state
 
     discountPartials =
-      month : "You can <strong>save $#{discount / 100.00}</strong>/mo by switching to"
-      year  : "You are <strong>saving $#{discount / 100.00}</strong>/mo. Awesome!"
+      month : "<strong>Save $#{discount / 100.00}</strong>/month by switching to"
+      year  : "You are <strong>saving $#{discount * 12 / 100}</strong>. Awesome!"
 
     linkPartials =
       month : 'yearly plan'
       year  : 'Back to monthly plan'
 
     pricePartials =
-      month : "#{monthPrice / 100}<span>/Month</span>"
-      year  : "#{reducedMonth / 100}<span>/Month</span>"
+      month : "#{monthPrice / 100}<span>/month</span>"
+      year  : "#{reducedMonth / 100}<span>/month</span>"
 
     totalPricePartials =
-      month : "#{monthPrice / 100}<span>/Month</span>"
-      year  : "#{yearPrice  / 100}<span>/Year</span>"
+      month : "#{monthPrice / 100}<span>/month</span>"
+      year  : "#{yearPrice  / 100}<span>/year</span>"
 
     isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 

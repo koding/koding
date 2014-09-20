@@ -77,7 +77,7 @@ body.pricing
     margin              0 auto 115px
 
   p.pricing-footer
-    margin-top         68px
+    margin-top         35px
     text-align         center
     color              #5A5A5A
     font-weight        200
@@ -110,9 +110,14 @@ body.pricing
       z-index           10
       border            1px solid #E3E3E3
       border-left       none
-      overflow          hidden
       borderBox()
       fl()
+
+      .overflow-hidden
+        overflow        hidden
+
+      .overflow-visible
+        overflow        visible
 
       &:first-of-type
         border-left     1px solid #E3E3E3
@@ -125,7 +130,7 @@ body.pricing
         rounded         7px
         z-index         100
 
-        .plan-title cite
+        .plan-price cite
           color         #F8AC1D
 
           &:before
@@ -139,32 +144,55 @@ body.pricing
           margin-bottom 40px
 
       &.current
-        &:after
-          content       'Current Plan'
-          display       block
-          size          107px, 17px
-          vendor        transform, rotateZ(-45deg)
-          font-size     10px
-          color         #959595
-          background    #E8E8E8
-          text-align    center
-          line-height   17px
-          abs           23px 0 0 -23px
-          borderBox()
+
+        .cpu:after
+          color         #ddd !important
 
         *
           color         #ddd !important
           &:before
             color       #ddd !important
 
+        .overflow-hidden
+          position      relative
+          overflow      hidden
+
+          &:after
+            content       'Current Plan'
+            display       block
+            size          107px, 17px
+            vendor        transform, rotateZ(-45deg)
+            font-size     10px
+            color         #959595
+            background    #E8E8E8
+            text-align    center
+            line-height   17px
+            abs           23px 0 0 -23px
+            borderBox()
+
+        .plan-title
+          color         inherit !important
+          text-align    center
+
         .plan-buy-button
           border-color  #ddd
-
 
       &:nth-of-type(4)
         rounded         0 7px 7px 0
 
       .plan-title
+        top             -25px
+        text-align      center
+        font-size       14px
+        letter-spacing  .1em
+        z-index         150
+        left            0
+        right           0
+        color           #5a5a5a
+        opacity         .99
+        abs()
+
+      .plan-price
         border          none
         color           #8B8B8B
         font-size       12px
@@ -209,6 +237,15 @@ body.pricing
         line-height     23px
         font-size       14px
         borderBox()
+
+        .cpu:after
+          content       '(burstable)'
+          display       inline-block
+          font-size     11px
+          font-weight   300
+          margin-left   3px
+          line-height   23px
+          color         #aaa
 
       .plan-buy-button
         background      transparent
@@ -268,7 +305,6 @@ body.pricing
         span
           color         #A7A7A7
           font-size     14px
-          margin-left   7px
 
         &:before
           content       '$'
@@ -435,9 +471,9 @@ body.pricing
         color           inherit
 
       cite.total-price
-        margin-left     7px
         font-size       16px
         font-weight     400
+        margin-left     5px
 
         &:before
           content       '$'
@@ -445,11 +481,7 @@ body.pricing
 
         span
           font-size     12px
-          margin-left   7px
           opacity       .99
-        span:before
-          content       ' '
-          display       inline-block
 
     .security-note
       font-size         12px

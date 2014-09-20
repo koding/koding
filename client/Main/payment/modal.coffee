@@ -20,11 +20,11 @@ class PaymentModal extends KDModalView
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
     if isUpgrade
-      options.title    = 'Upgrade your plan'
-      options.subtitle = 'And get some things you know such and such'
+      options.title    = 'Upgrade Your Plan'
+      options.subtitle = ''
     else
       options.title    = 'Downgrade your plan'
-      options.subtitle = 'Sorry to hear!'
+      options.subtitle = ''
 
     super options, data
 
@@ -59,7 +59,18 @@ class PaymentModal extends KDModalView
 
 
   handleSuccess: ->
-    @setTitle 'Congratulations!'
-    @setSubtitle 'You have been successfully upgraded your plan'
-    @form.showSuccess()
+
+    { currentPlan, planTitle } = @state
+
+    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
+
+    if isUpgrade
+      @setTitle 'Congratulations! Upgrade successful.'
+      @setSubtitle 'Your account has been upgraded to the plan below.'
+    else
+      @setTitle 'Downgrade complete.'
+      @setSubtitle ''
+
+    @form.showSuccess isUpgrade
+
 

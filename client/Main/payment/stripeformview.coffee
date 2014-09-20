@@ -103,7 +103,7 @@ class StripeFormView extends KDFormViewWithFields
             result = Stripe.card.validateExpiry val, 2015
             result = if result
             then no
-            else 'Month is not valid'
+            else 'Invalid month!'
             input.setValidationResult 'checkMonth', result
         events       :
           checkMonth : 'blur'
@@ -128,7 +128,7 @@ class StripeFormView extends KDFormViewWithFields
             result = Stripe.card.validateExpiry validMonth, yearVal
             result = if result
             then no
-            else 'Year is not valid'
+            else 'Invalid year!'
             yearInput.setValidationResult 'checkYear', result
 
         events           :
