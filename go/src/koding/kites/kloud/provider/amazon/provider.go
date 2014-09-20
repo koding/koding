@@ -1,6 +1,7 @@
 package amazon
 
 import (
+	"errors"
 	"fmt"
 
 	aws "koding/kites/kloud/api/amazon"
@@ -101,4 +102,8 @@ func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
 	}
 
 	return a.Info()
+}
+
+func (p *Provider) Resize(m *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, errors.New("resize is not supported")
 }

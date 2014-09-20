@@ -1,6 +1,7 @@
 package openstack
 
 import (
+	"errors"
 	"fmt"
 
 	os "koding/kites/kloud/api/openstack"
@@ -140,4 +141,8 @@ func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
 	}
 
 	return o.Info()
+}
+
+func (p *Provider) Resize(m *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, errors.New("resize is not supported")
 }

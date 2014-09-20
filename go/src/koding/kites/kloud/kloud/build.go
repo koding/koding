@@ -127,7 +127,7 @@ instanceName  : %s
 		return nil, NewError(ErrProviderAvailable)
 	}
 
-	builder, ok := provider.(protocol.Builder)
+	builder, ok := provider.(protocol.Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotImplemented)
 	}

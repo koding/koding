@@ -5,15 +5,12 @@ import (
 	"koding/kites/kloud/machinestate"
 )
 
-// Builder creates and provision a single image or machine for a given Provider.
-type Builder interface {
+// Provider manages a machine, it's start/stop/destroy/restart a machine.
+type Provider interface {
 	// Build the machine and creates an artifact that can be pass to other
 	// methods
 	Build(*Machine) (*Artifact, error)
-}
 
-// Controller manages a machine, it's start/stop/destroy/restart a machine.
-type Controller interface {
 	// Start starts the machine
 	Start(*Machine) (*Artifact, error)
 

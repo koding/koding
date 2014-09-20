@@ -16,7 +16,7 @@ type ControlResult struct {
 	EventId string             `json:"eventId"`
 }
 
-type controlFunc func(*protocol.Machine, protocol.Controller) (interface{}, error)
+type controlFunc func(*protocol.Machine, protocol.Provider) (interface{}, error)
 
 type statePair struct {
 	initial machinestate.State
@@ -32,12 +32,12 @@ var states = map[string]*statePair{
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
-	startFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+	startFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		if m.State.In(machinestate.Starting, machinestate.Running) {
 			return nil, NewErrorMessage("Machine is already starting/running.")
 		}
 
-		resp, err := c.Start(m)
+		resp, err := p.Start(m)
 		if err != nil {
 			return nil, err
 		}
@@ -72,8 +72,8 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
-	resizeFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
-		resp, err := c.Resize(m)
+	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		resp, err := p.Resize(m)
 		if err != nil {
 			return nil, err
 		}
@@ -106,12 +106,12 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
-	stopFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+	stopFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		if m.State.In(machinestate.Stopped, machinestate.Stopping) {
 			return nil, NewErrorMessage("Machine is already stopping/stopped.")
 		}
 
-		err := c.Stop(m)
+		err := p.Stop(m)
 		return nil, err
 	}
 
@@ -119,12 +119,12 @@ func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
-	restartFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		if m.State.In(machinestate.Rebooting) {
 			return nil, NewErrorMessage("Machine is already rebooting.")
 		}
 
-		err := c.Restart(m)
+		err := p.Restart(m)
 		return nil, err
 	}
 
@@ -132,8 +132,8 @@ func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
-	destroyFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
-		err := c.Destroy(m)
+	destroyFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		err := p.Destroy(m)
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrProviderAvailable)
 	}
 
-	controller, ok := provider.(protocol.Controller)
+	controller, ok := provider.(protocol.Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
@@ -243,7 +243,7 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again or get information, therefore build and info
-	// should be able to continue, however methods like start/stop/etc.. are
+	// should be able to continue, however methods like start/stop/etp.. are
 	// forbidden.
 	if machine.State.In(machinestate.Terminating, machinestate.Terminated) &&
 		!methodHas(r.Method, "build", "info") {
@@ -274,7 +274,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		return nil, NewError(ErrProviderAvailable)
 	}
 
-	controller, ok := provider.(protocol.Controller)
+	controller, ok := provider.(protocol.Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
