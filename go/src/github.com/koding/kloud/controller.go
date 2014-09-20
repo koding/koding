@@ -15,7 +15,7 @@ type Controller struct {
 	MachineId string
 
 	// Populated later
-	CurrenState  machinestate.State `json:"-"`
+	CurrentState machinestate.State `json:"-"`
 	ProviderName string             `json:"-"`
 	Provider     interface{}        `json:"-"`
 	Machine      *protocol.Machine  `json:"-"`
@@ -152,7 +152,7 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 			ProviderName: machine.Provider,
 			Provider:     provider,
 			Machine:      machine,
-			CurrenState:  machine.State,
+			CurrentState: machine.State,
 		}
 
 		// now finally call our kite handler with the controller context, run
@@ -172,7 +172,7 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	if c.CurrenState == machinestate.NotInitialized {
+	if c.CurrentState == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{
 			State: machinestate.NotInitialized,
 			Name:  "not-initialized-instance",
@@ -195,7 +195,7 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 	}
 
 	if response.State == machinestate.Unknown {
-		response.State = c.CurrenState
+		response.State = c.CurrentState
 	}
 
 	return response, nil
@@ -241,7 +241,7 @@ func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Starting, machinestate.Running) {
+	if c.CurrentState.In(machinestate.Starting, machinestate.Running) {
 		return nil, NewErrorMessage("Machine is already starting/running.")
 	}
 
@@ -286,7 +286,7 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Stopped, machinestate.Stopping) {
+	if c.CurrentState.In(machinestate.Stopped, machinestate.Stopping) {
 		return nil, NewErrorMessage("Machine is already stopping/stopped.")
 	}
 
@@ -315,7 +315,7 @@ func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Rebooting) {
+	if c.CurrentState.In(machinestate.Rebooting) {
 		return nil, NewErrorMessage("Machine is already rebooting.")
 	}
 
@@ -336,7 +336,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // each of them).
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Machine) error) (result interface{}, err error) {
 	// all core methods works only for machines that are initialized
-	if c.CurrenState == machinestate.NotInitialized {
+	if c.CurrentState == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
@@ -368,9 +368,9 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[%s] %s failed. Machine state did't change and is set back to origin state '%s'. err: %s",
-				c.MachineId, r.Method, c.CurrenState, err.Error())
+				c.MachineId, r.Method, c.CurrentState, err.Error())
 
-			status = c.CurrenState
+			status = c.CurrentState
 			msg = ""
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
