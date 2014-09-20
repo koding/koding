@@ -84,14 +84,21 @@ class PaymentWorkflow extends KDController
       currentPlan
     } = formData
 
+    # Just because stripe validates both 2 digit
+    # and 4 digit year, and different types of month
+    # we are enforcing those, other than length problems
+    # Stripe will take care of the rest. ~U
+    cardYear  = null  if cardYear.length isnt 4
+    cardMonth = null  if cardMonth.length isnt 2
+
     if currentPlan is PaymentWorkflow.plan.FREE
 
-      Stripe.card.createToken
-        number    : formData.cardNumber
-        cvc       : formData.cardCVC
-        exp_month : formData.cardMonth
-        exp_year  : formData.cardYear
-      , (status, response) =>
+      Stripe.card.createToken {
+        number    : cardNumber
+        cvc       : cardCVC
+        exp_month : cardMonth
+        exp_year  : cardYear
+      } , (status, response) =>
 
         if response.error
           return @modal.emit 'StripeRequestValidationFailed', response.error

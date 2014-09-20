@@ -175,9 +175,9 @@ class PaymentForm extends JView
       when 'number'
         cardNumber.setValidationResult 'checkCC', 'Card number is not valid'
       when 'exp_year'
-        cardYear.setValidationResult 'checkYear', 'Year is not valid'
+        cardYear.setValidationResult 'checkYear', 'Invalid year!'
       when 'exp_month'
-        cardMonth.setValidationResult 'checkMonth', 'Month is not valid'
+        cardMonth.setValidationResult 'checkMonth', 'Invalid month!'
       when 'cvc'
         cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
 
