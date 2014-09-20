@@ -94,6 +94,10 @@ class PaymentForm extends JView
         We will use the credit card saved on your account for this purchase.
       '
 
+    @successMessage = new KDCustomHTMLView
+      cssClass : 'success-msg hidden'
+      partial  : ''
+
     # if their currentPlan is not free it means that
     # we already have their credit card,
     # so don't show the form show the existing
@@ -222,7 +226,7 @@ class PaymentForm extends JView
     @totalPrice.updatePartial totalPricePartials[planInterval]  if isUpgrade
 
 
-  showSuccess: ->
+  showSuccess: (isUpgrade) ->
 
     [
       @intervalToggleLink
@@ -233,8 +237,16 @@ class PaymentForm extends JView
       @totalPrice
     ].forEach (view) -> view.destroy()
 
-    @submitButton.setTitle 'CONTINUE'
+    if isUpgrade
+      @successMessage.updatePartial "
+        Depending on the plan upgraded to, you now have access to more computing
+        and storage resources.
+        <a href='http://learn.koding.com'>Learn more</a>
+        about how to use your new resources.
+      "
+      @successMessage.show()
 
+    @submitButton.setTitle 'CONTINUE'
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'PaymentWorkflowFinished', @state
@@ -250,6 +262,7 @@ class PaymentForm extends JView
     </div>
     {{> @form}}
     {{> @existingCreditCardMessage}}
+    {{> @successMessage}}
     {{> @submitButton}}
     {{> @securityNote}}
     """
