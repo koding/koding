@@ -1,9 +1,9 @@
 require './utils'
 require './KD.extend.coffee'
-KodingRouter       = require './KodingRouter'
-OAuthController    = require './OAuthController'
-MainView           = require './MainView'
-MainViewController = require './MainViewController'
+KodingRouter       = require './kodingrouter'
+OAuthController    = require './oauthcontroller'
+MainView           = require './mainview'
+MainViewController = require './mainviewcontroller'
 LoginView          = require './../login/AppView'
 
 module.exports = class MainControllerLoggedOut extends KDController
