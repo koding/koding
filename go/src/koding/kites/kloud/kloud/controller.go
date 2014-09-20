@@ -11,10 +11,6 @@ import (
 	"github.com/koding/kite"
 )
 
-type MachineArgs struct {
-	MachineId string
-}
-
 type ControlResult struct {
 	State   machinestate.State `json:"state"`
 	EventId string             `json:"eventId"`
@@ -288,7 +284,10 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, NewError(ErrNoArguments)
 	}
 
-	args := MachineArgs{}
+	var args struct {
+		MachineId string
+	}
+
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}

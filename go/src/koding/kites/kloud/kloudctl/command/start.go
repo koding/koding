@@ -3,8 +3,9 @@ package command
 import (
 	"fmt"
 
-	"github.com/koding/kite"
 	"koding/kites/kloud/kloud"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -23,7 +24,7 @@ func NewStart() cli.CommandFactory {
 }
 
 func (s *Start) Action(args []string, k *kite.Client) error {
-	startArgs := &kloud.Controller{
+	startArgs := &KloudArgs{
 		MachineId: *s.id,
 		Username:  flagUsername,
 	}

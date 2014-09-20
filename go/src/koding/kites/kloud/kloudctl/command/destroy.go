@@ -3,8 +3,9 @@ package command
 import (
 	"fmt"
 
-	"github.com/koding/kite"
 	"koding/kites/kloud/kloud"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -23,7 +24,7 @@ func NewDestroy() cli.CommandFactory {
 }
 
 func (d *Destroy) Action(args []string, k *kite.Client) error {
-	destroyArgs := &kloud.Controller{
+	destroyArgs := &KloudArgs{
 		MachineId: *d.id,
 		Username:  flagUsername,
 	}

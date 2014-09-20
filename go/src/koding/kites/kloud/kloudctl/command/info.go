@@ -3,9 +3,9 @@ package command
 import (
 	"fmt"
 
-	"github.com/koding/kite"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/protocol"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -24,7 +24,7 @@ func NewInfo() cli.CommandFactory {
 }
 
 func (i *Info) Action(args []string, k *kite.Client) error {
-	infoArgs := &kloud.Controller{
+	infoArgs := &KloudArgs{
 		MachineId: *i.id,
 		Username:  flagUsername,
 	}

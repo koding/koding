@@ -25,7 +25,7 @@ func NewBuild() cli.CommandFactory {
 }
 
 func (b *Build) Action(args []string, k *kite.Client) error {
-	bArgs := &kloud.MachineArgs{
+	bArgs := &KloudArgs{
 		MachineId: *b.id,
 		Username:  flagUsername,
 	}
