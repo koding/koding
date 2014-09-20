@@ -4,7 +4,7 @@ import (
 	"koding/db/models"
 	"time"
 
-	"github.com/koding/kloud/machinestate"
+	"koding/kites/kloud/machinestate"
 
 	"labix.org/v2/mgo/bson"
 )

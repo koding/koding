@@ -6,12 +6,12 @@ import (
 	"koding/db/mongodb"
 
 	"github.com/koding/kite"
-	"github.com/koding/kloud"
-	amazonClient "github.com/koding/kloud/api/amazon"
-	"github.com/koding/kloud/eventer"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
-	"github.com/koding/kloud/provider/amazon"
+	amazonClient "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/amazon"
 	"github.com/koding/logging"
 )
 

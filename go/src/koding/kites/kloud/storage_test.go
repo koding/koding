@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/idlock"
-	"github.com/koding/kloud/machinestate"
+	"koding/kites/kloud/idlock"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/kloud"
 )
 
 var locks = idlock.New()
