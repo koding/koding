@@ -134,7 +134,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec "cp -Rf #{__dirname}/client/landing/static/a/out #{__dirname}/website/a/out", (err, stdout, stderr)->
+        exec "rsync -av #{__dirname}/client/landing/static/a/out/ #{__dirname}/website/a/out/", (err, stdout, stderr)->
           if err
           then console.error err
           else console.log "# LANDING PAGE EXPORTED"
