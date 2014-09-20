@@ -72,10 +72,8 @@ func TestCancelSubscription(t *testing.T) {
 						Customer: c.ProviderCustomerId,
 					}
 
-					externalSub, err := stripeSub.Get(sub.ProviderSubscriptionId, subParams)
-					So(err, ShouldBeNil)
-
-					So(externalSub.Status, ShouldEqual, true)
+					_, err := stripeSub.Get(sub.ProviderSubscriptionId, subParams)
+					So(err, ShouldNotBeNil)
 				})
 
 				Convey("Then it should update subsciption", func() {
