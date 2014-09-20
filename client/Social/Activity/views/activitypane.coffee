@@ -49,7 +49,10 @@ class ActivityPane extends MessagePane
 
     @searchResults = new ActivitySearchResultsPane options, data
       .on "NeedsMoreContent", =>
-        console.log 'we need to implement pagination for search results'
+        if @searchResults.currentPage?
+          page = @searchResults.currentPage += 1
+
+          @search @currentSearch, { page }
 
     @tabView = new KDTabView
       cssClass          : 'activity-tab-view'
@@ -82,6 +85,8 @@ class ActivityPane extends MessagePane
         @select 'mostLiked', mostLiked: yes
       when @mostRecent.parent
         @select 'mostRecent'
+      when @searchResults.parent
+        @activeContent = @searchResults
 
   select: (contentName, options = {}) ->
     content = @[contentName]
@@ -120,16 +125,22 @@ class ActivityPane extends MessagePane
     for contentPane in [@mostLiked, @mostRecent, @searchResults]
       contentPane.removeMessage message
 
+  search: (text, options) ->
+    @searchResults.startSearch()
+
+    KD.singletons.search
+      .searchChannel text, @getData().id, options
+      .then (results) =>
+        @searchResults.appendContent results
+      .catch KD.showError
+
   createSearchInput: ->
     @searchInput = new SearchInputView
 
     @tabView.tabHandleContainer.addSubView @searchInput
 
-    @searchInput.on 'SearchRequested', (userText) =>
+    @searchInput.on 'SearchRequested', (text) =>
       @tabView.showPane @tabView.panes.last
-      @searchResults.startSearch()
-      KD.singletons.search
-        .searchChannel userText, @getData().id
-        .then (results) =>
-          @searchResults.setContent results
-        .catch KD.showError
+      @searchResults.clear()
+      @search text
+      @currentSearch = text

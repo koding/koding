@@ -1,5 +1,10 @@
 class ActivitySearchResultsPane extends ActivityContentPane
 
+  constructor: (options = {}, data) ->
+    options.resultsPerPage ?= 20
+
+    super options, data
+
   startSearch: ->
     @listController.showLazyLoader()
 
@@ -7,3 +12,8 @@ class ActivitySearchResultsPane extends ActivityContentPane
 
   clear: ->
     @listController.removeAllItems()
+    @currentPage = 0
+
+  appendContent: (content) ->
+    super content
+    @currentPage = null  if content.length < @getOption 'resultsPerPage'

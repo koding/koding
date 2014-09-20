@@ -39,14 +39,16 @@ class ActivityContentPane extends KDView
     @emit 'NeedsMoreContent'
 
   getContentFrom: ->
-    @listController.getItemsOrdered().last.getData().createdAt
+    @listController.getListView().items.last.getData().createdAt
 
   getLoadedCount: ->
-    @listController.getItemsOrdered().length
+    @listController.getListView().items.length
 
   removeMessage: (message) ->
-    @listController.itemsOrdered
+    items = @listController.items.getItems()
+
+    items
       .filter (item) -> item.getData().getId() is message.getId()
       .forEach (item) => @listController.removeItem item
-    if @listController.itemsOrdered.length is 0
-      @listController.showNoItemWidget()
+
+    @listController.showNoItemWidget() if items.length is 0
