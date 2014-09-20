@@ -49,21 +49,19 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return ErrCustomerAlreadySubscribedToPlan
 	}
 
-	err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
+	if !IsFreePlan(plan) {
+		err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
+		return err
+	}
+
+	err = CancelSubscription(customer, &currentSubscription)
 	if err != nil {
 		return err
 	}
 
-	if IsFreePlan(plan) {
-		err := CancelSubscription(customer, &currentSubscription)
-		if err != nil {
-			return err
-		}
-
-		err = RemoveCreditCard(customer)
-		if err != nil {
-			return err
-		}
+	err = RemoveCreditCard(customer)
+	if err != nil {
+		return err
 	}
 
 	return nil
