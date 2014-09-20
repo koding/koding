@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/koding/kloud/kloud"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )

@@ -9,9 +9,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
-	"github.com/koding/kloud/kloud"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
 )

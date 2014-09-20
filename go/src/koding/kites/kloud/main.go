@@ -15,8 +15,8 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud/kloud"
-	kloudprotocol "github.com/koding/kloud/protocol"
+	"koding/kites/kloud/kloud"
+	kloudprotocol "koding/kites/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )

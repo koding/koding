@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
 	"github.com/mitchellh/goamz/ec2"
 )
 

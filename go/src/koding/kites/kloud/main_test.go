@@ -17,8 +17,8 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/machinestate"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/kloud"
 )
 
 var (

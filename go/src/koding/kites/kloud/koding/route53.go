@@ -7,8 +7,8 @@ import (
 
 	"github.com/dchest/validator"
 	"github.com/koding/kite"
-	"github.com/koding/kloud/eventer"
-	"github.com/koding/kloud/kloud"
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"

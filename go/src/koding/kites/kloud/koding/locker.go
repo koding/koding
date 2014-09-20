@@ -3,7 +3,7 @@ package koding
 import (
 	"time"
 
-	"github.com/koding/kloud/kloud"
+	"koding/kites/kloud/kloud"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )

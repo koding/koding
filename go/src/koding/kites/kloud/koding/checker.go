@@ -11,10 +11,10 @@ import (
 	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/kite"
-	aws "github.com/koding/kloud/api/amazon"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
-	"github.com/koding/kloud/provider/amazon"
+	aws "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/amazon"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 )
