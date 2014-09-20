@@ -28,7 +28,9 @@ func TestSubscribe(t *testing.T) {
 		token, accId, email := generateFakeUserInfo()
 		err := Subscribe(token, accId, email, "random_plans", "random_interval")
 
-		So(err, ShouldEqual, ErrPlanNotFound)
+		Convey("Then it should throw error", t, func() {
+			So(err, ShouldEqual, ErrPlanNotFound)
+		})
 	})
 
 	Convey("Given nonexistent customer, plan", t,
