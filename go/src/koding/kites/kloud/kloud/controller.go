@@ -16,7 +16,7 @@ type ControlResult struct {
 	EventId string             `json:"eventId"`
 }
 
-type machineFunc func(*protocol.Machine) (interface{}, error)
+type controlFunc func(*protocol.Machine, protocol.Controller) (interface{}, error)
 
 type statePair struct {
 	initial machinestate.State
@@ -31,33 +31,12 @@ var states = map[string]*statePair{
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if reqErr != nil {
-			k.Locker.Unlock(machine.Id)
+	startFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+		if m.State.In(machinestate.Starting, machinestate.Running) {
+			return nil, NewErrorMessage("Machine is already starting/running.")
 		}
-	}()
 
-	if machine.State.In(machinestate.Starting, machinestate.Running) {
-		return nil, NewErrorMessage("Machine is already starting/running.")
-	}
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	controller, ok := provider.(protocol.Controller)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	startFunc := func(m *protocol.Machine) (interface{}, error) {
-		resp, err := controller.Start(m)
+		resp, err := c.Start(m)
 		if err != nil {
 			return nil, err
 		}
@@ -88,105 +67,42 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 		return resp, nil
 	}
 
-	return k.coreMethods(r, machine, startFunc)
+	return k.coreMethods(r, startFunc)
 }
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if reqErr != nil {
-			k.Locker.Unlock(machine.Id)
+	stopFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+		if m.State.In(machinestate.Stopped, machinestate.Stopping) {
+			return nil, NewErrorMessage("Machine is already stopping/stopped.")
 		}
-	}()
 
-	if machine.State.In(machinestate.Stopped, machinestate.Stopping) {
-		return nil, NewErrorMessage("Machine is already stopping/stopped.")
-	}
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	controller, ok := provider.(protocol.Controller)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	stopFunc := func(m *protocol.Machine) (interface{}, error) {
-		err := controller.Stop(m)
+		err := c.Stop(m)
 		return nil, err
 	}
 
-	return k.coreMethods(r, machine, stopFunc)
+	return k.coreMethods(r, stopFunc)
 }
 
 func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if reqErr != nil {
-			k.Locker.Unlock(machine.Id)
+	restartFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+		if m.State.In(machinestate.Rebooting) {
+			return nil, NewErrorMessage("Machine is already rebooting.")
 		}
-	}()
 
-	if machine.State.In(machinestate.Rebooting) {
-		return nil, NewErrorMessage("Machine is already rebooting.")
-	}
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	controller, ok := provider.(protocol.Controller)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	restartFunc := func(m *protocol.Machine) (interface{}, error) {
-		err := controller.Restart(m)
+		err := c.Restart(m)
 		return nil, err
 	}
 
-	return k.coreMethods(r, machine, restartFunc)
+	return k.coreMethods(r, restartFunc)
 }
 
 func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
+	destroyFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+		err := c.Destroy(m)
 		return nil, err
 	}
 
-	defer func() {
-		if reqErr != nil {
-			k.Locker.Unlock(machine.Id)
-		}
-	}()
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	controller, ok := provider.(protocol.Controller)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	destroyFunc := func(m *protocol.Machine) (interface{}, error) {
-		err := controller.Destroy(m)
-		return nil, err
-	}
-
-	return k.coreMethods(r, machine, destroyFunc)
+	return k.coreMethods(r, destroyFunc)
 }
 
 func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
@@ -232,9 +148,6 @@ func (k *Kloud) Resize(r *kite.Request) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// unlock once we are finished
-	defer k.Locker.Unlock(machine.Id)
 
 	provider, ok := k.providers[machine.Provider]
 	if !ok {
@@ -340,8 +253,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 
 	k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
 
-	// TODO: Check permission of the user!
-
 	// prevent request if the machine is terminated. However we want the user
 	// to be able to build again or get information, therefore build and info
 	// should be able to continue, however methods like start/stop/etc.. are
@@ -368,9 +279,30 @@ func methodHas(method string, methods ...string) bool {
 // stop, restart and destroy. This method is used to avoid duplicate codes in
 // start, stop, restart and destroy methods (because we do the same steps for
 // each of them).
-func (k *Kloud) coreMethods(r *kite.Request, m *protocol.Machine, fn machineFunc) (result interface{}, err error) {
+func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}, reqErr error) {
+	machine, err := k.PrepareMachine(r)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if reqErr != nil {
+			k.Locker.Unlock(machine.Id)
+		}
+	}()
+
+	provider, ok := k.providers[machine.Provider]
+	if !ok {
+		return nil, NewError(ErrProviderAvailable)
+	}
+
+	controller, ok := provider.(protocol.Controller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
 	// all core methods works only for machines that are initialized
-	if m.State == machinestate.NotInitialized {
+	if machine.State == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
@@ -382,42 +314,43 @@ func (k *Kloud) coreMethods(r *kite.Request, m *protocol.Machine, fn machineFunc
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 
-	k.Storage.UpdateState(m.Id, s.initial)
-	m.Eventer = k.NewEventer(r.Method + "-" + m.Id)
+	k.Storage.UpdateState(machine.Id, s.initial)
+	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
 
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
 	go func() {
-		k.idlock.Get(m.Id).Lock()
-		defer k.idlock.Get(m.Id).Unlock()
+		k.idlock.Get(machine.Id).Lock()
+		defer k.idlock.Get(machine.Id).Unlock()
 
 		status := s.final
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 		eventErr := ""
 
-		k.Log.Debug("[%s] running method %s with mach options %v", m.Id, r.Method, m)
-		_, err := fn(m)
+		k.Log.Debug("[%s] running method %s with mach options %v", machine.Id, r.Method, machine)
+		_, err := fn(machine, controller)
 		if err != nil {
 			k.Log.Error("[%s] %s failed. Machine state did't change and is set back to origin state '%s'. err: %s",
-				m.Id, r.Method, m.State, err.Error())
+				machine.Id, r.Method, machine.State, err.Error())
 
-			status = m.State
+			status = machine.State
 			msg = ""
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
-			k.Log.Info("[%s] State is now: %+v", m.Id, status)
-			k.Log.Info("[%s] ========== %s finished ==========", m.Id, strings.ToUpper(r.Method))
+			k.Log.Info("[%s] State is now: %+v", machine.Id, status)
+			k.Log.Info("[%s] ========== %s finished ==========",
+				machine.Id, strings.ToUpper(r.Method))
 		}
 
 		// update final status in storage
-		k.Storage.UpdateState(m.Id, status)
+		k.Storage.UpdateState(machine.Id, status)
 
 		// unlock distributed lock
-		k.Locker.Unlock(m.Id)
+		k.Locker.Unlock(machine.Id)
 
 		// update final status in storage
-		m.Eventer.Push(&eventer.Event{
+		machine.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,
 			Percentage: 100,
@@ -426,7 +359,7 @@ func (k *Kloud) coreMethods(r *kite.Request, m *protocol.Machine, fn machineFunc
 	}()
 
 	return ControlResult{
-		EventId: m.Eventer.Id(),
+		EventId: machine.Eventer.Id(),
 		State:   s.initial,
 	}, nil
 }
