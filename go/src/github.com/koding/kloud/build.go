@@ -21,16 +21,16 @@ type Build struct {
 // async, therefore if there is anything that needs to be checked it needs to
 // be done. Any error here is passed directly to the client.
 func (b *Build) prepare(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState == machinestate.Building {
+	if c.CurrentState == machinestate.Building {
 		return nil, NewError(ErrMachineIsBuilding)
 	}
 
-	if c.CurrenState == machinestate.Unknown {
+	if c.CurrentState == machinestate.Unknown {
 		return nil, NewError(ErrMachineUnknownState)
 	}
 
 	// if it's something else (stopped, runnning, ...) it's been already built
-	if !c.CurrenState.In(machinestate.Terminated, machinestate.NotInitialized) {
+	if !c.CurrentState.In(machinestate.Terminated, machinestate.NotInitialized) {
 		return nil, NewError(ErrMachineInitialized)
 	}
 
@@ -73,7 +73,7 @@ func (b *Build) start(r *kite.Request, c *Controller) (resp interface{}, err err
 		if err != nil {
 			b.Log.Error("[%s] building failed. err %s.", c.MachineId, err.Error())
 
-			status = c.CurrenState
+			status = c.CurrentState
 			msg = ""
 			eventErr = fmt.Sprintf("Building failed. Please contact support.")
 		}
@@ -124,7 +124,12 @@ instanceName  : %s
 
 	var artifact *protocol.Artifact
 
-	artifact, err = c.Builder.Build(machOptions)
+	builder, ok := c.Provider.(protocol.Builder)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	artifact, err = builder.Build(machOptions)
 	if err != nil {
 		return nil, err
 	}

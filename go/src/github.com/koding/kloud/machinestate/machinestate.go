@@ -47,10 +47,11 @@ const (
 	// physically doesn't exist anymore.
 	Terminated
 
-	// Updating defines the state where the machine is being updated. That
-	// might be a hostname renaming, changing password, resizing the disk and
-	// so on.
-	Updating
+	// Pending defines the state where the machine is in a work-in-progress
+	// state. A pending state might be a state between two stable states of a
+	// machine such as Stopped and Starting where we resized a disk. A Machine
+	// could be in a pending state when an ongoign maintanance is in progress.
+	Pending
 )
 
 var States = map[string]State{
@@ -63,7 +64,7 @@ var States = map[string]State{
 	"Rebooting":      Rebooting,
 	"Terminating":    Terminating,
 	"Terminated":     Terminated,
-	"Updating":       Updating,
+	"Pending":        Pending,
 	"Unknown":        Unknown,
 }
 
@@ -100,7 +101,7 @@ func (s State) In(states ...State) bool {
 // InProgress checks whether the given state is one of the states that defines
 // a ongoing process, such as building, starting, stopping, etc...
 func (s State) InProgress() bool {
-	if s.In(Building, Starting, Stopping, Terminating, Rebooting, Updating) {
+	if s.In(Building, Starting, Stopping, Terminating, Rebooting, Pending) {
 		return true
 	}
 
@@ -127,8 +128,8 @@ func (s State) String() string {
 		return "Terminating"
 	case Terminated:
 		return "Terminated"
-	case Updating:
-		return "Updating"
+	case Pending:
+		return "Pending"
 	case Unknown:
 		fallthrough
 	default:

@@ -106,33 +106,3 @@ func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
 	k.providers[providerName] = provider
 	return nil
 }
-
-// Builder returns the builder for the given provideName
-func (k *Kloud) Builder(providerName string) (protocol.Builder, error) {
-	provider, ok := k.providers[providerName]
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
-	}
-
-	builder, ok := provider.(protocol.Builder)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	return builder, nil
-}
-
-// Controller returns the controller for the given provideName
-func (k *Kloud) Controller(providerName string) (protocol.Controller, error) {
-	provider, ok := k.providers[providerName]
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
-	}
-
-	controller, ok := provider.(protocol.Controller)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	return controller, nil
-}

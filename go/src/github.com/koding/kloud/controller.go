@@ -15,12 +15,11 @@ type Controller struct {
 	MachineId string
 
 	// Populated later
-	CurrenState  machinestate.State  `json:"-"`
-	ProviderName string              `json:"-"`
-	Controller   protocol.Controller `json:"-"`
-	Builder      protocol.Builder    `json:"-"`
-	Machine      *protocol.Machine   `json:"-"`
-	Eventer      eventer.Eventer     `json:"-"`
+	CurrentState machinestate.State `json:"-"`
+	ProviderName string             `json:"-"`
+	Provider     interface{}        `json:"-"`
+	Machine      *protocol.Machine  `json:"-"`
+	Eventer      eventer.Eventer    `json:"-"`
 	Username     string
 }
 
@@ -68,6 +67,10 @@ func (k *Kloud) Destroy(r *kite.Request) (interface{}, error) {
 
 func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	return k.ControlFunc(k.info).ServeKite(r)
+}
+
+func (k *Kloud) Resize(r *kite.Request) (interface{}, error) {
+	return k.ControlFunc(k.resize).ServeKite(r)
 }
 
 func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
@@ -138,24 +141,18 @@ func (k *Kloud) ControlFunc(control controlFunc) kite.Handler {
 		}
 
 		// now get the machine provider interface, it can be DO, AWS, GCE, and so on..
-		controller, err := k.Controller(machine.Provider)
-		if err != nil {
-			return nil, err
-		}
-
-		builder, err := k.Builder(machine.Provider)
-		if err != nil {
-			return nil, err
+		provider, ok := k.providers[machine.Provider]
+		if !ok {
+			NewError(ErrProviderAvailable)
 		}
 
 		// our Controller context
 		c := &Controller{
 			MachineId:    args.MachineId,
 			ProviderName: machine.Provider,
-			Controller:   controller,
-			Builder:      builder,
+			Provider:     provider,
 			Machine:      machine,
-			CurrenState:  machine.State,
+			CurrentState: machine.State,
 		}
 
 		// now finally call our kite handler with the controller context, run
@@ -175,7 +172,7 @@ func methodHas(method string, methods ...string) bool {
 }
 
 func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err error) {
-	if c.CurrenState == machinestate.NotInitialized {
+	if c.CurrentState == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{
 			State: machinestate.NotInitialized,
 			Name:  "not-initialized-instance",
@@ -187,25 +184,74 @@ func (k *Kloud) info(r *kite.Request, c *Controller) (resp interface{}, err erro
 	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use it
 	machOptions.Eventer = &eventer.Events{}
 
-	response, err := c.Controller.Info(machOptions)
+	controller, ok := c.Provider.(protocol.Controller)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	response, err := controller.Info(machOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	if response.State == machinestate.Unknown {
-		response.State = c.CurrenState
+		response.State = c.CurrentState
 	}
 
 	return response, nil
 }
 
+func (k *Kloud) resize(r *kite.Request, c *Controller) (interface{}, error) {
+	resizer, ok := c.Provider.(protocol.Resizer)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	// unlock once we are finished
+	k.Locker.Unlock(c.MachineId)
+
+	c.Machine.Eventer = k.NewEventer(r.Method + "-" + c.MachineId)
+
+	resp, err := resizer.Resize(c.Machine)
+	if err != nil {
+		return nil, err
+	}
+
+	// some providers might provide empty information, therefore do not
+	// update anything for them
+	if resp == nil {
+		return "resized", nil
+	}
+
+	err = k.Storage.Update(c.MachineId, &StorageData{
+		Type: "resize",
+		Data: map[string]interface{}{
+			"ipAddress":    resp.IpAddress,
+			"domainName":   resp.DomainName,
+			"instanceId":   resp.InstanceId,
+			"instanceName": resp.InstanceName,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	k.Log.Info("[%s] ========== %s finished ==========", c.MachineId, strings.ToUpper(r.Method))
+	return "resized", nil
+}
+
 func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Starting, machinestate.Running) {
+	if c.CurrentState.In(machinestate.Starting, machinestate.Running) {
 		return nil, NewErrorMessage("Machine is already starting/running.")
 	}
 
 	fn := func(m *protocol.Machine) error {
-		resp, err := c.Controller.Start(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		resp, err := controller.Start(m)
 		if err != nil {
 			return err
 		}
@@ -240,12 +286,17 @@ func (k *Kloud) start(r *kite.Request, c *Controller) (interface{}, error) {
 }
 
 func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Stopped, machinestate.Stopping) {
+	if c.CurrentState.In(machinestate.Stopped, machinestate.Stopping) {
 		return nil, NewErrorMessage("Machine is already stopping/stopped.")
 	}
 
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Stop(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		return controller.Stop(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -253,19 +304,27 @@ func (k *Kloud) stop(r *kite.Request, c *Controller) (interface{}, error) {
 
 func (k *Kloud) destroy(r *kite.Request, c *Controller) (interface{}, error) {
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Destroy(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+		return controller.Destroy(m)
 	}
 
 	return k.coreMethods(r, c, fn)
 }
 
 func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
-	if c.CurrenState.In(machinestate.Rebooting) {
+	if c.CurrentState.In(machinestate.Rebooting) {
 		return nil, NewErrorMessage("Machine is already rebooting.")
 	}
 
 	fn := func(m *protocol.Machine) error {
-		return c.Controller.Restart(m)
+		controller, ok := c.Provider.(protocol.Controller)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+		return controller.Restart(m)
 	}
 
 	return k.coreMethods(r, c, fn)
@@ -277,7 +336,7 @@ func (k *Kloud) restart(r *kite.Request, c *Controller) (interface{}, error) {
 // each of them).
 func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Machine) error) (result interface{}, err error) {
 	// all core methods works only for machines that are initialized
-	if c.CurrenState == machinestate.NotInitialized {
+	if c.CurrentState == machinestate.NotInitialized {
 		return nil, NewError(ErrMachineNotInitialized)
 	}
 
@@ -309,9 +368,9 @@ func (k *Kloud) coreMethods(r *kite.Request, c *Controller, fn func(*protocol.Ma
 		err := fn(machOptions)
 		if err != nil {
 			k.Log.Error("[%s] %s failed. Machine state did't change and is set back to origin state '%s'. err: %s",
-				c.MachineId, r.Method, c.CurrenState, err.Error())
+				c.MachineId, r.Method, c.CurrentState, err.Error())
 
-			status = c.CurrenState
+			status = c.CurrentState
 			msg = ""
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {

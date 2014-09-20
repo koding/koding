@@ -228,15 +228,15 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
-		// let's use the helper function which is doing a lot of things on
-		// behalf of us, like document locking, getting the machine document,
-		// and so on..
-		return kld.ControlFunc(kodingProvider.DomainSet).ServeKite(r)
-	})
+
+	// let's use the wrapper function "ControlFunc" which is doing a lot of
+	// things on behalf of us, like document locking, getting the machine
+	// document, and so on..
+	k.Handle("domain.set", kld.ControlFunc(kodingProvider.DomainSet))
 
 	return k
 }
