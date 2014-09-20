@@ -86,7 +86,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	a.Push("Stopping old instance", 30, machinestate.Pending)
 	infoLog("stopping instance %s", a.Id())
 	if m.State != machinestate.Stopped {
-		err = a.Stop()
+		err = a.Stop(false)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	a.Push("Starting instance", 80, machinestate.Pending)
 	// start the stopped instance now as we attached the new volume
-	artifact, err := a.Start()
+	artifact, err := a.Start(false)
 	if err != nil {
 		return nil, err
 	}

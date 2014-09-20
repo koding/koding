@@ -135,8 +135,11 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	return key.KeyName, nil
 }
 
-func (a *AmazonClient) Start() (*protocol.Artifact, error) {
-	a.Push("Starting machine", 10, machinestate.Starting)
+func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
+	if withPush {
+		a.Push("Starting machine", 10, machinestate.Starting)
+	}
+
 	_, err := a.Client.StartInstances(a.Id())
 	if err != nil {
 		return nil, err
@@ -149,9 +152,11 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Starting instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Starting)
+		if withPush {
+			a.Push(fmt.Sprintf("Starting instance '%s'. Current state: %s",
+				a.Builder.InstanceName, instance.State.Name),
+				currentPercentage, machinestate.Starting)
+		}
 
 		return statusToState(instance.State.Name), nil
 	}
@@ -173,8 +178,11 @@ func (a *AmazonClient) Start() (*protocol.Artifact, error) {
 	}, nil
 }
 
-func (a *AmazonClient) Stop() error {
-	a.Push("Stopping machine", 10, machinestate.Stopping)
+func (a *AmazonClient) Stop(withPush bool) error {
+	if withPush {
+		a.Push("Stopping machine", 10, machinestate.Stopping)
+	}
+
 	_, err := a.Client.StopInstances(a.Id())
 	if err != nil {
 		return err
@@ -186,9 +194,11 @@ func (a *AmazonClient) Stop() error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Stopping instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Stopping)
+		if withPush {
+			a.Push(fmt.Sprintf("Stopping instance '%s'. Current state: %s",
+				a.Builder.InstanceName, instance.State.Name),
+				currentPercentage, machinestate.Stopping)
+		}
 
 		return statusToState(instance.State.Name), nil
 	}

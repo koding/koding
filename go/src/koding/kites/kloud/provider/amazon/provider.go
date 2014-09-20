@@ -64,7 +64,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return a.Start()
+	return a.Start(true)
 }
 
 func (p *Provider) Stop(m *protocol.Machine) error {
@@ -73,7 +73,7 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
-	return a.Stop()
+	return a.Stop(true)
 }
 
 func (p *Provider) Restart(m *protocol.Machine) error {

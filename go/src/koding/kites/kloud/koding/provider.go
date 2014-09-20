@@ -115,7 +115,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := a.Start()
+	artifact, err := a.Start(true)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
-	err = a.Stop()
+	err = a.Stop(true)
 	if err != nil {
 		return err
 	}
