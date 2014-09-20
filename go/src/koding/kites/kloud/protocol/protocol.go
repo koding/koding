@@ -26,15 +26,12 @@ type Controller interface {
 	// Destroy destroys the machine
 	Destroy(*Machine) error
 
-	// Info returns full information about a single machine
-	Info(*Machine) (*InfoArtifact, error)
-}
-
-// Resizer resizes the a single machines underlying storage
-type Resizer interface {
 	// Resize the machine and creates an artifact that can be pass to other
 	// methods
 	Resize(*Machine) (*Artifact, error)
+
+	// Info returns full information about a single machine
+	Info(*Machine) (*InfoArtifact, error)
 }
 
 // Machine is used as a data source for the appropriate interfaces

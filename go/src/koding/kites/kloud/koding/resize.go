@@ -7,13 +7,12 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 
-	"github.com/koding/kite"
 	"github.com/mitchellh/goamz/ec2"
 )
 
 // Resizes increases the current machines underling volume to a larger volume
 // without affecting the or destroying the users data.
-func (p *Provider) Resize(r *kite.Request, m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
+func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	// Please read the steps before you dig into the code and try to change or
 	// fix something. Intented lines are cleanup or self healing procedures
 	// which should be called in a defer - arslan:
@@ -87,7 +86,6 @@ func (p *Provider) Resize(r *kite.Request, m *protocol.Machine) (resArtifact *pr
 			return nil, err
 		}
 	}
-	p.UpdateState(m.Id, machinestate.Pending)
 
 	infoLog("creating new snapshot from volume id %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)

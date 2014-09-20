@@ -28,6 +28,7 @@ var states = map[string]*statePair{
 	"stop":    &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
 	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
+	"resize":  &statePair{initial: machinestate.Pending, final: machinestate.Running},
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
@@ -68,6 +69,40 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 	}
 
 	return k.coreMethods(r, startFunc)
+}
+
+func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
+	resizeFunc := func(m *protocol.Machine, c protocol.Controller) (interface{}, error) {
+		resp, err := c.Resize(m)
+		if err != nil {
+			return nil, err
+		}
+
+		// some providers might provide empty information, therefore do not
+		// update anything for them
+		if resp == nil {
+			return resp, nil
+		}
+
+		err = k.Storage.Update(m.Id, &StorageData{
+			Type: "resize",
+			Data: map[string]interface{}{
+				"ipAddress":    resp.IpAddress,
+				"domainName":   resp.DomainName,
+				"instanceId":   resp.InstanceId,
+				"instanceName": resp.InstanceName,
+			},
+		})
+
+		if err != nil {
+			k.Log.Error("[%s] updating data after resize method was not possible: %s",
+				m.Id, err.Error())
+		}
+
+		return resp, nil
+	}
+
+	return k.coreMethods(r, resizeFunc)
 }
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
@@ -143,53 +178,6 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	return response, nil
 }
 
-func (k *Kloud) Resize(r *kite.Request) (interface{}, error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	resizer, ok := provider.(protocol.Resizer)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	// TODO: move to PrepareMachine method
-	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
-
-	resp, err := resizer.Resize(machine)
-	if err != nil {
-		return nil, err
-	}
-
-	// some providers might provide empty information, therefore do not
-	// update anything for them
-	if resp == nil {
-		return "resized", nil
-	}
-
-	err = k.Storage.Update(machine.Id, &StorageData{
-		Type: "resize",
-		Data: map[string]interface{}{
-			"ipAddress":    resp.IpAddress,
-			"domainName":   resp.DomainName,
-			"instanceId":   resp.InstanceId,
-			"instanceName": resp.InstanceName,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	k.Log.Info("[%s] ========== %s finished ==========", machine.Id, strings.ToUpper(r.Method))
-	return "resized", nil
-}
-
 func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr error) {
 	// calls with zero arguments causes args to be nil. Check it that we
 	// don't get a beloved panic
@@ -263,16 +251,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	}
 
 	return machine, nil
-}
-
-// methodHas checks if the method exist for the given methods
-func methodHas(method string, methods ...string) bool {
-	for _, m := range methods {
-		if method == m {
-			return true
-		}
-	}
-	return false
 }
 
 // coreMethods is running and returning the event id for the methods start,
@@ -360,4 +338,14 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		EventId: machine.Eventer.Id(),
 		State:   s.initial,
 	}, nil
+}
+
+// methodHas checks if the method exist for the given methods
+func methodHas(method string, methods ...string) bool {
+	for _, m := range methods {
+		if method == m {
+			return true
+		}
+	}
+	return false
 }

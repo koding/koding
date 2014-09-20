@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/waitstate"
+
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
 )
