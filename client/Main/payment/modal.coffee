@@ -52,6 +52,7 @@ class PaymentModal extends KDModalView
 
 
   handleStripeFail: (error) ->
+    @form.submitButton.hideLoader()
     @form.showValidationErrorsOnInputs error
 
 
