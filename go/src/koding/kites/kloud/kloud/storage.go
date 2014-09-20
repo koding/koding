@@ -16,10 +16,6 @@ type Storage interface {
 
 	// UpdateState updates the machine state for the given machine id
 	UpdateState(id string, state machinestate.State) error
-
-	// Assignee returns the unique identifier that is responsible of doing the
-	// actions of this interface.
-	Assignee() string
 }
 
 type StorageData struct {

@@ -7,13 +7,10 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-// Assignee returns the assignee responsible for MongoDB actions, in our case
-// it's the Kloud name together with hostname and a unique identifier.
-func (p *Provider) Assignee() string { return p.AssigneeName }
 
 // Get returns the meta of the associated credential with the given machine id.
 func (p *Provider) Get(id, username string) (*protocol.Machine, error) {

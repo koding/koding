@@ -12,11 +12,12 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
+	"koding/kites/kloud/kloud"
+	kloudprotocol "koding/kites/kloud/protocol"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"koding/kites/kloud/kloud"
-	kloudprotocol "koding/kites/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
