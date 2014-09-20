@@ -211,8 +211,12 @@ func newKite(conf *Config) *kite.Kite {
 			return nil, nil
 		}
 
-		args := &kloud.Controller{}
-		if err := r.Args.One().Unmarshal(args); err != nil {
+		var args struct {
+			MachineId string
+			Username  string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
 			return nil, nil
 		}
 
@@ -237,7 +241,14 @@ func newKite(conf *Config) *kite.Kite {
 	// let's use the wrapper function "ControlFunc" which is doing a lot of
 	// things on behalf of us, like document locking, getting the machine
 	// document, and so on..
-	k.Handle("domain.set", kld.ControlFunc(kodingProvider.DomainSet))
+	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainSet(r, m)
+	})
 
 	return k
 }

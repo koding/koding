@@ -6,12 +6,14 @@ import (
 
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/goamz/ec2"
 )
 
 // Resizes increases the current machines underling volume to a larger volume
 // without affecting the or destroying the users data.
-func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
+func (p *Provider) Resize(r *kite.Request, m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	// Please read the steps before you dig into the code and try to change or
 	// fix something. Intented lines are cleanup or self healing procedures
 	// which should be called in a defer - arslan:
@@ -34,9 +36,9 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	// 9. Update Domain record with the new IP (stopping/starting changes the IP)
 	// 10. Check if Klient is running
 
-	infoLog := p.GetInfoLogger(opts.MachineId)
+	infoLog := p.GetInfoLogger(m.Id)
 
-	a, err := p.NewClient(opts)
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +81,13 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 	}
 
 	infoLog("stopping instance %s", a.Id())
-	if opts.State != machinestate.Stopped {
+	if m.State != machinestate.Stopped {
 		err = a.Stop()
 		if err != nil {
 			return nil, err
 		}
 	}
-	p.UpdateState(opts.MachineId, machinestate.Pending)
+	p.UpdateState(m.Id, machinestate.Pending)
 
 	infoLog("creating new snapshot from volume id %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
@@ -157,30 +159,23 @@ func (p *Provider) Resize(opts *protocol.Machine) (resArtifact *protocol.Artifac
 		return nil, err
 	}
 
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	username := opts.Builder["username"].(string)
-
 	// update Domain record with the new IP
-	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
+	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
 
-	infoLog("updating user domain tag %s of instance %s", machineData.Domain, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+	infoLog("updating user domain tag %s of instance %s", m.Domain.Name, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 		return nil, err
 	}
 
-	artifact.DomainName = machineData.Domain
+	artifact.DomainName = m.Domain.Name
 
 	infoLog("connecting to remote Klient instance")
-	if p.IsKlientReady(machineData.QueryString) {
-		p.Log.Info("[%s] klient is ready.", opts.MachineId)
+	if p.IsKlientReady(m.QueryString) {
+		p.Log.Info("[%s] klient is ready.", m.Id)
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
 
 	return artifact, nil

@@ -13,7 +13,7 @@ import (
 )
 
 // Get returns the meta of the associated credential with the given machine id.
-func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
+func (p *Provider) Get(id string) (*protocol.Machine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -30,6 +30,11 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
+	// as a koding provider, the credential is just the username so we can use
+	// it directly, otherwise we need to make an additional lookup via
+	// jAccounts with machine.Users.Id..
+	username := machine.Credential
+
 	// do not check for admin users, or if test mode is enabled
 	if !IsAdmin(username) {
 		// check for user permissions
@@ -41,18 +46,16 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
-		MachineId:   id,
+		Id:          id,
+		Username:    machine.Credential, // contains the username for koding provider
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
 		Credential:  credential.Meta,
 		State:       machine.State(),
-		CurrentData: machine,
+		IpAddress:   machine.IpAddress,
+		QueryString: machine.QueryString,
 	}
-
-	// this can be used by other providers if there is a need.
-	if _, ok := m.Builder["username"]; !ok {
-		m.Builder["username"] = username
-	}
+	m.Domain.Name = machine.Domain
 
 	return m, nil
 }

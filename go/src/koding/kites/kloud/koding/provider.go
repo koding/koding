@@ -5,13 +5,14 @@ import (
 
 	"koding/db/mongodb"
 
-	"github.com/koding/kite"
 	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
+
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
@@ -64,15 +65,13 @@ type Provider struct {
 	KeyName    string `structure:"keyName"`
 }
 
-func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, error) {
-	username := machine.Builder["username"].(string)
-
+func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("[%s] %s (username: %s)", machine.MachineId, msg, username)
+			p.Log.Info("[%s] %s (username: %s)", m.Id, msg, m.Username)
 
-			machine.Eventer.Push(&eventer.Event{
+			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
 				Status:     state,
 				Percentage: percentage,
@@ -82,9 +81,9 @@ func (p *Provider) NewClient(machine *protocol.Machine) (*amazon.AmazonClient, e
 
 	var err error
 
-	machine.Builder["region"] = DefaultRegion
+	m.Builder["region"] = DefaultRegion
 
-	a.Amazon, err = amazonClient.New(kodingCredential, machine.Builder)
+	a.Amazon, err = amazonClient.New(kodingCredential, m.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
@@ -110,8 +109,8 @@ func (p *Provider) Name() string {
 	return ProviderName
 }
 
-func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -121,37 +120,31 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
 	a.Push("Initializing domain instance", 65, machinestate.Starting)
-	username := opts.Builder["username"].(string)
-	if err := p.UpdateDomain(artifact.IpAddress, machineData.Domain, username); err != nil {
+	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
 
 	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
-		opts.MachineId, machineData.Domain, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", machineData.Domain); err != nil {
+		m.Id, m.Domain.Name, artifact.InstanceId)
+	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 		return nil, err
 	}
 
-	artifact.DomainName = machineData.Domain
+	artifact.DomainName = m.Domain.Name
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
-	if p.IsKlientReady(machineData.QueryString) {
-		p.Log.Info("[%s] klient is ready.", opts.MachineId)
+	if p.IsKlientReady(m.QueryString) {
+		p.Log.Info("[%s] klient is ready.", m.Id)
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", opts.MachineId)
+		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
 
 	return artifact, nil
 }
 
-func (p *Provider) Stop(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Stop(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -161,26 +154,19 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 		return err
 	}
 
-	username := opts.Builder["username"].(string)
-
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
 
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+	if err := validateDomain(m.Domain.Name, m.Username, p.HostedZone); err != nil {
 		return err
 	}
 
 	a.Push("Deleting domain", 75, machinestate.Stopping)
-	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
+	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 
 	a.Push("Updating ip address", 85, machinestate.Stopping)
-	if err := p.Update(opts.MachineId, &kloud.StorageData{
+	if err := p.Update(m.Id, &kloud.StorageData{
 		Type: "stop",
 		Data: map[string]interface{}{
 			"ipAddress": "",
@@ -192,8 +178,8 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	return nil
 }
 
-func (p *Provider) Restart(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Restart(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -201,8 +187,8 @@ func (p *Provider) Restart(opts *protocol.Machine) error {
 	return a.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Destroy(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -212,20 +198,14 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 		return err
 	}
 
-	username := opts.Builder["username"].(string)
-	machineData, ok := opts.CurrentData.(*Machine)
-	if !ok {
-		return fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-	}
-
-	if err := validateDomain(machineData.Domain, username, p.HostedZone); err != nil {
+	if err := validateDomain(m.Domain.Name, m.Username, p.HostedZone); err != nil {
 		return err
 	}
 
 	a.Push("Checking domain", 75, machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
-	_, err = p.DNS.Domain(machineData.Domain)
+	_, err = p.DNS.Domain(m.Domain.Name)
 	if err == ErrNoRecord {
 		return nil
 	}
@@ -236,7 +216,7 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	}
 
 	a.Push("Deleting domain", 85, machinestate.Terminating)
-	if err := p.DNS.DeleteDomain(machineData.Domain, machineData.IpAddress); err != nil {
+	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 

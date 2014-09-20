@@ -35,15 +35,15 @@ func (p *Provider) Name() string {
 	return p.ProviderName
 }
 
-func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
-	username := opts.Builder["username"].(string)
+func (p *Provider) NewClient(m *protocol.Machine) (*OpenstackClient, error) {
+	username := m.Builder["username"].(string)
 
 	o := &OpenstackClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
+			p.Log.Info("%s - %s ==> %s", m.Id, username, msg)
 
-			opts.Eventer.Push(&eventer.Event{
+			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
 				Status:     state,
 				Percentage: percentage,
@@ -52,13 +52,13 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
 	}
 
 	var err error
-	o.Openstack, err = os.New(p.AuthURL, p.ProviderName, opts.Credential, opts.Builder)
+	o.Openstack, err = os.New(p.AuthURL, p.ProviderName, m.Credential, m.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("openstack err: %s", err)
 	}
 
 	// For now we assume that every client deploys this one particular key,
-	// however we can easily override it from the `opts` data (mongodb) and
+	// however we can easily override it from the `m` data (mongodb) and
 	// replace it with user's own key.
 
 	// needed to deploy during build
@@ -71,13 +71,13 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*OpenstackClient, error) {
 	return o, nil
 }
 
-func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
-	o, err := p.NewClient(opts)
+func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
 
-	instanceName := opts.Builder["instanceName"].(string)
+	instanceName := m.Builder["instanceName"].(string)
 
 	imageId := DefaultImageId
 	if o.Builder.SourceImage != "" {
@@ -93,12 +93,12 @@ func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
 	return o.Build(instanceName, imageId, flavorId)
 }
 
-func (p *Provider) Cancel(opts *protocol.Machine) error {
+func (p *Provider) Cancel(m *protocol.Machine) error {
 	return nil
 }
 
-func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
-	o, err := p.NewClient(opts)
+func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +106,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	return o.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.Machine) error {
-	o, err := p.NewClient(opts)
+func (p *Provider) Stop(m *protocol.Machine) error {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -115,8 +115,8 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	return o.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.Machine) error {
-	o, err := p.NewClient(opts)
+func (p *Provider) Restart(m *protocol.Machine) error {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -124,8 +124,8 @@ func (p *Provider) Restart(opts *protocol.Machine) error {
 	return o.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.Machine) error {
-	o, err := p.NewClient(opts)
+func (p *Provider) Destroy(m *protocol.Machine) error {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -133,8 +133,8 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	return o.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
-	o, err := p.NewClient(opts)
+func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
+	o, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}

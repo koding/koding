@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/koding/kite"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
+	"github.com/koding/kite"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -81,24 +82,27 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 
 	// populate a protocol.Machine instance that is needed for the Stop()
 	// method
-	opts := &protocol.Machine{
-		MachineId:   machine.Id.Hex(),
+	m := &protocol.Machine{
+		Id:          machine.Id.Hex(),
+		Username:    machine.Credential, // contains the username for koding provider
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
 		Credential:  credential.Meta,
 		State:       machine.State(),
-		CurrentData: machine,
+		IpAddress:   machine.IpAddress,
+		QueryString: machine.QueryString,
 	}
+	m.Domain.Name = machine.Domain
 
 	// will be replaced once we connect to klient in checker.Timeout() we are
 	// adding it so it doesn't panic when someone tries to retrieve it
-	opts.Builder["username"] = "kloud-checker"
+	m.Builder["username"] = "kloud-checker"
 
 	// add a fake eventer, means we are not reporting anyone and prevent also
 	// panicing when someone try to call the eventer
-	opts.Eventer = &eventer.Events{}
+	m.Eventer = &eventer.Events{}
 
-	checker, err := p.PlanChecker(opts)
+	checker, err := p.PlanChecker(m)
 	if err != nil {
 		return err
 	}

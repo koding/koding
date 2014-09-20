@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/koding/kite"
 	"koding/kites/kloud/kloud"
+
+	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
 )
 
@@ -24,7 +25,7 @@ func NewBuild() cli.CommandFactory {
 }
 
 func (b *Build) Action(args []string, k *kite.Client) error {
-	bArgs := &kloud.Controller{
+	bArgs := &kloud.MachineArgs{
 		MachineId: *b.id,
 		Username:  flagUsername,
 	}

@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
 	"github.com/koding/logging"
 )
 
@@ -15,15 +16,13 @@ type Provider struct {
 	Push func(string, int, machinestate.State)
 }
 
-func (p *Provider) NewClient(opts *protocol.Machine) (*AmazonClient, error) {
-	username := opts.Builder["username"].(string)
-
+func (p *Provider) NewClient(m *protocol.Machine) (*AmazonClient, error) {
 	a := &AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("%s - %s ==> %s", opts.MachineId, username, msg)
+			p.Log.Info("%s - %s ==> %s", m.Id, m.Username, msg)
 
-			opts.Eventer.Push(&eventer.Event{
+			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
 				Status:     state,
 				Percentage: percentage,
@@ -32,7 +31,7 @@ func (p *Provider) NewClient(opts *protocol.Machine) (*AmazonClient, error) {
 	}
 
 	var err error
-	a.Amazon, err = aws.New(opts.Credential, opts.Builder)
+	a.Amazon, err = aws.New(m.Credential, m.Builder)
 	if err != nil {
 		return nil, fmt.Errorf("amazon err: %s", err)
 	}
@@ -44,23 +43,23 @@ func (p *Provider) Name() string {
 	return "amazon"
 }
 
-func (p *Provider) Build(opts *protocol.Machine) (*protocol.Artifact, error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
 
-	instanceName := opts.Builder["instanceName"].(string)
+	instanceName := m.Builder["instanceName"].(string)
 
 	return a.Build(instanceName)
 }
 
-func (p *Provider) Cancel(opts *protocol.Machine) error {
+func (p *Provider) Cancel(m *protocol.Machine) error {
 	return nil
 }
 
-func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +67,8 @@ func (p *Provider) Start(opts *protocol.Machine) (*protocol.Artifact, error) {
 	return a.Start()
 }
 
-func (p *Provider) Stop(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Stop(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -77,8 +76,8 @@ func (p *Provider) Stop(opts *protocol.Machine) error {
 	return a.Stop()
 }
 
-func (p *Provider) Restart(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Restart(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -86,8 +85,8 @@ func (p *Provider) Restart(opts *protocol.Machine) error {
 	return a.Restart()
 }
 
-func (p *Provider) Destroy(opts *protocol.Machine) error {
-	a, err := p.NewClient(opts)
+func (p *Provider) Destroy(m *protocol.Machine) error {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
@@ -95,8 +94,8 @@ func (p *Provider) Destroy(opts *protocol.Machine) error {
 	return a.Destroy()
 }
 
-func (p *Provider) Info(opts *protocol.Machine) (*protocol.InfoArtifact, error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
