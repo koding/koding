@@ -64,7 +64,8 @@ GRANT SELECT, UPDATE, INSERT, DELETE ON "payment"."plan" TO "social";
 -- ----------------------------
 CREATE TYPE "payment"."subscription_state" AS ENUM (
     'active',
-    'expired'
+    'expired',
+    'canceled'
 );
 ALTER TYPE "payment"."subscription_state" OWNER TO "social";
 
