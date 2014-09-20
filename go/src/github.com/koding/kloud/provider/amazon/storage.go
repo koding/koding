@@ -27,6 +27,11 @@ func (a *AmazonClient) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, err
 			return 0, err
 		}
 
+		// shouldn't happen but let's check it anyway
+		if len(describeResp.Snapshots) == 0 {
+			return machinestate.Pending, nil
+		}
+
 		if describeResp.Snapshots[0].Status != "completed" {
 			return machinestate.Pending, nil
 		}
@@ -64,6 +69,11 @@ func (a *AmazonClient) CreateVolume(snapshotId, availZone string, size int) (*ec
 		resp, err := a.Client.Volumes([]string{volResp.VolumeId}, ec2.NewFilter())
 		if err != nil {
 			return 0, err
+		}
+
+		// shouldn't happen but let's check it anyway
+		if len(resp.Volumes) == 0 {
+			return machinestate.Pending, nil
 		}
 
 		if resp.Volumes[0].Status != "available" {
