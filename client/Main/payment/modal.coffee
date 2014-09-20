@@ -74,4 +74,7 @@ class PaymentModal extends KDModalView
 
     @form.showSuccess isUpgrade
 
+    @once 'KDModalViewDestroyed', =>
+      @emit 'PaymentWorkflowFinished', @state
+
 
