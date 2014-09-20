@@ -70,29 +70,29 @@ func (p *Provider) RunCleaner(interval time.Duration) {
 // CheckUsage checks a single machine usages patterns and applies certain
 // restrictions (if any available). For example it could stop a machine after a
 // certain inactivity time.
-func (p *Provider) CheckUsage(machine *Machine) error {
-	if machine == nil {
+func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
+	if machineDoc == nil {
 		return errors.New("machine is nil")
 	}
 
 	// release the lock from mongodb after we are done
-	defer p.Unlock(machine.Id.Hex())
+	defer p.Unlock(machineDoc.Id.Hex())
 
-	credential := p.GetCredential(machine.Credential)
+	credential := p.GetCredential(machineDoc.Credential)
 
 	// populate a protocol.Machine instance that is needed for the Stop()
 	// method
 	m := &protocol.Machine{
-		Id:          machine.Id.Hex(),
-		Username:    machine.Credential, // contains the username for koding provider
-		Provider:    machine.Provider,
-		Builder:     machine.Meta,
+		Id:          machineDoc.Id.Hex(),
+		Username:    machineDoc.Credential, // contains the username for koding provider
+		Provider:    machineDoc.Provider,
+		Builder:     machineDoc.Meta,
 		Credential:  credential.Meta,
-		State:       machine.State(),
-		IpAddress:   machine.IpAddress,
-		QueryString: machine.QueryString,
+		State:       machineDoc.State(),
+		IpAddress:   machineDoc.IpAddress,
+		QueryString: machineDoc.QueryString,
 	}
-	m.Domain.Name = machine.Domain
+	m.Domain.Name = machineDoc.Domain
 
 	// will be replaced once we connect to klient in checker.Timeout() we are
 	// adding it so it doesn't panic when someone tries to retrieve it
@@ -116,8 +116,8 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 // locked and cannot be retrieved from others anymore. After finishing work with
 // this document locker.Unlock() needs to be called that it's unlocked again
 // so it can be fetched by others.
-func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
-	machine := &Machine{}
+func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
+	machine := &MachineDocument{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
 		// 1. belongs to koding provider
