@@ -237,6 +237,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
+	k.HandleFunc("reinitialize", kld.Reinitialize)
 
 	// let's use the wrapper function "ControlFunc" which is doing a lot of
 	// things on behalf of us, like document locking, getting the machine

@@ -30,6 +30,7 @@ var states = map[string]*statePair{
 	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
 	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 	"resize":  &statePair{initial: machinestate.Pending, final: machinestate.Running},
+	"reinit":  &statePair{initial: machinestate.Terminating, final: machinestate.Running},
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
@@ -100,6 +101,19 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 	}
 
 	return k.coreMethods(r, resizeFunc)
+}
+
+func (k *Kloud) Reinitialize(r *kite.Request) (resp interface{}, reqErr error) {
+	reinitFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		resp, err := p.Reinitialize(m)
+		if err != nil {
+			return nil, err
+		}
+
+		return resp, err
+	}
+
+	return k.coreMethods(r, reinitFunc)
 }
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {

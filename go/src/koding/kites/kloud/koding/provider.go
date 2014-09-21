@@ -105,8 +105,8 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	return a, nil
 }
 
-func (p *Provider) Name() string {
-	return ProviderName
+func (p *Provider) Reinitialize(m *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, nil
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {

@@ -20,6 +20,10 @@ type Provider interface {
 	// Restart restarts the machine
 	Restart(*Machine) error
 
+	// Reinitialize destroys and builds the machine, basically re initializes
+	// the machine to a new and clean state.
+	Reinitialize(*Machine) (*Artifact, error)
+
 	// Destroy destroys the machine
 	Destroy(*Machine) error
 

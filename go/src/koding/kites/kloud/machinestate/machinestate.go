@@ -111,7 +111,9 @@ func (s State) InProgress() bool {
 // state that is not in progress. A method changes a machine states from one to
 // another. For example a "Stopped" state will be changed to the final state
 // "Running" when a "start" method is applied. However the final state can also
-// be "Terminated" when a "destroy" method is applied.
+// be "Terminated" when a "destroy" method is applied. Thefore "start" and
+// "destroy" both are valid methods for the state "Stopped" (so is "resize"
+// too).
 func (s State) ValidMethods() []string {
 	// Nothing is valid for a state that is marked as "InProgress".
 	if s.InProgress() {
@@ -122,9 +124,9 @@ func (s State) ValidMethods() []string {
 	case NotInitialized:
 		return []string{"build"}
 	case Running:
-		return []string{"stop", "resize", "destroy", "restart"}
+		return []string{"stop", "resize", "destroy", "restart", "reinit"}
 	case Stopped:
-		return []string{"start", "resize", "destroy"}
+		return []string{"start", "resize", "destroy", "reinit"}
 	case Terminated:
 		return []string{"build"}
 	default:
