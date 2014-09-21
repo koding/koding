@@ -68,7 +68,7 @@ module.exports = class Payment extends Base
 
     get url, data, callback
 
-  @creditcard = secure (client, data, callback)->
+  @creditCard = secure (client, data, callback)->
     data.accountId = getAccountId client
     url = "/payments/creditcard/#{data.accountId}"
 

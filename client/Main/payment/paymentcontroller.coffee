@@ -17,7 +17,7 @@ class PaymentController extends KDController
 
   invoices: (callback)-> @api().invoices {}, callback
 
-  creditcard: (callback)-> @api().creditcard {}, callback
+  creditCard: (callback)-> @api().creditcard {}, callback
 
   updateCreditCard: (token, callback)->
     params          = {token}
