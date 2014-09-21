@@ -34,10 +34,6 @@ var states = map[string]*statePair{
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 	startFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		if m.State.In(machinestate.Starting, machinestate.Running) {
-			return nil, NewErrorMessage("Machine is already starting/running.")
-		}
-
 		resp, err := p.Start(m)
 		if err != nil {
 			return nil, err
@@ -108,10 +104,6 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
 	stopFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		if m.State.In(machinestate.Stopped, machinestate.Stopping) {
-			return nil, NewErrorMessage("Machine is already stopping/stopped.")
-		}
-
 		err := p.Stop(m)
 		return nil, err
 	}
@@ -121,10 +113,6 @@ func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		if m.State.In(machinestate.Rebooting) {
-			return nil, NewErrorMessage("Machine is already rebooting.")
-		}
-
 		err := p.Restart(m)
 		return nil, err
 	}
@@ -177,6 +165,98 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	}
 
 	return response, nil
+}
+
+// coreMethods is running and returning the response for the given controlFunc.
+// This method is used to avoid duplicate codes in many codes (because we do
+// the same steps for each of them).
+func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}, reqErr error) {
+	machine, err := k.PrepareMachine(r)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if reqErr != nil {
+			k.Locker.Unlock(machine.Id)
+		}
+	}()
+
+	provider, ok := k.providers[machine.Provider]
+	if !ok {
+		return nil, NewError(ErrProviderAvailable)
+	}
+
+	controller, ok := provider.(protocol.Provider)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	// Check if the given method is in valid methods of that current state. For
+	// example if the method is "build", and the state is "stopped" than this
+	// will return an error.
+	if !methodIn(r.Method, machine.State.ValidMethods()...) {
+		return nil, fmt.Errorf("method '%s' not allowed for current state '%s'. Allowed methods are: %v",
+			r.Method, strings.ToLower(machine.State.String()), machine.State.ValidMethods())
+	}
+
+	// get our state pair. A state pair defines the initial and final state of
+	// a method.  For example, for "restart" method the initial state is
+	// "rebooting" and the final "running.
+	s, ok := states[r.Method]
+	if !ok {
+		return nil, fmt.Errorf("no state pair available for %s", r.Method)
+	}
+
+	// now mark that we are starting...
+	k.Storage.UpdateState(machine.Id, s.initial)
+
+	// each method has his own unique eventer
+	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
+
+	// Start our core method in a goroutine to not block it for the client
+	// side. However we do return an event id which is an unique for tracking
+	// the current status of the running method.
+	go func() {
+		k.idlock.Get(machine.Id).Lock()
+		defer k.idlock.Get(machine.Id).Unlock()
+
+		status := s.final
+		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
+		eventErr := ""
+
+		_, err := fn(machine, controller)
+		if err != nil {
+			k.Log.Error("[%s] %s failed. State is set back to origin '%s'. err: %s",
+				machine.Id, r.Method, machine.State, err.Error())
+
+			status = machine.State
+			msg = ""
+			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
+		} else {
+			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
+				machine.Id, strings.ToUpper(r.Method), status)
+		}
+
+		// update final status in storage
+		k.Storage.UpdateState(machine.Id, status)
+
+		// update final status in storage
+		machine.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+			Error:      eventErr,
+		})
+
+		// unlock distributed lock
+		k.Locker.Unlock(machine.Id)
+	}()
+
+	return ControlResult{
+		EventId: machine.Eventer.Id(),
+		State:   s.initial,
+	}, nil
 }
 
 func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr error) {
@@ -240,111 +320,11 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, NewError(ErrSignUsernameEmpty)
 	}
 
-	k.Log.Debug("[%s] got machine data: %+v", args.MachineId, machine)
-
-	// prevent request if the machine is terminated. However we want the user
-	// to be able to build again or get information, therefore build and info
-	// should be able to continue, however methods like start/stop/etp.. are
-	// forbidden.
-	if machine.State.In(machinestate.Terminating, machinestate.Terminated) &&
-		!methodHas(r.Method, "build", "info") {
-		return nil, NewError(ErrMachineTerminating)
-	}
-
 	return machine, nil
 }
 
-// coreMethods is running and returning the response for the given controlFunc.
-// This method is used to avoid duplicate codes in many codes (because we do
-// the same steps for each of them).
-func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}, reqErr error) {
-	machine, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if reqErr != nil {
-			k.Locker.Unlock(machine.Id)
-		}
-	}()
-
-	provider, ok := k.providers[machine.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderAvailable)
-	}
-
-	controller, ok := provider.(protocol.Provider)
-	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
-	}
-
-	// if the machine is not initialized don't let it any method run, expect "build"
-	if machine.State == machinestate.NotInitialized && r.Method != "build" {
-		return nil, NewError(ErrMachineNotInitialized)
-	}
-
-	// get our state pair. A state pair defines the initial and final state of
-	// a method.  For example, for "restart" method the initial state is
-	// "rebooting" and the final "running.
-	s, ok := states[r.Method]
-	if !ok {
-		return nil, fmt.Errorf("no state pair available for %s", r.Method)
-	}
-
-	// now mark that we are starting...
-	k.Storage.UpdateState(machine.Id, s.initial)
-
-	// each method has his own unique eventer
-	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
-
-	// Start our core method in a goroutine to not block it for the client
-	// side. However we do return an event id which is an unique for tracking
-	// the current status of the running method.
-	go func() {
-		k.idlock.Get(machine.Id).Lock()
-		defer k.idlock.Get(machine.Id).Unlock()
-
-		status := s.final
-		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
-		eventErr := ""
-
-		_, err := fn(machine, controller)
-		if err != nil {
-			k.Log.Error("[%s] %s failed. State is set back to origin '%s'. err: %s",
-				machine.Id, r.Method, machine.State, err.Error())
-
-			status = machine.State
-			msg = ""
-			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
-		} else {
-			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), status)
-		}
-
-		// update final status in storage
-		k.Storage.UpdateState(machine.Id, status)
-
-		// update final status in storage
-		machine.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Status:     status,
-			Percentage: 100,
-			Error:      eventErr,
-		})
-
-		// unlock distributed lock
-		k.Locker.Unlock(machine.Id)
-	}()
-
-	return ControlResult{
-		EventId: machine.Eventer.Id(),
-		State:   s.initial,
-	}, nil
-}
-
-// methodHas checks if the method exist for the given methods
-func methodHas(method string, methods ...string) bool {
+// methodIn checks if the method exist in the given methods
+func methodIn(method string, methods ...string) bool {
 	for _, m := range methods {
 		if method == m {
 			return true

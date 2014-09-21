@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"fmt"
-	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"strconv"
 	"time"
@@ -12,21 +11,6 @@ import (
 
 func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 	buildFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		// alrady building bro ...
-		if m.State == machinestate.Building {
-			return nil, NewError(ErrMachineIsBuilding)
-		}
-
-		// what? should never happen!
-		if m.State == machinestate.Unknown {
-			return nil, NewError(ErrMachineUnknownState)
-		}
-
-		// if it's something else (stopped, runnning, ...) it's been already built
-		if !m.State.In(machinestate.Terminated, machinestate.NotInitialized) {
-			return nil, NewError(ErrMachineInitialized)
-		}
-
 		// prepare instance name
 		instanceName := "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		i, ok := m.Builder["instanceName"]
