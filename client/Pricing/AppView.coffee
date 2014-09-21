@@ -94,7 +94,7 @@ class PricingAppView extends KDView
 
       { router } = KD.singletons
 
-      KD.utils.wait 500, -> router.handleRoute '/'
+      router.handleRoute '/'
 
 
   pistachio: ->

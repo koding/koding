@@ -13,11 +13,11 @@
 # view       : KDView
 class PaymentWorkflow extends KDController
 
-  @interval:
-    MONTH  : 'month'
-    YEAR   : 'year'
+  @planInterval :
+    MONTH       : 'month'
+    YEAR        : 'year'
 
-  @plan          :
+  @planTitle     :
     FREE         : 'free'
     HOBBYIST     : 'hobbyist'
     DEVELOPER    : 'developer'
@@ -25,8 +25,12 @@ class PaymentWorkflow extends KDController
 
   @isUpgrade: (current, selected) ->
 
-    { FREE, HOBBYIST, DEVELOPER, PROFESSIONAL } = PaymentWorkflow.plan
-    arr = [FREE, HOBBYIST, DEVELOPER, PROFESSIONAL]
+    arr = [
+      PaymentWorkflow.planTitle.FREE
+      PaymentWorkflow.planTitle.HOBBYIST
+      PaymentWorkflow.planTitle.DEVELOPER
+      PaymentWorkflow.planTitle.PROFESSIONAL
+    ]
 
     (arr.indexOf selected) > (arr.indexOf current)
 
@@ -91,7 +95,7 @@ class PaymentWorkflow extends KDController
     cardYear  = null  if cardYear.length isnt 4
     cardMonth = null  if cardMonth.length isnt 2
 
-    if currentPlan is PaymentWorkflow.plan.FREE
+    if currentPlan is PaymentWorkflow.planTitle.FREE
 
       Stripe.card.createToken {
         number    : cardNumber

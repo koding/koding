@@ -11,8 +11,8 @@
 class PaymentForm extends JView
 
   initialState     :
-    planInterval   : PaymentWorkflow.interval.MONTH
-    planTitle      : PaymentWorkflow.plan.HOBBYIST
+    planInterval   : PaymentWorkflow.planInterval.MONTH
+    planTitle      : PaymentWorkflow.planTitle.HOBBYIST
     providerLoaded : no
     validation     : {
       cardNumber   : yes
@@ -40,7 +40,7 @@ class PaymentForm extends JView
 
   initViews: ->
 
-    { MONTH, YEAR } = PaymentWorkflow.interval
+    { MONTH, YEAR } = PaymentWorkflow.planInterval
 
     {
       planTitle, monthPrice, yearPrice,
@@ -80,7 +80,7 @@ class PaymentForm extends JView
         @emit 'IntervalToggleChanged', state
 
 
-    { FREE } = PaymentWorkflow.plan
+    { FREE } = PaymentWorkflow.planTitle
 
     if planTitle is FREE
       [@discountMessage, @intervalToggleLink].forEach (view) ->
@@ -191,7 +191,7 @@ class PaymentForm extends JView
 
   handleToggleChanged: (opts) ->
 
-    { MONTH }        = PaymentWorkflow.interval
+    { MONTH }        = PaymentWorkflow.planInterval
     { planInterval } = opts
 
     @state.planInterval = planInterval
