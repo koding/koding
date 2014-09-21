@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/amazon"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -32,6 +33,10 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		return nil, err
 	}
 
+	return p.build(a, m)
+}
+
+func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine) (resArt *protocol.Artifact, err error) {
 	// Check for total amachine allowance
 	checker, err := p.PlanChecker(m)
 	if err != nil {

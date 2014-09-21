@@ -105,10 +105,6 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	return a, nil
 }
 
-func (p *Provider) Reinitialize(m *protocol.Machine) (*protocol.Artifact, error) {
-	return nil, nil
-}
-
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(m)
 	if err != nil {
@@ -187,13 +183,30 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 	return a.Restart()
 }
 
+func (p *Provider) Reinitialize(m *protocol.Machine) (*protocol.Artifact, error) {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := p.destroy(a, m); err != nil {
+		return nil, err
+	}
+
+	return p.build(a, m)
+}
+
 func (p *Provider) Destroy(m *protocol.Machine) error {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
 
-	err = a.Destroy()
+	return p.destroy(a, m)
+}
+
+func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine) error {
+	err := a.Destroy()
 	if err != nil {
 		return err
 	}
@@ -221,4 +234,5 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 	}
 
 	return nil
+
 }
