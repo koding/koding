@@ -28,8 +28,26 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    KD.singletons.computeController.on "public-#{@machine._id}", (event)=>
-      @handleMachineEvent event
+    KD.singletons.computeController
+
+      .on "public-#{@machine._id}", (event)=>
+        @handleMachineEvent event
+
+      # These are updating machine data on this instance indivudally
+      # but since we have more data to update, I'm updating all machines
+      # for now.
+      #
+      # .on "revive-#{@machine._id}", (machine)=>
+      #   @machine = machine
+
+      #   @label.updatePartial @machine.label
+      #   @alias   = @machine.slug or @label
+      #   newPath  = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
+
+      #   @setAttributes
+      #     href   : newPath
+      #     title  : "Open IDE for #{@alias}"
+
 
   handleMachineEvent: (event) ->
 
