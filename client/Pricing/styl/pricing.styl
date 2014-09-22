@@ -76,14 +76,44 @@ body.pricing
     text-align          center
     margin              0 auto 40px
 
-  p.pricing-footer
-    margin-top         35px
-    text-align         center
-    color              #5A5A5A
-    font-weight        200
+  .pricing-footer
+    margin             35px auto 0
+    max-width          780px
+    color              #9b9b9b
+    font-weight        400
     font-size          14px
     line-height        28px
-    opacity            .99
+    borderBox()
+
+    .footer-note
+      font-size        12px
+      margin-top       -10px
+
+    h4
+      font-weight      600
+
+    li
+      position         relative
+      padding-left     18px
+      fl()
+      borderBox()
+
+      &:nth-of-type(4n+1)
+        width          23%
+      &:nth-of-type(4n+2)
+        width          29%
+      &:nth-of-type(4n+3)
+        width          16%
+      &:nth-of-type(4n)
+        width          32%
+
+      &:before
+        content        ''
+        display        block
+        r-sprite       'pricing', 'check-gray'
+        top            11px
+        left           0
+        abs()
 
     span
       font-weight      400
@@ -92,7 +122,7 @@ body.pricing
   .learn-more
     line-height        28px
     font-size          14px
-    margin-top         4px
+    margin-top         15px
     display            block
     text-align         center
     color              #01B05A

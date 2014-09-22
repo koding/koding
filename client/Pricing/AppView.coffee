@@ -53,12 +53,7 @@ class PricingAppView extends KDView
 
     @plans = new PricingPlansView { @state }
 
-    @info = new KDCustomHTMLView
-      tagName   : 'p'
-      cssClass  : 'pricing-footer'
-      partial   : "
-        All plans include: <span>Non-hypervised VMs, full sudo access, custom sub-domains, SSL and SSH access</span>
-      "
+    @info = @initInfo()
 
     @learnMoreLink = new CustomLinkView
       title    : "Learn more about all our features"
@@ -70,6 +65,48 @@ class PricingAppView extends KDView
     @plans.on 'PlanSelected', @bound 'planSelected'
 
     @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
+
+
+  initInfo: ->
+
+    features = [
+      'Full sudo access'
+      'VMs hosted on Amazon EC2'
+      'SSH Access'
+      'Real EC2 VM, no LXCs/hypervising'
+
+      'Custom sub-domains'
+      'Publicly accessible IP'
+      'Ubuntu 14.04'
+      'IDE/Terminal/Collaboration'
+    ]
+
+    view = new KDCustomHTMLView
+      cssClass : 'pricing-footer'
+
+    view.addSubView new KDCustomHTMLView
+      cssClass : 'footer-msg'
+      partial  : "
+        <p>Don't worry, you can upgrade or downgrade your plan at any time.</p>
+        <p class='footer-note'>(you can cancel a yearly plan within 3 months -
+        no questions asked! outside of 3 months there is 2 month fee.)</p>
+      "
+
+    view.addSubView new KDCustomHTMLView
+      tagName : 'h4'
+      partial : 'All plans include:'
+
+    view.addSubView featuresWrapper = new KDCustomHTMLView
+      tagName  : 'ul'
+      cssClass : 'features clearfix'
+
+    features.forEach (feature) ->
+      featuresWrapper.addSubView new KDCustomHTMLView
+        tagName  : 'li'
+        cssClass : 'single-feature'
+        partial  : feature
+
+    return view
 
 
   selectIntervalToggle: (planInterval) ->
@@ -96,7 +133,8 @@ class PricingAppView extends KDView
       @state.currentPlan = planTitle
       @plans.planViews[planTitle].disable()
 
-      @plans.planViews['hobbyist'].setClass 'promoted'  if planTitle is 'free'
+      if planTitle is 'free'
+        @plans.planViews[@state.promotedPlan].setClass 'promoted'
 
       callback()
 
