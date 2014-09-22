@@ -34,9 +34,9 @@ func main() {
 }
 
 func migrateChannels(r *runner.Runner, handler *algoliaconnector.Controller) error {
-	var listings []models.ChannelMessageList
+	var messages []models.ChannelMessageList
 	for b := 0; ; b++ {
-		err := models.NewChannelMessageList().Some(&listings, &bongo.Query{
+		err := models.NewChannelMessage().Some(&messages, &bongo.Query{
 			Pagination: bongo.Pagination{
 				Limit: 100,
 				Skip:  b * 100,
@@ -45,14 +45,22 @@ func migrateChannels(r *runner.Runner, handler *algoliaconnector.Controller) err
 			return err
 		}
 
-		for _, listing := range listings {
+		for _, message := range messages {
+			listing := models.NewChannelMessageList()
+
+			if err := listing.One(&bongo.Query{
+				Selector: map[string]interface{}{"message_id": message.Id}}); err != nil {
+				return err
+			}
+
 			r.Log.Info(fmt.Sprintf("currently migrating ChannelMessageList: '%v'", listing.Id))
-			if err := handler.MessageListSaved(&listing); err != nil {
+
+			if err := handler.MessageListSaved(listing); err != nil {
 				return err
 			}
 		}
 
-		if len(listings) < 100 {
+		if len(messages) < 100 {
 			return nil
 		}
 	}
