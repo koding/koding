@@ -12,8 +12,6 @@ module.exports = class Payment extends Base
       static          :
         subscribe         :
           (signature Object, Function)
-        unsubscribe       :
-          (signature Object, Function)
         subscriptions     :
           (signature Object, Function)
         invoices          :
