@@ -2,20 +2,26 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
+  initialState : {
+    planInterval : 'year'
+    promotedPlan : 'hobbyist'
+  }
+
   constructor:(options = {}, data) ->
 
     options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
 
     super options, data
 
-
-    @state = {}
+    @state = @utils.extend @initialState, options.state
 
     @loadPlan()  if KD.isLoggedIn()
     @initViews()
     @initEvents()
 
-    @plans.planViews['hobbyist'].setClass 'promoted'  unless KD.isLoggedIn()
+    { planInterval, promotedPlan } = @state
+
+    @plans.planViews[promotedPlan].setClass 'promoted'  unless KD.isLoggedIn()
 
 
   initViews: ->
@@ -34,6 +40,20 @@ class PricingAppView extends KDView
         Trusted by your peers worldwide.
       "
 
+    @intervalToggle = new KDButtonGroupView
+      cssClass     : 'interval-toggle'
+      buttons      :
+        'month'    :
+          title    : 'MONTH'
+          callback : => @emit 'IntervalToggleChanged', { planInterval : 'month' }
+        'year'     :
+          title    : 'YEAR'
+          callback : => @emit 'IntervalToggleChanged', { planInterval : 'year' }
+
+    # set the initial state of the toggle button
+    selectedIntervalButton = @intervalToggle.buttons[@state.planInterval]
+    @intervalToggle.buttonReceivedClick selectedIntervalButton
+
     @plans = new PricingPlansView { @state }
 
     @info = new KDCustomHTMLView
@@ -51,6 +71,13 @@ class PricingAppView extends KDView
 
   initEvents: ->
     @plans.on 'PlanSelected', @bound 'planSelected'
+
+    @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
+
+
+  handleToggleChanged: ({ planInterval }) ->
+
+    @state.planInterval = planInterval
 
 
   loadPlan: (callback = noop) ->
@@ -101,6 +128,7 @@ class PricingAppView extends KDView
     """
       {{> @header}}
       {{> @headerDescription}}
+      {{> @intervalToggle}}
       {{> @plans}}
       {{> @info}}
       {{> @learnMoreLink}}
