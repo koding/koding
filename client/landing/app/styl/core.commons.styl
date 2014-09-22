@@ -673,95 +673,43 @@ FOOTER VIEW
 
 footer.main-footer
   padding               56px 0
-  font-size             13px
+  font-family           openSansFamily
   font-weight           400
-  background            #2c3134
+  background            #F0F0F0
+  border-top            1px solid #E8E8E8
 
   .inner-container
-    max-width             1290px
-    padding               0px 45px
-    margin                0 auto
-    display               block
-    position              relative
+    max-width           1290px
+    padding             0px 45px
+    margin              0 auto
+    display             block
+    position            relative
     borderBox()
 
   .footer-block
-    width               25%
+    width               50%
+    font-size           0
     borderBox()
     fl()
+    &:last-child
+      text-align        right
 
     a
-      color              #b3b3b3
-      display            inline
-      noTextDeco()
-
-    h5
-      margin             0 0 6px 0
-      color              #858585
-
-  .about-koding
-    h5
-      font-weight        600
-      color              #c5c5c5
-
-    p
-      padding-right      72px
-      margin             2px 0 4px 0
-      line-height        18px
-      color              #838485
-      borderBox()
-
-    a
-      color              #525658
-      text-decoration    underline
-
-  nav
-    a
+      vertical-align     middle
+      font-size          14px
       line-height        22px
-
-      &:after
-        content         '\A'
-        display         block
-        white-space     pre
-        line-height     0
-        padding         0
-        margin          0
-        height          0
-
-  cite
-    display             block
-    clear               both
-
-  address
-    clear                both
-    display              block
-    text-align           center
-    margin               50px auto 0 auto
-    padding              25px 0 0
-    font-size            14px
-    color                #b3b3b3
-    position             relative
-
-    &:before
-      content           ""
-      display           block
-      size              80%, 1px
-      background-image  -webkit-linear-gradient(left, rgba(59, 64, 67, 0) 0%, rgba(59, 64, 67, 1) 10%, rgba(59, 64, 67, 1) 90%, rgba(59, 64, 67, 0) 100%)
-      abs               0px 0 0 50%
-      vendor            transform, translateX(-50%)
-
-  .social-links
-    color               #838485
-    display             block
-    text-align          center
-    margin              30px 0 0
-    word-spacing        5px
-
-    a
-      color             #838485
-      font-size         13px
-      font-weight       400
+      color              #747474
+      display            inline
+      margin-right       12px
       noTextDeco()
+
+  a.social
+    display             inline-block
+    margin-right        8px
+    &.tw
+      r-sprite          home 'social-tw'
+    &.fb
+      r-sprite          home 'social-fb'
 
 
 
