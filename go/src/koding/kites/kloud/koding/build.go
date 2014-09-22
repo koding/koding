@@ -102,12 +102,14 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
-	infoLog("Searching for subnets")
-	subs, err := a.ListSubnets()
+	infoLog("Fetching subnetId with available IPs")
+	subnetId, err := a.SubnetId()
 	if err != nil {
 		return nil, err
 	}
-	a.Builder.SubnetId = subs.Subnets[0].SubnetId
+
+	infoLog("Using subnet id %s", subnetId)
+	a.Builder.SubnetId = subnetId
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
