@@ -61,7 +61,8 @@ class ActivitySidebar extends KDCustomHTMLView
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
-      .on 'MachineDataUpdated',        @bound 'updateMachineTree'
+      .on 'MachineDataModified',       @bound 'updateMachineTree'
+      .on 'RenderMachines',            @bound 'renderMachines'
 
   # event handling
 
@@ -649,11 +650,17 @@ class ActivitySidebar extends KDCustomHTMLView
   updateMachineTree: (callback = noop) ->
 
     @fetchMachines (machines) =>
-      jMachines = []
-      tree      = @machineTree
-      jMachines.push machine.data for machine in machines
 
-      tree.removeAllNodes()
-      @listMachines jMachines
-      @selectWorkspace()
-      callback()
+      @renderMachines machines, callback
+
+
+  renderMachines: (machines, callback = noop)->
+
+    jMachines = []
+    jMachines.push machine.data for machine in machines
+
+    @machineTree.removeAllNodes()
+    @listMachines jMachines
+
+    @selectWorkspace()
+    callback()
