@@ -35,27 +35,21 @@ class PaymentForm extends JView
     @initViews()
     @initEvents()
 
-    { planInterval } = state
-
 
   initViews: ->
 
     { MONTH, YEAR } = PaymentWorkflow.planInterval
 
     {
-      planTitle, monthPrice, yearPrice,
-      planInterval, reducedMonth, discount
-      currentPlan
+      planTitle, planInterval
+      reducedMonth, discount, currentPlan
     } = @state
 
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
       partial : "#{planTitle.capitalize()} Plan"
 
-    pricePartial = if planInterval is MONTH
-    then "#{monthPrice / 100.00}<span>/month</span>"
-    else "#{yearPrice / 100.00}<span>/month</span>"
-
+    pricePartial = @getPricePartial planInterval
     @price = new KDCustomHTMLView
       cssClass : 'plan-price'
       partial  : pricePartial
@@ -98,7 +92,7 @@ class PaymentForm extends JView
     @totalPrice = new KDCustomHTMLView
       cssClass  : 'total-price'
       tagName   : 'cite'
-      partial   : "#{monthPrice / 100}<span>/month</span>"
+      partial   : pricePartial
 
     @submitButton.addSubView @totalPrice  if isUpgrade
 
@@ -187,6 +181,16 @@ class PaymentForm extends JView
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'PaymentWorkflowFinished', @state
+
+
+  getPricePartial: (planInterval) ->
+    { monthPrice, yearPrice } = @state
+
+    map =
+      month : "#{monthPrice / 100}<span>/month</span>"
+      year  : "#{yearPrice / 100}<span>/year</span>"
+
+    return map[planInterval]
 
 
   pistachio: ->

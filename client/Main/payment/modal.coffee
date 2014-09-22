@@ -5,7 +5,8 @@ class PaymentModal extends KDModalView
 
   initialState   :
     planInterval : PaymentWorkflow.planInterval.MONTH
-    scene        : 0
+    planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+
 
   constructor: (options = {}, data) ->
 
