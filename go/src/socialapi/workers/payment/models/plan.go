@@ -17,7 +17,7 @@ type Plan struct {
 	Interval string `json:"interval"`
 
 	// Title of plan. Enum:
-	//		'free', 'hobbyist', 'developer', 'professional'
+	//		'free', 'hobbyist', 'developer', 'professional', 'super
 	Title string `json:"title, string"`
 
 	// Cost of plan in cents.
