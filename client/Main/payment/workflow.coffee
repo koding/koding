@@ -67,14 +67,6 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
-    {
-      planTitle, monthPrice, yearPrice, reducedMonth, discount
-    } = @getOptions()
-
-    @state = @utils.extend @state, {
-      planTitle, monthPrice, yearPrice, reducedMonth, discount
-    }
-
     @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished', @bound 'finish'
     @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
