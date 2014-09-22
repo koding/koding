@@ -329,7 +329,7 @@ module.exports = class JMachine extends Module
         @update $set: { domain }, (err)-> callback err
 
 
-  setLabel: permit 'set label',
+  setLabel: permit 'set domain',
 
     success: revive
 
@@ -343,11 +343,16 @@ module.exports = class JMachine extends Module
       unless isOwner user, this
         return callback new KodingError 'Access denied'
 
+      kallback = (err, slug)->
+        if err?
+        then callback err
+        else callback null, slug
+
       slug = slugify label
 
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, slug)=>
           return callback err  if err?
-          @update $set: { slug, label }, (err)-> callback err
+          @update $set: { slug, label }, (err)-> kallback err, slug
       else
-        @update $set: { label }, (err)-> callback err
+        @update $set: { label }, (err)-> kallback err, slug
