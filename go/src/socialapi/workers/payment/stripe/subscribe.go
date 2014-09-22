@@ -4,6 +4,7 @@ import (
 	"socialapi/workers/payment/models"
 
 	stripe "github.com/stripe/stripe-go"
+	stripeInvoice "github.com/stripe/stripe-go/invoice"
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
@@ -70,7 +71,16 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	err = CancelSubscription(customer, &currentSubscription)
+	err = DowngradeToFreePlan(customer, &currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DowngradeToFreePlan(customer *paymentmodel.Customer, currentSubscription *paymentmodel.Subscription) error {
+	err := CancelSubscription(customer, currentSubscription)
 	if err != nil {
 		return err
 	}
@@ -97,6 +107,15 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
 
 	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return err
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Customer: customer.ProviderCustomerId,
+	}
+
+	_, err = stripeInvoice.New(invoiceParams)
 	if err != nil {
 		return err
 	}
