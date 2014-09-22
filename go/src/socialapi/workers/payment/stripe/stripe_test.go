@@ -110,3 +110,17 @@ func subscribeFn(fn func(string, string, string)) func() {
 		fn(token, accId, email)
 	}
 }
+
+func existingSubscribeFn(fn func(string, string, string)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+
+		_, err := CreateCustomer(token, accId, email)
+		So(err, ShouldBeNil)
+
+		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		So(err, ShouldBeNil)
+
+		fn(token, accId, email)
+	}
+}

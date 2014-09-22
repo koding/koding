@@ -30,6 +30,8 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
+// CreatePlan creates plan in Stripe and saves it locally. It deals with
+// cases where plan exists in stripe, but not locally.
 func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       id,
@@ -40,7 +42,7 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 	}
 
 	_, err := stripePlan.New(planParams)
-	if err != nil && err.Error() != ErrPlanAlreadyExists.Error() {
+	if err != nil && err.Error() != ErrStripePlanAlreadyExists.Error() {
 		return nil, err
 	}
 

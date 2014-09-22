@@ -10,20 +10,6 @@ import (
 	stripeToken "github.com/stripe/stripe-go/token"
 )
 
-func existingSubscribeFn(fn func(string, string, string)) func() {
-	return func() {
-		token, accId, email := generateFakeUserInfo()
-
-		_, err := CreateCustomer(token, accId, email)
-		So(err, ShouldBeNil)
-
-		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
-		So(err, ShouldBeNil)
-
-		fn(token, accId, email)
-	}
-}
-
 func TestSubscribe(t *testing.T) {
 	Convey("Given nonexistent plan", t, func() {
 		token, accId, email := generateFakeUserInfo()

@@ -7,9 +7,9 @@ import (
 	stripeCustomer "github.com/stripe/stripe-go/customer"
 )
 
-// Creates customer in Stripe and saves customer with Stripe's customer_id;
-// token is previously acquired from Stripe, represents customer's cc info;
-// accId is the `jAccount` id from mongo.
+// CreateCustomer creates customer in Stripe and saves customer with
+// Stripe's customer_id; token is previously acquired from Stripe,
+// represents customer's cc info; accId is the `jAccount` id from mongo.
 func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) {
 	params := &stripe.CustomerParams{
 		Desc:  accId,

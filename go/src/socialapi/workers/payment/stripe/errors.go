@@ -7,7 +7,6 @@ import (
 
 var (
 	ErrPlanNotFound                    = errors.New("plan not found")
-	ErrPlanAlreadyExists               = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
 	ErrCustomerIdIsNotSet              = errors.New("customer id is not set")
 	ErrCustomerNotFound                = errors.New("user not found")
 	ErrCustomerAlreadySubscribedToPlan = errors.New("user is already subscribed to plan")
@@ -17,6 +16,11 @@ var (
 	ErrTokenIsEmpty                    = errors.New("token is required")
 	ErrNoCreditCard                    = errors.New("no credit card")
 
+	ErrStripePlanAlreadyExists = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
+
+	// ErrPlanNotFoundFn returns true if argument has part of pg error
+	// messages matches. We do partial match since pg error message also
+	// returns the dynamic enum value.
 	ErrPlanNotFoundFn = func(err error) bool {
 		if err == nil {
 			return false
