@@ -147,6 +147,6 @@ func (p *Provider) Resize(m *protocol.Machine) (*protocol.Artifact, error) {
 	return nil, errors.New("resize is not supported")
 }
 
-func (p *Provider) Reinitialize(m *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	return nil, errors.New("reinitialize is not supported")
 }

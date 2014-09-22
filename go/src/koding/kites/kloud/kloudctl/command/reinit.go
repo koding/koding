@@ -29,7 +29,7 @@ func (r *Reinit) Action(args []string, k *kite.Client) error {
 		Username:  flagUsername,
 	}
 
-	resp, err := k.Tell("reinitialize", reinitArgs)
+	resp, err := k.Tell("reinit", reinitArgs)
 	if err != nil {
 		return err
 	}

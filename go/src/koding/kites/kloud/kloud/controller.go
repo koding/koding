@@ -103,9 +103,9 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 	return k.coreMethods(r, resizeFunc)
 }
 
-func (k *Kloud) Reinitialize(r *kite.Request) (resp interface{}, reqErr error) {
+func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 	reinitFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		resp, err := p.Reinitialize(m)
+		resp, err := p.Reinit(m)
 		if err != nil {
 			return nil, err
 		}

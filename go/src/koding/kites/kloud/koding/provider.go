@@ -183,7 +183,7 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 	return a.Restart()
 }
 
-func (p *Provider) Reinitialize(m *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
