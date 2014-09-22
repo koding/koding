@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	_ "io/ioutil"
 	"log"
 	"net/url"
 	"testing"
