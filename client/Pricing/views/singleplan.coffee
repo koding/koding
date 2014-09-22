@@ -44,7 +44,7 @@ class SinglePlanView extends KDView
       type     : 'medium'
       cssClass : 'plan-price'
       title    : "
-        <cite>#{(price) or 'Free'}</cite>
+        <cite>#{if price is '0' then 'Free' else price}</cite>
         <span class='interval-text'>MONTHLY</span>
       "
 

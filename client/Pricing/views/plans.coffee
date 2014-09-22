@@ -4,8 +4,8 @@ class PricingPlansView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.tagName  = "section"
-    options.cssClass = "plans clearfix"
+    options.tagName  = 'section'
+    options.cssClass = 'plans clearfix'
 
     super options, data
 
@@ -18,7 +18,7 @@ class PricingPlansView extends KDView
       planTitle = plan.title.toLowerCase()
       plan.state = @state
       @addSubView view = new SinglePlanView plan
-      @forwardEvent view, "PlanSelected"
+      @forwardEvent view, 'PlanSelected'
       @planViews[planTitle] = view
 
 
@@ -29,10 +29,10 @@ class PricingPlansView extends KDView
 
   plans: [
     title        : 'Free'
-    monthPrice   : 0
-    reducedMonth : 0
-    yearPrice    : 0
-    discount     : 0
+    monthPrice   : '0'
+    reducedMonth : '0'
+    yearPrice    : '0'
+    discount     : '0'
     description  : 'Best for tinkering with and learning new technologies'
     cssClass     : 'free'
     planFeatures : [
@@ -44,9 +44,9 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Hobbyist'
-    monthPrice   : "12.50"
-    reducedMonth : "9.95"
-    yearPrice    : "119.40"
+    monthPrice   : '12.50'
+    reducedMonth : '9.95'
+    yearPrice    : '119.40'
     discount     : 255
     description  : 'Best for expanded learning or for running a small blog/website'
     cssClass     : 'hobbyist'
@@ -59,9 +59,9 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Developer'
-    monthPrice   : "24.50"
-    reducedMonth : "19.95"
-    yearPrice    : "239.40"
+    monthPrice   : '24.50'
+    reducedMonth : '19.95'
+    yearPrice    : '239.40'
     discount     : 455
     description  : 'Great for developers who work with multiple environments'
     cssClass     : 'developer'
@@ -74,9 +74,9 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Professional'
-    monthPrice   : "49.50"
-    reducedMonth : "39.95"
-    yearPrice    : "479.40"
+    monthPrice   : '49.50'
+    reducedMonth : '39.95'
+    yearPrice    : '479.40'
     discount     : 955
     description  : 'Great for managing and delivering client work'
     cssClass     : 'professional'
