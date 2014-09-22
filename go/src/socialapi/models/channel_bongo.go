@@ -53,6 +53,14 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Delete() error {
+	if err := c.deleteChannelMessages(); err != nil {
+		return err
+	}
+
+	if err := c.deleteChannelLists(); err != nil {
+		return err
+	}
+
 	return bongo.B.Delete(c)
 }
 
@@ -79,4 +87,8 @@ func (c *Channel) FetchByIds(ids []int64) ([]Channel, error) {
 		return nil, err
 	}
 	return channels, nil
+}
+
+func (c *Channel) CountWithQuery(q *bongo.Query) (int, error) {
+	return bongo.B.CountWithQuery(c, q)
 }

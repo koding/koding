@@ -3,8 +3,8 @@ package main
 import (
 	"sync"
 
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/machinestate"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/kloud"
 )
 
 var (

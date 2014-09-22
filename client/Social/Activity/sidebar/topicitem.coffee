@@ -4,7 +4,7 @@ class SidebarTopicItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    {name, typeConstant}    = data
+    {name, typeConstant, participantCount}    = data
 
     # rewrite grop channel as topic?
     typeConstant            = "topic" if typeConstant is "group"
@@ -17,7 +17,7 @@ class SidebarTopicItem extends SidebarItem
     super options, data
 
     @followButton = if name is 'public'
-    then new KDCustomHTMLView
+    then new KDCustomHTMLView tagName : 'span'
     else new TopicFollowButton {}, @getData()
 
 
@@ -25,6 +25,7 @@ class SidebarTopicItem extends SidebarItem
 
     """
     {span.ttag{ '#' + #(name)}}
+    {span.hidden.participant-count{#(participantCount) + ' followers'}}
     {{> @followButton}}
     {{> @unreadCount}}
     """
