@@ -88,6 +88,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
       {nickEdit, nickname} = @modalTabs.forms.Settings.inputs
       label = nickEdit.getValue()
 
+      {appManager, router} = KD.singletons
+
       @machine.setLabel label, (err, newSlug)=>
 
         if not KD.showError err
@@ -97,6 +99,18 @@ class MachineSettingsPopup extends KDModalViewWithForms
           nickEdit.hide()
           nickname.show()
 
+          frontApp = appManager.getFrontApp()
+
+          if frontApp.options.name is "IDE" and frontApp.workspaceData?
+
+            return  unless @machine.slug is frontApp.workspaceData.machineLabel
+
+            newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
+            frontApp.workspaceData.machineLabel = newSlug
+
+            KD.utils.defer ->
+              computeController.once 'MachineDataUpdated', ->
+                router.clear newRoute
 
 
   viewAppended:->
