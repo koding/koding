@@ -7,6 +7,7 @@ import (
 
 	stripe "github.com/stripe/stripe-go"
 	stripeSub "github.com/stripe/stripe-go/sub"
+	stripeToken "github.com/stripe/stripe-go/token"
 )
 
 func existingSubscribeFn(fn func(string, string, string)) func() {
@@ -175,13 +176,54 @@ func TestSubscribe(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		subscribeFn(func(token, accId, email string) {
 			Convey("When customer downgrades to free plan", func() {
-				err := Subscribe(token, accId, email, LowerPlan, LowerInterval)
+				err := Subscribe(token, accId, email, FreePlan, FreeInterval)
 				So(err, ShouldBeNil)
 
 				Convey("Then subscription is canceled", func() {
+					customer, err := FindCustomerByOldId(accId)
+					So(err, ShouldBeNil)
+
+					subs, err := FindCustomerActiveSubscriptions(customer)
+					So(err, ShouldBeNil)
+
+					So(len(subs), ShouldEqual, 0)
 				})
 
 				Convey("Then customer's credit card is deleted", func() {
+					resp, err := GetCreditCard(accId)
+					So(err, ShouldBeNil)
+
+					So(resp.LastFour, ShouldEqual, "")
+				})
+			})
+		}),
+	)
+
+	Convey("Given an existent customer, but no subscription", t,
+		subscribeFn(func(token, accId, email string) {
+			Convey("When customer upgrades to plan", func() {
+				err := Subscribe(token, accId, email, FreePlan, FreeInterval)
+				So(err, ShouldBeNil)
+
+				tokenParams := &stripe.TokenParams{
+					Card: &stripe.CardParams{
+						Number: "4012888888881881",
+						Month:  "10",
+						Year:   "20",
+					},
+				}
+
+				token, err := stripeToken.New(tokenParams)
+				So(err, ShouldBeNil)
+
+				err = Subscribe(token.Id, accId, email, StartingPlan, StartingInterval)
+				So(err, ShouldBeNil)
+
+				Convey("Then the customer has new credit card", func() {
+					resp, err := GetCreditCard(accId)
+					So(err, ShouldBeNil)
+
+					So(resp.LastFour, ShouldEqual, "1881")
 				})
 			})
 		}),

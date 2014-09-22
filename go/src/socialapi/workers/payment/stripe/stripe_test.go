@@ -31,6 +31,8 @@ var (
 	HigherInterval    = "month"
 	LowerPlan         = "hobbyist"
 	LowerInterval     = "month"
+	FreePlan          = "free"
+	FreeInterval      = "month"
 )
 
 func generateFakeUserInfo() (string, string, string) {
