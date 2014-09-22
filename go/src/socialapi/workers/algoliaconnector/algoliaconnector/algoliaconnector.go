@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -34,8 +33,7 @@ func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
 }
 
 func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	// IDK what to do with this error; for now I will simply log it:
-	fmt.Println(err)
+	c.log.Error(err)
 	return false
 }
 
@@ -72,10 +70,7 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error {
 	message := models.NewChannelMessage()
 
-	err := message.One(&bongo.Query{
-		Selector: map[string]interface{}{"id": listing.MessageId}})
-
-	if err != nil {
+	if err := message.ById(listing.MessageId); err != nil {
 		return err
 	}
 
@@ -112,7 +107,8 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 	objectId := strconv.FormatInt(listing.MessageId, 10)
 
 	record, err := f.get("messages", objectId)
-	if err != nil {
+	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound.Error() &&
+		err.Error() != ErrAlgoliaIndexNotExist.Error() {
 		return err
 	}
 	if len(record["_tags"].([]interface{})) == 1 {
