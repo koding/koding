@@ -122,7 +122,7 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		err = k.Storage.Update(m.Id, &StorageData{
-			Type: "start",
+			Type: "reinit",
 			Data: map[string]interface{}{
 				"ipAddress":    resp.IpAddress,
 				"domainName":   resp.DomainName,
