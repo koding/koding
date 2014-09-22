@@ -51,7 +51,9 @@ func TestTopicSaved(t *testing.T) {
 }
 
 func TestAccountSaved(t *testing.T) {
-	handler := getTestHandler()
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
 	Convey("given some fake account", t, func() {
 		mockAccount := &models.Account{
 			OldId:   bson.NewObjectId().Hex(),
@@ -67,7 +69,9 @@ func TestAccountSaved(t *testing.T) {
 }
 
 func TestMessageListSaved(t *testing.T) {
-	handler := getTestHandler()
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
 	Convey("messages can be saved", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
@@ -106,7 +110,9 @@ func TestMessageListSaved(t *testing.T) {
 }
 
 func TestMessageListDeleted(t *testing.T) {
-	handler := getTestHandler()
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
 	Convey("messages can be deleted", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
@@ -156,7 +162,9 @@ func TestMessageListDeleted(t *testing.T) {
 }
 
 func TestMessageUpdated(t *testing.T) {
-	handler := getTestHandler()
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
 	Convey("messages can be updated", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
@@ -178,18 +186,15 @@ func TestMessageUpdated(t *testing.T) {
 	})
 }
 
-func getTestHandler() *Controller {
+func getTestHandler() (*runner.Runner, *Controller) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()
 	if err != nil {
 		panic(err)
 	}
-
-	defer r.Close()
-
 	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
 	// create message handler
-	return New(r.Log, algolia, ".test")
+	return r, New(r.Log, algolia, ".test")
 
 }
 

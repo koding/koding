@@ -32,8 +32,8 @@ func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
 	return index, nil
 }
 
-func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	c.log.Error(err)
+func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	c.log.Error(err.Error())
 	return false
 }
 
