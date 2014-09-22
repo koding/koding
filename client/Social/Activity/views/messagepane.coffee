@@ -171,21 +171,14 @@ class MessagePane extends KDTabPaneView
 
     if type is 'privatemessage' or type is 'post' then return
 
-    {name, isParticipant} = @getData()
+    {name, isParticipant, typeConstant} = @getData()
 
     @channelTitleView = new KDCustomHTMLView
       partial   : "##{name}"
       cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
 
-    unless name is 'public'
+    if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
-
-  shouldHide: ->
-    {id}                             = @getData()
-    {socialApiAnnouncementChannelId} = KD.getGroup()
-
-    # todo add is admin check
-    return  id is socialApiAnnouncementChannelId
 
   createInputWidget: ->
 
@@ -285,7 +278,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless item?.count
     # no need to send updatelastSeenTime or glance when checking publicfeeds
-    return  if name is 'public'
+    return  if name in ['public', 'announcement']
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
@@ -300,11 +293,15 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
+    # do not focus if we are in announcement channel
+    {socialapi} = KD.singletons
+    return  if socialapi.isAnnouncementItem @getData().id
+
     if @input
       @input.focus()
     else
       # TODO - undefined is not a function
-      @listController?.getListItems()?.first?.commentBox?.input?.focus()
+      @listController?.getListItems().first.commentBox.input.focus()
 
 
   populate: (callback = noop) ->
@@ -388,6 +385,9 @@ class MessagePane extends KDTabPaneView
 
 
   getDefaultFilter:->
-    if @shouldHide()
+
+    {socialapi} = KD.singletons
+
+    if socialapi.isAnnouncementItem @getData().id
     then 'Most Recent'
     else 'Most Liked'
