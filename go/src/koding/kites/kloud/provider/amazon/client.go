@@ -23,7 +23,7 @@ type AmazonClient struct {
 	InfoLog func(string, ...interface{})
 }
 
-func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
+func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.Artifact, error) {
 	infoLog := func(format string, args ...interface{}) {
 		a.Log.Info(format, args...)
 	}
@@ -86,8 +86,8 @@ func (a *AmazonClient) Build(instanceName string) (*protocol.Artifact, error) {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Running,
-		Start:        45,
-		Finish:       60,
+		Start:        start,
+		Finish:       finish,
 	}
 	if err := ws.Wait(); err != nil {
 		return nil, err
@@ -243,8 +243,8 @@ func (a *AmazonClient) Restart() error {
 	return ws.Wait()
 }
 
-func (a *AmazonClient) Destroy() error {
-	a.Push("Terminating machine", 10, machinestate.Terminating)
+func (a *AmazonClient) Destroy(start, finish int) error {
+	a.Push("Terminating machine", start, machinestate.Terminating)
 	_, err := a.Client.TerminateInstances([]string{a.Id()})
 	if err != nil {
 		return err
@@ -266,8 +266,8 @@ func (a *AmazonClient) Destroy() error {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Terminated,
-		Start:        25,
-		Finish:       60,
+		Start:        start,
+		Finish:       finish,
 	}
 
 	return ws.Wait()

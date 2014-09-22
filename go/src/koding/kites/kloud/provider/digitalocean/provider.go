@@ -140,3 +140,11 @@ func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
 
 	return doClient.Info()
 }
+
+func (p *Provider) Resize(m *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, errors.New("resize is not supported")
+}
+
+func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
+	return nil, errors.New("reinitialize is not supported")
+}

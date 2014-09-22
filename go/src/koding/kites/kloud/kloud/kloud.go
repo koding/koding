@@ -43,8 +43,8 @@ type Kloud struct {
 	Debug bool
 }
 
-// NewKloud creates a new Kloud instance with default providers.
-func NewKloud() *Kloud {
+// New creates a new Kloud instance without initializing the default providers.
+func New() *Kloud {
 	kld := &Kloud{
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
@@ -52,7 +52,14 @@ func NewKloud() *Kloud {
 		providers: make(map[string]interface{}),
 	}
 
+	return kld
+}
+
+// NewWithDefaults creates a new Kloud instance with default providers.
+func NewWithDefaults() *Kloud {
+	kld := New()
 	kld.initializeProviders()
+
 	return kld
 }
 
@@ -62,9 +69,9 @@ func (k *Kloud) initializeProviders() {
 
 	// be sure they they satisfy the builder interface, makes it easy to catch
 	// it on compile time :)
-	var _ protocol.Builder = &digitalocean.Provider{}
-	var _ protocol.Builder = &amazon.Provider{}
-	var _ protocol.Builder = &openstack.Provider{}
+	var _ protocol.Provider = &digitalocean.Provider{}
+	var _ protocol.Provider = &amazon.Provider{}
+	var _ protocol.Provider = &openstack.Provider{}
 
 	k.AddProvider("digitalocean", &digitalocean.Provider{
 		Log: k.newLogger("digitalocean"),
