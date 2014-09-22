@@ -7,7 +7,7 @@ stream     = require 'gulp-stream'
 stylus     = require 'gulp-stylus'
 rimraf     = require 'gulp-rimraf'
 concat     = require 'gulp-concat'
-sourcemaps = require 'gulp-sourcemaps'
+# sourcemaps = require 'gulp-sourcemaps'
 argv       = require('minimist') process.argv
 browserify = require 'browserify'
 coffeeify  = require 'coffeeify'
@@ -132,8 +132,6 @@ gulp.task 'coffee', ->
     .pipe source 'main.js'
     .pipe buffer()
     .pipe pistachio()
-    .pipe sourcemaps.init loadMaps: true
-    .pipe sourcemaps.write './'
     .pipe stream()
     # .pipe livereload()
     .pipe gulp.dest "#{BUILD_PATH}/js"
