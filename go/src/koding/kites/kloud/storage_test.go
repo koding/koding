@@ -29,7 +29,7 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	machine := GetMachineData(id)
 
 	switch s.Type {
-	case "build":
+	case "build", "reinit":
 		machine.QueryString = s.Data["queryString"].(string)
 		machine.IpAddress = s.Data["ipAddress"].(string)
 		machine.Domain.Name = s.Data["domainName"].(string)

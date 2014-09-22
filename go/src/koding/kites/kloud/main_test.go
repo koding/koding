@@ -66,6 +66,7 @@ func init() {
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("reinit", kld.Reinit)
 	k.HandleFunc("event", kld.Event)
 
 	go k.Run()
@@ -112,6 +113,12 @@ func TestStop(t *testing.T) {
 
 func TestStart(t *testing.T) {
 	if err := start(machineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestReinit(t *testing.T) {
+	if err := reinit(machineId); err != nil {
 		t.Error(err)
 	}
 }
@@ -236,6 +243,36 @@ func stop(id string) error {
 	})
 
 	if err := listenEvent(eArgs, machinestate.Stopped); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func reinit(id string) error {
+	reinitArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("reinit", reinitArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: reinitArgs.MachineId,
+			Type:    "reinit",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running); err != nil {
 		return err
 	}
 
