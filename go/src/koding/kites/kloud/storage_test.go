@@ -14,7 +14,9 @@ import (
 	"koding/kites/kloud/protocol"
 )
 
-const username = "testuser25"
+// FIXME: Test multiple usernames which contain invalid characters such as .,_!
+// and etc.
+const username = "kloudtestuser"
 
 // TestStorage satisfies the Storage interface
 type TestStorage struct{}
@@ -24,20 +26,26 @@ func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
 }
 
 func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
-	machineData := GetMachineData(id)
+	machine := GetMachineData(id)
 
-	if s.Type == "build" {
-		machineData.Builder["QueryString"] = s.Data["queryString"].(string)
-		machineData.Builder["ipAddress"] = s.Data["ipAddress"].(string)
-		machineData.Builder["instanceId"] = s.Data["instanceId"].(string)
-		machineData.Builder["instanceName"] = s.Data["instanceName"].(string)
+	switch s.Type {
+	case "build":
+		machine.QueryString = s.Data["queryString"].(string)
+		machine.IpAddress = s.Data["ipAddress"].(string)
+		machine.Domain.Name = s.Data["domainName"].(string)
+		machine.Builder["instanceId"] = s.Data["instanceId"]
+		machine.Builder["instanceName"] = s.Data["instanceName"]
+	case "start":
+		machine.IpAddress = s.Data["ipAddress"].(string)
+		machine.Domain.Name = s.Data["domainName"].(string)
+		machine.Builder["instanceId"] = s.Data["instanceId"]
+	case "stop":
+		machine.IpAddress = s.Data["ipAddress"].(string)
+	default:
+		return nil
 	}
 
-	if s.Type == "info" {
-		machineData.Builder["instanceName"] = s.Data["instanceName"].(string)
-	}
-
-	SetMachineData(id, machineData)
+	SetMachineData(id, machine)
 
 	return nil
 }
@@ -67,7 +75,6 @@ func (l *TestLocker) Unlock(id string) {
 type TestChecker struct{}
 
 func (c *TestChecker) Total() error {
-	println("************ total called")
 	return nil
 }
 
@@ -83,7 +90,7 @@ func (c *TestChecker) Storage(int) error {
 	return nil
 }
 
-func (c *TestChecker) AllowedInstances(koding.InstanceType) error {
+func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
 	return nil
 }
 
@@ -114,9 +121,10 @@ func init() {
 
 	TestMachineData = map[string]*protocol.Machine{
 		"koding_id0": &protocol.Machine{
-			Id:       "koding_id0",
-			Provider: "koding",
-			Username: username,
+			Id:        "koding_id0",
+			Provider:  "koding",
+			Username:  username,
+			IpAddress: "",
 			Builder: map[string]interface{}{
 				"username":     username,
 				"type":         "amazon",

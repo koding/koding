@@ -20,7 +20,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/machinestate"
-	kldprotocol "koding/kites/kloud/protocol"
+	kloudprotocol "koding/kites/kloud/protocol"
 )
 
 var (
@@ -29,6 +29,8 @@ var (
 	remote *kite.Client
 	conf   *config.Config
 )
+
+const machineId = "koding_id0"
 
 type args struct {
 	MachineId string
@@ -62,6 +64,8 @@ func init() {
 	kld := newKloud()
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("destroy", kld.Destroy)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("event", kld.Event)
 
 	go k.Run()
@@ -95,36 +99,35 @@ func TestPing(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	if err := build(); err != nil {
+	if err := build(machineId); err != nil {
 		t.Error(err)
 	}
-
 }
 
 func TestStop(t *testing.T) {
-	if err := stop(); err != nil {
+	if err := stop(machineId); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestStart(t *testing.T) {
-	if err := start(); err != nil {
+	if err := start(machineId); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestDestroy(t *testing.T) {
-	if err := destroy(); err != nil {
+	if err := destroy(machineId); err != nil {
 		t.Error(err)
 	}
 }
 
-func build() error {
-	bArgs := &args{
-		MachineId: "koding_id0",
+func build(id string) error {
+	buildArgs := &args{
+		MachineId: id,
 	}
 
-	resp, err := remote.Tell("build", bArgs)
+	resp, err := remote.Tell("build", buildArgs)
 	if err != nil {
 		return err
 	}
@@ -137,7 +140,7 @@ func build() error {
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: bArgs.MachineId,
+			EventId: buildArgs.MachineId,
 			Type:    "build",
 		},
 	})
@@ -149,12 +152,12 @@ func build() error {
 	return nil
 }
 
-func destroy() error {
-	bArgs := &args{
-		MachineId: "koding_id0",
+func destroy(id string) error {
+	destroyArgs := &args{
+		MachineId: id,
 	}
 
-	resp, err := remote.Tell("destroy", bArgs)
+	resp, err := remote.Tell("destroy", destroyArgs)
 	if err != nil {
 		return err
 	}
@@ -167,24 +170,24 @@ func destroy() error {
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: bArgs.MachineId,
+			EventId: destroyArgs.MachineId,
 			Type:    "destroy",
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Stopped); err != nil {
+	if err := listenEvent(eArgs, machinestate.Terminated); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func start() error {
-	bArgs := &args{
-		MachineId: "koding_id0",
+func start(id string) error {
+	startArgs := &args{
+		MachineId: id,
 	}
 
-	resp, err := remote.Tell("start", bArgs)
+	resp, err := remote.Tell("start", startArgs)
 	if err != nil {
 		return err
 	}
@@ -197,7 +200,7 @@ func start() error {
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: bArgs.MachineId,
+			EventId: startArgs.MachineId,
 			Type:    "start",
 		},
 	})
@@ -209,12 +212,12 @@ func start() error {
 	return nil
 }
 
-func stop() error {
-	bArgs := &args{
-		MachineId: "koding_id0",
+func stop(id string) error {
+	stopArgs := &args{
+		MachineId: id,
 	}
 
-	resp, err := remote.Tell("stop", bArgs)
+	resp, err := remote.Tell("stop", stopArgs)
 	if err != nil {
 		return err
 	}
@@ -227,7 +230,7 @@ func stop() error {
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
-			EventId: bArgs.MachineId,
+			EventId: stopArgs.MachineId,
 			Type:    "stop",
 		},
 	})
@@ -277,48 +280,39 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	return nil
 }
 
-type TestProvider struct {
-	koding.Provider
-}
-
-func (tp *TestProvider) PlanChecker(m *kldprotocol.Machine) (koding.Checker, error) {
-	println("************* planchecker called")
-	return &TestChecker{}, nil
-}
-
 func newKloud() *kloud.Kloud {
 
+	testChecker := &TestChecker{}
 	testStorage := &TestStorage{}
 	testLocker := &TestLocker{}
 	testLocker.IdLock = idlock.New()
 
 	var _ kloud.Storage = testStorage
 	var _ kloud.Locker = testLocker
+	var _ koding.Checker = testChecker
 
 	kld := kloud.New()
-	kld.Log = newLogger("kloud", true)
+	kld.Log = newLogger("kloud", false)
 	kld.Locker = testLocker
 	kld.Storage = testStorage
 	kld.Debug = true
 
-	provider := &TestProvider{
-		koding.Provider{
-			Kite: k,
-			Log:  newLogger("koding", true),
+	provider := &koding.Provider{
+		Kite: k,
+		Log:  newLogger("koding", false),
 
-			// KontrolURL:        conf.KontrolURL,
-			KontrolURL:        "http://koding-ibrahim.ngrok.com/kite",
-			KontrolPrivateKey: testkeys.Private,
-			KontrolPublicKey:  testkeys.Public,
-			Bucket:            koding.NewBucket("koding-kites", "klient/development/latest"),
-			Test:              true,
-			HostedZone:        "dev.koding.io", // TODO: Use test.koding.io
-			AssigneeName:      "kloud-test",
+		KontrolURL:        conf.KontrolURL,
+		KontrolPrivateKey: testkeys.Private,
+		KontrolPublicKey:  testkeys.Public,
+		Bucket:            koding.NewBucket("koding-kites", "klient/development/latest"),
+		Test:              true,
+		HostedZone:        "dev.koding.io", // TODO: Use test.koding.io
+		AssigneeName:      "kloud-test",
 
-			KeyName:    keys.DeployKeyName,
-			PublicKey:  keys.DeployPublicKey,
-			PrivateKey: keys.DeployPrivateKey,
-		},
+		KeyName:     keys.DeployKeyName,
+		PublicKey:   keys.DeployPublicKey,
+		PrivateKey:  keys.DeployPrivateKey,
+		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) { return testChecker, nil },
 	}
 
 	kld.AddProvider("koding", provider)
