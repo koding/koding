@@ -22,6 +22,11 @@ class PricingPlansView extends KDView
       @planViews[planTitle] = view
 
 
+  switchTo: (planInterval) ->
+
+    plan.setPlanInterval(planInterval)  for _, plan of @planViews
+
+
   plans: [
     title        : 'Free'
     monthPrice   : 0

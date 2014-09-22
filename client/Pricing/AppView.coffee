@@ -22,6 +22,7 @@ class PricingAppView extends KDView
     { planInterval, promotedPlan } = @state
 
     @plans.planViews[promotedPlan].setClass 'promoted'  unless KD.isLoggedIn()
+    @selectIntervalToggle @state.planInterval
 
 
   initViews: ->
@@ -50,10 +51,6 @@ class PricingAppView extends KDView
           title    : 'YEAR'
           callback : => @emit 'IntervalToggleChanged', { planInterval : 'year' }
 
-    # set the initial state of the toggle button
-    selectedIntervalButton = @intervalToggle.buttons[@state.planInterval]
-    @intervalToggle.buttonReceivedClick selectedIntervalButton
-
     @plans = new PricingPlansView { @state }
 
     @info = new KDCustomHTMLView
@@ -75,9 +72,18 @@ class PricingAppView extends KDView
     @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
 
 
+  selectIntervalToggle: (planInterval) ->
+    button = @intervalToggle.buttons[planInterval]
+    @intervalToggle.buttonReceivedClick button
+
+
   handleToggleChanged: ({ planInterval }) ->
 
     @state.planInterval = planInterval
+
+    @selectIntervalToggle planInterval
+
+    @plans.switchTo planInterval
 
 
   loadPlan: (callback = noop) ->
