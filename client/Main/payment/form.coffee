@@ -14,13 +14,7 @@ class PaymentForm extends JView
     planInterval   : PaymentWorkflow.planInterval.MONTH
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
     providerLoaded : no
-    validation     : {
-      cardNumber   : yes
-      cardCVC      : yes
-      cardName     : yes
-      cardMonth    : yes
-      cardYear     : yes
-    }
+
 
   constructor: (options = {}, data) ->
 
@@ -38,11 +32,8 @@ class PaymentForm extends JView
 
   initViews: ->
 
-    { MONTH, YEAR } = PaymentWorkflow.planInterval
-
     {
-      planTitle, planInterval
-      reducedMonth, discount, currentPlan
+      planTitle, planInterval, reducedMonth, currentPlan
     } = @state
 
     @plan = new KDCustomHTMLView
@@ -53,8 +44,6 @@ class PaymentForm extends JView
     @price = new KDCustomHTMLView
       cssClass : 'plan-price'
       partial  : pricePartial
-
-    { FREE } = PaymentWorkflow.planTitle
 
     @form = @initForm()
 
@@ -67,13 +56,6 @@ class PaymentForm extends JView
     @successMessage = new KDCustomHTMLView
       cssClass : 'success-msg hidden'
       partial  : ''
-
-    # if their currentPlan is not free it means that
-    # we already have their credit card,
-    # so don't show the form show the existing
-    # credit card message.
-    @form.hide()  unless currentPlan is FREE
-    @existingCreditCardMessage.hide()  if currentPlan is FREE
 
     isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
@@ -103,14 +85,31 @@ class PaymentForm extends JView
         Koding.com uses 128 Bit SSL Encrypted Transactions
       "
 
+    # for some cases, we need to show/hide
+    # some of the subviews.
+    @filterViews()
+
+
+  filterViews: ->
+
+    { FREE } = PaymentWorkflow.planTitle
+    { currentPlan, planTitle } = @state
+
     # no need to show those views when they are
     # downgrading to free account.
-    # TODO: move this into more proper place. ~U
-    if planTitle is FREE
+    if selectedPlan = planTitle is FREE
       [
         @securityNote
         @existingCreditCardMessage
       ].forEach (view) -> view.hide()
+
+    # if their currentPlan is not free it means that
+    # we already have their credit card,
+    # don't show existing cc message, show
+    # cc form.
+    if currentPlan is FREE
+      @form.show()
+      @existingCreditCardMessage.hide()
 
 
   initForm: ->
@@ -119,6 +118,7 @@ class PaymentForm extends JView
     { planTitle, planInterval } = @state
 
     { cssClass } = @getOptions()
+    cssClass     = @utils.curry cssClass, 'hidden'
 
     return new StripeFormView
       state    : @state
