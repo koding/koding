@@ -56,11 +56,11 @@ module.exports = (options={}, callback)->
     return cb null, null unless params
 
     switch params.section
-      when "Topic"   then fetchChannelActivities params.slug, cb
-      when "Message" then SocialChannel.fetchActivities client, {id: params.slug}, cb
-      when "Post"    then SocialMessage.bySlug client, {slug: params.slug}, cb
-      when "Activity"then fetchGroupActivities cb
-      else cb {message: "Route not found"}
+      when "Topic"           then fetchChannelActivities params.slug, cb
+      when "Message"         then SocialChannel.fetchActivities client, {id: params.slug}, cb
+      when "Post"            then SocialMessage.bySlug client, {slug: params.slug}, cb
+      when "Announcement"    then cb {message: "announcement not implemented"}
+      else fetchGroupActivities cb
 
   reqs = [
     { fn:fetchPopularPosts,      key: 'popularPosts'     }

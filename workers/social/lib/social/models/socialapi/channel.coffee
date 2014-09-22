@@ -200,7 +200,9 @@ module.exports = class SocialChannel extends Base
     {connection:{delegate}} = client
     options.showExempt = delegate.checkFlag "super-admin"
     options.channelId = options.id
-    doRequest 'fetchChannelActivities', client, options, callback
+    # just to create social channels
+    ensureGroupChannel client, (err, socialApiChannelId)->
+      doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->
     {fetchActivityCount} = require './requests'
