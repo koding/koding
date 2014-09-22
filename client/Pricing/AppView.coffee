@@ -45,10 +45,10 @@ class PricingAppView extends KDView
       cssClass     : 'interval-toggle'
       buttons      :
         'month'    :
-          title    : 'MONTH'
+          title    : 'MONTHLY'
           callback : => @emit 'IntervalToggleChanged', { planInterval : 'month' }
         'year'     :
-          title    : 'YEAR'
+          title    : 'YEARLY'
           callback : => @emit 'IntervalToggleChanged', { planInterval : 'year' }
 
     @plans = new PricingPlansView { @state }

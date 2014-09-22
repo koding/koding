@@ -135,7 +135,7 @@ body.pricing
 
     button
       background      #fff
-      size            66px, 33px
+      size            auto, 33px
       line-height     32px
       border          1px solid #DEDEDE
       border-left     none
@@ -151,11 +151,14 @@ body.pricing
       &:first-of-type
         rounded       30px 0 0 30px
         border-left   1px solid #DEDEDE
+        .button-title
+          margin      0 0 0 3px
 
       &:last-of-type
         rounded       0 30px 30px 0
         border-right  1px solid #DEDEDE
-
+        .button-title
+          margin      0 3px 0 0
 
       .button-title
         color         inherit
@@ -163,8 +166,9 @@ body.pricing
         font-weight   inherit
         display       inline-block
         line-height   27px
-        size          58px, 25px
+        size          auto, 25px
         rounded       13px
+        padding       0 5px
 
       &.toggle .button-title
         background    #01B05A
