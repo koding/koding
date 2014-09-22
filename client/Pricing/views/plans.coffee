@@ -36,10 +36,10 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Hobbyist'
-    monthPrice   : 995
-    reducedMonth : 896
-    yearPrice    : 10789
-    discount     : 100
+    monthPrice   : 1250
+    reducedMonth : 995
+    yearPrice    : 11940
+    discount     : 255
     description  : 'Best for expanded learning or for running a small blog/website'
     cssClass     : 'hobbyist'
     planFeatures : [
@@ -51,10 +51,10 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Developer'
-    monthPrice   : 1995
-    reducedMonth : 1796
-    yearPrice    : 21589
-    discount     : 200
+    monthPrice   : 2450
+    reducedMonth : 1995
+    yearPrice    : 23940
+    discount     : 455
     description  : 'Great for developers who work with multiple environments'
     cssClass     : 'developer'
     planFeatures : [
@@ -66,10 +66,10 @@ class PricingPlansView extends KDView
     ]
   ,
     title        : 'Professional'
-    monthPrice   : 4995
-    reducedMonth : 4496
-    yearPrice    : 53989
-    discount     : 500
+    monthPrice   : 4950
+    reducedMonth : 3995
+    yearPrice    : 47940
+    discount     : 955
     description  : 'Great for managing and delivering client work'
     cssClass     : 'professional'
     planFeatures : [
