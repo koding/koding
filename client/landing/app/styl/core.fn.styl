@@ -23,9 +23,16 @@ logoBg               = #1aaf5d
 
 // FUNCTIONS
 
+__pixRatio = 1.5
+retinaQuery = 'all and (-webkit-min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(min--moz-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(-o-min-device-pixel-ratio:' + __pixRatio + '/1),'
+retinaQuery = retinaQuery + '(min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery = retinaQuery + '(min-resolution:' + unit(__pixRatio*92, dpi) + '),'
+retinaQuery = retinaQuery + '(min-resolution:' + unit(__pixRatio, dppx) + ')'
+
 r-sprite(folder, name)
 
-  pixRatio = 1.5
   spName   = '$' + folder + '_' + name
   sp1x     = lookup(spName)
 
@@ -34,14 +41,7 @@ r-sprite(folder, name)
   else
     return
 
-  s = 'all and (-webkit-min-device-pixel-ratio:' + pixRatio + '),'
-  s = s + '(min--moz-device-pixel-ratio:' + pixRatio + '),'
-  s = s + '(-o-min-device-pixel-ratio:' + pixRatio + '/1),'
-  s = s + '(min-device-pixel-ratio:' + pixRatio + '),'
-  s = s + '(min-resolution:' + unit(pixRatio*92, dpi) + '),'
-  s = s + '(min-resolution:' + unit(pixRatio, dppx) + ')'
-
-  @media s
+  @media retinaQuery
 
     sp2x = lookup(spName + '__2x')
 
