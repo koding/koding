@@ -43,8 +43,8 @@ type Kloud struct {
 	Debug bool
 }
 
-// NewKloud creates a new Kloud instance with default providers.
-func NewKloud() *Kloud {
+// New creates a new Kloud instance without initializing the default providers.
+func New() *Kloud {
 	kld := &Kloud{
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
@@ -52,7 +52,14 @@ func NewKloud() *Kloud {
 		providers: make(map[string]interface{}),
 	}
 
+	return kld
+}
+
+// NewWithDefaults creates a new Kloud instance with default providers.
+func NewWithDefaults() *Kloud {
+	kld := New()
 	kld.initializeProviders()
+
 	return kld
 }
 
