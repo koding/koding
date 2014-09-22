@@ -173,6 +173,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		LatestKlientURL: signedLatestKlientURL,
 		ApachePort:      DefaultApachePort,
 		KitePort:        DefaultKitePort,
+		Test:            p.Test,
 	}
 
 	cloudInitConfig.setupMigrateScript()
