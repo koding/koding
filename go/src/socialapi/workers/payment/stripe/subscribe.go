@@ -29,6 +29,22 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		}
 	}
 
+	resp, err := GetCreditCard(customer.OldId)
+	if err != nil {
+		return err
+	}
+
+	if IsEmpty(resp.LastFour) {
+		if IsEmpty(token) {
+			return ErrTokenIsEmpty
+		}
+
+		err := UpdateCreditCard(customer.OldId, token)
+		if err != nil {
+			return err
+		}
+	}
+
 	subscriptions, err := FindCustomerActiveSubscriptions(customer)
 	if err != nil {
 		return err
