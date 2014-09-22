@@ -7,16 +7,16 @@ class SidebarTopicItem extends SidebarItem
     {name, typeConstant, participantCount}    = data
 
     # rewrite grop channel as topic?
-    typeConstant            = "topic" if typeConstant is "group"
+    firstRoute              = if typeConstant is "group" then "topic" else typeConstant
     # uppercase first letter of the type constant for route
-    typeConstant            = "#{typeConstant.charAt(0).toUpperCase()}#{typeConstant.slice 1}"
-    # build route with typeConstant and name
-    options.route           = "#{typeConstant}/#{name}"
+    firstRoute              = "#{firstRoute.charAt(0).toUpperCase()}#{firstRoute.slice 1}"
+    # build route with firstRoute and name
+    options.route           = "#{firstRoute}/#{name}"
     options.cssClass        = 'clearfix'
 
     super options, data
 
-    @followButton = if name is 'public'
+    @followButton = if typeConstant in ['group', 'announcement']
     then new KDCustomHTMLView tagName : 'span'
     else new TopicFollowButton {}, @getData()
 
