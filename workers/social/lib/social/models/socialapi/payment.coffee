@@ -42,20 +42,6 @@ module.exports = class Payment extends Base
 
         post url, data, callback
 
-  @unsubscribe = secure (client, data, callback)->
-    requiredParams = [ "planTitle", "provider" ]
-
-    validateParams requiredParams, data, (err)->
-      return callback err  if err
-
-      canChangeplan client, data.planTitle, (err)->
-        return callback err  if err
-
-        data.accountId = getAccountId client
-        url = "/payments/unsubscribe"
-
-        post url, data, callback
-
   @subscriptions = secure (client, data, callback)->
     data.accountId = getAccountId client
     url = "/payments/subscriptions/#{data.accountId}"

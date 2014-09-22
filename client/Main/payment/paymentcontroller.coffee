@@ -10,9 +10,6 @@ class PaymentController extends KDController
 
     @api().subscribe params, callback
 
-  unsubscribe: (plan, provider, callback)->
-    @api().unsubscribe {plan, provider}, callback
-
   subscriptions: (callback)-> @api().subscriptions {}, callback
 
   invoices: (callback)-> @api().invoices {}, callback
