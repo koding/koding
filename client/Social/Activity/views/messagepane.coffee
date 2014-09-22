@@ -192,11 +192,11 @@ class MessagePane extends KDTabPaneView
     return  if @getOption("type") is 'post'
 
     channel = @getData()
+    {socialapi} = KD.singletons
 
-    if @shouldHide()
-      @input = new KDView
-    else
-      @input = new ActivityInputWidget {channel}
+    @input = if socialapi.isAnnouncementItem channel.id
+    then new KDView
+    else new ActivityInputWidget {channel}
 
 
   createFilterLinks: ->
@@ -207,8 +207,9 @@ class MessagePane extends KDTabPaneView
 
     filters = ['Most Liked', 'Most Recent']
 
+    {socialapi} = KD.singletons
     # remove the first item from filters
-    filters.shift() if @shouldHide()
+    filters.shift() if socialapi.isAnnouncementItem @getData().id
 
     @filterLinks or= new FilterLinksView
       filters: filters
