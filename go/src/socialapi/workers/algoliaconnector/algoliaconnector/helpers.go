@@ -55,7 +55,11 @@ func appendMessageTag(record map[string]interface{}, channelId string) []interfa
 		return []interface{}{channelId}
 	}
 
-	tags := tagsDoc.([]interface{})
+	tags, ok := tagsDoc.([]interface{})
+	if !ok {
+		return []interface{}{channelId}
+	}
+
 	for _, ele := range tags {
 		if ele == channelId {
 			return tags
@@ -77,7 +81,11 @@ func removeMessageTag(record map[string]interface{}, channelId string) []interfa
 		return nil
 	}
 
-	tags := tagsDoc.([]interface{})
+	tags, ok := tagsDoc.([]interface{})
+	if !ok {
+		return nil
+	}
+
 	for _, ele := range tags {
 		id := ele.(string)
 		if id == channelId {
