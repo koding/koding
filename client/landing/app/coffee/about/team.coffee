@@ -58,9 +58,6 @@ module.exports =
         username  : 'nitin'
         title     : 'Chief Business Officer'
       ,
-        username  : 'rsbrown'
-        title     : 'VP of Engineering'
-      ,
         username  : 'alice'
         title     : 'Senior Food Engineer'
       ,
@@ -69,6 +66,9 @@ module.exports =
       ]
 
     # suspended     : []
+      # ,
+      #   username  : 'rsbrown'
+      #   title     : 'VP of Engineering'
       # ,
       #   username  : 'cenk'
       #   title     : 'Software Engineer'
