@@ -44,7 +44,7 @@ class SinglePlanView extends KDView
       type     : 'medium'
       cssClass : 'plan-price'
       title    : "
-        <cite>#{(price / 100) or 'Free'}</cite>
+        <cite>#{(price) or 'Free'}</cite>
         <span class='interval-text'>MONTHLY</span>
       "
 
@@ -87,7 +87,7 @@ class SinglePlanView extends KDView
     price = @getPrice planInterval
 
     @price.updatePartial "
-      <cite>#{(price / 100) or 'Free'}</cite>
+      <cite>#{(price) or 'Free'}</cite>
       <span class='interval-text'>MONTHLY</span>
     "
 

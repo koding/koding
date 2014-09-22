@@ -187,8 +187,8 @@ class PaymentForm extends JView
     { monthPrice, yearPrice } = @state
 
     map =
-      month : "#{monthPrice / 100}<span>/month</span>"
-      year  : "#{yearPrice / 100}<span>/year</span>"
+      month : "#{monthPrice}<span>/month</span>"
+      year  : "#{yearPrice}<span>/year</span>"
 
     return map[planInterval]
 
