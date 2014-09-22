@@ -12,6 +12,7 @@ class AccountAppController extends AppController
     billing :
       title : "Billing"
       items : [
+        { slug : "Billing", title : "Billing", listType: "billing" }
       ]
     develop :
       title : "Develop"

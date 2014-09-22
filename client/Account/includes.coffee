@@ -9,6 +9,7 @@ module.exports = [
   "views/password.coffee",
   "views/username.coffee",
   "views/linkedaccts.coffee",
+  "views/billing.coffee",
   "views/emailnotifications.coffee",
   "views/editors.coffee",
   "views/sshkeys.coffee",

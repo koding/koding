@@ -4,6 +4,7 @@ class AccountListWrapper extends KDView
     username                   : AccountEditUsername
     security                   : AccountEditSecurity
     emailNotifications         : AccountEmailNotifications
+    billing                    : AccountBilling
     linkedAccountsController   : AccountLinkedAccountsListController
     linkedAccounts             : AccountLinkedAccountsList
     referralSystemController   : AccountReferralSystemListController
