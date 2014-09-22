@@ -1,5 +1,7 @@
 class PricingPlansView extends KDView
 
+  initialState: {}
+
   constructor: (options = {}, data) ->
 
     options.tagName  = "section"
@@ -7,13 +9,14 @@ class PricingPlansView extends KDView
 
     super options, data
 
-    @state = {}
+    @state = @utils.extend @initialState, options.state
 
     @planViews = {}
 
     for plan in @plans
       plan.delegate = this
       planTitle = plan.title.toLowerCase()
+      plan.state = @state
       @addSubView view = new SinglePlanView plan
       @forwardEvent view, "PlanSelected"
       @planViews[planTitle] = view
