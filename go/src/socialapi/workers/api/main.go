@@ -14,6 +14,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	paymentapi "socialapi/workers/payment/api"
 	"socialapi/workers/payment/stripe"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
@@ -33,6 +34,7 @@ func init() {
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
 	mux = sitemapapi.InitHandlers(mux)
+	mux = paymentapi.InitHandlers(mux)
 
 	// add namespace support into
 	// all handlers

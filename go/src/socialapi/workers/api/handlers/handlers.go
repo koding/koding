@@ -8,7 +8,6 @@ import (
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
-	"socialapi/workers/api/modules/payment"
 	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatemessage"
 	"socialapi/workers/api/modules/reply"
@@ -432,63 +431,6 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: privatemessage.List,
 			Name:    "privatemessage-list",
 			Metrics: metrics,
-		},
-	))
-
-	//----------------------------------------------------------
-	// Payment
-	//----------------------------------------------------------
-	mux.Handle("POST", "/payments/subscribe", handler.Wrapper(
-		handler.Request{
-			Handler:        payment.Subscribe,
-			Name:           "payment-subsrcibe",
-			CollectMetrics: true,
-			Metrics:        metrics,
-		},
-	))
-
-	mux.Handle("GET", "/payments/subscriptions/{accountId}", handler.Wrapper(
-		handler.Request{
-			Handler: payment.SubscriptionRequest,
-			Name:    "payment-subscriptions",
-			Metrics: metrics,
-		},
-	))
-
-	mux.Handle("GET", "/payments/invoices/{accountId}", handler.Wrapper(
-		handler.Request{
-			Handler: payment.InvoiceRequest,
-			Name:    "payment-invoices",
-			Metrics: metrics,
-		},
-	))
-
-	mux.Handle("GET", "/payments/creditcard/{accountId}", handler.Wrapper(
-		handler.Request{
-			Handler: payment.CreditCardRequest,
-			Name:    "payment-creditcard",
-			Metrics: metrics,
-		},
-	))
-
-	mux.Handle("POST", "/payments/creditcard/update", handler.Wrapper(
-		handler.Request{
-			Handler:        payment.UpdateCreditCardRequest,
-			Name:           "payment-updatecreditcard",
-			CollectMetrics: true,
-			Metrics:        metrics,
-		},
-	))
-
-	//----------------------------------------------------------
-	// Stripe webhook
-	//----------------------------------------------------------
-	mux.Handle("POST", "/payments/stripe/webhook", handler.Wrapper(
-		handler.Request{
-			Handler:        payment.StripeWebhook,
-			Name:           "payment-stripewebhook",
-			CollectMetrics: false,
-			Metrics:        metrics,
 		},
 	))
 
