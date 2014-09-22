@@ -60,31 +60,7 @@ class PaymentForm extends JView
       cssClass : 'plan-price'
       partial  : pricePartial
 
-    @discountMessage = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'discount-msg'
-      partial  : "
-        <strong>Save $#{discount / 100.00}</strong>/month
-        by switching to a"
-
-    @intervalToggleLink = new CustomLinkView
-      state    : { planInterval: MONTH }
-      cssClass : 'interval-toggle-link'
-      title    : 'yearly plan'
-      click    : (event) =>
-        KD.utils.stopDOMEvent event
-        { planInterval }  = @intervalToggleLink.getOptions().state
-        switchedIntervals = { month: YEAR, year: MONTH }
-        state             = { planInterval: switchedIntervals[planInterval] }
-        @intervalToggleLink.setOption 'state', state
-        @emit 'IntervalToggleChanged', state
-
-
     { FREE } = PaymentWorkflow.planTitle
-
-    if planTitle is FREE
-      [@discountMessage, @intervalToggleLink].forEach (view) ->
-        view.hide()
 
     @form = @initForm()
 
@@ -137,8 +113,9 @@ class PaymentForm extends JView
     # downgrading to free account.
     # TODO: move this into more proper place. ~U
     if planTitle is FREE
-      [ @intervalToggleLink, @discountMessage
-        @securityNote, @existingCreditCardMessage
+      [
+        @securityNote
+        @existingCreditCardMessage
       ].forEach (view) -> view.hide()
 
 
@@ -158,7 +135,6 @@ class PaymentForm extends JView
 
   initEvents: ->
 
-    @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
     @on 'PaymentProviderLoaded', @bound 'handlePaymentProviderLoaded'
 
     { cardNumber } = @form.inputs
@@ -189,48 +165,9 @@ class PaymentForm extends JView
     @submitButton.enable()
 
 
-  handleToggleChanged: (opts) ->
-
-    { MONTH }        = PaymentWorkflow.planInterval
-    { planInterval } = opts
-
-    @state.planInterval = planInterval
-    @form.inputs.planInterval.setValue planInterval
-
-    {
-      monthPrice, yearPrice, reducedMonth,
-      discount, currentPlan, planTitle
-    } = @state
-
-    discountPartials =
-      month : "<strong>Save $#{discount / 100.00}</strong>/month by switching to"
-      year  : "You are <strong>saving $#{discount * 12 / 100}</strong>. Awesome!"
-
-    linkPartials =
-      month : 'yearly plan'
-      year  : 'Back to monthly plan'
-
-    pricePartials =
-      month : "#{monthPrice / 100}<span>/month</span>"
-      year  : "#{reducedMonth / 100}<span>/month</span>"
-
-    totalPricePartials =
-      month : "#{monthPrice / 100}<span>/month</span>"
-      year  : "#{yearPrice  / 100}<span>/year</span>"
-
-    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
-
-    @discountMessage.updatePartial discountPartials[planInterval]
-    @intervalToggleLink.updatePartial linkPartials[planInterval]
-    @price.updatePartial pricePartials[planInterval]
-    @totalPrice.updatePartial totalPricePartials[planInterval]  if isUpgrade
-
-
   showSuccess: (isUpgrade) ->
 
     [
-      @intervalToggleLink
-      @discountMessage
       @form
       @existingCreditCardMessage
       @securityNote
@@ -256,9 +193,6 @@ class PaymentForm extends JView
     """
     <div class='summary clearfix'>
       {{> @plan}}{{> @price}}
-    </div>
-    <div class='interval-toggle-wrapper clearfix'>
-      {{> @discountMessage}}{{> @intervalToggleLink}}
     </div>
     {{> @form}}
     {{> @existingCreditCardMessage}}
