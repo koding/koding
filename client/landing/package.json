@@ -23,7 +23,6 @@
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
     "gulp-shell": "^0.2.9",
-    "gulp-sourcemaps": "^1.1.5",
     "gulp-stream": "0.0.2",
     "gulp-stylus": "^1.3.2",
     "gulp-util": "^3.0.1",
