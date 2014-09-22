@@ -185,9 +185,8 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 	}
 
-	// be sure they they satisfy the builder interface
-	var _ kloudprotocol.Controller = kodingProvider
-	var _ kloudprotocol.Builder = kodingProvider
+	// be sure they they satisfy the provider interface
+	var _ kloudprotocol.Provider = kodingProvider
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
@@ -196,9 +195,6 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Storage = kodingProvider
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
-
-	// be sure it compiles correctly,
-	var _ kloudprotocol.Builder = kodingProvider
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
@@ -241,6 +237,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
+	k.HandleFunc("reinit", kld.Reinit)
 
 	// let's use the wrapper function "ControlFunc" which is doing a lot of
 	// things on behalf of us, like document locking, getting the machine

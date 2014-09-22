@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/amazon"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -32,6 +33,20 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		return nil, err
 	}
 
+	return p.build(a, m, &pushValues{Start: 10, Finish: 90})
+}
+
+func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) (resArt *protocol.Artifact, err error) {
+	// returns the normalized step according to the initial start and finish
+	// values. i.e for a start,finish pair of (10,90) percentages of
+	// 0,15,20,50,80,100 will be according to the function: 10,18,26,50,74,90
+	normalize := func(percentage int) int {
+		base := v.Finish - v.Start
+		step := float64(base) * (float64(percentage) / 100)
+		normalized := float64(v.Start) + step
+		return int(normalized)
+	}
+
 	// Check for total amachine allowance
 	checker, err := p.PlanChecker(m)
 	if err != nil {
@@ -50,7 +65,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 
 	instanceName := m.Builder["instanceName"].(string)
 
-	a.Push("Initializing data", 10, machinestate.Building)
+	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetInfoLogger(m.Id)
 
@@ -64,7 +79,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
-	a.Push("Checking security requirements", 20, machinestate.Building)
+	a.Push("Checking security requirements", normalize(20), machinestate.Building)
 
 	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
 	infoLog("Checking if security group '%s' exists", groupName)
@@ -94,7 +109,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 	}
 	a.Builder.SubnetId = subs.Subnets[0].SubnetId
 
-	a.Push("Checking base build image", 30, machinestate.Building)
+	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
 	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
@@ -174,7 +189,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 	a.Builder.KeyPair = p.KeyName
 
 	// build now our instance!!
-	buildArtifact, err := a.Build(instanceName)
+	buildArtifact, err := a.Build(instanceName, normalize(45), normalize(60))
 	if err != nil {
 		return nil, err
 	}
@@ -192,9 +207,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		}
 	}()
 
-	a.Push("Checking domain", 65, machinestate.Building)
-
-	a.Push("Creating domain", 70, machinestate.Building)
+	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
@@ -228,7 +241,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 	query := kiteprotocol.Kite{ID: kiteId.String()}
 	buildArtifact.KiteQuery = query.String()
 
-	a.Push("Checking connectivity", 75, machinestate.Building)
+	a.Push("Checking connectivity", normalize(75), machinestate.Building)
 	infoLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
 		p.Log.Info("[%s] klient is ready.", m.Id)
