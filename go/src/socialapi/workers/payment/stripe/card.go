@@ -1,7 +1,7 @@
 package stripe
 
 import (
-	"socialapi/models/paymentmodel"
+	"socialapi/workers/payment/models"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeCard "github.com/stripe/stripe-go/card"

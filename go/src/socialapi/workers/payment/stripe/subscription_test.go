@@ -1,7 +1,7 @@
 package stripe
 
 import (
-	"socialapi/models/paymentmodel"
+	"socialapi/workers/payment/models"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"

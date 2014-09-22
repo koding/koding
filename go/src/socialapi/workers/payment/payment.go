@@ -3,7 +3,7 @@ package payment
 import (
 	"errors"
 	"fmt"
-	"socialapi/models/paymentmodel"
+	"socialapi/workers/payment/models"
 	"socialapi/workers/payment/stripe"
 	"time"
 )

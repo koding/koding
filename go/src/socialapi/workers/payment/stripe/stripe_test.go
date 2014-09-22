@@ -2,8 +2,8 @@ package stripe
 
 import (
 	"math/rand"
-	"socialapi/models/paymentmodel"
 	"socialapi/workers/common/runner"
+	"socialapi/workers/payment/models"
 	"strconv"
 	"time"
 
