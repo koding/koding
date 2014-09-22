@@ -42,11 +42,6 @@ module.exports = class MainView extends KDView
         KD.utils.stopDOMEvent event
         KD.singletons.router.handleRoute '/'
 
-    @header.addSubView @logotype = new CustomLinkView
-      cssClass : 'logotype'
-      title    : 'Koding'
-      href     : '/Home'
-
 
   createPanelWrapper:->
 
