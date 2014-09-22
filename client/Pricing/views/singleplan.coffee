@@ -1,13 +1,19 @@
 class SinglePlanView extends KDView
 
+  initialState: {
+    planInterval: 'year'
+  }
+
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'single-plan', options.cssClass
 
     super options, data
 
+    @state = @utils.extend @initialState, options.state
 
-  viewAppended : ->
+
+  viewAppended: ->
 
     {
       title
@@ -20,6 +26,8 @@ class SinglePlanView extends KDView
       description
     } = @getOptions()
 
+    { planInterval } = @state
+
     @addSubView @overflowVisible = new KDCustomHTMLView
       cssClass : 'overflow-visible'
 
@@ -30,13 +38,17 @@ class SinglePlanView extends KDView
       cssClass : 'plan-title'
       partial  : title.toUpperCase()
 
-    @overflowHidden.addSubView new KDHeaderView
+    price = @getPrice planInterval
+
+    @price = new KDHeaderView
       type     : 'medium'
       cssClass : 'plan-price'
       title    : "
-        <cite>#{(monthPrice / 100) or 'Free'}</cite>
+        <cite>#{(price / 100) or 'Free'}</cite>
         <span class='interval-text'>MONTHLY</span>
       "
+
+    @overflowHidden.addSubView @price
 
     @overflowHidden.addSubView new KDCustomHTMLView
       tagName  : 'p'
@@ -61,9 +73,30 @@ class SinglePlanView extends KDView
       callback  : =>
         { title, monthPrice, yearPrice } = @getOptions()
         planTitle = title.toLowerCase()
+
         @emit 'PlanSelected', {
-          planTitle, monthPrice, yearPrice, reducedMonth, discount
+          planTitle, monthPrice, yearPrice
+          reducedMonth, discount
         }
+
+
+  setPlanInterval: (planInterval) ->
+
+    price = @getPrice planInterval
+
+    @price.updatePartial "
+      <cite>#{(price / 100) or 'Free'}</cite>
+      <span class='interval-text'>MONTHLY</span>
+    "
+
+
+  getPrice: (planInterval) ->
+
+    priceMap =
+      month : @getOption 'monthPrice'
+      year  : @getOption 'reducedMonth'
+
+    return price = priceMap[planInterval]
 
 
   disable: ->
