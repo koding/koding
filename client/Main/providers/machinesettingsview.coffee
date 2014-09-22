@@ -31,7 +31,14 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label         : "Nickname"
           cssClass      : "custom-link-view"
           itemClass     : KDView
-          partial       : data.label
+          partial       : "#{data.label}<cite></cite>"
+          nextElement   :
+            nickEdit    :
+              itemClass : KDHitEnterInputView
+              type      : 'text'
+              cssClass  : 'hidden'
+              attributes: spellcheck: false
+              callback  : => @emit 'UpdateNickname'
         statusToggle    :
           label         : "On/Off"
           defaultValue  : running
@@ -76,14 +83,32 @@ class MachineSettingsPopup extends KDModalViewWithForms
       computeController.setAlwaysOn @machine, state, (err)->
         if KD.showError err then alwaysOn.setOff no
 
-    {moreView} = @modalTabs.forms.Settings.inputs
-    {label}    = moreView.getOptions()
 
-    label.on 'click', =>
-      label.toggleClass 'expanded'
-      @moreForm.toggleClass 'hidden'
 
   viewAppended:->
+
+    {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
+
+    moreLabel = moreView.getOption 'label'
+    moreLabel.on 'click', =>
+      moreLabel.toggleClass 'expanded'
+      @moreForm.toggleClass 'hidden'
+
+    windowController = KD.getSingleton "windowController"
+
+    nickname.on 'click', =>
+      nickname.hide()
+
+      windowController.addLayer nickEdit
+      nickEdit.once "ReceivedClickElsewhere", ->
+        nickEdit.hide()
+        nickname.show()
+
+      nickEdit.setValue @machine.label
+      nickEdit.show()
+
+      KD.utils.defer -> nickEdit.setFocus()
+
 
     @addSubView @moreForm = new KDFormViewWithFields
       cssClass         : 'more-form hidden'
