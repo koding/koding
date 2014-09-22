@@ -53,13 +53,7 @@ class PricingAppView extends KDView
 
     @plans = new PricingPlansView { @state }
 
-    @info = @initInfo()
-
-    @learnMoreLink = new CustomLinkView
-      title    : "Learn more about all our features"
-      cssClass : "learn-more"
-      href     : "/"
-
+    @footer = @initFooter()
 
   initEvents: ->
     @plans.on 'PlanSelected', @bound 'planSelected'
@@ -67,7 +61,7 @@ class PricingAppView extends KDView
     @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
 
 
-  initInfo: ->
+  initFooter: ->
 
     features = [
       'Full sudo access'
@@ -81,22 +75,14 @@ class PricingAppView extends KDView
       'IDE/Terminal/Collaboration'
     ]
 
-    view = new KDCustomHTMLView
+    footer = new KDCustomHTMLView
       cssClass : 'pricing-footer'
 
-    view.addSubView new KDCustomHTMLView
-      cssClass : 'footer-msg'
-      partial  : "
-        <p>Don't worry, you can upgrade or downgrade your plan at any time.</p>
-        <p class='footer-note'>(you can cancel a yearly plan within 3 months -
-        no questions asked! outside of 3 months there is 2 month fee.)</p>
-      "
-
-    view.addSubView new KDCustomHTMLView
+    footer.addSubView new KDCustomHTMLView
       tagName : 'h4'
       partial : 'All plans include:'
 
-    view.addSubView featuresWrapper = new KDCustomHTMLView
+    footer.addSubView featuresWrapper = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'features clearfix'
 
@@ -106,7 +92,20 @@ class PricingAppView extends KDView
         cssClass : 'single-feature'
         partial  : feature
 
-    return view
+    footer.addSubView new CustomLinkView
+      title    : 'Learn more about all our features'
+      cssClass : "learn-more"
+      href     : "/"
+
+    footer.addSubView new KDCustomHTMLView
+      cssClass : 'footer-msg'
+      partial  : "
+        <p>Don't worry, you can upgrade or downgrade your plan at any time.</p>
+        <p class='footer-note'>(you can cancel a yearly plan within 3 months -
+        no questions asked! outside of 3 months there is 2 month fee.)</p>
+      "
+
+    return footer
 
 
   selectIntervalToggle: (planInterval) ->
@@ -172,8 +171,7 @@ class PricingAppView extends KDView
       {{> @headerDescription}}
       {{> @intervalToggle}}
       {{> @plans}}
-      {{> @info}}
-      {{> @learnMoreLink}}
+      {{> @footer}}
     """
 
 
