@@ -8,12 +8,6 @@ class AccountListWrapper extends KDView
     linkedAccounts             : AccountLinkedAccountsList
     referralSystemController   : AccountReferralSystemListController
     referralSystem             : AccountReferralSystemList
-    historyController          : AccountPaymentHistoryListController
-    history                    : AccountPaymentHistoryList
-    methodsController          : AccountPaymentMethodsListController
-    methods                    : AccountPaymentMethodsList
-    subscriptionsController    : AccountSubscriptionsListController
-    subscriptions              : AccountSubscriptionsList
     editorsController          : AccountEditorListController
     editors                    : AccountEditorList
     keysController             : AccountSshKeyListController
