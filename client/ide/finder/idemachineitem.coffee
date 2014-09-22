@@ -23,6 +23,8 @@ class IDE.MachineItemView extends NFileItemView
       selectOptions : @createSelectOptions()
       callback      : @bound 'updateRoot'
 
+    KD.singletons.computeController.on "revive-#{@machine._id}", =>
+      @machineInfo.updatePartial @machine.getName()
 
   updateRoot: (path) ->
     finder = @getData().treeController.getDelegate()
