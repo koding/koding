@@ -23,10 +23,10 @@ import (
 )
 
 var (
-	k      *kite.Kite
-	kld    *kloud.Kloud
-	remote *kite.Client
-	conf   *config.Config
+	kloudKite *kite.Kite
+	kld       *kloud.Kloud
+	remote    *kite.Client
+	conf      *config.Config
 )
 
 const machineId = "koding_id0"
@@ -45,31 +45,31 @@ func init() {
 
 	// Power up our own kontrol kite for self-contained tests
 	kontrol.DefaultPort = 4099
-	kon := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	go kon.Run()
-	<-kon.Kite.ServerReadyNotify()
+	kntrl := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
+	go kntrl.Run()
+	<-kntrl.Kite.ServerReadyNotify()
 
 	// Power up kloud kite
-	k = kite.New("kloud", "0.0.1")
-	k.Config = conf.Copy()
-	k.Config.Port = 4002
+	kloudKite = kite.New("kloud", "0.0.1")
+	kloudKite.Config = conf.Copy()
+	kloudKite.Config.Port = 4002
 	kiteURL := &url.URL{Scheme: "http", Host: "localhost:4002", Path: "/kite"}
-	_, err := k.Register(kiteURL)
+	_, err := kloudKite.Register(kiteURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Add Kloud handlers
 	kld := newKloud()
-	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("reinit", kld.Reinit)
-	k.HandleFunc("event", kld.Event)
+	kloudKite.HandleFunc("build", kld.Build)
+	kloudKite.HandleFunc("destroy", kld.Destroy)
+	kloudKite.HandleFunc("start", kld.Start)
+	kloudKite.HandleFunc("stop", kld.Stop)
+	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("event", kld.Event)
 
-	go k.Run()
-	<-k.ServerReadyNotify()
+	go kloudKite.Run()
+	<-kloudKite.ServerReadyNotify()
 
 	user := kite.New("user", "0.0.1")
 	user.Config = conf.Copy()
@@ -334,7 +334,7 @@ func newKloud() *kloud.Kloud {
 	kld.Debug = true
 
 	provider := &koding.Provider{
-		Kite: k,
+		Kite: kloudKite,
 		Log:  newLogger("koding", false),
 
 		KontrolURL:        conf.KontrolURL,
