@@ -19,7 +19,7 @@ spritesmith= require 'gulp.spritesmith'
 livereload = require 'gulp-livereload'
 shell      = require 'gulp-shell'
 
-STYLES_PATH = ['./app/styl/**/*.styl']
+STYLES_PATH = ['./app/styl/*.styl']
 COFFEE_PATH = ['./app/coffee/**/*.coffee']
 INDEX_PATH  = ['./app/index.html']
 SERVER_FILE = './server/server.coffee'
