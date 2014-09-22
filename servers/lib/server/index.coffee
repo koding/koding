@@ -237,6 +237,20 @@ app.post "/:name?/Login", (req, res) ->
       res.cookie 'clientId', info.replacementToken
       res.send 200, null
 
+app.post "/:name?/Redeem", (req, res) ->
+  { JGroup } = koding.models
+  slug = req.params.name ? 'koding'
+  { inviteCode } = req.body
+
+  koding.fetchClient req.cookies.clientId, context, (client) ->
+    JGroup.one { slug }, (err, group) ->
+      return res.send 400, "Bad request"  if err? or not group?
+
+      group.redeemInvitationByAccount client.connection.delegate, inviteCode,
+        (err) ->
+          return res.send 400, err.message  if err
+          res.send 200, null
+
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
   res.redirect 301, '/'

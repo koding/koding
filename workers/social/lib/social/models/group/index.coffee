@@ -1061,22 +1061,24 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
-  redeemInvitation: secure (client, code, callback)->
-    {delegate} = client.connection
-    @isMember delegate, (err, isMember)=>
+  redeemInvitationByAccount: (account, code, callback) ->
+    @isMember account, (err, isMember) =>
       return callback err  if err or isMember
       selector = targetOptions: selector: {code, status:$in:['active', 'sent']}
-      @fetchInvitations {}, selector, (err, [invite])=>
+      @fetchInvitations {}, selector, (err, [invite]) =>
         return callback err  if err
         return callback new KodingError 'Invitation code is invalid!'  unless invite
-        delegate.fetchUser (err, user)=>
+        account.fetchUser (err, user) =>
           return callback err  if err
           unless invite.type is 'multiuse' or user.email is invite.email
             return callback new KodingError 'Are you sure invitation e-mail is for you?'
 
-          invite.redeem delegate, (err) =>
+          invite.redeem account, (err) =>
             return callback err if err
-            @approveMember delegate, callback
+            @approveMember account, callback
+
+  redeemInvitation: secure (client, code, callback)->
+    @redeemInvitationByAccount client.connection.delegate, code, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
