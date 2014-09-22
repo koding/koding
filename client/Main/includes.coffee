@@ -188,8 +188,8 @@ module.exports = [
   # controller
   "payment/paymentcontroller.coffee",
   # # views
-  # "payment/paymentmethodview.coffee",
-  # "payment/subscriptionview.coffee",
+  "payment/paymentmethodview.coffee",
+  "payment/subscriptionview.coffee",
   # "payment/paymentmethodentryform.coffee",
   # "payment/paymentchoiceform.coffee",
   # "payment/paymentformmodal.coffee",

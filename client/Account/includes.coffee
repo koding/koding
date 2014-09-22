@@ -13,7 +13,7 @@ module.exports = [
   "views/editors.coffee",
   "views/sshkeys.coffee",
   "views/kodingkeys.coffee",
-  "views/paymenthistory.coffee",
+  "views/paymenthistorylistitem.coffee",
   "views/paymentmethods.coffee",
   "views/subscriptions.coffee",
   "views/referralsystem.coffee",
