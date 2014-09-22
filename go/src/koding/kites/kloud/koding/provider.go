@@ -30,6 +30,10 @@ const (
 	ProviderName = "koding"
 )
 
+type pushValues struct {
+	Start, Finish int
+}
+
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
@@ -189,11 +193,11 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	if err := p.destroy(a, m); err != nil {
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 40}); err != nil {
 		return nil, err
 	}
 
-	return p.build(a, m)
+	return p.build(a, m, &pushValues{Start: 40, Finish: 90})
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
@@ -202,11 +206,15 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	return p.destroy(a, m)
+	return p.destroy(a, m, &pushValues{Start: 10, Finish: 90})
 }
 
-func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine) error {
-	err := a.Destroy()
+func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
+	// means if final is 40 our destroy method below will be push at most up to
+	// 32.
+	middleVal := v.Finish * (8 / 10)
+
+	err := a.Destroy(v.Start, middleVal)
 	if err != nil {
 		return err
 	}
@@ -215,7 +223,10 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Checking domain", 75, machinestate.Terminating)
+	// increase one tick but still don't let it reach the final value
+	lastVal := v.Finish * (9 / 10)
+
+	a.Push("Checking domain", lastVal, machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
 	_, err = p.DNS.Domain(m.Domain.Name)
@@ -228,7 +239,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Deleting domain", 85, machinestate.Terminating)
+	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
 	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
