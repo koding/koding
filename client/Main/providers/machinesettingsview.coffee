@@ -83,6 +83,20 @@ class MachineSettingsPopup extends KDModalViewWithForms
       computeController.setAlwaysOn @machine, state, (err)->
         if KD.showError err then alwaysOn.setOff no
 
+    @on 'UpdateNickname', =>
+
+      {nickEdit, nickname} = @modalTabs.forms.Settings.inputs
+      label = nickEdit.getValue()
+
+      @machine.setLabel label, (err, newSlug)=>
+
+        if not KD.showError err
+
+          nickname.updatePartial "#{label}<cite></cite>"
+
+          nickEdit.hide()
+          nickname.show()
+
 
 
   viewAppended:->
