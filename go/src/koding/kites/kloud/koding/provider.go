@@ -67,6 +67,8 @@ type Provider struct {
 	PublicKey  string `structure:"publicKey"`
 	PrivateKey string `structure:"privateKey"`
 	KeyName    string `structure:"keyName"`
+
+	PlanChecker func(*protocol.Machine) (Checker, error)
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
