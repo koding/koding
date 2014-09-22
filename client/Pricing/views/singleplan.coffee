@@ -33,7 +33,10 @@ class SinglePlanView extends KDView
     @overflowHidden.addSubView new KDHeaderView
       type     : 'medium'
       cssClass : 'plan-price'
-      title    : "<cite>#{monthPrice / 100}</cite>MONTHLY"
+      title    : "
+        <cite>#{(monthPrice / 100) or 'Free'}</cite>
+        <span class='interval-text'>MONTHLY</span>
+      "
 
     @overflowHidden.addSubView new KDCustomHTMLView
       tagName  : 'p'
