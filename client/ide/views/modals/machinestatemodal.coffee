@@ -32,14 +32,14 @@ class IDE.MachineStateModal extends IDE.ModalView
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
     computeController.on "error-#{@machineId}", =>
       @hasError = yes
-      @updateStatus { status: Unknown }
+      @updateStatus status: Unknown
 
     @show()
 
 
   updateStatus: (event) ->
 
-    {status, percentage} = event
+    {status, percentage, error} = event
 
     if status is @state
       if percentage?
@@ -48,6 +48,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     else
       @state = status
+
+      @hasError = error?.length > 0
 
       if percentage? and percentage is 100
         @progressBar?.updateBar 100
