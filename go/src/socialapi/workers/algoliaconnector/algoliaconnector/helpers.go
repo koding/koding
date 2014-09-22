@@ -1,5 +1,9 @@
 package algoliaconnector
 
+import "errors"
+
+var ErrDataNotValid = errors.New("Algolia error: invalid data")
+
 func (f *Controller) insert(indexName string, record map[string]interface{}) error {
 	index, err := f.indexes.Get(indexName)
 	if err != nil {
@@ -20,7 +24,12 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 		return nil, err
 	}
 
-	return (record).(map[string]interface{}), nil
+	castRecord, ok := record.(map[string]interface{})
+	if !ok {
+		return nil, ErrDataNotValid
+	}
+
+	return castRecord, nil
 }
 
 func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {
@@ -41,7 +50,12 @@ func appendMessageTag(record map[string]interface{}, channelId string) []interfa
 		return []interface{}{channelId}
 	}
 
-	tags := (record["_tags"]).([]interface{})
+	tagsDoc, ok := record["_tags"]
+	if !ok {
+		return []interface{}{channelId}
+	}
+
+	tags := tagsDoc.([]interface{})
 	for _, ele := range tags {
 		if ele == channelId {
 			return tags
@@ -58,7 +72,12 @@ func removeMessageTag(record map[string]interface{}, channelId string) []interfa
 
 	filtered := make([]interface{}, 0)
 
-	tags := (record["_tags"]).([]interface{})
+	tagsDoc, ok := record["_tags"]
+	if !ok {
+		return nil
+	}
+
+	tags := tagsDoc.([]interface{})
 	for _, ele := range tags {
 		id := ele.(string)
 		if id == channelId {
