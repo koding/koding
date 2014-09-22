@@ -81,7 +81,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	a.Push("Checking security requirements", normalize(20), machinestate.Building)
 
-	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
+	groupName := "koding-kloud-2" // TODO: make it from the package level and remove it from here
 	infoLog("Checking if security group '%s' exists", groupName)
 	group, err := a.SecurityGroup(groupName)
 	if err != nil {
@@ -102,8 +102,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// needed for vpc instances, go and grap one from one of our Koding's own
 	// subnets
-	infoLog("Fetching subnetId with available IPs")
-	subnetId, err := a.SubnetId()
+	infoLog("Fetching subnetId with available IPs for VPC ID: %s", group.VpcId)
+	subnetId, err := a.SubnetId(group.VpcId)
 	if err != nil {
 		return nil, err
 	}

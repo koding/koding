@@ -3,8 +3,9 @@ package amazon
 import "errors"
 
 // SubnetId() returns a single subnetId to be used for creating VPC instances
-func (a *AmazonClient) SubnetId() (string, error) {
-	subs, err := a.ListSubnets()
+// for the given VPC Id.
+func (a *AmazonClient) SubnetId(vpcId string) (string, error) {
+	subs, err := a.ListSubnetsFromVPC(vpcId)
 	if err != nil {
 		return "", err
 	}

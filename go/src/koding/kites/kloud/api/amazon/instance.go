@@ -103,3 +103,10 @@ func (a *Amazon) ListVPCs() (*ec2.VpcsResp, error) {
 func (a *Amazon) ListSubnets() (*ec2.SubnetsResp, error) {
 	return a.Client.DescribeSubnets([]string{}, ec2.NewFilter())
 }
+
+func (a *Amazon) ListSubnetsFromVPC(vpcId string) (*ec2.SubnetsResp, error) {
+	filter := ec2.NewFilter()
+	filter.Add("vpc-id", vpcId)
+
+	return a.Client.DescribeSubnets([]string{}, filter)
+}
