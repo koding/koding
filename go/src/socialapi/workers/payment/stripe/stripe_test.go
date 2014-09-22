@@ -26,7 +26,7 @@ func init() {
 var (
 	StartingPlan      = "developer"
 	StartingInterval  = "month"
-	StartingPlanPrice = 1999
+	StartingPlanPrice = 2450
 	HigherPlan        = "professional"
 	HigherInterval    = "month"
 	LowerPlan         = "hobbyist"
