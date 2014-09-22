@@ -76,13 +76,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	data := map[string]interface{}{}
 
 	switch s.Type {
-	case "build":
-		data["queryString"] = s.Data["queryString"]
-		data["ipAddress"] = s.Data["ipAddress"]
-		data["domain"] = s.Data["domainName"]
-		data["meta.instanceId"] = s.Data["instanceId"]
-		data["meta.instanceName"] = s.Data["instanceName"]
-	case "reinit":
+	case "build", "reinit":
 		data["queryString"] = s.Data["queryString"]
 		data["ipAddress"] = s.Data["ipAddress"]
 		data["domain"] = s.Data["domainName"]
