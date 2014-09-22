@@ -1,9 +1,10 @@
 gulp       = require 'gulp'
 gutil      = require 'gulp-util'
+gulpif     = require 'gulp-if'
 coffee     = require 'gulp-coffee'
 rename     = require 'gulp-rename'
-buffer     = require 'gulp-buffer'
-stream     = require 'gulp-stream'
+gulpBuffer = require 'gulp-buffer'
+gulpStream = require 'gulp-stream'
 stylus     = require 'gulp-stylus'
 rimraf     = require 'gulp-rimraf'
 concat     = require 'gulp-concat'
@@ -24,18 +25,19 @@ INDEX_PATH  = ['./app/index.html']
 SERVER_FILE = './server/server.coffee'
 SERVER_PATH = ['./server/**/*.coffee']
 BUILD_PATH  = argv.outputDir ? './static/a/out'
+devMode     = argv.devMode?
 
 log = (color, message) -> gutil.log gutil.colors[color] message
 
 watchLogger = (color, watcher) ->
-  server = livereload()
+  server = livereload()  if devMode
   watcher.on 'change', (event) ->
     log color, "file #{event.path} was #{event.type}"
     server?.changed event.path
 
 gulpBrowserify = (options = {}) ->
   options.extensions or= ['.coffee']
-  options.debug       ?= yes
+  options.debug        = devMode
   b = browserify options
   b.transform coffeeify
   b.bundle()
@@ -49,10 +51,10 @@ compileStyles = ->
   gulp.src STYLES_PATH
     .pipe stylus
       compress  : yes
-      # sourcemap : inline  : yes
+      sourcemap : inline  : yes  if devMode
     .pipe concat 'main.css'
     .pipe rename 'main.css'
-    # .pipe livereload()
+    .pipe gulpif devMode, livereload()
     .pipe gulp.dest "#{BUILD_PATH}/css"
 
 
@@ -83,7 +85,7 @@ nameStylusVars = (suffix, sprite) ->
 
 gulp.task 'sprites@1x', ->
 
-  spriteStream = gulp.src 'static/sprites@1x/**/*.png'
+  stream = gulp.src 'static/sprites@1x/**/*.png'
     .pipe spritesmith
       imgName   : 'sprite@1x.png'
       cssName   : 'sprite@1x.styl'
@@ -91,20 +93,20 @@ gulp.task 'sprites@1x', ->
       algorithm : 'binary-tree'
       padding   : 5
       cssFormat : 'stylus'
-      cssVarMap : nameStylusVars.bind spriteStream, ''
+      cssVarMap : nameStylusVars.bind stream, ''
 
-  spriteStream.css
+  stream.css
     .pipe gulp.dest './app/styl/'
 
-  spriteStream.img
+  stream.img
     .pipe gulp.dest "#{BUILD_PATH}/images/"
 
-  return spriteStream
+  return stream
 
 
 gulp.task 'sprites@2x', ['sprites@1x'], ->
 
-  spriteStream = gulp.src 'static/sprites@2x/**/*.png'
+  stream = gulp.src 'static/sprites@2x/**/*.png'
     .pipe spritesmith
       imgName   : 'sprite@2x.png'
       cssName   : 'sprite@2x.styl'
@@ -112,15 +114,15 @@ gulp.task 'sprites@2x', ['sprites@1x'], ->
       algorithm : 'binary-tree'
       padding   : 10
       cssFormat : 'stylus'
-      cssVarMap : nameStylusVars.bind spriteStream, '__2x'
+      cssVarMap : nameStylusVars.bind stream, '__2x'
 
-  spriteStream.css
+  stream.css
     .pipe gulp.dest './app/styl/'
 
-  spriteStream.img
+  stream.img
     .pipe gulp.dest "#{BUILD_PATH}/images/"
 
-  return spriteStream
+  return stream
 
 
 gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles-only']
@@ -130,11 +132,12 @@ gulp.task 'coffee', ->
   gulpBrowserify
       entries : ['./app/coffee/main.coffee']
     .pipe source 'main.js'
-    .pipe buffer()
+    .pipe gulpBuffer()
     .pipe pistachio()
-    .pipe stream()
-    # .pipe livereload()
+    .pipe gulpStream()
+    .pipe gulpif devMode, livereload()
     .pipe gulp.dest "#{BUILD_PATH}/js"
+
 
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
 
