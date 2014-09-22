@@ -93,7 +93,6 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 
 	return f.partialUpdate("messages", map[string]interface{}{
 		"objectID": objectId,
-		"body":     message.Body,
 		"_tags":    appendMessageTag(record, channelId),
 	})
 }
@@ -111,7 +110,7 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 		err.Error() != ErrAlgoliaIndexNotExist.Error() {
 		return err
 	}
-	if len(record["_tags"].([]interface{})) == 1 {
+	if tags, ok := record["_tags"]; ok && len(tags.([]interface{})) == 1 {
 		if _, err = index.DeleteObject(objectId); err != nil {
 			return err
 		}
