@@ -192,7 +192,7 @@ func newKite(conf *Config) *kite.Kite {
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
 
-	kld := kloud.NewKloud()
+	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
