@@ -17,4 +17,6 @@ npm i
 gulp
 ```
 
+You can also do `gulp --devMode` to enable sourcemaps for both styl and coffee files.
+
 that's it.
