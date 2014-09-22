@@ -36,6 +36,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @show()
 
+    computeController.followUpcomingEvents @machine
 
   updateStatus: (event) ->
 
