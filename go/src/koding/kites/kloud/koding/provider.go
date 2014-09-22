@@ -7,7 +7,6 @@ import (
 
 	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
@@ -162,19 +161,9 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Deleting domain", 75, machinestate.Stopping)
+	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
-	}
-
-	a.Push("Updating ip address", 85, machinestate.Stopping)
-	if err := p.Update(m.Id, &kloud.StorageData{
-		Type: "stop",
-		Data: map[string]interface{}{
-			"ipAddress": "",
-		},
-	}); err != nil {
-		p.Log.Error("[stop] storage update of essential data was not possible: %s", err.Error())
 	}
 
 	return nil
