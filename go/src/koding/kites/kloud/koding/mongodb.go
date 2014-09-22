@@ -4,19 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
-// Assignee returns the assignee responsible for MongoDB actions, in our case
-// it's the Kloud name together with hostname and a unique identifier.
-func (p *Provider) Assignee() string { return p.AssigneeName }
-
 // Get returns the meta of the associated credential with the given machine id.
-func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
+func (p *Provider) Get(id string) (*protocol.Machine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -26,12 +23,17 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	// really doesn't exist or if there is an assignee which is a different
 	// thing. (Because findAndModify() also returns "not found" for the case
 	// where the id exist but someone else is the assignee).
-	machine := &Machine{}
+	machine := &MachineDocument{}
 	if err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
 	}); err == mgo.ErrNotFound {
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
+
+	// as a koding provider, the credential is just the username so we can use
+	// it directly, otherwise we need to make an additional lookup via
+	// jAccounts with machine.Users.Id..
+	username := machine.Credential
 
 	// do not check for admin users, or if test mode is enabled
 	if !IsAdmin(username) {
@@ -44,18 +46,16 @@ func (p *Provider) Get(id, username string) (*protocol.Machine, error) {
 	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
-		MachineId:   id,
+		Id:          id,
+		Username:    machine.Credential, // contains the username for koding provider
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
 		Credential:  credential.Meta,
 		State:       machine.State(),
-		CurrentData: machine,
+		IpAddress:   machine.IpAddress,
+		QueryString: machine.QueryString,
 	}
-
-	// this can be used by other providers if there is a need.
-	if _, ok := m.Builder["username"]; !ok {
-		m.Builder["username"] = username
-	}
+	m.Domain.Name = machine.Domain
 
 	return m, nil
 }
@@ -88,11 +88,12 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["ipAddress"] = s.Data["ipAddress"]
 		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
-		data["meta.instanceName"] = s.Data["instanceName"]
 	case "stop":
 		data["ipAddress"] = s.Data["ipAddress"]
 	case "domain":
 		data["domain"] = s.Data["domainName"]
+	case "resize":
+		data["ipAddress"] = s.Data["ipAddress"]
 	default:
 		return fmt.Errorf("Storage type unknown: '%s'", s.Type)
 	}

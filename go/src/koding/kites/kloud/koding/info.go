@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"fmt"
 	"koding/kites/kloud/klient"
 	"sync"
 	"time"
@@ -9,9 +8,9 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
 )
 
 // invalidChanges is a list of exceptions that applies when we fix the DB state
@@ -35,8 +34,8 @@ func validChange(db, aws machinestate.State) bool {
 	return invalidChanges[db] != aws
 }
 
-func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, err error) {
-	a, err := p.NewClient(opts)
+func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
+	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
@@ -47,30 +46,24 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		return nil, err
 	}
 
-	dbState := opts.State
+	dbState := m.State
 	awsState := infoResp.State
 
 	// result state is the final state that is send back to the request
 	resultState := dbState
 
 	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
-		opts.MachineId, dbState, awsState)
+		m.Id, dbState, awsState)
 
 	// we don't check if the state is something else. Klient is only available
 	// when the machine is running
 	klientChecked := false
 	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
 		klientChecked = true
-		// for the rest ask again to klient so we know if it's running or not
-		machineData, ok := opts.CurrentData.(*Machine)
-		if !ok {
-			return nil, fmt.Errorf("current data is malformed: %v", opts.CurrentData)
-		}
-
-		klientRef, err := klient.NewWithTimeout(p.Kite, machineData.QueryString, time.Second*5)
+		klientRef, err := klient.NewWithTimeout(p.Kite, m.QueryString, time.Second*5)
 		if err != nil {
 			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
-				opts.MachineId, resultState)
+				m.Id, resultState)
 			resultState = machinestate.Stopped
 		} else {
 			defer klientRef.Close()
@@ -81,7 +74,7 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 			// ping the klient again just to see if it can respond to us
 			if err := klientRef.Ping(); err != nil {
 				p.Log.Warning("[%s] state is '%s' but I can't send a ping. Err: %s",
-					opts.MachineId, resultState, err.Error())
+					m.Id, resultState, err.Error())
 
 				// seems we can't send even a simple ping! It's not
 				// functional so we assume it's stopped
@@ -91,13 +84,13 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 
 		if resultState != dbState {
 			// return an error anything here if the DB is locked.
-			if err := p.CheckAndUpdateState(opts.MachineId, resultState); err == mgo.ErrNotFound {
+			if err := p.CheckAndUpdateState(m.Id, resultState); err == mgo.ErrNotFound {
 				return nil, kloud.ErrLockAcquired
 			}
 		}
 
 		p.Log.Info("[%s] info decision: based on klient interaction: '%s'",
-			opts.MachineId, resultState)
+			m.Id, resultState)
 	}
 
 	// fix db state if the aws state is different than dbState. This will not
@@ -111,15 +104,18 @@ func (p *Provider) Info(opts *protocol.Machine) (result *protocol.InfoArtifact, 
 		// change the db state if there is an ongoing process. If there is no
 		// error than it means there is no lock so we could update it with the
 		// state from amazon. Therefore send it back!
-		err := p.CheckAndUpdateState(opts.MachineId, awsState)
+		err := p.CheckAndUpdateState(m.Id, awsState)
 		if err == nil {
 			p.Log.Info("[%s] info decision : inconsistent state. using amazon state '%s'",
-				opts.MachineId, awsState)
+				m.Id, awsState)
 			resultState = awsState
+		} else {
+			p.Log.Info("[%s] info decision : using current db state '%s'",
+				m.Id, resultState)
 		}
 	}
 
-	p.Log.Info("[%s] info result   : '%s'", opts.MachineId, resultState)
+	p.Log.Info("[%s] info result   : '%s'", m.Id, resultState)
 
 	return &protocol.InfoArtifact{
 		State: resultState,

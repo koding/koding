@@ -165,6 +165,8 @@ module.exports = [
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
   "providers/computeplansmodalpaid.coffee",
+  "providers/computeerrormodal.coffee",
+  "providers/computeerrormodalusage.coffee",
   "providers/customplanstorageslider.coffee",
   "providers/machinesettingsview.coffee",
 
@@ -224,7 +226,6 @@ module.exports = [
   "avatararea/avatarareaiconlink.coffee",
 
   "maincontroller/groupdata.coffee",
-  "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/helpcontroller.coffee",
 

@@ -82,10 +82,26 @@ class MachineSettingsModal extends KDModalViewWithForms
               name          : 'alwaysOn'
               itemClass     : KodingSwitch
               defaultValue  : data.alwaysOn
-              callback      : (state) ->
-                alwaysOnToggle = this
-                computeController.setAlwaysOn data, state, (err)->
-                  if KD.showError err then alwaysOnToggle.setOff no
+              callback      : (state) =>
+
+                { alwaysOn } = @modalTabs.forms.Settings.inputs
+                plan = computeController.getUserPlan()
+
+                computeController.setAlwaysOn data, state, (err)=>
+
+                  if err?
+
+                    if err.name is "UsageLimitReached" and plan isnt 'hobbyist'
+
+                      @destroy()
+                      KD.utils.defer => new ComputeErrorModal.Usage { plan }
+
+                    else
+
+                      KD.showError err
+
+                    alwaysOn.setOff no
+
             guides          :
               label         : 'Guides'
               itemClass     : GuidesLinksView
