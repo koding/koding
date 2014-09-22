@@ -36,9 +36,6 @@ textarea
 button
   font-family       openSansFamily
 
-pre
-  font-family       monoFamily
-
 .kdview
   overflow          visible
 
@@ -81,7 +78,7 @@ pre
     font-weight             700
     line-height             16px
     color                   #fff
-    font-family             asapFamily
+    font-family             sloganFont
     -webkit-font-smoothing  antialiased
     noTextDeco()
     visible()
@@ -90,13 +87,12 @@ pre
   #koding-logo
     margin              0 14px 0 0
     size                auto auto
-    bg                  color, transparent
+    bg                  color transparent
     position            static
-    letter-spacing      .01em
     fl()
 
     cite
-      r-sprite          home 'logo'
+      r-sprite          app 'logo-full-white'
       margin            0
       display           block
 
@@ -105,20 +101,16 @@ pre
     fr()
 
     a
-      -webkit-font-smoothing  antialiased
-      font-smoothing          antialiased
-
-      font-size         16px
+      font-size         14px
       margin-left       12px
-      font-weight       500
       font-family       openSansFamily
-      color             rgba(255,255,255,.83)
+      color             white
       padding-bottom    1px
       noTextDeco()
 
       &.active
         font-weight     600
-        border-bottom   1px solid rgba(255,255,255,.83)
+        border-bottom   1px solid white
 
       &:last-child
         visibility      visible

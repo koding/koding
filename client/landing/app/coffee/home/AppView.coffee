@@ -1,113 +1,88 @@
-JView            = require './../core/jview'
 HomeRegisterForm = require './registerform'
-TestimonialsView = require './testimonialsview'
 FooterView       = require './footerview'
 
-module.exports = class HomeView extends JView
+module.exports = class HomeView extends KDView
 
-  constructor:->
+  COLORS    = [ 'gray', 'blue', 'orange', 'red', 'green', 'dark-blue' ]
+  IMAGEPATH = '/a/out/images/slideshow'
+  IMAGES    = [ 'ss-activity.jpg', 'ss-terminal.jpg', 'ss-teamwork.jpg' ]
+  ORDINALS  = ['first', 'second', 'third']
+  INDEX     = 0
+
+  constructor: (options = {}, data)->
+
     super
 
     {router} = KD.singletons
 
-    @pricingButton = new KDButtonView
-      title       : 'See Pricing'
-      style       : 'solid thin medium thin-white'
-      callback    : -> router.handleRoute '/Pricing'
-
     @signUpForm = new HomeRegisterForm
-      cssClass    : 'login-form register'
+      cssClass    : 'login-form register no-anim'
       buttonTitle : 'Sign up'
       callback    : (formData) =>
         router.requireApp 'Login', (controller) =>
-
           controller.getView().showPasswordModal formData, @signUpForm
 
-    @testimonials = new TestimonialsView
+    @signUpForm.button.unsetClass 'green'
+    @signUpForm.button.setClass 'yellow'
+
+    @slideShow = new KDView
 
     @footer = new FooterView
 
+    @setPartial @partial()
 
-  pistachio : ->
+    @addSubView @signUpForm, '.introduction article'
+    @addSubView @slideShow
+    @addSubView @footer
+
+    INDEX = KD.utils.getRandomNumber COLORS.length - 1
+    @changeColor()
+
+    @once 'viewAppended', ->
+      @setClass 'anim'
+      KD.utils.repeat 60e3, @bound 'nextColor'
+
+  click: -> @nextColor()
+
+  nextColor: -> @changeColor INDEX = (INDEX + 1) % 6
+
+
+  changeColor: ->
+
+    @unsetClass color for color in COLORS
+    @setClass COLORS[INDEX]
+
+
+  getImgElements = ->  ("<figure class='#{ORDINALS[i]}'><div src='#{IMAGEPATH}/#{IMAGES[i]}' ></div></figure>" for image, i in IMAGES).join ''
+
+
+  partial: ->
 
     """
-      <section class="introduction">
-        <div class="inner-container clearfix">
-          <article>
-            <h2>Develop. Together!</h2>
-            <p>
-              Koding gives you the necessary environment to start developing your apps, run them, collaborate and share with the world.
-            </p>
+    <section class="introduction">
+      <div>
+        <article>
+          <h1>Full Stack Browser Based Development</h2>
+          <h2>
+            Build Node, Go, Django, Rails, PHP and other apps and never install a dev environment on your laptop again.
+          </h2>
+        </article>
+      </div>
+    </section>
 
-            {{> @signUpForm}}
-          </article>
-        </div>
-      </section>
+    <section class="screenshots">
+      <div>
+        #{getImgElements()}
+      </div>
+    </section>
 
-      <section class="screenshots">
-        <div class="inner-container">
-          <figure class="first">
-            <img src="/a/out/images/ss-activity.jpg" alt="Activity">
-          </figure>
-          <figure class="second">
-            <img src="/a/out/images/ss-terminal.jpg" alt="Terminal">
-          </figure>
-          <figure class="third">
-            <img src="/a/out/images/ss-teamwork.jpg" alt="Environments">
-          </figure>
-        </div>
-      </section>
+    <section class="used-at">
+      <div>
+        <h3>Loved by developers at</h3>
+        <figure></figure>
+      </div>
+    </section>
 
-      <section class="features">
-        <div class="inner-container clearfix">
-          <article class="feature">
-            <i class="bubbles icon"></i>
-            <h5>Integrated social tools</h5>
-            <p>
-              Share with the community, learn from the experts or help those
-              who have yet to start coding. Socialize with like minded people
-              and have fun.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="team icon"></i>
-            <h5>There is no “I” in Team</h5>
-            <p>
-              Collaborative development environment for lecture groups,
-              pair programming, or simply for sharing what you're doing with
-              a total stranger.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="box icon"></i>
-            <h5>Yeah, there’s an app for that</h5>
-            <p>
-              Speed up with user contributed apps, or create your own app,
-              Koding has a great toolset to interact with VMs and to build
-              UIs around.
-            </p>
-          </article>
-          <article class="feature">
-            <i class="settings icon"></i>
-            <h5>Control freaks?</h5>
-            <p>
-              Micro manage your working environment structure.
-              Go granular, add VM’s, add storage, double up the database,
-              go nuts as you scale.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      {{> @testimonials}}
-
-      <section class='check-out'>
-        <div class='inner-container'>
-          <h3><a href='/Pricing'>Check out our pricing</a> and get started with Koding right away!</h3>
-        </div>
-      </section>
-
-      {{> @footer}}
     """
 
 
