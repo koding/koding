@@ -19,7 +19,7 @@ class ActivityInputView extends KDTokenizedInput
     @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
-    KD.singletons.autocomplete.searchTopics inputValue
+    KD.singletons.search.searchTopics inputValue
       .then (tags) =>
         @showMenu
           itemChildClass: TagContextMenuItem
