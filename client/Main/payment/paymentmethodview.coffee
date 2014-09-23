@@ -34,7 +34,7 @@ class PaymentMethodView extends JView
 
 
   getCardInfoPartial: (paymentMethod) ->
-    return "<span class='no-item-found'>You have no payment methods"  unless paymentMethod
+    return "<span class='no-item-found'>You have no payment methods</span>"  unless paymentMethod
 
     { last4 } = paymentMethod
 
