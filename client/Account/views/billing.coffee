@@ -53,6 +53,22 @@ class AccountBilling extends KDView
       partial  : partial
 
 
+  putPaymentMethodView: (paymentMethod) ->
+
+    @paymentMethodWrapper.destroySubViews()
+
+    @state.paymentMethod = paymentMethod
+
+    @paymentMethod = new PaymentMethodView
+      editLink    : yes
+      removeLink  : no
+    , paymentMethod
+
+    @paymentMethod.on 'PaymentMethodEditRequested', @bound 'startWorkflow'
+
+    @paymentMethodWrapper.addSubView @paymentMethod
+
+
   initPaymentMethod: ->
 
     { paymentController } = KD.singletons
@@ -62,16 +78,9 @@ class AccountBilling extends KDView
 
     paymentController.creditCard (err, card) =>
 
-      card = null  if err
+      card = null  if err?
 
-      @state.paymentMethod = card
-
-      methodView = new PaymentMethodView
-        editLink    : yes
-        removeLink  : no
-      , card
-
-      @paymentMethodWrapper.addSubView methodView
+      @putPaymentMethodView card
 
 
   initPaymentHistory: ->
