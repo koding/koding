@@ -128,7 +128,7 @@ class ActivityAppView extends KDView
     paneClass = switch type
       when 'topic'          then TopicMessagePane
       when 'privatemessage' then PrivateMessagePane
-      else MessagePane
+      else ActivityPane
 
     itemClass = switch type
       when 'privatemessage' then PrivateMessageListItemView

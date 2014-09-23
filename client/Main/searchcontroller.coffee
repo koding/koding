@@ -1,4 +1,4 @@
-class AutoCompleteController extends KDObject
+class SearchController extends KDObject
 
   constructor: (options, data) ->
     super options, data
@@ -8,12 +8,13 @@ class AutoCompleteController extends KDObject
     @indexes = {}
     @algolia = new AlgoliaSearch appId, apiKey
 
-  search: (indexName, seed) ->
+  search: (indexName, seed, options) ->
     new Promise (resolve, reject) =>
       index = @getIndex "#{ indexName }#{ KD.config.algolia.indexSuffix }"
       index.search seed, (success, results) ->
         return reject new Error "Couldn't search algolia"  unless success
         return resolve results.hits ? []
+      , options
 
   searchAccountsMongo: (seed) ->
     val = seed.replace /^@/, ''
@@ -36,5 +37,22 @@ class AutoCompleteController extends KDObject
   searchTopics: (seed) ->
     @search 'topics', seed
 
+  searchChannel: (seed, channelId, options = {}) ->
+    options.tagFilters = (options.tagFilters ? []).concat channelId
+
+    @search 'messages', seed, options
+      .map ({ objectID: id }) ->
+        new Promise (resolve) ->
+          KD.singletons.socialapi.message.byId { id }, (err, message) ->
+            if err
+              # NOTE: intentionally not rejecting here:
+              console.warn "social api error:", err
+            resolve message
+      .filter Boolean
+
   getIndex: (indexName) ->
-    @indexes[indexName] ?= @algolia.initIndex indexName
+    unless @indexes[indexName]?
+      index = @algolia.initIndex indexName
+      # index.setSettings attributesForFaceting: 'channel'
+      @indexes[indexName] = index
+    @indexes[indexName]
