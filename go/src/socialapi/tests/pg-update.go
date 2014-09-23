@@ -75,6 +75,6 @@ var ErrConnRefusedFn = func(err error) bool {
 
 var ErrPaymentTablesFn = func(err error) bool {
 	return strings.Contains(err.Error(),
-		`pq: relation "payment.customerr" does not exist`,
+		`pq: relation "payment.customer" does not exist`,
 	)
 }
