@@ -150,8 +150,8 @@ Configuration = (options={}) ->
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : null
-    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -164,7 +164,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
-    stripe            : { token: 'pk_test_6OB11qvDKuUlo71pFqd6nW9K' }
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}

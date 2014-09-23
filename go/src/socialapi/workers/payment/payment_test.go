@@ -2,6 +2,7 @@ package payment
 
 import (
 	"math/rand"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
 	"strconv"
@@ -22,6 +23,9 @@ func init() {
 	if err := r.Init(); err != nil {
 		panic(err)
 	}
+
+	// init stripe client
+	stripe.InitializeClientKey(config.MustGet().Stripe.SecretKey)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }

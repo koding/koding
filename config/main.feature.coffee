@@ -160,7 +160,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LcF9vgSAAAAACeSHac-T9GitKb5ibaBexvnnrVZ'
-    stripe            : { token: 'pk_test_6OB11qvDKuUlo71pFqd6nW9K' }
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}

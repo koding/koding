@@ -53,4 +53,4 @@ DisableCaching    = false
 Debug             = false
 
 [stripe]
-SecretKey = "sk_test_jsCJYUkS8hcnwtUygBZipjq6"
+SecretKey = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"

@@ -2,6 +2,7 @@ package stripe
 
 import (
 	"math/rand"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/models"
 	"strconv"
@@ -19,6 +20,9 @@ func init() {
 	if err := r.Init(); err != nil {
 		panic(err)
 	}
+
+	// init stripe client
+	InitializeClientKey(config.MustGet().Stripe.SecretKey)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
