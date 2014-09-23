@@ -2,6 +2,7 @@ package koding
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -79,11 +80,25 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
-	a.Push("Checking security requirements", normalize(20), machinestate.Building)
+	a.Push("Checking network requirements", normalize(20), machinestate.Building)
 
-	groupName := "koding-kloud-2" // TODO: make it from the package level and remove it from here
-	infoLog("Checking if security group '%s' exists", groupName)
-	group, err := a.SecurityGroup(groupName)
+	// get all subnets belonging to Kloud
+	kloudKeyName := "Kloud"
+	infoLog("Searching for subnets with tag-key %s", kloudKeyName)
+	subnets, err := a.SubnetsWithTag(kloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	infoLog("Searching a subnet with most IPs amongst '%d' subnets", len(subnets))
+	subnet := subnetWithMostIPs(subnets)
+
+	infoLog("Using subnet id %s, which has %d available IPs", subnet.SubnetId, subnet.AvailableIpAddressCount)
+	a.Builder.SubnetId = subnet.SubnetId
+
+	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
+	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
 	if err != nil {
 		return nil, err
 	}
@@ -99,17 +114,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
 		return nil, err
 	}
-
-	// needed for vpc instances, go and grap one from one of our Koding's own
-	// subnets
-	infoLog("Fetching subnetId with available IPs for VPC ID: %s", group.VpcId)
-	subnetId, err := a.SubnetId(group.VpcId)
-	if err != nil {
-		return nil, err
-	}
-
-	infoLog("Using subnet id %s", subnetId)
-	a.Builder.SubnetId = subnetId
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
@@ -285,4 +289,17 @@ func (p *Provider) createKey(username, kiteId string) (string, error) {
 	}
 
 	return token.SignedString([]byte(p.KontrolPrivateKey))
+}
+
+type ByMostIP []ec2.Subnet
+
+func (a ByMostIP) Len() int      { return len(a) }
+func (a ByMostIP) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByMostIP) Less(i, j int) bool {
+	return a[i].AvailableIpAddressCount > a[j].AvailableIpAddressCount
+}
+
+func subnetWithMostIPs(subnets []ec2.Subnet) ec2.Subnet {
+	sort.Sort(ByMostIP(subnets))
+	return subnets[0]
 }
