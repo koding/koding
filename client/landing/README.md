@@ -14,9 +14,29 @@ After you have the requirements installed, clone the repo and do:
 
 ```
 npm i
-gulp
 ```
 
-You can also do `gulp --devMode` to enable sourcemaps for both styl and coffee files.
+Scaffold a site:
 
-that's it.
+```
+# scaffold a site
+gulp site --siteName=campaign
+
+# cd into the created site
+cd ./site.campaign
+gulp --site=site.campaign --devMode
+```
+
+Start the server:
+
+```
+gulp serve
+```
+
+Build all sites:
+
+```
+gulp build
+```
+
+for more check the main and site specific `gulpfile.coffee`'s
