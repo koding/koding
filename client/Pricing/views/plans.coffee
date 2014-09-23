@@ -1,6 +1,6 @@
 class PricingPlansView extends KDView
 
-  initialState: {}
+  initialState: KD.utils.dict()
 
   constructor: (options = {}, data) ->
 
