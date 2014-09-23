@@ -13,7 +13,6 @@ class PaymentForm extends JView
   initialState     :
     planInterval   : PaymentWorkflow.planInterval.MONTH
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
-    providerLoaded : no
 
 
   constructor: (options = {}, data) ->
@@ -126,8 +125,6 @@ class PaymentForm extends JView
 
   initEvents: ->
 
-    @on 'PaymentProviderLoaded', @bound 'handlePaymentProviderLoaded'
-
     { cardNumber } = @form.inputs
 
     cardNumber.on "CreditCardTypeIdentified", (type) ->
@@ -137,13 +134,6 @@ class PaymentForm extends JView
   showValidationErrorsOnInputs: (error) ->
 
     @form.showValidationErrorsOnInputs error
-
-
-  handlePaymentProviderLoaded: ->
-
-    @state.providerLoaded = yes
-
-    @submitButton.enable()
 
 
   showSuccess: (isUpgrade) ->
