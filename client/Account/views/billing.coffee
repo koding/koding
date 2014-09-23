@@ -41,7 +41,7 @@ class AccountBilling extends KDView
       title : 'Subscriptions'
 
     paymentController.subscriptions (err, subscription) =>
-      return KD.showError err  if err
+      return KD.showError err  if err?
 
       @state.subscription = subscription
       @subscriptionWrapper.addSubView new SubscriptionView {}, subscription
@@ -92,7 +92,7 @@ class AccountBilling extends KDView
 
     paymentController.invoices (err, invoices) =>
 
-      invoices = []  if err
+      invoices = []  if err?
 
       @state.paymentHistory = invoices
 
