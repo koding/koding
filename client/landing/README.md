@@ -30,6 +30,8 @@ gulp --site=site.campaign --devMode
 Start the server:
 
 ```
+# cd back into the main repo
+cd ..
 gulp serve
 ```
 
