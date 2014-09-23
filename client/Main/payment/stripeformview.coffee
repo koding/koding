@@ -133,22 +133,20 @@ class StripeFormView extends KDFormViewWithFields
           clear          : 'focus'
     }
 
+
     { planTitle, planInterval, currentPlan } = @state
 
-    fields.planTitle = {
+    fields.planTitle =
       defaultValue : planTitle
       cssClass     : "hidden"
-    }
 
-    fields.planInterval = {
+    fields.planInterval =
       defaultValue : planInterval
       cssClass     : "hidden"
-    }
 
-    fields.currentPlan = {
+    fields.currentPlan =
       defaultValue : currentPlan
       cssClass     : "hidden"
-    }
 
     options.fields   = fields
     options.cssClass = KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
