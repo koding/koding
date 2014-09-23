@@ -15,9 +15,11 @@ module.exports = ->
   rootPath = "#{__dirname}/../site.boilerplate/"
   sitePath = "#{__dirname}/../site.#{siteName}"
 
-  cmd      = "cp -Rf #{rootPath} #{sitePath}"
+  commands = ["cp -Rf #{rootPath} #{sitePath}"]
+  # commands.push "cp -Rf #{__dirname}/../static/a/site.boilerplate/js/pistachio.js #{__dirname}/../static/a/site.#{siteName}/js/pistachio.js"
 
   log 'green', "Copying from #{rootPath} to #{sitePath}"
 
-  gulp.src ''
-    .pipe shell [cmd]
+  gulp.src "#{__dirname}/../static/a/site.boilerplate/js/pistachio.js"
+    .pipe shell commands
+    .pipe gulp.dest "#{__dirname}/../static/a/site.#{siteName}/js/"
