@@ -203,6 +203,7 @@ module.exports = [
   "payment/workflow.coffee",
   "payment/stripeformview.coffee",
   "payment/form.coffee",
+  "payment/basemodal.coffee",
   "payment/modal.coffee",
 
 

@@ -1,7 +1,7 @@
 # This class is the modal view.
 # Shows the payment form and the result of
 # the process, (e.g validation errors etc)
-class PaymentModal extends KDModalView
+class PaymentModal extends PaymentBaseModal
 
   initialState   :
     planInterval : PaymentWorkflow.planInterval.MONTH
@@ -9,10 +9,6 @@ class PaymentModal extends KDModalView
 
 
   constructor: (options = {}, data) ->
-
-    options.width    = 534
-    options.cssClass = KD.utils.curry 'payment-modal', options.cssClass
-    options.overlay  = yes
 
     { state } = options
 
@@ -28,9 +24,6 @@ class PaymentModal extends KDModalView
       options.subtitle = ''
 
     super options, data
-
-    @initViews()
-    @initEvents()
 
 
   initViews: ->
