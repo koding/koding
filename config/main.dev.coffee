@@ -427,12 +427,11 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
-            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
-            ./run install
-            ./run services
-            ./run $@
+
+            echo "Please do ./run again"
             exit 1;
         fi
       }
@@ -712,6 +711,7 @@ Configuration = (options={}) ->
 
       elif [ "$#" == "0" ]; then
 
+        checkrunfile
         run
 
       else
