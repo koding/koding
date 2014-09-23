@@ -12,8 +12,10 @@ class SinglePlanView extends KDView
 
     @state = KD.utils.extend @initialState, options.state
 
+    @initViews()
 
-  viewAppended: ->
+
+  initViews: ->
 
     {
       title
