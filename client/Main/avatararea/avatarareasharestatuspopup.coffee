@@ -29,22 +29,4 @@ class AvatarPopupShareStatus extends AvatarPopup
       callback      : (status)=> @updateStatus status
 
   updateStatus:(status)->
-
-    @loader.show()
-    KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
-      unless err
-        new KDNotificationView
-          type     : 'growl'
-          cssClass : 'mini'
-          title    : 'Message posted!'
-          duration : 2000
-        @statusField.setValue ""
-
-        @loader.hide()
-        # @statusField.setPlaceHolder reply.body
-        @hide()
-
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        @loader.hide()
-        @hide()
+    KD.showNewKodingModal()

@@ -53,7 +53,6 @@ class ActivityAppView extends KDScrollView
         { view: @leftWidgetWrapper, key: 'ActivityLeft' }
       ]
 
-    @inputWidget.on 'ActivitySubmitted', @bound 'activitySubmitted'
     mainController.on 'AccountChanged', @bound "decorate"
     mainController.on 'JoinedGroup', => @inputWidget.show()
     @feedWrapper.ready =>
@@ -92,14 +91,6 @@ class ActivityAppView extends KDScrollView
       {{> @leftWidgetWrapper}}
     </aside>
     """
-
-
-  activitySubmitted:->
-
-    appTop   = @getElement().offsetTop
-    listTop  = @feedWrapper.listWrapper.getElement().offsetTop
-    duration = @feedWrapper.pinnedListWrapper.getHeight() * .3
-    $('html, body').animate {scrollTop: appTop + listTop + 10}, {duration}
 
 
   decorate:->

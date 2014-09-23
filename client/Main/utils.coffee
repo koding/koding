@@ -582,19 +582,7 @@ utils.extend utils,
     return color
 
   postDummyStatusUpdate:->
-
-    return if location.hostname isnt "localhost"
-    body  = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
-
-    group = if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
-    then KD.config.entryPoint.slug
-    else 'koding'
-
-    KD.remote.api.JNewStatusUpdate.create {body, group}, (err,reply)=>
-      unless err
-      then KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
-      else new KDNotificationView type : "mini", title : "There was an error, try again later!"
-
+    new KDNotificationView title: "Functionality disabled!"
   # log ping times so we know if failure was due to user's slow
   # internet or our internals timing out
   logToExternalWithTime: (name, timeout)->
