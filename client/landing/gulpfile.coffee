@@ -16,6 +16,11 @@ SERVER_PATH = ["./server/**/*.coffee"]
 {watchLogger, log} = req 'helper.logger'
 
 
+# CREATE SITE FROM BOILERPLATE
+
+gulp.task 'site', req 'task.site'
+
+
 # BUILD SERVER
 
 gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
@@ -36,7 +41,6 @@ gulp.task 'build', ->
 
   gulp.src ''
     .pipe shell commands
-
 
 
 gulp.task 'default', ['build', 'serve'], ->
