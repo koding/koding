@@ -9,6 +9,7 @@ ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
 FinishRegistrationForm                = require './finishregistrationform'
 LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
+MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
 
 module.exports = class LoginView extends JView
 
@@ -33,7 +34,7 @@ module.exports = class LoginView extends JView
     [ 'Chloe Benko-Prieur', 'http://chloecolorphotography.tumblr.com/' ]
   ]
 
-  @backgroundImageNr = backgroundImageNr = KD.utils.getRandomNumber 15
+  backgroundImageNr = MainControllerLoggedOut.loginImageIndex
 
   do ->
     image      = new Image
