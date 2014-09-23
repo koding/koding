@@ -44,6 +44,8 @@ type (
 		// Limits holds limits for various cases
 		Limits Limits
 
+		Stripe Stripe
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`

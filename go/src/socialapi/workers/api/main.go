@@ -69,6 +69,9 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
+	// init stripe client
+	stripe.InitializeClientKey(config.MustGet().Stripe.SecretKey)
+
 	err := stripe.CreateDefaultPlans()
 	if err != nil {
 		fmt.Println(err)
