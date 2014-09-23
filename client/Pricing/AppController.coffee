@@ -8,14 +8,10 @@ class PricingAppController extends KDViewController
     super options, data
 
     options =
-      tagName    : 'script'
-      attributes :
-        src      : 'https://js.stripe.com/v2/'
-      bind       : 'load'
+      identifier : 'stripe'
+      url        : 'https://js.stripe.com/v2/'
 
-    document.head.appendChild (providerScript = new KDCustomHTMLView options).getElement()
-
-    providerScript.on 'load', =>
+    KodingAppsController.appendHeadElement 'script', options, =>
       Stripe.setPublishableKey KD.config.stripe.token
       @emit 'ready'
 
