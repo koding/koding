@@ -111,5 +111,13 @@ module.exports = class Payment extends Base
       plan = plans[planTitle]
       return callback {"message" : "plan not found"}  unless plan
 
-      callback null, plan
+      fetchReferrerSpace client, (err, space)->
+        return callback err  if err
 
+        plan.storage += space
+
+        callback null, plan
+
+  fetchReferrerSpace = (client, callback)->
+    JReferral = require "./referral/index"
+    JReferral.fetchEarnedSpace client, callback

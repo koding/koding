@@ -48,6 +48,8 @@ module.exports = class JReferral extends jraphical.Message
           (signature Object, Function)
         fetchReferredAccounts:
           (signature Object, Object, Function)
+        fetchEarnedSpace:
+          (signature Function)
     sharedEvents      :
       static          : []
       instance        : []
@@ -170,7 +172,20 @@ module.exports = class JReferral extends jraphical.Message
       collectRels totalStep
       totalStep--
 
-  @fetchReferredAccounts = secure (client, query, options, callback)->
+  @fetchEarnedSpace$ = secure (client, callback)->
+    @fetchEarnedSpace client, callback
+
+  @spaceForReferring = 500
+
+  @fetchEarnedSpace = (client, callback)->
+    @fetchReferredAccounts client, {}, {}, (err, accounts)->
+      return callback err  if err
+      callback null, accounts.length * @spaceForReferring
+
+  @fetchReferredAccounts$ = secure (client, query, options, callback)->
+    @fetchReferredAccounts client, query, options, callback
+
+  @fetchReferredAccounts = (client, query, options, callback)->
     username = client.connection.delegate.profile.nickname
     JAccount.some { referrerUsername : username }, options, callback
 
