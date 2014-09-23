@@ -78,8 +78,9 @@ class PaymentWorkflow extends KDController
       } , (status, response) =>
 
         if response.error
-          return @modal.emit 'StripeRequestValidationFailed', response.error
+          @modal.emit 'StripeRequestValidationFailed', response.error
           @modal.form.submitButton.hideLoader()
+          return
 
         token = response.id
         @subscribeToPlan planTitle, planInterval, token
