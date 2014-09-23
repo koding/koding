@@ -13,8 +13,8 @@ CREATE TABLE "payment"."customer" (
         'payment.customer_id_seq' :: regclass
     ),
     "provider"             "payment"."provider",
-    "provider_customer_id" VARCHAR (200) NOT NULL COLLATE "default",
-    "old_id"               VARCHAR (200) NOT NULL COLLATE "default",
+    "provider_customer_id" TEXT NOT NULL COLLATE "default",
+    "old_id"               VARCHAR (24) NOT NULL COLLATE "default",
 
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -49,7 +49,7 @@ CREATE TABLE "payment"."plan" (
     "interval"         "payment"."plan_interval",
     "title"            "payment"."plan_title",
     "provider"         "payment"."provider",
-    "provider_plan_id" VARCHAR (200) NOT NULL COLLATE "default",
+    "provider_plan_id" TEXT NOT NULL COLLATE "default",
     "amount_in_cents"  BIGINT NOT NULL DEFAULT 0,
 
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -76,8 +76,8 @@ CREATE TABLE "payment"."subscription" (
     ),
     "state"                    "payment"."subscription_state",
     "provider"                 "payment"."provider",
-    "provider_subscription_id" VARCHAR (200) NOT NULL COLLATE "default",
-    "provider_token"           VARCHAR (200) NOT NULL COLLATE "default",
+    "provider_subscription_id" TEXT NOT NULL COLLATE "default",
+    "provider_token"           TEXT NOT NULL COLLATE "default",
     "customer_id"              BIGINT NOT NULL DEFAULT 0,
     "plan_id"                  BIGINT NOT NULL DEFAULT 0,
     "amount_in_cents"          BIGINT NOT NULL DEFAULT 0,
