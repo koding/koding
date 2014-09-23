@@ -7,16 +7,6 @@ class PaymentHistoryListItem extends KDListItemView
     super options, data
 
 
-  viewAppended: ->
-
-    super
-
-    @addSubView new KDButtonView
-      title    : 'invoice'
-      style    : 'solid medium'
-      cssClass : 'invoice-btn'
-
-
   partial: (data) ->
 
     status = if data.paid
