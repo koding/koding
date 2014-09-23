@@ -2,6 +2,7 @@ console.time 'Koding.com loaded'
 
 # register appclasses
 Home  = require './home/AppController'
+Login = require './login/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
@@ -18,6 +19,7 @@ do ->
   registerRoutes = ->
 
     require './core/routes.coffee'
+    require './login/routes.coffee'
 
 
   setConfig()
