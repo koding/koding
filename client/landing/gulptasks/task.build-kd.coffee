@@ -1,7 +1,7 @@
 gulp  = require 'gulp'
 shell = require 'gulp-shell'
 argv  = require('minimist') process.argv
-site  = argv.site or 'landing'
+site  = argv.site or 'site.landing'
 
 { BUILD_PATH } = require './helper.constants'
 

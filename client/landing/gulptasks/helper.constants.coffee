@@ -1,5 +1,5 @@
 argv = require('minimist') process.argv
-site = argv.site or 'landing'
+site = argv.site or 'site.landing'
 base = "#{__dirname}/.."
 
 module.exports =
