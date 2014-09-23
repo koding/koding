@@ -43,12 +43,8 @@ do ->
 
     {params : {name}} = req
 
-    console.log {name}
-
     folders  = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
     sites    = folders.filter (folder) -> folder.search(/^site\./) is 0
-
-    console.log 'serving', name
 
     if "site.#{name}" in sites
       console.log 'serving', name
