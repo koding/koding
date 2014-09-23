@@ -58,6 +58,10 @@ module.exports = class HomeView extends KDView
 
   partial: ->
 
+    slogan = if KD.siteName
+    then "Welcome to #{KD.siteName}"
+    else "Full Stack Browser Based Development"
+
     """
     <section class="introduction">
       <div>
