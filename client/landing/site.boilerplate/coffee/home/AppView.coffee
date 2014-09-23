@@ -66,7 +66,7 @@ module.exports = class HomeView extends KDView
     <section class="introduction">
       <div>
         <article>
-          <h1>Full Stack Browser Based Development</h2>
+          <h1>#{slogan}</h2>
           <h2>
             Build Node, Go, Django, Rails, PHP and other apps and never install a dev environment on your laptop again.
           </h2>
