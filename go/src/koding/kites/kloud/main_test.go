@@ -72,6 +72,7 @@ func init() {
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("stop", kld.Stop)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
 
 	go kloudKite.Run()
@@ -106,6 +107,16 @@ func TestPing(t *testing.T) {
 
 func TestBuild(t *testing.T) {
 	if err := build(machineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestResize(t *testing.T) {
+	m := GetMachineData(machineId)
+	m.Builder["storage_size"] = 5
+	SetMachineData(machineId, m)
+
+	if err := resize(machineId); err != nil {
 		t.Error(err)
 	}
 }
@@ -309,6 +320,36 @@ func reinit(id string) error {
 		kloud.EventArg{
 			EventId: reinitArgs.MachineId,
 			Type:    "reinit",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func resize(id string) error {
+	resizeArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("resize", resizeArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: resizeArgs.MachineId,
+			Type:    "resize",
 		},
 	})
 

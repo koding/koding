@@ -75,7 +75,7 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 		machine.IpAddress = s.Data["ipAddress"].(string)
 		machine.Domain.Name = s.Data["domainName"].(string)
 		machine.Builder["instanceId"] = s.Data["instanceId"]
-	case "stop":
+	case "stop", "resize":
 		machine.IpAddress = s.Data["ipAddress"].(string)
 	default:
 		return nil
