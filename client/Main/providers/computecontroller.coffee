@@ -62,6 +62,10 @@ class ComputeController extends KDController
 
           @machines = machines
           @stacks   = stacks
+
+          KD.userMachines = machines
+          @emit "MachineDataUpdated"
+
           cb null, stacks  for cb in queue
 
         else
@@ -157,7 +161,7 @@ class ComputeController extends KDController
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
-      @emit "MachineDataUpdated"
+      @emit "RenderMachines", @machines
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}

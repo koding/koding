@@ -228,7 +228,7 @@ class MainView extends KDView
       top    : Math.max bounds.y - 38, 0
       left   : bounds.x + bounds.w + 16
 
-    new MachineSettingsModal {position}, machine
+    new MachineSettingsPopup {position}, machine
 
 
   setStickyNotification:->

@@ -57,8 +57,22 @@ class Machine extends KDObject
 
   updateLocalData:->
     { @label, @ipAddress, @_id, @provisioners, @provider
-      @status, @uid, @domain, @queryString } = @jMachine
+      @status, @uid, @domain, @queryString, @slug } = @jMachine
     @alwaysOn = @jMachine.meta.alwaysOn ? no
+
+
+  setLabel:(label, callback)->
+
+    {computeController} = KD.singletons
+
+    @jMachine.setLabel label, (err, newSlug)=>
+
+      unless err?
+        computeController.triggerReviveFor this._id
+        computeController.emit 'MachineDataModified'
+
+      callback err, newSlug
+
 
   getName: ->
     {uid, label, ipAddress} = this

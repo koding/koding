@@ -168,6 +168,7 @@ module.exports = [
   "providers/computeerrormodal.coffee",
   "providers/computeerrormodalusage.coffee",
   "providers/customplanstorageslider.coffee",
+  "providers/machinesettingsview.coffee",
 
   # Algolia-based search:
   "searchcontroller.coffee",
