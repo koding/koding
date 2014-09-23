@@ -201,10 +201,12 @@ module.exports = [
   # "payment/existingaccountworkflow.coffee",
 
   "payment/workflow.coffee",
+  "payment/updatecreditcardworkflow.coffee",
   "payment/stripeformview.coffee",
   "payment/form.coffee",
   "payment/basemodal.coffee",
   "payment/modal.coffee",
+  "payment/creditcardmodal.coffee",
 
 
   # global notifications
