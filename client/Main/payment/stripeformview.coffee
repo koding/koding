@@ -133,7 +133,7 @@ class StripeFormView extends KDFormViewWithFields
           clear          : 'focus'
     }
 
-    { planTitle, planInterval } = @state
+    { planTitle, planInterval, currentPlan } = @state
 
     fields.planTitle = {
       defaultValue : planTitle
@@ -146,7 +146,7 @@ class StripeFormView extends KDFormViewWithFields
     }
 
     fields.currentPlan = {
-      defaultValue : @state.currentPlan
+      defaultValue : currentPlan
       cssClass     : "hidden"
     }
 
@@ -155,5 +155,22 @@ class StripeFormView extends KDFormViewWithFields
     options.name     = 'method'
 
     super options, data
+
+
+  showValidationErrorsOnInputs: (error) ->
+
+    { cardNumber, cardCVC, cardName
+      cardMonth, cardYear } = @inputs
+
+    switch error.param
+      when 'number'
+        cardNumber.setValidationResult 'checkCC', 'Card number is not valid'
+      when 'exp_year'
+        cardYear.setValidationResult 'checkYear', 'Invalid year!'
+      when 'exp_month'
+        cardMonth.setValidationResult 'checkMonth', 'Invalid month!'
+      when 'cvc'
+        cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
+
 
 

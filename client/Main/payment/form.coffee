@@ -113,7 +113,6 @@ class PaymentForm extends JView
 
   initForm: ->
 
-    { firstName, lastName } = KD.whoami().profile
     { planTitle, planInterval } = @state
 
     { cssClass } = @getOptions()
@@ -137,17 +136,7 @@ class PaymentForm extends JView
 
   showValidationErrorsOnInputs: (error) ->
 
-    { cardNumber, cardCVC, cardName, cardMonth, cardYear } = @form.inputs
-
-    switch error.param
-      when 'number'
-        cardNumber.setValidationResult 'checkCC', 'Card number is not valid'
-      when 'exp_year'
-        cardYear.setValidationResult 'checkYear', 'Invalid year!'
-      when 'exp_month'
-        cardMonth.setValidationResult 'checkMonth', 'Invalid month!'
-      when 'cvc'
-        cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
+    @form.showValidationErrorsOnInputs error
 
 
   handlePaymentProviderLoaded: ->
