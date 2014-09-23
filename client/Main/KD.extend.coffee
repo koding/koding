@@ -24,7 +24,7 @@ KD.extend
         Recently we launched a new version of Koding.
         <br><br>
         The server you are on presently is the old version and community
-        features have been turned off on the old version of Koding.
+        features and registration have been turned off on the old version of Koding.
         <br><br>
         Please try <a href="https://koding.com">https://koding.com</a> instead.
         """
