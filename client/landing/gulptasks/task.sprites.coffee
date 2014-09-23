@@ -2,14 +2,16 @@ gulp        = require 'gulp'
 spritesmith = require 'gulp.spritesmith'
 argv        = require('minimist') process.argv
 site        = argv.site or 'landing'
+base        = "#{__dirname}/.."
 
 { BUILD_PATH } = require './helper.constants'
+{ log } = require './helper.logger'
 
 module.exports = (pixelRatio = 1) ->
 
   suffix = if pixelRatio > 1 then "__#{pixelRatio}x" else ''
 
-  stream = gulp.src "./../#{site}/sprites@#{pixelRatio}x/**/*.png"
+  stream = gulp.src "#{base}/#{site}/sprites@#{pixelRatio}x/**/*.png"
     .pipe spritesmith
       imgName   : "sprite@#{pixelRatio}x.png"
       cssName   : "sprite@#{pixelRatio}x.styl"
