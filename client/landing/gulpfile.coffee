@@ -2,6 +2,7 @@ fs      = require 'fs'
 gulp    = require 'gulp'
 argv    = require('minimist') process.argv
 nodemon = require 'gulp-nodemon'
+shell   = require 'gulp-shell'
 req     = (module) -> require "./gulptasks/#{module}"
 
 # CONSTANTS
@@ -29,10 +30,14 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 
 gulp.task 'build', ->
 
-  folders = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
-  sites   = folders.filter (folder) -> folder.search(/^site\./) is 0
+  folders  = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
+  sites    = folders.filter (folder) -> folder.search(/^site\./) is 0
+  commands = ("gulp --gulpfile ./#{site}/gulpfile.coffee build --site=#{site}" for site in sites)
 
-  console.log sites
+  gulp.src ''
+    .pipe shell commands
+
+
 
 gulp.task 'default', ['build', 'serve'], ->
 
