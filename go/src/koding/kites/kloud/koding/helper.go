@@ -20,6 +20,11 @@ func (p *Provider) GetInfoLogger(prefix string) infoFunc {
 
 // IsKiteReady returns true if Klient is ready and it can receive a ping.
 func (p *Provider) IsKlientReady(querystring string) bool {
+	// FIXME: Hack. Connecting to Klient slows the tests down. Disable it
+	// temporarily, we are gonna test the correct behaviour later.
+	if p.Test {
+		return false
+	}
 	klientRef, err := klient.NewWithTimeout(p.Kite, querystring, time.Minute*2)
 	if err != nil {
 		p.Log.Warning("Connecting to remote Klient instance err: %s", err)
