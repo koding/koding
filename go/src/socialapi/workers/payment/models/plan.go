@@ -21,7 +21,7 @@ type Plan struct {
 	Title string `json:"title, string"`
 
 	// Cost of plan in cents.
-	AmountInCents uint64 `json:"cents"`
+	AmountInCents uint64 `json:"amountInCents"`
 
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`

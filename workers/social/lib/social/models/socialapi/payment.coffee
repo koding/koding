@@ -5,9 +5,6 @@ module.exports = class Payment extends Base
   @share()
 
   @set
-    classAttributes :
-      bypassBatch     : yes
-
     sharedMethods     :
       static          :
         subscribe         :

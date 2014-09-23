@@ -1,12 +1,12 @@
 class PaymentController extends KDController
 
-  STRIPE = "stripe"
+  DEFAULT_PROVIDER = "stripe"
 
   subscribe: (token, planTitle, planInterval, options, callback)->
     params          = {token, planTitle, planInterval}
 
     params.email    = options.email     if options.email
-    params.provider = options.provider  or STRIPE
+    params.provider = options.provider  or DEFAULT_PROVIDER
 
     @api().subscribe params, callback
 
@@ -18,7 +18,7 @@ class PaymentController extends KDController
 
   updateCreditCard: (token, callback)->
     params          = {token}
-    params.provider = options.provider  or STRIPE
+    params.provider = options.provider  or DEFAULT_PROVIDER
 
     @api().updateCreditCard params, callback
 

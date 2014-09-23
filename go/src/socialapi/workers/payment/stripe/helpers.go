@@ -11,7 +11,7 @@ func IsEmpty(str string) bool {
 }
 
 func IsFreePlan(plan *paymentmodel.Plan) bool {
-	return plan.AmountInCents == 0
+	return plan.Title == "free"
 }
 
 func IsOverSubscribed(subscriptions []paymentmodel.Subscription) bool {
