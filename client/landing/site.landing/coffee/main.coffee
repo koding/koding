@@ -1,4 +1,11 @@
 console.time 'Koding.com loaded'
+
+# register appclasses
+About = require './about/AppController'
+Home  = require './home/AppController'
+Login = require './login/AppController'
+
+# bootstrap app
 MainController = require './core/maincontrollerloggedout'
 
 do ->
@@ -20,5 +27,6 @@ do ->
 
   setConfig()
   registerRoutes()
+
   # BIG BANG
   new MainController

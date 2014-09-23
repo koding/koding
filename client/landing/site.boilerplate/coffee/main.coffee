@@ -1,4 +1,9 @@
 console.time 'Koding.com loaded'
+
+# register appclasses
+Home  = require './home/AppController'
+
+# bootstrap app
 MainController = require './core/maincontrollerloggedout'
 
 do ->
