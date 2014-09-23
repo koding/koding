@@ -1,6 +1,7 @@
-bodyParser   = require 'body-parser'
-STATIC_PATH  = "#{__dirname}/../static/"
-PORT         = 5000
+fs          = require 'fs'
+bodyParser  = require 'body-parser'
+STATIC_PATH = "#{__dirname}/../static/"
+PORT        = 5000
 
 do ->
 
@@ -38,7 +39,26 @@ do ->
     else res.status(200).send null
 
 
+  app.get '/:name?', (req, res, next) ->
+
+    {params : {name}} = req
+
+    console.log {name}
+
+    folders  = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
+    sites    = folders.filter (folder) -> folder.search(/^site\./) is 0
+
+    console.log 'serving', name
+
+    if "site.#{name}" in sites
+      console.log 'serving', name
+      return res.status(200).send (require './index.parser') name
+    else
+      next()
+
+
   app.get '*', (req, res) ->
+
     {url}      = req
     redirectTo = "/#!#{url}"
 
