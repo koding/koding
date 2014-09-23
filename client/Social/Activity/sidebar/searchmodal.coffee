@@ -44,9 +44,12 @@ class SidebarSearchModal extends KDModalView
       lazyLoadThreshold   : 100
       lazyLoaderOptions   :
         spinnerOptions    :
+          loaderOptions   :
+            shape         : 'spiral'
+            color         : '#a4a4a4'
           size            :
-            width         : 16
-            height        : 16
+            width         : 40
+            height        : 40
         partial           : ''
       useCustomScrollView : yes
       viewOptions         :
