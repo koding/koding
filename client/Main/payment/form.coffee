@@ -96,10 +96,8 @@ class PaymentForm extends JView
     # no need to show those views when they are
     # downgrading to free account.
     if selectedPlan = planTitle is FREE
-      [
-        @securityNote
-        @existingCreditCardMessage
-      ].forEach (view) -> view.hide()
+      @securityNote.hide()
+      @existingCreditCardMessage.hide()
 
     # if their currentPlan is not free it means that
     # we already have their credit card,
@@ -111,8 +109,6 @@ class PaymentForm extends JView
 
 
   initForm: ->
-
-    { planTitle, planInterval } = @state
 
     { cssClass } = @getOptions()
     cssClass     = KD.utils.curry cssClass, 'hidden'
