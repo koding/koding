@@ -16,3 +16,5 @@ do ->
   KD.registerRoutes 'Core',
     '/'                      : handleRoot
     ''                       : handleRoot
+
+  KD.registerRoute 'Core', "/#{KD.siteName}", handleRoot  if KD.siteName
