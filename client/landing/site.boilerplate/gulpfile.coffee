@@ -1,1 +1,1 @@
-/Users/emektar/Projects/koding-landing/site.landing/gulpile.coffee
+/Users/emektar/Projects/koding-landing/site.landing/gulpfile.coffee

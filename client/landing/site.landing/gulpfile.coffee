@@ -1,6 +1,6 @@
 gulp    = require 'gulp'
 argv    = require('minimist') process.argv
-req     = (module) -> require "./gulptasks/#{module}"
+req     = (module, rest...) -> require "./../gulptasks/#{module}", rest...
 
 # CONSTANTS
 
@@ -29,9 +29,9 @@ gulp.task 'styles', ['sprites'], req 'helper.styles'
 
 gulp.task 'sprites', ['sprites@1x', 'sprites@2x'], ->
 
-gulp.task 'sprites@1x', req 'task.sprites@1x'
+gulp.task 'sprites@1x', req 'task.sprites', 1
 
-gulp.task 'sprites@2x', ['sprites@1x'], req 'task.sprites@2x'
+gulp.task 'sprites@2x', ['sprites@1x'], req 'task.sprites', 2
 
 
 # COFFEE COMPILATION
