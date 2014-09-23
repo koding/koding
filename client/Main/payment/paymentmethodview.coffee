@@ -8,14 +8,14 @@ class PaymentMethodView extends JView
     super options, data
 
     @editLink = new KDButtonView
-      title    : 'Update payment method'
+      title    : 'Update'
       cssClass : 'edit solid medium gray'
       callback : (e) =>
         e.preventDefault()
         @emit 'PaymentMethodEditRequested', data
 
     @removeLink = new KDButtonView
-      title    : 'Remove payment method'
+      title    : 'Remove'
       cssClass : 'remove'
       click    : (e) =>
         e.preventDefault()
