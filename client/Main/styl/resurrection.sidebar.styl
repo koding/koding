@@ -149,8 +149,8 @@ sidebarSelectedBg = #262626
 
   li.kdlistitemview-main-nav
     z-index           1
-    vendor            transition, top .2s  linear \,\
-                                left .2s linear
+    vendor            transition, top .2s linear \,\
+                                 left .2s linear
     font-size         14px
     line-height       18px
     rounded           4px
@@ -279,12 +279,24 @@ sidebarSelectedBg = #262626
             shadow      none
 
   .ws-add-icon
+  .ws-settings-icon
     display           inline-block
-    r-sprite          'app', 'circle-plus-14'
+    r-sprite          app circle-plus-14
     right             8px
     top               10px
     pointer()
     abs()
+
+  .ws-settings-icon
+    r-sprite          app vm-settings-icon
+    right             6px
+    top               5px
+    display           none
+    opacity           .6
+
+  &:hover
+    .ws-settings-icon
+      display         inline-block
 
   .add-workpace-view
     .cancel

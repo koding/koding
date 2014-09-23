@@ -365,7 +365,7 @@ class ActivitySidebar extends KDCustomHTMLView
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
           treeData.push
-            title        : workspace.name
+            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
             type         : 'workspace'
             href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
             machineLabel : machine.slug or machine.label

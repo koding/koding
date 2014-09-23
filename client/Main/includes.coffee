@@ -179,6 +179,7 @@ module.exports = [
 
   "guideslinksview.coffee"
   "machinesettingsmodal.coffee",
+  "workspacesettingspopup.coffee",
 
   # LOCATION
   "locationcontroller.coffee",
