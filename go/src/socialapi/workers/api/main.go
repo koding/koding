@@ -70,7 +70,7 @@ func main() {
 	modelhelper.Initialize(r.Conf.Mongo)
 
 	// init stripe client
-	stripe.InitializeClientKey(config.MustGet().Stripe.SecretKey)
+	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
 
 	err := stripe.CreateDefaultPlans()
 	if err != nil {

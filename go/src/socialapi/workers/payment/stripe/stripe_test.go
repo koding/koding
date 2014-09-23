@@ -22,7 +22,7 @@ func init() {
 	}
 
 	// init stripe client
-	InitializeClientKey(config.MustGet().Stripe.SecretKey)
+	InitializeClientKey(config.MustGet().Stripe.SecretToken)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }

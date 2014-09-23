@@ -61,6 +61,7 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
+    stripe            : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"

@@ -119,6 +119,6 @@ type (
 	}
 
 	Stripe struct {
-		SecretKey string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETKEY"`
+		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
 	}
 )
