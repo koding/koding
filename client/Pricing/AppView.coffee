@@ -140,12 +140,15 @@ class PricingAppView extends KDView
 
   planSelected: (options) ->
 
-    return window.location.replace '/Login'  unless KD.isLoggedIn()
-    return @loadPlan @bound 'planSelected'   unless @state.currentPlan?
+    return KD.singletons
+      .router
+      .handleRoute '/Login'  unless KD.isLoggedIn()
+
+    return @loadPlan @bound 'planSelected'  unless @state.currentPlan?
 
     @setState options
 
-    @workflowController = new PaymentWorkflow { @state, delegate: this}
+    @workflowController = new PaymentWorkflow { @state, delegate: this }
 
     @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
@@ -157,9 +160,9 @@ class PricingAppView extends KDView
 
       @state.currentPlan = state.planTitle
 
-      { router } = KD.singletons
-
-      router.handleRoute '/'
+      KD.singletons
+        .router
+        .handleRoute '/'
 
 
   setState: (obj) -> @state = KD.utils.extend @state, obj
