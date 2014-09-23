@@ -35,14 +35,15 @@ func main() {
 
 	db.DB()
 
-	db = *db.Debug()
+	// uncomment this line to see sql queries, useful in debugging
+	// db = *db.Debug()
 
 	checkIfLocalIsUptodate(db)
 }
 
 func checkIfLocalIsUptodate(db gorm.DB) {
 	var count int
-	err := db.Table("payment.customerr").Count(&count).Error
+	err := db.Table("payment.customer").Count(&count).Error
 
 	if err == nil {
 		return

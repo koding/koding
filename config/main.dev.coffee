@@ -714,6 +714,9 @@ Configuration = (options={}) ->
       elif [ "$#" == "0" ]; then
 
         checkrunfile
+        if ! ./pg-update #{postgres.host} #{postgres.port}; then
+          exit 1
+        fi
         run
 
       else
