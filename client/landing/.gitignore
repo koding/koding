@@ -1,7 +1,4 @@
 node_modules
-static/css/main.css
-static/js/main.js
-static/js/main.js.map
 static/images/sprite@1x.png
 static/images/sprite@1x.styl
 static/images/sprite@2x.png
@@ -13,5 +10,7 @@ static/a/site.*/js/main.js.map
 static/a/site.*/images/sprite@1x.png
 static/a/site.*/images/sprite@2x.png
 static/a/site.*/css/main.css
+static/a/site.*/css/kd.css
+static/a/site.*/css/kd.css
 .DS_Store
 sprite@*x.styl
