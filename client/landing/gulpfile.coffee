@@ -1,199 +1,90 @@
-gulp       = require 'gulp'
-gutil      = require 'gulp-util'
-gulpif     = require 'gulp-if'
-coffee     = require 'gulp-coffee'
-rename     = require 'gulp-rename'
-gulpBuffer = require 'gulp-buffer'
-gulpStream = require 'gulp-stream'
-stylus     = require 'gulp-stylus'
-rimraf     = require 'gulp-rimraf'
-concat     = require 'gulp-concat'
-# sourcemaps = require 'gulp-sourcemaps'
-argv       = require('minimist') process.argv
-browserify = require 'browserify'
-coffeeify  = require 'coffeeify'
-source     = require 'vinyl-source-stream'
-nodemon    = require 'gulp-nodemon'
-pistachio  = require 'gulp-kd-pistachio-compiler'
-spritesmith= require 'gulp.spritesmith'
-livereload = require 'gulp-livereload'
-shell      = require 'gulp-shell'
+gulp    = require 'gulp'
+argv    = require('minimist') process.argv
+nodemon = require 'gulp-nodemon'
+req     = (module) -> require "./gulptasks/#{module}"
 
-STYLES_PATH = ['./app/styl/*.styl']
-COFFEE_PATH = ['./app/coffee/**/*.coffee']
-INDEX_PATH  = ['./app/index.html']
-SERVER_FILE = './server/server.coffee'
-SERVER_PATH = ['./server/**/*.coffee']
-BUILD_PATH  = argv.outputDir ? './static/a/out'
-devMode     = argv.devMode?
+# CONSTANTS
 
-log = (color, message) -> gutil.log gutil.colors[color] message
+{ STYLES_PATH, COFFEE_PATH, INDEX_PATH
+  SERVER_FILE, SERVER_PATH, BUILD_PATH } = req 'helper.constants'
 
-watchLogger = (color, watcher) ->
-  server = livereload()  if devMode
-  watcher.on 'change', (event) ->
-    log color, "file #{event.path} was #{event.type}"
-    server?.changed event.path
 
-gulpBrowserify = (options = {}) ->
-  options.extensions or= ['.coffee']
-  options.debug        = devMode
-  b = browserify options
-  b.transform coffeeify
-  b.bundle()
+# HELPERS
+
+{watchLogger, log} = req 'helper.logger'
+
+
+# BUILD SERVER
 
 gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
 
-gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
-compileStyles = ->
+# STYLUS COMPILATION
 
-  gulp.src STYLES_PATH
-    .pipe stylus
-      compress  : yes
-      sourcemap : inline  : yes  if devMode
-    .pipe concat 'main.css'
-    .pipe rename 'main.css'
-    .pipe gulpif devMode, livereload()
-    .pipe gulp.dest "#{BUILD_PATH}/css"
+gulp.task 'styles-only', req 'helper.styles'
+
+gulp.task 'styles', ['sprites'], req 'helper.styles'
 
 
-gulp.task 'styles-only', -> compileStyles()
-
-gulp.task 'styles', ['sprites'], -> compileStyles()
-
-
+# SPRITE GENERATION
 
 gulp.task 'sprites', ['sprites@1x', 'sprites@2x'], ->
 
+gulp.task 'sprites@1x', req 'task.sprites@1x'
 
-nameStylusVars = (suffix, sprite) ->
-
-  arr   = sprite.source_image.split '/'
-  group = arr[arr.length-2]
-
-  # this is bad, but stylus throws when you have dots in variable names
-  # we shouldn't use dots in image file names - SY
-  if /\./.test(sprite.name)
-    log 'red', "ERROR: Dots in sprite names cause problems, pls fix: #{sprite.name}"
-
-  name        = sprite.name.replace /\./g, '_'
-  sprite.name = "#{group}_#{name}#{suffix}";
-
-  return sprite
+gulp.task 'sprites@2x', ['sprites@1x'], req 'task.sprites@2x'
 
 
-gulp.task 'sprites@1x', ->
+# COFFEE COMPILATION
 
-  stream = gulp.src 'static/sprites@1x/**/*.png'
-    .pipe spritesmith
-      imgName   : 'sprite@1x.png'
-      cssName   : 'sprite@1x.styl'
-      imgPath   : "/a/out/images/sprite@1x.png"
-      algorithm : 'binary-tree'
-      padding   : 5
-      cssFormat : 'stylus'
-      cssVarMap : nameStylusVars.bind stream, ''
-
-  stream.css
-    .pipe gulp.dest './app/styl/'
-
-  stream.img
-    .pipe gulp.dest "#{BUILD_PATH}/images/"
-
-  return stream
+gulp.task 'coffee', req 'task.coffee'
 
 
-gulp.task 'sprites@2x', ['sprites@1x'], ->
+# BUILD index.html FILES
 
-  stream = gulp.src 'static/sprites@2x/**/*.png'
-    .pipe spritesmith
-      imgName   : 'sprite@2x.png'
-      cssName   : 'sprite@2x.styl'
-      imgPath   : "/a/out/images/sprite@2x.png"
-      algorithm : 'binary-tree'
-      padding   : 10
-      cssFormat : 'stylus'
-      cssVarMap : nameStylusVars.bind stream, '__2x'
+gulp.task 'index', req 'task.index'
 
-  stream.css
-    .pipe gulp.dest './app/styl/'
 
-  stream.img
-    .pipe gulp.dest "#{BUILD_PATH}/images/"
+# BUILD FRAMEWORK FROM NODE MODULE
 
-  return stream
+gulp.task 'build-kd', req 'task.build-kd'
 
+
+# WATCHERS
+
+watchersArray = [ 'watch-styles', 'watch-coffee', 'watch-index' ]
+
+gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
 
 gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles-only']
 
-gulp.task 'coffee', ->
-
-  gulpBrowserify
-      entries : ['./app/coffee/main.coffee']
-    .pipe source 'main.js'
-    .pipe gulpBuffer()
-    .pipe pistachio()
-    .pipe gulpStream()
-    .pipe gulpif devMode, livereload()
-    .pipe gulp.dest "#{BUILD_PATH}/js"
-
-
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
 
-gulp.task 'index', ->
-
-  gulp.src INDEX_PATH
-    .pipe gulp.dest "#{BUILD_PATH}"
-
 gulp.task 'watch-index', -> watchLogger 'yellow', gulp.watch INDEX_PATH, ['index']
-
-gulp.task 'build-kd', ->
-
-  kdGulpFilePath = "#{__dirname}/node_modules/kdf/gulpfile.coffee"
-
-  gulp.src ''
-    .pipe shell [
-      "cp -f ./app/coffee/entry.coffee ./node_modules/kdf/src/entry.coffee"
-      "gulp --gulpfile #{kdGulpFilePath} compile --uglify --entryPath=#{__dirname}/node_modules/kdf/src/entry.coffee --outputDir=#{__dirname}/static/a/out"
-    ]
-
-
-gulp.task 'export', ->
-
-  exportDir = argv.exportDir
-
-  unless exportDir
-
-    log 'yellow', "nothing exported."
-    return
-
-  cmd = "cp -Rf #{__dirname}/#{BUILD_PATH} #{exportDir}"
-
-  log 'green', "Exporting to: #{exportDir}"
-
-  gulp.src ''
-    .pipe shell [cmd]
-
-
-gulp.task 'clean', ->
-  gulp.src [BUILD_PATH], read: no
-    .pipe rimraf force: yes
-
-gulp.task 'build', ['build-kd', 'sprites', 'styles', 'coffee', 'index']
-
-watchersArray = [
-  'watch-styles'
-  'watch-coffee'
-  'watch-index'
-]
 
 gulp.task 'watchers', watchersArray
 
 gulp.task 'watch', ['build'].concat watchersArray
 
+
+# EXPORT
+
+gulp.task 'export', req 'task.export'
+
+
+# CLEANUP
+
+gulp.task 'clean', req 'task.clean'
+
+
+# COMBINED TASKS
+
+gulp.task 'build', ['build-kd', 'sprites', 'styles', 'coffee', 'index']
+
 gulp.task 'default', ['watch', 'serve']
 
+
+# ERROR HANDLING
 
 process.on 'uncaughtException', (err)->
 
