@@ -1,9 +1,9 @@
 class AccountBilling extends KDView
 
   initialState: {
-    subscription: {}
-    paymentMethod: {}
-    paymentHistory: {}
+    subscription: null
+    paymentMethod: null
+    paymentHistory: null
   }
 
   constructor: (options = {}, data) ->
