@@ -34,7 +34,6 @@ type Subscription struct {
 	// Timestamps
 	CreatedAt          time.Time `json:"createdAt"`
 	UpdatedAt          time.Time `json:"updatedAt" `
-	DeletedAt          time.Time `json:"deletedAt"`
 	ExpiredAt          time.Time `json:"expiredAt"`
 	CanceledAt         time.Time `json:"canceled_at"`
 	CurrentPeriodStart time.Time `json:"current_period_start"`

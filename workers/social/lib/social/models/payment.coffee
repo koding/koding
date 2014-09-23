@@ -19,7 +19,7 @@ module.exports = class Payment extends Base
           (signature Object, Function)
 
 
-  { get, post } = require "./requests"
+  { get, post } = require "./socialapi/requests"
 
   @subscribe = secure (client, data, callback)->
     requiredParams = [
@@ -95,14 +95,14 @@ module.exports = class Payment extends Base
         callback null
 
   fetchUsage = (client, callback)->
-    ComputeProvider = require "../computeproviders/computeprovider"
+    ComputeProvider = require "./computeproviders/computeprovider"
     ComputeProvider.fetchUsage client, {
       provider   : "koding"
       credential : client.connection.delegate.profile.nickname
     }, callback
 
   fetchPlan = (client, planTitle, callback)->
-    ComputeProvider = require "../computeproviders/computeprovider"
+    ComputeProvider = require "./computeproviders/computeprovider"
     ComputeProvider.fetchPlans client,
       provider   : "koding"
     , (err, plans)->
