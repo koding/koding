@@ -84,7 +84,6 @@ CREATE TABLE "payment"."subscription" (
 
     "created_at"            TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at"            TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at"            TIMESTAMP (6) WITH TIME ZONE,
     "expired_at"            TIMESTAMP (6) WITH TIME ZONE,
     "canceled_at"           TIMESTAMP (6) WITH TIME ZONE,
     "current_period_start"  TIMESTAMP (6) WITH TIME ZONE,
