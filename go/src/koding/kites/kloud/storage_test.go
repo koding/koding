@@ -117,7 +117,6 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 
 	instanceName := "kloudtest-" + strconv.Itoa(rand.Intn(100000))
-	instanceId := "i-" + strconv.Itoa(rand.Intn(100000))
 
 	TestMachineData = map[string]*protocol.Machine{
 		"koding_id0": &protocol.Machine{
@@ -133,7 +132,6 @@ func init() {
 				"storage_size": 3,
 				"alwaysOn":     false,
 				"instanceName": instanceName,
-				"instanceId":   instanceId,
 			},
 			Credential: map[string]interface{}{
 				"username": "kodinginc",

@@ -29,7 +29,10 @@ var (
 	conf      *config.Config
 )
 
-const machineId = "koding_id0"
+const (
+	machineId = "koding_id0"
+	etcdIp    = "192.168.59.103:4001"
+)
 
 type args struct {
 	MachineId string
@@ -46,6 +49,7 @@ func init() {
 	// Power up our own kontrol kite for self-contained tests
 	kontrol.DefaultPort = 4099
 	kntrl := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
+	kntrl.Machines = []string{etcdIp}
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 
