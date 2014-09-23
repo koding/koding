@@ -12,7 +12,7 @@ CREATE TABLE "payment"."customer" (
     "id" BIGINT NOT NULL DEFAULT nextval(
         'payment.customer_id_seq' :: regclass
     ),
-    "provider"             "payment"."provider",
+    "provider"             "payment"."provider_enum",
     "provider_customer_id" TEXT NOT NULL COLLATE "default",
     "old_id"               VARCHAR (24) NOT NULL COLLATE "default",
 
@@ -46,9 +46,9 @@ CREATE TABLE "payment"."plan" (
     "id" BIGINT NOT NULL DEFAULT nextval(
         'payment.plan_id_seq' :: regclass
     ),
-    "interval"         "payment"."plan_interval",
-    "title"            "payment"."plan_title",
-    "provider"         "payment"."provider",
+    "interval"         "payment"."plan_interval_enum",
+    "title"            "payment"."plan_title_enum",
+    "provider"         "payment"."provider_enum",
     "provider_plan_id" TEXT NOT NULL COLLATE "default",
     "amount_in_cents"  BIGINT NOT NULL DEFAULT 0,
 
@@ -74,8 +74,8 @@ CREATE TABLE "payment"."subscription" (
     "id" BIGINT NOT NULL DEFAULT nextval(
         'payment.subscription_id_seq' :: regclass
     ),
-    "state"                    "payment"."subscription_state",
-    "provider"                 "payment"."provider",
+    "state"                    "payment"."subscription_state_enum",
+    "provider"                 "payment"."provider_enum",
     "provider_subscription_id" TEXT NOT NULL COLLATE "default",
     "provider_token"           TEXT NOT NULL COLLATE "default",
     "customer_id"              BIGINT NOT NULL DEFAULT 0,
