@@ -7,22 +7,185 @@ resurrection.commons.styl
 */
 }
 
-body.apps
-body.environments
-  bg                    color #e4e4e4
-
 html.app
-body.activity
-body.dashboard
-body.account
-body.apps
-body.environments
   #main-header
     nav
       margin            -37px 18px 0 0
 
-validationRed = rgba(217, 58, 55, 0.65)
+// When app class is added to html tag
+// layout becomes 100% width and height
+// so that apps can control their own
+// scrollviews and add their chrome frames
+html
+body
+  height            100%
 
+body
+  font-family       openSansFamily
+  font-weight       400
+
+  &.noscroll
+    overflow        hidden
+
+  &.logged-in
+    #main-header
+      nav
+        hidden()
+
+  > .invisible
+    display         none
+
+input
+textarea
+button
+  font-family       openSansFamily
+
+.kdview
+  overflow          visible
+
+.no-anim
+  noAnim()
+
+#kdmaincontainer
+  width             auto
+
+#main-panel-wrapper
+  min-height          100%
+  z-index             1
+  bg                  color, white
+  vendor              transition, box-shadow .177s ease
+
+#main-tab-view
+  overflow            visible
+  height              auto
+
+#main-header
+  margin                0
+  size                  100%,55px
+  z-index               1000
+  overflow              visible
+  max-width             1290px
+  shadow                none
+  padding               0 45px
+  abs                   48px 0 0 50%
+  vendor                transform, translateX(-50%)
+  z-index               15
+  borderBox()
+
+
+  .inner-container
+    bg                  color, transparent
+
+  .logotype
+    font-size               24px
+    color                   #444
+    font-weight             700
+    line-height             16px
+    color                   #fff
+    font-family             sloganFont
+    -webkit-font-smoothing  antialiased
+    noTextDeco()
+    visible()
+    fl()
+
+  #koding-logo
+    margin              0 14px 0 0
+    size                auto auto
+    bg                  color transparent
+    position            static
+    fl()
+
+    cite
+      r-sprite          app 'logo-full-white'
+      margin            0
+      display           block
+
+  nav
+    line-height         18px
+    fr()
+
+    a
+      font-size         14px
+      margin-left       12px
+      font-family       openSansFamily
+      color             white
+      padding-bottom    1px
+      noTextDeco()
+
+      &.active
+        font-weight     600
+        border-bottom   1px solid white
+
+      &:last-child
+        visibility      visible
+
+      &.login
+        padding         7px 13px
+        rounded         4px
+        white-space     nowrap
+        margin-left     21px
+        font-size       14px
+        font-weight     600
+        border          1px solid rgba(255, 255, 255, .5)
+
+
+#koding-logo
+  size              57px 55px
+  bg                color, logoBg
+  z-index           11
+  top               0
+  left              0
+  abs()
+
+  &.staging
+    bg              color #ff9200 // old koding orange
+
+  &.sandbox
+    bg              color #0099cc
+
+  &.vagrant
+    bg              color purple
+
+  &.custom
+    bg              color transparent
+    bg              position, center center
+    bg              repeat, no-repeat
+    cite
+      hidden()
+
+  cite
+    r-sprite        app 'nav-logo'
+    margin          0 0 0 1px
+    display         block
+
+
+#kdmaincontainer.scale
+    vendor            animation, shrink 1s ease-out
+    vendor            animation-iteration-count, 1
+    vendor            transform-style, preserve-3d
+    vendor            transform, scale(0)
+
+
+
+.kdnotification
+  a
+    color               inherit
+
+.kdmodal.redeem-modal
+
+  .formline
+    overflow              visible
+    padding               15px 0 0
+    .input-wrapper
+      overflow            visible
+      margin-right        8px
+      fr()
+    label
+      margin              0
+
+
+
+validationRed = rgba(217, 58, 55, 0.65)
 .kdtooltip.validation-error
 .kdtooltip.validation-error.just-text
   min-width                   none
