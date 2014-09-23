@@ -61,9 +61,6 @@ KD.extend
     else if routes
     then @registerRoutes name, routes
 
-    if options.navItem?.order
-      @registerNavItem options.navItem
-
     Object.defineProperty KD.appClasses, name,
       configurable  : yes
       enumerable    : yes
@@ -94,23 +91,6 @@ KD.extend
 
       if router = KD.singletons.router then cb()
       else KDRouter.on 'RouterIsReady', cb
-
-
-  resetNavItems      : (items)->
-    @navItems        = items
-    @navItemIndex    = KD.utils.arrayToObject items, 'title'
-
-  registerNavItem    : (itemData)->
-    unless @navItemIndex[itemData.title]
-      @navItemIndex[itemData.title] = itemData
-      @navItems.push itemData
-      return true
-    return false
-
-  getNavItems        : -> @navItems.sort (a, b)-> a.order - b.order
-
-  setNavItems        : (navItems)->
-    @registerNavItem item for item in navItems.sort (a, b)-> a.order - b.order
 
   unregisterAppClass :(name)-> delete KD.appClasses[name]
 
