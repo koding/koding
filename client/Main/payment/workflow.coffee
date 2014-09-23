@@ -12,17 +12,17 @@
 # yearPrice  : int (e.g 19000 for $190)
 class PaymentWorkflow extends KDController
 
-  @planInterval :
+  @planInterval =
     MONTH       : 'month'
     YEAR        : 'year'
 
-  @planTitle     :
+  @planTitle =
     FREE         : 'free'
     HOBBYIST     : 'hobbyist'
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
-  @isUpgrade: (current, selected) ->
+  @isUpgrade = (current, selected) ->
 
     arr = [
       PaymentWorkflow.planTitle.FREE
