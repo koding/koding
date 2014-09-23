@@ -75,11 +75,13 @@ func main() {
 	// init stripe client
 	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
 
-	err := stripe.CreateDefaultPlans()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	go func() {
+		err := stripe.CreateDefaultPlans()
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+	}()
 
 	r.Wait()
 }
