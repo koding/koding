@@ -23,7 +23,7 @@ gulp.task 'site', req 'task.site'
 
 # BUILD SERVER
 
-gulp.task 'serve', ['build'], -> server = nodemon script: SERVER_FILE
+gulp.task 'serve', -> server = nodemon script: SERVER_FILE
 
 
 # WATCHERS
