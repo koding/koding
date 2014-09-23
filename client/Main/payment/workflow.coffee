@@ -43,25 +43,7 @@ class PaymentWorkflow extends KDController
 
     @state = KD.utils.extend @initialState, options.state
 
-    @initPaymentProvider()
-    @start()
-
-
-  initPaymentProvider: ->
-
-    return  if window.Stripe?
-
-    options = tagName: 'script', attributes: { src: 'https://js.stripe.com/v2/' }
-    document.head.appendChild (@providerScript = new KDCustomHTMLView options).getElement()
-
-    repeater = KD.utils.repeat 500, =>
-
-      return  unless Stripe?
-
-      Stripe.setPublishableKey KD.config.stripe.token
-
-      @modal.emit 'PaymentProviderLoaded', { provider: Stripe }
-      window.clearInterval repeater
+    KD.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
 
   start: ->
