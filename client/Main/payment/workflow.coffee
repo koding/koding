@@ -7,10 +7,9 @@
 #
 # Necessary options when you instantiate it.
 #
-# planTitle  : string (see PaymentWorkflow.plans)
+# planTitle  : string (see PaymentWorkflow.planTitle)
 # monthPrice : int (e.g 1900 for $19)
 # yearPrice  : int (e.g 19000 for $190)
-# view       : KDView
 class PaymentWorkflow extends KDController
 
   @planInterval :
@@ -128,11 +127,11 @@ class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
-    { view } = @getOptions()
+    initiatorView = @getDelegate()
 
     @emit 'PaymentWorkflowFinishedSuccessfully', state
 
-    view.state.currentPlan = state.currentPlan
+    initiatorView.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 

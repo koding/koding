@@ -123,8 +123,7 @@ class PaymentForm extends JView
     return new StripeFormView
       state    : @state
       cssClass : cssClass
-      callback : (formData) =>
-        @emit "PaymentSubmitted", formData
+      callback : @lazyBound 'emit', 'PaymentSubmitted'
 
 
   initEvents: ->
@@ -152,7 +151,7 @@ class PaymentForm extends JView
         cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
 
 
-  handlePaymentProviderLoaded: ({ provider }) ->
+  handlePaymentProviderLoaded: ->
 
     @state.providerLoaded = yes
 

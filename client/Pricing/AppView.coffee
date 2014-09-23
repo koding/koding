@@ -145,7 +145,7 @@ class PricingAppView extends KDView
 
     @setState options
 
-    @workflowController = new PaymentWorkflow { @state, view: this}
+    @workflowController = new PaymentWorkflow { @state, delegate: this}
 
     @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
 

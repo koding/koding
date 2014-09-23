@@ -17,7 +17,7 @@ class SubscriptionView extends JView
       style    : 'solid medium gray'
       cssClass : 'change-subscription-btn'
       title    : 'Change subscription'
-      callback : => @emit 'ChangeSubscriptionRequested', @getData()
+      callback : @lazyBound 'emit', 'ChangeSubscriptionRequested', data
 
 
   pistachio: ->
@@ -25,3 +25,5 @@ class SubscriptionView extends JView
       <h4>{{#(planTitle).capitalize()}}</h4>
       {{> @changeSubscriptionButton}}
     """
+
+
