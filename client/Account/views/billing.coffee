@@ -1,4 +1,4 @@
-class AccountBilling extends JView
+class AccountBilling extends KDView
 
   initialState: {
     subscription: {}
@@ -12,20 +12,18 @@ class AccountBilling extends JView
 
     @state = KD.utils.extend @initialState, options.state
 
-    @initViews()
 
+  viewAppended: ->
 
-  initViews: ->
-
-    @subscriptionWrapper = new KDCustomHTMLView
+    @addSubView @subscriptionWrapper = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'subscription-wrapper clearfix'
 
-    @paymentMethodWrapper = new KDCustomHTMLView
+    @addSubView @paymentMethodWrapper = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'payment-method-wrapper clearfix'
 
-    @paymentHistoryWrapper = new KDCustomHTMLView
+    @addSubView @paymentHistoryWrapper = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'payment-history-wrapper clearfix'
 
@@ -100,11 +98,4 @@ class AccountBilling extends JView
 
       @paymentHistoryWrapper.addSubView @listController.getView()
 
-
-  pistachio: ->
-    """
-    {{> @subscriptionWrapper}}
-    {{> @paymentMethodWrapper}}
-    {{> @paymentHistoryWrapper}}
-    """
 
