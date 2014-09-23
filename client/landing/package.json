@@ -2,6 +2,10 @@
   "name": "koding-landing",
   "version": "0.1.0",
   "description": "Koding's landing pages",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koding/landing.git"
+  }
   "contributors": [
     {
       "name": "Sinan Yasar",
