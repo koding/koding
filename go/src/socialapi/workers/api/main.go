@@ -34,7 +34,6 @@ func init() {
 	mux = notificationapi.InitHandlers(mux)
 	mux = trollmodeapi.InitHandlers(mux)
 	mux = sitemapapi.InitHandlers(mux)
-	mux = paymentapi.InitHandlers(mux)
 
 	// add namespace support into
 	// all handlers
@@ -57,6 +56,10 @@ func main() {
 	defer server.Close()
 
 	mux = handlers.Inject(mux, r.Metrics)
+
+	// init payment handlers, this done here instead of in `init()`
+	// like others so we can've access to `metrics`
+	mux = paymentapi.InitHandlers(mux, r.Metrics)
 
 	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello from socialapi")

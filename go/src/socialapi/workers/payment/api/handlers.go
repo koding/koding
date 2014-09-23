@@ -3,18 +3,21 @@ package api
 import (
 	"socialapi/workers/common/handler"
 
+	"github.com/koding/metrics"
 	"github.com/rcrowley/go-tigertonic"
 )
 
-func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
+func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
 	//----------------------------------------------------------
 	// Subscriptions
 	//----------------------------------------------------------
 
 	mux.Handle("POST", "/payments/subscribe", handler.Wrapper(
 		handler.Request{
-			Handler: Subscribe,
-			Name:    "payment-subsrcibe",
+			Handler:        Subscribe,
+			Name:           "payment-subsrcibe",
+			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -22,6 +25,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: SubscriptionRequest,
 			Name:    "payment-subscriptions",
+			Metrics: metrics,
 		},
 	))
 
@@ -33,6 +37,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: InvoiceRequest,
 			Name:    "payment-invoices",
+			Metrics: metrics,
 		},
 	))
 
@@ -42,15 +47,19 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 
 	mux.Handle("GET", "/payments/creditcard/{accountId}", handler.Wrapper(
 		handler.Request{
-			Handler: CreditCardRequest,
-			Name:    "payment-creditcard",
+			Handler:        CreditCardRequest,
+			Name:           "payment-creditcard",
+			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
 	mux.Handle("POST", "/payments/creditcard/update", handler.Wrapper(
 		handler.Request{
-			Handler: UpdateCreditCardRequest,
-			Name:    "payment-updatecreditcard",
+			Handler:        UpdateCreditCardRequest,
+			Name:           "payment-updatecreditcard",
+			CollectMetrics: true,
+			Metrics:        metrics,
 		},
 	))
 
@@ -61,6 +70,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
 		handler.Request{
 			Handler: StripeWebhook,
 			Name:    "payment-stripewebhook",
+			Metrics: metrics,
 		},
 	))
 
