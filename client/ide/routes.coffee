@@ -8,7 +8,7 @@ do ->
       loadIDE { machine, workspace }
     else
       if workspaceSlug is 'my-workspace'
-        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine?.label
+        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine?.slug or machine?.label
         loadIDE { machine, workspace }
       else
         routeToLatestWorkspace()
@@ -20,7 +20,7 @@ do ->
 
 
   getMachineByLabel = (label) ->
-    machine = m  for m in KD.userMachines when m.label is label
+    machine = m  for m in KD.userMachines when (m.label is label) or (m.slug is label)
     return machine or null
 
 
@@ -64,7 +64,8 @@ do ->
     if latestWorkspace
       {machineLabel, workspaceSlug} = latestWorkspace
     else
-      machineLabel  = KD.userMachines.first?.label or ''
+      machine = KD.userMachines.first
+      machineLabel  = machine?.slug or machine?.label or ''
       workspaceSlug = 'my-workspace'
 
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
