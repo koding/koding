@@ -44,7 +44,13 @@ class AccountBilling extends KDView
       return KD.showError err  if err?
 
       @state.subscription = subscription
-      @subscriptionWrapper.addSubView new SubscriptionView {}, subscription
+
+      @subscription = new SubscriptionView {}, subscription
+
+      @subscription.on 'ChangeSubscriptionRequested', ->
+        KD.singletons.router.handleRoute '/Pricing'
+
+      @subscriptionWrapper.addSubView @subscription
 
 
   noItemView = (partial) ->
