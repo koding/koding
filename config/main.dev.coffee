@@ -712,6 +712,7 @@ Configuration = (options={}) ->
 
       elif [ "$#" == "0" ]; then
 
+        checkrunfile
         run
 
       else
