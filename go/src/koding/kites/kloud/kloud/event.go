@@ -1,8 +1,9 @@
 package kloud
 
 import (
-	"github.com/koding/kite"
 	"koding/kites/kloud/eventer"
+
+	"github.com/koding/kite"
 )
 
 type EventArg struct {
