@@ -65,7 +65,10 @@ func checkIfLocalIsUptodate(db gorm.DB) {
 		os.Exit(1)
 	}
 
-	fmt.Println(err)
+	fmt.Println(
+		"Your postgresql isn't running or your db doesn't have the latest schema, please do `./run buildservices`.",
+	)
+
 	os.Exit(1)
 }
 
@@ -74,7 +77,5 @@ var ErrConnRefusedFn = func(err error) bool {
 }
 
 var ErrPaymentTablesFn = func(err error) bool {
-	return strings.Contains(err.Error(),
-		`pq: relation "payment.customer" does not exist`,
-	)
+	return strings.Contains(err.Error(), "\"payment.customer\" does not exist")
 }
