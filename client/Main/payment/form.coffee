@@ -64,7 +64,6 @@ class PaymentForm extends JView
     else 'DOWNGRADE'
 
     @submitButton = new KDButtonView
-      disabled  : not @state.providerLoaded
       style     : 'solid medium green'
       title     : buttonPartial
       loader    : yes
