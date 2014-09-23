@@ -108,3 +108,16 @@ class AccountBilling extends KDView
       @paymentHistoryWrapper.addSubView @listController.getView()
 
 
+  startWorkflow: ->
+
+    @workflow = new UpdateCreditCardWorkflow { delegate: this }
+
+    @workflow.once 'UpdateCreditCardWorkflowFinishedSuccessfully', @bound 'handleFinishedWithSuccess'
+
+
+  handleFinishedWithSuccess: ({ paymentMethod }) ->
+
+    @putPaymentMethodView paymentMethod
+
+
+
