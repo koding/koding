@@ -4,10 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
+
 	"github.com/koding/kite"
-	"github.com/koding/kloud/eventer"
-	"github.com/koding/kloud/machinestate"
-	"github.com/koding/kloud/protocol"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -69,36 +70,39 @@ func (p *Provider) RunCleaner(interval time.Duration) {
 // CheckUsage checks a single machine usages patterns and applies certain
 // restrictions (if any available). For example it could stop a machine after a
 // certain inactivity time.
-func (p *Provider) CheckUsage(machine *Machine) error {
-	if machine == nil {
+func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
+	if machineDoc == nil {
 		return errors.New("machine is nil")
 	}
 
 	// release the lock from mongodb after we are done
-	defer p.Unlock(machine.Id.Hex())
+	defer p.Unlock(machineDoc.Id.Hex())
 
-	credential := p.GetCredential(machine.Credential)
+	credential := p.GetCredential(machineDoc.Credential)
 
 	// populate a protocol.Machine instance that is needed for the Stop()
 	// method
-	opts := &protocol.Machine{
-		MachineId:   machine.Id.Hex(),
-		Provider:    machine.Provider,
-		Builder:     machine.Meta,
+	m := &protocol.Machine{
+		Id:          machineDoc.Id.Hex(),
+		Username:    machineDoc.Credential, // contains the username for koding provider
+		Provider:    machineDoc.Provider,
+		Builder:     machineDoc.Meta,
 		Credential:  credential.Meta,
-		State:       machine.State(),
-		CurrentData: machine,
+		State:       machineDoc.State(),
+		IpAddress:   machineDoc.IpAddress,
+		QueryString: machineDoc.QueryString,
 	}
+	m.Domain.Name = machineDoc.Domain
 
 	// will be replaced once we connect to klient in checker.Timeout() we are
 	// adding it so it doesn't panic when someone tries to retrieve it
-	opts.Builder["username"] = "kloud-checker"
+	m.Builder["username"] = "kloud-checker"
 
 	// add a fake eventer, means we are not reporting anyone and prevent also
 	// panicing when someone try to call the eventer
-	opts.Eventer = &eventer.Events{}
+	m.Eventer = &eventer.Events{}
 
-	checker, err := p.PlanChecker(opts)
+	checker, err := p.PlanChecker(m)
 	if err != nil {
 		return err
 	}
@@ -112,8 +116,8 @@ func (p *Provider) CheckUsage(machine *Machine) error {
 // locked and cannot be retrieved from others anymore. After finishing work with
 // this document locker.Unlock() needs to be called that it's unlocked again
 // so it can be fetched by others.
-func (p *Provider) FetchOne(interval time.Duration) (*Machine, error) {
-	machine := &Machine{}
+func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
+	machine := &MachineDocument{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
 		// 1. belongs to koding provider

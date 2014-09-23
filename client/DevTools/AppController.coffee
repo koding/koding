@@ -32,25 +32,26 @@ class DevToolsController extends AppController
 
         KD.singletons.router.handleRoute "/Activity/Public"
         KD.showEnforceLoginModal()
-
-    menu            :
-      hiddenOnStart : yes
-      items         : [
-        { title     : "Create a new App",    eventName : "create" }
-        { type      : "separator" }
-        { title     : "Save",                eventName : "save" }
-        { title     : "Save All",            eventName : "saveAll" }
-        { title     : "Close All",           eventName : "closeAll" }
-        { type      : "separator" }
-        { title     : "Compile on server",   eventName : "compile" }
-        { title     : "Publish for Testing", eventName : "publishTest" }
-        { title     : "Publish to AppStore", eventName : "publish" }
-        { title     : "customViewToggleLiveReload" }
-        { type      : "separator" }
-        { title     : "customViewToggleFullscreen" }
-        { type      : "separator" }
-        { title     : "Exit",                eventName : "exit" }
-      ]
+    # MENU is disabled
+    # should be reoimplemented if needed - SY
+    # menu            :
+    #   hiddenOnStart : yes
+    #   items         : [
+    #     { title     : "Create a new App",    eventName : "create" }
+    #     { type      : "separator" }
+    #     { title     : "Save",                eventName : "save" }
+    #     { title     : "Save All",            eventName : "saveAll" }
+    #     { title     : "Close All",           eventName : "closeAll" }
+    #     { type      : "separator" }
+    #     { title     : "Compile on server",   eventName : "compile" }
+    #     { title     : "Publish for Testing", eventName : "publishTest" }
+    #     { title     : "Publish to AppStore", eventName : "publish" }
+    #     { title     : "customViewToggleLiveReload" }
+    #     { type      : "separator" }
+    #     { title     : "customViewToggleFullscreen" }
+    #     { type      : "separator" }
+    #     { title     : "Exit",                eventName : "exit" }
+    #   ]
 
 
   constructor:(options = {}, data)->
@@ -68,15 +69,12 @@ class DevToolsController extends AppController
   handleQuery:->
 
     return unless view = @getView()
-    {workspace, _currentMode} = view
+    {workspace} = view
 
     workspace.ready ->
       wc = KD.getSingleton("windowController")
       wc.notifyWindowResizeListeners()
       wc.notifyWindowResizeListeners()
-
-      unless _currentMode is 'home'
-        KD.singletons.mainView.appSettingsMenuButton.show()
 
   openFile:(file, callback)->
 
