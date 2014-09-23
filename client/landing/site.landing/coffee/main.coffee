@@ -1,15 +1,15 @@
 console.time 'Koding.com loaded'
-
-# keep this on top
-MainController = require './core/maincontrollerloggedout'
+require './core/utils'
+require './core/KD.extend.coffee'
 
 # register appclasses
 About = require './about/AppController'
 Home  = require './home/AppController'
 Login = require './login/AppController'
 
-
 # bootstrap app
+MainController = require './core/maincontrollerloggedout'
+
 do ->
 
   setConfig = ->
