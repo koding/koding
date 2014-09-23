@@ -18,13 +18,13 @@ class PaymentForm extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = @utils.curry 'payment-form-wrapper', options.cssClass
+    options.cssClass = KD.utils.curry 'payment-form-wrapper', options.cssClass
 
     super options, data
 
     { state } = @getOptions()
 
-    @state = @utils.extend @initialState, state
+    @state = KD.utils.extend @initialState, state
 
     @initViews()
     @initEvents()
@@ -118,7 +118,7 @@ class PaymentForm extends JView
     { planTitle, planInterval } = @state
 
     { cssClass } = @getOptions()
-    cssClass     = @utils.curry cssClass, 'hidden'
+    cssClass     = KD.utils.curry cssClass, 'hidden'
 
     return new StripeFormView
       state    : @state

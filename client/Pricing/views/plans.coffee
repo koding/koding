@@ -9,7 +9,7 @@ class PricingPlansView extends KDView
 
     super options, data
 
-    @state = @utils.extend @initialState, options.state
+    @state = KD.utils.extend @initialState, options.state
 
     @planViews = {}
 

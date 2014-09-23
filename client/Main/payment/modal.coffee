@@ -16,7 +16,7 @@ class PaymentModal extends KDModalView
 
     { state } = options
 
-    @state = @utils.extend @initialState, state
+    @state = KD.utils.extend @initialState, state
 
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 

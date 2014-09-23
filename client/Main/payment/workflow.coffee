@@ -42,7 +42,7 @@ class PaymentWorkflow extends KDController
 
     super options, data
 
-    @state = @utils.extend @initialState, options.state
+    @state = KD.utils.extend @initialState, options.state
 
     @initPaymentProvider()
     @start()

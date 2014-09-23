@@ -13,7 +13,7 @@ class PricingAppView extends KDView
 
     super options, data
 
-    @state = @utils.extend @initialState, options.state
+    @state = KD.utils.extend @initialState, options.state
 
     @loadPlan()  if KD.isLoggedIn()
     @initViews()
@@ -162,7 +162,7 @@ class PricingAppView extends KDView
       router.handleRoute '/'
 
 
-  setState: (obj) -> @state = @utils.extend @state, obj
+  setState: (obj) -> @state = KD.utils.extend @state, obj
 
 
   pistachio: ->
