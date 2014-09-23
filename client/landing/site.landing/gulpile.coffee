@@ -1,6 +1,5 @@
 gulp    = require 'gulp'
 argv    = require('minimist') process.argv
-nodemon = require 'gulp-nodemon'
 req     = (module) -> require "./gulptasks/#{module}"
 
 # CONSTANTS
@@ -54,8 +53,6 @@ gulp.task 'build-kd', req 'task.build-kd'
 
 watchersArray = [ 'watch-styles', 'watch-coffee', 'watch-index' ]
 
-gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve']
-
 gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles-only']
 
 gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
@@ -63,8 +60,6 @@ gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffe
 gulp.task 'watch-index', -> watchLogger 'yellow', gulp.watch INDEX_PATH, ['index']
 
 gulp.task 'watchers', watchersArray
-
-gulp.task 'watch', ['build'].concat watchersArray
 
 
 # EXPORT
@@ -81,12 +76,6 @@ gulp.task 'clean', req 'task.clean'
 
 gulp.task 'build', ['build-kd', 'sprites', 'styles', 'coffee', 'index']
 
-gulp.task 'default', ['watch', 'serve']
+gulp.task 'watch', ['build'].concat watchersArray
 
-
-# ERROR HANDLING
-
-process.on 'uncaughtException', (err)->
-
-  log 'red', "#{err.name}: #{err.message}"
-  # console.error err
+gulp.task 'default', ['watch']
