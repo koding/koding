@@ -180,7 +180,31 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
-    return new YourTopicsModal delegate : this
+    {moreLink} = @sidebar.sections.channels
+
+    KD.utils.defer =>
+
+      top        = moreLink.getY() - 80
+      left       = moreLink.getX() + moreLink.getWidth() + 10
+
+      if window.innerHeight <= (top + 218)
+        top      = (window.innerHeight - 220)
+
+      modal = new YourTopicsModal
+        delegate : this
+        width    : 271
+        position :
+          top    : top
+          left   : left
+        cssClass : 'sidebar-dark-modal'
+
+      modal.addSubView new KDCustomHTMLView
+        cssClass : 'arrow'
+        position :
+          top    : moreLink.getY()
+          left   : moreLink.getX() + moreLink.getWidth()
+
+      return modal
 
 
   showAllConversationsModal: ->
