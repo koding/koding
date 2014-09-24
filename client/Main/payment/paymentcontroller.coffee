@@ -18,7 +18,7 @@ class PaymentController extends KDController
 
   updateCreditCard: (token, callback)->
     params          = {token}
-    params.provider = options.provider  or DEFAULT_PROVIDER
+    params.provider = DEFAULT_PROVIDER
 
     @api().updateCreditCard params, callback
 
