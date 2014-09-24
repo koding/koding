@@ -431,7 +431,7 @@ Configuration = (options={}) ->
             sleep 1
             ./configure
 
-            echo "Please do ./run again"
+            echo -e "\n\nPlease do ./run again\n"
             exit 1;
         fi
       }
