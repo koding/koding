@@ -49,6 +49,8 @@ class SearchController extends KDObject
               console.warn "social api error:", err
             resolve message
       .filter Boolean
+      .catch (e) ->
+        new KDNotificationView title: "Search error!"
 
   getIndex: (indexName) ->
     unless @indexes[indexName]?

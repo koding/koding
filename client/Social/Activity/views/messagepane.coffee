@@ -374,7 +374,9 @@ class MessagePane extends KDTabPaneView
     @populate()
 
 
-  setFilter: (@currentFilter) ->
+  setFilter: (filter) ->
+
+    return  if @currentFilter is filter
 
     @filterLinks.selectFilter @currentFilter
     @populate()
