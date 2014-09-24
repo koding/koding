@@ -64,12 +64,14 @@ class ActivityPane extends MessagePane
           view          : @mostLiked
           closable      : no
           shouldShow    : yes
+          route         : '/Activity/Public/Liked'
         }
         {
           name          : 'Most Recent'
           view          : @mostRecent
           closable      : no
           shouldShow    : no
+          route         : '/Activity/Public/Recent'
         }
         {
           name          : 'Search Tab'
