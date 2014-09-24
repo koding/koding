@@ -51,7 +51,7 @@ class PaymentModal extends PaymentBaseModal
 
 
   handleError: (error) ->
-    msg = error?.description or "Something went wrong."
+    msg = error?.description or error?.message or "Something went wrong."
     KD.showError msg
 
 

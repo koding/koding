@@ -17,6 +17,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         updateCreditCard  :
           (signature Object, Function)
+        canChangePlan     :
+          (signature Object, Function)
 
 
   { get, post } = require "./socialapi/requests"
@@ -66,6 +68,12 @@ module.exports = class Payment extends Base
 
       post url, data, callback
 
+  @canChangePlan = secure (client, data, callback)->
+    requiredParams = [ "planTitle" ]
+
+    validateParams requiredParams, data, (err)->
+      canChangePlan client, data.planTitle, callback
+
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams
@@ -77,7 +85,16 @@ module.exports = class Payment extends Base
   getAccountId = (client)->
     return client.connection.delegate.getId()
 
-  canChangeplan = (client, planTitle, callback)->
+  prettifyFeature = (name)->
+    switch name
+      when "alwaysOn"
+        "alwaysOn vms"
+      when "storage"
+        "GB storage"
+      when "total"
+        "total vms"
+
+  canChangePlan = (client, planTitle, callback)->
     fetchPlan client, planTitle, (err, plan)->
       return callback err  if err
 
@@ -85,11 +102,13 @@ module.exports = class Payment extends Base
         return callback err  if err
 
         for name in ["alwaysOn", "storage", "total"]
-          if usage[name] > plan[name]
-            return callback {"message" : "
-              You can't change to '#{planTitle}' plan since you're
-              current using #{usage[name]} #{name}. The new plan only
-              allows #{plan[name]} #{name}."
+          if usage[name] > 0
+            return callback {
+              "message"   : "Can't change plan due to excessive resource usage",
+              "allowed"   : plan[name]
+              "usage"     : usage[name]
+              "planTitle" : planTitle
+              "name"      : prettifyFeature name
             }
 
         callback null

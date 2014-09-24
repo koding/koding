@@ -22,6 +22,9 @@ class PaymentController extends KDController
 
     @api().updateCreditCard params, callback
 
+  canChangePlan: (planTitle, callback)->
+    @api().canChangePlan {planTitle}, callback
+
   api:-> KD.remote.api.Payment
 
 
