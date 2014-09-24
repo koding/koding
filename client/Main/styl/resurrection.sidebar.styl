@@ -669,6 +669,7 @@ sidebarSelectedBg = #262626
 
 
 h3.sidebar-title
+  position        relative
   font-weight     600
   size            auto 1em
   padding         0 6px
@@ -677,8 +678,30 @@ h3.sidebar-title
   color           #7F7F80
   text-transform  uppercase
   word-spacing    .2em
-  margin          19px 0 9px
+  margin          19px 0 12px
+  padding-left    40px
   pointer()
+
+
+  &:before
+    content           ''
+    top               -7px
+    left              7px
+    display           block
+    width             26px
+    height            26px
+    background-color  #212121 !important
+    border-radius     3px
+    abs()
+
+  &:after
+    content           ''
+    top               -1px
+    left              13px
+    display           block
+    width             26px
+    height            26px
+    abs()
 
   a
     font-size       10px
@@ -695,6 +718,16 @@ h3.sidebar-title
   &:hover
     a
       color         sidebarGray
+
+.vms h3.sidebar-title:after
+  top             -2px
+  r-sprite        'app', 'sidebar-vms'
+
+.followed.topics h3.sidebar-title:after
+  r-sprite        'app', 'sidebar-channels'
+
+.messages h3.sidebar-title:after
+  r-sprite        'app', 'sidebar-chat'
 
 
 //Coming soon modal
