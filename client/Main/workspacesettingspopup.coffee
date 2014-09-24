@@ -27,8 +27,17 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
       style    : 'solid compact red'
       title    : 'Delete Workspace'
       callback : =>
-        alert "delete"
-        @destroy()
+
+        KD.remote.api.JWorkspace.deleteById workspace.id, (err)=>
+
+          return  if KD.showError err
+
+          navItem.destroy()
+          @destroy()
+
+          KD.singletons
+            .router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
+
 
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
