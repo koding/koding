@@ -380,15 +380,18 @@ class ComputeController extends KDController
           else @plans = plans
           callback plans
 
-  getUserPlan:->
+  fetchUserPlan: (callback = noop)->
 
-    knownPlans = ['super', 'professional', 'developer', 'hobbyist']
-    flags = KD.whoami().globalFlags or []
+    if @lastKnownUserPlan?
+      return callback @lastKnownUserPlan
 
-    for plan in knownPlans
-      return plan  if "plan-#{plan}" in flags
+    KD.singletons.paymentController.subscriptions (err, subscription)=>
 
-    return 'free'
+      warn "Failed to fetch subscription:", err  if err?
+
+      if err? or not subscription?
+      then callback 'free'
+      else callback @lastKnownUserPlan = subscription.planTitle
 
 
   handleNewMachineRequest: ->
