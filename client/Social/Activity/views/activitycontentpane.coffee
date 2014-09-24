@@ -52,3 +52,6 @@ class ActivityContentPane extends KDView
       .forEach (item) => @listController.removeItem item
 
     @listController.showNoItemWidget() if items.length is 0
+
+  addItem: (item, index) ->
+    @listController.addItem item, index

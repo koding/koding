@@ -123,6 +123,14 @@ class ActivityPane extends MessagePane
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]
 
+  appendMessage: (message, index) -> @mostRecent.addItem message, index
+
+  prependMessage: (message, index) ->
+    KD.getMessageOwner message, (err, owner) =>
+      return error err  if err
+      return if KD.filterTrollActivity owner
+      @mostRecent.addItem message, index
+
   removeMessage: (message) ->
     for contentPane in [@mostLiked, @mostRecent, @searchResults]
       contentPane.removeMessage message
