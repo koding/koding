@@ -22,14 +22,37 @@ body.activity
     max-width           600px
 
     .search-input
-      position      absolute
-      right         8px
-      width         auto
-      height        32px
-      margin        10px 0
+      right         0
+      bottom        15px
+      width         180px
+      height        30px
       z-index       1
-      border        solid 1px #ccc
+      padding       0 25px 0 13px
+      background    #fff
+      border        solid 1px #cecece
       border-radius 16px
+      font-size     14px
+      outline       0
+      borderBox()
+      abs()
+
+      &::-webkit-input-placeholder
+        color           #ddd
+        font-weight     400
+        opacity         .99
+      &:-moz-placeholder
+        color           #ddd
+        font-weight     400
+        opacity         .99
+
+    cite.search-icon
+      content     ''
+      display     block
+      top         23px
+      right       7px
+      z-index     2
+      r-sprite    'activity', 'search'
+      abs()
 
     .activity-pane
       .kdtabhandlecontainer.filters
