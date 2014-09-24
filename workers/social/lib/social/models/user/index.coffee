@@ -825,16 +825,16 @@ Team Koding
       #   JPaymentSubscription.createFreeSubscription account, (err) ->
       #     console.warn err  if err
       #     queue.next()
-      ->
-        options = targetOptions: selector: tags: "vm"
-        account.fetchSubscriptions null, options, (err = "", [subscription]) ->
-          return callback err  if err
-          return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
+      # ->
+      #   options = targetOptions: selector: tags: "vm"
+      #   account.fetchSubscriptions null, options, (err = "", [subscription]) ->
+      #     return callback err  if err
+      #     return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
 
-          subscription.debitPack tag: "vm", (err) ->
-            console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
-            queue.next()
-      ->
+      #     subscription.debitPack tag: "vm", (err) ->
+      #       console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+      #       queue.next()
+      # ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
