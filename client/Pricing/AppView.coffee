@@ -153,10 +153,9 @@ class PricingAppView extends KDView
 
     @workflowController = new PaymentWorkflow { @state, delegate: this }
 
-    @workflowController.on 'PaymentWorkflowFinishedSuccessfully', (state) =>
+    @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
-      oldPlanTitle = @state.currentPlan
-      @plans.planViews[oldPlanTitle].enable()
+      plan.enable()  for own _, plan of @plans.planViews
 
       { planTitle } = state
       @plans.planViews[planTitle].disable()
