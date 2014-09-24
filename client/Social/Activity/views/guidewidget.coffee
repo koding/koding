@@ -1,6 +1,6 @@
 class ActivityGuideWidget extends JView
   constructor: (options = {}) ->
-    options.cssClass    = 'posting-guide-widget'
+    options.cssClass    = 'posting-guide-widget activity-widget'
     super options
 
     @readLessLink       = new CustomLinkView

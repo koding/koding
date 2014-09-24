@@ -16,6 +16,8 @@ module.exports = [
   "sidebar/groupdescription.coffee"
 
   "views/guidewidget.coffee"
+  "views/topicswidget.coffee"
+  "views/universitywidget.coffee"
   "views/widgetsbar.coffee"
 
   "views/messagepane.coffee"
