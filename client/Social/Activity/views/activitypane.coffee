@@ -140,6 +140,12 @@ class ActivityPane extends MessagePane
 
     @tabView.tabHandleContainer.addSubView @searchInput
 
+    searchIcon = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'search-icon'
+
+    @tabView.tabHandleContainer.addSubView searchIcon
+
     @searchInput.on 'SearchRequested', (text) =>
       @tabView.showPane @tabView.panes.last
       @searchResults.clear()
