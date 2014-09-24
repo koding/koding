@@ -1370,6 +1370,97 @@ span.collapsedtext
       .preview-image + .preview-text
         border-top-color    #d2d2d2
 
+.activity-widgets-bar
+  max-width                 295px
+  margin                    29px 0 0 31px
+  fl()
+
+  .posting-guide-widget
+    background              #FFFFF7
+    rounded                 4px
+    border                  1px solid #E8E8E8
+    padding                 15px 26px
+    font-size               12px
+    color                   #6D6D6D
+    overflow                hidden
+    height                  188px
+    borderBox()
+
+    h3
+      font-weight           600
+      line-height           20px
+      margin-bottom         6px
+
+    h4
+      font-weight           600
+      line-height           20px
+      display               none
+
+    p
+      line-height           20px
+
+    li
+      position              relative
+      line-height           20px
+      display               none
+
+      &:first-of-type
+        display             block
+
+      a
+        color               #6D6D6D
+
+      & ~ li
+        margin-top          6px
+
+    ol
+      padding               12px 0 12px 20px
+      counter-reset         orderedList
+      display               none
+
+      &:first-of-type
+        display             block
+
+      li:before
+        counter-increment   orderedList
+        content             counter(orderedList) "."
+        display             block
+        abs                 0px 0 0 -20px
+        font-weight         600
+
+      ol
+        padding-top         0
+
+        li:before
+          content           counter(orderedList, lower-latin) ")"
+
+        li ~ li
+          margin-top        1px
+
+    ul
+      padding               12px 0 12px 20px
+
+      li:before
+        content             ''
+        size                4px, 4px
+        abs                 7px 0 0 -17px
+        rounded             2px
+        background          rgba(0,0,0,0.2)
+
+    &.expand
+      kalc                  width, 100vw \- 914px
+      height                auto
+
+      ol, li, h4
+        display             block
+
+    .read-more-link
+      line-height           20px
+      color                 #BABABA
+      margin-top            6px
+      display               block
+      noTextDeco()
+
 
 // .activity-item.status
 //   .link-embed-box
