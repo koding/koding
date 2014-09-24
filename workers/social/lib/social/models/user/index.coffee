@@ -818,7 +818,7 @@ Team Koding
       #     resetPassword : no
       #     expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-      #   JPasswordRecovery.create client, passwordOptions, (err, token)->
+      #   JPasswordRecovery.create passwordOptions, (err, token)->
       #     recoveryToken = token
       #     queue.next()
       # ->
