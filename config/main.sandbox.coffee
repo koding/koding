@@ -62,7 +62,7 @@ Configuration = (options={}) ->
     debug             : yes
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
-  userSitesDomain     = "svm.koding.io"
+  userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
