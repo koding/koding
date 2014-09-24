@@ -837,7 +837,17 @@ Team Koding
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
+
       ->
+        # if username starts with ktu mark it as exempt this is a temp fix for
+        # load test, we dont want test user's posts to be seen by others
+        if username.indexOf("ktu-") is 0
+          account.markUserAsExemptUnsafe client, yes, (err, res)->
+            queue.next()
+        else
+            queue.next()
+      ->
+
         callback error, {account, recoveryToken, newToken}
         queue.next()
     ]
