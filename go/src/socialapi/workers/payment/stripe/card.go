@@ -56,7 +56,7 @@ func UpdateCreditCard(oldId, token string) error {
 
 	_, err = stripeCustomer.Update(customer.ProviderCustomerId, customerParams)
 	if err != nil {
-		return err
+		return handleStripeError(err)
 	}
 
 	return nil

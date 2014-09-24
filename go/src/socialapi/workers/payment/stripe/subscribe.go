@@ -108,7 +108,7 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 
 	_, err := stripeSub.Update(currentSubscriptionId, subParams)
 	if err != nil {
-		return err
+		return handleStripeError(err)
 	}
 
 	invoiceParams := &stripe.InvoiceParams{

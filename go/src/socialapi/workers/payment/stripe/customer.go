@@ -19,7 +19,7 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 
 	externalCustomer, err := stripeCustomer.New(params)
 	if err != nil {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	customerModel := &paymentmodel.Customer{
@@ -56,7 +56,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 func GetCustomerFromStripe(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	return customer, nil
