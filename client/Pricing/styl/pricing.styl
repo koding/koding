@@ -9,6 +9,9 @@ pricing.styl
 }
 
 body.pricing
+
+  height                100%
+
   #main-header
     .inner-container
       -webkit-font-smoothing  antialiased
@@ -54,12 +57,13 @@ body.pricing
   max-width             100%
   padding               0
   border-top            1px solid transparent
+  height                100%
 
   .pricing-heading
     font-size           38px
     color               #37B542
     line-height         52px
-    margin              178px auto 17px
+    margin              100px auto 17px
     text-align          center
     padding             0 40px
     border              none
@@ -77,7 +81,7 @@ body.pricing
     margin              0 auto 40px
 
   .pricing-footer
-    margin             35px auto 0
+    margin             75px auto 117px
     max-width          780px
     color              #9b9b9b
     font-weight        400
@@ -92,11 +96,15 @@ body.pricing
     .learn-more
       line-height        28px
       font-size          14px
-      margin-top         15px
+      margin-top         3px
       display            block
       text-align         center
       text-decoration    underline
       color              #01B05A
+
+    .footer-msg
+      margin            30px 0 70px
+      text-align        center
 
     h4
       font-weight      600
@@ -175,6 +183,7 @@ body.pricing
     max-width           882px
     padding             0 45px
     width               auto
+    height              auto
     borderBox()
 
     .single-plan
