@@ -14,6 +14,8 @@
             "instance_type": "m3.medium",
             "region": "us-east-1",
             "source_ami": "ami-680fd500",
+            "subnet_id": "subnet-98d30fef",
+            "vpc_id": "vpc-bf65dada",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs"
         }
@@ -51,7 +53,7 @@
         },
         {
             "type": "file",
-    	    "source": "{{user `bash_dir`}}",
+            "source": "{{user `bash_dir`}}",
             "destination": "/tmp/userdata/bash"
         },
         {
