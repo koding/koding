@@ -25,6 +25,11 @@ class ComputeController extends KDController
 
       @fetchStacks =>
 
+        KD.singletons
+          .paymentController.on 'UserPlanUpdated', =>
+            @lastKnownUserPlan = null
+            @fetchUserPlan()
+
         if @stacks.length is 0 then do @createDefaultStack
 
         @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'

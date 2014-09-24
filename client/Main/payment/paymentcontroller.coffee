@@ -192,6 +192,7 @@ class PaymentController extends KDController
             @confirmReactivation existingSubscription, (err, subscription) =>
               return KD.showError err  if err
               @emit "SubscriptionReactivated", subscription
+              @emit "UserPlanUpdated"
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
@@ -200,6 +201,7 @@ class PaymentController extends KDController
             JUser.logout ->
         else
           @emit "SubscriptionCompleted"
+          @emit "UserPlanUpdated"
 
         log 'KD.singletons.dock.getView().show()'
 
