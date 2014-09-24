@@ -113,6 +113,16 @@ body.home
     padding               0
     max-width             100%
 
+    &:before
+      content             ''
+      width               100%
+      height              500px
+      position            absolute
+      display             block
+      z-index             1
+      rounded             50%
+      top                 -500px
+
     > section > div
       max-width             1290px
       padding               0px 45px
@@ -121,28 +131,66 @@ body.home
       position              relative
       borderBox()
 
-    &.anim section.introduction
-      vendor              transition, background-color .5s ease
-    &.green section.introduction
-      bg                  color, #1AAF5E
-    &.gray section.introduction
-      bg                  color, #7E8C8D
+    &.anim
       &:before
-        opacity           .5
-    &.blue section.introduction
-      bg                  color, #2E97DE
+        vendor            transition, box-shadow .5s ease
+      section.introduction
+        vendor            transition, background-color .5s ease
+
+    &.green
+
+      section.introduction
+        bg                color, #1AAF5E
+
+      &:before
+        shadow            0 0 500px 160px #1AAF5E
+
+    &.gray
+
+      section.introduction
+        bg                color, #7E8C8D
+        &:before
+          opacity         .5
+
+      &:before
+        shadow            0 0 500px 160px #7E8C8D
+
+    &.blue
+
+      section.introduction
+        bg                color, #2E97DE
+
+      &:before
+        shadow            0 0 500px 160px #2E97DE
+
     &.dark-blue
+
+      &:before
+        shadow            0 0 500px 160px #2C3E51
+
       section.introduction
         bg                color, #2C3E51
         &:before
           opacity         .3
+
       section.introduction > div:after
         shadow            0 0 400px rgba(255, 255, 179, .5)
 
-    &.orange section.introduction
-      bg                  color, #F59D00
-    &.red section.introduction
-      bg                  color, #EA4B36
+    &.orange
+
+      &:before
+        shadow            0 0 500px 160px #F59D00
+
+      section.introduction
+        bg                color, #F59D00
+
+    &.red
+
+      &:before
+        shadow            0 0 500px 160px #EA4B36
+
+      section.introduction
+        bg                color, #EA4B36
 
     // shining effect behind the screenshots
     section.introduction > div:after
@@ -174,6 +222,7 @@ body.home
 
     > div
       size                100% 100%
+      z-index             2
 
     article
       font-size           22px
@@ -208,6 +257,7 @@ body.home
     abs                   487px 0 0
     size                  100% 483px
     overflow              hidden
+    z-index               2
     borderBox()
 
     > div
