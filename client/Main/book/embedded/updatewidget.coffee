@@ -20,29 +20,4 @@ class BookUpdateWidget extends KDView
 
 
   updateStatus:(status)->
-
-    if @constructor.updateSent
-      new KDNotificationView
-        title      : 'You\'ve already posted your activity :)'
-        duration   : 3000
-      return
-
-    KD.getSingleton("appManager").open "Activity"
-    @getDelegate().$().css left : -1349
-
-    KD.remote.api.JNewStatusUpdate.create body : status, (err,reply)=>
-      @utils.wait 2000, =>
-        @getDelegate().$().css left : -700
-      unless err
-        @constructor.updateSent = yes
-        new KDNotificationView
-          type     : 'growl'
-          cssClass : 'mini'
-          title    : 'Message posted!'
-          duration : 2000
-        @statusField.setValue ""
-        @statusField.setPlaceHolder reply.body
-        @statusField.$().trigger "focus"
-
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+    KD.showNewKodingModal()

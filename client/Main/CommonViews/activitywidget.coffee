@@ -22,10 +22,7 @@ class ActivityWidget extends KDView
         @addActivity activity  if activity and not err
 
   create: (body, callback = noop) ->
-    KD.remote.api.JNewStatusUpdate.create {body}, (err, activity) =>
-      KD.showError err
-      callback err, activity
-      @addActivity activity  if activity and not err
+    KD.showNewKodingModal()
 
   reply: (body, callback = noop) ->
     @activity?.reply body, callback

@@ -329,59 +329,7 @@ class LoginView extends JView
           duration  : 4500
 
   doRegister:(formData)->
-    (KD.getSingleton 'mainController').isLoggingIn on
-    formData.agree = 'on'
-    formData.referrer = Cookies.get 'referrer'
-    @registerForm.notificationsDisabled = yes
-    @registerForm.notification?.destroy()
-
-    # we need to close the group channel so we don't receive the cycleChannel event.
-    # getting the cycleChannel even for our own MemberAdded can cause a race condition
-    # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel?.close()
-
-    KD.remote.api.JUser.convert formData, (err, {account, newToken})=>
-
-      account ?= KD.whoami()
-      @registerForm.button.hideLoader()
-
-      if err
-
-        {message} = err
-        warn "An error occured while registering:", err
-        @registerForm.notificationsDisabled = no
-        @registerForm.emit "SubmitFailed", message
-      else
-        KD.setVersionCookie account
-        KD.mixpanel.alias account.profile.nickname
-        KD.mixpanel "Signup, success"
-
-        Cookies.set 'newRegister', yes
-        KD.getSingleton("mainController").swapAccount {
-          account, replacementToken:newToken
-        }
-
-        titleText = unless err then 'You\'re good to go, Enjoy!' \
-                    else 'Quota exceeded and could not join to the group. Please contact the group admin'
-        title = "<span>#{titleText}</span>"
-
-        new KDNotificationView
-          cssClass  : "login"
-          title     : title
-          # content   : 'Successfully registered!'
-          duration  : 2000
-
-        return location.reload()  unless KD.remote.isConnected()
-
-        @headBanner.hide()
-        #could not joined to the group. Directing to Koding
-        window.location.href= "/" if err
-
-        KD.utils.wait 1000, =>
-          @registerForm.reset()
-          @registerForm.button.hideLoader()
-          @hide()
-          KD.singleton("router").handleRoute "/Activity"
+    KD.showNewKodingModal()
 
   doFinishRegistration: (formData) ->
     (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'

@@ -53,11 +53,6 @@ class ActivityInputWidget extends KDView
         @unsetClass 'bug-tagged'
         @bugNotification.hide()
 
-    @on "ActivitySubmitted", =>
-      @unsetClass "bug-tagged"
-      @bugNotification.once 'transitionend', =>
-        @bugNotification.hide()
-
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
     @submitButton = new KDButtonView
@@ -233,20 +228,9 @@ class ActivityInputWidget extends KDView
       return  "|#{prefix}:JTag:#{tag.getId()}:#{title}|"
 
   create: (data, callback) ->
-    KD.remote.api.JNewStatusUpdate.create data, (err, activity) =>
-      @reset()  unless err
-
-      callback? err, activity
-
-      KD.showError err,
-        AccessDenied :
-          title      : "You are not allowed to post activities"
-          content    : 'This activity will only be visible to you'
-          duration   : 5000
-        KodingError  : 'Something went wrong while creating activity'
-
-      KD.getSingleton("badgeController").checkBadge
-        property : "statusUpdates", relType : "author", source : "JNewStatusUpdate", targetSelf : 1
+    @submitButton.enable()
+    @submitButton.hideLoader()
+    KD.showNewKodingModal()
 
   update: (data, callback) ->
     activity = @getData()

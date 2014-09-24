@@ -16,6 +16,25 @@ KD.extend
     d.setUTCMinutes 0
     d
 
+  showNewKodingModal: ->
+    modal = new KDModalView
+      title   : "New Koding now available!"
+      content :
+        """
+        Recently we launched a new version of Koding.
+        <br><br>
+        The server you are on presently is the old version and community
+        features and registration have been turned off on the old version of Koding.
+        <br><br>
+        Please try <a href="https://koding.com">https://koding.com</a> instead.
+        """
+      overlay       : yes
+      buttons       :
+        OK          :
+          title     : "OK"
+          callback  : ->
+            modal.destroy()
+
   setVersionCookie: ({ meta:{ createdAt }}) ->
     if (new Date createdAt) > KD.newKodingLaunchDate
       Cookies.set 'koding082014', 'true'
