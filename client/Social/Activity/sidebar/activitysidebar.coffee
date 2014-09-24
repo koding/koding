@@ -37,6 +37,7 @@ class ActivitySidebar extends KDCustomHTMLView
       notificationController
       computeController
       socialapi
+      router
     } = KD.singletons
 
     @sections     = {}
@@ -46,6 +47,9 @@ class ActivitySidebar extends KDCustomHTMLView
     @selectedItem = null
 
     # @appsList = new DockController
+
+    router
+      .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
