@@ -85,12 +85,13 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 		return nil, err
 	}
 
-	resp := &SubscriptionsResponse{}
-	resp.PlanTitle = plan.Title
-	resp.PlanInterval = plan.Interval
-	resp.CurrentPeriodStart = currentSubscription.CurrentPeriodStart
-	resp.CurrentPeriodEnd = currentSubscription.CurrentPeriodEnd
-	resp.State = currentSubscription.State
+	resp := &SubscriptionsResponse{
+		PlanTitle:          plan.Title,
+		PlanInterval:       plan.Interval,
+		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
+		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
+		State:              currentSubscription.State,
+	}
 
 	return resp, nil
 }
