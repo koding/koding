@@ -136,6 +136,7 @@ class ActivityPane extends MessagePane
 
   createSearchInput: ->
     @searchInput = new SearchInputView
+      placeholder : 'Search channel'
 
     @tabView.tabHandleContainer.addSubView @searchInput
 
