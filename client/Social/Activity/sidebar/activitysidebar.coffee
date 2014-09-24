@@ -148,9 +148,11 @@ class ActivitySidebar extends KDCustomHTMLView
     {id, typeConstant}              = update.channel
     {unreadCount, participantCount} = update
 
-    # @removeItem id
+    @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
+      return KD.showError err  if err
+
       channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
