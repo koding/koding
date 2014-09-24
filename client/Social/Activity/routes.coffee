@@ -1,15 +1,28 @@
 do ->
 
+  appManager = -> KD.singletons.appManager
+
+  activityPane = (callback) ->
+    appManager().open 'Activity', (app) ->
+      view = app.getView()
+      view.open 'topic', 'public'
+      callback view.tabs.getPaneByName 'topic-public'
+
   handleChannel = (type, slug, callback) ->
-
-    {appManager} = KD.singletons
     callback    ?= (app) -> app.getView().open type, slug
-    appManager.open 'Activity', callback
-
+    appManager().open 'Activity', callback
 
   KD.registerRoutes 'Activity',
 
     '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'topic', 'public'
+
+    '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
+      activityPane (pane) ->
+        pane.tabView.showPane pane.tabView.getPaneByName 'Most Liked'
+
+    '/:name?/Activity/Public/Recent': ({ params: {name}}) ->
+      activityPane (pane) ->
+        pane.tabView.showPane pane.tabView.getPaneByName 'Most Recent'
 
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
       if slug is 'public'
