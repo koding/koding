@@ -1,7 +1,5 @@
 class PaymentDowngradeErrorModal extends PaymentBaseModal
 
-  JView.mixin @prototype
-
   initialState: KD.utils.dict()
 
   constructor: (options = {}, data) ->
