@@ -1126,20 +1126,22 @@ div.nominateicon
         &.expanded
 
           &:after
-            border-bottom-color transparent
-            border-top-color    #aaa
-            top                 4px
-            left                0
+            border-bottom-color #aaa
+            border-top-color    transparent
+            top                 -2px
 
         &:after
-          content             ' '
-          border              5px solid transparent
-          border-bottom-color #aaa
-          size                10px 10px
           margin-left         2px
           display             inline-block
+          content             ' '
+          border              5px solid transparent
+          size                10px 10px
           left                0
-          top                 -2px
+
+          border-bottom-color transparent
+          border-top-color    #aaa
+          top                 4px
+
           borderBox()
           rel()
 
