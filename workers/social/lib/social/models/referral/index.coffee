@@ -178,7 +178,7 @@ module.exports = class JReferral extends jraphical.Message
   @spaceForReferring = 500
 
   @fetchEarnedSpace = (client, callback)->
-    @fetchReferredAccounts client, {}, {}, (err, accounts)->
+    @fetchReferredAccounts client, {}, {}, (err, accounts)=>
       return callback err  if err
       callback null, accounts.length * @spaceForReferring
 
