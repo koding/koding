@@ -617,7 +617,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
         view    = @addWorkspaceView
         data    =
-          title : workspace.name
+          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
           type  : 'workspace'
           href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           data  : workspace
