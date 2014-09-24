@@ -566,8 +566,24 @@ Configuration = (options={}) ->
 
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
 
+        check_gulp_version
+      }
 
+      function check_gulp_version () {
+           VERSION=$(npm info gulp version 2> /dev/null)
 
+           while IFS=".", read MAJOR MINOR REVISION; do
+              if [[ $MAJOR -lt 3 ]]; then
+                  MISMATCH=1
+              elif [[ $MAJOR -eq 3 && $MINOR -lt 7 ]]; then
+                  MISMATCH=1
+              fi
+          done < <(echo $VERSION)
+
+          if [[ -n $MISMATCH ]]; then
+              echo 'Installed gulp version must be >= 3.7.0'
+              exit 1
+          fi
       }
 
       function build_services () {
