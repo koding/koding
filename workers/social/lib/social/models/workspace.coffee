@@ -3,7 +3,9 @@
 
 module.exports = class JWorkspace extends Module
 
-  {signature, secure} = require 'bongo'
+  KodingError  = require '../error'
+  {signature, secure, ObjectId} = require 'bongo'
+
   @share()
 
   @set
@@ -19,7 +21,9 @@ module.exports = class JWorkspace extends Module
     sharedMethods  :
       static       :
         create     : signature Object, Function
-      instance     : []
+        deleteById : signature String, Function
+      instance     :
+        delete     : signature Function
     sharedEvents   :
       static       : []
       instance     : []
@@ -73,3 +77,26 @@ module.exports = class JWorkspace extends Module
     query.owner = client.connection.delegate._id
     JWorkspace.some query, {}, callback
 
+
+  @deleteById = secure (client, id, callback)->
+
+    selector =
+      owner  : client.connection.delegate._id
+      _id    : ObjectId id
+
+    JWorkspace.one selector, (err, ws)->
+      return callback err  if err?
+      unless ws?
+        callback new KodingError "Workspace not found."
+      else
+        ws.remove (err)-> callback err
+
+
+  delete: secure (client, callback)->
+
+    { delegate } = client.connection
+
+    unless delegate.getId().equals this.owner
+      return callback new KodingError 'Access denied'
+
+    @remove callback

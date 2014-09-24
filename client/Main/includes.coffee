@@ -179,7 +179,7 @@ module.exports = [
   "navigation/navigationmachineitem.coffee",
 
   "guideslinksview.coffee"
-  "machinesettingsmodal.coffee",
+  "workspacesettingspopup.coffee",
 
   # LOCATION
   "locationcontroller.coffee",
