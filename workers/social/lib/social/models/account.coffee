@@ -778,7 +778,9 @@ module.exports = class JAccount extends jraphical.Module
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
     return callback new KodingError 'Access denied'  unless delegate.can 'flag', this
+    return @markUserAsExemptUnsafe client, exempt, callback
 
+  markUserAsExemptUnsafe: (client, exempt, callback)->
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
       return callback new ApiError err  if err

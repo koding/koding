@@ -64,12 +64,14 @@ class ActivityPane extends MessagePane
           view          : @mostLiked
           closable      : no
           shouldShow    : yes
+          route         : '/Activity/Public/Liked'
         }
         {
           name          : 'Most Recent'
           view          : @mostRecent
           closable      : no
           shouldShow    : no
+          route         : '/Activity/Public/Recent'
         }
         {
           name          : 'Search Tab'
@@ -136,8 +138,15 @@ class ActivityPane extends MessagePane
 
   createSearchInput: ->
     @searchInput = new SearchInputView
+      placeholder : 'Search channel'
 
     @tabView.tabHandleContainer.addSubView @searchInput
+
+    searchIcon = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'search-icon'
+
+    @tabView.tabHandleContainer.addSubView searchIcon
 
     @searchInput.on 'SearchRequested', (text) =>
       @tabView.showPane @tabView.panes.last
