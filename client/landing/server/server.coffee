@@ -59,7 +59,7 @@ do ->
     redirectTo = "/#!#{url}"
 
     res.header 'Location', redirectTo
-    res.send 301
+    res.status(301).end()
 
   app.listen PORT
 
