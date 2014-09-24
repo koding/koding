@@ -17,7 +17,7 @@ services=(
   github.com/coreos/etcd
   koding/kites/klient
   koding/kites/kloud
-  github.com/koding/kloudctl
+  koding/kites/kloud/kloudctl
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview

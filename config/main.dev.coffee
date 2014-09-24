@@ -63,6 +63,7 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
+    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -150,8 +151,8 @@ Configuration = (options={}) ->
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : null
-    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -164,6 +165,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -427,12 +429,11 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
-            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
-            ./run install
-            ./run services
-            ./run $@
+
+            echo -e "\n\nPlease do ./run again\n"
             exit 1;
         fi
       }
@@ -565,8 +566,24 @@ Configuration = (options={}) ->
 
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
 
+        check_gulp_version
+      }
 
+      function check_gulp_version () {
+           VERSION=$(npm info gulp version 2> /dev/null)
 
+           while IFS=".", read MAJOR MINOR REVISION; do
+              if [[ $MAJOR -lt 3 ]]; then
+                  MISMATCH=1
+              elif [[ $MAJOR -eq 3 && $MINOR -lt 7 ]]; then
+                  MISMATCH=1
+              fi
+          done < <(echo $VERSION)
+
+          if [[ -n $MISMATCH ]]; then
+              echo 'Installed gulp version must be >= 3.7.0'
+              exit 1
+          fi
       }
 
       function build_services () {
@@ -712,6 +729,10 @@ Configuration = (options={}) ->
 
       elif [ "$#" == "0" ]; then
 
+        checkrunfile
+        if ! ./pg-update #{postgres.host} #{postgres.port}; then
+          exit 1
+        fi
         run
 
       else

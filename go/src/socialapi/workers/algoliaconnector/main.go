@@ -28,6 +28,9 @@ func main() {
 	r.SetContext(handler)
 	r.Register(models.Channel{}).OnCreate().Handle((*algoliaconnector.Controller).TopicSaved)
 	r.Register(models.Account{}).OnCreate().Handle((*algoliaconnector.Controller).AccountSaved)
+	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*algoliaconnector.Controller).MessageListSaved)
+	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*algoliaconnector.Controller).MessageListDeleted)
+	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*algoliaconnector.Controller).MessageUpdated)
 	r.Listen()
 	r.Wait()
 }

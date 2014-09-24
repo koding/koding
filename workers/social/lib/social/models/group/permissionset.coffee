@@ -63,13 +63,13 @@ module.exports = class JPermissionSet extends Module
   @wrapPermission = wrapPermission =(permission)->
     [{permission, validateWith: require('./validators').any}]
 
-  @checkPermission =(client, advanced, target, callback)->
+  @checkPermission =(client, advanced, target, args, callback)->
     JGroup = require '../group'
     advanced = wrapPermission advanced  if 'string' is typeof advanced
     kallback = (group, permissionSet)->
       queue = advanced.map ({permission, validateWith})->->
         validateWith ?= (require './validators').any
-        validateWith.call target, client, group, permission, permissionSet,
+        validateWith.call target, client, group, permission, permissionSet, args,
           (err, hasPermission)->
             if err then queue.next err
             else if hasPermission
@@ -123,13 +123,13 @@ module.exports = class JPermissionSet extends Module
       if 'function' is typeof rest[rest.length-1]
         [rest..., callback] = rest
       else
-        callback =->
+        callback = (->)
       success =
         if 'function' is typeof promise then promise.bind this
         else promise.success.bind this
       failure = promise.failure?.bind this
       {delegate} = client.connection
-      JPermissionSet.checkPermission client, advanced, this,
+      JPermissionSet.checkPermission client, advanced, this, rest,
         (err, hasPermission, roles)->
           client.roles = roles
           args = [client, rest..., callback]

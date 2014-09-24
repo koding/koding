@@ -505,6 +505,10 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 	return nil
 }
 
+func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
+	return f.publishToChannel(c.Id, "ChannelDeleted", &models.ChannelContainer{Channel: c})
+}
+
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
 	channel, err := f.rmqConn.Channel()
 	if err != nil {

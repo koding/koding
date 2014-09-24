@@ -11,7 +11,7 @@ import (
 	"socialapi/workers/common/runner"
 )
 
-var Name = "AlogliaTopicMigrator"
+var Name = "AlgoliaTopicMigrator"
 
 func main() {
 	r := runner.New(Name)

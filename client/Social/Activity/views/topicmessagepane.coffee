@@ -25,4 +25,4 @@ class TopicMessagePane extends MessagePane
 
     super message
 
-  defaultFilter :-> "MOST_RECENT"
+  defaultFilter: 'Most Recent'

@@ -385,3 +385,106 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 
 	return nil
 }
+
+// DeleteMessageDependencies deletes all records from the database that are
+// dependencies of a given message. This includes interactions, optionally
+// replies, and channel message lists.
+func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
+
+	// fetch interactions
+	i := NewInteraction()
+	i.MessageId = c.Id
+	interactions, err := i.FetchAll("like")
+	if err != nil {
+		return err
+	}
+
+	// delete interactions
+	for _, interaction := range interactions {
+		err := interaction.Delete()
+		if err != nil {
+			return err
+		}
+	}
+
+	if deleteReplies {
+		if err := c.DeleteReplies(); err != nil {
+			return err
+		}
+	}
+
+	// delete any associated channel message lists
+	if err = c.DeleteChannelMessageLists(); err != nil {
+		return err
+	}
+
+	err = NewMessageReply().DeleteByOrQuery(c.Id)
+	if err != nil {
+		return err
+	}
+	// delete channel message itself
+	return c.Delete()
+}
+
+//  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep
+func (c *ChannelMessage) DeleteReplies() error {
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+
+	// list returns ChannelMessage
+	messageReplies, err := mr.ListAll()
+	if err != nil {
+		return err
+	}
+
+	// delete message replies
+	for _, replyMessage := range messageReplies {
+		err := replyMessage.DeleteMessageAndDependencies(false)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *ChannelMessage) GetChannelMessageLists() ([]ChannelMessageList, error) {
+	var listings []ChannelMessageList
+	q := &bongo.Query{
+		Selector: map[string]interface{}{"message_id": c.Id}}
+
+	if err := NewChannelMessageList().Some(&listings, q); err != nil {
+		return nil, err
+	}
+	return listings, nil
+}
+
+func (c *ChannelMessage) DeleteChannelMessageLists() error {
+	listings, err := c.GetChannelMessageLists()
+	if err != nil {
+		return err
+	}
+
+	for _, listing := range listings {
+		if err := listing.Delete(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+//  FetchByIds fetchs given ids from database, it doesnt add any meta bits
+// properties into query
+func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
+	var messages []ChannelMessage
+
+	if len(ids) == 0 {
+		return messages, nil
+	}
+
+	if err := bongo.B.FetchByIds(c, &messages, ids); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}

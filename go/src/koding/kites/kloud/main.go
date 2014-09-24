@@ -12,11 +12,12 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
+	"koding/kites/kloud/kloud"
+	kloudprotocol "koding/kites/kloud/protocol"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud"
-	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
@@ -184,16 +185,33 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 	}
 
+	// be sure they they satisfy the provider interface
+	var _ kloudprotocol.Provider = kodingProvider
+
+	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
+		a, err := kodingProvider.NewClient(m)
+		if err != nil {
+			return nil, err
+		}
+
+		return &koding.PlanChecker{
+			Api:      a,
+			Provider: kodingProvider,
+			DB:       kodingProvider.Session,
+			Kite:     kodingProvider.Kite,
+			Log:      kodingProvider.Log,
+			Username: m.Username,
+			Machine:  m,
+		}, nil
+	}
+
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
 
-	kld := kloud.NewKloud()
+	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
-
-	// be sure it compiles correctly,
-	var _ kloudprotocol.Builder = kodingProvider
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
@@ -210,8 +228,12 @@ func newKite(conf *Config) *kite.Kite {
 			return nil, nil
 		}
 
-		args := &kloud.Controller{}
-		if err := r.Args.One().Unmarshal(args); err != nil {
+		var args struct {
+			MachineId string
+			Username  string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
 			return nil, nil
 		}
 
@@ -231,11 +253,19 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("resize", kld.Resize)
+	k.HandleFunc("reinit", kld.Reinit)
+
+	// let's use the wrapper function "ControlFunc" which is doing a lot of
+	// things on behalf of us, like document locking, getting the machine
+	// document, and so on..
 	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
-		// let's use the helper function which is doing a lot of things on
-		// behalf of us, like document locking, getting the machine document,
-		// and so on..
-		return kld.ControlFunc(kodingProvider.DomainSet).ServeKite(r)
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainSet(r, m)
 	})
 
 	return k
