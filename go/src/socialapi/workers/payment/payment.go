@@ -3,6 +3,7 @@ package payment
 import (
 	"errors"
 	"fmt"
+	"socialapi/workers/payment/errors"
 	"socialapi/workers/payment/models"
 	"socialapi/workers/payment/stripe"
 	"time"
@@ -66,7 +67,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	}
 
 	if len(subscriptions) == 0 {
-		return nil, stripe.ErrCustomerNotSubscribedToAnyPlans
+		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	currentSubscription := subscriptions[0]
@@ -104,9 +105,9 @@ func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
 	}
 
 	defaultResponseErrs := []error{
-		stripe.ErrCustomerNotSubscribedToAnyPlans,
-		stripe.ErrCustomerNotFound,
-		stripe.ErrPlanNotFound,
+		paymenterrors.ErrCustomerNotSubscribedToAnyPlans,
+		paymenterrors.ErrCustomerNotFound,
+		paymenterrors.ErrPlanNotFound,
 	}
 
 	for _, respError := range defaultResponseErrs {

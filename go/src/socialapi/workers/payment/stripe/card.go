@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/errors"
 	"socialapi/workers/payment/models"
 
 	stripe "github.com/stripe/stripe-go"
@@ -70,7 +71,7 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 
 	creditCardList := externalCustomer.Cards
 	if IsNoCreditCards(creditCardList) {
-		return ErrNoCreditCard
+		return paymenterrors.ErrNoCreditCard
 	}
 
 	if IsTooManyCreditCards(creditCardList) {

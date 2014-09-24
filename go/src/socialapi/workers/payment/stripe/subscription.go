@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/errors"
 	"socialapi/workers/payment/models"
 	"time"
 
@@ -90,7 +91,7 @@ func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Qu
 	var subs = []paymentmodel.Subscription{}
 
 	if customer.Id == 0 {
-		return nil, ErrCustomerIdIsNotSet
+		return nil, paymenterrors.ErrCustomerIdIsNotSet
 	}
 
 	s := paymentmodel.Subscription{}

@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/errors"
 	"socialapi/workers/payment/models"
 
 	stripe "github.com/stripe/stripe-go"
@@ -47,7 +48,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 	}
 
 	if !exists {
-		return nil, ErrCustomerNotFound
+		return nil, paymenterrors.ErrCustomerNotFound
 	}
 
 	return customerModel, nil

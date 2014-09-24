@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/errors"
 	"socialapi/workers/payment/models"
 
 	stripe "github.com/stripe/stripe-go"
@@ -15,13 +16,13 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	customer, err := FindCustomerByOldId(accId)
-	if err != nil && err != ErrCustomerNotFound {
+	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
 
 	if customer == nil {
 		if IsEmpty(token) {
-			return ErrTokenIsEmpty
+			return paymenterrors.ErrTokenIsEmpty
 		}
 
 		customer, err = CreateCustomer(token, accId, email)
@@ -37,7 +38,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 
 	if IsEmpty(resp.LastFour) {
 		if IsEmpty(token) {
-			return ErrTokenIsEmpty
+			return paymenterrors.ErrTokenIsEmpty
 		}
 
 		err := UpdateCreditCard(customer.OldId, token)
@@ -57,13 +58,13 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if IsOverSubscribed(subscriptions) {
-		return ErrCustomerHasTooManySubscriptions
+		return paymenterrors.ErrCustomerHasTooManySubscriptions
 	}
 
 	var currentSubscription = subscriptions[0]
 
 	if IsSubscribedToPlan(currentSubscription, plan) {
-		return ErrCustomerAlreadySubscribedToPlan
+		return paymenterrors.ErrCustomerAlreadySubscribedToPlan
 	}
 
 	if !IsFreePlan(plan) {
@@ -100,7 +101,7 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 	}
 
 	if IsNoSubscriptions(subscriptions) {
-		return ErrCustomerNotSubscribedToAnyPlans
+		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	currentSubscription := subscriptions[0]
