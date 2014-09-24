@@ -61,6 +61,7 @@ module.exports = [
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
+  "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
@@ -165,17 +166,20 @@ module.exports = [
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
   "providers/computeplansmodalpaid.coffee",
+  "providers/computeerrormodal.coffee",
+  "providers/computeerrormodalusage.coffee",
   "providers/customplanstorageslider.coffee",
+  "providers/machinesettingsview.coffee",
 
-  # Algolia-based autocomplete:
-  "autocompletecontroller.coffee",
+  # Algolia-based search:
+  "searchcontroller.coffee",
 
   "navigation/navigationlink.coffee",
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
   "guideslinksview.coffee"
-  "machinesettingsmodal.coffee",
+  "workspacesettingspopup.coffee",
 
   # LOCATION
   "locationcontroller.coffee",
@@ -184,18 +188,26 @@ module.exports = [
   # PAYMENT
   # controller
   "payment/paymentcontroller.coffee",
-  # views
+  # # views
   "payment/paymentmethodview.coffee",
   "payment/subscriptionview.coffee",
-  "payment/paymentmethodentryform.coffee",
-  "payment/paymentchoiceform.coffee",
-  "payment/paymentformmodal.coffee",
-  "payment/paymentworkflow.coffee",
-  "payment/paymentconfirmform.coffee",
-  "payment/genericplanview.coffee",
-  "payment/planupgradeconfirmform.coffee",
-  "payment/planproductlist.coffee",
-  "payment/existingaccountworkflow.coffee",
+  # "payment/paymentmethodentryform.coffee",
+  # "payment/paymentchoiceform.coffee",
+  # "payment/paymentformmodal.coffee",
+  # "payment/paymentworkflow.coffee",
+  # "payment/paymentconfirmform.coffee",
+  # "payment/genericplanview.coffee",
+  # "payment/planupgradeconfirmform.coffee",
+  # "payment/planproductlist.coffee",
+  # "payment/existingaccountworkflow.coffee",
+
+  "payment/workflow.coffee",
+  "payment/updatecreditcardworkflow.coffee",
+  "payment/stripeformview.coffee",
+  "payment/form.coffee",
+  "payment/basemodal.coffee",
+  "payment/modal.coffee",
+  "payment/creditcardmodal.coffee",
 
 
   # global notifications
@@ -223,7 +235,6 @@ module.exports = [
   "avatararea/avatarareaiconlink.coffee",
 
   "maincontroller/groupdata.coffee",
-  "maincontroller/mainviews/appsettingsmenubutton.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/helpcontroller.coffee",
 

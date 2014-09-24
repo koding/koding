@@ -1,44 +1,31 @@
 class FilterLinksView extends KDCustomHTMLView
+
   constructor: (options = {}, data) ->
-    options.cssClass    = KD.utils.curry 'filter-links', options.cssClass
-    options.tagName     = 'nav'
+
+    options.cssClass = KD.utils.curry 'filter-links', options.cssClass
+    options.tagName  = 'nav'
+
     super options, data
 
-    @links              = {}
-    @activeLink         = null
+    @links = {}
 
-    for title, linkData of @data
-      @addLink title, linkData
+    @addLink name  for name in options.filters
+    @selectFilter options.default
 
-    return this
 
-  addLink : (title, data) ->
-    view = new KDCustomHTMLView
-      tagName    : 'a'
-      partial    : title
-      click      : =>
-        @setActive title
-        @emit 'filterLinkClicked', data
-    ,
-      data
+  addLink: (name) ->
 
-    @links[title] = view
-    @addSubView view
+    @addSubView @links[name] = new KDCustomHTMLView
+      tagName : 'a'
+      partial : name
+      click   : @lazyBound 'selectFilter', name
 
-    if data.active then @setActive title
 
-    return view
+  selectFilter: (name) ->
 
-  setActive : (title) ->
-    return unless @links[title]
-    return if @activeLink is @links[title]
+    return  if name is @selected
+    return  unless @links[name]
 
-    for k, view of @links
-      view.unsetClass 'active'
-
-    @links[title].setClass 'active'
-
-    @activeLink = @links[title]
-
-    return @links[title]
-
+    @links[@selected]?.unsetClass 'active'
+    @links[@selected = name].setClass 'active'
+    @emit 'FilterSelected', @selected

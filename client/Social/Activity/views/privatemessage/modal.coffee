@@ -120,13 +120,13 @@ class PrivateMessageModal extends KDModalViewWithForms
 
 
   fetchAccounts: (args, callback) ->
-    { autocomplete } = KD.singletons
+    { search } = KD.singletons
 
     blacklist = @getOptions().blacklist ? []
 
     { inputValue } = args
 
-    autocomplete.searchAccounts inputValue
+    search.searchAccounts inputValue
       .filter (it) -> it.profile.nickname not in blacklist
       # the data source callback is not error-first style,
       # so just pass the callback to .then():

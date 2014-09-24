@@ -23,7 +23,7 @@ createExistenceCallback = (callback)-> (err, count)->
 
 module.exports =
 
-  own:(client, group, permission, permissionSet, callback)->
+  own:(client, group, permission, permissionSet, _, callback)->
     {delegate} = client.connection
 
     return callback null, yes  if delegate.equals this
@@ -46,7 +46,7 @@ module.exports =
           }
           Relationship.count ownerSelector, createExistenceCallback callback
 
-  any:(client, group, permission, permissionSet, callback)->
+  any:(client, group, permission, permissionSet, _, callback)->
     {delegate} = client.connection
     unless delegate
       console.warn "Delegate cannot be null for checking permissions, request is denied"

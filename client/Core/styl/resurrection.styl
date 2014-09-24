@@ -1001,179 +1001,428 @@ div.nominateicon
       .kdnotification-content
         font-size             13px
 
+.kdmodal.ws-settings
 .kdmodal.vm-settings
+
+  background              #242424 !important
+  border-color            #242424 !important
 
   .kdmodal-title
     hidden()
 
   .kdmodal-content
     overflow              visible
+    margin                0 !important
 
   .close-icon
     hidden()
 
-  .domain-loader
-    abs()
-    top                   12px
-    left                  339px
-
-  .open-terminal-link
-    display               block
-    font-weight           normal !important
-    font-size             12px !important
-    color                 logoBg !important
-    span
-      border-bottom       1px solid
-
   .modal-arrow
     left                  -41px !important
-    size                  0, 0
-    right                 100%
-    border                10px solid transparent
-    border-right-color    #c1c1c1
-    z-index               10
+    border-right-color    #242424 !important
+    vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
 
     &:before
-      z-index             9
-      content             ''
-      display             block
-      size                0, 0
-      abs                 -10px 0 0 -9px
-      border              10px solid transparent
-      border-right-color  #fff
-
-  .modal-inline-overlay
-    top                   0
-    z-index               1
-    background            #e9e9e9
-    abs()
-
-    > button
-      left                50%
-      width               120px !important
-      margin-top          40px  !important
-      margin-left         -60px !important
-
-    > .progressbar-container
-
-      margin-top          20px
+      border-right-color  #242424 !important
 
   &.activity-modal
     .kdmodal-inner
       margin              21px
 
   .kdformview .formline
+
+    min-height            29px
     cf()
 
     .input-wrapper
+
       margin-bottom       0
+      width               153px
+      text-overflow       ellipsis
+      color               #F3EDE0
       fr()
+
       .koding-on-off
-        margin-top        7px
+        margin-top        1px
+        &.on
+          background      #387635
+        &.off
+          background      #494949
+
       .kdselectbox
         margin-top        4px
+
+      color               #F3EDE0
+      font-size           12px
+      line-height         21px
+      font-weight         600
+      noTextDeco()
+
+      a
+        text-decoration   underline
+        color             #F3EDE0
+
+    &.nickname
+
       .custom-link-view
-        color             #666
-        font-size         14px
-        font-weight       bold
-        line-height       43px
-        noTextDeco()
 
-    &.adddomain
-      label
-        display           block
-        float             none
+        cite
+          size            12px 12px
+          r-sprite        app edit-icon
+          margin-left     5px
+          cursor          pointer
+          display         inline-block
+          abs()
+
+      input
+        padding           0 0 0 2px
+        position          absolute
+        width             170px
+        top               -3px
+        left              140px
+
+
+    &.specs
+    &.guides
       .input-wrapper
-        float             none
-      .kdinput.text
-        display           block
-      .float-wrapper
-        display           block
-        float             none
-      .root-domain
-        abs               46px 1px 0 0
-        color             #888
-        z-index           1
-        font-size         14px
-        line-height       40px
-        padding           0 14px
-        bg                color #eee
-        rounded           0 6px 6px 0
-        border            1px solid transparent
-        border-left-color #d7d7d7
-      button.compact
-        right             0px
-        top               7px
-        abs()
+        width             100%
+        .kdview
+          font-size       14px
+          padding         0 0 9px 2px
 
+
+    &.specs
+      label.kdlabel
+        padding-top       2px
 
     &.guides
+      label.kdlabel
+        padding-top       5px
 
-      border-top          1px solid #d5d5d5
-      margin-top          8px
-
-      .guides-links
-        a
-          text-decoration underline
-
-    &.advanced
-      text-align          center
+    &.moreview
+    &.advancedview
 
       .input-wrapper
-        margin-bottom     0
-        margin-top        -22px
-        border-top        1px solid #d5d5d5
-        padding-top       28px
         width             100%
-        display           block
-        float             none
+        border-bottom     1px solid #333
+        z-index           -1
+        top               24px
+        abs()
 
-      .kdbutton
-        width             auto
-        height            40px
-        padding           0 8px
-        margin-left       7px
+      label.kdlabel
+        font-size         14px
+        width             100%
+        text-align        center
+        padding           14px 0 3px
+        cursor            pointer
 
-        .button-title
-          font-size       12px
-          line-height     40px
+        &:before
+          content         'More'
+          background      #242424
+          size            55px 20px
+          padding-right   15px
+          margin-left     -15px
+          abs()
+
+        &.expanded
+
+          &:after
+            border-bottom-color #aaa
+            border-top-color    transparent
+            top                 -2px
+
+        &:after
+          margin-left         2px
+          display             inline-block
+          content             ' '
+          border              5px solid transparent
+          size                10px 10px
+          left                0
+
+          border-bottom-color transparent
+          border-top-color    #aaa
+          top                 4px
+
+          borderBox()
+          rel()
+
+    &.advancedview
+      label.kdlabel
+        &:after
+          left            5px !important
+        &:before
+          content         'Advanced'
+          width           93px
 
     &.button-field
       margin              0 !important
 
   label.kdlabel
-    font-size             14px
-    line-height           43px
-    margin                0
-    &.advanced
-      font-size           12px
-      cursor              pointer
-      color               #aaa
-      display             inline-block
-      float               none
-      clear               both
-      bg                  color #e9e9e9
-      padding             0 15px
-      &.expanded
-        &:after
-          border-bottom-color transparent
-          border-top-color    #aaa
-          top                 4px
-          left                4px
 
-      &:after
-        content             ' '
-        border              5px solid transparent
-        border-bottom-color #aaa
-        size                10px 10px
-        margin-left         2px
-        display             inline-block
-        left                4px
-        top                 -2px
-        borderBox()
-        rel()
+    font-size             12px
+    line-height           20px
+    margin                0
+    font-weight           600
+    padding-left          3px
+    color                 #99999B
+
+  .kdbutton.solid.red
+    left                  50%
+    width                 124px
+    margin                24px 0 10px -66px
+    font-weight           600
+    background            #D43130
 
   .kdbutton.subdomain-toggler
     padding-right           0
     .button-title
       color                 #aaa
+
+  .more-form
+    padding-top           18px
+
+.kdmodal.ws-settings
+
+  .kdtabview
+    border-bottom         1px solid #333
+
+  .modal-arrow
+    left                  -36px !important
+    border-right-color    #242424 !important
+    vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
+    &:before
+      left                -5px
+
+  .kdbutton.solid.red
+    left                  50%
+    width                 180px
+    margin                12px 0 10px -90px
+    font-weight           600
+    background            #D43130
+
+  &.activity-modal
+    .kdmodal-inner
+      margin              5px 16px
+
+  &.guides
+    label.kdlabel
+      padding-top         0
+
+
+
+body.account
+  .input-validation
+    margin-left         30px !important
+
+  .input-validation div.wrapper
+    background-color    rgba(217, 95, 95, .75)
+    shadow              none
+    font-size           14px
+    font-weight         600
+    text-align          center
+    line-height         18px
+    -webkit-font-smoothing antialiased
+
+  .input-validation.placement-top:after
+    border-top-color    rgba(217, 95, 95, .75)
+
+  .kdoverlay
+    background          rgba(255, 255, 255, .75)
+
+.payment-modal
+  .kdmodal-content
+    // max-height          389px !important
+
+  .kdmodal-inner
+    margin              36px 51px 51px
+
+    .kdmodal-title
+      text-align        center
+      margin            0 0 30px !important
+
+      span.title
+        font-weight     500
+        color           #00B156
+        line-height     34px
+        margin          0 0 6px
+
+      span.subtitle
+        color           #848484
+        font-size       14px
+        line-height     19px
+        font-weight     400
+        opacity         .99
+
+    .summary
+      margin            0 0 30px
+      line-height       24px
+      border            1px solid #E5E5E5
+      border-radius     3px
+      padding           15px 25px
+
+      .plan-name
+        font-size       16px
+        color           #6F6F6F
+        fl()
+
+      .plan-price
+        color           #01B05A
+        font-size       16px
+        fr()
+
+        span
+          color         #A7A7A7
+          font-size     14px
+
+        &:before
+          content       '$'
+
+    .payment-method-entry-form
+      background        #F8F8F8
+      border            1px solid #E5E5E5
+      padding           0 31px 31px 17px
+      rounded           3px
+
+      .kdlabel
+        display         block
+        float           none
+        margin-top      19px
+        margin-bottom   11px
+        font-size       14px
+        color           #616161
+        opacity         .99
+
+      .kdinput
+        background      #fff
+        rounded         3px
+        border          1px solid #D7D7D7
+        margin          0
+        height          36px
+        transition      border-color .3s linear
+
+        &.text
+          font-size     14px
+
+        &.validation-error
+          border-color  #D95F5F !important
+
+      .input-wrapper
+        margin          0
+
+      &.american-express .input-wrapper:after
+        r-sprite      'pricing', 'american-express'
+
+      &.visa .input-wrapper:after
+        r-sprite      'pricing', 'visa'
+
+      &.mastercard .input-wrapper:after
+        r-sprite      'pricing', 'mastercard'
+
+      &.discover .input-wrapper:after
+        r-sprite      'pricing', 'discover'
+
+      .formline
+        margin-left     13px
+        fl()
+
+        &.cardnumber
+          width         292px
+
+          .input-wrapper:after
+            content     ''
+            display     block
+            right       8px
+            top         59px
+            width       36px
+            height      22px
+            z-index     1
+            pointer-events none
+            abs()
+
+        &.cardcvc
+        &.cardmonth
+        &.cardyear
+          width         64px
+
+        &.cardmonth input
+          text-align    center
+
+        &.cardyear input
+          text-align    center
+
+        &.cardname
+          width         215px
+
+    .existing-cc-msg
+      color             #7f7f7f
+      font-size         18px
+      line-height       24px
+      text-align        center
+      padding           40px
+      border-radius     3px
+      background        #f8f8f8
+      border            1px solid #e5e5e5
+
+    .success-msg
+      color             #7f7f7f
+      font-size         16px
+      line-height       24px
+      text-align        center
+      padding           40px
+      border-radius     3px
+      background        #f8f8f8
+      border            1px solid #e5e5e5
+
+      a
+        color           #01B05A
+
+    .submit-btn
+      width             100% !important
+      height            50px !important
+      background        #01B05A
+      margin            30px 0 0 !important
+      shadow            0 2px 0 0 #008E48
+      color             #fff
+      font-size         14px
+      font-weight       300
+
+      span.button-title
+        font-size       inherit
+        font-weight     inherit
+        color           inherit
+
+      cite.total-price
+        font-size       16px
+        font-weight     400
+        margin-left     5px
+
+        &:before
+          content       '$'
+          display       inline-block
+
+        span
+          font-size     12px
+          opacity       .99
+
+    .security-note
+      font-size         12px
+      color             #A7A7A7
+      text-align        center
+      line-height       17px
+      margin            51px
+      opacity           .99
+
+      span
+        display         block
+        font-size       14px
+        color           #7F7F7F
+        line-height     19px
+        margin          0 0 4px
+        opacity         .99
+
+      &:before
+        content         ''
+        display         block
+        r-sprite        'pricing', 'lock'
+        margin          0 auto 10px
+

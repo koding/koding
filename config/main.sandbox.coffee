@@ -60,8 +60,9 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
+    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
-  userSitesDomain     = "svm.koding.io"
+  userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -161,6 +162,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}

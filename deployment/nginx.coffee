@@ -164,7 +164,7 @@ module.exports.create = (workers, environment)->
     gzip_comp_level 6;
     gzip_buffers 16 8k;
     gzip_http_version 1.1;
-    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     # start server
     server {

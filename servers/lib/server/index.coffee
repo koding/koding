@@ -214,7 +214,7 @@ app.post "/:name?/Register", (req, res) ->
   redirect ?= '/'
   koding.fetchClient req.cookies.clientId, context, (client) ->
     JUser.convert client, req.body, (err, result) ->
-      return res.send 403, err  if err
+      return res.send 400, err.message  if err
       res.cookie 'clientId', result.newToken
       # handle the request as an XHR response:
       return res.send 200, null if req.xhr
@@ -227,15 +227,23 @@ app.post "/:name?/Login", (req, res) ->
   { clientId } = req.cookies
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.send 403, err  if err
+    return res.send 403, err.message  if err
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
       version : '2.0'
     info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.send 500, "Internal error"  if err
-      res.cookie 'clientId', response.replacementToken
-      res.send 200, 'ok'
+      return res.send 500, 'Internal error'  if err
+      res.cookie 'clientId', info.replacementToken
+      res.send 200, null
+
+app.post "/:name?/Recover", (req, res) ->
+  { JPasswordRecovery } = koding.models
+  { email } = req.body
+
+  JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
+    return res.send 403, err.message  if err
+    res.send 200, null
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
@@ -356,6 +364,9 @@ app.get "/-/oauth/google/callback"   , require "./google_callback"
 app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
 app.get '/-/image/cache'             , require "./image_cache"
+
+# Handlers for Stripe
+app.post '/-/stripe/webhook'         , require "./stripe_webhook"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->

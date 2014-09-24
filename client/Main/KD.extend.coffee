@@ -141,6 +141,8 @@ KD.extend
 
   isMyPost: (post) -> post.account._id is KD.whoami().getId()
 
+  isMyChannel: (channel) -> channel.creatorId is KD.whoami().socialApiId
+
   checkFlag:(flagToCheck, account = KD.whoami())->
     if account.globalFlags
       if 'string' is typeof flagToCheck

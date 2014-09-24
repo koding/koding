@@ -10,1110 +10,344 @@ pricing.styl
 
 body.pricing
 
-  #main-header .inner-container
-    -webkit-font-smoothing  antialiased
+  height                100%
+
+  #main-header
+    .inner-container
+      -webkit-font-smoothing  antialiased
+
+    .logotype
+      color             #424242
+      line-height       20px
+      font-size         26px
+
+    nav
+      a
+        color           #3B3B3B
+
+        &.login
+          border-color  #ADADAD
+
+    #koding-logo
+      margin            0 7px 0 0
+
+      cite
+        r-sprite        home, 'logo-black'
+
+  .input-validation
+    margin-left         30px !important
+
+  .input-validation div.wrapper
+    background-color    rgba(217, 95, 95, .75)
+    shadow              none
+    font-size           14px
+    font-weight         600
+    text-align          center
+    line-height         18px
+    -webkit-font-smoothing antialiased
+
+  .input-validation.placement-top:after
+    border-top-color    rgba(217, 95, 95, .75)
+
+  .kdoverlay
+    background          rgba(255, 255, 255, .75)
 
 .content-page.pricing
   width                 auto
   max-width             100%
   padding               0
-  font-family           openSansFamily
   border-top            1px solid transparent
+  height                100%
 
-  //Commons
-
-  section
-    h2.general-title
-      font-size         22px
-      font-weight       400
-      text-align        center
-      border-bottom     none
-      margin            0
-      padding           82px 0
-      color             #656565
-
-      span
-        margin          0
-
-    .inner-container
-      max-width             1290px
-      padding               0px 45px
-      margin                0 auto
-      display               block
-      position              relative
-      borderBox()
-
-    .resource-pack
-      border-right      1px solid #e9e9e9
-      border-bottom     2px solid #f8f8f8
-      border-top        2px solid #f8f8f8
-      width             20%
-      z-index           10
-      borderBox()
-      fl()
-
-      &:first-of-type
-        border-left     1px solid #e9e9e9
-        position        relative
-        overflow        visible
-
-        &:before
-          content       ""
-          display       block
-          size          500%, 2px
-          abs           1px 0 0 -2px
-          border-right  13px solid #f43500
-          z-index       4
-          bg            image, -webkit-linear-gradient(left, #1aaf5d 0%, #ffd400 50%, #f43500 100%) /,
-                                  -moz-linear-gradient(left, #1aaf5d 0%, #ffd400 50%, #f43500 100%)
-
-      h2.pack-title
-        padding-left    75px
-        height          78px
-        line-height     78px
-        border-bottom   2px solid #f8f8f8
-        font-size       18px
-        font-weight     600
-        borderBox()
-
-        span
-          margin        0
-
-        cite
-          font-size     14px
-          display       block
-          abs           21px 0 0 29px
-          size          32px, 32px
-          rounded       18px
-          border        2px solid #e9e9e9
-          text-align    center
-          line-height   32px
-          background    #fff
-
-      .pack-features
-        padding         38px 8px 38px 31px
-        border-bottom   2px solid #f8f8f8
-        borderBox()
-
-        dd
-          font-size     18px
-          line-height   28px
-          color         #505050
-          font-weight   400
-
-          em
-            font-weight 600
-
-      .pack-buy-button
-        background      #fff
-        display         block
-        kalc            width, 100% \- 8px
-        margin          4px
-        rounded         3px
-        border          none
-        outline         none
-        shadow          none
-        padding         23px 0
-        font-size       18px
-        color           #3e3e3e
-        font-weight     400
-
-        .button-title
-          font-size     inherit
-          color         inherit
-          line-height   inherit
-          font-weight   inherit
-          position      relative
-          display       inline-block
-          text-decoration underline
-
-          cite
-            font-weight 600
-            display     block
-            abs         0 100% 0 0
-            margin      0 10px 0 0
-            noTextDeco()
-
-        .icon
-          r-sprite      "pricing", "buy-arrow"
-          display       block
-          margin        0
-          padding       0
-          abs           22px 22px 0 0
-
-
-      &.blue //.resource-pack
-        h2.pack-title
-          color           #64d2c8
-          cite
-            border-color  #64d2c8
-
-      &.green //.resource-pack
-        h2.pack-title
-          color           #5ecb66
-          cite
-            border-color  #5ecb66
-
-      &.yellow //.resource-pack
-        h2.pack-title
-          color           #efc860
-          cite
-            border-color  #efc860
-
-      &.orange //.resource-pack
-        h2.pack-title
-          color           #f4a360
-          cite
-            border-color  #f4a360
-
-      &.red //.resource-pack
-        h2.pack-title
-          color           #f35f51
-          cite
-            border-color  #f35f51
-
-      &:hover //.resource-pack
-        background        url("/a/images/stripe.png")
-
-        *:not(cite)
-          border-color    transparent
-
-  //\Commons
-
-  section.introduction
-    background          #3eac75
-    padding             134px 0 85px
+  .pricing-heading
+    font-size           38px
+    color               #37B542
+    line-height         52px
+    margin              100px auto 17px
     text-align          center
-    bg                  image, url("/a/images/pricing-pat.png")
-    overflow            hidden
-
-    &:after
-      content           ""
-      display           block
-      size              100vw, 3px
-      abs               0 0 0px 0
-      bg                image, url("/a/images/wave-bg.png")
-      bg                repeat, repeat-x
-
-    h2
-      border-bottom     none
-      color             #fefefe
-      font-size         34px
-      font-weight       600
-      line-height       38px
-      height            auto
-      opacity           .99
-      overflow          visible
-
-      span
-        margin          0
-        padding         0
-
-    p
-      color             #fefefe
-      font-size         20px
-      line-height       24px
-      font-weight       300
-      max-width         760px
-      letter-spacing    .03em
-      margin            28px auto 56px auto
-
-    .multiple-choice
-      font-family       openSansFamily
-      rounded           0
-
-      a
-        size            188px, 43px
-        line-height     43px
-        letter-spacing  .05em
-        background      transparent
-        rounded         4px
-        padding         0
-        border          2px solid #89dfb4
-        shadow          none
-        text-shadow     none
-        font-size       16px
-        font-weight     400
-        color           #f7fffb
-
-        &:hover
-          background    rgba(255, 255, 255, .2)
-
-        &~a
-          margin-left   14px
-
-        &.active
-          background    #f5f5f5
-          border        2px solid #f5f5f5
-          color         #5ca782
-
-          &:hover
-            opacity     .9
-
-
-  .kdtabview.pricing-type-tab
-    margin              0
-    padding             0
-    width               100%
-    float               none
-
-    .kdtabpaneview.developer
-      padding-bottom    100px
-
-
-  section.packs
-    margin                0 auto
-    max-width             1290px
-    padding               0 45px
-    width                 auto
-    borderBox()
-
-
-  section.team-plan
-    margin                0 auto
-    max-width             1290px
-    padding               0 45px
-    width                 auto
-    borderBox()
-
-    .custom-plan-container
-      border              1px solid #e9e9e9
-      position            relative
-
-    .sliders-container
-      kalc                width, 100% \- 278px
-      padding             59px
-      borderBox()
-      fl()
-
-    .resource-pack
-      size                278px, 100%
-      border              none
-      border-left         1px solid #efefef
-      borderBox()
-      fr()
-
-      .pack-buy-button
-        .button-title
-          cite
-            margin-right  30px
-
-    .plan-selection-box
-      &:first-of-type
-        margin-bottom     68px
-
-      h4
-        font-size         22px
-        color             #6a6a6a
-        font-weight       400
-        display           block
-        margin            0 0 40px 0
-
-      .sliderbar-container
-        size              100%, 3px
-        border            none
-        bg                image, -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) /,
-                          -moz-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%)
-
-        .opposite
-          background      #cecece
-          border          none
-          shadow          inset 0 2px 3px rgba(0, 0, 0, .14)
-
-
-        .handle
-          size            33px, 33px
-          rounded         50%
-          background      #fff
-          border          1px solid #e0e0e0
-          shadow          0 3px 5px rgba(0, 0, 0, .13)
-          top             -16px
-          margin-left     -16px
-
-          &:after
-            display       none
-
-          &:before
-            display       none
-
-        .sliderbar-label
-          color           transparent
-          top             -9px
-
-          &:after
-            size          3px, 7px
-            background    #e0e0e0
-
-  section.custom-quote
-    z-index               5
-    text-align            center
-    padding-bottom        128px
-
-    h2.general-title
-      clear               both
-      padding             128px 0 36px
-
-    .kdbutton.border-only
-      margin              0 auto
-      border              2px solid #00d067
-      background          transparent
-      rounded             4px
-
-      .button-title
-        color             #01ae57
-        font-weight       400
-        font-size         16px
-
-
-  section.features
-    background            #f8f8f8
-
-    .inner-container
-      margin              0 auto
-      max-width           1290px
-      padding             0 45px
-      width               auto
-      letter-spacing      0
-      word-spacing        0
-      borderBox()
-
-    .feature
-      letter-spacing      normal
-      word-spacing        normal
-      size                49%
-      padding             0 35px 74px 108px
-      position            relative
-      display             inline-block
-      vertical-align      top
-      borderBox()
-
-      h5
-        font-size         24px
-        font-weight       400
-        color             #2fbd72
-        display           block
-        margin-bottom     10px
-
-      p
-        font-size         14px
-        color             #505050
-        line-height       21px
-        font-weight       400
-
-      p.description
-        font-size         12px
-        color             #a0a0a0
-        line-height       16px
-        margin-top        18px
-
-      .icon
-        display           block
-        abs               0px 0 0 0px
-
-        &.cpu
-          r-sprite       "pricing", "cpu-icon"
-
-        &.ram
-          r-sprite       "pricing", "ram-icon"
-
-        &.disk
-          r-sprite       "pricing", "disk-icon"
-
-        &.always-on
-          r-sprite       "pricing", "always-on-icon"
-
-  h3.pricing-title
-    text-align          center
-    display             block
-    font-size           28px
+    padding             0 40px
+    border              none
     font-weight         200
-    color               #666666
-    margin              56px 0 8px
+    opacity             .99
 
-  h6.pricing-subtitle
-    text-align          center
-    display             block
+  p.pricing-description
+    max-width           678px
     font-size           18px
-    font-weight         400
-    color               #666666
-    opacity             .5
-    margin-bottom       55px
+    line-height         28px
+    color               #5A5A5A
+    font-weight         200
+    opacity             .99
+    text-align          center
+    margin              0 auto 40px
 
-
-.pricing .product-form
-  size                  100%, auto
-  min-height            100vh
-  padding               0
-  borderBox()
-
-  h1
-    font-size       32px
-
-  h2
-    font-size       28px
-
-  h3
-    font-size       24px
-
-  h1
-  h2
-  h3
-    font-weight     200
-    color           #1c2021
-    margin-bottom   8px
-
-  .inner-container
-    max-width           1096px
-    margin              0 auto
-
-    >header
-      padding-bottom    41px
-      border-bottom     1px solid #d4d4d4
-
-      p
-        font-size       20px
-        color           #757575
-        font-weight     200
-        line-height     26px
-        width           702px
-        fl()
-
-      a
-        color           #3c4752
-
-      .pricing-toggle
-        font-family     inherit
-        rounded         12px
-        background      emphasized
-        size            302px, 59px
-        shadow          inset 0 0 13px rgba(0, 0, 0, .36)
-        fr()
-
-        a
-          background    transparent
-          border        none
-          shadow        none
-          height        55px
-          kalc          width, 50% \- 2px
-          margin        2px 2px 0 0
-          padding       0
-          line-height   55px
-          text-shadow   none
-          color         #fff
-          font-size     16px
-          font-weight   200
-
-          &:first-child
-            margin      2px 0 0 2px
-
-        a.active
-          background    #27ae60
-          color         emphasized
-          rounded       10px
-          font-weight   400
-
-
-    .plan-selection
-      .developer-plan
-        height          300px
-        overflow        visible
-
-        &.initial
-          opacity       0
-
-    .plan-selection-box
-      width           715px
-      padding-top     42px
-      position        relative
-      fl()
-
-      &:nth-of-type(2)
-        margin-left   70px
-
-      h4
-        font-size     28px
-        color         #1c2021
-        font-weight   200
-        line-height   34px
-        display       inline-block
-        position      relative
-
-        cite
-          display     block
-          abs         -4px -53px 0 0
-          size        43px, 43px
-          line-height 43px
-          text-align  center
-          font-size   18px
-          background  emphasized
-          rounded     50%
-          color       #fff
-
-      h5
-        font-size     22px
-        font-weight   400
-        color         #757575
-        margin        4px 0 0
-
-      .sliderbar-container
-        width         100% !important
-        background    #dadada
-        shadow        inset 1px 1px 0 rgba(0, 0, 0, .16)
-        height        7px
-        border        none
-        margin        67px auto 0
-
-        .handle
-          size        26px, 26px
-          shadow      none
-          border      none
-          rounded     50%
-          background  #00ba4e
-          shadow      inset 0 -1px 2px 1px rgba(0, 0, 0, .1) \,
-                      inset 0 -8px 17px #00ba4e \,
-                      inset 0  0 0 1px #00ba4e \,
-                      inset 0 1px 0 2px rgba(255, 255, 255, .3)
-          top         -10px
-          margin      0 0 0 -12px
-
-          &:after
-          &:before
-            hidden()
-
-        .sliderbar-label
-          color           transparent
-          margin-top      -45px
-          margin-bottom   0
-
-          &:after
-            size          2px, 14px
-            background    #bababa
-
-      .description
-        display           block
-        font-size         12px
-        font-weight       400
-        color             #727575
-        line-height       23px
-        margin            20px 0 0
-        span
-          color           #999
-        cite
-          bg              color, #d3d3d3
-          rounded         12px
-          font-size       10px
-          display         inline-block
-          min-width       33px
-          height          23px
-          line-height     23px
-          text-align      center
-          padding         0 5px
-          margin          0 5px 0 15px
-          borderBox()
-
-      a.pricing-show-details
-        font-size         12px
-        font-weight       200
-        color             #747474
-        abs               174px -30px 0 0
-
-      &.selected
-        margin              0
-        padding             40px 0 0 50px
-        width               275px
-        border-left         1px solid #d4d4d4
-        fr()
-
-        h5
-          font-size         24px
-          color             #27ae60
-          margin            16px 0
-          cite
-            font-size       18px
-            font-style      italic
-            font-weight     200
-
-        .description
-          min-height        18px
-          margin            0
-          color             rgba(242, 242, 242, .3)
-
-        .kdbutton.solid.buy-now
-          size              126px, 48px
-          line-height       48px
-          font-size         18px
-          color             #056233
-          padding           0
-          rounded           6px
-          font-weight       600
-          margin            29px 0 0
-          text-align        center
-          text-transform    uppercase
-          fl()
-
-          .button-title
-            line-height     inherit
-            color           inherit
-            font-size       inherit
-            font-weight     inherit
-
-    .developer-plan
-
-      .sliderbar-container
-        shadow                inset 1px 1px 0 rgba(0, 0, 0, .16) !important
-        background            -webkit-linear-gradient(left, #00c052 0%, #ffd800 50%, #fe0000 100%) !important
-
-        .opposite.bar
-          background          #dadada
-          shadow              inset 1px 1px 0 rgba(0, 0, 0, .16) \,
-                              0 0 0 1px #dadada
-
-      .pricing-show-details
-          abs                 174px -30px 0 0
-
-  .how-it-works
-    bg                        color, #f1f1f1
-    border                    1px solid #d3d3d3
-    border-radius             12px
-    max-width                 913px
-    padding                   24px
-    color                     #747474
-    vendor                    column-count, 3
-    vendor                    column-gap, 24px
-    position                  relative
-    margin-top                -88px
+  .pricing-footer
+    margin             75px auto 117px
+    max-width          780px
+    color              #9b9b9b
+    font-weight        400
+    font-size          14px
+    line-height        28px
     borderBox()
 
-    &:after
-      content                 ""
-      display                 block
-      border                  11px solid transparent
-      border-bottom-color     #f1f1f1
-      abs                     -22px 192px 0 0
+    .footer-note
+      font-size        12px
+      margin-top       -10px
 
-    &:before
-      content                 ""
-      display                 block
-      border                  11px solid transparent
-      border-bottom-color     #d3d3d3
-      abs                     -23px 192px 0 0
+    .learn-more
+      line-height        28px
+      font-size          14px
+      margin-top         3px
+      display            block
+      text-align         center
+      text-decoration    underline
+      color              #01B05A
 
-    &.team
-      margin-top              0
+    .footer-msg
+      margin            30px 0 70px
+      text-align        center
 
-      &:before
-      &:after
-        right                 612px
-
-    .item
-      font-size               12px
-      font-weight             200
-
-      &:not(.cpu)
-        vendor                column-break-inside, avoid
-
-      h4
-        font-size             18px
-        font-weight           400
-        margin                0 0 24px
-
-      p
-        margin-bottom         24px
-        line-height           1.2em
-
-.pricing-horizontal-divider
-  size                656px, 1px
-  background          -moz-linear-gradient(left, rgba(0,0,0,0) 0%, rgb(207,207,207) 50%, rgba(0,0,0,0) 100%)
-  background          -webkit-linear-gradient(left, rgba(0,0,0,0) 0%,rgb(207,207,207) 50%,rgba(0,0,0,0) 100%)
-  display             block
-  margin              13px auto
-  position            relative
-
-  &:after
-    content           ""
-    size              13px, 13px
-    abs               50% 0 0 50%
-    background        #cfcfcf
-    rounded           50%
-    display           block
-    vendor            transform, translateX(-50%) translateY(-50%)
-
-.content-area-pane.pricing
-  min-height          480px
-
-.pricing-breadcrumb
-  size                100%, 480px
-  background          #323232
-  abs                 0px 0 0 0px
-
-  ul
-    display           block
-    size              100%, auto
-    text-align        center
-    color             #7f7f80
-    padding-top       200px
-
-    li
-      display         inline-block
-      margin          0 16px
-      position        relative
-
-      &:after
-        content       ''
-        display       block
-        rounded       50%
-        size          6px, 6px
-        background    #7f7f80
-        abs           -32px 0 0 50%
-        margin-left   -3px
-
-      &.active
-        color         #fff
-
-        &:after
-          background  #fff
-
-        & ~ li
-          opacity     .4
-
-  section
-    display           none
-
-.pricing-breadcrumb:not(.hidden) ~ .payment-workflow
-  border-top          1px solid transparent
-
-  > .kdloader
-    abs               400px 0 0 50%
-    vendor            transform, translateX(-50%)
-    width             auto
-    height            auto
-    z-index           20
-
-  .kdbutton.solid // Move these to fw [BC]
-    rounded           3px
-
-    &.green
-      background      #61C17F
-
-    &.red
-      background       #D75B5B
-
-    &.medium
-      height           40px
-      line-height      42px
-
-  .formline
-    padding            0
-    margin             0 0 16px
-    borderBox()
-
-    .input-wrapper
-      margin           0
-
-    &.section-header
-      width            100%
-      clear            both
-      margin-bottom    21px
-      margin-top       21px
-
-    &.button-field
-      clear            both
-      border           none
-      margin-top       6px
-
-      .kdbutton
-        margin-left    6px
-
-      .to-left
-        margin-left    0
-
-    .kdheaderview
-      display          block
-      font-size        14px
-      line-height      19px
-      size             auto, auto
-      color            #4C4C4C
-      margin           0
-      padding          0
-      border           none
+    h4
       font-weight      600
 
-      span
-        margin         0
-        padding        0
+    li
+      position         relative
+      padding-left     18px
+      fl()
+      borderBox()
 
-  .kdlabel
-    font-size            14px
-    color                #8D8D8D
-    float                none
-    line-height          19px
-    margin               0 0 7px
-    font-weight          200
+      &:nth-of-type(4n+1)
+        width          23%
+      &:nth-of-type(4n+2)
+        width          29%
+      &:nth-of-type(4n+3)
+        width          16%
+      &:nth-of-type(4n)
+        width          32%
 
-  .kdinput.text
-    rounded              3px
-    background           transparent
-    border               1px solid #C9C9C9
-    padding              8px 13px 10px
-    font-size            14px
-    line-height          19px
-    color                #4C4C4C
-    font-weight          600
-    opacity              .99
-    margin               0
+      &:before
+        content        ''
+        display        block
+        r-sprite       'pricing', 'check-gray'
+        top            11px
+        left           0
+        abs()
 
-  .placeholder-helper
-    top                  12px
+  .interval-toggle
+    width             100%
+    text-align        center
+    margin-bottom     80px
 
-    &.out
-      top                -15px
+    button
+      background      #fff
+      size            auto, 33px
+      line-height     32px
+      border          1px solid #DEDEDE
+      border-left     none
+      border-right    none
+      padding         0
+      margin          0
+      color           #9E9E9E
+      font-weight     400
+      font-size       12px
+      shadow          none
+      text-shadow     none
 
-  h3.pricing-title
-    font-size            16px
-    color                #222
-    line-height          21px
-    margin               0 0 24px
-    font-weight          400
+      &:first-of-type
+        rounded       30px 0 0 30px
+        border-left   1px solid #DEDEDE
+        .button-title
+          margin      0 0 0 3px
 
-  h6.pricing-subtitle
-    font-size            14px
-    color                #3b3b3b
-    margin               0 0 24px
+      &:last-of-type
+        rounded       0 30px 30px 0
+        border-right  1px solid #DEDEDE
+        .button-title
+          margin      0 3px 0 0
 
-  .pricing-title ~ .pricing-subtitle
-    margin-top          -12px
+      .button-title
+        color         inherit
+        font-size     inherit
+        font-weight   inherit
+        display       inline-block
+        line-height   27px
+        size          auto, 25px
+        rounded       13px
+        padding       0 5px
 
-  h6.mini-title
-    display             block
-    font-size           14px
-    line-height         19px
-    size                auto, auto
-    color               #4C4C4C
-    margin              0
-    padding             0
-    border              none
-    font-weight         600
+      &.toggle .button-title
+        background    #01B05A
+        color         #fff
 
-    span
-      margin            0
-      padding           0
+  section.plans
+    margin              0 auto
+    max-width           882px
+    padding             0 45px
+    width               auto
+    height              auto
+    borderBox()
 
-  section
-    background           #fff
-    width                auto
-    margin               250px auto 0
-    padding              36px
-    rounded              3px
-
-    &.pricing-sign-in
-      max-width          330px
-
-      .kdbutton
-        width            100%
-        margin-bottom    16px
-
-  .pricing-payment-choice
-    background           #fff
-    width                auto
-    margin               250px auto 0
-    padding              36px
-    rounded              3px
-    max-width            520px
-    min-height           300px
-
-    .payment-method
-      cursor             pointer
-      padding-left       13px
-
-      &:hover
-        background       #f8f8f8
-
-  .plan-upgrade-confirm-form
-    background           #fff
-    width                auto
-    margin               250px auto 0
-    padding              36px
-    rounded              3px
-    max-width            520px
-
-    .generic-plan-view
-      padding            23px 0
-      border-bottom      1px solid #dedede
-      margin-bottom      24px
-      font-size          14px
-      line-height        19px
-
-      h4
-        font-weight      600
-        color            #61C17F
-
-      .price
-        color            #7b7b7b
-        margin           1px 0 0
-
-      &.old-plan h4
-        color            #D75B5B
-
-  .payment-method-entry-form
-    background           #fff
-    width                auto
-    margin               250px auto 0
-    padding              36px 20px 36px 36px
-    rounded              3px
-    max-width            520px
-
-    .formline
-      width              50%
-      padding-right      17px
+    .single-plan
+      background        #FAFAFA
+      width             25%
+      z-index           10
+      border            1px solid #E3E3E3
+      border-left       none
+      borderBox()
       fl()
 
-      &.cardstate
-        width            25%
+      .overflow-hidden
+        overflow        hidden
 
-      &.cardcountry
-        width            25%
+      .overflow-visible
+        overflow        visible
 
-      &.cardmonth
-        width            16.6%
+      &:first-of-type
+        border-left     1px solid #E3E3E3
+        rounded         7px 0 0 7px
 
-      &.cardyear
-        width            16.6%
+      &.promoted
+        background      #fff
+        vendor          transform, scale(1.05)
+        border          1px solid #909090
+        rounded         7px
+        z-index         100
 
-      &.cardcv
-        width            16.6%
+        .plan-price cite
+          color         #F8AC1D
 
-      &.captcha
-        width            100%
-        border           none
+          &:before
+            color       #F8AC1D
 
-        .recaptchatable
-          border            none !important
-          tr
-            height          auto
+        .plan-buy-button
+          border-color  #F8AC1D
+          background    #F8AC1D
+          color         #fff
+          margin-top    23px
+          margin-bottom 40px
 
-          td
-            padding         0 !important
-            margin          0 !important
+      &.free
+        .plan-price cite:before
+        .plan-title
+          hidden()
 
-          td.recaptcha_image_cell
-          td.recaptcha_image_cell ~ td
-            padding         0 20px 16px 0 !important
+        .plan-price .interval-text
+          visibility    hidden
 
-        .recaptcha_input_area
-          padding           0 !important
-          margin            0 !important
+      &.current
 
-        #recaptcha_response_field
-          rounded           3px
-          background        transparent
-          border            1px solid #C9C9C9 !important
-          padding           8px 13px 10px
-          font-size         14px
-          line-height       19px
-          color             #4C4C4C
-          font-weight       600
-          opacity           .99
-          margin            0
-          height            auto
-          outline           none
-          borderBox()
+        .cpu:after
+          color         #ddd !important
 
-          &::-webkit-input-placeholder
-            color           #93979a
-            font-weight     300
-          &:-moz-placeholder
-            color           #93979a
-            font-weight     300
+        *
+          color         #ddd !important
+          &:before
+            color       #ddd !important
 
-          &:hover
-            border          1px solid #aaa !important
+        .overflow-hidden
+          position      relative
+          overflow      hidden
 
-          &:focus
-            border          1px solid rgba(125,190,241,1) !important
-            shadow          0 0 3px rgba(125,190,241,.7)
+          &:after
+            content       'Current Plan'
+            display       block
+            size          107px, 17px
+            vendor        transform, rotateZ(-45deg)
+            font-size     10px
+            color         #959595
+            background    #E8E8E8
+            text-align    center
+            line-height   17px
+            abs           23px 0 0 -23px
+            borderBox()
 
-            &::-webkit-input-placeholder
-              opacity       0.5
-            &:-moz-placeholder
-              opacity       0.5
+        .plan-title
+          color         inherit !important
+          text-align    center
 
-    .section-header
-      width              100%
+        .plan-buy-button
+          border-color  #ddd
 
-    .button-field
-      width              100%
+      &:nth-of-type(4)
+        rounded         0 7px 7px 0
 
+      .plan-title
+        top             -25px
+        text-align      center
+        font-size       14px
+        letter-spacing  .1em
+        z-index         150
+        left            0
+        right           0
+        color           #5a5a5a
+        opacity         .99
+        abs()
 
-.pricing-final
-  border-top          1px solid transparent
-  background          #fff
-  width               auto
-  margin              250px auto 0
-  padding             36px
-  rounded             3px
-  max-width           330px
-  min-height          300px
-  z-index             20
-  text-align          center
+      .plan-price
+        border          none
+        color           #8B8B8B
+        font-size       12px
+        text-align      center
+        height          auto
+        margin          0
+        letter-spacing  .16em
 
-  .check-icon
-    display           block
-    size              48px, 48px
-    rounded           50%
-    border            1px solid #61c17f
-    margin            0 auto 24px
+        span
+          padding       0
+          margin        0
 
-    &:after
-      content         ''
-      display         block
-      r-sprite        "pricing" "check"
-      margin          11px 0 0 4px
+        cite
+          display       block
+          font-size     38px
+          color         #35B040
+          line-height   38px
+          margin        40px 0 4px
+          position      relative
 
-  .kdbutton.solid.medium
-    margin-top        24px
+          &:before
+            content     '$'
+            display     inline-block
+            color       #35B040
+            font-size   19px
+            vertical-align super
+            line-height 26px
 
-@media only screen and (min-width : 320px) and (max-width : 568px)
-  .content-page.pricing
+      .plan-summary
+        padding         17px 20px
+        text-align      center
+        font-size       10px
+        color           #575757
+        line-height     14px
+        font-weight     400
+        opacity         .99
+        borderBox()
 
-    section.introduction
-      padding-top           174px
+      .plan-features
+        padding         0 47px
+        color           #575757
+        line-height     23px
+        font-size       14px
+        borderBox()
 
-      h2
-        font-size         26px
+        .cpu:after
+          content       '(burstable)'
+          display       inline-block
+          font-size     11px
+          font-weight   300
+          margin-left   3px
+          line-height   23px
+          color         #aaa
 
-      p
-        font-size         18px
-        line-height       24px
-
-      .multiple-choice a
-        width             43%
-
-    section.packs
-      h2
-        font-size         18px
-
-      .resource-pack
-        width             100%
-        margin-bottom     24px
-
-        &:first-of-type:before
-          display         none
-
-
-    section.features
-      h2
-        font-size         18px
-
-      .feature
-        display             block
-        width               auto
-        padding             0 35px 44px 61px
-
-        h5
-          font-size         18px
-
-        i
-          vendor            transform, scale(.6)
-          vendor            transform-origin, 0px 0px
-
+      .plan-buy-button
+        background      transparent
+        border          1px solid #37B542
+        outline         none
+        shadow          none
+        margin          29px auto 34px
+        display         block
+        color           #37B542
+        padding         8px 34px
+        font-size       14px
+        letter-spacing  .16em
+        rounded         3px
+        vendor          transition, background .2s ease
 
