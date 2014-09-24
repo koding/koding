@@ -86,8 +86,12 @@ class SinglePlanView extends KDView
 
     price = @getPrice planInterval
 
+    price = if price is '0'
+    then 'Free'
+    else price
+
     @price.updatePartial "
-      <cite>#{(price) or 'Free'}</cite>
+      <cite>#{(price)}</cite>
       <span class='interval-text'>MONTHLY</span>
     "
 
