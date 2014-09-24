@@ -172,15 +172,23 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	latestKlientUrl := p.Bucket.URL(latestKlientPath)
 
+	var userPublicKey string
+	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
+		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
+			userPublicKey = keys[0]
+		}
+	}
+
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
-		Username:        m.Username,
-		Hostname:        m.Username, // no typo here. hostname = username
-		KiteKey:         kiteKey,
-		LatestKlientURL: latestKlientUrl,
-		ApachePort:      DefaultApachePort,
-		KitePort:        DefaultKitePort,
-		Test:            p.Test,
+		Username:         m.Username,
+		UserPublicSSHKey: userPublicKey,
+		Hostname:         m.Username, // no typo here. hostname = username
+		KiteKey:          kiteKey,
+		LatestKlientURL:  latestKlientUrl,
+		ApachePort:       DefaultApachePort,
+		KitePort:         DefaultKitePort,
+		Test:             p.Test,
 	}
 
 	cloudInitConfig.setupMigrateScript()

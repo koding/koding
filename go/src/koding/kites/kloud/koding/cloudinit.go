@@ -30,6 +30,9 @@ users:
     lock-password: true
     sudo: ALL=(ALL) NOPASSWD:ALL
 
+ssh_authorized_keys:
+  - ssh-rsa: {{.UserPublicSSHKey}}
+
 write_files:
   # Create kite.key
   - content: |
@@ -175,12 +178,13 @@ final_message: "All done!"
 )
 
 type CloudInitConfig struct {
-	Username        string
-	Hostname        string
-	KiteKey         string
-	LatestKlientURL string // URL of the latest version of the Klient package
-	ApachePort      int    // Defines the base apache running port, should be 80 or 443
-	KitePort        int    // Defines the running kite port, like 3000
+	Username         string
+	UserPublicSSHKey string
+	Hostname         string
+	KiteKey          string
+	LatestKlientURL  string // URL of the latest version of the Klient package
+	ApachePort       int    // Defines the base apache running port, should be 80 or 443
+	KitePort         int    // Defines the running kite port, like 3000
 
 	// Needed for migrate.sh script
 	Passwords     string
