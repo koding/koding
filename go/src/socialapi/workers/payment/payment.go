@@ -55,6 +55,13 @@ type SubscriptionsResponse struct {
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
 
+// Do checks if given `account_id` is a paying customer and returns
+// the current plan the current is subscribed if any.
+//
+// Errors:
+//		paymenterrors.ErrCustomerNotFound if user is found
+//		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
+//		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
 func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	customer, err := stripe.FindCustomerByOldId(s.AccountId)
 	if err != nil {
