@@ -1,8 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/errors"
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeInvoice "github.com/stripe/stripe-go/invoice"

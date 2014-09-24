@@ -1,8 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/errors"
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 	"time"
 
 	"github.com/koding/bongo"

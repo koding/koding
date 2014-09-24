@@ -5,7 +5,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"socialapi/workers/payment/errors"
+	"socialapi/workers/payment/paymenterrors"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeSub "github.com/stripe/stripe-go/sub"

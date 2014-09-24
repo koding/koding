@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymentmodels"
 	"strconv"
 	"time"
 
