@@ -55,6 +55,9 @@ class PricingAppView extends KDView
 
     @footer = @initFooter()
 
+    @kodingFooter = new FooterView
+
+
   initEvents: ->
     @plans.on 'PlanSelected', @bound 'planSelected'
 
@@ -175,6 +178,7 @@ class PricingAppView extends KDView
       {{> @intervalToggle}}
       {{> @plans}}
       {{> @footer}}
+      {{> @kodingFooter}}
     """
 
 
