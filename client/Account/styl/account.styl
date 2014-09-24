@@ -315,6 +315,109 @@ body.account
             color                 #323232
 
 
+    &.billing
+
+      section
+        margin-bottom    40px
+
+        .no-item-found
+          text-align     left
+          line-height    40px
+          padding        0
+
+      h4
+        color            #7B7B7B
+        font-weight      400
+        padding          0
+
+      .kdheaderview
+        display            block
+        font-size          14px
+        line-height        19px
+        size               auto, auto
+        color              #4C4C4C
+        margin             0 0 20px
+        padding            0
+        border             none
+        font-weight        600
+
+        span
+          margin           0
+          padding          0
+
+      .payment-method-wrapper
+        height             92px
+
+        .payment-method
+          height           auto
+          border-bottom    none
+          line-height      40px
+
+      .subscription-wrapper
+        width              auto
+        font-size          14px
+        line-height        19px
+        height             79px
+
+        .kdbutton
+          fr()
+
+        .subscription h4
+          line-height      40px
+          fl()
+
+          .price
+            font-weight    200
+
+        p
+          font-weight      600
+          color            #4C4C4C
+
+      .payment-history-wrapper
+
+        .kdlistitemview
+          padding                   21px 0
+          border-bottom             1px solid #DEDEDE
+
+        h4
+          fl()
+
+        .status-icon
+          size                      38px, 38px
+          border                    1px solid #EAEAEA
+          rounded                   3px
+          margin                    0 18px 0 0
+          text-align                center
+          line-height               38px
+          fl()
+
+          span
+            display                 inline-block
+            r-sprite                'account', 'cross-8'
+
+          &.success span
+            r-sprite                'account', 'check-8'
+
+        .billing-info
+          line-height               19px
+          font-size                 14px
+          color                     #7B7B7B
+          fl()
+
+          strong
+            font-weight             600
+
+          .invoice-date
+            color                   #4C4C4C
+
+          .card-number
+            margin                  6px 0 0
+            display                 block
+            color                   #919191
+
+        .invoice-btn
+          fr()
+
     &.your-subscriptions
 
       .kdlistitemview-subscription
@@ -351,46 +454,6 @@ body.account
           .kdbutton
             margin-left           6px
 
-    &.billing-history
-      .kdlistitemview
-        padding                   21px 0
-        border-bottom             1px solid #DEDEDE
-
-      .status-icon
-        size                      38px, 38px
-        border                    1px solid #EAEAEA
-        rounded                   3px
-        margin                    0 18px 0 0
-        text-align                center
-        line-height               38px
-        fl()
-
-        span
-          display                 inline-block
-          r-sprite                'account', 'cross-8'
-
-        &.success span
-          r-sprite                'account', 'check-8'
-
-      .billing-info
-        line-height               19px
-        font-size                 14px
-        color                     #7B7B7B
-        fl()
-
-        strong
-          font-weight             600
-
-        .invoice-date
-          color                   #4C4C4C
-
-        .card-number
-          margin                  6px 0 0
-          display                 block
-          color                   #919191
-
-      .invoice-btn
-        fr()
 
     &.terms-of-service
     &.privacy-policy

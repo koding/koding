@@ -12,9 +12,7 @@ class AccountAppController extends AppController
     billing :
       title : "Billing"
       items : [
-        { slug : "Payment",       title : "Payment methods",     listType: "methods" }
-        { slug : "Subscriptions", title : "Your subscriptions",  listType: "subscriptions" }
-        { slug : "Billing",       title : "Billing history",     listType: "history" }
+        { slug : "Billing", title : "Billing", listType: "billing" }
       ]
     develop :
       title : "Develop"

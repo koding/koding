@@ -6,3 +6,16 @@ class PricingAppController extends KDViewController
     options.appInfo = title: "Pricing"
     options.view    = new PricingAppView params: options.params
     super options, data
+
+    options =
+      identifier : 'stripe'
+      url        : 'https://js.stripe.com/v2/'
+
+    KodingAppsController.appendHeadElement 'script', options, =>
+      Stripe.setPublishableKey KD.config.stripe.token
+      @emit 'ready'
+
+
+  loadPaymentProvider: (callback) -> @ready callback
+
+

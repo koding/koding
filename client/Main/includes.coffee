@@ -61,6 +61,7 @@ module.exports = [
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
+  "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
@@ -187,18 +188,26 @@ module.exports = [
   # PAYMENT
   # controller
   "payment/paymentcontroller.coffee",
-  # views
+  # # views
   "payment/paymentmethodview.coffee",
   "payment/subscriptionview.coffee",
-  "payment/paymentmethodentryform.coffee",
-  "payment/paymentchoiceform.coffee",
-  "payment/paymentformmodal.coffee",
-  "payment/paymentworkflow.coffee",
-  "payment/paymentconfirmform.coffee",
-  "payment/genericplanview.coffee",
-  "payment/planupgradeconfirmform.coffee",
-  "payment/planproductlist.coffee",
-  "payment/existingaccountworkflow.coffee",
+  # "payment/paymentmethodentryform.coffee",
+  # "payment/paymentchoiceform.coffee",
+  # "payment/paymentformmodal.coffee",
+  # "payment/paymentworkflow.coffee",
+  # "payment/paymentconfirmform.coffee",
+  # "payment/genericplanview.coffee",
+  # "payment/planupgradeconfirmform.coffee",
+  # "payment/planproductlist.coffee",
+  # "payment/existingaccountworkflow.coffee",
+
+  "payment/workflow.coffee",
+  "payment/updatecreditcardworkflow.coffee",
+  "payment/stripeformview.coffee",
+  "payment/form.coffee",
+  "payment/basemodal.coffee",
+  "payment/modal.coffee",
+  "payment/creditcardmodal.coffee",
 
 
   # global notifications

@@ -1177,3 +1177,220 @@ div.nominateicon
 
   .more-form
     padding-top           18px
+
+body.account
+  .input-validation
+    margin-left         30px !important
+
+  .input-validation div.wrapper
+    background-color    rgba(217, 95, 95, .75)
+    shadow              none
+    font-size           14px
+    font-weight         600
+    text-align          center
+    line-height         18px
+    -webkit-font-smoothing antialiased
+
+  .input-validation.placement-top:after
+    border-top-color    rgba(217, 95, 95, .75)
+
+  .kdoverlay
+    background          rgba(255, 255, 255, .75)
+
+.payment-modal
+  .kdmodal-content
+    // max-height          389px !important
+
+  .kdmodal-inner
+    margin              36px 51px 51px
+
+    .kdmodal-title
+      text-align        center
+      margin            0 0 30px !important
+
+      span.title
+        font-weight     500
+        color           #00B156
+        line-height     34px
+        margin          0 0 6px
+
+      span.subtitle
+        color           #848484
+        font-size       14px
+        line-height     19px
+        font-weight     400
+        opacity         .99
+
+    .summary
+      margin            0 0 30px
+      line-height       24px
+      border            1px solid #E5E5E5
+      border-radius     3px
+      padding           15px 25px
+
+      .plan-name
+        font-size       16px
+        color           #6F6F6F
+        fl()
+
+      .plan-price
+        color           #01B05A
+        font-size       16px
+        fr()
+
+        span
+          color         #A7A7A7
+          font-size     14px
+
+        &:before
+          content       '$'
+
+    .payment-method-entry-form
+      background        #F8F8F8
+      border            1px solid #E5E5E5
+      padding           0 31px 31px 17px
+      rounded           3px
+
+      .kdlabel
+        display         block
+        float           none
+        margin-top      19px
+        margin-bottom   11px
+        font-size       14px
+        color           #616161
+        opacity         .99
+
+      .kdinput
+        background      #fff
+        rounded         3px
+        border          1px solid #D7D7D7
+        margin          0
+        height          36px
+        transition      border-color .3s linear
+
+        &.text
+          font-size     14px
+
+        &.validation-error
+          border-color  #D95F5F !important
+
+      .input-wrapper
+        margin          0
+
+      &.american-express .input-wrapper:after
+        r-sprite      'pricing', 'american-express'
+
+      &.visa .input-wrapper:after
+        r-sprite      'pricing', 'visa'
+
+      &.mastercard .input-wrapper:after
+        r-sprite      'pricing', 'mastercard'
+
+      &.discover .input-wrapper:after
+        r-sprite      'pricing', 'discover'
+
+      .formline
+        margin-left     13px
+        fl()
+
+        &.cardnumber
+          width         292px
+
+          .input-wrapper:after
+            content     ''
+            display     block
+            right       8px
+            top         59px
+            width       36px
+            height      22px
+            z-index     1
+            pointer-events none
+            abs()
+
+        &.cardcvc
+        &.cardmonth
+        &.cardyear
+          width         64px
+
+        &.cardmonth input
+          text-align    center
+
+        &.cardyear input
+          text-align    center
+
+        &.cardname
+          width         215px
+
+    .existing-cc-msg
+      color             #7f7f7f
+      font-size         18px
+      line-height       24px
+      text-align        center
+      padding           40px
+      border-radius     3px
+      background        #f8f8f8
+      border            1px solid #e5e5e5
+
+    .success-msg
+      color             #7f7f7f
+      font-size         16px
+      line-height       24px
+      text-align        center
+      padding           40px
+      border-radius     3px
+      background        #f8f8f8
+      border            1px solid #e5e5e5
+
+      a
+        color           #01B05A
+
+    .submit-btn
+      width             100% !important
+      height            50px !important
+      background        #01B05A
+      margin            30px 0 0 !important
+      shadow            0 2px 0 0 #008E48
+      color             #fff
+      font-size         14px
+      font-weight       300
+
+      span.button-title
+        font-size       inherit
+        font-weight     inherit
+        color           inherit
+
+      cite.total-price
+        font-size       16px
+        font-weight     400
+        margin-left     5px
+
+        &:before
+          content       '$'
+          display       inline-block
+
+        span
+          font-size     12px
+          opacity       .99
+
+    .security-note
+      font-size         12px
+      color             #A7A7A7
+      text-align        center
+      line-height       17px
+      margin            51px
+      opacity           .99
+
+      span
+        display         block
+        font-size       14px
+        color           #7F7F7F
+        line-height     19px
+        margin          0 0 4px
+        opacity         .99
+
+      &:before
+        content         ''
+        display         block
+        r-sprite        'pricing', 'lock'
+        margin          0 auto 10px
+
