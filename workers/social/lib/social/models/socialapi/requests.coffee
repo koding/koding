@@ -340,6 +340,7 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
+
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
@@ -422,4 +423,6 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  post
+  get
 }

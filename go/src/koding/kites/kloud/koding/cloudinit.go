@@ -187,9 +187,15 @@ type CloudInitConfig struct {
 	VmNames       string
 	VmIds         string
 	ShouldMigrate bool
+
+	Test bool
 }
 
 func (c *CloudInitConfig) setupMigrateScript() {
+	// FIXME: Hack. Revise here.
+	if c.Test {
+		return
+	}
 	vms, err := modelhelper.GetUserVMs(c.Username)
 	if err != nil {
 		return

@@ -124,7 +124,7 @@ class MainViewController extends KDViewController
     html     = document.documentElement
     mainView = @getView()
 
-    fullSizeApps = ['Login']
+    fullSizeApps = ['Login', 'Pricing']
     appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
       'Environments', 'Bugs'

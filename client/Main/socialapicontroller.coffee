@@ -303,7 +303,6 @@ class SocialApiController extends KDController
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
 
-
   message:
     byId                 : messageRequesterFn
       fnName             : 'byId'

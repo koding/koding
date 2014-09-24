@@ -1,25 +1,23 @@
 class PaymentMethodView extends JView
+
   constructor: (options = {}, data) ->
+
     options.cssClass    = KD.utils.curry "payment-method", options.cssClass
     options.editLink   ?= no
     options.removeLink ?= no
     super options, data
 
-    @loader = new KDLoaderView
-      size        : { width: 14 }
-      showLoader  : !data?
-
-    @editLink = new CustomLinkView
-      title: ' '
-      cssClass: 'edit'
-      click: (e) =>
+    @editLink = new KDButtonView
+      title    : 'Update'
+      cssClass : 'edit solid medium gray'
+      callback : (e) =>
         e.preventDefault()
         @emit 'PaymentMethodEditRequested', data
 
-    @removeLink = new CustomLinkView
-      title: ' '
-      cssClass: 'remove'
-      click: (e) =>
+    @removeLink = new KDButtonView
+      title    : 'Remove'
+      cssClass : 'remove'
+      click    : (e) =>
         e.preventDefault()
         @emit 'PaymentMethodRemoveRequested', data
 
@@ -34,41 +32,35 @@ class PaymentMethodView extends JView
     @paymentMethodInfo.hide()
     @setPaymentInfo data
 
-  click: ->
-    @emit "PaymentMethodChosen", @getData()
 
   getCardInfoPartial: (paymentMethod) ->
-    return "Enter billing information"  unless paymentMethod
+    return "<span class='no-item-found'>You have no payment methods</span>"  unless paymentMethod
 
-    {  cardNumber, cardType } = paymentMethod
+    { last4 } = paymentMethod
+
+    # TODO: we need to get the
+    # card type info with the payload, but for now
+    # let's just use visa, and don't show it anywhere. ~U
+    cardType = 'visa'
 
     type = KD.utils.slugify(cardType).toLowerCase()
     @setClass type
 
-    # address      = [address1, address2].filter(Boolean).join '<br>'
-    # description ?= "#{cardFirstName}'s #{cardType}"
-    # postal       = [city, state, zip].filter(Boolean).join ' '
-    # cardMonth    = "0#{cardMonth}".slice(-2)
-    # cardYear     = "#{cardYear}".slice(-2)
-    numberPrefix = if type is 'american-express' then '**** ****** *' else '**** **** **** '
+    numberPrefix = if type is 'american-express'
+    then '**** ****** *'
+    else '**** **** **** '
 
-    # <span class="description #{cardType.toLowerCase()}">#{description}</span>
-    # #{if address then "<span>#{address}</span>" else ''}
-    # #{if postal  then "<span>#{postal}</span>"  else ''}
     """
-    <div class='card-type'>#{cardType}</div>
-    <pre>#{numberPrefix}#{cardNumber.slice(-4)}</pre>
+    <pre>#{numberPrefix}#{last4}</pre>
     """
 
   setPaymentInfo: (paymentMethod) ->
-    @loader.hide()
     @setData paymentMethod  if paymentMethod
-    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod?.billing
+    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod
     @paymentMethodInfo.show()
 
   pistachio: ->
     """
-    {{> @loader }}
     {{> @paymentMethodInfo }}
     {{> @controlsView }}
     """

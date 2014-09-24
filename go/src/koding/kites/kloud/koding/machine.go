@@ -4,12 +4,14 @@ import (
 	"koding/db/models"
 	"time"
 
-	"github.com/koding/kloud/machinestate"
+	"koding/kites/kloud/machinestate"
 
 	"labix.org/v2/mgo/bson"
 )
 
-type Machine struct {
+// MachineDocument represents a single MongodDB document from the jMachines
+// collection.
+type MachineDocument struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
 	Label       string        `bson:"label"`
 	Domain      string        `bson:"domain"`
@@ -31,7 +33,7 @@ type Machine struct {
 	Groups     []models.Permissions `bson:"groups"`
 }
 
-func (m *Machine) State() machinestate.State {
+func (m *MachineDocument) State() machinestate.State {
 	return machinestate.States[m.Status.State]
 }
 

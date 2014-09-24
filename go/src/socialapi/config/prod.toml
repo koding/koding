@@ -50,3 +50,6 @@ PostThrottleCount    = 100
 EventExchangeName ="BrokerMessageBus"
 DisableCaching    = false
 Debug             = false
+
+[stripe]
+SecretToken = "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh"

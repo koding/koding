@@ -63,6 +63,7 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
+    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -150,8 +151,8 @@ Configuration = (options={}) ->
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : null
-    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -164,6 +165,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -427,12 +429,11 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
-            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
-            ./run install
-            ./run services
-            ./run $@
+
+            echo -e "\n\nPlease do ./run again\n"
             exit 1;
         fi
       }
@@ -712,6 +713,10 @@ Configuration = (options={}) ->
 
       elif [ "$#" == "0" ]; then
 
+        checkrunfile
+        if ! ./pg-update #{postgres.host} #{postgres.port}; then
+          exit 1
+        fi
         run
 
       else

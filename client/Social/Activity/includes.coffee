@@ -17,6 +17,7 @@ module.exports = [
 
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
+  "views/activitypane.coffee"
 
   "views/filterlinks.coffee"
 
@@ -37,6 +38,7 @@ module.exports = [
   "views/yourtopicsmodal.coffee"
   "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
+  "views/searchinputview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"
@@ -64,6 +66,9 @@ module.exports = [
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 
+  "views/activitytabhandle.coffee"
+  "views/activitycontentpane.coffee"
+  "views/activitysearchresultspane.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"

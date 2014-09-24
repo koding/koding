@@ -54,6 +54,8 @@ module.exports = class SocialMessage extends Base
           (signature String, Object, Function)
           (signature [String], Object, Function)
         ]
+        paymentSubscribe:
+          (signature Object, Function)
 
     schema          :
       id               : Number
@@ -249,4 +251,10 @@ module.exports = class SocialMessage extends Base
         cachedEmbedlyResult[urls] = result
         callback err, result
 
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel, fetchGroup } = require "./helper"
+
+  @paymentSubscribe = secure (client, options, callback)->
+    doRequest "paymentSubscribe", client, options, callback
 
