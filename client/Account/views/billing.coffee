@@ -61,7 +61,7 @@ class AccountBilling extends KDView
 
   putPaymentMethodView: (paymentMethod) ->
 
-    @paymentMethodWrapper.destroySubViews()
+    @paymentMethod?.destroy()
 
     @state.paymentMethod = paymentMethod
 
