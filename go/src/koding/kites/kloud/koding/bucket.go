@@ -40,6 +40,10 @@ func (b *Bucket) SignedURL(path string, expires time.Time) string {
 	return b.Bucket.SignedURL(path, expires)
 }
 
+func (b *Bucket) URL(path string) string {
+	return b.Bucket.URL(path)
+}
+
 func NewBucket(name, folder string) *Bucket {
 	auth := aws.Auth{
 		AccessKey: "AKIAI6IUMWKF3F4426CA",
