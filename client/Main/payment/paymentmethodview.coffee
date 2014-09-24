@@ -38,15 +38,19 @@ class PaymentMethodView extends JView
 
     { last4 } = paymentMethod
 
+    # TODO: we need to get the
+    # card type info with the payload, but for now
+    # let's just use visa, and don't show it anywhere. ~U
     cardType = 'visa'
 
     type = KD.utils.slugify(cardType).toLowerCase()
     @setClass type
 
-    numberPrefix = if type is 'american-express' then '**** ****** *' else '**** **** **** '
+    numberPrefix = if type is 'american-express'
+    then '**** ****** *'
+    else '**** **** **** '
 
     """
-    <div class='card-type'>#{cardType}</div>
     <pre>#{numberPrefix}#{last4}</pre>
     """
 
