@@ -165,18 +165,19 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
-	latestKlientURL, err := p.Bucket.LatestDeb()
+	latestKlientPath, err := p.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
 	}
-	signedLatestKlientURL := p.Bucket.SignedURL(latestKlientURL, time.Now().Add(time.Minute*3))
+
+	latestKlientUrl := p.Bucket.URL(latestKlientPath)
 
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
 		Username:        m.Username,
 		Hostname:        m.Username, // no typo here. hostname = username
 		KiteKey:         kiteKey,
-		LatestKlientURL: signedLatestKlientURL,
+		LatestKlientURL: latestKlientUrl,
 		ApachePort:      DefaultApachePort,
 		KitePort:        DefaultKitePort,
 		Test:            p.Test,
