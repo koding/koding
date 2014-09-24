@@ -14,7 +14,9 @@ do ->
 
   KD.registerRoutes 'Activity',
 
-    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'topic', 'public'
+    '/:name?/Activity/Public' : ({params: {name}}) ->
+      @handleRoute "/#{if name then name else ''}/Activity/Public/Liked",
+        replaceState: yes
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
       activityPane (pane) ->
