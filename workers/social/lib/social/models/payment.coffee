@@ -104,7 +104,7 @@ module.exports = class Payment extends Base
         for name in ["alwaysOn", "storage", "total"]
           if usage[name] > plan[name]
             return callback {
-              "message"   : "Sorry, your request to downgrade can't be processed becasue you're currently using more resources than the plan you're downgrading to allows."
+              "message"   : "Sorry, we can't downgrade your plan becasue you're currently using more resources than the plan you're downgrading to allows."
               "allowed"   : plan[name]
               "usage"     : usage[name]
               "planTitle" : planTitle
