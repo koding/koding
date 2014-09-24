@@ -4,7 +4,7 @@ FooterView       = require './footerview'
 module.exports = class HomeView extends KDView
 
   COLORS    = [ 'gray', 'blue', 'orange', 'red', 'green', 'dark-blue' ]
-  IMAGEPATH = '/a/out/images/slideshow'
+  IMAGEPATH = '/a/site.landing/images/slideshow'
   IMAGES    = [ 'ss-activity.jpg', 'ss-terminal.jpg', 'ss-teamwork.jpg' ]
   ORDINALS  = ['first', 'second', 'third']
   INDEX     = 0
@@ -25,22 +25,30 @@ module.exports = class HomeView extends KDView
     @signUpForm.button.unsetClass 'green'
     @signUpForm.button.setClass 'yellow'
 
-    @slideShow = new KDView
+    @slideShow = new KDSlideShow
+      direction    : 'leftToRight'
+      touchEnabled : no
 
     @footer = new FooterView
 
     @setPartial @partial()
 
     @addSubView @signUpForm, '.introduction article'
-    @addSubView @slideShow
+    @addSubView @slideShow, '.screenshots'
     @addSubView @footer
+
+    for image, i in IMAGES
+      @slideShow.addSubView new KDSlidePageView
+        tagName  : 'figure'
+        cssClass : ORDINALS[i]
+        partial  : "<img src='#{IMAGEPATH}/#{IMAGES[i]}' />"
 
     INDEX = KD.utils.getRandomNumber COLORS.length - 1
     @changeColor()
 
     @once 'viewAppended', ->
       @setClass 'anim'
-      KD.utils.repeat 60e3, @bound 'nextColor'
+      KD.utils.repeat 3e5, @bound 'nextColor'
 
   click: -> @nextColor()
 
@@ -51,9 +59,6 @@ module.exports = class HomeView extends KDView
 
     @unsetClass color for color in COLORS
     @setClass COLORS[INDEX]
-
-
-  getImgElements = ->  ("<figure class='#{ORDINALS[i]}'><div src='#{IMAGEPATH}/#{IMAGES[i]}' ></div></figure>" for image, i in IMAGES).join ''
 
 
   partial: ->
@@ -70,11 +75,7 @@ module.exports = class HomeView extends KDView
       </div>
     </section>
 
-    <section class="screenshots">
-      <div>
-        #{getImgElements()}
-      </div>
-    </section>
+    <section class="screenshots"></section>
 
     <section class="used-at">
       <div>
