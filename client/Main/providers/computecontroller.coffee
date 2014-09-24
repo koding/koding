@@ -396,21 +396,21 @@ class ComputeController extends KDController
 
   handleNewMachineRequest: ->
 
-    plan = @getUserPlan()
+    @fetchUserPlan (plan)=>
 
-    @fetchPlans (plans)=>
+      @fetchPlans (plans)=>
 
-      @fetchUsage provider: "koding", (err, usage)->
+        @fetchUsage provider: "koding", (err, usage)->
 
-        return  if KD.showError err
+          return  if KD.showError err
 
-        limits  = plans[plan]
-        options = { plan, limits, usage }
+          limits  = plans[plan]
+          options = { plan, limits, usage }
 
-        if plan in ['developer', 'professional', 'super']
-          new ComputePlansModal.Paid options
-        else
-          new ComputePlansModal.Free options
+          if plan in ['developer', 'professional', 'super']
+            new ComputePlansModal.Paid options
+          else
+            new ComputePlansModal.Free options
 
 
   triggerReviveFor:(machineId)->
