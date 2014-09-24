@@ -174,7 +174,37 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
-    return new YourTopicsModal delegate : this
+    return new TopicSearchModal delegate : this
+
+  showFollowingTopicsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    {moreLink} = @sidebar.sections.channels
+
+    KD.utils.defer =>
+
+      top        = moreLink.getY() - 80
+      left       = moreLink.getX() + moreLink.getWidth() + 10
+
+      if window.innerHeight <= (top + 218)
+        top      = (window.innerHeight - 220)
+
+      modal = new YourTopicsModal
+        delegate : this
+        width    : 271
+        position :
+          top    : top
+          left   : left
+        cssClass : 'sidebar-dark-modal'
+
+      modal.addSubView new KDCustomHTMLView
+        cssClass : 'arrow'
+        position :
+          top    : moreLink.getY()
+          left   : moreLink.getX() + moreLink.getWidth()
+
+      return modal
 
 
   showAllConversationsModal: ->
@@ -182,3 +212,11 @@ class ActivityAppView extends KDView
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this
+
+
+  showAllChatsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    return new ChatSearchModal delegate : this
+

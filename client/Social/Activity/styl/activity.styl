@@ -411,6 +411,10 @@ body.activity
       float           none
 
 .kdmodal.your-topics
+  .lazy-loader
+    text-align        center
+    margin            22px 0
+
   .kdmodal-inner
     margin            22px 30px
 
@@ -506,6 +510,83 @@ body.activity
     em
       font-style      italic
 
+
+.sidebar-dark-modal
+  background          #2A2929
+
+  .arrow
+    position          fixed !important
+    border            8px solid transparent
+    border-right      8px solid #2A2929
+    margin            1px 0 0 -6px
+
+  .lazy-loader
+    text-align        center
+    margin-top        22px
+
+  .kdmodal-inner
+    background        inherit
+    margin            18px
+
+    .kdmodal-content
+      margin          0 !important
+
+  .kdmodal-title
+    font-size         14px !important
+    margin-bottom     18px !important
+    color             #F4F1ED !important
+    font-weight       600 !important
+    border            none
+
+    span.title
+      font-size       inherit !important
+
+  .search-input
+    height            30px !important
+    rounded           40px !important
+    border            1px solid #CECECE
+    font-size         14px !important
+    font-weight       600 !important
+
+  .search-input ~ .listview-wrapper
+    margin-top        20px
+    height            95px
+
+    .kdcustomscrollview.has-vertical
+      padding-right   0
+
+      .kdscrolltrack
+        display       none
+
+    .kdlistitemview-sidebar-item
+      color           #F4F1ED
+      line-height     23px
+      font-size       14px
+      padding         4px 0
+      display         block
+      noTextDeco()
+
+    .topic-follow-btn
+      size            auto, 23px
+      background      #61C17F
+      padding         0 10px
+      fr()
+
+      &.following
+        background    #cacaca
+
+      .button-title
+        display       inline
+        visibility    visible
+        color         #fff
+        font-size     10px
+        text-transform uppercase
+
+      .icon
+        display       none
+
+      &:hover
+        border        none !important
 
 
 div.kdtooltip.activity-helper
