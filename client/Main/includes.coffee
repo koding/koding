@@ -61,6 +61,7 @@ module.exports = [
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
+  "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
   "CommonViews/suggestedtokenview.coffee",
