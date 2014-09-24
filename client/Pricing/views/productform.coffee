@@ -1,5 +1,14 @@
 class PricingProductForm extends KDView
   constructor: (options = {}, data) ->
+    KodingAppsController.appendHeadElements
+      identifier : "stripe"
+      items      : [
+        {
+          type   : 'script'
+          url    : "https://js.stripe.com/v2/"
+        }
+      ]
+
     options.cssClass = KD.utils.curry "product-form", options.cssClass
     super options, data
 
@@ -28,19 +37,26 @@ class PricingProductForm extends KDView
   showSection: (name) ->
     @tabView.showPaneByName name
 
-  selectPlan: (tag, groupTag, options) ->
-    paymentController = KD.singleton "paymentController"
-    paymentController.fetchSubscriptionsWithPlans tags: [tag], (err, subscriptions) =>
-      return KD.showError "You are already subscribed to this plan"  if subscriptions.length
-      KD.remote.api.JPaymentPlan.one tags: $in: [tag], (err, plan) =>
-        return  if KD.showError err
-        @emit "PlanSelected", plan, options
+  selectPlan: (tag, groupTag, options, planName, price)->
+    log ">>>>>>>>> selectPlan", arguments...
 
-    if KD.isLoggedIn()
-      @setExistingSubscription groupTag
-    else
-      mainController = KD.singleton "mainController"
-      mainController.once "accountChanged.to.loggedIn", @lazyBound "setExistingSubscription", groupTag
+    Stripe.setPublishableKey 'pk_test_Gw43pxyKHJl2XZWA4q8ZvoAv'
+
+    paymentModal = new NewPaymentModal {planName, price}
+    paymentModal.on "PaymentSubmitted", (formData)->
+      {cardNumber, cardCVC, cardNumber, cardMonth, cardYear} = formData
+
+      console.log ">>>>>>>> PaymentSubmitted", formData
+
+      Stripe.card.createToken
+        number    : cardNumber
+        cvc       : cardCVC
+        exp_month : cardMonth
+        exp_year  : cardYear
+      , (status, response)->
+        return console.log "ERROR: ", response  if response.error
+
+        console.log response
 
   setExistingSubscription: (tag) ->
     paymentController = KD.singleton "paymentController"
@@ -49,7 +65,5 @@ class PricingProductForm extends KDView
       @emit "CurrentSubscriptionSet", subscription  if subscription
 
   viewAppended: ->
-    @addSubView new PricingIntroductionView
     @addSubView @tabView
-    @addSubView new PricingFeaturesView
     @addSubView new FooterView

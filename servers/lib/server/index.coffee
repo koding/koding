@@ -357,6 +357,9 @@ app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
 app.get '/-/image/cache'             , require "./image_cache"
 
+# Handlers for Stripe
+app.post '/-/stripe/webhook'         , require "./stripe_webhook"
+
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->
   { JMail } = koding.models

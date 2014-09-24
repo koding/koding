@@ -20,8 +20,8 @@ var (
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	kodingCredential = map[string]interface{}{
-		"access_key": "AKIAIDPT7E2UHZHT2CXQ",
-		"secret_key": "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",
+		"access_key": "AKIAIKAVWAYVSMCW4Z5A",
+		"secret_key": "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",
 	}
 )
 

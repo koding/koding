@@ -46,3 +46,17 @@ psql $WERCKER_POSTGRESQL_URL < $1/sitemap_definition/004-table.sql
 
 # create constraints
 psql $WERCKER_POSTGRESQL_URL < $1/sitemap_definition/005-constraint.sql
+
+# PAYMENT WORKER SQL IMPORTS
+
+# create sequences
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/002-schema.sql
+
+# create sequences
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/003-sequence.sql
+
+# create tables
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/004-table.sql
+
+# create constraints
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/005-constraint.sql
