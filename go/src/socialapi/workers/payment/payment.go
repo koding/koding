@@ -55,18 +55,7 @@ type SubscriptionsResponse struct {
 }
 
 func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
-	resp := &SubscriptionsResponse{
-		AcccountId:   s.AccountId,
-		PlanTitle:    "free",
-		PlanInterval: "month",
-		State:        "active",
-	}
-
 	customer, err := stripe.FindCustomerByOldId(s.AccountId)
-	if err == stripe.ErrCustomerNotFound {
-		return resp, nil
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +66,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	}
 
 	if len(subscriptions) == 0 {
-		return resp, nil
+		return nil, stripe.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	currentSubscription := subscriptions[0]
@@ -88,6 +77,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 		return nil, err
 	}
 
+	resp := &SubscriptionsResponse{}
 	resp.PlanTitle = plan.Title
 	resp.PlanInterval = plan.Interval
 	resp.CurrentPeriodStart = currentSubscription.CurrentPeriodStart
@@ -95,6 +85,37 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	resp.State = currentSubscription.State
 
 	return resp, nil
+}
+
+// DoWithDefault is different from Do since client excepts to get
+// "free" plan regardless of user not found or doesn't have any
+// subscriptions etc.
+func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
+	resp, err := s.Do()
+	if err == nil {
+		return resp, nil
+	}
+
+	defaultResp := &SubscriptionsResponse{
+		AcccountId:   s.AccountId,
+		PlanTitle:    "free",
+		PlanInterval: "month",
+		State:        "active",
+	}
+
+	defaultResponseErrs := []error{
+		stripe.ErrCustomerNotSubscribedToAnyPlans,
+		stripe.ErrCustomerNotFound,
+		stripe.ErrPlanNotFound,
+	}
+
+	for _, respError := range defaultResponseErrs {
+		if err == respError {
+			return defaultResp, nil
+		}
+	}
+
+	return nil, err
 }
 
 //----------------------------------------------------------

@@ -20,7 +20,7 @@ func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.He
 	}
 
 	return response.HandleResultAndClientError(
-		subscriptionRequest.Do(),
+		subscriptionRequest.DoWithDefault(),
 	)
 }
 

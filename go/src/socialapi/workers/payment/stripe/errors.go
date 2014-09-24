@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// TODO: move errors to own pkg
 var (
 	ErrPlanNotFound                    = errors.New("plan not found")
 	ErrCustomerIdIsNotSet              = errors.New("customer id is not set")

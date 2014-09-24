@@ -31,7 +31,7 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       return callback err  if err
 
-      canChangeplan client, data.planTitle, (err)->
+      canChangePlan client, data.planTitle, (err)->
         return callback err  if err
 
         data.accountId = getAccountId client
