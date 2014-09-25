@@ -170,6 +170,12 @@ func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 	destroyFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		err := p.Destroy(m)
+		if err != nil {
+			return nil, err
+		}
+
+		// purge the data too
+		err = k.Storage.Delete(m.Id)
 		return nil, err
 	}
 
@@ -324,12 +330,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
 		return nil, err
 	}
-
-	defer func() {
-		if reqErr != nil {
-			k.Log.Error("[%s] method '%s' failed. err: %s", args.MachineId, r.Method, reqErr.Error())
-		}
-	}()
 
 	k.Log.Info("[%s] ========== %s called by user: %s ==========",
 		args.MachineId, strings.ToUpper(r.Method), r.Username)

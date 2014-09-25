@@ -10,6 +10,9 @@ type Storage interface {
 	// username
 	Get(id string) (*protocol.Machine, error)
 
+	// Delete delets the machine data associated with the given id
+	Delete(id string) error
+
 	// Update updates the fields in the data for the given id
 	Update(id string, data *StorageData) error
 
