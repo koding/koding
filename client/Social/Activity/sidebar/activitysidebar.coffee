@@ -280,7 +280,7 @@ class ActivitySidebar extends KDCustomHTMLView
     return # until we have either fav or hot lists back - SY
 
     item  = @sections.hot.listController.itemForId id
-    state = if state then 'Following' else 'Follow'
+    state = if state then 'Unfollow' else 'Follow'
     item?.followButton.setState state
 
 
