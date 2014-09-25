@@ -81,15 +81,16 @@ class MachineSettingsPopup extends KDModalViewWithForms
     @on 'AlwaysOnStateChange', (state)=>
       {alwaysOn} = @moreForm.inputs
 
-      plan = computeController.getUserPlan()
-      computeController.setAlwaysOn data, state, (err)=>
-        return  unless err?
-        if err.name is "UsageLimitReached" and plan isnt 'hobbyist'
-          @destroy()
-          KD.utils.defer => new ComputeErrorModal.Usage { plan }
-        else
-          KD.showError err
-        alwaysOn.setOff no
+      computeController.fetchUserPlan (plan)=>
+
+        computeController.setAlwaysOn data, state, (err)=>
+          return  unless err?
+          if err.name is "UsageLimitReached" and plan isnt 'hobbyist'
+            @destroy()
+            KD.utils.defer => new ComputeErrorModal.Usage { plan }
+          else
+            KD.showError err
+          alwaysOn.setOff no
 
     @on 'UpdateNickname', =>
 

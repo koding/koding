@@ -14,7 +14,7 @@ class GuidesLinksView extends KDView
     unless options.partial?
 
       partial = ""
-      for title, link of Links
+      for title, link of (options.links ? Links)
         partial += "<a href='#{link}' title='#{title}' target='_blank'>#{title}</a>, "
       partial = partial[...-2]
 

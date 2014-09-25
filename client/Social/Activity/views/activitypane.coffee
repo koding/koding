@@ -64,12 +64,14 @@ class ActivityPane extends MessagePane
           view          : @mostLiked
           closable      : no
           shouldShow    : yes
+          route         : '/Activity/Public/Liked'
         }
         {
           name          : 'Most Recent'
           view          : @mostRecent
           closable      : no
           shouldShow    : no
+          route         : '/Activity/Public/Recent'
         }
         {
           name          : 'Search Tab'
@@ -121,6 +123,14 @@ class ActivityPane extends MessagePane
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]
 
+  appendMessage: (message, index) -> @mostRecent.addItem message, index
+
+  prependMessage: (message, index) ->
+    KD.getMessageOwner message, (err, owner) =>
+      return error err  if err
+      return if KD.filterTrollActivity owner
+      @mostRecent.addItem message, index
+
   removeMessage: (message) ->
     for contentPane in [@mostLiked, @mostRecent, @searchResults]
       contentPane.removeMessage message
@@ -136,8 +146,15 @@ class ActivityPane extends MessagePane
 
   createSearchInput: ->
     @searchInput = new SearchInputView
+      placeholder : 'Search channel'
 
     @tabView.tabHandleContainer.addSubView @searchInput
+
+    searchIcon = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'search-icon'
+
+    @tabView.tabHandleContainer.addSubView searchIcon
 
     @searchInput.on 'SearchRequested', (text) =>
       @tabView.showPane @tabView.panes.last

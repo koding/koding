@@ -45,19 +45,16 @@ module.exports = class Koding extends ProviderInterface
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
-  getUserPlan = (account)->
+  @fetchUserPlan = (client, callback)->
 
-    knownPlans = Object.keys PLANS
-    flags = account.globalFlags or []
+    Payment = require '../payment'
+    Payment.subscriptions client, {}, (err, subscription)=>
 
-    PLANS[ do ->
+      if err? or not subscription?
+      then plan = 'free'
+      else plan = subscription.planTitle
 
-      for plan in knownPlans
-        return plan  if "plan-#{plan}" in flags
-
-      return 'free'
-
-    ]
+      callback err, PLANS[plan]
 
 
   checkUsage = (usage, plan, storage)->
@@ -105,28 +102,31 @@ module.exports = class Koding extends ProviderInterface
     { r: { group, user, account } } = client
 
     storage ?= 3
-    userPlan = getUserPlan account
 
-    @fetchUsage client, options, (err, usage)->
+    @fetchUserPlan client, (err, userPlan)=>
 
       return callback err  if err?
 
-      if err = checkUsage usage, userPlan, storage
-        return callback err
+      @fetchUsage client, options, (err, usage)->
 
-      guessNextLabel user, group, label, (err, label)->
+        return callback err  if err?
 
-        meta =
-          type          : "amazon"
-          region        : "us-east-1"
-          source_ami    : "ami-2651904e"
-          instance_type : "t2.micro"
-          storage_size  : storage
-          alwaysOn      : no
+        if err = checkUsage usage, userPlan, storage
+          return callback err
 
-        callback null, {
-          meta, label, credential: client.r.user.username
-        }
+        guessNextLabel user, group, label, (err, label)->
+
+          meta =
+            type          : "amazon"
+            region        : "us-east-1"
+            source_ami    : "ami-2651904e"
+            instance_type : "t2.micro"
+            storage_size  : storage
+            alwaysOn      : no
+
+          callback null, {
+            meta, label, credential: client.r.user.username
+          }
 
 
   @update = (client, options, callback)->
@@ -139,39 +139,42 @@ module.exports = class Koding extends ProviderInterface
         "A valid machineId and alwaysOn state required."
 
     JMachine = require './machine'
-    userPlan = getUserPlan account
 
-    @fetchUsage client, options, (err, usage)->
+    @fetchUserPlan client, (err, userPlan)=>
 
       return callback err  if err?
 
-      if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
-        return callback new KodingError \
-          """Total limit of #{userPlan.alwaysOn}
-             always on vm limit has been reached.""", "UsageLimitReached"
+      @fetchUsage client, options, (err, usage)->
 
-      { ObjectId } = require 'bongo'
+        return callback err  if err?
 
-      selector  =
-        $or     : [
-          { _id : ObjectId machineId }
-          { uid : machineId }
-        ]
-        users   : $elemMatch: id: user.getId()
-        groups  : $elemMatch: id: group.getId()
+        if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
+          return callback new KodingError \
+            """Total limit of #{userPlan.alwaysOn}
+               always on vm limit has been reached.""", "UsageLimitReached"
 
-      JMachine.one selector, (err, machine)->
+        { ObjectId } = require 'bongo'
 
-        if err? or not machine?
-          err ?= new KodingError "Machine object not found."
-          return callback err
+        selector  =
+          $or     : [
+            { _id : ObjectId machineId }
+            { uid : machineId }
+          ]
+          users   : $elemMatch: id: user.getId()
+          groups  : $elemMatch: id: group.getId()
+
+        JMachine.one selector, (err, machine)->
+
+          if err? or not machine?
+            err ?= new KodingError "Machine object not found."
+            return callback err
 
 
-        machine.update
+          machine.update
 
-          $set: "meta.alwaysOn": alwaysOn
+            $set: "meta.alwaysOn": alwaysOn
 
-        , (err)-> callback err
+          , (err)-> callback err
 
 
   @fetchUsage = (client, options, callback)->

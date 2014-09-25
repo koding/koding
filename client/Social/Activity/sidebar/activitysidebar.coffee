@@ -37,6 +37,7 @@ class ActivitySidebar extends KDCustomHTMLView
       notificationController
       computeController
       socialapi
+      router
     } = KD.singletons
 
     @sections     = {}
@@ -46,6 +47,9 @@ class ActivitySidebar extends KDCustomHTMLView
     @selectedItem = null
 
     # @appsList = new DockController
+
+    router
+      .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -134,9 +138,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem channel, yes
+      channel.isParticipant    = yes
       channel.participantCount = participantCount
       channel.emit 'update'
+
+      item = @addItem channel, no
       item.setUnreadCount unreadCount
 
 
@@ -146,9 +152,12 @@ class ActivitySidebar extends KDCustomHTMLView
     {id, typeConstant}              = update.channel
     {unreadCount, participantCount} = update
 
-    # @removeItem id
+    @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
+      return KD.showError err  if err
+
+      channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
 
@@ -365,7 +374,7 @@ class ActivitySidebar extends KDCustomHTMLView
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
           treeData.push
-            title        : workspace.name
+            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
             type         : 'workspace'
             href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
             machineLabel : machine.slug or machine.label
@@ -617,7 +626,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
         view    = @addWorkspaceView
         data    =
-          title : workspace.name
+          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
           type  : 'workspace'
           href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           data  : workspace
