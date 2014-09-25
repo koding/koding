@@ -34,6 +34,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @once 'viewAppended', => KD.utils.wait 300, =>
       @createEditor()  if @getOption 'createNewEditor'
 
+    @tabView.on 'PaneAdded', (pane) =>
+      return unless pane.options.editor
+      {tabHandle} = pane
+
+      icon = new KDCustomHTMLView
+        tagName  : 'span'
+        cssClass : 'options'
+        click    : => @createEditorMenu tabHandle, icon
+
+      tabHandle.addSubView icon, null, yes
+
   createPane_: (view, paneOptions, paneData) ->
     unless view or paneOptions
       return new Error 'Missing argument for createPane_ helper'
@@ -212,6 +223,15 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       'Browser'       : callback : => @createPreview()
       # 'Drawing Board' : callback : => @createDrawingBoard()
     }
+
+  createEditorMenu: (tabHandle, icon) ->
+    tabHandle.setClass 'menu-visible'
+    KD.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
+
+    KD.utils.defer =>
+      @menu.once 'KDObjectWillBeDestroyed', =>
+        tabHandle.unsetClass 'menu-visible'
+        delete @menu
 
   createPlusContextMenu: ->
     offset        = @holderView.plusHandle.$().offset()
