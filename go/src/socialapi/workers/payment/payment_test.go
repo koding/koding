@@ -33,7 +33,7 @@ func init() {
 func TestSubscriptionsRequest(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {
 		req := SubscriptionRequest{AccountId: "indianajones"}
-		resp, err := req.Do()
+		resp, err := req.DoWithDefault()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return 'free' plan", func() {
@@ -55,7 +55,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		req := SubscriptionRequest{AccountId: customer.OldId}
-		resp, err := req.Do()
+		resp, err := req.DoWithDefault()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the plan", func() {

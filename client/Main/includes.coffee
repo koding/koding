@@ -206,6 +206,7 @@ module.exports = [
   "payment/stripeformview.coffee",
   "payment/form.coffee",
   "payment/basemodal.coffee",
+  "payment/downgradeerrormodal.coffee",
   "payment/modal.coffee",
   "payment/creditcardmodal.coffee",
 

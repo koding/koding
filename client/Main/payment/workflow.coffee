@@ -48,9 +48,32 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
+    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+
+    if isUpgrade
+    then @startRegularFlow()
+    else @startDowngradeFlow()
+
+
+  startRegularFlow: ->
+
     @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished', @bound 'finish'
     @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
+
+
+  startDowngradeFlow: ->
+
+    { paymentController } = KD.singletons
+
+    paymentController.canChangePlan @state.planTitle, (err) =>
+
+      if err?
+        @state.error = err
+        @modal = new PaymentDowngradeErrorModal { @state }
+        return
+
+      @startRegularFlow()
 
 
   handlePaymentSubmit: (formData) ->

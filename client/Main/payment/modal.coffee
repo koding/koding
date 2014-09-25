@@ -50,7 +50,9 @@ class PaymentModal extends PaymentBaseModal
     @form.showValidationErrorsOnInputs error
 
 
-  handleError: (error) -> KD.showError error
+  handleError: (error) ->
+    msg = error?.description or error?.message or "Something went wrong."
+    KD.showError msg
 
 
   handleSuccess: ->

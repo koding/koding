@@ -249,6 +249,31 @@ class ComputeController extends KDController
         (@errorHandler call, 'destroy', machine) err
 
 
+  reinit: (machine)->
+
+    ComputeController.UI.askFor 'destroy', machine, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      call = @kloud.reinit { machineId: machine._id }
+
+      .then (res)=>
+
+        log "reinit res:", res
+        @_clearTrialCounts machine
+        @eventListener.addListener 'reinit', machine._id
+
+      .timeout ComputeController.timeout
+
+      .catch (err)=>
+
+        (@errorHandler call, 'reinit', machine) err
+
+
   build: (machine)->
 
     @eventListener.triggerState machine,
