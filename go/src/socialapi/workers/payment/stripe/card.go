@@ -94,3 +94,19 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 
 	return nil
 }
+
+func UpdateCreditCardIfEmpty(accId, token string) error {
+	ccResp, err := GetCreditCard(accId)
+	if err != nil {
+		return err
+	}
+
+	if IsCreditCardEmpty(ccResp) {
+		err := UpdateCreditCard(accId, token)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
