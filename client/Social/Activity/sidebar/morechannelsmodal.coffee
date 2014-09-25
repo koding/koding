@@ -10,3 +10,10 @@ class MoreChannelsModal extends SidebarSearchModal
       search              : KD.singletons.socialapi.channel.searchTopics
 
     super options, data
+
+
+  fetch: (options = {}, callback = noop) ->
+
+    options.skip ?= 9
+
+    super options, callback
