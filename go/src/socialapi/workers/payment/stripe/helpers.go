@@ -33,3 +33,7 @@ func IsNoCreditCards(cardList *stripe.CardList) bool {
 func IsTooManyCreditCards(cardList *stripe.CardList) bool {
 	return cardList.Count > 1
 }
+
+func IsCreditCardEmpty(ccResp *CreditCardResponse) bool {
+	return ccResp.LastFour == ""
+}
