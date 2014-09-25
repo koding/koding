@@ -367,6 +367,7 @@ app.get '/-/image/cache'             , require "./image_cache"
 
 # Handlers for Stripe
 app.post '/-/stripe/webhook'         , require "./stripe_webhook"
+app.get  '/-/subscriptions'          , require "./subscriptions"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->
