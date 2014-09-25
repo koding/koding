@@ -365,7 +365,12 @@ class ComputeController extends KDController
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
+
       @eventListener.addListener stateEvent, machine._id
+
+      if stateEvent in ["build", "destroy"]
+        @eventListener.addListener "reinit", machine._id
+
       return yes
 
     return no
