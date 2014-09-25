@@ -305,23 +305,6 @@ class IDEAppController extends AppController
 
         callback()
 
-        # unless hideOnboardingModal
-        #   callback yes
-        #   appStorage.setValue 'hideOnboardingModal', yes
-
-        #   # FIXME: Onboarding modal is currently disabled.
-        #   # To make a quick workaround for `initiateFakeCounter`
-        #   # I just set appStorage flag to true. When we want to
-        #   # put onboarding modal back we need to change flag name.
-
-        #   # @onboardingModal = new IDE.OnboardingModal { container }
-        #   # @onboardingModal.once 'OnboardingModalDismissed', =>
-        #   #   mainView.activitySidebar.initiateFakeCounter()
-        #   #   callback()
-        # else
-        #   callback()
-
-
   createMachineStateModal: (options = {}) ->
     { state, container, machineItem, initial } = options
     modalOptions = { state, container, initial }
@@ -389,7 +372,10 @@ class IDEAppController extends AppController
 
       @openFile file, contents
 
-  createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
+  createNewTerminal: (machine, path) ->
+    machine = null  unless machine instanceof Machine
+
+    @activeTabView.emit 'TerminalPaneRequested', machine, path
 
   createNewBrowser: (url) ->
     url = ''  unless typeof url is 'string'
@@ -512,6 +498,23 @@ class IDEAppController extends AppController
     else ''
 
     status.updatePartial text
+
+  showStatusBarMenu: (ideView, button) ->
+    paneView = @getActivePaneView()
+    paneType = paneView?.getOptions().paneType or null
+    delegate = button
+    menu     = new IDE.StatusBarMenu { paneType, paneView, delegate }
+
+    ideView.menu = menu
+
+    menu.on 'viewAppended', ->
+      if paneType is 'editor' and paneView
+        {syntaxSelector} = menu
+        {ace}            = paneView.aceView
+
+        syntaxSelector.select.setValue ace.getSyntax()
+        syntaxSelector.on 'SelectionMade', (value) =>
+          ace.setSyntax value
 
   showFileFinder: ->
     return @fileFinder.input.setFocus()  if @fileFinder

@@ -55,6 +55,8 @@ module.exports = [
   "views/shortcutsview/shortcutsview.coffee"
 
   # status bar
+  "views/statusbar/syntaxselectormenuitem.coffee"
+  "views/statusbar/statusbarmenu.coffee"
   "views/statusbar/statusbar.coffee"
 
   "AppController.coffee"

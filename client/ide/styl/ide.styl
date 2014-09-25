@@ -31,14 +31,39 @@ body.ide.dark
 
   .kdtabhandlecontainer
     bg                  color, dark-tab-header-bg
+    &.application-tab-handle-holder .kdtabhandle .close-tab
+      r-sprite          'ide', 'tab-close'
+      top               14px
+    .kdtabhandle b
+      width             90%
+
+  .vm-header .buttons .chevron
+    r-sprite            'finder', 'expanded'
+    top                 -8px !important
 
   .kdtabhandle
     color               dark-tab-color
+    &:hover .options
+      display           inline-block
     &.active
       bg                color, dark-panel-bg
       color             dark-active-tab-color
+    &.menu-visible
+      .options
+        display         inline-block
+    .options
+      r-sprite          'finder', 'expanded'
+      position          absolute
+      top               9px
+      right             20px
+      display           none
+
     &.plus
       border-left-color transparent
+
+  .jtreeview-wrapper .jtreeitem.selected .chevron
+    display             inline-block
+    top                 3px
 
   .ace-koding, .ace-tm
     bg                  color, dark-panel-bg
@@ -68,7 +93,7 @@ body.ide.dark
       margin            0
 
   .ace-find-replace-view
-    bottom              34px !important
+    bottom              1px !important
     bg                  color, dark-tab-header-bg
     border-bottom-color dark-tab-header-bg
     box-shadow          inset 0 -1px 0 dark-tab-header-bg
@@ -123,16 +148,6 @@ body.ide.dark
 
       >.pane
         overflow        visible
-
-  .kdselectbox
-    bg                  color, transparent
-    border              1px solid #555555
-    rounded             3px
-    width               120px
-    borderBox()
-    .arrows
-      r-sprite          'finder', 'expanded'
-      top               8px
 
   .nfinder.file-container
   .ide-files-tab .kdtabhandle-tabs
@@ -344,9 +359,6 @@ body.ide.dark
 
 
   .status-bar-menu
-    top                 inherit !important
-    position            fixed
-    bottom              34px
     ul
       bg                color, dark-tab-header-bg !important
       padding           2px !important
@@ -354,7 +366,6 @@ body.ide.dark
     li
       color             #E6E1DC !important
       rounded           0 !important
-      padding-left      15px !important
       &:hover
         bg              color, dark-panel-bg !important
       &.selected
@@ -367,9 +378,10 @@ body.ide.dark
     padding             3px 10px 3px 0
     span
       font-size         13px
+      margin-left       10px
     .kdselectbox
       height            24px
-      margin-left       29px
+      margin-left       35px
       span
         line-height     24px !important
         height          24px !important

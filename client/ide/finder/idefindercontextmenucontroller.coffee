@@ -13,8 +13,10 @@ class IDE.FinderContextMenuController extends NFinderContextMenuController
         separator                 : yes
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
-      'Create new workspace'      :
+      'Workspace from here'       :
         action                    : 'createWorkspace'
+      'Terminal from here'        :
+        action                    : 'createTerminal'
         separator                 : yes
       Delete                      :
         action                    : 'delete'
