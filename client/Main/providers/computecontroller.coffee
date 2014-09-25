@@ -223,6 +223,8 @@ class ComputeController extends KDController
 
       @stateChecker.watch machine._id
 
+      return err
+
 
   destroy: (machine)->
 
