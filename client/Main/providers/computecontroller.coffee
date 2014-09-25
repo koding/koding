@@ -251,7 +251,7 @@ class ComputeController extends KDController
 
   reinit: (machine)->
 
-    ComputeController.UI.askFor 'destroy', machine, =>
+    ComputeController.UI.askFor 'reinit', machine, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
