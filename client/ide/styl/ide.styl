@@ -37,6 +37,10 @@ body.ide.dark
     .kdtabhandle b
       width             90%
 
+  .vm-header .buttons .chevron
+    r-sprite            'finder', 'expanded'
+    top                 -8px !important
+
   .kdtabhandle
     color               dark-tab-color
     &:hover .options
@@ -56,6 +60,10 @@ body.ide.dark
 
     &.plus
       border-left-color transparent
+
+  .jtreeview-wrapper .jtreeitem.selected .chevron
+    display             inline-block
+    top                 3px
 
   .ace-koding, .ace-tm
     bg                  color, dark-panel-bg
@@ -140,16 +148,6 @@ body.ide.dark
 
       >.pane
         overflow        visible
-
-  .kdselectbox
-    bg                  color, transparent
-    border              1px solid #555555
-    rounded             3px
-    width               120px
-    borderBox()
-    .arrows
-      r-sprite          'finder', 'expanded'
-      top               8px
 
   .nfinder.file-container
   .ide-files-tab .kdtabhandle-tabs
@@ -383,7 +381,7 @@ body.ide.dark
       margin-left       10px
     .kdselectbox
       height            24px
-      margin-left       29px
+      margin-left       35px
       span
         line-height     24px !important
         height          24px !important
