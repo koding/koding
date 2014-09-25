@@ -328,14 +328,10 @@ module.exports = class LoginView extends JView
                     passwordCheck     : 'keyup'
                   rules               :
                     passwordCheck     : (input, event)=>
-
-                      passwordForm = modal.modalTabs.forms.password
-                      if input.getValue().length < 8
-                        modal.setTitle "Passwords should be at least 8 characters."
-                      else
-                        unless input.getValue() is passwordForm.inputs.confirm.getValue()
-                          modal.setTitle "Looks good, please confirm it."
-
+                      passwordForm  = modal.modalTabs.forms.password
+                      {result, msg} = @checkForPasswords input, passwordForm.inputs.confirm
+                      @changeButtonState passwordForm.buttons.submit, result
+                      modal.setTitle msg
                 nextElement           :
                   confirm             :
                     cssClass          : 'half'
@@ -347,16 +343,10 @@ module.exports = class LoginView extends JView
                         passwordCheck : 'keyup'
                       rules           :
                         passwordCheck : (input, event)=>
-
-                          passwordForm = modal.modalTabs.forms.password
-                          if passwordForm.inputs.password.getValue().length >= 8
-                            if input.getValue() is passwordForm.inputs.password.getValue()
-                              modal.setTitle 'Both look good!'
-                              passwordForm.buttons.submit.enable()
-                            else
-                              modal.setTitle 'Passwords should match.'
-                              passwordForm.buttons.submit.disable()
-
+                          passwordForm  = modal.modalTabs.forms.password
+                          {result, msg} = @checkForPasswords input, passwordForm.inputs.password
+                          @changeButtonState passwordForm.buttons.submit, result
+                          modal.setTitle msg
             buttons           :
               submit          :
                 cssClass      : 'solid green medium'
@@ -371,6 +361,31 @@ module.exports = class LoginView extends JView
     modal.once 'viewAppended', ->
       KD.utils.defer ->
         modal.modalTabs.forms.password.inputs.password.setFocus()
+
+  checkForPasswords: (password, confirm) ->
+
+    vals = [password.getValue(), confirm.getValue()]
+    check1 = vals.first.length > 7
+    check2 = vals.last.length > 7
+    check3 = vals.first is vals.last
+
+    return result : no, msg : "Passwords must match!"  if check1 and not check2
+    return result : no, msg : "Passwords should be at least 8 characters."  if not check1 or not check2
+    return result : no, msg : "Passwords must match!"  unless check3
+
+    return result : yes, msg : "Looks good, go ahead!"  if check1 and check2 and check3
+
+
+  changeButtonState: (button, state) ->
+
+    if state
+      button.setClass 'green'
+      button.unsetClass 'red'
+      button.enable()
+    else
+      button.setClass 'red'
+      button.unsetClass 'green'
+      button.disable()
 
 
   doRegister: (formData, form) ->
