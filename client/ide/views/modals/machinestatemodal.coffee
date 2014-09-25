@@ -99,10 +99,16 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @createStateLabel()
 
-    if @state in [ Stopped, Running, NotInitialized, Terminated, Unknown ]
+    if @state in [ Stopped, Running, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Stopping, Terminating, Updating, Rebooting ]
       @createProgressBar()
+    else if @state is Terminated
+      @label.destroy?()
+      @createStateLabel """
+        Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
+        Please select a new VM to operate on from the VMs list or create a new one.
+      """
 
     @createError()
 
@@ -123,11 +129,11 @@ class IDE.MachineStateModal extends IDE.ModalView
       Unknown        : 'is turned off.'
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
-    stateText = customState or "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+    stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
 
     @label     = new KDCustomHTMLView
       tagName  : 'p'
-      partial  : "<span class='icon'></span>#{stateText}"
+      partial  : customState or "<span class='icon'></span>#{stateText}"
       cssClass : "state-label #{@state.toLowerCase()}"
 
     @container.addSubView @label
