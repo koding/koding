@@ -25,6 +25,11 @@ class ComputeController extends KDController
 
       @fetchStacks =>
 
+        KD.singletons
+          .paymentController.on 'UserPlanUpdated', =>
+            @lastKnownUserPlan = null
+            @fetchUserPlan()
+
         if @stacks.length is 0 then do @createDefaultStack
 
         @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -380,34 +385,37 @@ class ComputeController extends KDController
           else @plans = plans
           callback plans
 
-  getUserPlan:->
+  fetchUserPlan: (callback = noop)->
 
-    knownPlans = ['super', 'professional', 'developer', 'hobbyist']
-    flags = KD.whoami().globalFlags or []
+    if @lastKnownUserPlan?
+      return callback @lastKnownUserPlan
 
-    for plan in knownPlans
-      return plan  if "plan-#{plan}" in flags
+    KD.singletons.paymentController.subscriptions (err, subscription)=>
 
-    return 'free'
+      warn "Failed to fetch subscription:", err  if err?
+
+      if err? or not subscription?
+      then callback 'free'
+      else callback @lastKnownUserPlan = subscription.planTitle
 
 
   handleNewMachineRequest: ->
 
-    plan = @getUserPlan()
+    @fetchUserPlan (plan)=>
 
-    @fetchPlans (plans)=>
+      @fetchPlans (plans)=>
 
-      @fetchUsage provider: "koding", (err, usage)->
+        @fetchUsage provider: "koding", (err, usage)->
 
-        return  if KD.showError err
+          return  if KD.showError err
 
-        limits  = plans[plan]
-        options = { plan, limits, usage }
+          limits  = plans[plan]
+          options = { plan, limits, usage }
 
-        if plan in ['developer', 'professional', 'super']
-          new ComputePlansModal.Paid options
-        else
-          new ComputePlansModal.Free options
+          if plan in ['developer', 'professional', 'super']
+            new ComputePlansModal.Paid options
+          else
+            new ComputePlansModal.Free options
 
 
   triggerReviveFor:(machineId)->

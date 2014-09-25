@@ -8,7 +8,10 @@ class PaymentController extends KDController
     params.email    = options.email     if options.email
     params.provider = options.provider  or DEFAULT_PROVIDER
 
-    @api().subscribe params, callback
+    @api().subscribe params, (err, result)=>
+      @emit "UserPlanUpdated"  unless err?
+      callback err, result
+
 
   subscriptions: (callback)-> @api().subscriptions {}, callback
 
