@@ -6,6 +6,9 @@ build:
         name: build go binaries
         code: go/build.sh
     - script:
+        name: install debuild
+        code: sudo apt-get install ubuntu-dev-tools -y
+    - script:
         name: package klient.deb
         code: |
           export GOPATH=$PWD/go
