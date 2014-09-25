@@ -79,7 +79,7 @@ class SidebarSearchModal extends KDModalView
     val = @searchField.getValue()
     val = val.slice(1)  if val[0] is '#'
 
-    if val is '' and @searchActive             then return @cancelsearch()
+    if val is '' and @searchActive             then return @reset()
     else if val is '' and not @searchActive    then return
     else if val is @lastTerm and @searchActive then return
 
@@ -92,7 +92,7 @@ class SidebarSearchModal extends KDModalView
     @fetchForSearch name : val, @bound 'populate'
 
 
-  cancelsearch: ->
+  reset: ->
 
     @searchActive = no
 
