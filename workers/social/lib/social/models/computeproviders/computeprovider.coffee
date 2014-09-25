@@ -170,8 +170,6 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    ComputeProvider.fetchPlans client, options, callback
-
     {provider} = options
     provider.fetchPlans client, options, callback
 

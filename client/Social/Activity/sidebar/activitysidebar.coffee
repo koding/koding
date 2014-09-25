@@ -142,7 +142,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, yes
+      item = @addItem channel, no
       item.setUnreadCount unreadCount
 
 
@@ -458,7 +458,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
@@ -605,10 +607,10 @@ class ActivitySidebar extends KDCustomHTMLView
     layout = {}
 
     if not name or not machineUId
-      return warn 'Missing options for create new workspace'
+      return warn 'Missing options to create a new workspace'
 
     unless rootPath
-      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{KD.utils.slugify name}"
       emptyWorkspace = yes
 
     data    = { name, machineUId, machineLabel, rootPath, layout }
@@ -619,7 +621,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     callback = =>
       KD.remote.api.JWorkspace.create data, (err, workspace) =>
-        return KD.showError "Couldn't create new workspace"  if err
+        if err
+          @emit 'WorkspaceCreateFailed'
+          return KD.showError "Couldn't create new workspace"
 
         for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
           parentId = nodeData.id
@@ -646,6 +650,7 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.userWorkspaces.push workspace
 
         router.handleRoute data.href
+        @emit 'WorkspaceCreated', workspace
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })

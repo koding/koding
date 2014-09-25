@@ -4,7 +4,7 @@ class ComputeErrorModal.Usage extends ComputeErrorModal
 
     {message, upgradeMessage, plan} = @getOptions()
 
-    plan ?= KD.singletons.computeController.getUserPlan()
+    plan ?= 'free'
 
     switch plan
       when "developer"

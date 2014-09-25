@@ -89,16 +89,21 @@ class AccountSshKeyListItem extends KDListItemView
 
     @info = info = new KDCustomHTMLView
       tagName  : "div"
-      cssClass : "ssh-key-item"
+      cssClass : "ssh-key-item clearfix"
       partial  : """
-      <div class="title">#{@getData().title}</div>
-      <div class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</div>
+      <div class='ssh-key-info'>
+        <h4>#{@getData().title}</h4>
+        <p>#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</p>
+      </div>
       """
 
-    info.addSubView editLink = new KDButtonView
+    info.addSubView buttons = new KDCustomHTMLView
+      cssClass : 'buttons'
+
+    buttons.addSubView editLink = new KDButtonView
       title    : "Edit"
       cssClass : "edit"
-      style    : "solid small green"
+      style    : "solid medium green"
       callback : @bound "swapSwappable"
 
     @swappable = swappable = new AccountsSwappable

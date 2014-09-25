@@ -1620,7 +1620,81 @@ span.collapsedtext
   padding               58px 34px 0 34px
   background            #fff
   margin-left           -34px
+  vendor                transform, translateX(0)
   borderBox()
+
+  .new-message-form
+    abs                 0px 0 0 0px
+    width               100%
+    padding             34px
+    borderBox()
+
+    .kdautocompletewrapper
+      width             100%
+      min-width         0
+
+    .autocomplete-heads
+      width             auto
+      fl()
+
+      .chat-head
+        white-space     nowrap
+        line-height     40px
+        fl()
+
+        > span
+          display       inline-block
+          font-size     14px
+          color         #8B8B8B
+
+        .avatarview
+          height        25px
+          margin        7px 12px 0 0
+
+        &~.chat-head
+          margin-left   14px
+
+    .input-wrapper
+      margin            0
+      padding           0
+
+    .kdinput.text
+      background        transparent
+      border            none
+      height            40px
+      font-size         14px
+      shadow            none
+      outline           none
+      fr()
+
+      &::-webkit-input-placeholder
+        color           #D0D0D0
+
+      &:-moz-input-placeholder
+        color           #D0D0D0
+
+    .formline
+      position          relative
+      background        #fff
+      height            40px
+      border            1px solid #E8E8E8
+      rounded           3px 3px 0 0
+      padding-left      97px
+
+      &.purpose
+        rounded         0 0 3px 3px
+        border-top      none
+
+    .kdlabel
+      abs               0px 0 0 0px
+      line-height       40px
+      z-index           20
+      padding           0 0 0 17px
+      margin            0
+      color             #9A9A9A
+      font-size         12px
+      font-weight       600
+
 
   .list-previous-link
     size                100% 47px
@@ -1643,10 +1717,6 @@ span.collapsedtext
     width                   100%
     max-width               566px
     z-index                 1
-    background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
-    background -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(65%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)))
-    background -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
-    background linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
     fix()
 
     .description
@@ -1975,8 +2045,9 @@ span.collapsedtext
   .reply-input-widget
     position            fixed
     bottom              0
+    left                34px
     height              auto
-    kalc                width, 100% \- 360px
+    width               100%
     max-width           532px
     padding             0 0 30px
     bg                  color white
@@ -2293,98 +2364,6 @@ body.group.members
     &:focus
       shadow      none
 
-
-// new private message modal
-.kdmodal.private-message
-
-  .formline.purpose,
-  .formline.recipient
-    border        1px solid #d1d1d1
-    border-bottom none
-    rounded       5px
-    margin-bottom 16px
-    bg            color white
-
-
-    .input-wrapper
-      margin-bottom 0
-
-
-    input.kdinput.text
-      border      none
-      bg          color, transparent
-      outline     none
-      &:focus
-        outline   none
-        shadow    none
-
-    .kdautocompletewrapper
-      width       100%
-      fr()
-
-  .chat-heads
-    display       inline-block
-    width         auto
-    padding       9px 0
-    z-index       10
-    borderBox()
-    abs()
-
-  .chat-head
-    display         inline-block
-    height          30px
-    margin-right    7px
-    rel()
-
-    &:first-of-type
-      margin-left   9px
-
-    &:last-of-type
-      margin-right  0
-
-    &:hover
-    &.selected
-      .close-icon
-        bg        color rgba(255,255,255,.9)
-        shadow    0 0 0 5px rgba(255,255,255,.9)
-        visible()
-
-    .close-icon
-      top             5px
-      left            5px
-      size            20px 20px
-      hidden()
-
-    .avatarview
-      size            30px 30px
-      fl()
-
-    .first-name
-      display         inline-block
-      height          30px
-      font-size       12px
-      background      #ececec
-      font-weight     600
-      margin-left     -15px
-      padding         4px 7px 2px 22px
-      z-index         -1
-      border-radius   0 3px 3px 0
-      borderBox()
-      rel()
-
-  .formline.button-field
-
-    button.kdbutton
-      text-align            center
-      rounded               8px
-
-    button.kdbutton.message-send
-      size                  77px 34px
-      span.icon
-        display             inline-block
-        size                20px 20px
-        r-sprite            activity 'paper-plane'
-
 // new private message modal
 .kdmodal.private-message.add-participant
 
@@ -2422,23 +2401,27 @@ body.group.members
         abs()
 
 .kdautocomplete.listview-wrapper.private-message
-
-  border            1px solid #d1d1d1
-  border-top        1px solid transparent
-  shadow            0 3px 6px rgba(0,0,0,0.1)
+  border            1px solid #E0E0E0
+  rounded           0
+  shadow            0 1px 16px rgba(0,0,0,.09)
+  margin-top        0
   fix()
 
   .kdautocompletelistitem
-    font-size       12px
-    font-weight     600
-    padding         0 5px
+    font-size       14px
+    padding         5px 10px 5px 5px
     border          none
     cursor          pointer
     line-height     27px
     bg              color transparent
-    color           #838383
+    color           #6D6D6D
     borderBox()
+
+    .avatarview
+      display       inline-block
+      margin        1px 10px 1px 5px
+      size          25px, 25px
 
   .kdautocompletelistitem.active
     color           white
-    bg              color logoBg
+    bg              color #7a7a7a

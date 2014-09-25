@@ -37,7 +37,10 @@ module.exports = class Payment extends Base
 
         post url, data, callback
 
-  @subscriptions = secure (client, data, callback)->
+  @subscriptions$ = secure (client, data, callback)->
+    Payment.subscriptions client, data, callback
+
+  @subscriptions = (client, data, callback)->
     data.accountId = getAccountId client
     url = "/payments/subscriptions/#{data.accountId}"
 

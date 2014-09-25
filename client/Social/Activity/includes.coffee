@@ -99,13 +99,14 @@ module.exports = [
   "views/comments/timeview.coffee"
 
   "views/privatemessage/listitem.coffee"
-  "views/privatemessage/modal.coffee"
+  "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
+  "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
   "views/privatemessage/settingsview.coffee"
 

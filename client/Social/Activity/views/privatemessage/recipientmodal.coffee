@@ -76,6 +76,6 @@ class PrivateMessageRecipientModal extends KDModalViewWithForms
     inputs.recipient.addSubView autoCompleteView
 
 
-  fetchAccounts: PrivateMessageModal::fetchAccounts
+  fetchAccounts: PrivateMessageForm::fetchAccounts
 
-  handleRecipientKeydown: PrivateMessageModal::handleRecipientKeydown
+  handleRecipientKeydown: PrivateMessageForm::handleRecipientKeydown

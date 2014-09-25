@@ -183,14 +183,22 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		Test:            p.Test,
 	}
 
+	// check if the user has some keys
+	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
+		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
+			cloudInitConfig.UserSSHKeys = keys
+		}
+	}
+
 	cloudInitConfig.setupMigrateScript()
 
 	var userdata bytes.Buffer
-	err = cloudInitTemplate.Execute(&userdata, *cloudInitConfig)
+	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
 	if err != nil {
 		return nil, err
 	}
 
+	// user data is now ready!
 	a.Builder.UserData = userdata.Bytes()
 
 	// add our Koding keypair
