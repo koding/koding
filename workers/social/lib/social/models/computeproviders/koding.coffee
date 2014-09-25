@@ -1,7 +1,6 @@
 
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
-Payment           = require '../payment'
 
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
@@ -48,6 +47,7 @@ module.exports = class Koding extends ProviderInterface
 
   @fetchUserPlan = (client, callback)->
 
+    Payment = require '../payment'
     Payment.subscriptions client, {}, (err, subscription)=>
 
       if err? or not subscription?
