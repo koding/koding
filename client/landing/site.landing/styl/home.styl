@@ -19,34 +19,9 @@ body.home
     max-width             600px
     rel()
 
-    &.focused
-      div.hint
-        opacity           1
-        strong
-          font-weight     700
-        &.accept-tos
-          color           rgba(255, 255, 255, .6)
-          a
-            color         rgba(255, 255, 255, .8)
-
-
     &.noanim .login-input-view .placeholder-helper
       vendor              transition, none!important
       position            absolute
-
-    div.hint
-      vendor              transition, opacity .4s .3s ease
-      margin              0
-      text-align          left
-      opacity             0
-      color               white
-      font-size           12px
-
-    div.accept-tos
-      a
-        color             white
-        borderize         rgba(255, 255, 255, .6)
-        noTextDeco()
 
 
     section

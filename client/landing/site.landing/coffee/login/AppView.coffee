@@ -359,6 +359,10 @@ module.exports = class LoginView extends JView
       form.button.hideLoader()
 
     modal.once 'viewAppended', ->
+
+      modal.addSubView new KDCustomHTMLView
+        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
+
       KD.utils.defer ->
         modal.modalTabs.forms.password.inputs.password.setFocus()
 
