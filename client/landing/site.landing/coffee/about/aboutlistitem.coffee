@@ -12,12 +12,19 @@ module.exports = class AboutListItem extends KDListItemView
 
     super options, data
 
-    {username} = @getData()
+    {username, prefix} = @getData()
+    dpr  = window.devicePixelRatio ? 1
+    size = 160 * dpr
+    hash = KD.utils.md5 "#{prefix or username}@koding.com"
+
+    defaultAvatarUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+    src =  "//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultAvatarUri}&r=g"
+
     @avatar    = new KDCustomHTMLView
-      tagName  : 'img'
-      cssClass : 'avatarview'
-      origin   : username
-      size     : width : 160
+      tagName    : 'img'
+      cssClass   : 'avatarview'
+      attributes : {src}
+      size       : width : 160
 
     @link      = new CustomLinkView
       cssClass : 'profile'
