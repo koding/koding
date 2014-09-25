@@ -1,4 +1,4 @@
-class ConversationsModal extends YourTopicsModal
+class ConversationsModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 

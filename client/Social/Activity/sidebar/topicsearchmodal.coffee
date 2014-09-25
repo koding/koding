@@ -1,12 +1,14 @@
-class TopicSearchModal extends YourTopicsModal
+class TopicSearchModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.title    or= 'Browse Topics on Koding'
-    options.cssClass or= 'your-topics'
-    options.endpoints ?=
-      fetch            : KD.singletons.socialapi.channel.list
-      search           : KD.singletons.socialapi.channel.searchTopics
+    options.cssClass      = KD.utils.curry 'topic-search', options.cssClass
+    options.title       or= 'Browse Topics on Koding'
+    options.placeholder or= 'Search all topics...'
+    options.noItemFound or= 'You don\'t follow any topics yet. You can search for some topics above e.g HTML, CSS, golang.'
+    options.endpoints    ?=
+      fetch               : KD.singletons.socialapi.channel.list
+      search              : KD.singletons.socialapi.channel.searchTopics
 
     super options, data
 

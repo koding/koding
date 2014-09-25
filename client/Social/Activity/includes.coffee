@@ -7,7 +7,7 @@ module.exports = [
 
   "sidebar/morelink.coffee"
   "sidebar/searchmodal.coffee"
-  "sidebar/yourtopicsmodal.coffee"
+  "sidebar/morechannelsmodal.coffee"
   "sidebar/conversationsmodal.coffee"
   "sidebar/topicsearchmodal.coffee"
   "sidebar/chatsearchmodal.coffee"

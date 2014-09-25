@@ -178,13 +178,12 @@ class ActivityAppView extends KDView
       if window.innerHeight <= (top + 218)
         top      = (window.innerHeight - 220)
 
-      modal = new YourTopicsModal
+      modal = new MoreChannelsModal
         delegate : this
         width    : 271
         position :
           top    : top
           left   : left
-        cssClass : 'sidebar-dark-modal'
 
       modal.addSubView new KDCustomHTMLView
         cssClass : 'arrow'
@@ -207,4 +206,3 @@ class ActivityAppView extends KDView
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ChatSearchModal delegate : this
-

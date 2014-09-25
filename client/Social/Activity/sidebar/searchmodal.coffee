@@ -3,7 +3,6 @@ class SidebarSearchModal extends KDModalView
   constructor: (options = {}, data) ->
 
     options.title       or= 'Browse'
-    options.cssClass    or= 'your-topics'
     options.content     or= ''
     options.overlay      ?= yes
     options.width        ?= 522
@@ -11,17 +10,14 @@ class SidebarSearchModal extends KDModalView
     options.placeholder or= 'Search...'
     options.noItemText  or= ''
     options.itemClass   or= SidebarTopicItem
-
-
-    options.endpoints ?=
-      fetch            : (options, callback) -> callback()
-      search           : (options, callback) -> callback()
+    options.endpoints    ?=
+      fetch               : dummyCallback
+      search              : dummyCallback
 
     super options, data
 
     {appManager, router} = KD.singletons
     appManager.tell 'Activity', 'bindModalDestroy', this, router.visitedRoutes.last
-
 
     @beingFetched = no
     @searchActive = no
@@ -143,3 +139,7 @@ class SidebarSearchModal extends KDModalView
 
       callback items
 
+
+  dummyCallback = (options, callback) ->
+
+    callback()
