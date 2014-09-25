@@ -3,9 +3,10 @@ require './core/utils'
 require './core/KD.extend.coffee'
 
 # register appclasses
-About = require './about/AppController'
-Home  = require './home/AppController'
-Login = require './login/AppController'
+About    = require './about/AppController'
+Home     = require './home/AppController'
+Login    = require './login/AppController'
+Features = require './features/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
