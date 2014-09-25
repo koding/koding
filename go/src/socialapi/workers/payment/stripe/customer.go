@@ -1,7 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
@@ -19,7 +20,7 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 
 	externalCustomer, err := stripeCustomer.New(params)
 	if err != nil {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	customerModel := &paymentmodel.Customer{
@@ -47,7 +48,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 	}
 
 	if !exists {
-		return nil, ErrCustomerNotFound
+		return nil, paymenterrors.ErrCustomerNotFound
 	}
 
 	return customerModel, nil
@@ -56,7 +57,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 func GetCustomerFromStripe(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	return customer, nil
