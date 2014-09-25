@@ -7,6 +7,7 @@ About    = require './about/AppController'
 Home     = require './home/AppController'
 Login    = require './login/AppController'
 Features = require './features/AppController'
+Pricing  = require './pricing/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
@@ -24,6 +25,7 @@ do ->
 
     require './core/routes.coffee'
     require './login/routes.coffee'
+    require './pricing/routes.coffee'
 
 
 

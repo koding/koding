@@ -1,0 +1,354 @@
+@import "lib/core.fonts"
+@import "lib/core.fn"
+
+@css {
+/*
+Pricing landing stylesheet
+pricing.styl
+*/
+}
+
+body.pricing
+
+  height                100%
+
+  #main-header
+    .inner-container
+      -webkit-font-smoothing  antialiased
+
+    .logotype
+      color             #424242
+      line-height       20px
+      font-size         26px
+
+    nav
+      a
+        color           #3B3B3B
+
+        &.login
+          border-color  #ADADAD
+
+    #koding-logo
+      margin            0 7px 0 0
+      color             #424242
+
+      cite
+        r-sprite        app, 'logo-full-dark'
+
+  .input-validation
+    margin-left         30px !important
+
+  .input-validation div.wrapper
+    background-color    rgba(217, 95, 95, .75)
+    shadow              none
+    font-size           14px
+    font-weight         600
+    text-align          center
+    line-height         18px
+    -webkit-font-smoothing antialiased
+
+  .input-validation.placement-top:after
+    border-top-color    rgba(217, 95, 95, .75)
+
+  .kdoverlay
+    background          rgba(255, 255, 255, .75)
+
+.content-page.pricing
+  width                 auto
+  max-width             100%
+  padding               0
+  border-top            1px solid transparent
+  height                100%
+
+  .pricing-heading
+    font-size           38px
+    color               #37B542
+    line-height         52px
+    margin              100px auto 17px
+    text-align          center
+    padding             0 40px
+    border              none
+    font-weight         200
+    opacity             .99
+
+  p.pricing-description
+    max-width           678px
+    font-size           18px
+    line-height         28px
+    color               #5A5A5A
+    font-weight         200
+    opacity             .99
+    text-align          center
+    margin              0 auto 40px
+
+  .pricing-footer
+    margin             75px auto 117px
+    max-width          780px
+    color              #9b9b9b
+    font-weight        400
+    font-size          14px
+    line-height        28px
+    borderBox()
+
+    .footer-note
+      font-size        12px
+      margin-top       -10px
+
+    .learn-more
+      line-height        28px
+      font-size          14px
+      margin-top         3px
+      display            block
+      text-align         center
+      text-decoration    underline
+      color              #01B05A
+
+    .footer-msg
+      margin            30px 0 70px
+      text-align        center
+
+    h4
+      font-weight      600
+
+    li
+      position         relative
+      padding-left     18px
+      fl()
+      borderBox()
+
+      &:nth-of-type(4n+1)
+        width          23%
+      &:nth-of-type(4n+2)
+        width          29%
+      &:nth-of-type(4n+3)
+        width          16%
+      &:nth-of-type(4n)
+        width          32%
+
+      &:before
+        content        ''
+        display        block
+        r-sprite       'pricing', 'check-gray'
+        top            11px
+        left           0
+        abs()
+
+  .interval-toggle
+    width             100%
+    text-align        center
+    margin-bottom     80px
+
+    button
+      background      #fff
+      size            auto, 33px
+      line-height     32px
+      border          1px solid #DEDEDE
+      border-left     none
+      border-right    none
+      padding         0
+      margin          0
+      color           #9E9E9E
+      font-weight     400
+      font-size       12px
+      shadow          none
+      text-shadow     none
+
+      &:first-of-type
+        rounded       30px 0 0 30px
+        border-left   1px solid #DEDEDE
+        .button-title
+          margin      0 0 0 3px
+
+      &:last-of-type
+        rounded       0 30px 30px 0
+        border-right  1px solid #DEDEDE
+        .button-title
+          margin      0 3px 0 0
+
+      .button-title
+        color         inherit
+        font-size     inherit
+        font-weight   inherit
+        display       inline-block
+        line-height   27px
+        size          auto, 25px
+        rounded       13px
+        padding       0 15px
+
+      &.toggle .button-title
+        background    #01B05A
+        color         #fff
+
+  section.plans
+    margin              0 auto
+    max-width           882px
+    padding             0 45px
+    width               auto
+    height              auto
+    borderBox()
+
+    .single-plan
+      background        #FAFAFA
+      width             25%
+      z-index           10
+      border            1px solid #E3E3E3
+      border-left       none
+      borderBox()
+      fl()
+
+      .overflow-hidden
+        overflow        hidden
+
+      .overflow-visible
+        overflow        visible
+
+      &:first-of-type
+        border-left     1px solid #E3E3E3
+        rounded         7px 0 0 7px
+
+      &.promoted
+        background      #fff
+        vendor          transform, scale(1.05)
+        border          1px solid #909090
+        rounded         7px
+        z-index         100
+
+        .plan-price cite
+          color         #F8AC1D
+
+          &:before
+            color       #F8AC1D
+
+        .plan-buy-button
+          border-color  #F8AC1D
+          background    #F8AC1D
+          color         #fff
+          margin-top    23px
+          margin-bottom 40px
+
+      &.free
+        .plan-price cite:before
+        .plan-title
+          hidden()
+
+        .plan-price .interval-text
+          visibility    hidden
+
+      &.current
+
+        .cpu:after
+          color         #ddd !important
+
+        *
+          color         #ddd !important
+          &:before
+            color       #ddd !important
+
+        .overflow-hidden
+          position      relative
+          overflow      hidden
+
+          &:after
+            content       'Current Plan'
+            display       block
+            size          107px, 17px
+            vendor        transform, rotateZ(-45deg)
+            font-size     10px
+            color         #959595
+            background    #E8E8E8
+            text-align    center
+            line-height   17px
+            abs           23px 0 0 -23px
+            borderBox()
+
+        .plan-title
+          color         inherit !important
+          text-align    center
+
+        .plan-buy-button
+          border-color  #ddd
+
+      &:nth-of-type(4)
+        rounded         0 7px 7px 0
+
+      .plan-title
+        top             -25px
+        text-align      center
+        font-size       14px
+        letter-spacing  .1em
+        z-index         150
+        left            0
+        right           0
+        color           #5a5a5a
+        opacity         .99
+        abs()
+
+      .plan-price
+        border          none
+        color           #8B8B8B
+        font-size       12px
+        text-align      center
+        height          auto
+        margin          0
+        letter-spacing  .16em
+
+        span
+          padding       0
+          margin        0
+
+        cite
+          display       block
+          font-size     38px
+          color         #35B040
+          line-height   38px
+          margin        40px 0 4px
+          position      relative
+
+          &:before
+            content     '$'
+            display     inline-block
+            color       #35B040
+            font-size   19px
+            vertical-align super
+            line-height 26px
+
+      .plan-summary
+        padding         17px 20px
+        text-align      center
+        font-size       10px
+        color           #575757
+        line-height     14px
+        font-weight     400
+        opacity         .99
+        borderBox()
+
+      .plan-features
+        padding         0 47px
+        color           #575757
+        line-height     23px
+        font-size       14px
+        borderBox()
+
+        .cpu:after
+          content       '(burstable)'
+          display       inline-block
+          font-size     11px
+          font-weight   300
+          margin-left   3px
+          line-height   23px
+          color         #aaa
+
+      .plan-buy-button
+        background      transparent
+        border          1px solid #37B542
+        outline         none
+        shadow          none
+        margin          29px auto 34px
+        display         block
+        color           #37B542
+        padding         8px 34px
+        font-size       14px
+        letter-spacing  .16em
+        rounded         3px
+        vendor          transition, background .2s ease
+
