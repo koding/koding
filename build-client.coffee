@@ -124,7 +124,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec 'cd client/landing && gulp build', (err, stdout, stderr)->
+        exec 'cd client/landing && gulp build --site=site.landing', (err, stdout, stderr)->
           if err
           then console.error err
           else console.log """
@@ -134,13 +134,32 @@ class Builder
           queue.next()
       ,
       ->
-        exec "rsync -av #{__dirname}/client/landing/static/a/out/ #{__dirname}/website/a/out/", (err, stdout, stderr)->
+        exec "rsync -av #{__dirname}/client/landing/static/a/site.landing/ #{__dirname}/website/a/site.landing/", (err, stdout, stderr)->
           if err
           then console.error err
           else console.log "# LANDING PAGE EXPORTED"
           queue.next()
       ->
           console.log "\n# EXTERNAL BUILDS FINISHED!\n"
+          console.log """
+
+            ########################################
+            ########################################
+
+            # FOR LANDING PAGE DEVELOPMENT PLEASE DO
+
+            # for a build and watch system
+            $ cd #{__dirname}/client/landing/site.landing/
+            $ gulp --site=site.landing --outputDir=#{__dirname}/website/a/site.landing/
+
+            # for just build and quit
+            $ cd #{__dirname}/client/landing/site.landing/
+            $ gulp build --site=site.landing --outputDir=#{__dirname}/website/a/site.landing/
+
+            ########################################
+            ########################################
+
+            """
           queue.next()
     ]
 
