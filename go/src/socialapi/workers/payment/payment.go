@@ -45,7 +45,7 @@ type SubscriptionRequest struct {
 }
 
 type SubscriptionsResponse struct {
-	AccountId          string    `json:"acccountId"`
+	AccountId          string    `json:"accountId"`
 	PlanTitle          string    `json:"planTitle"`
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
