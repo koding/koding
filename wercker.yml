@@ -7,7 +7,9 @@ build:
         code: go/build.sh
     - script:
         name: install debuild
-        code: sudo apt-get install ubuntu-dev-tools -y
+        code: |
+          sudo apt-get update -y
+          sudo apt-get install ubuntu-dev-tools -y
     - script:
         name: package klient.deb
         code: |
