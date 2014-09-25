@@ -203,9 +203,10 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
 	// means if final is 40 our destroy method below will be push at most up to
 	// 32.
-	middleVal := v.Finish * (8 / 10)
 
-	err := a.Destroy(v.Start, middleVal)
+	middleVal := float64(v.Finish) * (8.0 / 10.0)
+
+	err := a.Destroy(v.Start, int(middleVal))
 	if err != nil {
 		return err
 	}
@@ -215,9 +216,9 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	}
 
 	// increase one tick but still don't let it reach the final value
-	lastVal := v.Finish * (9 / 10)
+	lastVal := float64(v.Finish) * (9.0 / 10.0)
 
-	a.Push("Checking domain", lastVal, machinestate.Terminating)
+	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
 	_, err = p.DNS.Domain(m.Domain.Name)
