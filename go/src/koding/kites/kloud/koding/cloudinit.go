@@ -31,7 +31,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
 
 ssh_authorized_keys:
-  - ssh-rsa: {{.UserPublicSSHKey}}
+  - {{.UserPublicSSHKey}}
 
 write_files:
   # Create kite.key

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -191,7 +192,9 @@ func build(id string) error {
 		return err
 	}
 
-	fmt.Printf("output %+v\n", output)
+	if strings.TrimSpace(string(output)) != "root" {
+		return fmt.Errorf("Whoami result should be root, got: %s", string(output))
+	}
 
 	return nil
 }
