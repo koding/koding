@@ -26,7 +26,6 @@ class AddWorkspaceView extends KDCustomHTMLView
 
       if @hasPendingRequest
         KD.utils.stopDOMEvent event
-        log 'pending request going on'
         return no
 
       data           = @getData()
