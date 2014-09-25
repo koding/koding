@@ -205,8 +205,8 @@ body.home
 
 
   section.introduction
-    height                970px
-    padding               154px 0 0
+    height                883px
+    padding               134px 0 0
     text-align            center
     bg                    color, #FFFFFF
     position              relative
@@ -254,11 +254,40 @@ body.home
   // screenshots Section
 
   section.screenshots
-    abs                   487px 0 0
+    abs                   400px 0 0
     size                  100% 483px
     overflow              hidden
     z-index               2
     borderBox()
+
+    a.custom-link-view.ss-button
+      top                 199px
+      display             block
+      left                50%
+      z-index             100
+      abs()
+      .icon
+        display           block
+      &.next
+        margin-left       500px
+        .icon
+          r-sprite        home 'slideshow-next'
+        &:active
+          margin-left     502px
+        // chrome has a rendering bug
+        // it removes the shadow behind, let's remove it until it is fixed
+        // - SY
+        // &:hover .icon
+        //   r-sprite        home 'slideshow-next-light'
+      &.prev
+        margin-left       -585px
+        .icon
+          r-sprite        home 'slideshow-prev'
+        &:active
+          margin-left     -587px
+        // see above^^
+        // &:hover .icon
+        //   r-sprite        home 'slideshow-prev-light'
 
     > div
       height              483px
@@ -271,8 +300,8 @@ body.home
     figure
       display             block
       top                 0px
-      // overflow            hidden
       size                738px 100%
+      display             none
       contentBox()
       abs()
       &:after
@@ -291,33 +320,35 @@ body.home
         size              100% 31px
 
       img
-      div
         shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
         height            calc(100% - 33px)
-        opacity           .85
+        opacity           .7
         bg                color #3A3E41
         margin-top        2px
 
-      &.first
+      &.current
+        display           block
         z-index           4
         left              50px
 
-        div
         img
           opacity         1
 
-      &.second
+      &.prev
         left              0
 
-      &.third
+      &.next
         right             0
 
-      &.third
-      &.second
+      &.prev
+      &.next
+        display           block
         z-index           3
         margin-top        123px
         height            360px
+
+
 
   // Features Section
 
