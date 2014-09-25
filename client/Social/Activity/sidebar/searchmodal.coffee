@@ -55,7 +55,7 @@ class SidebarSearchModal extends KDModalView
 
     @addSubView @listController.getView()
 
-    @listController.customScrollView.wrapper.on 'LazyLoadThresholdReached', @bound 'handleLazyLoad'
+    @listController.on 'LazyLoadThresholdReached', @bound 'handleLazyLoad'
 
     @fetch {}, @bound 'populate'
 
