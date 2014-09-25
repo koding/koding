@@ -5,7 +5,8 @@ class IDE.StatusBarMenu extends KDContextMenu
     menuItems         = @getMenuItems options
     {delegate}        = options
     options.menuWidth = 220
-    options.x         = delegate.getX()
+    options.x         = delegate.getX() - 5
+    options.y         = delegate.getY() + 20
     options.cssClass  = 'status-bar-menu'
 
     super options, menuItems
@@ -17,38 +18,15 @@ class IDE.StatusBarMenu extends KDContextMenu
   getMenuItems: (options) ->
     appManager = KD.getSingleton 'appManager'
     items      = {}
-
-    @addEditorMenuItems  items, options, appManager  if options.paneType is 'editor'
-    @addDefaultMenuItems items, options, appManager
+    items.Save                   = callback: -> appManager.tell 'IDE', 'saveFile'
+    items['Save As...']          = callback: -> appManager.tell 'IDE', 'saveAs'
+    items['Save All']            = callback: -> appManager.tell 'IDE', 'saveAllFiles'
+    items.customView             = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
+    items.Preview                = callback: -> appManager.tell 'IDE', 'previewFile'
+    items['Find...']             = callback: -> appManager.tell 'IDE', 'showFindReplaceView'
+    items['Find and replace...'] = callback: -> appManager.tell 'IDE', 'showFindReplaceView', yes
+    items['Find in files...']    = callback: -> appManager.tell 'IDE', 'showContentSearch'
+    items['Jump to file...']     = callback: -> appManager.tell 'IDE', 'showFileFinder'
+    items['Go to line...']       = callback: -> appManager.tell 'IDE', 'goToLine'
 
     return items
-
-  addEditorMenuItems: (items, options, appManager) ->
-    items.Save                = callback: -> appManager.tell 'IDE', 'saveFile'
-    items['Save As...']       = callback: -> appManager.tell 'IDE', 'saveAs'
-    items['Save All']         = callback: -> appManager.tell 'IDE', 'saveAllFiles'
-    items.customView          = @syntaxSelector = new IDE.SyntaxSelectorMenuItem
-    items.Preview             = callback: -> appManager.tell 'IDE', 'previewFile'
-    items['More...']          =
-      children                :
-        'Find...'             :
-          callback            : -> appManager.tell 'IDE', 'showFindReplaceView'
-        'Find and replace...' :
-          callback            : -> appManager.tell 'IDE', 'showFindReplaceView', yes
-        'Find in files...'    :
-          callback            : -> appManager.tell 'IDE', 'showContentSearch'
-        'Jump to file...'     :
-          callback            : -> appManager.tell 'IDE', 'showFileFinder'
-        'Go to line...'       :
-          callback            : -> appManager.tell 'IDE', 'goToLine'
-      separator               : yes
-
-  addDefaultMenuItems: (items, options, appManager) ->
-    items.Shortcuts  = callback: -> appManager.tell 'IDE', 'showShortcutsView'
-
-    items.Contribute = callback: -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
-
-    items.Quit       = callback: ->
-      mainView = KD.getSingleton 'mainView'
-      appManager.quit appManager.getFrontApp()
-      KD.getSingleton('router').handleRoute '/Activity'
