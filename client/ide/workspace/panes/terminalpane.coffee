@@ -27,6 +27,10 @@ class IDE.TerminalPane extends IDE.Pane
       @remote = remote
       @emit 'WebtermCreated'
 
+      KD.utils.wait 166, =>
+        {path} = @getOptions()
+        @runCommand "cd #{path}" if path
+
     @webtermView.connectToTerminal()
 
   getMode: ->
