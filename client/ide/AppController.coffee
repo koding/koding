@@ -372,7 +372,10 @@ class IDEAppController extends AppController
 
       @openFile file, contents
 
-  createNewTerminal: -> @activeTabView.emit 'TerminalPaneRequested'
+  createNewTerminal: (machine, path) ->
+    machine = null  unless machine instanceof Machine
+
+    @activeTabView.emit 'TerminalPaneRequested', machine, path
 
   createNewBrowser: (url) ->
     url = ''  unless typeof url is 'string'
