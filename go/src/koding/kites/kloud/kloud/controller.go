@@ -331,12 +331,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, err
 	}
 
-	defer func() {
-		if reqErr != nil {
-			k.Log.Error("[%s] method '%s' failed. err: %s", args.MachineId, r.Method, reqErr.Error())
-		}
-	}()
-
 	k.Log.Info("[%s] ========== %s called by user: %s ==========",
 		args.MachineId, strings.ToUpper(r.Method), r.Username)
 
