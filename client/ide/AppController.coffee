@@ -375,6 +375,10 @@ class IDEAppController extends AppController
   createNewTerminal: (machine, path) ->
     machine = null  unless machine instanceof Machine
 
+    if @workspaceData
+      {rootPath} = @workspaceData
+      path = rootPath  if rootPath
+
     @activeTabView.emit 'TerminalPaneRequested', machine, path
 
   createNewBrowser: (url) ->
