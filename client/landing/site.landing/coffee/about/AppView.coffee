@@ -7,38 +7,7 @@ module.exports = class AboutView extends JView
 
   constructor:->
 
-    @activeController = new KDListViewController
-      view        : new KDListView
-        cssClass  : 'clearfix'
-        itemClass : AboutListItem
-        type      : 'team'
-        tagName   : 'ul'
-      scrollView  : no
-      wrapper     : no
-    ,
-      items       : TEAM.active
-
-    @memberList = @activeController.getView()
-
     @jobsView   = new JobsView
-
-    @logoPackButton = new KDCustomHTMLView
-      tagName       : 'a'
-      attributes    :
-        href        : 'https://koding-cdn.s3.amazonaws.com/brand/koding-logo.pdf'
-        target      : '_blank'
-      partial       : "<span class='icon'></span>Download Logo Pack"
-      cssClass      : "solid green kdbutton"
-      icon          : yes
-
-    @fontPackButton = new KDCustomHTMLView
-      tagName       : 'a'
-      attributes    :
-        href        : 'http://www.google.com/fonts/specimen/Ubuntu'
-        target      : '_blank'
-      partial       : "<span class='icon'></span>Download Font Pack"
-      cssClass      : "solid green kdbutton"
-      icon          : yes
 
     super
 
@@ -76,28 +45,6 @@ module.exports = class AboutView extends JView
             15,000,000+
           </div>
         </aside>
-      </div>
-    </section>
-    <section class='member-list'>
-      <div class='wrapper'>
-        <h2>Koding. <span>The Crew</span></h2>
-        <h4>In order of appearance</h4>
-        {{> @memberList}}
-      </div>
-    </section>
-    <section class='careers' id='jobs'>
-      <div class='wrapper'>
-        <h2>Koding. <span>Jobs</span></h2>
-        <h4>If you think your picture is missing above...</h4>
-        {{> @jobsView }}
-      </div>
-    </section>
-    <section class='press-kit'>
-      <div class='wrapper'>
-        <h2>Press Kit</h2>
-        <h4>Resources for brand enthusiasts</h4>
-        {{> @logoPackButton}}
-        {{> @fontPackButton}}
       </div>
     </section>
     {{> @footer}}
