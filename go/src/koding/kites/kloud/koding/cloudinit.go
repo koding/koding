@@ -113,8 +113,8 @@ write_files:
       count=$((${#credentials[@]} - 1))
       counter=0
       clear
-      if [ -f /etc/skel/.kodingart.txt ]; then
-        cat /etc/skel/.kodingart.txt
+      if [ -f /etc/koding/.kodingart.txt ]; then
+        cat /etc/koding/.kodingart.txt
       fi
       echo
       echo 'This migration assistant will help you move your VMs from the old Koding'
