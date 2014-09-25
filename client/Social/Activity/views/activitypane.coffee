@@ -157,6 +157,7 @@ class ActivityPane extends MessagePane
     @tabView.tabHandleContainer.addSubView searchIcon
 
     @searchInput.on 'SearchRequested', (text) =>
+      @searchInput.setBlur()
       @tabView.showPane @tabView.panes.last
       @searchResults.clear()
       @search text
