@@ -1,9 +1,14 @@
-class ActivityUniversityWidget extends JView
-  constructor: (options = {}) ->
-    options.cssClass    = 'university-widget activity-widget'
-    super options
+class ActivityUniversityWidget extends ActivityGuideWidget
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'university-widget', options.cssClass
+
+    super options, data
+
 
   pistachio : ->
+
     """
       <h3>Most read articles on Koding University</h3>
       <p>

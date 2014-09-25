@@ -15,6 +15,7 @@ module.exports = [
   "sidebar/pinneditem.coffee"
   "sidebar/groupdescription.coffee"
 
+  "views/basewidget.coffee"
   "views/guidewidget.coffee"
   "views/topicswidget.coffee"
   "views/universitywidget.coffee"
