@@ -15,36 +15,45 @@ module.exports =
       ,
         username  : 'arslan'
         title     : 'Software Engineer'
+        prefix    : 'fatih'
       ,
         username  : 'fatihacet'
         title     : 'Front-End Engineer'
       ,
         username  : 'sent-hil'
         title     : 'Software Engineer'
+        prefix    : 'senthil'
       ,
         username  : 'cihangirsavas'
         title     : 'Software Engineer'
+        prefix    : 'cihangir'
       ,
         username  : 'szkl'
         title     : 'DevOps'
+        prefix    : 'sonmez'
       ,
         username  : 'burakcan'
         title     : 'CSS Wizard'
+        prefix    : 'burak'
       ,
         username  : 'emred'
         title     : 'Designer'
       ,
         username  : 'canthefason'
         title     : 'Software Engineer'
+        prefix    : 'can'
       ,
         username  : 'dicle'
         title     : 'Business Analyst'
+        prefix    : 'dicle'
       ,
         username  : 'leeolayvar'
         title     : 'Community Manager'
+        prefix    : 'lee'
       ,
         username  : 'stefanbc'
         title     : 'Community Manager'
+        prefix    : 'stefan'
       ,
         username  : 'zeynep'
         title     : 'Finance Assistant'
@@ -54,6 +63,7 @@ module.exports =
       ,
         username  : 'didemacet'
         title     : 'QA'
+        prefix    : 'didem'
       ,
         username  : 'nitin'
         title     : 'Chief Business Officer'
@@ -63,6 +73,7 @@ module.exports =
       ,
         username  : 'usirin'
         title     : 'Software Engineer'
+        prefix    : 'umut'
       ]
 
     # suspended     : []
