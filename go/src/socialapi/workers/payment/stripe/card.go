@@ -48,6 +48,10 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 }
 
 func UpdateCreditCard(oldId, token string) error {
+	if IsEmpty(token) {
+		return paymenterrors.ErrTokenIsEmpty
+	}
+
 	customer, err := FindCustomerByOldId(oldId)
 	if err != nil {
 		return err

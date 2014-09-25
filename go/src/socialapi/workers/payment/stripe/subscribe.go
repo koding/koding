@@ -21,10 +21,6 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if customer == nil {
-		if IsEmpty(token) {
-			return paymenterrors.ErrTokenIsEmpty
-		}
-
 		customer, err = CreateCustomer(token, accId, email)
 		if err != nil {
 			return err
@@ -37,10 +33,6 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if IsEmpty(resp.LastFour) {
-		if IsEmpty(token) {
-			return paymenterrors.ErrTokenIsEmpty
-		}
-
 		err := UpdateCreditCard(customer.OldId, token)
 		if err != nil {
 			return err

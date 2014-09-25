@@ -12,6 +12,10 @@ import (
 // Stripe's customer_id; token is previously acquired from Stripe,
 // represents customer's cc info; accId is the `jAccount` id from mongo.
 func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) {
+	if IsEmpty(token) {
+		return nil, paymenterrors.ErrTokenIsEmpty
+	}
+
 	params := &stripe.CustomerParams{
 		Desc:  accId,
 		Email: email,
