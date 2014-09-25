@@ -72,7 +72,7 @@ func TestMessageListSaved(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	Convey("messages can be saved", t, func() {
+	SkipConvey("messages can be saved", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
@@ -84,7 +84,7 @@ func TestMessageListSaved(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(record, ShouldNotBeNil)
 	})
-	Convey("messages can be cross-indexed", t, func() {
+	SkipConvey("messages can be cross-indexed", t, func() {
 		mockMessage, owner := createAndSaveMessage()
 
 		// init channel
@@ -113,7 +113,7 @@ func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	Convey("messages can be deleted", t, func() {
+	SkipConvey("messages can be deleted", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
@@ -129,7 +129,7 @@ func TestMessageListDeleted(t *testing.T) {
 		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound.Error())
 		So(record, ShouldBeNil)
 	})
-	Convey("cross-indexed messages will not be deleted", t, func() {
+	SkipConvey("cross-indexed messages will not be deleted", t, func() {
 		mockMessage, owner := createAndSaveMessage()
 
 		// init channel
@@ -165,7 +165,7 @@ func TestMessageUpdated(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	Convey("messages can be updated", t, func() {
+	SkipConvey("messages can be updated", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
