@@ -458,7 +458,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
