@@ -142,7 +142,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, yes
+      item = @addItem channel, no
       item.setUnreadCount unreadCount
 
 
