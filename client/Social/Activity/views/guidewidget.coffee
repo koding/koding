@@ -1,26 +1,14 @@
-class ActivityGuideWidget extends JView
-  constructor: (options = {}) ->
-    options.cssClass    = 'posting-guide-widget activity-widget'
-    super options
+class ActivityGuideWidget extends ActivityBaseWidget
 
-    @readLessLink       = new CustomLinkView
-      title             : 'hide info...'
-      cssClass          : 'read-more-link hidden'
-      click             : =>
-        @unsetClass 'expand'
-        @readMoreLink.show()
-        @readLessLink.hide()
+  constructor: (options = {}, data) ->
 
-    @readMoreLink       = new CustomLinkView
-      title             : 'read more...'
-      cssClass          : 'read-more-link'
-      click             : =>
-        @setClass 'expand'
-        @readMoreLink.hide()
-        @readLessLink.show()
+    options.cssClass    = KD.utils.curry 'posting-guide-widget', options.cssClass
+
+    super options, data
 
 
   pistachio : ->
+
     """
       <h3>Posting Guidelines</h3>
       <p>
