@@ -20,7 +20,7 @@ module.exports = (req, res) ->
   # Hardcoding is wrong, however this key won't change
   # depending on environments, so there's point of
   # putting it in config : SA
-  unless kloud_key is "AAABBBCCCDDDEEE"
+  unless kloud_key is "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
     res.send 401, errMsg "kloud_key is wrong"
 
   url  = "/payments/subscriptions/#{account_id}"
