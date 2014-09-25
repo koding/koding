@@ -11,22 +11,6 @@ build:
         name: initialize submodules
         code: git submodule update --init --recursive
     - script:
-        name: npm install
-        code: |
-          npm cache clean
-          npm set registry https://registry.npmjs.org/
-          npm install || :
-          cd client/Framework && npm install && cd ../../
-          cd client/landing && npm install && cd ../../
-    - script:
-        name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
-    - script:
-        name: build client
-        code: |
-          sudo chown -R $USER ~/.npm
-          ./run
-    - script:
         name: build go binaries
         code: go/build.sh
     - script:
@@ -34,33 +18,6 @@ build:
         code: |
           export GOPATH=$PWD/go
           go run go/package.go -a klient -e development
-    - script:
-        name: build social api
-        cwd: go/src/socialapi
-        code: |
-          make configure
-          make install
-          make build
-    - script:
-        name: create postgresql tables
-        cwd: go/src/socialapi/db/sql
-        code: definition/create-wercker.sh .
-    - script:
-        name: test social api
-        code: |
-          sudo -E scripts/wercker/init-socialapi.sh
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-          cd go/src/socialapi
-          make testapi
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 
 deploy:
   steps:
