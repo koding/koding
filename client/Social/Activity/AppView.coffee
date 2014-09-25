@@ -20,7 +20,6 @@ class ActivityAppView extends KDView
       mainView
     }             = KD.singletons
     {entryPoint}  = KD.config
-    @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
@@ -130,11 +129,7 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       else ActivityPane
 
-    itemClass = switch type
-      when 'privatemessage' then PrivateMessageListItemView
-      else ActivityListItemView
-
-    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
+    @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
     return pane
 
@@ -148,27 +143,11 @@ class ActivityAppView extends KDView
     return pane
 
 
-  showNewMessageModal: ->
+  showNewMessageForm: ->
 
-    @open 'topic', 'public'  unless @tabs.getActivePane()
-
-    bounds = @sidebar.sections.messages.options.headerLink.getBounds()
-
-    top      = bounds.y - 310
-    left     = bounds.x + bounds.w + 40
-    arrowTop = 310 + (bounds.h / 2) - 10 #10 = arrow height
-    arrowTop = arrowTop + top  if top < 0
-
-    modal = new PrivateMessageModal
-      delegate     : this
-      _lastMessage : @_lastMessage
-      position     :
-        top        : Math.max top, 0
-        left       : left
-      arrowTop     : arrowTop
-
-    return modal
-
+    @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
+      .addSubView form = new PrivateMessageForm
+      .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane
 
   showAllTopicsModal: ->
 
