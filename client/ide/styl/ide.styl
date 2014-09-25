@@ -39,9 +39,21 @@ body.ide.dark
 
   .kdtabhandle
     color               dark-tab-color
+    &:hover .options
+      display           inline-block
     &.active
       bg                color, dark-panel-bg
       color             dark-active-tab-color
+    &.menu-visible
+      .options
+        display         inline-block
+    .options
+      r-sprite          'finder', 'expanded'
+      position          absolute
+      top               9px
+      right             20px
+      display           none
+
     &.plus
       border-left-color transparent
 
@@ -349,9 +361,6 @@ body.ide.dark
 
 
   .status-bar-menu
-    top                 inherit !important
-    position            fixed
-    bottom              34px
     ul
       bg                color, dark-tab-header-bg !important
       padding           2px !important
@@ -359,7 +368,6 @@ body.ide.dark
     li
       color             #E6E1DC !important
       rounded           0 !important
-      padding-left      15px !important
       &:hover
         bg              color, dark-panel-bg !important
       &.selected
@@ -372,6 +380,7 @@ body.ide.dark
     padding             3px 10px 3px 0
     span
       font-size         13px
+      margin-left       10px
     .kdselectbox
       height            24px
       margin-left       29px

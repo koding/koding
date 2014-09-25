@@ -496,6 +496,23 @@ class IDEAppController extends AppController
 
     status.updatePartial text
 
+  showStatusBarMenu: (ideView, button) ->
+    paneView = @getActivePaneView()
+    paneType = paneView?.getOptions().paneType or null
+    delegate = button
+    menu     = new IDE.StatusBarMenu { paneType, paneView, delegate }
+
+    ideView.menu = menu
+
+    menu.on 'viewAppended', ->
+      if paneType is 'editor' and paneView
+        {syntaxSelector} = menu
+        {ace}            = paneView.aceView
+
+        syntaxSelector.select.setValue ace.getSyntax()
+        syntaxSelector.on 'SelectionMade', (value) =>
+          ace.setSyntax value
+
   showFileFinder: ->
     return @fileFinder.input.setFocus()  if @fileFinder
 
