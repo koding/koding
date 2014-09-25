@@ -621,7 +621,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     callback = =>
       KD.remote.api.JWorkspace.create data, (err, workspace) =>
-        return KD.showError "Couldn't create new workspace"  if err
+        if err
+          @emit 'WorkspaceCreateFailed'
+          return KD.showError "Couldn't create new workspace"
 
         for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
           parentId = nodeData.id
@@ -648,6 +650,7 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.userWorkspaces.push workspace
 
         router.handleRoute data.href
+        @emit 'WorkspaceCreated', workspace
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })
