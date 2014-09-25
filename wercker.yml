@@ -30,6 +30,11 @@ build:
         name: build go binaries
         code: go/build.sh
     - script:
+        name: package klient.deb
+        code: |
+          export GOPATH=$PWD/go
+          go run go/package.go -a klient -e development
+    - script:
         name: build social api
         cwd: go/src/socialapi
         code: |
