@@ -90,7 +90,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-  createTerminal: (machine) ->
+  createTerminal: (machine, path) ->
     unless machine
       {machines} = KD.getSingleton 'computeController'
       ideApp     = KD.getSingleton('appManager').getFrontApp()
@@ -98,7 +98,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       machine = m for m in machines when m.uid is machineId
 
-    terminalPane = new IDE.TerminalPane { machine }
+    terminalPane = new IDE.TerminalPane { machine, path }
     @createPane_ terminalPane, { name: 'Terminal' }
 
   createDrawingBoard: ->
