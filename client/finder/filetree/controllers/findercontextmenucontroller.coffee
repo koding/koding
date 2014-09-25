@@ -215,6 +215,9 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
+      'Change top folder'         :
+        separator                 : yes
+        children                  : @getTopFolderItems fileView
       'New file'                  :
         action                    : 'createFile'
       'New folder'                :
@@ -228,6 +231,32 @@ class NFinderContextMenuController extends KDController
     if fileView.expanded
     then delete items.Expand
     else delete items.Collapse
+
+    return items
+
+  getTopFolderItems: (fileView) ->
+    currentPath = FSHelper.plainPath fileView.getData().path
+    nickname    = KD.nick()
+    parents     = []
+    nodes       = currentPath.split '/'
+
+    for x in [ 0...nodes.length ]
+      nodes = currentPath.split '/'
+      path  = nodes.splice(1,x).join '/'
+      parents.push "/#{path}"
+
+    parents  = _.unique parents.reverse()
+    items    = {}
+    root     = "/home/#{KD.nick()}/"
+    fileData = fileView.getData()
+    finder   = fileData.treeController.getDelegate()
+
+    parents.forEach (path) =>
+      if path
+        label = path.replace root, '~/'
+        items[label] = callback : =>
+          finder?.updateMachineRoot fileData.machine.uid, path
+          @contextMenu.destroy()
 
     return items
 
