@@ -1,43 +1,23 @@
-class GuidesLinksView extends JView
+class GuidesLinksView extends KDView
+
+  Links      =
+    'ssh'    : 'http://learn.koding.com/guides/ssh-into-your-vm/'
+    'sudo'   : 'http://learn.koding.com/faq/what-is-my-sudo-password/'
+    'mySQL'  : 'http://learn.koding.com/guides/installing-mysql/'
+    'NodeJS' : 'http://learn.koding.com/guides/getting-started-nodejs/'
+    'apache' : 'http://learn.koding.com/categories/apache/'
+
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'guides-links', options.cssClass
 
+    unless options.partial?
+
+      partial = ""
+      for title, link of (options.links ? Links)
+        partial += "<a href='#{link}' title='#{title}' target='_blank'>#{title}</a>, "
+      partial = partial[...-2]
+
+      options.partial = partial
+
     super options, data
-
-    @createLinks()
-
-  createLinks: ->
-
-    @ssh = new CustomLinkView
-      title    : 'ssh'
-      href     : 'http://learn.koding.com/guides/ssh-into-your-vm/'
-      target   : '_blank'
-
-    @sudo = new CustomLinkView
-      title    : 'sudo'
-      href     : 'http://learn.koding.com/faq/what-is-my-sudo-password/'
-      target   : '_blank'
-
-    @mySQL = new CustomLinkView
-      title    : 'mySQL'
-      href     : 'http://learn.koding.com/guides/installing-mysql/'
-      target   : '_blank'
-
-    @nodeJS = new CustomLinkView
-      title    : 'NodeJS'
-      href: 'http://learn.koding.com/guides/getting-started-nodejs/'
-      target   : '_blank'
-
-    @apache = new CustomLinkView
-      title    : 'apache'
-      href     : 'http://learn.koding.com/categories/apache/'
-      target   : '_blank'
-
-
-  pistachio: ->
-    """
-    {{> @ssh}}, {{> @sudo}}, {{> @mySQL}}, {{> @nodeJS}}, {{> @apache}}
-    """
-
-

@@ -25,6 +25,11 @@ class ComputeController extends KDController
 
       @fetchStacks =>
 
+        KD.singletons
+          .paymentController.on 'UserPlanUpdated', =>
+            @lastKnownUserPlan = null
+            @fetchUserPlan()
+
         if @stacks.length is 0 then do @createDefaultStack
 
         @storage = KD.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -62,6 +67,10 @@ class ComputeController extends KDController
 
           @machines = machines
           @stacks   = stacks
+
+          KD.userMachines = machines
+          @emit "MachineDataUpdated"
+
           cb null, stacks  for cb in queue
 
         else
@@ -157,7 +166,7 @@ class ComputeController extends KDController
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
-      @emit "MachineDataUpdated"
+      @emit "RenderMachines", @machines
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}
@@ -238,6 +247,31 @@ class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'destroy', machine) err
+
+
+  reinit: (machine)->
+
+    ComputeController.UI.askFor 'destroy', machine, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      call = @kloud.reinit { machineId: machine._id }
+
+      .then (res)=>
+
+        log "reinit res:", res
+        @_clearTrialCounts machine
+        @eventListener.addListener 'reinit', machine._id
+
+      .timeout ComputeController.timeout
+
+      .catch (err)=>
+
+        (@errorHandler call, 'reinit', machine) err
 
 
   build: (machine)->
@@ -376,34 +410,37 @@ class ComputeController extends KDController
           else @plans = plans
           callback plans
 
-  getUserPlan:->
+  fetchUserPlan: (callback = noop)->
 
-    knownPlans = ['super', 'professional', 'developer', 'hobbyist']
-    flags = KD.whoami().globalFlags or []
+    if @lastKnownUserPlan?
+      return callback @lastKnownUserPlan
 
-    for plan in knownPlans
-      return plan  if "plan-#{plan}" in flags
+    KD.singletons.paymentController.subscriptions (err, subscription)=>
 
-    return 'free'
+      warn "Failed to fetch subscription:", err  if err?
+
+      if err? or not subscription?
+      then callback 'free'
+      else callback @lastKnownUserPlan = subscription.planTitle
 
 
   handleNewMachineRequest: ->
 
-    plan = @getUserPlan()
+    @fetchUserPlan (plan)=>
 
-    @fetchPlans (plans)=>
+      @fetchPlans (plans)=>
 
-      @fetchUsage provider: "koding", (err, usage)->
+        @fetchUsage provider: "koding", (err, usage)->
 
-        return  if KD.showError err
+          return  if KD.showError err
 
-        limits  = plans[plan]
-        options = { plan, limits, usage }
+          limits  = plans[plan]
+          options = { plan, limits, usage }
 
-        if plan in ['developer', 'professional', 'super']
-          new ComputePlansModal.Paid options
-        else
-          new ComputePlansModal.Free options
+          if plan in ['developer', 'professional', 'super']
+            new ComputePlansModal.Paid options
+          else
+            new ComputePlansModal.Free options
 
 
   triggerReviveFor:(machineId)->

@@ -92,7 +92,7 @@ module.exports = class ComputeProvider extends Base
 
         label ?= machineData.label
 
-        @createMachine {
+        JMachine.create {
           provider : provider.slug
           label, meta, group, user
           credential, provisioners
@@ -146,7 +146,10 @@ module.exports = class ComputeProvider extends Base
     provider.fetchAvailable client, options, callback
 
 
-  @fetchUsage = secure revive
+  @fetchUsage$ = secure (client, options, callback)->
+    ComputeProvider.fetchUsage client, options, callback
+
+  @fetchUsage = revive
 
     shouldReviveClient   : yes
     shouldPassCredential : yes
@@ -157,7 +160,10 @@ module.exports = class ComputeProvider extends Base
     provider.fetchUsage client, options, callback
 
 
-  @fetchPlans = secure revive
+  @fetchPlans$ = secure (client, options, callback)->
+    ComputeProvider.fetchPlans client, options, callback
+
+  @fetchPlans = revive
 
     shouldReviveClient   : no
     shouldPassCredential : no
@@ -183,29 +189,6 @@ module.exports = class ComputeProvider extends Base
 
     {provider} = options
     provider.remove client, options, callback
-
-
-
-
-  @createMachine = (options, callback)->
-
-    { provider, label, meta, group, user, credential, provisioners } = options
-
-    users  = [{ id: user.getId(), sudo: yes, owner: yes }]
-    groups = [{ id: group.getId() }]
-
-    machine = JMachine.create {
-      group : group.slug, user : user.username
-      provider, users, groups, meta, label, credential, provisioners
-    }
-
-    machine.save (err)->
-
-      if err
-        callback err
-        return console.warn "Failed to create Machine for ", {users, groups}
-
-      callback null, machine
 
 
 

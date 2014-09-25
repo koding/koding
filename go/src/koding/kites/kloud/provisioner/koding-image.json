@@ -14,6 +14,8 @@
             "instance_type": "m3.medium",
             "region": "us-east-1",
             "source_ami": "ami-680fd500",
+            "subnet_id": "subnet-98d30fef",
+            "vpc_id": "vpc-bf65dada",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs"
         }
@@ -41,7 +43,8 @@
                 "sudo mkdir -p /opt/koding/userdata/Web",
                 "sudo mkdir -p /opt/koding/userdata/Applications",
                 "sudo mkdir -p /opt/koding/userdata/Backup",
-                "sudo mkdir -p /opt/koding/userdata/Documents"
+                "sudo mkdir -p /opt/koding/userdata/Documents",
+                "sudo mkdir -p /etc/koding"
             ]
         },
         {
@@ -51,7 +54,7 @@
         },
         {
             "type": "file",
-    	    "source": "{{user `bash_dir`}}",
+            "source": "{{user `bash_dir`}}",
             "destination": "/tmp/userdata/bash"
         },
         {
@@ -64,7 +67,7 @@
             "inline": [
                 "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
                 "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
-                "sudo cp /tmp/userdata/kodingart/kodingart /etc/skel/.kodingart.txt"
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
             ]
         }
     ]

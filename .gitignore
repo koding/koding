@@ -89,6 +89,7 @@ website/a/js/bongo.js
 website/a/js/kd.js
 website/a/js/kd.libs.js
 website/a/js/koding.js
+website/a/site.*
 client/Main/__generated*
 website/a/sprites/*.sprite.png
 /run
@@ -97,3 +98,4 @@ client/Core/__generatedapps__.coffee
 client/Core/__generatedroutes__.coffee
 deployment/generated_files
 website/a/out
+*.test

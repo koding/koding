@@ -37,6 +37,7 @@ class ActivitySidebar extends KDCustomHTMLView
       notificationController
       computeController
       socialapi
+      router
     } = KD.singletons
 
     @sections     = {}
@@ -46,6 +47,9 @@ class ActivitySidebar extends KDCustomHTMLView
     @selectedItem = null
 
     # @appsList = new DockController
+
+    router
+      .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -61,7 +65,8 @@ class ActivitySidebar extends KDCustomHTMLView
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
-      .on 'MachineDataUpdated',        @bound 'updateMachineTree'
+      .on 'MachineDataModified',       @bound 'updateMachineTree'
+      .on 'RenderMachines',            @bound 'renderMachines'
 
   # event handling
 
@@ -133,9 +138,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem channel, yes
+      channel.isParticipant    = yes
       channel.participantCount = participantCount
       channel.emit 'update'
+
+      item = @addItem channel, no
       item.setUnreadCount unreadCount
 
 
@@ -145,9 +152,12 @@ class ActivitySidebar extends KDCustomHTMLView
     {id, typeConstant}              = update.channel
     {unreadCount, participantCount} = update
 
-    # @removeItem id
+    @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
+      return KD.showError err  if err
+
+      channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
 
@@ -351,23 +361,23 @@ class ActivitySidebar extends KDCustomHTMLView
         parentId     : id
         id           : machine._id
         machineUId   : machine.uid
-        machineLabel : machine.label
+        machineLabel : machine.slug or machine.label
 
       treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
-        href         : "/IDE/#{machine.label}/my-workspace"
-        id           : "#{machine.label}-workspace"
+        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
+        id           : "#{machine.slug or machine.label}-workspace"
         parentId     : id
-        machineLabel : machine.label
+        machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
           treeData.push
-            title        : workspace.name
+            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
             type         : 'workspace'
-            href         : "/IDE/#{machine.label}/#{workspace.slug}"
-            machineLabel : machine.label
+            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
             parentId     : id
@@ -400,14 +410,14 @@ class ActivitySidebar extends KDCustomHTMLView
           tree.collapse node
 
       else if node.type is 'workspace'
-        if isMachineRunning and nodeData.machineLabel is machine.label
+        if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
           slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
           tree.selectNode node  if slug is workspace.slug
 
     @latestWorkspaceData = data
 
     localStorage         = KD.getSingleton("localStorageController").storage "IDE"
-    minimumDataToStore   = machineLabel: machine.label, workspaceSlug: workspace.slug
+    minimumDataToStore   = machineLabel: (machine.slug or machine.label), workspaceSlug: workspace.slug
 
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
@@ -448,7 +458,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
@@ -595,10 +607,10 @@ class ActivitySidebar extends KDCustomHTMLView
     layout = {}
 
     if not name or not machineUId
-      return warn 'Missing options for create new workspace'
+      return warn 'Missing options to create a new workspace'
 
     unless rootPath
-      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{KD.utils.slugify name}"
       emptyWorkspace = yes
 
     data    = { name, machineUId, machineLabel, rootPath, layout }
@@ -609,16 +621,18 @@ class ActivitySidebar extends KDCustomHTMLView
 
     callback = =>
       KD.remote.api.JWorkspace.create data, (err, workspace) =>
-        return KD.showError "Couldn't create new workspace"  if err
+        if err
+          @emit 'WorkspaceCreateFailed'
+          return KD.showError "Couldn't create new workspace"
 
         for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
           parentId = nodeData.id
 
         view    = @addWorkspaceView
         data    =
-          title : workspace.name
+          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
           type  : 'workspace'
-          href  : "/IDE/#{machine.label}/#{workspace.slug}"
+          href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           data  : workspace
           id    : workspace._id
           machineLabel : machineLabel
@@ -636,6 +650,7 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.userWorkspaces.push workspace
 
         router.handleRoute data.href
+        @emit 'WorkspaceCreated', workspace
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })
@@ -649,11 +664,17 @@ class ActivitySidebar extends KDCustomHTMLView
   updateMachineTree: (callback = noop) ->
 
     @fetchMachines (machines) =>
-      jMachines = []
-      tree      = @machineTree
-      jMachines.push machine.data for machine in machines
 
-      tree.removeAllNodes()
-      @listMachines jMachines
-      @selectWorkspace()
-      callback()
+      @renderMachines machines, callback
+
+
+  renderMachines: (machines, callback = noop)->
+
+    jMachines = []
+    jMachines.push machine.data for machine in machines
+
+    @machineTree.removeAllNodes()
+    @listMachines jMachines
+
+    @selectWorkspace()
+    callback()

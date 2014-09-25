@@ -110,7 +110,18 @@ class MainView extends KDView
     @panelWrapper.addSubView new KDCustomHTMLView
       tagName  : 'cite'
       domId    : 'sidebar-toggle'
-      click    : => @toggleClass 'collapsed'
+      click    : @bound 'collapseSidebar'
+
+
+  collapseSidebar: ->
+
+    @toggleClass 'collapsed'
+
+    { appManager } = KD.singletons
+
+    if appManager.getFrontApp().getOption('name') is 'IDE'
+      KD.utils.wait 250, ->
+        KD.singletons.windowController.notifyWindowResizeListeners()
 
 
   createAccountArea:->
@@ -228,7 +239,7 @@ class MainView extends KDView
       top    : Math.max bounds.y - 38, 0
       left   : bounds.x + bounds.w + 16
 
-    new MachineSettingsModal {position}, machine
+    new MachineSettingsPopup {position}, machine
 
 
   setStickyNotification:->

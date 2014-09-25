@@ -15,8 +15,14 @@ module.exports = [
   "sidebar/pinneditem.coffee"
   "sidebar/groupdescription.coffee"
 
+  "views/guidewidget.coffee"
+  "views/topicswidget.coffee"
+  "views/universitywidget.coffee"
+  "views/widgetsbar.coffee"
+
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
+  "views/activitypane.coffee"
 
   "views/filterlinks.coffee"
 
@@ -37,6 +43,7 @@ module.exports = [
   "views/yourtopicsmodal.coffee"
   "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
+  "views/searchinputview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"
@@ -64,6 +71,9 @@ module.exports = [
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 
+  "views/activitytabhandle.coffee"
+  "views/activitycontentpane.coffee"
+  "views/activitysearchresultspane.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
@@ -94,13 +104,14 @@ module.exports = [
   "views/comments/timeview.coffee"
 
   "views/privatemessage/listitem.coffee"
-  "views/privatemessage/modal.coffee"
+  "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
+  "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
   "views/privatemessage/settingsview.coffee"
 

@@ -26,6 +26,7 @@ func main() {
 		"destroy": command.NewDestroy(),
 		"restart": command.NewRestart(),
 		"resize":  command.NewResize(),
+		"reinit":  command.NewReinit(),
 	}
 
 	_, err := c.Run()

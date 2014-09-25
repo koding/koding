@@ -1,9 +1,11 @@
-{Inflector}  = require 'bongo'
-{Module}     = require 'jraphical'
+{Module} = require 'jraphical'
 
 module.exports = class JWorkspace extends Module
 
-  {signature, secure} = require 'bongo'
+  KodingError  = require '../error'
+  {slugify}    = require '../traits/slugifiable'
+  {signature, secure, ObjectId} = require 'bongo'
+
   @share()
 
   @set
@@ -19,14 +21,16 @@ module.exports = class JWorkspace extends Module
     sharedMethods  :
       static       :
         create     : signature Object, Function
-      instance     : []
+        deleteById : signature String, Function
+      instance     :
+        delete     : signature Function
     sharedEvents   :
       static       : []
       instance     : []
 
   @create = secure (client, data, callback) ->
     data.owner = client.connection.delegate._id
-    data.slug  = Inflector.slugify data.name?.toLowerCase()
+    data.slug  = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, owner, layout, machineLabel} = data
 
@@ -73,3 +77,26 @@ module.exports = class JWorkspace extends Module
     query.owner = client.connection.delegate._id
     JWorkspace.some query, {}, callback
 
+
+  @deleteById = secure (client, id, callback)->
+
+    selector =
+      owner  : client.connection.delegate._id
+      _id    : ObjectId id
+
+    JWorkspace.one selector, (err, ws)->
+      return callback err  if err?
+      unless ws?
+        callback new KodingError "Workspace not found."
+      else
+        ws.remove (err)-> callback err
+
+
+  delete: secure (client, callback)->
+
+    { delegate } = client.connection
+
+    unless delegate.getId().equals this.owner
+      return callback new KodingError 'Access denied'
+
+    @remove callback

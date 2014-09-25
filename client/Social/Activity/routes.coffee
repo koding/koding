@@ -1,15 +1,30 @@
 do ->
 
+  appManager = -> KD.singletons.appManager
+
+  activityPane = (callback) ->
+    appManager().open 'Activity', (app) ->
+      view = app.getView()
+      view.open 'topic', 'public'
+      callback view.tabs.getPaneByName 'topic-public'
+
   handleChannel = (type, slug, callback) ->
-
-    {appManager} = KD.singletons
     callback    ?= (app) -> app.getView().open type, slug
-    appManager.open 'Activity', callback
-
+    appManager().open 'Activity', callback
 
   KD.registerRoutes 'Activity',
 
-    '/:name?/Activity/Public' : ({params: {name}}) -> handleChannel 'topic', 'public'
+    '/:name?/Activity/Public' : ({params: {name}}) ->
+      @handleRoute "/#{if name then name else ''}/Activity/Public/Liked",
+        replaceState: yes
+
+    '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
+      activityPane (pane) ->
+        pane.tabView.showPane pane.tabView.getPaneByName 'Most Liked'
+
+    '/:name?/Activity/Public/Recent': ({ params: {name}}) ->
+      activityPane (pane) ->
+        pane.tabView.showPane pane.tabView.getPaneByName 'Most Recent'
 
     # TODO ~ i tried to unify this route and following 4 routes, couldnt manage
     # to make it work, did not spend so much time on it and gave up, it would be
@@ -32,7 +47,7 @@ do ->
       handleChannel 'post', slug
 
     '/:name?/Activity/Message/New' : ->
-      handleChannel null, null, (app) -> app.getView().showNewMessageModal()
+      handleChannel null, null, (app) -> app.getView().showNewMessageForm()
 
     '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllTopicsModal()

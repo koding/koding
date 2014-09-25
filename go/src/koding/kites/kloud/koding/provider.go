@@ -7,7 +7,6 @@ import (
 
 	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
@@ -21,14 +20,18 @@ var (
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	kodingCredential = map[string]interface{}{
-		"access_key": "AKIAIDPT7E2UHZHT2CXQ",
-		"secret_key": "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",
+		"access_key": "AKIAIKAVWAYVSMCW4Z5A",
+		"secret_key": "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",
 	}
 )
 
 const (
 	ProviderName = "koding"
 )
+
+type pushValues struct {
+	Start, Finish int
+}
 
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
@@ -63,6 +66,8 @@ type Provider struct {
 	PublicKey  string `structure:"publicKey"`
 	PrivateKey string `structure:"privateKey"`
 	KeyName    string `structure:"keyName"`
+
+	PlanChecker func(*protocol.Machine) (Checker, error)
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -103,10 +108,6 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	}
 
 	return a, nil
-}
-
-func (p *Provider) Name() string {
-	return ProviderName
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -160,19 +161,9 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Deleting domain", 75, machinestate.Stopping)
+	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
-	}
-
-	a.Push("Updating ip address", 85, machinestate.Stopping)
-	if err := p.Update(m.Id, &kloud.StorageData{
-		Type: "stop",
-		Data: map[string]interface{}{
-			"ipAddress": "",
-		},
-	}); err != nil {
-		p.Log.Error("[stop] storage update of essential data was not possible: %s", err.Error())
 	}
 
 	return nil
@@ -187,13 +178,35 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 	return a.Restart()
 }
 
+func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 40}); err != nil {
+		return nil, err
+	}
+
+	return p.build(a, m, &pushValues{Start: 40, Finish: 90})
+}
+
 func (p *Provider) Destroy(m *protocol.Machine) error {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return err
 	}
 
-	err = a.Destroy()
+	return p.destroy(a, m, &pushValues{Start: 10, Finish: 90})
+}
+
+func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
+	// means if final is 40 our destroy method below will be push at most up to
+	// 32.
+
+	middleVal := float64(v.Finish) * (8.0 / 10.0)
+
+	err := a.Destroy(v.Start, int(middleVal))
 	if err != nil {
 		return err
 	}
@@ -202,7 +215,10 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Checking domain", 75, machinestate.Terminating)
+	// increase one tick but still don't let it reach the final value
+	lastVal := float64(v.Finish) * (9.0 / 10.0)
+
+	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
 	_, err = p.DNS.Domain(m.Domain.Name)
@@ -215,10 +231,11 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	a.Push("Deleting domain", 85, machinestate.Terminating)
+	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
 	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 
 	return nil
+
 }

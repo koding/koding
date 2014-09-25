@@ -2,6 +2,7 @@ package koding
 
 import (
 	"bytes"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/amazon"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -32,6 +34,20 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		return nil, err
 	}
 
+	return p.build(a, m, &pushValues{Start: 10, Finish: 90})
+}
+
+func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) (resArt *protocol.Artifact, err error) {
+	// returns the normalized step according to the initial start and finish
+	// values. i.e for a start,finish pair of (10,90) percentages of
+	// 0,15,20,50,80,100 will be according to the function: 10,18,26,50,74,90
+	normalize := func(percentage int) int {
+		base := v.Finish - v.Start
+		step := float64(base) * (float64(percentage) / 100)
+		normalized := float64(v.Start) + step
+		return int(normalized)
+	}
+
 	// Check for total amachine allowance
 	checker, err := p.PlanChecker(m)
 	if err != nil {
@@ -50,7 +66,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 
 	instanceName := m.Builder["instanceName"].(string)
 
-	a.Push("Initializing data", 10, machinestate.Building)
+	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetInfoLogger(m.Id)
 
@@ -64,11 +80,25 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
-	a.Push("Checking security requirements", 20, machinestate.Building)
+	a.Push("Checking network requirements", normalize(20), machinestate.Building)
 
-	groupName := "koding-kloud" // TODO: make it from the package level and remove it from here
-	infoLog("Checking if security group '%s' exists", groupName)
-	group, err := a.SecurityGroup(groupName)
+	// get all subnets belonging to Kloud
+	kloudKeyName := "Kloud"
+	infoLog("Searching for subnets with tag-key %s", kloudKeyName)
+	subnets, err := a.SubnetsWithTag(kloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	infoLog("Searching a subnet with most IPs amongst '%d' subnets", len(subnets))
+	subnet := subnetWithMostIPs(subnets)
+
+	infoLog("Using subnet id %s, which has %d available IPs", subnet.SubnetId, subnet.AvailableIpAddressCount)
+	a.Builder.SubnetId = subnet.SubnetId
+
+	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
+	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
 	if err != nil {
 		return nil, err
 	}
@@ -85,16 +115,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		return nil, err
 	}
 
-	// needed for vpc instances, go and grap one from one of our Koding's own
-	// subnets
-	infoLog("Searching for subnets")
-	subs, err := a.ListSubnets()
-	if err != nil {
-		return nil, err
-	}
-	a.Builder.SubnetId = subs.Subnets[0].SubnetId
-
-	a.Push("Checking base build image", 30, machinestate.Building)
+	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
 	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
@@ -144,37 +165,47 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		return nil, err
 	}
 
-	latestKlientURL, err := p.Bucket.LatestDeb()
+	latestKlientPath, err := p.Bucket.LatestDeb()
 	if err != nil {
 		return nil, err
 	}
-	signedLatestKlientURL := p.Bucket.SignedURL(latestKlientURL, time.Now().Add(time.Minute*3))
+
+	latestKlientUrl := p.Bucket.URL(latestKlientPath)
 
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
 		Username:        m.Username,
 		Hostname:        m.Username, // no typo here. hostname = username
 		KiteKey:         kiteKey,
-		LatestKlientURL: signedLatestKlientURL,
+		LatestKlientURL: latestKlientUrl,
 		ApachePort:      DefaultApachePort,
 		KitePort:        DefaultKitePort,
+		Test:            p.Test,
+	}
+
+	// check if the user has some keys
+	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
+		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
+			cloudInitConfig.UserSSHKeys = keys
+		}
 	}
 
 	cloudInitConfig.setupMigrateScript()
 
 	var userdata bytes.Buffer
-	err = cloudInitTemplate.Execute(&userdata, *cloudInitConfig)
+	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
 	if err != nil {
 		return nil, err
 	}
 
+	// user data is now ready!
 	a.Builder.UserData = userdata.Bytes()
 
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
 	// build now our instance!!
-	buildArtifact, err := a.Build(instanceName)
+	buildArtifact, err := a.Build(instanceName, normalize(45), normalize(60))
 	if err != nil {
 		return nil, err
 	}
@@ -192,9 +223,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 		}
 	}()
 
-	a.Push("Checking domain", 65, machinestate.Building)
-
-	a.Push("Creating domain", 70, machinestate.Building)
+	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
@@ -228,7 +257,7 @@ func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err er
 	query := kiteprotocol.Kite{ID: kiteId.String()}
 	buildArtifact.KiteQuery = query.String()
 
-	a.Push("Checking connectivity", 75, machinestate.Building)
+	a.Push("Checking connectivity", normalize(75), machinestate.Building)
 	infoLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
 		p.Log.Info("[%s] klient is ready.", m.Id)
@@ -269,4 +298,17 @@ func (p *Provider) createKey(username, kiteId string) (string, error) {
 	}
 
 	return token.SignedString([]byte(p.KontrolPrivateKey))
+}
+
+type ByMostIP []ec2.Subnet
+
+func (a ByMostIP) Len() int      { return len(a) }
+func (a ByMostIP) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByMostIP) Less(i, j int) bool {
+	return a[i].AvailableIpAddressCount > a[j].AvailableIpAddressCount
+}
+
+func subnetWithMostIPs(subnets []ec2.Subnet) ec2.Subnet {
+	sort.Sort(ByMostIP(subnets))
+	return subnets[0]
 }

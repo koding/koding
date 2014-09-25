@@ -2,10 +2,11 @@ class MessagePane extends KDTabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.type    or= ''
-    options.cssClass  = "message-pane #{options.type}"
-    options.wrapper     ?= yes
-    options.lastToFirst ?= no
+    options.type        or= ''
+    options.cssClass      = "message-pane #{options.type}"
+    options.wrapper      ?= yes
+    options.lastToFirst  ?= no
+    options.itemClass   or= ActivityListItemView
 
     super options, data
 
@@ -15,7 +16,7 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, type, lastToFirst, wrapper, channelId} = @getOptions()
+    {itemClass, lastToFirst, wrapper, channelId} = @getOptions()
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -33,6 +34,8 @@ class MessagePane extends KDTabPaneView
     @createInputWidget()
     @createFilterLinks()
     @bindInputEvents()
+
+    @submitIsPending = no
 
     @fakeMessageMap = {}
 
@@ -64,13 +67,20 @@ class MessagePane extends KDTabPaneView
     return  unless @input
 
     @input
-      .on 'SubmitStarted',   @bound 'handleEnter'
-      .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
-      .on 'SubmitFailed',    @bound 'messageSubmitFailed'
+      .on 'SubmitStarted',    @bound 'handleEnter'
+      .on 'SubmitStarted',    => @submitIsPending = yes
+      .on 'SubmitSucceeded',  @bound 'replaceFakeItemView'
+      .on 'SubmitSucceeded',  => KD.utils.defer => @submitIsPending = no
+      .on 'SubmitFailed',     @bound 'messageSubmitFailed'
 
+  whenSubmitted: ->
+    new Promise (resolve) =>
+      unless @submitIsPending
+        resolve()
+      else
+        @input.once 'SubmitSucceeded', -> resolve()
 
   replaceFakeItemView: (message) ->
-
     @putMessage message, @removeFakeMessage message.clientRequestId
 
 
@@ -96,8 +106,8 @@ class MessagePane extends KDTabPaneView
       else @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message, index = 0) -> @appendMessage message, index
-
+  putMessage: (message, index = 0) ->
+    @mostRecent.listController.addItem message, index
 
   createFakeItemView: (value, clientRequestId) ->
 
@@ -338,12 +348,12 @@ class MessagePane extends KDTabPaneView
     options.name      = name
     options.type      = type
     options.channelId = channelId
-    options.mostLiked = yes  if @currentFilter is 'Most Liked'
 
-    # if it is a post it means we already have the data
-    if type is 'post'
-    then KD.utils.defer -> callback null, [data]
-    else appManager.tell 'Activity', 'fetch', options, callback
+    @whenSubmitted().then ->
+      # if it is a post it means we already have the data
+      if type is 'post'
+      then KD.utils.defer -> callback null, [data]
+      else appManager.tell 'Activity', 'fetch', options, callback
 
   lazyLoad: ->
 
@@ -378,7 +388,9 @@ class MessagePane extends KDTabPaneView
     @populate()
 
 
-  setFilter: (@currentFilter) ->
+  setFilter: (filter) ->
+
+    return  if @currentFilter is filter
 
     @filterLinks.selectFilter @currentFilter
     @populate()

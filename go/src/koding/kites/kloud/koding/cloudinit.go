@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -9,7 +10,22 @@ import (
 )
 
 var (
-	cloudInitTemplate = template.Must(template.New("cloudinit").Parse(cloudInit))
+	// funcMap contains easy to use template functions
+	funcMap = template.FuncMap{
+		"user_keys": func(keys []string) string {
+			if len(keys) == 0 {
+				return ""
+			}
+
+			c := "ssh_authorized_keys:\n"
+			for _, key := range keys {
+				c += fmt.Sprintf("  - %s\n", strings.TrimSpace(key))
+			}
+			return c
+		},
+	}
+
+	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
 
 	cloudInit = `
 #cloud-config
@@ -29,6 +45,9 @@ users:
     gecos: koding user
     lock-password: true
     sudo: ALL=(ALL) NOPASSWD:ALL
+
+
+{{ user_keys .UserSSHKeys }}
 
 write_files:
   # Create kite.key
@@ -94,8 +113,8 @@ write_files:
       count=$((${#credentials[@]} - 1))
       counter=0
       clear
-      if [ -f /etc/skel/.kodingart.txt ]; then
-        cat /etc/skel/.kodingart.txt
+      if [ -f /etc/koding/.kodingart.txt ]; then
+        cat /etc/koding/.kodingart.txt
       fi
       echo
       echo 'This migration assistant will help you move your VMs from the old Koding'
@@ -176,6 +195,7 @@ final_message: "All done!"
 
 type CloudInitConfig struct {
 	Username        string
+	UserSSHKeys     []string
 	Hostname        string
 	KiteKey         string
 	LatestKlientURL string // URL of the latest version of the Klient package
@@ -187,9 +207,15 @@ type CloudInitConfig struct {
 	VmNames       string
 	VmIds         string
 	ShouldMigrate bool
+
+	Test bool
 }
 
 func (c *CloudInitConfig) setupMigrateScript() {
+	// FIXME: Hack. Revise here.
+	if c.Test {
+		return
+	}
 	vms, err := modelhelper.GetUserVMs(c.Username)
 	if err != nil {
 		return

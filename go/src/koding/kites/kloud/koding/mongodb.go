@@ -35,10 +35,17 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 	// jAccounts with machine.Users.Id..
 	username := machine.Credential
 
+	// get user model which contains user ssh keys or the list of users that
+	// are allowed to use this machine
+	user, err := p.getUser(username)
+	if err != nil {
+		return nil, err
+	}
+
 	// do not check for admin users, or if test mode is enabled
 	if !IsAdmin(username) {
 		// check for user permissions
-		if err := p.checkUser(username, machine.Users); err != nil && !p.Test {
+		if err := p.checkUser(user.ObjectId, machine.Users); err != nil && !p.Test {
 			return nil, err
 		}
 	}
@@ -55,9 +62,29 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		IpAddress:   machine.IpAddress,
 		QueryString: machine.QueryString,
 	}
+
 	m.Domain.Name = machine.Domain
 
+	// add user ssh keys, if there is any available
+	userPublicKeys := make([]string, len(user.SshKeys))
+	for i, s := range user.SshKeys {
+		userPublicKeys[i] = s.Key
+	}
+
+	m.Builder["user_ssh_keys"] = userPublicKeys
+
 	return m, nil
+}
+
+func (p *Provider) Delete(id string) error {
+	p.Log.Info("[%s] Deleting machine document", id)
+	if !bson.IsObjectIdHex(id) {
+		return fmt.Errorf("Invalid machine id: %q", id)
+	}
+
+	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.RemoveId(bson.ObjectIdHex(id))
+	})
 }
 
 func (p *Provider) GetCredential(publicKey string) *Credential {
@@ -76,7 +103,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	data := map[string]interface{}{}
 
 	switch s.Type {
-	case "build":
+	case "build", "reinit":
 		data["queryString"] = s.Data["queryString"]
 		data["ipAddress"] = s.Data["ipAddress"]
 		data["domain"] = s.Data["domainName"]

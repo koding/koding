@@ -51,6 +51,16 @@ func HandleResultAndError(res interface{}, err error) (int, http.Header, interfa
 	return NewOK(res)
 }
 
+// HandleResultAndClientError is same as `HandleResultAndError`, but it
+// returns the actual error to client as opposed to generic error.
+func HandleResultAndClientError(res interface{}, err error) (int, http.Header, interface{}, error) {
+	if err != nil {
+		return http.StatusBadRequest, nil, nil, err
+	}
+
+	return NewOK(res)
+}
+
 // NewOK returns http StatusOK response
 func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 	return http.StatusOK, nil, res, nil

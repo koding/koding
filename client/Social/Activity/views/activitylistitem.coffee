@@ -77,7 +77,10 @@ class ActivityListItemView extends KDListItemView
     else
       new KDCustomHTMLView
 
-    @timeAgoView = new KDTimeAgoView {}, @getData().createdAt
+    @timeAgoView =
+      if @getData().createdAt
+      then new KDTimeAgoView {}, @getData().createdAt
+      else new KDView
 
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
