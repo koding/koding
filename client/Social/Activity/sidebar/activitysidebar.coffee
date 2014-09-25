@@ -646,6 +646,7 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.userWorkspaces.push workspace
 
         router.handleRoute data.href
+        @emit 'WorkspaceCreated', workspace
 
     if emptyWorkspace
       machine.getBaseKite().exec({ command })
