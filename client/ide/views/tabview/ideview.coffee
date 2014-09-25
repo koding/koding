@@ -222,12 +222,26 @@ class IDE.IDEView extends IDE.WorkspaceTabView
           @tabView.removePane pane
 
   getPlusMenuItems: ->
-    return {
-      'Editor'        : callback : => @createEditor()
-      'Terminal'      : callback : => @createTerminal()
-      'Browser'       : callback : => @createPreview()
-      'Drawing Board' : callback : => @createDrawingBoard()
-    }
+    items =
+      'New File'          : callback : => @createEditor()
+      'New Terminal'      : callback : => @createTerminal()
+      'New Browser'       : callback : => @createPreview()
+      'New Drawing Board' :
+        callback      : => @createDrawingBoard()
+        separator     : yes
+      'Split Vertically':
+        callback      : ->
+          KD.getSingleton('appManager').getFrontApp().splitVertically()
+      'Split Horizontally':
+        callback      : ->
+          KD.getSingleton('appManager').getFrontApp().splitHorizontally()
+
+    if @parent instanceof KDSplitViewPanel
+      items['Undo Split'] =
+        callback      : ->
+          KD.getSingleton('appManager').getFrontApp().mergeSplitView()
+
+    return items
 
   createEditorMenu: (tabHandle, icon) ->
     tabHandle.setClass 'menu-visible'
