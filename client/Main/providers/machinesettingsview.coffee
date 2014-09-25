@@ -187,3 +187,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 20
+
+    computeController.fetchUserPlan (plan)=>
+      @terminateButton.hide()  if plan in ['free', 'hobbyist']
+
