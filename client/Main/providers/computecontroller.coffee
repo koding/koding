@@ -241,6 +241,7 @@ class ComputeController extends KDController
       .then (res)=>
 
         log "destroy res:", res
+        @emit "MachineBeingDestroyed", machine
         @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
@@ -266,6 +267,7 @@ class ComputeController extends KDController
       .then (res)=>
 
         log "reinit res:", res
+        @emit "MachineBeingDestroyed", machine
         @_clearTrialCounts machine
         @eventListener.addListener 'reinit', machine._id
 

@@ -22,6 +22,7 @@ module.exports = class JWorkspace extends Module
       static       :
         create     : signature Object, Function
         deleteById : signature String, Function
+        deleteByUid: signature String, Function
       instance     :
         delete     : signature Function
     sharedEvents   :
@@ -90,6 +91,16 @@ module.exports = class JWorkspace extends Module
         callback new KodingError "Workspace not found."
       else
         ws.remove (err)-> callback err
+
+
+  @deleteByUid = secure (client, uid, callback)->
+
+    selector     =
+      owner      : client.connection.delegate._id
+      machineUId : uid
+
+    JWorkspace.remove selector, (err)->
+      callback err
 
 
   delete: secure (client, callback)->
