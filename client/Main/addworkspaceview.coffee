@@ -39,5 +39,10 @@ class AddWorkspaceView extends KDCustomHTMLView
 
       activitySidebar.createNewWorkspace options
 
-      activitySidebar.once 'WorkspaceCreated', =>
-        KD.utils.defer => @hasPendingRequest = no
+      activitySidebar.once 'WorkspaceCreated', @bound 'clearFlag'
+
+      activitySidebar.once 'WorkspaceCreateFailed', @bound 'clearFlag'
+
+
+  clearFlag: ->
+    KD.utils.defer => @hasPendingRequest = no
