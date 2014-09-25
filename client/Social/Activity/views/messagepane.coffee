@@ -190,16 +190,14 @@ class MessagePane extends KDTabPaneView
     if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
 
-  createInputWidget: ->
+  createInputWidget: (placeholder) ->
 
     return  if @getOption("type") is 'post'
 
     channel = @getData()
     {socialapi} = KD.singletons
 
-    @input = if socialapi.isAnnouncementItem channel.id
-    then new KDView
-    else new ActivityInputWidget {channel}
+    @input = new ActivityInputWidget { channel, placeholder }
 
 
   createFilterLinks: ->
