@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/bongo"
 	stripe "github.com/stripe/stripe-go"
+	stripeInvoice "github.com/stripe/stripe-go/invoice"
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
@@ -101,4 +102,53 @@ func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Qu
 	}
 
 	return subs, nil
+}
+
+func CancelSubscriptionAndRemoveCC(customer *paymentmodel.Customer, currentSubscription *paymentmodel.Subscription) error {
+	err := CancelSubscription(customer, currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	err = RemoveCreditCard(customer)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscriptions []paymentmodel.Subscription, plan *paymentmodel.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	if IsNoSubscriptions(subscriptions) {
+		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+	}
+
+	currentSubscription := subscriptions[0]
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
+
+	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return handleStripeError(err)
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Customer: customer.ProviderCustomerId,
+	}
+
+	_, err = stripeInvoice.New(invoiceParams)
+	if err != nil {
+		return err
+	}
+
+	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
