@@ -102,7 +102,7 @@ module.exports = class HomeView extends KDView
     <section class="introduction">
       <div>
         <article>
-          <h1>Say goodbye to localhost</h2>
+          <h1>Your next localhost is here.</h2>
           <h2>
             Develop in Go, Python, Node, Ruby, PHP, etc or play with Docker, Wordpress, Django, Laravel or create Android, IOS/iPhone, HTML5 apps. All for FREE!
           </h2>
