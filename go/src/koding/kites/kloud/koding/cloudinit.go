@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -9,7 +10,22 @@ import (
 )
 
 var (
-	cloudInitTemplate = template.Must(template.New("cloudinit").Parse(cloudInit))
+	// funcMap contains easy to use template functions
+	funcMap = template.FuncMap{
+		"user_keys": func(keys []string) string {
+			if len(keys) == 0 {
+				return ""
+			}
+
+			c := "ssh_authorized_keys:\n"
+			for _, key := range keys {
+				c += fmt.Sprintf("  - %s\n", strings.TrimSpace(key))
+			}
+			return c
+		},
+	}
+
+	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
 
 	cloudInit = `
 #cloud-config
@@ -30,8 +46,8 @@ users:
     lock-password: true
     sudo: ALL=(ALL) NOPASSWD:ALL
 
-ssh_authorized_keys:
-  - {{.UserPublicSSHKey}}
+
+{{ user_keys .UserSSHKeys }}
 
 write_files:
   # Create kite.key
@@ -178,13 +194,13 @@ final_message: "All done!"
 )
 
 type CloudInitConfig struct {
-	Username         string
-	UserPublicSSHKey string
-	Hostname         string
-	KiteKey          string
-	LatestKlientURL  string // URL of the latest version of the Klient package
-	ApachePort       int    // Defines the base apache running port, should be 80 or 443
-	KitePort         int    // Defines the running kite port, like 3000
+	Username        string
+	UserSSHKeys     []string
+	Hostname        string
+	KiteKey         string
+	LatestKlientURL string // URL of the latest version of the Klient package
+	ApachePort      int    // Defines the base apache running port, should be 80 or 443
+	KitePort        int    // Defines the running kite port, like 3000
 
 	// Needed for migrate.sh script
 	Passwords     string
