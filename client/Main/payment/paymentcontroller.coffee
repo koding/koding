@@ -8,7 +8,10 @@ class PaymentController extends KDController
     params.email    = options.email     if options.email
     params.provider = options.provider  or DEFAULT_PROVIDER
 
-    @api().subscribe params, callback
+    @api().subscribe params, (err, result)=>
+      @emit "UserPlanUpdated"  unless err?
+      callback err, result
+
 
   subscriptions: (callback)-> @api().subscriptions {}, callback
 
@@ -192,7 +195,6 @@ class PaymentController extends KDController
             @confirmReactivation existingSubscription, (err, subscription) =>
               return KD.showError err  if err
               @emit "SubscriptionReactivated", subscription
-              @emit "UserPlanUpdated"
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
           { JUser } = KD.remote.api
@@ -201,7 +203,6 @@ class PaymentController extends KDController
             JUser.logout ->
         else
           @emit "SubscriptionCompleted"
-          @emit "UserPlanUpdated"
 
         log 'KD.singletons.dock.getView().show()'
 
