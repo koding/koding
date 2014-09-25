@@ -70,6 +70,7 @@ class SidebarSearchModal extends KDModalView
   handleLazyLoad: ->
 
     return  if @beingFetched
+    return @listController.hideLazyLoader()  if @reachedEndOfTheList
 
     @fetch skip : @listController.getItemCount(), @bound 'populate'
 
@@ -138,6 +139,7 @@ class SidebarSearchModal extends KDModalView
       return  if err
 
       callback items
+      @reachedEndOfTheList = yes  unless items.length
 
 
   dummyCallback = (options, callback) ->
