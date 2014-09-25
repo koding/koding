@@ -85,7 +85,10 @@ class IDE.MachineStateModal extends IDE.ModalView
           if response.State is NotInitialized
             KD.utils.defer => @turnOnMachine()
 
-        .catch => @buildViews()
+        .catch =>
+          @hasError = yes
+          @buildViews()
+
     else
       @buildViews()
 
