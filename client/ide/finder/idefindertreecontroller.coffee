@@ -1,6 +1,10 @@
 class IDE.FinderTreeController extends NFinderTreeController
 
+
   cmCreateWorkspace: (node) -> @createWorkspace node
+
+
+  cmCreateTerminal:  (node) -> @createTerminal  node
 
 
   createWorkspace: (node) ->
@@ -12,3 +16,10 @@ class IDE.FinderTreeController extends NFinderTreeController
     options      = { name, machineUId, rootPath, machineLabel }
 
     KD.getSingleton('mainView').activitySidebar.createNewWorkspace options
+
+
+  createTerminal: (node) ->
+    {path, machine} = node.getData()
+    appManager      = KD.getSingleton 'appManager'
+
+    appManager.tell 'IDE', 'createNewTerminal', machine, FSHelper.plainPath path
