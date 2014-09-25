@@ -210,7 +210,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       'Editor'        : callback : => @createEditor()
       'Terminal'      : callback : => @createTerminal()
       'Browser'       : callback : => @createPreview()
-      'Drawing Board' : callback : => @createDrawingBoard()
+      # 'Drawing Board' : callback : => @createDrawingBoard()
     }
 
   createPlusContextMenu: ->
