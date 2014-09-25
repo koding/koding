@@ -38,7 +38,7 @@ module.exports = class LoginView extends JView
 
   do ->
     image      = new Image
-    bgImageUrl = "/a/out/images/unsplash/#{backgroundImageNr}.jpg"
+    bgImageUrl = "/a/site.landing/images/unsplash/#{backgroundImageNr}.jpg"
     image.src  = bgImageUrl
 
     image.classList.add 'off-screen-login-image'
