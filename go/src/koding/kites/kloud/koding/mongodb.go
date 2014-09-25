@@ -76,6 +76,17 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 	return m, nil
 }
 
+func (p *Provider) Delete(id string) error {
+	p.Log.Info("[%s] Deleting machine document", id)
+	if !bson.IsObjectIdHex(id) {
+		return fmt.Errorf("Invalid machine id: %q", id)
+	}
+
+	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.RemoveId(bson.ObjectIdHex(id))
+	})
+}
+
 func (p *Provider) GetCredential(publicKey string) *Credential {
 	credential := &Credential{}
 	// we neglect errors because credential is optional

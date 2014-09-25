@@ -170,6 +170,12 @@ func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 	destroyFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		err := p.Destroy(m)
+		if err != nil {
+			return nil, err
+		}
+
+		// purge the data too
+		err = k.Storage.Delete(m.Id)
 		return nil, err
 	}
 
