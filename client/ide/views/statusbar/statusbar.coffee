@@ -6,17 +6,20 @@ class IDE.StatusBar extends KDView
 
     super options, data
 
-    @status     = new KDCustomHTMLView
-      cssClass  : 'status'
+    @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
-    @menuButton = new KDCustomHTMLView
-      tagName   : 'span'
-      cssClass  : 'actions-button'
-      click     : =>
-        KD.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', @menuButton
+    @addSubView new KDCustomHTMLView
+      cssClass : 'icon shortcuts'
+      click    : -> KD.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
-    @addSubView @status
-    @addSubView @menuButton
+    @addSubView new KDCustomHTMLView
+      cssClass : 'icon github'
+      click    : -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
+
+    @addSubView new KDCustomHTMLView
+      cssClass : 'icon help'
+      click    : -> log 'help modal'
+
 
   showInformation: ->
     @status.updatePartial 'Click the plus button above to create a new panel'

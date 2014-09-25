@@ -328,12 +328,20 @@ body.ide.dark
         &.line
           width         50px
 
-    .actions-button
+    .icon
       abs()
       pointer()
       display           inline-block
-      right             2px
-      r-sprite          'ide', 'hamburger'
+      &.shortcuts
+        r-sprite        'ide', 'keyboard'
+        right           68px
+      &.github
+        r-sprite        'ide', 'github'
+        right           40px
+      &.help
+        r-sprite        'ide', 'help'
+        right           14px
+
 
   .status-bar-menu
     top                 inherit !important

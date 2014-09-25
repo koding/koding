@@ -461,21 +461,6 @@ class IDEAppController extends AppController
   showShortcutsView: ->
     @activeTabView.emit 'ShortcutsViewRequested'
 
-  showStatusBarMenu: (button) ->
-    paneView = @getActivePaneView()
-    paneType = paneView?.getOptions().paneType or null
-    delegate = button
-    menu     = new IDE.StatusBarMenu { paneType, paneView, delegate }
-
-    menu.on 'viewAppended', ->
-      if paneType is 'editor' and paneView
-        {syntaxSelector} = menu
-        {ace}            = paneView.aceView
-
-        syntaxSelector.select.setValue ace.getSyntax()
-        syntaxSelector.on 'SelectionMade', (value) =>
-          ace.setSyntax value
-
   getActivePaneView: ->
     return @activeTabView.getActivePane()?.getSubViews().first
 
@@ -507,7 +492,7 @@ class IDEAppController extends AppController
       @notify 'File needs to be under ~/Web folder to preview.', 'error'
 
   updateStatusBar: (component, data) ->
-    {status, menuButton} = @statusBar
+    {status} = @statusBar
 
     text = if component is 'editor'
       {cursor, file} = data
@@ -527,7 +512,6 @@ class IDEAppController extends AppController
     else ''
 
     status.updatePartial text
-    menuButton.show()
 
   showFileFinder: ->
     return @fileFinder.input.setFocus()  if @fileFinder
