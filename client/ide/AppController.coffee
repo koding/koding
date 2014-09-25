@@ -305,23 +305,6 @@ class IDEAppController extends AppController
 
         callback()
 
-        # unless hideOnboardingModal
-        #   callback yes
-        #   appStorage.setValue 'hideOnboardingModal', yes
-
-        #   # FIXME: Onboarding modal is currently disabled.
-        #   # To make a quick workaround for `initiateFakeCounter`
-        #   # I just set appStorage flag to true. When we want to
-        #   # put onboarding modal back we need to change flag name.
-
-        #   # @onboardingModal = new IDE.OnboardingModal { container }
-        #   # @onboardingModal.once 'OnboardingModalDismissed', =>
-        #   #   mainView.activitySidebar.initiateFakeCounter()
-        #   #   callback()
-        # else
-        #   callback()
-
-
   createMachineStateModal: (options = {}) ->
     { state, container, machineItem, initial } = options
     modalOptions = { state, container, initial }
