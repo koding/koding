@@ -426,21 +426,46 @@ class ComputeController extends KDController
 
   handleNewMachineRequest: ->
 
+    return  if @_inprogress
+    @_inprogress = yes
+
     @fetchUserPlan (plan)=>
 
       @fetchPlans (plans)=>
 
-        @fetchUsage provider: "koding", (err, usage)->
+        @fetchUsage provider: "koding", (err, usage)=>
 
-          return  if KD.showError err
+          if KD.showError err
+            return @_inprogress = no
 
           limits  = plans[plan]
           options = { plan, limits, usage }
 
           if plan in ['developer', 'professional', 'super']
+
             new ComputePlansModal.Paid options
+            @_inprogress = no
+
           else
-            new ComputePlansModal.Free options
+
+            @fetchMachines (err, machines)=>
+
+              warn err  if err?
+
+              if err? or machines.length > 0
+                new ComputePlansModal.Free options
+                @_inprogress = no
+
+              else if machines.length is 0
+
+                stack = @stacks.first._id
+
+                @create { provider : "koding", stack }, (err, machine)=>
+
+                  @_inprogress = no
+
+                  unless KD.showError err
+                    KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->
