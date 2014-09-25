@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/machinestate"
 	kloudprotocol "koding/kites/kloud/protocol"
+	"koding/kites/kloud/sshutil"
 )
 
 var (
@@ -137,6 +139,17 @@ func build(id string) error {
 		MachineId: id,
 	}
 
+	// inject a generated public key to machine data so build can use it during
+	// cloud-init provisioning
+	data := GetMachineData(id)
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return err
+	}
+
+	data.Builder["user_ssh_keys"] = []string{publicKey}
+	SetMachineData(id, data)
+
 	resp, err := remote.Tell("build", buildArgs)
 	if err != nil {
 		return err
@@ -157,6 +170,30 @@ func build(id string) error {
 
 	if err := listenEvent(eArgs, machinestate.Running); err != nil {
 		return err
+	}
+
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	newData := GetMachineData(id)
+
+	sshConfig, err := sshutil.SshConfig("root", privateKey)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Connecting to machine with ip '%s' via ssh\n", newData.IpAddress)
+	sshClient, err := sshutil.ConnectSSH(newData.IpAddress+":22", sshConfig)
+	if err != nil {
+		return err
+	}
+
+	output, err := sshClient.StartCommand("whoami")
+	if err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(string(output)) != "root" {
+		return fmt.Errorf("Whoami result should be root, got: %s", string(output))
 	}
 
 	return nil
@@ -321,7 +358,6 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 }
 
 func newKloud() *kloud.Kloud {
-
 	testChecker := &TestChecker{}
 	testStorage := &TestStorage{}
 	testLocker := &TestLocker{}

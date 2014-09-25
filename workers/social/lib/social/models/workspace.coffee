@@ -1,9 +1,9 @@
-{Inflector}  = require 'bongo'
-{Module}     = require 'jraphical'
+{Module} = require 'jraphical'
 
 module.exports = class JWorkspace extends Module
 
   KodingError  = require '../error'
+  {slugify}    = require '../traits/slugifiable'
   {signature, secure, ObjectId} = require 'bongo'
 
   @share()
@@ -30,7 +30,7 @@ module.exports = class JWorkspace extends Module
 
   @create = secure (client, data, callback) ->
     data.owner = client.connection.delegate._id
-    data.slug  = Inflector.slugify data.name?.toLowerCase()
+    data.slug  = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, owner, layout, machineLabel} = data
 

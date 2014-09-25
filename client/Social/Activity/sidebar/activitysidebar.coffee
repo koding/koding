@@ -458,7 +458,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
@@ -605,10 +607,10 @@ class ActivitySidebar extends KDCustomHTMLView
     layout = {}
 
     if not name or not machineUId
-      return warn 'Missing options for create new workspace'
+      return warn 'Missing options to create a new workspace'
 
     unless rootPath
-      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{KD.utils.slugify name}"
       emptyWorkspace = yes
 
     data    = { name, machineUId, machineLabel, rootPath, layout }
