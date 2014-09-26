@@ -94,7 +94,7 @@ class SidebarSearchModal extends KDModalView
     @searchActive = yes
     @searchField.setFocus()
     @listController.removeAllItems()
-    @listController.showLazyLoader()
+    @listController.showLazyLoader no
 
     @fetchForSearch name : val, @bound 'populate'
 
