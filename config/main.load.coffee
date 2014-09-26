@@ -22,7 +22,7 @@ Configuration = (options={}) ->
   mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
   etcd                = "10.0.1.5:4001,10.0.0.217:4001,10.0.0.216:4001"
 
-  redis               = { host:     "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com",  port:           "6379"                                , db:              0                    }
+  redis               = { host:     "prod-test.1ia3pb.0001.use1.cache.amazonaws.com" , port:               "6379"                                , db:              0                    }
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "cadvyqxd"                           , password: "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"  , vhost: "cadvyqxd" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
@@ -34,7 +34,7 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.load'              }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
-  postgres            = { host:     "prod-test.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:           5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  postgres            = { host:     "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:           5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
