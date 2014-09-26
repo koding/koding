@@ -75,6 +75,8 @@ do ->
 
     '/:name?/IDE': -> routeToLatestWorkspace()
 
+    '/:name?/IDE/:machineLabel': -> routeToLatestWorkspace()
+
     '/:name?/IDE/:machineLabel/:workspaceSlug': (data) ->
 
       { machineLabel, workspaceSlug } = data.params
