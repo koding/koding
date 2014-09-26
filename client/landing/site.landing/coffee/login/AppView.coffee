@@ -427,14 +427,18 @@ module.exports = class LoginView extends JView
 
   doLogin: (formData)->
 
-    {username, password} = formData
+    {username, password, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      query = "planTitle=#{formData.planTitle}"
 
     $.ajax
       url         : '/Login'
       data        : { username, password }
       type        : 'POST'
       xhrFields   : withCredentials : yes
-      success     : -> location.replace '/'
+      success     : -> location.replace "/#{redirectTo}?#{query}"
       error       : (xhr) =>
         {responseText} = xhr
         new KDNotificationView title : responseText
