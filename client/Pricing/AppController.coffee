@@ -21,3 +21,13 @@ class PricingAppController extends KDViewController
   loadPaymentProvider: (callback) -> @ready callback
 
 
+  handleQuery: (query) ->
+
+    { view } = @getOptions()
+
+    { planTitle, planInterval } = query
+
+    return  unless planTitle and planInterval
+
+    @loadPaymentProvider -> view.continueFrom planTitle, planInterval
+
