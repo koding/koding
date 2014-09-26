@@ -60,6 +60,7 @@ class PricingAppView extends KDView
 
 
   initEvents: ->
+
     @plans.on 'PlanSelected', @bound 'planSelected'
 
     @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
@@ -131,6 +132,9 @@ class PricingAppView extends KDView
     { paymentController } = KD.singletons
 
     paymentController.subscriptions (err, subscription) =>
+
+      return KD.showError err  if err?
+
       { planTitle } = subscription
 
       @state.currentPlan = planTitle
@@ -148,7 +152,7 @@ class PricingAppView extends KDView
       .router
       .handleRoute '/Login'  unless KD.isLoggedIn()
 
-    return @loadPlan @bound 'planSelected'  unless @state.currentPlan?
+    return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
 
     @setState options
 
