@@ -31,7 +31,7 @@ deploy:
           # Create klient.0.1.x.gz
           export GOPATH=$PWD/go
           go run go/package.go -a klient -e $KLIENT_CHANNEL -b $NEWBUILDNO
-          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/kites/klient/protocol.Environment development" koding/kites/klient
+          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/kites/klient/protocol.Environment $KLIENT_CHANNEL" koding/kites/klient
           gzip -N klient
           mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
