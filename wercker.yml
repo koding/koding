@@ -17,23 +17,30 @@ deploy:
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
 
+    - script:
+        name: sync with s3
+        code: |
           echo '[default]' > ~/.s3cfg
-          echo 'access_key=$S3_KEY_ID' >> ~/.s3cfg
-          echo 'secret_key=$S3_KEY_SECRET' >> ~/.s3cfg
+          echo "access_key=$S3_KEY_ID" >> ~/.s3cfg
+          echo "secret_key=$S3_KEY_SECRET" >> ~/.s3cfg
 
-          s3cmd get s3://$S3_KLIENTKITE/latest-version.txt version
+          s3cmd ls s3://koding-klient/development/
+          echo 000
+          echo $S3_KLIENTKITE
+          echo 000
+
+          s3cmd get s3://koding-klient/development/latest-version.txt version
           OLDBUILDNO=$(cat version)
           NEWBUILDNO=$(($OLDBUILDNO+1))
-          rm version
+          rm -f version
 
-          s3cmd put *.deb  s3://$S3_KLIENTKITE/$NEWBUILDNO/
-          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/$NEWBUILDNO/
+          s3cmd put *.deb  s3://koding-klient/development/$NEWBUILDNO/
+          s3cmd -P put *.gz  s3://koding-klient/development/$NEWBUILDNO/
 
-          s3cmd del --recursive s3://$S3_KLIENTKITE/latest/
-          s3cmd put *.deb  s3://$S3_KLIENTKITE/latest/
-          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/latest/
+          s3cmd del --recursive s3://koding-klient/development/latest/
+          s3cmd put *.deb  s3://koding-klient/development/latest/
+          s3cmd -P put *.gz  s3://koding-klient/development/latest/
 
-          s3cmd del s3://$S3_KLIENTKITE/latest-version.txt
+          s3cmd del s3://koding-klient/development/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
-          s3cmd -P put latest-version.txt  s3://$S3_KLIENTKITE/latest-version.txt
-
+          s3cmd -P put latest-version.txt  s3://koding-klient/development/latest-version.txt
