@@ -26,7 +26,14 @@ type SubscriptionsResponse struct {
 	Error              string    `json:"error"`
 }
 
-func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (Plan, error) {
+func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan, planErr error) {
+	defer func() {
+		if planErr != nil {
+			p.Log.Warning("[%s] could not fetch plan. Fallback to Free plan", m.Id)
+			planResp = Free
+		}
+	}()
+
 	userEndpoint, err := url.Parse(endpoint)
 	if err != nil {
 		return 0, err
@@ -68,5 +75,6 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (Plan, error) {
 			m.Id, subscription.PlanTitle)
 	}
 
+	p.Log.Info("[%s] user has plan: %s", m.Id, plan)
 	return plan, nil
 }
