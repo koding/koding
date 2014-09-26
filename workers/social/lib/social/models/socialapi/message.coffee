@@ -78,7 +78,7 @@ module.exports = class SocialMessage extends Base
   @post = permit 'create posts',
     success: (client, data, callback)->
       ensureGroupChannel client, (err, socialApiChannelId)->
-        data.channelId = socialApiChannelId
+        data.channelId = socialApiChannelId unless data.channelId
         doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',

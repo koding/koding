@@ -52,6 +52,7 @@ type Channel struct {
 const (
 	// TYPES
 	Channel_TYPE_GROUP           = "group"
+	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"

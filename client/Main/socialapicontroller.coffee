@@ -12,7 +12,7 @@ class SocialApiController extends KDController
     return [] unless KD.socialApiData
 
     data = if dataPath is 'navigated'
-    then KD.socialApiData[dataPath].data.messageList
+    then KD.socialApiData[dataPath]?.data?.messageList
     else KD.socialApiData[dataPath]
 
     return [] unless data
@@ -27,6 +27,16 @@ class SocialApiController extends KDController
 
   eachCached: (id, fn) ->
     fn section[id]  for own name, section of @_cache when id of section
+
+  isAnnouncementItem: (channelId) ->
+    return no   unless channelId
+
+    # super admins can see/post anyting
+    return no   if KD.checkFlag "super-admin"
+
+    {socialApiAnnouncementChannelId} = KD.getGroup()
+
+    return  channelId is socialApiAnnouncementChannelId
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel

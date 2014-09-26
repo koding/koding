@@ -1,6 +1,6 @@
 class PricingPlansView extends KDView
 
-  initialState: KD.utils.dict()
+  getInitialState: -> KD.utils.dict()
 
   constructor: (options = {}, data) ->
 
@@ -9,7 +9,7 @@ class PricingPlansView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     @planViews = {}
 
