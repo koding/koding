@@ -25,4 +25,4 @@ deploy:
           key-id: $S3_KEY_ID
           key-secret: $S3_KEY_SECRET
           recursive: true
-          url: s3://$S3_KLIENTKITE/development/
+          url: s3://$S3_KLIENTKITE
