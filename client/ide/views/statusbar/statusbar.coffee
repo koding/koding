@@ -18,8 +18,7 @@ class IDE.StatusBar extends KDView
 
     @addSubView new KDCustomHTMLView
       cssClass : 'icon help'
-      click    : -> log 'help modal'
-
+      click    : -> new HelpSupportModal
 
   showInformation: ->
     @status.updatePartial 'Click the plus button above to create a new panel'
