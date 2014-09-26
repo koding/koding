@@ -8,9 +8,6 @@ class WelcomeModal extends KDModalView
 
     super options
 
-    @createView()
-
-  createView : ->
     @addSubView new KDCustomHTMLView
       cssClass    : 'decoration-image'
       tagName     : 'figure'
@@ -29,29 +26,27 @@ class WelcomeModal extends KDModalView
     content.addSubView new KDCustomHTMLView
       tagName     : 'p'
       partial     : "
-        Somewhere out in space live The Herculoids! Zok, the laser-ray dragon!
-        Igoo, the giant rock ape! Tundro, the tremendous! Gloop and Gleep,
-        the formless, fearless wonders! With Zandor, their leader, and his
-        wife, Tara, and son, Dorno, they team up to protect their planet from
-        sinister invaders! All-strong! All-brave!
+        Robust VMs, a new IDE, Terminal and awesome new social
+        features... all that is just a click away. You are about to
+        experience a whole new Koding and you will fall in love all
+        over again. <span>(Please note, you will need to migrate data
+        from your old VM to the new one. We recommend you bookmark the
+        migrate VM link below as this message will not appear
+        again.)<span>
       "
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
-      title       : 'Let me explore the New Koding'
-      click       : => @cancel()
+      title       : 'Learn how to migrate data from your old VM(s)'
+      href        : 'http://learn.koding.com/migrate'
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
-      title       : 'Learn more about the features'
+      title       : 'Find out more about all the new features'
       click       : ->
         KD.singletons['router'].handleRoute '/Features'
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
-      title       : 'Learn how to migrate your old VM'
-      href        : 'http://learn.koding.com/migrate'
-
-
-
-
+      title       : 'Let me explore the New Koding'
+      click       : @bound 'cancel'
