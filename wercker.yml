@@ -48,6 +48,6 @@ deploy:
           s3cmd -P put *.gz  $S3DIR/latest/
 
           # Update latest-version.txt with the latest version
-          s3cmd del S3DIR/latest-version.txt
+          s3cmd del $S3DIR/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
-          s3cmd -P put latest-version.txt  S3DIR/latest-version.txt
+          s3cmd -P put latest-version.txt  $S3DIR/latest-version.txt
