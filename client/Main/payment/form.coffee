@@ -10,9 +10,10 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  initialState     :
+  getInitialState: -> {
     planInterval   : PaymentWorkflow.planInterval.MONTH
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
+  }
 
 
   constructor: (options = {}, data) ->
@@ -23,7 +24,7 @@ class PaymentForm extends JView
 
     { state } = @getOptions()
 
-    @state = KD.utils.extend @initialState, state
+    @state = KD.utils.extend @getInitialState(), state
 
     @initViews()
     @initEvents()

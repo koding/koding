@@ -2,10 +2,11 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
-  initialState : {
-    planInterval : 'year'
-    promotedPlan : 'hobbyist'
-  }
+  getInitialState : ->
+    {
+      planInterval : 'year'
+      promotedPlan : 'hobbyist'
+    }
 
   constructor:(options = {}, data) ->
 
@@ -13,7 +14,7 @@ class PricingAppView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     @loadPlan()  if KD.isLoggedIn()
     @initViews()

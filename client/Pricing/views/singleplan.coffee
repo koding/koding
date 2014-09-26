@@ -1,6 +1,6 @@
 class SinglePlanView extends KDView
 
-  initialState: {
+  getInitialState: -> {
     planInterval: 'year'
   }
 
@@ -10,7 +10,7 @@ class SinglePlanView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     @initViews()
 
