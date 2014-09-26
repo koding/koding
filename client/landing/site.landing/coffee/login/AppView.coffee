@@ -433,17 +433,16 @@ module.exports = class LoginView extends JView
 
     query = ''
     if redirectTo is 'Pricing'
-      query = [
-        "planTitle=#{formData.planTitle}"
-        "planInterval=#{formData.planInterval}"
-      ].join "&"
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
       url         : '/Login'
       data        : { username, password }
       type        : 'POST'
       xhrFields   : withCredentials : yes
-      success     : -> location.replace "/#{redirectTo}?#{query}"
+      success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
         {responseText} = xhr
         new KDNotificationView title : responseText
