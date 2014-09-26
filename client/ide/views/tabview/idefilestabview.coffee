@@ -8,7 +8,6 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     super options, data
 
     @createFilesPane()
-    # @createVMsPane()
     @createSettingsPane()
 
     # temp hack to fix collapsed panel tab change bug
@@ -41,14 +40,6 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @on 'MachineUnmountRequested', (machineData) =>
       @finderPane.emit 'MachineUnmountRequested', machineData
-
-  createVMsPane: ->
-    vmsPane    = new KDTabPaneView
-      name     : 'VMs'
-      closable : no
-
-    vmsPane.addSubView new IDE.VMListPane
-    @tabView.addPane  vmsPane
 
   createSettingsPane: ->
     settingsPane = new KDTabPaneView

@@ -21,7 +21,6 @@ module.exports = [
   "workspace/panes/drawingpane.coffee"
   "workspace/panes/previewpane.coffee"
   "workspace/panes/finderpane.coffee"
-  "workspace/panes/vmlistpane.coffee"
 
   # settings
   "workspace/panes/settings/editorsettings.coffee"
