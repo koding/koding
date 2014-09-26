@@ -11,11 +11,11 @@ Password= "socialapplication"
 DBName=   "social"
 
 [mq]
-Host     = "golden-ox.rmq.cloudamqp.com"
+Host     = "brown-jaguar.rmq.cloudamqp.com"
 Port     = 5672
-Login    = "hcaxnooc"
-Password = "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"
-Vhost    = "hcaxnooc"
+Login    = "cadvyqxd"
+Password = "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"
+Vhost    = "cadvyqxd"
 
 [redis]
 URL = "prod-test.1ia3pb.0001.use1.cache.amazonaws.com:6379"

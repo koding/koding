@@ -5,7 +5,7 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  cloudamqp           = "golden-ox.rmq.cloudamqp.com"
+  cloudamqp           = "brown-jaguar.rmq.cloudamqp.com"
 
   publicPort          = options.publicPort     = "80"
   hostname            = options.hostname       ="load.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
@@ -23,7 +23,7 @@ Configuration = (options={}) ->
   etcd                = "10.0.0.126:4001,10.0.0.127:4001,10.0.0.128:4001"
 
   redis               = { host:     "prod-test.1ia3pb.0001.use1.cache.amazonaws.com" , port:               "6379"                                , db:              0                    }
-  rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
+  rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "cadvyqxd"                           , password: "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"  , vhost: "cadvyqxd" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
