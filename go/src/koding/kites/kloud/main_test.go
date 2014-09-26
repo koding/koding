@@ -182,7 +182,10 @@ func TestResize(t *testing.T) {
 
 	storageGot, err := getAmazonStorageSize(machineId0)
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Resizing completed but sizes does not match. Want: %dGB, Got: %dGB",
+			storageWant,
+			storageGot,
+		)
 	}
 
 	if storageGot != storageWant {
