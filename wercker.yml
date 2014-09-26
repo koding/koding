@@ -21,6 +21,11 @@ deploy:
           echo "ACCESS_KEY=$S3_KEY_ID" >> .s3cfg
           echo "SECRET_KEY=$S3_KEY_SECRET" >> .s3cfg
 
+          echo 0000000
+          echo $S3_KLIENTKITE
+          echo s3://S3_KLIENTKITE/latest-version.txt
+          echo 0000000
+
           s3cmd get s3://S3_KLIENTKITE/latest-version.txt version
           export BUILDNO=$(cat version)
 
@@ -34,3 +39,4 @@ deploy:
           s3cmd del s3://S3_KLIENTKITE/latest-version.txt
           echo $(($BUILDNO+1)) > latest-version.txt
           s3cmd -P put latest-version.txt  s3://S3_KLIENTKITE/latest-version.txt
+
