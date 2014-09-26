@@ -49,13 +49,6 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 
 deploy:
   steps:
@@ -87,10 +80,3 @@ deploy:
           env-name: $EB_ENV_NAME
           app-location: $S3_EB_DEPLOY/$ARCHIVE
           version-label: $ARCHIVE
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
