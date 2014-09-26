@@ -62,7 +62,7 @@ func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
 }
 
 func (t *TestStorage) Delete(id string) error {
-	delete(TestMachineData, id)
+	// delete(TestMachineData, id)
 	return nil
 }
 
@@ -147,10 +147,13 @@ func SetMachineData(id string, machine *protocol.Machine) {
 	defer TestMu.Unlock()
 	TestMachineData[id] = machine
 }
+
+func newInstanceName() string {
+	return "kloudtest-" + strconv.Itoa(rand.Intn(100000))
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
-
-	instanceName := "kloudtest-" + strconv.Itoa(rand.Intn(100000))
 
 	TestMachineData = map[string]*protocol.Machine{
 		"koding_id0": &protocol.Machine{
@@ -165,7 +168,7 @@ func init() {
 				"source_ami":   "ami-2651904e",
 				"storage_size": 3,
 				"alwaysOn":     false,
-				"instanceName": instanceName,
+				"instanceName": newInstanceName(),
 			},
 			State: machinestate.NotInitialized,
 			Domain: protocol.Domain{
