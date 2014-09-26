@@ -31,6 +31,9 @@ class SidebarSearchModal extends KDModalView
       cssClass    : 'search-input'
       keyup       : KD.utils.debounce 300, @bound 'search'
 
+    @addSubView new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'search-icon'
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
