@@ -11,6 +11,7 @@ module.exports = [
   "sidebar/conversationsmodal.coffee"
   "sidebar/topicsearchmodal.coffee"
   "sidebar/chatsearchmodal.coffee"
+  "sidebar/leavechannelbutton.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
