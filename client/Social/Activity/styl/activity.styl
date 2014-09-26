@@ -623,6 +623,38 @@ body.activity
     .topics-list
       max-height      310px
 
+.kdmodal.chat-search.sidebar-dark-modal
+
+  .listview-wrapper .kdlistitemview-sidebar-item
+    height            23px
+
+  .sidebar-message-icon
+    hidden()
+
+  .kdbutton.leave-channel
+    size            auto, 23px
+    background      #686868
+    padding         0 10px
+    fr()
+
+    .button-title
+      display       inline
+      visibility    visible
+      color         #fff
+      font-size     14px
+      font-weight   600
+
+    .icon
+      display       none
+
+    &:hover
+      border        none !important
+
+  .sidebar-message-text
+    fl()
+    width           155px
+    overflow        auto
+
 div.kdtooltip.activity-helper
   code
     font-weight       400
