@@ -122,7 +122,7 @@ func (c *TestChecker) Timeout() error {
 	return nil
 }
 
-func (c *TestChecker) Storage(int) error {
+func (c *TestChecker) Storage(wantStorage int) error {
 	return nil
 }
 

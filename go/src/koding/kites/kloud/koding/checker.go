@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/klient"
 	"strconv"
-	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -56,53 +55,8 @@ type PlanChecker struct {
 	Log      logging.Logger
 }
 
-// Plan returns user's current plan
-func (p *PlanChecker) Plan() (Plan, error) {
-	var account = struct {
-		GlobalFlags []string `bson:"globalFlags"`
-	}{}
-	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": p.Username}).One(&account)
-	}); err != nil {
-		p.Log.Warning("[%s] retrieving plan failed, mongodb lookup err: %s. Using free plan",
-			p.Machine.Id, err.Error())
-		return Free, nil
-	}
-
-	if len(account.GlobalFlags) == 0 {
-		p.Log.Warning("[%s] retrieving plan failed, no flag defined. Using free plan",
-			p.Machine.Id)
-		return Free, nil
-	}
-
-	// pick up the first flag that start with "plan-"
-	planFlag := ""
-	for _, flag := range account.GlobalFlags {
-		if strings.HasPrefix(flag, "plan-") {
-			planFlag = flag
-			break
-		}
-	}
-
-	splitted := strings.Split(planFlag, "-")
-	if len(splitted) != 2 {
-		p.Log.Warning("[%s] retrieving plan failed, flag '%v' malformed. Using free plan",
-			p.Machine.Id, planFlag)
-		return Free, nil
-	}
-
-	plan, ok := plans[strings.Title(splitted[1])]
-	if !ok {
-		p.Log.Warning("[%s] retrieving plan failed, flag plan '%v' does not exist. Using free plan",
-			p.Machine.Id, splitted[1])
-		return Free, nil
-	}
-
-	return plan, nil
-}
-
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
-	plan, err := p.Plan()
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
@@ -120,7 +74,7 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 }
 
 func (p *PlanChecker) AlwaysOn() error {
-	plan, err := p.Plan()
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
@@ -129,17 +83,16 @@ func (p *PlanChecker) AlwaysOn() error {
 
 	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
-	err = p.DB.Run("jMachines", func(c *mgo.Collection) error {
+	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
+		var err error
 		alwaysOnMachines, err = c.Find(bson.M{
 			"credential":    p.Machine.Username,
 			"meta.alwaysOn": true,
 		}).Count()
 
 		return err
-	})
-
-	// if it's something else just return an error, needs to be fixed
-	if err != nil && err != mgo.ErrNotFound {
+	}); err != nil && err != mgo.ErrNotFound {
+		// if it's something else just return an error, needs to be fixed
 		return err
 	}
 
@@ -171,14 +124,14 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	// replace with the real and authenticated username
-	p.Machine.Builder["username"] = klient.Username
-	p.Username = klient.Username
-
-	plan, err := p.Plan()
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
+
+	// replace with the real and authenticated username
+	p.Machine.Builder["username"] = klient.Username
+	p.Username = klient.Username
 
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
@@ -208,7 +161,7 @@ func (p *PlanChecker) Timeout() error {
 }
 
 func (p *PlanChecker) Total() error {
-	plan, err := p.Plan()
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
@@ -243,14 +196,15 @@ func (p *PlanChecker) Total() error {
 }
 
 func (p *PlanChecker) Storage(wantStorage int) error {
-	plan, err := p.Plan()
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
 
 	totalStorage := plan.Limits().Storage
 
-	instances, err := p.userInstances()
+	// no need for errors because instances will be empty in case of an error
+	instances, _ := p.userInstances()
 
 	// i hate for loops too, but unfortunaly the responses are always in form
 	// of slices
