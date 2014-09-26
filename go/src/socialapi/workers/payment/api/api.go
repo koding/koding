@@ -19,6 +19,13 @@ func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.He
 		AccountId: u.Query().Get("accountId"),
 	}
 
+	def := u.Query().Get("default")
+	if def == "false" {
+		return response.HandleResultAndClientError(
+			subscriptionRequest.Do(),
+		)
+	}
+
 	return response.HandleResultAndClientError(
 		subscriptionRequest.DoWithDefault(),
 	)

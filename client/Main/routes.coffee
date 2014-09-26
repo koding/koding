@@ -55,6 +55,8 @@ do ->
       KD.mixpanel "Visit referrer url, success", {username}
       # give a notification to tell that this is a referral link here - SY
       @handleRoute if KD.isLoggedIn() then "/Activity" else "/"
+    '/:name?/Login'         : ({params:{name}})->
+      @handleRoute "/IDE"  if KD.isLoggedIn()
     '/:name?/Logout'         : ({params:{name}})->
       requireLogin ->
         {mainController} = KD.singletons
