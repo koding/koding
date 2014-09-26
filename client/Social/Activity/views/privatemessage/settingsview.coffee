@@ -30,13 +30,4 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     channel = @getData()
 
     @addMenuItem 'Delete Conversation', ->
-      modal = KDModalView.confirm
-        title       : 'Are you sure?'
-        description : 'Delete this conversation?'
-        ok          :
-          title     : 'Remove'
-          callback  : ->
-            { SocialChannel } = KD.remote.api
-            channelId = channel.getId()
-            modal.destroy()
-            SocialChannel.delete({ channelId }).catch KD.showError
+      PrivateMessageDeleteModal.create channel
