@@ -30,6 +30,14 @@ class SidebarMessageItem extends SidebarItem
     @getDelegate().removeItem this
 
 
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
+    KD.singleton('router').handleRoute "/#{@getOption 'route'}"
+
+    super event
+
+
   pistachio: ->
 
     """
