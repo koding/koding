@@ -36,6 +36,20 @@ build:
           make configure
           make install
           make build
+    - script:
+        name: create postgresql tables
+        cwd: go/src/socialapi/db/sql
+        code: definition/create-wercker.sh .
+    - script:
+        name: test social api
+        code: |
+          sudo -E scripts/wercker/init-socialapi.sh
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
+          cd go/src/socialapi
+          make testapi
+
 deploy:
   steps:
     - create-file:
@@ -66,10 +80,3 @@ deploy:
           env-name: $EB_ENV_NAME
           app-location: $S3_EB_DEPLOY/$ARCHIVE
           version-label: $ARCHIVE
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140

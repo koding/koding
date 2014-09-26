@@ -5,37 +5,38 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  prod_simulation_server = "10.0.0.248"
+  cloudamqp           = "brown-jaguar.rmq.cloudamqp.com"
 
-  publicPort     = options.publicPort          = "80"
-  hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
-  publicHostname = options.publicHostname      = "https://#{options.hostname}"
-  region         = options.region              = "aws"
-  configName     = options.configName          = "sandbox"
-  environment    = options.environment         = "sandbox"
-  projectRoot    = options.projectRoot         or "/opt/koding"
-  version        = options.tag
-  tag            = options.tag
-  publicIP       = options.publicIP            or "*"
-  githubuser     = options.githubuser          or "koding"
+  publicPort          = options.publicPort     = "80"
+  hostname            = options.hostname       ="load.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname      = options.publicHostname = "https://#{options.hostname}"
+  region              = "aws"
+  configName          = "load"
+  environment         = "production"
+  projectRoot         = options.projectRoot    or "/opt/koding"
+  version             = options.tag
+  tag                 = options.tag
+  publicIP            = options.publicIP       or "*"
+  githubuser          = options.githubuser     or "koding"
 
-  mongo               = "#{prod_simulation_server}:27017/koding"
-  etcd                = "#{prod_simulation_server}:4001"
+  mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
+  etcd                = "10.0.1.5:4001,10.0.0.217:4001,10.0.0.216:4001"
 
-  redis               = { host:     "#{prod_simulation_server}"              , port:               6379                                  , db:              0                    }
-  rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
-  mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
-  sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password }
-  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite" , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
-  broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
-  regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
-  algolia             = { appId:    'DYVV81J2S1'                             , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.sandbox'           }
-  algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
-  postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  redis               = { host:     "prod-test.1ia3pb.0001.use1.cache.amazonaws.com" , port:               "6379"                                , db:              0                    }
+  rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "cadvyqxd"                           , password: "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"  , vhost: "cadvyqxd" }
+  mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
+  sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
+  email               = { host:     "#{customDomain.public_}"                        , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password }
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
+  regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
+  algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.load'              }
+  algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
+  postgres            = { host:     "prod-test.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:           5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
+
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
   socialapiProxy      =
@@ -44,7 +45,7 @@ Configuration = (options={}) ->
 
   socialapi =
     proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
-    configFilePath    : "#{projectRoot}/go/src/socialapi/config/sandbox.toml"
+    configFilePath    : "#{projectRoot}/go/src/socialapi/config/load.toml"
     postgres          : postgres
     mq                : mq
     redis             : url: "#{redis.host}:#{redis.port}"
@@ -59,10 +60,10 @@ Configuration = (options={}) ->
     limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
-    debug             : yes
-    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    debug             : no
+    stripe            : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
 
-  userSitesDomain     = "sandbox.koding.io"
+  userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
@@ -90,16 +91,16 @@ Configuration = (options={}) ->
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
-    elasticSearch                  : {host          : "#{prod_simulation_server}" , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
+    elasticSearch                  : {host          : "localhost"                 , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
-    newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{kiteHome}/kite.key"  }
+    newkites                       : {useTLS        : no                          , certFile  : ""                          , keyFile: "#{projectRoot}/kite_home/production/kite.key"}
     log                            : {login         : "#{rabbitmq.login}"         , queueName : logQueueName}
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
 
-    kloud                          : {port          : 5500 , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile , kontrolUrl: kontrol.url , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -110,7 +111,7 @@ Configuration = (options={}) ->
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
     sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
-    github                         : {clientId      : "d3b586defd01c24bb294"                         , clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"}
+    github                         : {clientId      : "4846491f0a01102499b4"                         , clientSecret  : "3b7e626975fa899463cc733ec0228c4e83e3fd41"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
     facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "#{customDomain.host}:#{customDomain.port}/-/oauth/facebook/callback"}
     google                         : {client_id     : "1058622748167.apps.googleusercontent.com"     , client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq"                   , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/google/callback"}
@@ -126,18 +127,18 @@ Configuration = (options={}) ->
     troubleshoot                   : {recipientEmail: "can@koding.com"}
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
-    recapthcha                     : '6LfZL_kSAAAAAIrbAbnMPt9ri79pyHUZ0-QqB6Iz'
+    recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
     segment                        : '4c570qjqo0'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
-    client                         : {watch: yes , version: version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
+    client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
-    logToExternal     : no                                 # rollbar , mixpanel etc.
+    logToExternal     : yes                                # rollbar , mixpanel etc.
     suppressLogs      : no
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
@@ -147,8 +148,8 @@ Configuration = (options={}) ->
     userSitesDomain   : userSitesDomain
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
+    apiUri            : "#{customDomain.public}/"
+    mainUri           : "#{customDomain.public}/"
     sourceMapsUri     : "/sourcemaps"
     broker            : {uri          : "/subscribe" }
     appsUri           : "/appsproxy"
@@ -157,12 +158,12 @@ Configuration = (options={}) ->
     fileFetchTimeout  : 1000 * 15
     userIdleMs        : 1000 * 60 * 5
     embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github            : {clientId     : "d3b586defd01c24bb294" }
-    newkontrol        : {url          : "#{kontrol.url}"}
+    github            : {clientId     : "4846491f0a01102499b4" }
+    newkontrol        : {url          : kontrol.url}
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
-    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
+    recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
+    stripe            : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -179,6 +180,7 @@ Configuration = (options={}) ->
 
 
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+
   KONFIG.workers =
     kontrol             :
       group             : "environment"
@@ -195,7 +197,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{publicHostname}/-/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -256,6 +258,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
+      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -273,10 +276,10 @@ Configuration = (options={}) ->
       nginx             :
         locations       : ["/xhr"]
 
-    guestCleaner        :
-      group             : "webserver"
-      supervisord       :
-        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+    # guestCleaner        :
+      # group             : "webserver"
+      # supervisord       :
+        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
     # clientWatcher       :
     #   group             : "webserver"
@@ -356,6 +359,23 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
 
+    # these are unnecessary on production machines.
+    # ------------------------------------------------------------------------------------------
+    # clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
+    # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+    # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
+    # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
+    # boxproxy            : command : "node   #{projectRoot}/servers/boxproxy/boxproxy.js           -c #{configName}"
+    # ngrokProxy          : command : "#{projectRoot}/ngrokProxy --user #{publicHostname}"
+    # --port #{kontrol.port} -env #{environment} -public-key #{kontrol.publicKeyFile} -private-key #{kontrol.privateKeyFile}"
+    # guestcleaner        : command : "node #{projectRoot}/workers/guestcleaner/index.js     -c #{configName}"
+    # ------------------------------------------------------------------------------------------
+
+
+
+
+
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
@@ -371,6 +391,7 @@ Configuration = (options={}) ->
       return _b64.toString('base64')
     else
       if strict
+        console.trace()
         throw "base64 STRING is empty, check main.#{configName}.coffee. this will break the prod machine, exiting."
       else
         return ""
@@ -380,6 +401,7 @@ Configuration = (options={}) ->
     id_rsa_pub      : fs.readFileSync("./install/keys/prod.ssh/id_rsa.pub"      , "utf8")
     authorized_keys : fs.readFileSync("./install/keys/prod.ssh/authorized_keys" , "utf8")
     config          : fs.readFileSync("./install/keys/prod.ssh/config"          , "utf8")
+
 
   generateRunFile = (KONFIG) ->
     return """

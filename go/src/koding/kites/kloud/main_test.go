@@ -389,6 +389,7 @@ func newKloud() *kloud.Kloud {
 		PublicKey:   keys.DeployPublicKey,
 		PrivateKey:  keys.DeployPrivateKey,
 		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) { return testChecker, nil },
+		PlanFetcher: func(_ *kloudprotocol.Machine) (koding.Plan, error) { return koding.Free, nil },
 	}
 
 	kld.AddProvider("koding", provider)
