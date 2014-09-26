@@ -18,8 +18,7 @@ module.exports = class LoginAppsController extends KDViewController
   handleQuery: ({ query }) ->
 
     loginView = @getOption 'view'
-
-    loginView.loginForm.addCustomData key, value  for key, value of query
+    loginView.setCustomData query
 
 
   prepareFinishRegistrationForm: (token) ->
