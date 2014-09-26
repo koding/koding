@@ -3,21 +3,22 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
-  initialState   :
+  getInitialState: -> {
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+  }
 
 
   constructor: (options = {}, data) ->
 
     { state } = options
 
-    @state = KD.utils.extend @initialState, state
+    @state = KD.utils.extend @getInitialState(), state
 
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
     if isUpgrade
-      options.title    = 'Upgrade Your Plan'
+      options.title    = 'Upgrades are awesome. Let\'s do this!'
       options.subtitle = ''
     else
       options.title    = 'Downgrade your plan'
