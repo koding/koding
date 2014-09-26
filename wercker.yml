@@ -17,21 +17,23 @@ deploy:
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
 
-          echo '[default]' > '.s3cfg'
-          echo "ACCESS_KEY=$S3_KEY_ID" >> .s3cfg
-          echo "SECRET_KEY=$S3_KEY_SECRET" >> .s3cfg
+          echo '[default]' > ~/.s3cfg
+          echo 'access_key=$S3_KEY_ID' >> ~/.s3cfg
+          echo 'secret_key=$S3_KEY_SECRET' >> ~/.s3cfg
 
           s3cmd get s3://$S3_KLIENTKITE/latest-version.txt version
-          export BUILDNO=$(cat version)
+          OLDBUILDNO=$(cat version)
+          NEWBUILDNO=$(($OLDBUILDNO+1))
+          rm version
 
-          s3cmd put *.deb  s3://$S3_KLIENTKITE/$BUILDNO/
-          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/$BUILDNO/
+          s3cmd put *.deb  s3://$S3_KLIENTKITE/$NEWBUILDNO/
+          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/$NEWBUILDNO/
 
           s3cmd del --recursive s3://$S3_KLIENTKITE/latest/
           s3cmd put *.deb  s3://$S3_KLIENTKITE/latest/
           s3cmd -P put *.gz  s3://$S3_KLIENTKITE/latest/
 
           s3cmd del s3://$S3_KLIENTKITE/latest-version.txt
-          echo $(($BUILDNO+1)) > latest-version.txt
+          echo $NEWBUILDNO > latest-version.txt
           s3cmd -P put latest-version.txt  s3://$S3_KLIENTKITE/latest-version.txt
 
