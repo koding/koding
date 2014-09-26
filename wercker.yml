@@ -17,9 +17,9 @@ deploy:
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
 
-          ECHO '[default]' > '.s3cfg'
-          ECHO "ACCESS_KEY=$S3_KEY_ID" >> .s3cfg
-          ECHO "SECRET_KEY=$S3_KEY_SECRET" >> .s3cfg
+          echo '[default]' > '.s3cfg'
+          echo "ACCESS_KEY=$S3_KEY_ID" >> .s3cfg
+          echo "SECRET_KEY=$S3_KEY_SECRET" >> .s3cfg
 
           s3cmd get s3://S3_KLIENTKITE/latest-version.txt version
           export BUILDNO=$(cat version)
