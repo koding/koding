@@ -223,6 +223,8 @@ class ComputeController extends KDController
 
       @stateChecker.watch machine._id
 
+      return err
+
 
   destroy: (machine)->
 
@@ -239,6 +241,7 @@ class ComputeController extends KDController
       .then (res)=>
 
         log "destroy res:", res
+        @emit "MachineBeingDestroyed", machine
         @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
@@ -251,7 +254,7 @@ class ComputeController extends KDController
 
   reinit: (machine)->
 
-    ComputeController.UI.askFor 'destroy', machine, =>
+    ComputeController.UI.askFor 'reinit', machine, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -264,6 +267,7 @@ class ComputeController extends KDController
       .then (res)=>
 
         log "reinit res:", res
+        @emit "MachineBeingDestroyed", machine
         @_clearTrialCounts machine
         @eventListener.addListener 'reinit', machine._id
 
@@ -361,7 +365,12 @@ class ComputeController extends KDController
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
+
       @eventListener.addListener stateEvent, machine._id
+
+      if stateEvent in ["build", "destroy"]
+        @eventListener.addListener "reinit", machine._id
+
       return yes
 
     return no
@@ -426,21 +435,46 @@ class ComputeController extends KDController
 
   handleNewMachineRequest: ->
 
+    return  if @_inprogress
+    @_inprogress = yes
+
     @fetchUserPlan (plan)=>
 
       @fetchPlans (plans)=>
 
-        @fetchUsage provider: "koding", (err, usage)->
+        @fetchUsage provider: "koding", (err, usage)=>
 
-          return  if KD.showError err
+          if KD.showError err
+            return @_inprogress = no
 
           limits  = plans[plan]
           options = { plan, limits, usage }
 
           if plan in ['developer', 'professional', 'super']
+
             new ComputePlansModal.Paid options
+            @_inprogress = no
+
           else
-            new ComputePlansModal.Free options
+
+            @fetchMachines (err, machines)=>
+
+              warn err  if err?
+
+              if err? or machines.length > 0
+                new ComputePlansModal.Free options
+                @_inprogress = no
+
+              else if machines.length is 0
+
+                stack = @stacks.first._id
+
+                @create { provider : "koding", stack }, (err, machine)=>
+
+                  @_inprogress = no
+
+                  unless KD.showError err
+                    KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->

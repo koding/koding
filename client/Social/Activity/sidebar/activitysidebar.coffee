@@ -67,6 +67,7 @@ class ActivitySidebar extends KDCustomHTMLView
     computeController
       .on 'MachineDataModified',       @bound 'updateMachineTree'
       .on 'RenderMachines',            @bound 'renderMachines'
+      .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
   # event handling
 
@@ -678,3 +679,17 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @selectWorkspace()
     callback()
+
+
+  invalidateWorkspaces: (machine)->
+
+    return  unless machine?
+
+    KD.remote.api.JWorkspace.deleteByUid machine.uid, (err)=>
+
+      return warn err  if err?
+
+      KD.userWorkspaces =
+        ws for ws in KD.userWorkspaces when ws.machineUId isnt machine.uid
+
+      @updateMachineTree()
