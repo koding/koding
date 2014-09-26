@@ -32,8 +32,8 @@ var (
 )
 
 const (
-	machineId = "koding_id0"
-	etcdIp    = "192.168.59.103:4001"
+	machineId0 = "koding_id0"
+	etcdIp     = "192.168.59.103:4001"
 )
 
 type args struct {
@@ -98,6 +98,8 @@ func init() {
 	}
 }
 
+// Main VM action tests (build, start, stop, destroy, resize, reinit)
+
 func TestPing(t *testing.T) {
 	_, err := remote.Tell("kite.ping")
 	if err != nil {
@@ -105,43 +107,107 @@ func TestPing(t *testing.T) {
 	}
 }
 
+func TestInvalidMethodsOnUnitialized(t *testing.T) {
+	if err := start(machineId0); err == nil {
+		t.Error("`start` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := destroy(machineId0); err == nil {
+		t.Error("`destroy` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := resize(machineId0); err == nil {
+		t.Error("`resize` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := reinit(machineId0); err == nil {
+		t.Error("`reinit` method can not be called on `uninitialized` machines.")
+	}
+}
+
 func TestBuild(t *testing.T) {
-	if err := build(machineId); err != nil {
+	if err := build(machineId0); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnRunning(t *testing.T) {
+	t.Log("Running invalid methods on a running VM.")
+	if err := build(machineId0); err == nil {
+		t.Error("`build` method can not be called on `running` machines.")
+	}
+}
+
+func TestStop(t *testing.T) {
+	if err := stop(machineId0); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnStopped(t *testing.T) {
+	t.Log("Running invalid methods on a stopped VM.")
+	// run the tests now.
+	if err := build(machineId0); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+}
+
+func TestStart(t *testing.T) {
+	if err := start(machineId0); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestResize(t *testing.T) {
-	m := GetMachineData(machineId)
+	m := GetMachineData(machineId0)
 	m.Builder["storage_size"] = 5
-	SetMachineData(machineId, m)
+	SetMachineData(machineId0, m)
 
-	if err := resize(machineId); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestStop(t *testing.T) {
-	if err := stop(machineId); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestStart(t *testing.T) {
-	if err := start(machineId); err != nil {
+	if err := resize(machineId0); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestReinit(t *testing.T) {
-	if err := reinit(machineId); err != nil {
+	if err := reinit(machineId0); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestDestroy(t *testing.T) {
-	if err := destroy(machineId); err != nil {
+	if err := destroy(machineId0); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnTerminated(t *testing.T) {
+	t.Log("Running invalid methods on a terminated VM.")
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `terminated` machines.")
+	}
+
+	if err := start(machineId0); err == nil {
+		t.Error("`start` method can not be called on `terminated` machines.")
+	}
+
+	if err := destroy(machineId0); err == nil {
+		t.Error("`destroy` method can not be called on `terminated` machines.")
+	}
+
+	if err := resize(machineId0); err == nil {
+		t.Error("`resize` method can not be called on `terminated` machines.")
+	}
+
+	if err := reinit(machineId0); err == nil {
+		t.Error("`reinit` method can not be called on `terminated` machines.")
 	}
 }
 
@@ -225,7 +291,6 @@ func destroy(id string) error {
 	if err != nil {
 		return err
 	}
-
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
 			EventId: destroyArgs.MachineId,
