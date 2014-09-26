@@ -43,7 +43,8 @@
                 "sudo mkdir -p /opt/koding/userdata/Web",
                 "sudo mkdir -p /opt/koding/userdata/Applications",
                 "sudo mkdir -p /opt/koding/userdata/Backup",
-                "sudo mkdir -p /opt/koding/userdata/Documents"
+                "sudo mkdir -p /opt/koding/userdata/Documents",
+                "sudo mkdir -p /etc/koding"
             ]
         },
         {
@@ -66,7 +67,7 @@
             "inline": [
                 "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
                 "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
-                "sudo cp /tmp/userdata/kodingart/kodingart /etc/skel/.kodingart.txt"
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
             ]
         }
     ]

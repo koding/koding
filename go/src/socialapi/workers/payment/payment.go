@@ -45,12 +45,10 @@ type SubscriptionRequest struct {
 }
 
 type SubscriptionsResponse struct {
-	AcccountId         string    `json:"acccountId"`
+	AccountId          string    `json:"accountId"`
 	PlanTitle          string    `json:"planTitle"`
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
-	CreatedAt          time.Time `json:"createdAt"`
-	CanceledAt         time.Time `json:"canceledAt"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
@@ -86,6 +84,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	}
 
 	resp := &SubscriptionsResponse{
+		AccountId:          s.AccountId,
 		PlanTitle:          plan.Title,
 		PlanInterval:       plan.Interval,
 		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
@@ -106,7 +105,7 @@ func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
 	}
 
 	defaultResp := &SubscriptionsResponse{
-		AcccountId:   s.AccountId,
+		AccountId:    s.AccountId,
 		PlanTitle:    "free",
 		PlanInterval: "month",
 		State:        "active",
