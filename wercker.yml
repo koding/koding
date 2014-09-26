@@ -18,7 +18,10 @@ deploy:
         code: |
           export GOPATH=$PWD/go
           go run go/package.go -a klient -e development
-          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.0 -X koding/kites/klient/protocol.Environment development" koding/kites/klient
+          go build -v -ldflags |
+            "-X koding/kites/klient/protocol.Version 0.1.0 \
+             -X koding/kites/klient/protocol.Environment development" \
+             koding/kites/klient
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
     - koding/s3put@0.0.3:
@@ -26,3 +29,8 @@ deploy:
           key-secret: $S3_KEY_SECRET
           file: klient-0.1.0.gz
           url: s3://$S3_KLIENTKITE
+    - igungor/s3del@0.0.1:
+          key-id: $S3_KEY_ID
+          key-secret: $S3_KEY_SECRET
+          recursive: true
+          url: s3://$S3_KLIENTKITE/development/
