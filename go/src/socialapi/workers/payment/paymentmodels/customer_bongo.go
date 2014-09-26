@@ -41,8 +41,35 @@ func (c *Customer) ByOldId() (bool, error) {
 	return true, nil
 }
 
-func (c *Customer) FindActiveSubscriptions() ([]*Subscription, error) {
-	return nil, nil
+var (
+	ErrOldIdNotSet = errors.New("old_id not set")
+	ErrIdNotSet    = errors.New("id not set")
+)
+
+func NewCustomer() *Customer {
+	return &Customer{}
 }
 
-var ErrOldIdNotSet = errors.New("old_id not set")
+func (c *Customer) FindByOldId(oldId string) error {
+	selector := map[string]interface{}{"old_id": oldId}
+	err := c.One(bongo.NewQS(selector))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Customer) FindActiveSubscription() (*Subscription, error) {
+	if c.Id == 0 {
+		return nil, ErrIdNotSet
+	}
+
+	subscription := NewSubscription()
+	err := subscription.ByCustomerIdAndState(c.Id, "active")
+	if err != nil {
+		return nil, err
+	}
+
+	return subscription, nil
+}
