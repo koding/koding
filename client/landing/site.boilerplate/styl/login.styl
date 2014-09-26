@@ -515,30 +515,54 @@ body.login.koding
   .kdmodal-title .title
     font-size           18px !important
 
+  div.hint
+    margin              15px 0 0
+    text-align          left
+    opacity             1
+    color               white
+    font-size           12px
+
+    strong
+      font-weight     700
+    &.accept-tos
+      color           rgba(0, 0, 0, .6)
+      font-size       10px
+      a
+        color         rgba(0, 0, 0, .8)
+        borderize     rgba(0, 0, 0, .6)
+        noTextDeco()
+
+
   .kdmodal-inner
     bg                  color, #DCDCDC
     margin              30px
+
   .kdinput.half
     margin              0
-    width               calc(50% - 60px)
+    width               calc(50% - 5px)
     rounded             4px
     font-size           14px
     font-family         sloganFont
     text-align          left
     border-color        #bbb
+    padding             8px 14px
     fl()
-    &:first-child
-      margin-right      10px
+    &:last-child
+      fr()
   .button-field
     top                 0
     right               0
-    width               70px
     margin              0 !important
     abs()
     .kdbutton
       rounded           4px
       padding           0 25px
+
+  .kdformview .formline.half
+    width               425px
+
   .kdformview .formline .input-wrapper
     margin              0
+
   .kdscrollview.kdtabview
     overflow            hidden

@@ -38,7 +38,7 @@ module.exports = class LoginView extends JView
 
   do ->
     image      = new Image
-    bgImageUrl = "/a/out/images/unsplash/#{backgroundImageNr}.jpg"
+    bgImageUrl = "/a/site.landing/images/unsplash/#{backgroundImageNr}.jpg"
     image.src  = bgImageUrl
 
     image.classList.add 'off-screen-login-image'
@@ -47,6 +47,7 @@ module.exports = class LoginView extends JView
       tagName    : 'style'
       partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
     }).getElement()
+
 
   constructor:(options = {}, data)->
 
@@ -185,6 +186,7 @@ module.exports = class LoginView extends JView
             else
               @afterLoginCallback err, {account, replacementToken}
               KD.mixpanel "Github auth login, success"
+
 
   viewAppended:->
 
@@ -328,14 +330,10 @@ module.exports = class LoginView extends JView
                     passwordCheck     : 'keyup'
                   rules               :
                     passwordCheck     : (input, event)=>
-
-                      passwordForm = modal.modalTabs.forms.password
-                      if input.getValue().length < 8
-                        modal.setTitle "Passwords should be at least 8 characters."
-                      else
-                        unless input.getValue() is passwordForm.inputs.confirm.getValue()
-                          modal.setTitle "Looks good, please confirm it."
-
+                      passwordForm  = modal.modalTabs.forms.password
+                      {result, msg} = @checkForPasswords input, passwordForm.inputs.confirm
+                      @changeButtonState passwordForm.buttons.submit, result
+                      modal.setTitle msg
                 nextElement           :
                   confirm             :
                     cssClass          : 'half'
@@ -347,16 +345,10 @@ module.exports = class LoginView extends JView
                         passwordCheck : 'keyup'
                       rules           :
                         passwordCheck : (input, event)=>
-
-                          passwordForm = modal.modalTabs.forms.password
-                          if passwordForm.inputs.password.getValue().length >= 8
-                            if input.getValue() is passwordForm.inputs.password.getValue()
-                              modal.setTitle 'Both look good!'
-                              passwordForm.buttons.submit.enable()
-                            else
-                              modal.setTitle 'Passwords should match.'
-                              passwordForm.buttons.submit.disable()
-
+                          passwordForm  = modal.modalTabs.forms.password
+                          {result, msg} = @checkForPasswords input, passwordForm.inputs.password
+                          @changeButtonState passwordForm.buttons.submit, result
+                          modal.setTitle msg
             buttons           :
               submit          :
                 cssClass      : 'solid green medium'
@@ -369,8 +361,37 @@ module.exports = class LoginView extends JView
       form.button.hideLoader()
 
     modal.once 'viewAppended', ->
+
+      modal.addSubView new KDCustomHTMLView
+        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
+
       KD.utils.defer ->
         modal.modalTabs.forms.password.inputs.password.setFocus()
+
+  checkForPasswords: (password, confirm) ->
+
+    vals = [password.getValue(), confirm.getValue()]
+    check1 = vals.first.length > 7
+    check2 = vals.last.length > 7
+    check3 = vals.first is vals.last
+
+    return result : no, msg : "Passwords must match!"  if check1 and not check2
+    return result : no, msg : "Passwords should be at least 8 characters."  if not check1 or not check2
+    return result : no, msg : "Passwords must match!"  unless check3
+
+    return result : yes, msg : "Looks good, go ahead!"  if check1 and check2 and check3
+
+
+  changeButtonState: (button, state) ->
+
+    if state
+      button.setClass 'green'
+      button.unsetClass 'red'
+      button.enable()
+    else
+      button.setClass 'red'
+      button.unsetClass 'green'
+      button.disable()
 
 
   doRegister: (formData, form) ->
@@ -381,10 +402,16 @@ module.exports = class LoginView extends JView
     form.notificationsDisabled = yes
     form.notification?.destroy()
 
-    {username} = formData
+    {username, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
-      url         : '/Register'
+      url         : "/Register"
       data        : formData
       type        : 'POST'
       xhrFields   : withCredentials : yes
@@ -393,7 +420,7 @@ module.exports = class LoginView extends JView
         KD.mixpanel 'Signup, success'
         document.cookie = 'newRegister=true'
 
-        return location.replace '/'
+        return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) ->
         {responseText} = xhr
@@ -408,14 +435,20 @@ module.exports = class LoginView extends JView
 
   doLogin: (formData)->
 
-    {username, password} = formData
+    {username, password, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
       url         : '/Login'
       data        : { username, password }
       type        : 'POST'
       xhrFields   : withCredentials : yes
-      success     : -> location.replace '/'
+      success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
         {responseText} = xhr
         new KDNotificationView title : responseText
@@ -537,6 +570,22 @@ module.exports = class LoginView extends JView
     @[formName].addCustomData data
     # @resetForm.addCustomData {recoveryToken}
 
+  setCustomData: (data) ->
+
+    @setCustomDataToForm 'login', data
+    @setCustomDataToForm 'register', data
+
+    @setFormHeaderPartial data
+
+
+  getRegisterLink: (data = {}) ->
+
+    queryString = KD.utils.stringifyQuery data
+    queryString = "?#{queryString}"  if queryString.length > 0
+
+    link = "/Register#{queryString}"
+
+
   animateToForm: (name)->
 
     @unsetClass 'register recover login reset home resendEmail finishRegistration'
@@ -558,7 +607,7 @@ module.exports = class LoginView extends JView
         @redeemForm.inviteCode.input.setFocus()
       when "login"
         @formHeader.show()
-        @formHeader.updatePartial "Don't have an account yet? <a class='register' href='/Register'>Sign Up</a>"
+        @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
@@ -573,6 +622,15 @@ module.exports = class LoginView extends JView
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
         @github.hide()
+
+
+  generateFormHeaderPartial: (data = {}) ->
+    "Don't have an account yet? <a class='register' href='#{@getRegisterLink data}'>Sign up</a>"
+
+
+  setFormHeaderPartial: (data) ->
+    @formHeader.updatePartial @generateFormHeaderPartial data
+
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config

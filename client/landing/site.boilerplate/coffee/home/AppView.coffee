@@ -1,12 +1,13 @@
 HomeRegisterForm = require './registerform'
 FooterView       = require './footerview'
+CustomLinkView   = require './../core/customlinkview'
 
 module.exports = class HomeView extends KDView
 
-  COLORS    = [ 'gray', 'blue', 'orange', 'red', 'green', 'dark-blue' ]
-  IMAGEPATH = '/a/out/images/slideshow'
-  IMAGES    = [ 'ss-activity.jpg', 'ss-terminal.jpg', 'ss-teamwork.jpg' ]
-  ORDINALS  = ['first', 'second', 'third']
+  COLORS    = [ 'gray', 'blue', 'green', 'dark-blue' ]
+  IMAGEPATH = '/a/site.landing/images/slideshow'
+  IMAGES    = [ 'ss-terminal.png', 'ss-activity.png', 'ss-ide.png', 'ss-ide-collapsed.png', 'ss-chat.png' ]
+  ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
 
   constructor: (options = {}, data)->
@@ -17,7 +18,7 @@ module.exports = class HomeView extends KDView
 
     @signUpForm = new HomeRegisterForm
       cssClass    : 'login-form register no-anim'
-      buttonTitle : 'Sign up'
+      buttonTitle : 'SIGN UP'
       callback    : (formData) =>
         router.requireApp 'Login', (controller) =>
           controller.getView().showPasswordModal formData, @signUpForm
@@ -32,19 +33,61 @@ module.exports = class HomeView extends KDView
     @setPartial @partial()
 
     @addSubView @signUpForm, '.introduction article'
-    @addSubView @slideShow
+    @addSubView @slideShow, '.screenshots'
     @addSubView @footer
 
-    INDEX = KD.utils.getRandomNumber COLORS.length - 1
+    @nextButton = new CustomLinkView
+      title    : ''
+      cssClass : 'ss-button next'
+      icon     : {}
+      click    : => @rotateImagesBy 1
+
+    @prevButton = new CustomLinkView
+      title    : ''
+      cssClass : 'ss-button prev'
+      icon     : {}
+      click    : => @rotateImagesBy -1
+
+    @addSubView @nextButton, '.screenshots'
+    @addSubView @prevButton, '.screenshots'
+
+    view = this
+    @images = for image, i in IMAGES
+      @slideShow.addSubView slide = new KDCustomHTMLView
+        tagName  : 'figure'
+        cssClass : ORDER[i]
+        partial  : "<img src='#{IMAGEPATH}/#{IMAGES[i]}' />"
+        click    : ->
+          if @hasClass 'current'
+          then view.rotateImagesBy -1
+          else if @hasClass 'prev'
+          then view.rotateImagesBy 1
+          else if @hasClass 'next'
+          else view.rotateImagesBy 2
+
+      slide
+
+    INDEX = KD.utils.getRandomNumber(COLORS.length - 1)
     @changeColor()
 
     @once 'viewAppended', ->
       @setClass 'anim'
-      KD.utils.repeat 60e3, @bound 'nextColor'
+      KD.utils.repeat 3e5, @bound 'nextColor'
 
-  click: -> @nextColor()
+  rotateImagesBy: (n) ->
 
-  nextColor: -> @changeColor INDEX = (INDEX + 1) % 6
+    {length} = @images
+    n += length while length and n < 0
+    @images.push.apply @images, @images.splice 0, n
+
+    allClasses = ORDER.join ' '
+
+    for image, i in @images
+      image.unsetClass allClasses
+      image.setClass ORDER[i]
+
+
+  nextColor: -> @changeColor INDEX = (INDEX + 1) % COLORS.length
 
 
   changeColor: ->
@@ -53,32 +96,21 @@ module.exports = class HomeView extends KDView
     @setClass COLORS[INDEX]
 
 
-  getImgElements = ->  ("<figure class='#{ORDINALS[i]}'><div src='#{IMAGEPATH}/#{IMAGES[i]}' ></div></figure>" for image, i in IMAGES).join ''
-
-
   partial: ->
-
-    slogan = if KD.siteName
-    then "Welcome to #{KD.siteName}"
-    else "Full Stack Browser Based Development"
 
     """
     <section class="introduction">
       <div>
         <article>
-          <h1>#{slogan}</h2>
+          <h1>Your next localhost is here.</h1>
           <h2>
-            Build Node, Go, Django, Rails, PHP and other apps and never install a dev environment on your laptop again.
+            Develop in Go, Python, Node, Ruby, PHP, etc or play with Docker, Wordpress, Django, Laravel or create Android, IOS/iPhone, HTML5 apps. All for FREE!
           </h2>
         </article>
       </div>
     </section>
 
-    <section class="screenshots">
-      <div>
-        #{getImgElements()}
-      </div>
-    </section>
+    <section class="screenshots"></section>
 
     <section class="used-at">
       <div>

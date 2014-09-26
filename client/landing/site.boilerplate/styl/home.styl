@@ -9,44 +9,24 @@ home.styl
 
 body.home
   -webkit-font-smoothing  antialiased
-  background              #fff
 
   #kdmaincontainer.blur
     vendor                filter, blur(5px)
 
+  #main-panel-wrapper
+    background            #f0f0f0
+
   .login-form.register
     margin                0 auto 50px auto
     max-width             600px
+    padding               8px
+    rounded               8px
+    bg                    color rgba(0,0,0,.1)
     rel()
-
-    &.focused
-      div.hint
-        opacity           1
-        strong
-          font-weight     700
-        &.accept-tos
-          color           rgba(255, 255, 255, .6)
-          a
-            color         rgba(255, 255, 255, .8)
-
 
     &.noanim .login-input-view .placeholder-helper
       vendor              transition, none!important
       position            absolute
-
-    div.hint
-      vendor              transition, opacity .4s .3s ease
-      margin              0
-      text-align          left
-      opacity             0
-      color               white
-      font-size           12px
-
-    div.accept-tos
-      a
-        color             white
-        borderize         rgba(255, 255, 255, .6)
-        noTextDeco()
 
 
     section
@@ -76,9 +56,10 @@ body.home
           bg                color #F6E556
           width             100%
           rounded           4px
+          padding           0
           span.button-title
             text-transform  uppercase
-            color           #4c6153
+            color           #39473E
             font-size       12px
             font-weight     700
             opacity         .99
@@ -86,6 +67,7 @@ body.home
         .login-input-view
           rounded         4px
           bg              color white
+          margin-bottom   0
           input
             rounded       4px
             margin        0
@@ -113,6 +95,16 @@ body.home
     padding               0
     max-width             100%
 
+    &:before
+      content             ''
+      width               100%
+      height              500px
+      position            absolute
+      display             block
+      z-index             1
+      rounded             50%
+      top                 -500px
+
     > section > div
       max-width             1290px
       padding               0px 45px
@@ -121,28 +113,66 @@ body.home
       position              relative
       borderBox()
 
-    &.anim section.introduction
-      vendor              transition, background-color .5s ease
-    &.green section.introduction
-      bg                  color, #1AAF5E
-    &.gray section.introduction
-      bg                  color, #7E8C8D
+    &.anim
       &:before
-        opacity           .5
-    &.blue section.introduction
-      bg                  color, #2E97DE
+        vendor            transition, box-shadow .5s ease
+      section.introduction
+        vendor            transition, background-color .5s ease
+
+    &.green
+
+      section.introduction
+        bg                color, #1AAF5E
+
+      &:before
+        shadow            0 0 500px 160px #1AAF5E
+
+    &.gray
+
+      section.introduction
+        bg                color, #7E8C8D
+        &:before
+          opacity         .5
+
+      &:before
+        shadow            0 0 500px 160px #7E8C8D
+
+    &.blue
+
+      section.introduction
+        bg                color, #2E97DE
+
+      &:before
+        shadow            0 0 500px 160px #2E97DE
+
     &.dark-blue
+
+      &:before
+        shadow            0 0 500px 160px #2C3E51
+
       section.introduction
         bg                color, #2C3E51
         &:before
           opacity         .3
+
       section.introduction > div:after
         shadow            0 0 400px rgba(255, 255, 179, .5)
 
-    &.orange section.introduction
-      bg                  color, #F59D00
-    &.red section.introduction
-      bg                  color, #EA4B36
+    &.orange
+
+      &:before
+        shadow            0 0 500px 160px #F59D00
+
+      section.introduction
+        bg                color, #F59D00
+
+    &.red
+
+      &:before
+        shadow            0 0 500px 160px #EA4B36
+
+      section.introduction
+        bg                color, #EA4B36
 
     // shining effect behind the screenshots
     section.introduction > div:after
@@ -157,8 +187,8 @@ body.home
 
 
   section.introduction
-    height                970px
-    padding               154px 0 0
+    height                877px
+    padding               134px 0 0
     text-align            center
     bg                    color, #FFFFFF
     position              relative
@@ -174,6 +204,7 @@ body.home
 
     > div
       size                100% 100%
+      z-index             2
 
     article
       font-size           22px
@@ -192,23 +223,91 @@ body.home
         font-size         42px
         font-weight       bold
         font-family       tagLineFont
-        margin            0 0 39px
+        margin            0 0 32px
         letter-spacing    .02em
+
+      // cloudW = 350/2.8
+      // cloudH = 120/2.8
+      // cloudR = 100/2.8
+      // .cloud
+      //   size              (cloudW)px (cloudH)px
+      //   background        #f2f9fe
+      //   background        linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
+      //   background        -webkit-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
+      //   background        -moz-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
+      //   background        -ms-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
+      //   background        -o-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
+      //   rounded           (cloudR)px
+      //   opacity           .5
+      //   top               0
+      //   right             50%
+      //   margin-right      -280px
+      //   abs()
+
+      // .cloud:after
+      // .cloud:before
+      //   content     ''
+      //   background  #f2f9fe
+      //   z-index     -1
+      //   abs()
+
+      // .cloud:after
+      //   size        (cloudW/3.5)px (cloudH/1.2)px
+      //   top         -(cloudH/2.4)px
+      //   left        (cloudW/7)px
+      //   rounded     (cloudR)px
+
+      // .cloud:before
+      //   size        (cloudW/2)px (cloudH*1.5)px
+      //   top         -(cloudH/1.25)px
+      //   right       (cloudW/7)px
+      //   rounded     (cloudR*2)px
 
       h2
         font-family       sloganFont
         margin            0 auto 34px auto
-        max-width         650px
+        max-width         800px
         font-weight       400
 
 
   // screenshots Section
 
   section.screenshots
-    abs                   487px 0 0
-    size                  100% 483px
+    abs                   400px 0 0
+    size                  100% 477px
     overflow              hidden
+    z-index               2
     borderBox()
+
+    a.custom-link-view.ss-button
+      top                 199px
+      display             block
+      left                50%
+      z-index             100
+      abs()
+      .icon
+        display           block
+      &.next
+        margin-left       500px
+        .icon
+          r-sprite        home 'slideshow-next'
+        // &:active
+        //   margin-left     502px
+
+        // chrome has a rendering bug
+        // it removes the shadow behind, let's remove it until it is fixed
+        // - SY
+        // &:hover .icon
+        //   r-sprite        home 'slideshow-next-light'
+      &.prev
+        margin-left       -585px
+        .icon
+          r-sprite        home 'slideshow-prev'
+        // &:active
+        //   margin-left     -587px
+        // see above^^
+        // &:hover .icon
+        //   r-sprite        home 'slideshow-prev-light'
 
     > div
       height              483px
@@ -221,8 +320,8 @@ body.home
     figure
       display             block
       top                 0px
-      // overflow            hidden
       size                738px 100%
+      display             none
       contentBox()
       abs()
       &:after
@@ -230,7 +329,7 @@ body.home
         size              6px 6px
         rounded           3px
         bg                color rgba(255, 255, 255, .3)
-        abs               13px 0 0 15px
+        abs               10px 0 0 15px
         shadow            9px 0 0 rgba(255, 255, 255, .3),\
                           18px 0 0 rgba(255, 255, 255, .3)
       &:before
@@ -238,36 +337,46 @@ body.home
         content           ''
         display           block
         bg                color rgba(0, 0, 0, .1)
-        size              100% 31px
+        size              100% 25px
 
       img
-      div
         shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
-        height            calc(100% - 33px)
-        opacity           .85
+        height            450px
+        opacity           .7
         bg                color #3A3E41
         margin-top        2px
 
-      &.first
+      &.current
+        display           block
         z-index           4
         left              50px
 
-        div
         img
           opacity         1
 
-      &.second
+      &.prev
         left              0
 
-      &.third
+      &.next
         right             0
 
-      &.third
-      &.second
+      &.prev
+      &.next
+        display           block
         z-index           3
         margin-top        123px
         height            360px
+        &:after
+          size              5px 5px
+          abs               8px 0 0 13px
+          shadow            7px 0 0 rgba(255, 255, 255, .3),\
+                            14px 0 0 rgba(255, 255, 255, .3)
+        &:before
+          rounded           4px 4px 0 0
+          size              100% 20px
+
+
 
   // Features Section
 

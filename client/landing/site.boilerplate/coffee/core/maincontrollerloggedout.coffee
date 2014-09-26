@@ -1,3 +1,5 @@
+require './utils'
+require './KD.extend.coffee'
 KodingRouter       = require './kodingrouter'
 OAuthController    = require './oauthcontroller'
 MainView           = require './mainview'

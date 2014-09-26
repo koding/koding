@@ -31,15 +31,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         placeholder      : "username"
         testPath         : "register-form-username"
         focus            : => @username.icon.unsetTooltip()
-        keyup            : (event) =>
-
-          if (val = @username.input.getValue()).trim() isnt ''
-            @domain.updatePartial "#{val}.koding.io"
-          else
-            @domain.updatePartial "username.koding.io"
-
-          @submitForm event  if event.which is ENTER
-
+        keyup            : (event) => @submitForm event  if event.which is ENTER
         validate         :
           container      : this
           rules          :
@@ -75,10 +67,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       inputOptions  :
         name        : 'inviteCode'
         type        : 'hidden'
-
-    @domain = new KDCustomHTMLView
-      tagName : 'strong'
-      partial : 'username.koding.io'
 
     @on 'SubmitFailed', (msg) =>
       if msg is 'Wrong password'
@@ -179,11 +167,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         Invited by:
         <span class='wrapper'></span>
       </div>
-      <div class='hint'>Usernames must be a minimum of 4 characters as they are also going to be used to set your Koding hostname, e.g. {{> @domain}}</div>
       <div>{{> @button}}</div>
-      <div class="accept-tos">
-      By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a>
-      </div>
     </section>
     {{> @invitationCode}}
     """
