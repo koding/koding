@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -32,7 +33,10 @@ type Config struct {
 	Id          string
 
 	// Connect to Koding mongodb
-	MongoURL string
+	MongoURL string `required:"true"`
+
+	// Endpoint for fetchin plans
+	PlanEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -48,23 +52,20 @@ type Config struct {
 	TestMode bool
 
 	// Defines the base domain for domain creation
-	HostedZone string
+	HostedZone string `required:"true"`
 
 	// Defines the default AMI Tag to use for koding provider
 	AMITag string
 
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
-	KontrolURL string
+	KontrolURL string `required:"true"`
 
 	// Private key to create kite.key
-	PrivateKey string
+	PrivateKey string `required:"true"`
 
 	// Public key to create kite.key
-	PublicKey string
-
-	// Contains the users home directory to be added into a image
-	TemplateDir string
+	PublicKey string `required:"true"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -81,12 +82,6 @@ func main() {
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
 		os.Exit(0)
-	}
-
-	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
-
-	if conf.HostedZone == "" {
-		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
 	}
 
 	k := newKite(conf)
@@ -108,8 +103,6 @@ func main() {
 
 		registerURL = u
 	}
-
-	fmt.Printf("registering with url %+v\n", registerURL)
 
 	if conf.Proxy {
 		k.Log.Info("Proxy mode is enabled")
@@ -174,7 +167,6 @@ func newKite(conf *Config) *kite.Kite {
 		AssigneeName:      id,
 		Session:           db,
 		Test:              conf.TestMode,
-		TemplateDir:       conf.TemplateDir,
 		HostedZone:        conf.HostedZone,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
@@ -203,6 +195,58 @@ func newKite(conf *Config) *kite.Kite {
 			Username: m.Username,
 			Machine:  m,
 		}, nil
+	}
+
+	// Plan returns user's current plan
+	// curl http://lvh.me:8090/-/subscriptions?account_id=542469df9eecccb69185a516&kloud_key=AAABBBCCCDDDEEE
+	//
+	// {
+	//   accountId: "542469df9eecccb69185a516",
+	//   planTitle: "hobbyist",
+	//   planInterval: "year",
+	//   state: "active",
+	//   currentPeriodStart: "2014-09-25T19:35:53Z",
+	//   currentPeriodEnd: "2015-09-25T19:35:53Z"
+	// }
+	// curl http://lvh.me:8090/-/subscriptions?account_id=1`
+	//
+	// {
+	//   description: "kloud_key is required",
+	//   error: "bad_request"
+	// }
+
+	const SecretKey = "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
+
+	k.Log.Info("Klient distribution channel is: %s", klientFolder)
+	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
+		endpoint, err := url.Parse(conf.PlanEndpoint)
+		if err != nil {
+			panic(err)
+		}
+
+		q := endpoint.Query()
+		q.Set("account_id", "1")
+		q.Set("kloud_key", SecretKey)
+		endpoint.RawQuery = q.Encode()
+
+		kodingProvider.Log.Info("[%s] fetching plan via URL: '%s'", m.Id, endpoint.String())
+		resp, err := http.Get(endpoint.String())
+		if err != nil {
+			return 0, err
+		}
+		defer resp.Body.Close()
+
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return 0, err
+		}
+
+		fmt.Printf("resp.Status %+v\n", resp.Status)
+		fmt.Printf("resp.StatusCode %+v\n", resp.StatusCode)
+
+		fmt.Printf("string(data) %+v\n", string(data))
+
+		return koding.Free, nil
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

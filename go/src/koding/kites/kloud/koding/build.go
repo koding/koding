@@ -54,13 +54,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	plan, err := p.PlanFetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
 	p.Log.Info("[%s] checking machine limit for user '%s'", m.Id, m.Username)
-	if err := checker.Total(); err != nil {
+	if err := checker.Total(plan); err != nil {
 		return nil, err
 	}
 
 	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", m.Id, m.Username)
-	if err := checker.AlwaysOn(); err != nil {
+	if err := checker.AlwaysOn(plan); err != nil {
 		return nil, err
 	}
 
@@ -111,7 +116,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
 	// check if the user is egligible to create a vm with this size
-	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
+	if err := checker.AllowedInstances(plan, instances[a.Builder.InstanceType]); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +138,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	infoLog("Check if user is allowed to create machine with '%dGB' storage", storageSize)
 	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(storageSize); err != nil {
+	if err := checker.Storage(plan, storageSize); err != nil {
 		return nil, err
 	}
 

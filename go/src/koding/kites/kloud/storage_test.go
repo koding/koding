@@ -110,24 +110,31 @@ func (l *TestLocker) Unlock(id string) {
 // TestChecker satisfies Checker interface
 type TestChecker struct{}
 
-func (c *TestChecker) Total() error {
+func (c *TestChecker) Total(p koding.Plan) error {
 	return nil
 }
 
-func (c *TestChecker) AlwaysOn() error {
+func (c *TestChecker) AlwaysOn(p koding.Plan) error {
 	return nil
 }
 
-func (c *TestChecker) Timeout() error {
+func (c *TestChecker) Timeout(p koding.Plan) error {
 	return nil
 }
 
-func (c *TestChecker) Storage(int) error {
+func (c *TestChecker) Storage(p koding.Plan, wantStorage int) error {
 	return nil
 }
 
-func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
+func (c *TestChecker) AllowedInstances(p koding.Plan, wantInstance koding.InstanceType) error {
 	return nil
+}
+
+// TestPlanFetcher satisfies PlanFetcher interface
+type TestPlanFetcher struct{}
+
+func (t *TestPlanFetcher) Get(user *koding.PlanUser) (koding.Plan, error) {
+	return koding.Free, nil
 }
 
 // Test Data
