@@ -125,6 +125,8 @@ class SidebarSearchModal extends KDModalView
 
       return  if err
 
+      @reachedEndOfTheList = yes  unless items.length
+
       callback items
 
 
