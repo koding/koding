@@ -48,6 +48,7 @@ module.exports = class LoginView extends JView
       partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
     }).getElement()
 
+
   constructor:(options = {}, data)->
 
     options.cssClass = 'login-screen login'
@@ -185,6 +186,7 @@ module.exports = class LoginView extends JView
             else
               @afterLoginCallback err, {account, replacementToken}
               KD.mixpanel "Github auth login, success"
+
 
   viewAppended:->
 
@@ -563,6 +565,14 @@ module.exports = class LoginView extends JView
     @[formName].addCustomData data
     # @resetForm.addCustomData {recoveryToken}
 
+  getRegisterLink: (data = {}) ->
+
+    queryString = KD.utils.stringifyQuery data
+    queryString = "?#{queryString}"  if queryString.length > 0
+
+    link = "/Register#{queryString}"
+
+
   animateToForm: (name)->
 
     @unsetClass 'register recover login reset home resendEmail finishRegistration'
@@ -584,7 +594,7 @@ module.exports = class LoginView extends JView
         @redeemForm.inviteCode.input.setFocus()
       when "login"
         @formHeader.show()
-        @formHeader.updatePartial "Don't have an account yet? <a class='register' href='/Register'>Sign Up</a>"
+        @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
@@ -599,6 +609,15 @@ module.exports = class LoginView extends JView
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
         @github.hide()
+
+
+  generateFormHeaderPartial: (data = {}) ->
+    "Don't have an account yet? <a class='register' href='#{@getRegisterLink data}'>Sign up</a>"
+
+
+  setFormHeaderPartial: (data) ->
+    @formHeader.updatePartial @generateFormHeaderPartial data
+
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
