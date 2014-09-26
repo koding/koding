@@ -24,9 +24,11 @@ deploy:
           echo "access_key=$S3_KEY_ID" >> ~/.s3cfg
           echo "secret_key=$S3_KEY_SECRET" >> ~/.s3cfg
 
+          s3cmd ls s3://koding-klient/development/
           s3cmd get s3://S3_KLIENTKITE/latest-version.txt version
           OLDBUILDNO=$(cat version)
           NEWBUILDNO=$(($OLDBUILDNO+1))
+          rm -f version
 
           s3cmd put *.deb  s3://S3_KLIENTKITE/$NEWBUILDNO/
           s3cmd -P put *.gz  s3://S3_KLIENTKITE/$NEWBUILDNO/
