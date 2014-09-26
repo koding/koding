@@ -178,6 +178,7 @@ func (p *PlanChecker) Total(plan Plan) error {
 func (p *PlanChecker) Storage(plan Plan, wantStorage int) error {
 	totalStorage := plan.Limits().Storage
 
+	// no need for errors because instances will be empty in case of an error
 	instances, _ := p.userInstances()
 
 	// i hate for loops too, but unfortunaly the responses are always in form

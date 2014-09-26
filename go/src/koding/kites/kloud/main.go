@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -197,56 +196,8 @@ func newKite(conf *Config) *kite.Kite {
 		}, nil
 	}
 
-	// Plan returns user's current plan
-	// curl http://lvh.me:8090/-/subscriptions?account_id=542469df9eecccb69185a516&kloud_key=AAABBBCCCDDDEEE
-	//
-	// {
-	//   accountId: "542469df9eecccb69185a516",
-	//   planTitle: "hobbyist",
-	//   planInterval: "year",
-	//   state: "active",
-	//   currentPeriodStart: "2014-09-25T19:35:53Z",
-	//   currentPeriodEnd: "2015-09-25T19:35:53Z"
-	// }
-	// curl http://lvh.me:8090/-/subscriptions?account_id=1`
-	//
-	// {
-	//   description: "kloud_key is required",
-	//   error: "bad_request"
-	// }
-
-	const SecretKey = "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
-
-	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
-		endpoint, err := url.Parse(conf.PlanEndpoint)
-		if err != nil {
-			panic(err)
-		}
-
-		q := endpoint.Query()
-		q.Set("account_id", "1")
-		q.Set("kloud_key", SecretKey)
-		endpoint.RawQuery = q.Encode()
-
-		kodingProvider.Log.Info("[%s] fetching plan via URL: '%s'", m.Id, endpoint.String())
-		resp, err := http.Get(endpoint.String())
-		if err != nil {
-			return 0, err
-		}
-		defer resp.Body.Close()
-
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return 0, err
-		}
-
-		fmt.Printf("resp.Status %+v\n", resp.Status)
-		fmt.Printf("resp.StatusCode %+v\n", resp.StatusCode)
-
-		fmt.Printf("string(data) %+v\n", string(data))
-
-		return koding.Free, nil
+		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
