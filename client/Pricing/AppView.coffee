@@ -114,6 +114,7 @@ class PricingAppView extends KDView
 
 
   selectIntervalToggle: (planInterval) ->
+
     button = @intervalToggle.buttons[planInterval]
     @intervalToggle.buttonReceivedClick button
 
@@ -170,6 +171,14 @@ class PricingAppView extends KDView
       KD.singletons
         .router
         .handleRoute '/'
+
+
+  continueFrom: (planTitle, planInterval) ->
+
+    @emit 'IntervalToggleChanged', {planInterval}
+
+    plan = @plans.planViews[planTitle]
+    plan.select()
 
 
   setState: (obj) -> @state = KD.utils.extend @state, obj
