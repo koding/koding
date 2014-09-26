@@ -168,30 +168,10 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
+    modalClass = MoreChannelsModal
     {moreLink} = @sidebar.sections.channels
 
-    KD.utils.defer =>
-
-      top        = moreLink.getY() - 80
-      left       = moreLink.getX() + moreLink.getWidth() + 10
-
-      if window.innerHeight <= (top + 218)
-        top      = (window.innerHeight - 220)
-
-      modal = new MoreChannelsModal
-        delegate : this
-        width    : 271
-        position :
-          top    : top
-          left   : left
-
-      modal.addSubView new KDCustomHTMLView
-        cssClass : 'arrow'
-        position :
-          top    : moreLink.getY()
-          left   : moreLink.getX() + moreLink.getWidth()
-
-      return modal
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
 
 
   showAllConversationsModal: ->
@@ -205,4 +185,32 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
-    return new ChatSearchModal delegate : this
+    modalClass = ChatSearchModal
+    {moreLink} = @sidebar.sections.messages
+
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
+
+
+  showMoreModal: ({modalClass, moreLink}) ->
+
+    modal      = new modalClass
+      delegate : this
+      width    : 271
+      position : @getModalArrowPosition moreLink
+
+    modal.addSubView new KDCustomHTMLView
+      cssClass : 'arrow'
+      position :
+        top    : moreLink.getY()
+        left   : moreLink.getX() + moreLink.getWidth()
+
+
+  getModalArrowPosition: (ref) ->
+
+    top  = ref.getY() - 80
+    left = ref.getX() + ref.getWidth() + 10
+
+    if window.innerHeight <= (top + 218)
+      top = window.innerHeight - 220
+
+    return {top, left}
