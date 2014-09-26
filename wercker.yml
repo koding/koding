@@ -1,4 +1,4 @@
-box: koding/base@0.0.11
+box: koding/base@0.0.12
 
 build:
   steps:
@@ -18,10 +18,7 @@ deploy:
         code: |
           export GOPATH=$PWD/go
           go run go/package.go -a klient -e development
-          go build -v -ldflags |
-            "-X koding/kites/klient/protocol.Version 0.1.0 \
-             -X koding/kites/klient/protocol.Environment development" \
-             koding/kites/klient
+          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.0 -X koding/kites/klient/protocol.Environment development" koding/kites/klient
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
     - koding/s3put@0.0.3:
