@@ -46,13 +46,7 @@ body.activity
         opacity         .99
 
     cite.search-icon
-      content     ''
-      display     block
-      top         23px
-      right       7px
-      z-index     2
-      r-sprite    'activity', 'search'
-      abs()
+      abs         23px, 7px
 
     .activity-pane
       .kdtabhandle
@@ -95,6 +89,8 @@ body.activity
             color             #575757
             background        none
 
+    .announcement-pane .kdtabhandlecontainer.filters
+        height          auto
 
     .message-pane > .listview-wrapper
       margin-top        34px
@@ -125,6 +121,13 @@ body.activity
 
         &.following:hover
           margin-left  14px
+
+  cite.search-icon
+    content     ''
+    display     block
+    r-sprite    'activity', 'search'
+    z-index     2
+
 
 .content-page.activity
 .member.content-display
@@ -413,7 +416,11 @@ body.activity
     .user-numbers
       float           none
 
-.kdmodal.your-topics
+.kdmodal.topic-search
+  .lazy-loader
+    text-align        center
+    margin            22px 0
+
   .kdmodal-inner
     margin            22px 30px
 
@@ -448,6 +455,9 @@ body.activity
       color           #848484
       font-weight     400
       opacity         .99
+
+  .search-input + cite.search-icon
+    abs               9px, 9px
 
   .topics-list
     margin            26px 0 0
@@ -510,6 +520,140 @@ body.activity
       font-style      italic
 
 
+.sidebar-dark-modal
+  background          #2A2929
+
+  .arrow
+    position          fixed !important
+    border            8px solid transparent
+    border-right      8px solid #2A2929
+    margin            1px 0 0 -6px
+
+  .lazy-loader
+    text-align        center
+    margin-top        22px
+
+  .kdmodal-inner
+    background        inherit
+    margin            18px
+
+    .kdmodal-content
+      margin          0 !important
+
+    .close-icon
+      hidden()
+
+  .kdmodal-title
+    font-size         14px !important
+    margin-bottom     18px !important
+    color             #F4F1ED !important
+    font-weight       600 !important
+    border            none
+
+    span.title
+      font-size       inherit !important
+
+  .search-input
+    height            30px !important
+    rounded           40px !important
+    border            1px solid #CECECE
+    font-size         14px !important
+    font-weight       600 !important
+
+    .text
+      bg              color, white
+
+    &::-webkit-input-placeholder
+      font-weight       600 !important
+
+    &:-moz-placeholder
+      font-weight       600 !important
+
+  .search-input + cite.search-icon
+    abs                 7px, 17px
+
+  .search-input ~ .listview-wrapper
+    margin-top        20px
+    height            95px
+
+    .kdcustomscrollview.has-vertical
+      padding-right   0
+
+      .kdscrolltrack
+        display       none
+
+    .kdlistitemview-sidebar-item
+      color           #F4F1ED
+      line-height     23px
+      font-size       14px
+      padding         4px 0
+      display         block
+      noTextDeco()
+
+    .topic-follow-btn
+      size            auto, 23px
+      background      #61C17F
+      padding         0 10px
+      fr()
+
+      &.following
+        background    #686868
+
+      .button-title
+        display       inline
+        visibility    visible
+        color         #fff
+        font-size     14px
+        font-weight   600
+
+      .icon
+        display       none
+
+      &:hover
+        border        none !important
+
+  &.more-channels
+
+    .kdmodal-content
+      overflow        hidden
+
+    .search-input ~ .listview-wrapper
+      height          auto
+
+    .topics-list
+      max-height      310px
+
+.kdmodal.chat-search.sidebar-dark-modal
+
+  .listview-wrapper .kdlistitemview-sidebar-item
+    height            23px
+
+  .sidebar-message-icon
+    hidden()
+
+  .kdbutton.leave-channel
+    size            auto, 23px
+    background      #686868
+    padding         0 10px
+    fr()
+
+    .button-title
+      display       inline
+      visibility    visible
+      color         #fff
+      font-size     14px
+      font-weight   600
+
+    .icon
+      display       none
+
+    &:hover
+      border        none !important
+
+  .sidebar-message-text
+    fl()
+    width           155px
+    overflow        auto
 
 div.kdtooltip.activity-helper
   code

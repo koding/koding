@@ -1,12 +1,12 @@
 class PaymentDowngradeErrorModal extends PaymentBaseModal
 
-  initialState: KD.utils.dict()
+  getInitialState: -> KD.utils.dict()
 
   constructor: (options = {}, data) ->
 
     { state } = options
 
-    @state = KD.utils.extend @initialState, state
+    @state = KD.utils.extend @getInitialState(), state
 
     options.title    = 'Downgrading isn\'t possible'
     options.cssClass = KD.utils.curry 'downgrade-error-modal', options.cssClass

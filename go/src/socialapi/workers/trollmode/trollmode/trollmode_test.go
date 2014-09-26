@@ -900,13 +900,14 @@ func TestMarkedAsTroll(t *testing.T) {
 }
 
 func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
+	pmr := models.PrivateMessageRequest{}
+	pmr.AccountId = accountId
+	pmr.Body = "this is a body for private message @sinan"
+	pmr.GroupName = groupName
+	pmr.Recipients = []string{"sinan"}
+
 	// create first private channel
-	cmc, err := rest.SendPrivateMessage(
-		accountId,
-		"this is a body for private message @sinan",
-		groupName,
-		[]string{"sinan"},
-	)
+	cmc, err := rest.SendPrivateMessage(pmr)
 	if err != nil {
 		return 0, err
 	}

@@ -46,6 +46,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
+        fetchFollowedChannelCount:
+          (signature Object, Function)
         searchTopics         :
           (signature Object, Function)
         fetchProfileFeed     :
@@ -156,6 +158,9 @@ module.exports = class SocialChannel extends Base
   # fetchFollowedChannels - lists followed channels(topics) of an account
   @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
 
+  # fetchFollowedChannelCount - fetch followed channel count of an account
+  @fetchFollowedChannelCount = secureRequest fnName: 'fetchFollowedChannelCount'
+
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
     fnName  : 'updateLastSeenTime'
@@ -200,7 +205,9 @@ module.exports = class SocialChannel extends Base
     {connection:{delegate}} = client
     options.showExempt = delegate.checkFlag "super-admin"
     options.channelId = options.id
-    doRequest 'fetchChannelActivities', client, options, callback
+    # just to create social channels
+    ensureGroupChannel client, (err, socialApiChannelId)->
+      doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->
     {fetchActivityCount} = require './requests'

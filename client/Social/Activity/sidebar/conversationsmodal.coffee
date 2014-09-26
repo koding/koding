@@ -1,16 +1,19 @@
-class ConversationsModal extends YourTopicsModal
+class ConversationsModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.title    or= 'Conversations you follow'
-    options.cssClass or= 'conversations activity-modal'
-    options.content  or= ''
-    options.overlay   ?= yes
-    options.width     ?= 330
-    options.height   or= 'auto'
-    options.endpoints  =
-      fetch            : KD.singletons.socialapi.channel.fetchPinnedMessages
-      search           : KD.singletons.socialapi.channel.byName
+    options.cssClass    or= 'conversations activity-modal'
+    options.width        ?= 330
+    options.height      or= 'auto'
+    options.overlay      ?= yes
+    options.endpoints     =
+      fetch               : KD.singletons.socialapi.channel.fetchPinnedMessages
+      search              : KD.singletons.socialapi.channel.byName
+
+    options.title       or= 'Conversations you follow'
+    options.placeholder or= 'Search'
+    options.noItemFound or= 'You don\'t follow any conversations yet.'
+    options.content     or= ''
 
     super options, data
 

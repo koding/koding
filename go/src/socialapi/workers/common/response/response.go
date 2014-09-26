@@ -82,5 +82,5 @@ func NewDefaultOK() (int, http.Header, interface{}, error) {
 		"status": true,
 	}
 
-	return http.StatusOK, nil, res, nil
+	return NewOK(res)
 }
