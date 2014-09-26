@@ -15,32 +15,39 @@ deploy:
           echo "access_key=$S3_KEY_ID" >> ~/.s3cfg
           echo "secret_key=$S3_KEY_SECRET" >> ~/.s3cfg
 
-    - script:
-        name: package klient.deb
-        code: |
-          s3cmd get s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest-version.txt version
+          # Shortcut to s3://koding-klient/development directory
+          export S3DIR="s3://$S3_KLIENTKITE/$KLIENT_CHANNEL"
+
+          # Fetch the latest build number since wercker doesn't provide one
+          s3cmd get $S3DIR/latest-version.txt version
           export OLDBUILDNO=$(cat version)
           export NEWBUILDNO=$(($OLDBUILDNO+1))
           echo "New version will be: $NEWBUILDNO"
+          rm -f version
 
+    - script:
+        name: package klient.deb
+        code: |
+          # Create klient.0.1.x.gz
           export GOPATH=$PWD/go
           go run go/package.go -a klient -e $KLIENT_CHANNEL -b $NEWBUILDNO
           go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/kites/klient/protocol.Environment development" koding/kites/klient
           gzip -N klient
           mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
-          rm -f version
-
     - script:
         name: sync with s3
         code: |
-          s3cmd put *.deb  s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/$NEWBUILDNO/
-          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/$NEWBUILDNO/
+          #  Copy files to S3.
+          s3cmd put *.deb  $S3DIR/$NEWBUILDNO/
+          s3cmd -P put *.gz  $S3DIR/$NEWBUILDNO/
 
-          s3cmd del --recursive s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest/
-          s3cmd put *.deb  s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest/
-          s3cmd -P put *.gz  s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest/
+          # Cleanup the latest folder and put the latest one in there
+          s3cmd del --recursive $S3DIR/latest/
+          s3cmd put *.deb  $S3DIR/latest/
+          s3cmd -P put *.gz  $S3DIR/latest/
 
-          s3cmd del s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest-version.txt
+          # Update latest-version.txt with the latest version
+          s3cmd del S3DIR/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
-          s3cmd -P put latest-version.txt  s3://$S3_KLIENTKITE/$KLIENT_CHANNEL/latest-version.txt
+          s3cmd -P put latest-version.txt  S3DIR/latest-version.txt
