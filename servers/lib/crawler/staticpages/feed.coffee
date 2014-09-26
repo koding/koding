@@ -8,7 +8,8 @@ ITEMSPERPAGE = 20
 
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
-  {page, channelId, client, route, contentType} = options
+  { page, channelId, client
+    route, contentType, channelName } = options
 
   return callback "channelId not set"  unless channelId
 
@@ -17,9 +18,10 @@ createFeed = (models, options, callback)->
     skip = (page - 1) * ITEMSPERPAGE
 
   options = {
-    id    : channelId
-    limit : ITEMSPERPAGE
-    skip  : skip
+    id          : channelId
+    limit       : ITEMSPERPAGE
+    skip        : skip
+    channelName : channelName
   }
 
   SocialChannel.fetchActivityCount {channelId}, (err, response)->
@@ -39,13 +41,19 @@ createFeed = (models, options, callback)->
         return callback err  if err
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
+        channelTitleContent  = getChannelTitleContent channelName
 
-        content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
+        content = schemaorgTagsOpening + channelTitleContent +
+          pageContent + schemaorgTagsClosing
 
         pagination = getPagination page, itemCount, "Activity/#{route}"
         fullPage = putContentIntoFullPage content, pagination
 
         callback null, fullPage
+
+
+  getChannelTitleContent = (channelName) ->
+    content = "<div class='logged-out channel-title'>##{channelName}</div>"
 
 
 buildContent = (models, messageList, options, callback) ->

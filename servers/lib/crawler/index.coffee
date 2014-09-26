@@ -52,6 +52,8 @@ fetchPostContent = (models, options, callback) ->
 fetchTopicContent = (models, options, callback) ->
   {client, entrySlug} = options
 
+  options.channelName = entrySlug
+
   {SocialChannel} = models
   SocialChannel.byName client, name: entrySlug, (err, channel) ->
     return callback err  if err or not channel
@@ -66,6 +68,8 @@ fetchGroupContent = (models, options, callback) ->
   {entrySlug, client, page} = options
   entrySlug ||= "koding"
   {JGroup} = models
+
+  options.channelName = "public"
 
   # TODO change this slug after groups are implemented
   JGroup.one slug: "koding", (err, group) ->
