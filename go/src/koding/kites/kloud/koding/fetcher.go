@@ -64,9 +64,15 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan,
 		return 0, err
 	}
 
-	if resp.StatusCode != 200 && subscription.Error != "" {
-		return 0, fmt.Errorf("[%s] could not fetch subscription. err: '%s'",
-			m.Id, subscription.Description)
+	// return an error back for a non 200 status
+	if resp.StatusCode != 200 {
+		if subscription.Error != "" {
+			return 0, fmt.Errorf("[%s] could not fetch subscription. err: '%s'",
+				m.Id, subscription.Description)
+		}
+
+		return 0, fmt.Errorf("[%s] could not fetch subscription. status code: %d",
+			m.Id, resp.StatusCode)
 	}
 
 	plan, ok := plans[subscription.PlanTitle]
