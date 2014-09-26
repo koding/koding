@@ -130,10 +130,16 @@ module.exports = class PricingAppView extends JView
 
   planSelected: (options) ->
 
-    return KD.singletons
-      .router
-      .handleRoute '/Login'
+    { router } = KD.singletons
 
+    query = [
+      "/Login"
+      "?redirectTo=Pricing"
+      "&planTitle=#{options.planTitle}"
+      "&planInterval=#{@state.planInterval}"
+    ].join ""
+
+    router.handleRoute query
 
   setState: (obj) -> @state = KD.utils.extend @state, obj
 

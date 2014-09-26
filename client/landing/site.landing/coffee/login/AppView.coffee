@@ -431,7 +431,10 @@ module.exports = class LoginView extends JView
 
     query = ''
     if redirectTo is 'Pricing'
-      query = "planTitle=#{formData.planTitle}"
+      query = [
+        "planTitle=#{formData.planTitle}"
+        "planInterval=#{formData.planInterval}"
+      ].join "&"
 
     $.ajax
       url         : '/Login'
