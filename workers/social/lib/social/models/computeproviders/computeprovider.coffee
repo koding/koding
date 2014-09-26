@@ -296,7 +296,7 @@ module.exports = class ComputeProvider extends Base
 
         queue.push ->
 
-          callback null, stack, results
+          callback null, {stack, results}
 
         daisy queue
 
@@ -314,7 +314,9 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      ComputeProvider.createGroupStack client, (err, stack, results)->
+      ComputeProvider.createGroupStack client, (err, res = {})->
+
+        {stack, results} = res
 
         if err?
           {nickname} = member.profile
