@@ -404,7 +404,9 @@ module.exports = class LoginView extends JView
 
     {username, redirectTo} = formData
 
-    query = ''
+    redirectTo ?= ''
+    query       = ''
+
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
       query = KD.utils.stringifyQuery {planTitle, planInterval}
@@ -437,7 +439,8 @@ module.exports = class LoginView extends JView
 
     {username, password, redirectTo} = formData
 
-    query = ''
+    redirectTo ?= ''
+    query       = ''
     if redirectTo is 'Pricing'
       { planInterval, planTitle } = formData
       query = KD.utils.stringifyQuery {planTitle, planInterval}
