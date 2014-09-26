@@ -1,4 +1,5 @@
 CustomLinkView = require './../core/customlinkview'
+FooterView     = require './../home/footerview'
 
 module.exports = class FeaturesView extends KDView
 
@@ -89,6 +90,43 @@ module.exports = class FeaturesView extends KDView
         It's time to raise the curtain.</p>
       "
 
+  BOTTOMFEATURES =
+    'Awesome Interface'       :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Handsome Interface'      :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Beautiful Interface'     :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Crazy Interface'         :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Fokking Interface'       :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'User Interface'          :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Physical Interface'      :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'My Interface'            :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
+    'Your Interface'          :
+      text                    : "It's time to play the music, it's time to light the lights. "
+      iconClass               : "window"
+
   constructor:(options = {}, data)->
 
     super options, data
@@ -98,6 +136,10 @@ module.exports = class FeaturesView extends KDView
     @handles = []
     @prepareTabHandles()
     @selectTab('VMs')
+
+    @createBottomFeatures()
+
+    @addSubView @footer = new FooterView
 
 
   prepareTabHandles: ->
@@ -152,6 +194,19 @@ module.exports = class FeaturesView extends KDView
       @addSubView @currentTab = tabView, '.tab-contents'
 
 
+  createBottomFeatures: ->
+
+    for title, content of BOTTOMFEATURES
+      do (title, content) =>
+        view = new KDCustomHTMLView
+          cssClass    : 'feature-item'
+          partial     : "
+            <h5 class='#{content.iconClass}-icon'>#{title}</h5>
+            <p>#{content.text}</p>
+          "
+        @addSubView view, '.bottom-features'
+
+
   partial: ->
 
     """
@@ -159,6 +214,7 @@ module.exports = class FeaturesView extends KDView
       <nav class='tab-handles'></nav>
       <div class='tab-contents'></div>
     </section>
+    <section class='bottom-features clearfix'></section>
     """
 
 
