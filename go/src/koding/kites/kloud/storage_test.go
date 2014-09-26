@@ -61,6 +61,11 @@ func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
 	return GetMachineData(id), nil
 }
 
+func (t *TestStorage) Delete(id string) error {
+	delete(TestMachineData, id)
+	return nil
+}
+
 func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	machine := GetMachineData(id)
 
