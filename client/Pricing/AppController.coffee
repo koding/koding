@@ -1,6 +1,8 @@
 class PricingAppController extends KDViewController
 
-  KD.registerAppClass this, name : 'Pricing'
+  KD.registerAppClass this,
+    name  : 'Pricing'
+    route : '/Pricing'
 
   constructor: (options = {}, data) ->
     options.appInfo = title: "Pricing"
