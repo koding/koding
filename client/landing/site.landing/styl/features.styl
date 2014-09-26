@@ -40,22 +40,23 @@ body.features
 
   .content-page.features
     padding-top               73px
+    font-family               sloganFont
 
     .feature-tabs
-      padding-left            calc((100% \- 1200px) / 2)
-      padding-right           calc((100% \- 1200px) / 2)
+      max-width               1200px
+      margin                  0 auto
 
       .tab-handles
         height                110px
-        line-height           110px
+        line-height           120px
         text-align            right
         border-bottom         1px solid #e0dcdc
 
         a
           display             inline-block
-          margin-left         54px
+          margin-left         48px
           font-weight         600
-          font-size           18px
+          font-size           17px
           color               #7b7b7b
           vendor              transition, color .4s ease
           noTextDeco()
@@ -71,33 +72,71 @@ body.features
 
       article
         border-bottom         1px solid #e0dcdc
-        padding               98px 0 48px
-        margin-bottom         100px
+        padding               67px 0 43px
+        margin-bottom         81px
 
         .tab-text
-          width               50%
+          width               46%
           padding-right       72px
+          padding-top         37px
           borderBox()
           fl()
 
           p
-            font-size         16px
+            font-size         14px
             color             #727272
-            padding           25px 0 50px
+            padding           16px 0 55px
             line-height       24px
+            font-weight       600
 
           h4
-            font-size         22px
+            font-size         21px
             color             #27ae60
             font-weight       600
 
         .tab-image
-          width               50%
+          width               54%
           margin-top          20px
           fr()
 
       .tab-ide .tab-image
         margin-top            -20px
+
+    .bottom-features
+      max-width               1200px
+      margin                  0 auto
+      padding-bottom          22px
+
+      .feature-item
+        width                 32%
+        margin-left           2%
+        borderBox()
+        fl()
+
+        &:nth-of-type(3n + 1)
+          margin-left         0
+
+        h5
+          font-size           21px
+          line-height         22px
+          color               #27ae60
+          font-weight         600
+
+          &.window-icon:before
+            content           ''
+            margin            -1px 18px 0 0
+            r-sprite          'app', 'green-window'
+            fl()
+
+        p
+          font-size           14px
+          color               #727272
+          padding             11px 0 55px
+          line-height         24px
+          font-weight         600
+
+  .main-footer
+    background                #f9f9f9
 
 
 @keyframes tabEnter
