@@ -20,6 +20,6 @@ class TopicSearchModal extends SidebarSearchModal
     @addSubView new KDCustomHTMLView
       cssClass   : 'tag-description'
       partial    : "
-        You can also create a new topic by making it a part of <br>
-        a new post. <em>eg: I love #koding</em>
+        You can also create a new topic by making it a part of a new post. <br>
+        <em>eg: I love <strong>#programming</strong></em>
       "
