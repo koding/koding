@@ -10,6 +10,9 @@ build:
         code: |
           sudo apt-get update -y
           sudo apt-get install ubuntu-dev-tools -y
+
+deploy:
+  steps:
     - script:
         name: package klient.deb
         code: |
@@ -18,41 +21,8 @@ build:
           go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.0 -X koding/kites/klient/protocol.Environment development" koding/kites/klient
           gzip -N klient
           mv klient.gz klient-0.1.0.gz
-
-deploy:
-  steps:
-    - create-file:
-        name: write version file
-        filename: $WERCKER_ROOT/VERSION
-        content: ${WERCKER_GIT_COMMIT:0:8}
-        overwrite: true
-    - script:
-        name: zip
-        code: |
-          cd $WERCKER_ROOT
-
-          ./configure --config $CONFIG --projectRoot /opt/koding
-          ./run
-
-          rm -rf .git .build node_modules
-          rm -rf go/bin go/pkg
-          zip -q --symlinks -r $ARCHIVE .
     - koding/s3put@0.0.3:
           key-id: $S3_KEY_ID
           key-secret: $S3_KEY_SECRET
-          file: $ARCHIVE
-          url: s3://$S3_EB_DEPLOY
-    - koding/eb-deploy@0.0.5:
-          access-key: $S3_KEY_ID
-          secret-key: $S3_KEY_SECRET
-          app-name: koding
-          env-name: $EB_ENV_NAME
-          app-location: $S3_EB_DEPLOY/$ARCHIVE
-          version-label: $ARCHIVE
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+          file: klient-0.1.0.gz
+          url: s3://$S3_KLIENTKITE
