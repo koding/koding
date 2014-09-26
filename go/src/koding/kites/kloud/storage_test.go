@@ -142,3 +142,30 @@ func SetMachineData(id string, machine *protocol.Machine) {
 	defer TestMu.Unlock()
 	TestMachineData[id] = machine
 }
+func init() {
+	rand.Seed(time.Now().UnixNano())
+
+	instanceName := "kloudtest-" + strconv.Itoa(rand.Intn(100000))
+
+	TestMachineData = map[string]*protocol.Machine{
+		"koding_id0": &protocol.Machine{
+			Id:        "koding_id0",
+			Provider:  "koding",
+			Username:  username,
+			IpAddress: "",
+			Builder: map[string]interface{}{
+				"username":     username,
+				"type":         "amazon",
+				"region":       "us-east-1",
+				"source_ami":   "ami-2651904e",
+				"storage_size": 3,
+				"alwaysOn":     false,
+				"instanceName": instanceName,
+			},
+			State: machinestate.NotInitialized,
+			Domain: protocol.Domain{
+				Name: "foo." + username + ".dev.koding.io",
+			},
+		},
+	}
+}
