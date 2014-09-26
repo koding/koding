@@ -130,13 +130,6 @@ func (c *TestChecker) AllowedInstances(p koding.Plan, wantInstance koding.Instan
 	return nil
 }
 
-// TestPlanFetcher satisfies PlanFetcher interface
-type TestPlanFetcher struct{}
-
-func (t *TestPlanFetcher) Get(user *koding.PlanUser) (koding.Plan, error) {
-	return koding.Free, nil
-}
-
 // Test Data
 func GetMachineData(id string) *protocol.Machine {
 	TestMu.Lock()
