@@ -34,10 +34,9 @@ class ActivityAppController extends AppController
 
   post: (options = {}, callback = noop) ->
 
-    {body, payload, clientRequestId} = options
     {socialapi} = KD.singletons
 
-    socialapi.message.post {body, payload, clientRequestId}, callback
+    socialapi.message.post options, callback
 
 
   edit: (options = {}, callback = noop) ->

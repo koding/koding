@@ -41,7 +41,14 @@ class ActivityListItemView extends KDListItemView
 
     {commentViewClass, activitySettings: {disableFollow}} = options
 
+    {socialapi} = KD.singletons
+
     @commentBox  = new commentViewClass options.commentSettings, data
+
+    # hide commenting for announcement items
+    if socialapi.isAnnouncementItem data.initialChannelId
+      @commentBox.hide()
+
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
