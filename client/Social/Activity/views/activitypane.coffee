@@ -2,7 +2,7 @@ class ActivityPane extends MessagePane
 
   constructor: (options, data) ->
     options.type        or= ''
-    options.cssClass      = "activity-pane #{options.type}"
+    options.cssClass     ?= "activity-pane #{options.type}"
     options.wrapper      ?= yes
     options.lastToFirst  ?= no
 

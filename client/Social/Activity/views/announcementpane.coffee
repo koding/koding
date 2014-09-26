@@ -1,5 +1,9 @@
 class AnnouncementPane extends ActivityPane
 
+  constructor: (options, data) ->
+    options.cssClass = "activity-pane announcement-pane #{options.type}"
+    super options, data
+
   viewAppended: ->
     super()
 
