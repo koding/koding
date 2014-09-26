@@ -5,6 +5,7 @@ import (
 	"socialapi/request"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -229,15 +230,10 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	return participants, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
-	if a.Id == 0 {
-		return nil, ErrAccountIdIsNotSet
-	}
+func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
+	c := NewChannelParticipant()
 
-	channelIds := make([]int64, 0)
-
-	// var results []ChannelParticipant
-	query := bongo.B.DB.
+	return bongo.B.DB.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
@@ -254,6 +250,41 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 		q.Type,
 		ChannelParticipant_STATUS_ACTIVE,
 	)
+}
+
+func (c *ChannelParticipant) ParticipatedChannelCount(a *Account, q *request.Query) (*CountResponse, error) {
+	if a.Id == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	query := getParticipatedChannelsQuery(a, q)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", Safe)
+	}
+
+	var count int
+	query = query.Count(&count)
+	if query.Error != nil {
+		return nil, query.Error
+	}
+
+	res := new(CountResponse)
+	res.TotalCount = count
+
+	return res, nil
+}
+
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
+	if a.Id == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	channelIds := make([]int64, 0)
+
+	// var results []ChannelParticipant
+	query := getParticipatedChannelsQuery(a, q)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {

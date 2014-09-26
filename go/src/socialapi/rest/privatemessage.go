@@ -9,13 +9,7 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func SendPrivateMessage(senderId int64, body string, groupName string, recipients []string) (*models.ChannelContainer, error) {
-
-	pmr := models.PrivateMessageRequest{}
-	pmr.AccountId = senderId
-	pmr.Body = body
-	pmr.GroupName = groupName
-	pmr.Recipients = recipients
+func SendPrivateMessage(pmr models.PrivateMessageRequest) (*models.ChannelContainer, error) {
 
 	url := "/privatemessage/init"
 	res, err := marshallAndSendRequest("POST", url, pmr)
@@ -33,12 +27,20 @@ func SendPrivateMessage(senderId int64, body string, groupName string, recipient
 }
 
 func GetPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateMessages(q, "/privatemessage/list")
+}
+
+func SearchPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateMessages(q, "/privatemessage/search")
+}
+
+func fetchPrivateMessages(q *request.Query, endpoint string) ([]models.ChannelContainer, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("/privatemessage/list?%s", v.Encode())
+	url := fmt.Sprintf("%s?%s", endpoint, v.Encode())
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err

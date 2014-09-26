@@ -1,4 +1,4 @@
-class ActivityUniversityWidget extends ActivityGuideWidget
+class ActivityUniversityWidget extends ActivityBaseWidget
 
   constructor: (options = {}, data) ->
 

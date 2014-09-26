@@ -53,8 +53,14 @@ do ->
     '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllTopicsModal()
 
+    '/:name?/Activity/Topic/Following' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showFollowingTopicsModal()
+
     '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
       handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
+
+    '/:name?/Activity/Chat/All' : ->
+      handleChannel null, null, (app) -> app.getView().showAllChatsModal()
 
     '/:name?/Activity' : ({params:{name, slug}, query}) ->
       # handle legacy topic routes

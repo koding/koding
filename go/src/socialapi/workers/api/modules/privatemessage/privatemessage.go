@@ -8,6 +8,7 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -22,8 +23,19 @@ func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, ht
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
-	if q.AccountId == 0 || q.GroupName == "" {
-		return response.NewBadRequest(errors.New("request is not valid"))
+	channelList, err := getPrivateMessageChannels(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(buildContainer(channelList, q))
+}
+
+func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+
+	if q.Name == "" {
+		return response.NewBadRequest(errors.New("search string not set"))
 	}
 
 	channelList, err := getPrivateMessageChannels(q)
@@ -31,9 +43,35 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewBadRequest(err)
 	}
 
+	return response.HandleResultAndError(buildContainer(channelList, q))
+}
+
+func Count(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	q := request.GetQuery(u)
+
+	query := getUserChannelsQuery(q)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", models.Safe)
+	}
+
+	var count int
+	query = query.Count(&count)
+	if query.Error != nil {
+		return response.NewBadRequest(query.Error)
+	}
+
+	res := new(models.CountResponse)
+	res.TotalCount = count
+
+	return response.NewOK(res)
+}
+
+func buildContainer(channelList []models.Channel, q *request.Query) (*models.ChannelContainers, error) {
 	cc := models.NewChannelContainers()
 	if err := cc.Fetch(channelList, q); err != nil {
-		return response.NewBadRequest(err)
+		return cc, err
 	}
 
 	cc.AddIsParticipant(q.AccountId)
@@ -42,14 +80,13 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 	cc.AddLastMessage()
 	cc.AddUnreadCount(q.AccountId)
 
-	return response.HandleResultAndError(cc, cc.Err())
+	return cc, cc.Err()
 }
 
-func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
-	// build query for
+func getUserChannelsQuery(q *request.Query) *gorm.DB {
 	c := models.NewChannel()
-	channelIds := make([]int64, 0)
-	query := bongo.B.DB.
+
+	return bongo.B.DB.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
@@ -62,6 +99,22 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 		q.GroupName,
 		models.Channel_TYPE_PRIVATE_MESSAGE,
 		models.ChannelParticipant_STATUS_ACTIVE)
+}
+
+func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
+	// build query for
+	if q.AccountId == 0 || q.GroupName == "" {
+		return nil, errors.New("request is not valid")
+	}
+
+	c := models.NewChannel()
+	channelIds := make([]int64, 0)
+
+	query := getUserChannelsQuery(q)
+
+	if q.Name != "" {
+		query = query.Where("api.channel.purpose like ?", "%"+q.Name+"%")
+	}
 
 	// add exempt clause if needed
 	if !q.ShowExempt {

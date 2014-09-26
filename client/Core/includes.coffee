@@ -12,6 +12,7 @@ module.exports = [
   'maintabview.coffee'
   'maintabpaneview.coffee'
   'maincontroller.coffee'
+  'welcomemodal.coffee'
   'mainview.coffee'
   'mainviewcontroller.coffee'
   'topnavigation.coffee'
