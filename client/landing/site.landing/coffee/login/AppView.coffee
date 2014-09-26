@@ -402,10 +402,16 @@ module.exports = class LoginView extends JView
     form.notificationsDisabled = yes
     form.notification?.destroy()
 
-    {username} = formData
+    {username, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
-      url         : '/Register'
+      url         : "/Register"
       data        : formData
       type        : 'POST'
       xhrFields   : withCredentials : yes
@@ -414,7 +420,7 @@ module.exports = class LoginView extends JView
         KD.mixpanel 'Signup, success'
         document.cookie = 'newRegister=true'
 
-        return location.replace '/'
+        return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) ->
         {responseText} = xhr
