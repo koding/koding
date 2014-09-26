@@ -60,13 +60,13 @@ do ->
   routeToLatestWorkspace = ->
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
+    machine         = KD.userMachines.first
+    machineLabel    = machine?.slug or machine?.label or ''
+    workspaceSlug   = 'my-workspace'
 
     if latestWorkspace
-      {machineLabel, workspaceSlug} = latestWorkspace
-    else
-      machine = KD.userMachines.first
-      machineLabel  = machine?.slug or machine?.label or ''
-      workspaceSlug = 'my-workspace'
+      for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
+        {machineLabel, workspaceSlug} = latestWorkspace
 
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
