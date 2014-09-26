@@ -86,8 +86,10 @@ do ->
     '/Login/:token?'    : handler (app, options)->
       app.getView().animateToForm 'login'
       app.handleQuery options
+    '/Register'         : handler (app, options)->
+      app.getView().animateToForm 'register'
+      app.handleQuery options
     '/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/Register'         : handler (app)-> app.getView().animateToForm 'register'
     '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
     '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
