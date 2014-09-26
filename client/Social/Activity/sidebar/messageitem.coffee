@@ -15,6 +15,13 @@ class SidebarMessageItem extends SidebarItem
     @icon = new SidebarMessageItemIcon {}, data
     @text = new SidebarMessageItemText {}, data
 
+    owner = data.creatorId is KD.whoami().socialApiId
+
+    @endButton = if owner
+    then new LeaveChannelButton {}, data
+    else KDView
+
+
   channelDeleted: ->
 
     if location.pathname is "/#{@getOption 'route'}"
@@ -24,6 +31,10 @@ class SidebarMessageItem extends SidebarItem
 
 
   pistachio: ->
-    "{{> @icon}}{{> @text}}{{> @unreadCount}}"
 
-
+    """
+    {{> @icon}}
+    {{> @text}}
+    {{> @endButton}}
+    {{> @unreadCount}}
+    """
