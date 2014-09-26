@@ -2,7 +2,7 @@ class SidebarMoreLink extends CustomLinkView
 
   constructor: (options = {}, data) ->
 
-    options.title       or= "More"
+    options.title       or= "More..."
     options.searchClass or= SidebarSearchModal
     options.cssClass      = KD.utils.curry 'more-link', options.cssClass
 
@@ -24,5 +24,3 @@ class SidebarMoreLink extends CustomLinkView
     data = @getData()
     data.title = "+#{totalCount} #{title}"
     @render()
-
-
