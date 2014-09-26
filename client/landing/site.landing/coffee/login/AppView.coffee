@@ -48,6 +48,7 @@ module.exports = class LoginView extends JView
       partial    : ".kdview.login-screen:after { background-image : url('#{bgImageUrl}')}"
     }).getElement()
 
+
   constructor:(options = {}, data)->
 
     options.cssClass = 'login-screen login'
@@ -185,6 +186,7 @@ module.exports = class LoginView extends JView
             else
               @afterLoginCallback err, {account, replacementToken}
               KD.mixpanel "Github auth login, success"
+
 
   viewAppended:->
 
@@ -400,10 +402,16 @@ module.exports = class LoginView extends JView
     form.notificationsDisabled = yes
     form.notification?.destroy()
 
-    {username} = formData
+    {username, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
-      url         : '/Register'
+      url         : "/Register"
       data        : formData
       type        : 'POST'
       xhrFields   : withCredentials : yes
@@ -412,7 +420,7 @@ module.exports = class LoginView extends JView
         KD.mixpanel 'Signup, success'
         document.cookie = 'newRegister=true'
 
-        return location.replace '/'
+        return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) ->
         {responseText} = xhr
@@ -427,14 +435,20 @@ module.exports = class LoginView extends JView
 
   doLogin: (formData)->
 
-    {username, password} = formData
+    {username, password, redirectTo} = formData
+
+    query = ''
+    if redirectTo is 'Pricing'
+      { planInterval, planTitle } = formData
+      query = KD.utils.stringifyQuery {planTitle, planInterval}
+      query = "?#{query}"
 
     $.ajax
       url         : '/Login'
       data        : { username, password }
       type        : 'POST'
       xhrFields   : withCredentials : yes
-      success     : -> location.replace '/'
+      success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
         {responseText} = xhr
         new KDNotificationView title : responseText
@@ -556,6 +570,22 @@ module.exports = class LoginView extends JView
     @[formName].addCustomData data
     # @resetForm.addCustomData {recoveryToken}
 
+  setCustomData: (data) ->
+
+    @setCustomDataToForm 'login', data
+    @setCustomDataToForm 'register', data
+
+    @setFormHeaderPartial data
+
+
+  getRegisterLink: (data = {}) ->
+
+    queryString = KD.utils.stringifyQuery data
+    queryString = "?#{queryString}"  if queryString.length > 0
+
+    link = "/Register#{queryString}"
+
+
   animateToForm: (name)->
 
     @unsetClass 'register recover login reset home resendEmail finishRegistration'
@@ -577,7 +607,7 @@ module.exports = class LoginView extends JView
         @redeemForm.inviteCode.input.setFocus()
       when "login"
         @formHeader.show()
-        @formHeader.updatePartial "Don't have an account yet? <a class='register' href='/Register'>Sign Up</a>"
+        @formHeader.updatePartial @generateFormHeaderPartial()
         @loginForm.username.input.setFocus()
       when "recover"
         @$('.flex-wrapper').addClass 'one'
@@ -592,6 +622,15 @@ module.exports = class LoginView extends JView
         @formHeader.updatePartial "Set your new password below"
         @goToRecoverLink.hide()
         @github.hide()
+
+
+  generateFormHeaderPartial: (data = {}) ->
+    "Don't have an account yet? <a class='register' href='#{@getRegisterLink data}'>Sign up</a>"
+
+
+  setFormHeaderPartial: (data) ->
+    @formHeader.updatePartial @generateFormHeaderPartial data
+
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config

@@ -14,6 +14,13 @@ module.exports = class LoginAppsController extends KDViewController
 
     super options, data
 
+
+  handleQuery: ({ query }) ->
+
+    loginView = @getOption 'view'
+    loginView.setCustomData query
+
+
   prepareFinishRegistrationForm: (token) ->
 
     { JPasswordRecovery } = KD.remote.api

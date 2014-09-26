@@ -33,7 +33,8 @@ module.exports = class MainViewController extends KDViewController
 
   setBodyClass: do ->
 
-    previousClass = null
+    previousClass = 'home'
+
 
     (name)->
 
