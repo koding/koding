@@ -296,9 +296,7 @@ module.exports = class ComputeProvider extends Base
 
         queue.push ->
 
-          callback null, stack
-          # `results` keeps track of the all operation
-          # if needed return with callback.
+          callback null, {stack, results}
 
         daisy queue
 
@@ -316,11 +314,13 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      ComputeProvider.createGroupStack client, (err, res)->
+      ComputeProvider.createGroupStack client, (err, res = {})->
+
+        {stack, results} = res
 
         if err?
           {nickname} = member.profile
-          console.log "Create group stack failed for #{nickname}:", err
+          console.log "Create group stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
