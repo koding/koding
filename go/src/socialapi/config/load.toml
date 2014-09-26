@@ -4,7 +4,7 @@ Region             = "prod"
 Hostname           = "prod.koding.com"
 
 [postgres]
-Host=     "prod-test.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+Host=     "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
 Port=     5432
 Username= "socialapplication"
 Password= "socialapplication"
