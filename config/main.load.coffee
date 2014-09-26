@@ -20,7 +20,7 @@ Configuration = (options={}) ->
   githubuser          = options.githubuser     or "koding"
 
   mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
-  etcd                = "10.0.0.126:4001,10.0.0.127:4001,10.0.0.128:4001"
+  etcd                = "10.0.1.5:4001,10.0.0.217:4001,10.0.0.216:4001"
 
   redis               = { host:     "prod-test.1ia3pb.0001.use1.cache.amazonaws.com" , port:               "6379"                                , db:              0                    }
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "cadvyqxd"                           , password: "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"  , vhost: "cadvyqxd" }
