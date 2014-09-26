@@ -73,7 +73,12 @@ class SidebarSearchModal extends KDModalView
     return @listController.hideLazyLoader()  if @reachedEndOfTheList
 
     options = @getLazyLoadOptions()
-    @fetch options, @bound 'populate'
+
+    if @searchActive
+    then fn = @bound 'fetchForSearch'
+    else fn = @bound 'fetch'
+
+    fn options, @bound 'populate'
 
 
   getLazyLoadOptions: ->
