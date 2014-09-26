@@ -187,19 +187,44 @@ body.ide.dark
         r-sprite        'ide', 'settings-on'
   .toggle
     display             inline-block
-    r-sprite            'ide', 'nav-collapse'
-    right               0
+    r-sprite            'finder', 'expanded'
+    right               10px
+    top                 11px
     abs()
     pointer()
 
-.sidebar-collapsed .toggle
-  r-sprite              'ide', 'nav-expand'
+  .kd-logo
+    display             none
+    r-sprite            'app', 'logo-full'
+    width               18px
+    position            relative
+    top                 7px
+    left                11px
+    opacity             .5
+    pointer()
 
-.sidebar-collapsed
-  .ide-files-tab
-    .kdtabhandle-tabs
-      position          relative
-      top               38px
+.sidebar-collapsed .toggle
+  r-sprite              'finder', 'expanded'
+  right                  12px
+  top                    85px
+
+#kdmaincontainer.collapsed
+  .application-page .ide-files-tab
+    .kd-logo
+      display             inline-block
+      left                -70px
+    .kdtabhandle
+      left                40px
+  .application-page.sidebar-collapsed .ide-files-tab
+    .kdtabhandle
+      left                0
+      top                 40px
+    .toggle
+      top                 125px
+    .kd-logo
+      left                10px
+      top                 -67px
+
 
 // floating left
 .floating.kdsplitview-panel

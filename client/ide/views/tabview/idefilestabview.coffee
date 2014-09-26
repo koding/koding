@@ -19,11 +19,15 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @tabView.showPaneByIndex 0
 
-    @tabView.tabHandleContainer.addSubView new KDCustomHTMLView
+    @tabView.tabHandleContainer.tabs.addSubView @toggle = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'toggle'
-      click    : ->
-        KD.getSingleton('appManager').tell 'IDE', 'toggleSidebar'
+      click    : @bound 'createToggleMenu'
+
+    @tabView.tabHandleContainer.tabs.addSubView @logo = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'kd-logo'
+      click    : -> KD.singletons.mainView.toggleSidebar()
 
   createFilesPane: ->
     filesPane  = new KDTabPaneView
@@ -48,3 +52,31 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     settingsPane.addSubView new IDE.SettingsPane
     @tabView.addPane settingsPane
+
+
+  createToggleMenu: ->
+
+    options =
+      menuWidth: 180
+      x: @toggle.getX()
+      y: @toggle.getY() + 20
+
+    {appManager, mainView} = KD.singletons
+    ideApp = appManager.getFrontApp()
+
+    ideSidebarState    = if ideApp.isSidebarCollapsed then 'Expand' else 'Collapse'
+    kodingSidebarState = if mainView.isCollapsed      then 'Expand' else 'Collapse'
+
+    items = {}
+
+    items["#{ideSidebarState} IDE sidebar"] =
+      callback: =>
+        appManager.tell 'IDE', 'toggleSidebar'
+        @contextMenu.destroy()
+
+    items["#{kodingSidebarState} Koding sidebar"] =
+      callback: =>
+        mainView.toggleSidebar()
+        @contextMenu.destroy()
+
+    @contextMenu = new KDContextMenu options, items
