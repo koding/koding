@@ -297,24 +297,52 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 	return channelIds, nil
 }
 
+// fetchDefaultChannels fetchs the default channels of the system, currently we
+// have two different default channels, group channel and announcement channel
+// that everyone in the system should be a member of them, they cannot opt-out,
+// they will be able to see the contents of it, they will get the notifications,
+// they will see the unread count
 func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, error) {
 	var channelIds []int64
 	channel := NewChannel()
-	bongoQuery := &bongo.Query{
-		Selector: map[string]interface{}{
-			"group_name":    q.GroupName,
-			"type_constant": Channel_TYPE_GROUP,
-		},
-		Pluck:      "id",
-		Pagination: *bongo.NewPagination(1, 0),
+	res := bongo.B.DB.
+		Model(channel).
+		Table(channel.TableName()).
+		Where(
+		"group_name = ? AND type_constant IN (?)",
+		q.GroupName,
+		[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
+	).
+		// no need to traverse all database, limit with a known count
+		Limit(2).
+		// only select ids
+		Pluck("id", &channelIds)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
 	}
 
-	err := channel.Some(&channelIds, bongoQuery)
-	if err != nil {
+	// be sure that this account is a participant of default channels
+	if err := c.ensureParticipation(q.AccountId, channelIds); err != nil {
 		return nil, err
 	}
 
 	return channelIds, nil
+}
+
+func (c *ChannelParticipant) ensureParticipation(accountId int64, channelIds []int64) error {
+	for _, channelId := range channelIds {
+		cp := NewChannelParticipant()
+		cp.ChannelId = channelId
+		cp.AccountId = accountId
+		// create is idempotent, multiple calls wont cause any problem, if the
+		// user is already a participant, will return as if a succesful request
+		if err := cp.Create(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // FetchParticipantCount fetchs the participant count in the channel

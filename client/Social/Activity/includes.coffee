@@ -24,6 +24,7 @@ module.exports = [
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
   "views/activitypane.coffee"
+  "views/announcementpane.coffee"
 
   "views/filterlinks.coffee"
 
