@@ -131,7 +131,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
       moreLabel.toggleClass 'expanded'
       @moreForm.toggleClass 'hidden'
 
-    windowController = KD.getSingleton "windowController"
+    {windowController, computeController} = KD.singletons
 
     nickname.on 'click', =>
       nickname.hide()
@@ -165,15 +165,29 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     label.on 'click', =>
       label.toggleClass 'expanded'
-      @terminateButton.toggleClass 'hidden'
+      @buttonContainer.toggleClass 'hidden'
 
-    @addSubView @terminateButton = new KDButtonView
-      style    : 'solid compact red hidden'
+    @addSubView @buttonContainer = new KDView
+      cssClass : 'button-container hidden'
+
+    @buttonContainer.addSubView @reinitButton = new KDButtonView
+      style    : 'solid compact red reinit'
+      title    : 'Reinitialize VM'
+      callback : =>
+        computeController.reinit @machine
+        @destroy()
+
+    @buttonContainer.addSubView @terminateButton = new KDButtonView
+      style    : 'solid compact red'
       title    : 'Terminate VM'
       callback : =>
-        KD.singletons.computeController.destroy @machine
+        computeController.destroy @machine
         @destroy()
 
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 20
+
+    computeController.fetchUserPlan (plan)=>
+      @terminateButton.hide()  if plan in ['free', 'hobbyist']
+

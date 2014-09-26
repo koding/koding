@@ -16,17 +16,17 @@ module.exports = (options, callback)->
       <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
       <link rel="shortcut icon" href="/a/images/favicon.ico" />
       <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-      <link rel="stylesheet" href="/a/out/css/kd.css?#{KONFIG.version}" />
-      <link rel="stylesheet" href="/a/out/css/main.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.landing/css/kd.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.landing/css/main.css?#{KONFIG.version}" />
     </head>
-    <body>
+    <body class='home'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      <script src="/a/out/js/pistachio.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/kd.js?#{KONFIG.version}"></script>
-      <script src="/a/out/js/main.js?#{KONFIG.version}"></script>
+      <script src="/a/site.landing/js/pistachio.js?#{KONFIG.version}"></script>
+      <script src="/a/site.landing/js/kd.libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.landing/js/kd.js?#{KONFIG.version}"></script>
+      <script src="/a/site.landing/js/main.js?#{KONFIG.version}"></script>
     </body>
     </html>
     """

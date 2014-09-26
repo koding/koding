@@ -61,6 +61,11 @@ class ActivityAppView extends KDView
 
     {socialapi, router, notificationController} = KD.singletons
 
+    if type is 'topic' and (@widgetsBar?.isDestroyed or !@widgetsBar)
+        @addSubView @widgetsBar = new ActivityWidgetsBar
+
+    else if type isnt 'topic' and @widgetsBar
+        @widgetsBar.destroy()
 
     kallback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
