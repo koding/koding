@@ -22,7 +22,7 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		return nil, err
 	}
 
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func UpdateCreditCard(oldId, token string) error {
 }
 
 func RemoveCreditCard(customer *paymentmodel.Customer) error {
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return err
 	}

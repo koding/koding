@@ -58,7 +58,7 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 	return customerModel, nil
 }
 
-func GetCustomerFromStripe(id string) (*stripe.Customer, error) {
+func GetCustomer(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
 		return nil, handleStripeError(err)
