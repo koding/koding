@@ -61,6 +61,11 @@ func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
 	return GetMachineData(id), nil
 }
 
+func (t *TestStorage) Delete(id string) error {
+	// delete(TestMachineData, id)
+	return nil
+}
+
 func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	machine := GetMachineData(id)
 
@@ -75,7 +80,7 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 		machine.IpAddress = s.Data["ipAddress"].(string)
 		machine.Domain.Name = s.Data["domainName"].(string)
 		machine.Builder["instanceId"] = s.Data["instanceId"]
-	case "stop":
+	case "stop", "resize":
 		machine.IpAddress = s.Data["ipAddress"].(string)
 	default:
 		return nil
@@ -141,4 +146,34 @@ func SetMachineData(id string, machine *protocol.Machine) {
 	TestMu.Lock()
 	defer TestMu.Unlock()
 	TestMachineData[id] = machine
+}
+
+func newInstanceName() string {
+	return "kloudtest-" + strconv.Itoa(rand.Intn(100000))
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+
+	TestMachineData = map[string]*protocol.Machine{
+		"koding_id0": &protocol.Machine{
+			Id:        "koding_id0",
+			Provider:  "koding",
+			Username:  username,
+			IpAddress: "",
+			Builder: map[string]interface{}{
+				"username":     username,
+				"type":         "amazon",
+				"region":       "us-east-1",
+				"source_ami":   "ami-2651904e",
+				"storage_size": 3,
+				"alwaysOn":     false,
+				"instanceName": newInstanceName(),
+			},
+			State: machinestate.NotInitialized,
+			Domain: protocol.Domain{
+				Name: "foo." + username + ".dev.koding.io",
+			},
+		},
+	}
 }
