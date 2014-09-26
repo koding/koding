@@ -79,7 +79,7 @@ sidebarSelectedBg = #262626
   size            18px 18px
   margin-top      -9px
   margin-left     -9px
-  display         block
+  display         none
   z-index         11
   rounded         9px
   cursor          pointer
@@ -100,9 +100,11 @@ sidebarSelectedBg = #262626
   &.collapsed
 
     #main-panel-wrapper
-      kalc            width, 100% \- 63px
-      margin-left     63px
-      shadow         -8px 0 16px #323232
+      // kalc            width, 100% \- 63px
+      // margin-left     63px
+      // shadow         -8px 0 16px #323232
+      margin-left 0
+      width       100%
 
     #sidebar-toggle:after
       left               7px
