@@ -46,13 +46,7 @@ body.activity
         opacity         .99
 
     cite.search-icon
-      content     ''
-      display     block
-      top         23px
-      right       7px
-      z-index     2
-      r-sprite    'activity', 'search'
-      abs()
+      abs         23px, 7px
 
     .activity-pane
       .kdtabhandle
@@ -127,6 +121,13 @@ body.activity
 
         &.following:hover
           margin-left  14px
+
+  cite.search-icon
+    content     ''
+    display     block
+    r-sprite    'activity', 'search'
+    z-index     2
+
 
 .content-page.activity
 .member.content-display
@@ -454,6 +455,9 @@ body.activity
       color           #848484
       font-weight     400
       opacity         .99
+
+  .search-input + cite.search-icon
+    abs               9px, 9px
 
   .topics-list
     margin            26px 0 0
