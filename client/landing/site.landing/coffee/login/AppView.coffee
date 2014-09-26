@@ -565,6 +565,14 @@ module.exports = class LoginView extends JView
     @[formName].addCustomData data
     # @resetForm.addCustomData {recoveryToken}
 
+  setCustomData: (data) ->
+
+    @setCustomDataToForm 'login', data
+    @setCustomDataToForm 'register', data
+
+    @setFormHeaderPartial data
+
+
   getRegisterLink: (data = {}) ->
 
     queryString = KD.utils.stringifyQuery data
