@@ -5,11 +5,6 @@ build:
     - script:
         name: build go binaries
         code: go/build.sh
-    - script:
-        name: install debuild
-        code: |
-          sudo apt-get update -y
-          sudo apt-get install ubuntu-dev-tools -y
 
 deploy:
   steps:
