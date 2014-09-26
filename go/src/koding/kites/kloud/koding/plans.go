@@ -104,11 +104,11 @@ const (
 )
 
 var plans = map[string]Plan{
-	"Free":         Free,
-	"Hobbyist":     Hobbyist,
-	"Developer":    Developer,
-	"Professional": Professional,
-	"Super":        Super,
+	"free":         Free,
+	"hobbyist":     Hobbyist,
+	"developer":    Developer,
+	"professional": Professional,
+	"super":        Super,
 }
 
 var planLimits = map[Plan]Limits{

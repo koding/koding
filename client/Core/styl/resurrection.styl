@@ -1166,12 +1166,21 @@ div.nominateicon
     padding-left          3px
     color                 #99999B
 
-  .kdbutton.solid.red
-    left                  50%
-    width                 124px
-    margin                24px 0 10px -66px
+  .kdbutton.solid
     font-weight           600
-    background            #D43130
+    &.red
+      background          #D43130
+    &.reinit
+      background          #F69D03
+
+  .button-container
+
+    text-align            center
+
+    button
+      margin              10px 10px 0 10px !important
+      width               124px
+
 
   .kdbutton.subdomain-toggler
     padding-right           0

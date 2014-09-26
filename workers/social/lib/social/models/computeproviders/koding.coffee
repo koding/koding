@@ -105,7 +105,9 @@ module.exports = class Koding extends ProviderInterface
 
     @fetchUserPlan client, (err, userPlan)=>
 
-      return callback err  if err?
+      # Commented-out this since if it fails to fetch
+      # plan it uses 'free' as default. ~ GG
+      # return callback err  if err?
 
       @fetchUsage client, options, (err, usage)->
 

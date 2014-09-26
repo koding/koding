@@ -46,9 +46,6 @@ type Provider struct {
 	// store negation so default value is aligned with most common use case
 	Test bool
 
-	// Contains the users home directory to be added into a image
-	TemplateDir string
-
 	// DNS is used to create/update domain recors
 	DNS        *DNS
 	HostedZone string
@@ -68,6 +65,7 @@ type Provider struct {
 	KeyName    string `structure:"keyName"`
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
+	PlanFetcher func(*protocol.Machine) (Plan, error)
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {

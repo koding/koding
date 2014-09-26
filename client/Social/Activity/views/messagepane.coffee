@@ -107,7 +107,7 @@ class MessagePane extends KDTabPaneView
 
 
   putMessage: (message, index = 0) ->
-    @mostRecent.listController.addItem message, index
+    @listController.addItem message, index
 
   createFakeItemView: (value, clientRequestId) ->
 
