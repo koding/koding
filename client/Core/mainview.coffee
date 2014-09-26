@@ -110,10 +110,10 @@ class MainView extends KDView
     @panelWrapper.addSubView new KDCustomHTMLView
       tagName  : 'cite'
       domId    : 'sidebar-toggle'
-      click    : @bound 'collapseSidebar'
+      click    : @bound 'toggleSidebar'
 
 
-  collapseSidebar: ->
+  toggleSidebar: ->
 
     @toggleClass 'collapsed'
 
