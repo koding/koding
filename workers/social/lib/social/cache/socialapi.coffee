@@ -26,7 +26,10 @@ module.exports = (options={}, callback)->
     SocialChannel.fetchPopularTopics opt, cb
 
   fetchFollowedChannels = (cb)->
-    SocialChannel.fetchFollowedChannels client, defaultOptions, cb
+    options  =
+       limit : 9
+
+    SocialChannel.fetchFollowedChannels client, options, cb
 
   fetchPinnedMessages = (cb)->
     SocialChannel.fetchPinnedMessages client, defaultOptions, cb

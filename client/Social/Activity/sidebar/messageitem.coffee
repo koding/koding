@@ -10,15 +10,39 @@ class SidebarMessageItem extends SidebarItem
 
     super options, data
 
+    data.on 'ChannelDeleted', @bound 'channelDeleted'
+
     @icon = new SidebarMessageItemIcon {}, data
     @text = new SidebarMessageItemText {}, data
 
-    data.on 'ChannelDeleted', =>
-      if location.pathname is "/Activity/Message/#{ data.getId() }"
-        KD.singletons.router.clear()
-      @getDelegate().removeItem this
+    owner = data.creatorId is KD.whoami().socialApiId
+
+    @endButton = if owner
+    then new LeaveChannelButton {}, data
+    else KDView
+
+
+  channelDeleted: ->
+
+    if location.pathname is "/#{@getOption 'route'}"
+      KD.singletons.router.clear()
+
+    @getDelegate().removeItem this
+
+
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
+    KD.singleton('router').handleRoute "/#{@getOption 'route'}"
+
+    super event
+
 
   pistachio: ->
-    "{{> @icon}}{{> @text}}{{> @unreadCount}}"
 
-
+    """
+    {{> @icon}}
+    {{> @text}}
+    {{> @endButton}}
+    {{> @unreadCount}}
+    """

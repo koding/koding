@@ -4,9 +4,18 @@ module.exports = [
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 
+
+  "sidebar/morelink.coffee"
+  "sidebar/searchmodal.coffee"
+  "sidebar/morechannelsmodal.coffee"
+  "sidebar/conversationsmodal.coffee"
+  "sidebar/topicsearchmodal.coffee"
+  "sidebar/chatsearchmodal.coffee"
+  "sidebar/leavechannelbutton.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
+  "sidebar/messageitem.coffee"
   "sidebar/memberitem.coffee"
   "sidebar/messageitemtext.coffee"
   "sidebar/messageitemicon.coffee"
@@ -42,8 +51,6 @@ module.exports = [
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
   "views/alltopicsmodal.coffee"
-  "views/yourtopicsmodal.coffee"
-  "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
   "views/searchinputview.coffee"
 
@@ -115,6 +122,7 @@ module.exports = [
   "views/privatemessage/replyinputwidget.coffee"
   "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
+  "views/privatemessage/deletemodal.coffee"
   "views/privatemessage/settingsview.coffee"
 
   "views/buymachinemodal.coffee"

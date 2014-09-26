@@ -162,7 +162,16 @@ class ActivityAppView extends KDView
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
-    return new YourTopicsModal delegate : this
+    return new TopicSearchModal delegate : this
+
+  showFollowingTopicsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    modalClass = MoreChannelsModal
+    {moreLink} = @sidebar.sections.channels
+
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
 
 
   showAllConversationsModal: ->
@@ -170,3 +179,38 @@ class ActivityAppView extends KDView
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this
+
+
+  showAllChatsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    modalClass = ChatSearchModal
+    {moreLink} = @sidebar.sections.messages
+
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
+
+
+  showMoreModal: ({modalClass, moreLink}) ->
+
+    modal      = new modalClass
+      delegate : this
+      width    : 271
+      position : @getModalArrowPosition moreLink
+
+    modal.addSubView new KDCustomHTMLView
+      cssClass : 'arrow'
+      position :
+        top    : moreLink.getY()
+        left   : moreLink.getX() + moreLink.getWidth()
+
+
+  getModalArrowPosition: (ref) ->
+
+    top  = ref.getY() - 80
+    left = ref.getX() + ref.getWidth() + 10
+
+    if window.innerHeight <= (top + 218)
+      top = window.innerHeight - 220
+
+    return {top, left}

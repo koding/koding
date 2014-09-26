@@ -35,6 +35,23 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
+func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if query.Type == "" {
+		query.Type = models.Channel_TYPE_TOPIC
+	}
+	cp := models.NewChannelParticipant()
+	a := &models.Account{Id: accountId}
+
+	return response.HandleResultAndError(cp.ParticipatedChannelCount(a, query))
+}
+
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 	buildMessageQuery := query.Clone()
