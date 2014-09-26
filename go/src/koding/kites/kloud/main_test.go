@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -22,6 +23,8 @@ import (
 	"koding/kites/kloud/machinestate"
 	kloudprotocol "koding/kites/kloud/protocol"
 	"koding/kites/kloud/sshutil"
+
+	"github.com/mitchellh/goamz/ec2"
 )
 
 var (
@@ -29,6 +32,7 @@ var (
 	kld       *kloud.Kloud
 	remote    *kite.Client
 	conf      *config.Config
+	provider  *koding.Provider
 )
 
 const (
@@ -167,11 +171,21 @@ func TestStart(t *testing.T) {
 }
 
 func TestResize(t *testing.T) {
+	storageWant := 5
 	m := GetMachineData(machineId0)
-	m.Builder["storage_size"] = 5
+	m.Builder["storage_size"] = storageWant
 	SetMachineData(machineId0, m)
 
 	if err := resize(machineId0); err != nil {
+		t.Error(err)
+	}
+
+	storageGot, err := getAmazonStorageSize(machineId0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if storageGot != storageWant {
 		t.Error(err)
 	}
 }
@@ -479,7 +493,7 @@ func newKloud() *kloud.Kloud {
 	kld.Storage = testStorage
 	kld.Debug = true
 
-	provider := &koding.Provider{
+	provider = &koding.Provider{
 		Kite: kloudKite,
 		Log:  newLogger("koding", false),
 
@@ -501,4 +515,38 @@ func newKloud() *kloud.Kloud {
 	kld.AddProvider("koding", provider)
 
 	return kld
+}
+
+func getAmazonStorageSize(machineId string) (int, error) {
+	m := GetMachineData(machineId0)
+
+	a, err := provider.NewClient(m)
+	if err != nil {
+		return 0, err
+	}
+
+	instance, err := a.Instance(a.Id())
+	if err != nil {
+		return 0, err
+	}
+
+	if len(instance.BlockDevices) == 0 {
+		return 0, fmt.Errorf("fatal error: no block device available")
+	}
+
+	// we need in a lot of placages!
+	oldVolumeId := instance.BlockDevices[0].VolumeId
+
+	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	if err != nil {
+		return 0, err
+	}
+
+	volSize := oldVolResp.Volumes[0].Size
+	currentSize, err := strconv.Atoi(volSize)
+	if err != nil {
+		return 0, err
+	}
+
+	return currentSize, nil
 }
