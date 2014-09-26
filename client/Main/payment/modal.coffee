@@ -18,7 +18,7 @@ class PaymentModal extends PaymentBaseModal
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
     if isUpgrade
-      options.title    = 'Upgrade Your Plan'
+      options.title    = 'Upgrades are awesome. Let\'s do this!'
       options.subtitle = ''
     else
       options.title    = 'Downgrade your plan'
