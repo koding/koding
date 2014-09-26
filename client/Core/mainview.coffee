@@ -117,11 +117,13 @@ class MainView extends KDView
 
     @toggleClass 'collapsed'
 
-    { appManager } = KD.singletons
+    @isCollapsed = !@isCollapsed
+
+    {appManager, windowController} = KD.singletons
 
     if appManager.getFrontApp().getOption('name') is 'IDE'
       KD.utils.wait 250, ->
-        KD.singletons.windowController.notifyWindowResizeListeners()
+        windowController.notifyWindowResizeListeners()
 
 
   createAccountArea:->
