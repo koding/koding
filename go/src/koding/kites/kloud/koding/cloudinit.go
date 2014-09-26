@@ -147,7 +147,7 @@ write_files:
       echo "Downloading files from $vm_name (this could take a while)..."
       echo
       archive="$vm_name.tgz"
-      echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://kontainer12.sj.koding.com:3000/export-files" | xargs curl > $archive
+      echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://migrate.sj.koding.com:3000/export-files" | xargs curl > $archive
       echo
       echo "Extracting your files to directory $(pwd)/$vm_name..."
       mkdir -p Backup/$vm_name
