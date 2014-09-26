@@ -100,8 +100,8 @@ module.exports = class PricingAppView extends JView
 
     footer.addSubView new CustomLinkView
       title    : 'Learn more about all our features'
-      cssClass : "learn-more"
-      href     : "/"
+      cssClass : 'learn-more'
+      href     : '/Features'
 
     footer.addSubView new KDCustomHTMLView
       cssClass : 'footer-msg'
