@@ -58,7 +58,7 @@ func TestUpdateCustomerCreditCard(t *testing.T) {
 				err = UpdateCreditCard(accId, token.Id)
 				So(err, ShouldBeNil)
 
-				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				externalCustomer, err := GetCustomer(c.ProviderCustomerId)
 				So(err, ShouldBeNil)
 
 				So(len(externalCustomer.Cards.Values), ShouldEqual, 1)
@@ -77,7 +77,7 @@ func TestRemoveCreditCard(t *testing.T) {
 				err := RemoveCreditCard(c)
 				So(err, ShouldBeNil)
 
-				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				externalCustomer, err := GetCustomer(c.ProviderCustomerId)
 				So(err, ShouldBeNil)
 
 				So(len(externalCustomer.Cards.Values), ShouldEqual, 0)

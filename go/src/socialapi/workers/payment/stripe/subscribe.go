@@ -31,8 +31,14 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if IsNoSubscriptions(subscriptions) {
-		_, err = CreateSubscription(customer, plan)
-		return err
+		_, err := CreateSubscription(customer, plan)
+
+		if err != nil {
+			RemoveCreditCard(customer) // outer error is more important
+			return err
+		}
+
+		return nil
 	}
 
 	if IsOverSubscribed(subscriptions) {
@@ -46,8 +52,14 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if !IsFreePlan(plan) {
-		err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
-		return err
+		err := UpdateSubscriptionForCustomer(customer, subscriptions, plan)
+
+		if err != nil {
+			RemoveCreditCard(customer) // outer error is more important
+			return err
+		}
+
+		return nil
 	}
 
 	err = CancelSubscriptionAndRemoveCC(customer, &currentSubscription)
