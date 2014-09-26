@@ -107,14 +107,9 @@ func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
 		return err
 	}
 
-	plan, err := p.PlanFetcher(m)
-	if err != nil {
-		return err
-	}
-
 	// for now just check for timeout. This will dial the remote klient to get
 	// the usage data
-	return checker.Timeout(plan)
+	return checker.Timeout()
 }
 
 // FetchOne() fetches a single machine document from mongodb. This document is

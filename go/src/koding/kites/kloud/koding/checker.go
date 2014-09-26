@@ -25,24 +25,24 @@ type Checker interface {
 	// Total checks whether the user has reached the current plan's limit of
 	// having a total number numbers of machines. It returns an error if the
 	// limit is reached or an unexplained error happaned.
-	Total(p Plan) error
+	Total() error
 
 	// AlwaysOn checks whether the given machine has reached the current plans
 	// always on limit
-	AlwaysOn(p Plan) error
+	AlwaysOn() error
 
 	// Timeout checks whether the user has reached the current plan's
 	// inactivity timeout.
-	Timeout(p Plan) error
+	Timeout() error
 
 	// Storage checks whether the user has reached the current plan's limit
 	// total storage with the supplied wantStorage information. It returns an
 	// error if the limit is reached or an unexplained error happaned.
-	Storage(p Plan, wantStorage int) error
+	Storage(wantStorage int) error
 
 	// AllowedInstances checks whether the given machine has the permisison to
 	// create the given instance type
-	AllowedInstances(p Plan, wantInstance InstanceType) error
+	AllowedInstances(wantInstance InstanceType) error
 }
 
 type PlanChecker struct {
@@ -55,7 +55,12 @@ type PlanChecker struct {
 	Log      logging.Logger
 }
 
-func (p *PlanChecker) AllowedInstances(plan Plan, wantInstance InstanceType) error {
+func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
+	plan, err := p.Provider.PlanFetcher(p.Machine)
+	if err != nil {
+		return err
+	}
+
 	allowedInstances := plan.Limits().AllowedInstances
 
 	p.Log.Info("[%s] checking instance type. want: %s (plan: %s)",
@@ -68,13 +73,18 @@ func (p *PlanChecker) AllowedInstances(plan Plan, wantInstance InstanceType) err
 	return fmt.Errorf("not allowed to create instance type: %s", wantInstance)
 }
 
-func (p *PlanChecker) AlwaysOn(plan Plan) error {
+func (p *PlanChecker) AlwaysOn() error {
+	plan, err := p.Provider.PlanFetcher(p.Machine)
+	if err != nil {
+		return err
+	}
+
 	alwaysOnLimit := plan.Limits().AlwaysOn
 
 	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
-	var err error
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
+		var err error
 		alwaysOnMachines, err = c.Find(bson.M{
 			"credential":    p.Machine.Username,
 			"meta.alwaysOn": true,
@@ -100,7 +110,7 @@ func (p *PlanChecker) AlwaysOn(plan Plan) error {
 	return fmt.Errorf("total alwaysOn limit has been reached")
 }
 
-func (p *PlanChecker) Timeout(plan Plan) error {
+func (p *PlanChecker) Timeout() error {
 	// connect and get real time data directly from the machines klient
 	klient, err := klient.New(p.Kite, p.Machine.QueryString)
 	if err != nil {
@@ -110,6 +120,11 @@ func (p *PlanChecker) Timeout(plan Plan) error {
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
+	if err != nil {
+		return err
+	}
+
+	plan, err := p.Provider.PlanFetcher(p.Machine)
 	if err != nil {
 		return err
 	}
@@ -145,7 +160,12 @@ func (p *PlanChecker) Timeout(plan Plan) error {
 	return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
 }
 
-func (p *PlanChecker) Total(plan Plan) error {
+func (p *PlanChecker) Total() error {
+	plan, err := p.Provider.PlanFetcher(p.Machine)
+	if err != nil {
+		return err
+	}
+
 	allowedMachines := plan.Limits().Total
 
 	instances, err := p.userInstances()
@@ -175,7 +195,12 @@ func (p *PlanChecker) Total(plan Plan) error {
 	return nil
 }
 
-func (p *PlanChecker) Storage(plan Plan, wantStorage int) error {
+func (p *PlanChecker) Storage(wantStorage int) error {
+	plan, err := p.Provider.PlanFetcher(p.Machine)
+	if err != nil {
+		return err
+	}
+
 	totalStorage := plan.Limits().Storage
 
 	// no need for errors because instances will be empty in case of an error
