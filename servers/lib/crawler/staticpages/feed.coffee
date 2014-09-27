@@ -217,8 +217,11 @@ getSidebar = ->
   </aside>
   """
 
-getEmptyPage = ->
-  putContentIntoFullPage "There is no activity yet", ""
+getEmptyPage = (channelName) ->
+  content  = getChannelTitleContent channelName
+  content += "<div class='no-item-found'>There is no activity.</div>"
+
+  putContentIntoFullPage content, ""
 
 putContentIntoFullPage = (content, pagination, graphMeta)->
   getGraphMeta  = require './graphmeta'
