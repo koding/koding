@@ -248,23 +248,30 @@ module.exports = class LoginView extends JView
     """
 
   doReset:({recoveryToken, password})->
-    KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
-      if err
+    $.ajax
+      url       : '/Reset'
+      data      : { recoveryToken, password }
+      type      : 'POST'
+      error     : ->
         new KDNotificationView
           title : "An error occurred: #{err.message}"
-      else
+      success   : =>
         @resetForm.button.hideLoader()
         @resetForm.reset()
         @headBanner.hide()
         @doLogin {username, password}
 
-  doRecover:(formData)->
-    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
-      @recoverForm.button.hideLoader()
-      if err
-        new KDNotificationView
-          title : "An error occurred: #{err.message}"
-      else
+
+  doRecover:({ email })->
+    $.ajax
+      url         : '/Recover'
+      data        : { email }
+      type        : 'POST'
+      error       : (xhr) =>
+        {responseText} = xhr
+        new KDNotificationView title : responseText
+        @loginForm.button.hideLoader()
+      success     : =>
         @recoverForm.reset()
         {entryPoint} = KD.config
         KD.getSingleton('router').handleRoute '/Login', {entryPoint}
@@ -272,7 +279,6 @@ module.exports = class LoginView extends JView
           title     : "Check your email"
           content   : "We've sent you a password recovery code."
           duration  : 4500
-
         KD.mixpanel "Recover password, success"
 
   resendEmailConfirmationToken:(formData)->
@@ -525,17 +531,19 @@ module.exports = class LoginView extends JView
       #   else
       #     window.location.replace '/Activity'
 
-  doRedeem:({inviteCode})->
-    return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
+  doRedeem: -> new KDNotificationView title: "This feature is disabled."
 
-    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
-      group.redeemInvitation inviteCode, (err)=>
-        @redeemForm.button.hideLoader()
-        return KD.notify_ err.message or err  if err
-        KD.notify_ 'Success!'
-        KD.getSingleton('mainController').accountChanged KD.whoami()
+  # doRedeem:({inviteCode})->
+    # return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
 
-        KD.mixpanel "Redeem, success"
+    # KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
+    #   group.redeemInvitation inviteCode, (err)=>
+    #     @redeemForm.button.hideLoader()
+    #     return KD.notify_ err.message or err  if err
+    #     KD.notify_ 'Success!'
+    #     KD.getSingleton('mainController').accountChanged KD.whoami()
+
+    #     KD.mixpanel "Redeem, success"
 
   hide: (callback) ->
 
