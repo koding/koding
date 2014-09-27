@@ -1924,6 +1924,11 @@ span.collapsedtext
     .kdautocompletewrapper
       width             100%
       min-width         0
+      &.delete-mode
+        .kdinput.text::-webkit-input-placeholder
+          color         rgba(217, 58, 55, 0.9)
+        .kdinput.text:-moz-input-placeholder
+          color         rgba(217, 58, 55, 0.9)
 
     .autocomplete-heads
       width             auto
@@ -1931,9 +1936,17 @@ span.collapsedtext
 
       .chat-head
         white-space     nowrap
-        line-height     40px
-        margin-right    14px
+        line-height     25px
+        margin          1px 14px 1px 0
+        padding         5px
         fl()
+
+        &.selected// > span.first-name:after
+          // content       ' - remove?'
+          // font-size     12px
+          // font-style    italic
+          bg            color, rgba(217, 58, 55, 0.15)
+          rounded       5px
 
         > span
           display       inline-block
@@ -1942,7 +1955,7 @@ span.collapsedtext
 
         .avatarview
           height        25px
-          margin        7px 7px 0 0
+          margin        0 7px 0 0
 
 
     .input-wrapper
@@ -1961,7 +1974,6 @@ span.collapsedtext
 
       &::-webkit-input-placeholder
         color           #D0D0D0
-
       &:-moz-input-placeholder
         color           #D0D0D0
 

@@ -73,6 +73,7 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     reset = =>
       input.setPlaceholder @autoComplete.getOptions().placeholder
+      input.unsetClass 'delete-mode'
       item.unsetClass 'selected'
 
     if event.which is 8 and val is ''
@@ -82,6 +83,7 @@ class PrivateMessageForm extends KDFormViewWithFields
         reset()
       else
         fullname = KD.utils.getFullnameFromAccount lastItemData
+        input.setClass 'delete-mode'
         input.setPlaceholder "Hit backspace again to remove #{Encoder.htmlDecode fullname}"
         item.setClass 'selected'
     else
