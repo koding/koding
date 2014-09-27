@@ -19,7 +19,7 @@ class SidebarMessageItem extends SidebarItem
 
     @endButton = if owner
     then new LeaveChannelButton {}, data
-    else KDView
+    else new KDView
 
 
   channelDeleted: ->
