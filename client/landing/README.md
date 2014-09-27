@@ -35,6 +35,11 @@ cd ..
 gulp serve
 ```
 
+See your server at localhost:5000
+Registration and login will make XHR calls to Koding and will work once your campaign site is pushed to Koding, but for local testings, we should fake that data by adding XHR endpoints to this local server so that entire flows can be made and simulated before pushing the final product.
+
+(TODO: Registration and Login fake responses should be implemented on localhost:5000/Register and /Login)
+
 Build all sites:
 
 ```
