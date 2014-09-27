@@ -191,9 +191,11 @@ getSidebar = ->
     <div class="kdcustomscrollview">
       <main class="kdview kdscrollview">
         <div class="activity-sidebar">
-          <h3 class="sidebar-title">Channels</h3>
-          <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag" data-paths="name">#public</span></a>
-          <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Topic/public"><span class="ttag" data-paths="name">#koding</span></a>
+          <section class="followed topics">
+            <h3 class="sidebar-title">Channels</h3>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag" data-paths="name">#public</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/koding"><span class="ttag" data-paths="name">#koding</span></a>
+          </section>
           <section class='sidebar-join'>
             Join our growing community of developers from all over the world who
             are building awesome applications on their full-featured, cloud-based
