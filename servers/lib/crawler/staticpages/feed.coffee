@@ -27,14 +27,14 @@ createFeed = (models, options, callback)->
   SocialChannel.fetchActivityCount {channelId}, (err, response)->
     return callback err  if err
     itemCount = response?.totalCount
-    return callback null, getEmptyPage()  unless itemCount
+    return callback null, getEmptyPage channelName  unless itemCount
 
     options.replyLimit = 25
     SocialChannel.fetchActivities client, options, (err, result) ->
       return callback err  if err
 
       {messageList} = result
-      return callback null, getEmptyPage() unless messageList?.length
+      return callback null, getEmptyPage channelName unless messageList?.length
 
       options.page = page
       buildContent models, result.messageList, options, (err, pageContent) ->
