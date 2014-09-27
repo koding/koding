@@ -1932,6 +1932,7 @@ span.collapsedtext
       .chat-head
         white-space     nowrap
         line-height     40px
+        margin-right    14px
         fl()
 
         > span
@@ -1941,10 +1942,8 @@ span.collapsedtext
 
         .avatarview
           height        25px
-          margin        7px 12px 0 0
+          margin        7px 7px 0 0
 
-        &~.chat-head
-          margin-left   14px
 
     .input-wrapper
       margin            0
@@ -1957,6 +1956,7 @@ span.collapsedtext
       font-size         14px
       shadow            none
       outline           none
+      padding-left      0
       fr()
 
       &::-webkit-input-placeholder
@@ -1968,12 +1968,14 @@ span.collapsedtext
     .formline
       position          relative
       background        #fff
-      height            40px
+      height            auto
       border            1px solid #E8E8E8
       rounded           3px 3px 0 0
-      padding-left      97px
+      padding-left      47px
 
       &.purpose
+        height          40px
+        padding-left    85px
         rounded         0 0 3px 3px
         border-top      none
 
@@ -1986,6 +1988,7 @@ span.collapsedtext
       color             #9A9A9A
       font-size         12px
       font-weight       600
+      min-width         0
 
 
   .list-previous-link

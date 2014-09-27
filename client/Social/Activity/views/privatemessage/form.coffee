@@ -16,6 +16,8 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     super options, data
 
+    @chatHeads = new KDView cssClass : 'autocomplete-heads'
+
 
   createUserAutoComplete: ->
 
@@ -33,8 +35,15 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     autoCompleteView = @autoComplete.getView()
 
-    @autoComplete.on 'ItemListChanged', =>
-      autoCompleteView.setWidth @inputs.recipient.getWidth() - @chatHeads.getWidth()
+    # need to wrap everyline
+    # and put the input next to it
+    # not gonna happen for now - SY
+
+    # @autoComplete.on 'ItemListChanged', =>
+    #   w   = @getWidth()
+    #   chw = @chatHeads.getWidth()
+    #   irw = @inputs.recipient.getWidth()
+    #   autoCompleteView.setWidth irw - chw
 
     autoCompleteView.on 'keydown', @bound 'handleRecipientKeydown'
 
@@ -83,7 +92,7 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     super
 
-    @inputs.recipient.addSubView @chatHeads = new KDView cssClass : 'autocomplete-heads'
+    @inputs.recipient.addSubView @chatHeads
     @createUserAutoComplete()
     @addSubView @inputWidget = new PrivateMessageInputWidget form : this
     @autoComplete.getView().setFocus()
