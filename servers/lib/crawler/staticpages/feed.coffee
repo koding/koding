@@ -52,8 +52,8 @@ createFeed = (models, options, callback)->
         callback null, fullPage
 
 
-  getChannelTitleContent = (channelName) ->
-    content = "<div class='logged-out channel-title'>##{channelName}</div>"
+getChannelTitleContent = (channelName) ->
+  content = "<div class='logged-out channel-title'>##{channelName}</div>"
 
 
 buildContent = (models, messageList, options, callback) ->
