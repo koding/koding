@@ -55,7 +55,7 @@ class HelpSupportModal extends KDModalViewWithForms
         dataType    : "json"
 
       request.done  =>
-        new KDNotificationView title: "Your message has been sent!"
+        new KDNotificationView title: "Thanks! We will send you an email within 24 hours."
         submit.hideLoader()
         submit.setCallback @bound 'destroy'
         submit.setTitle "CLOSE"
