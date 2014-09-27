@@ -94,9 +94,14 @@ class ActivityInputView extends KDTokenizedInput
 
     return yes
 
-  keyUp: ->
+  keyUp: (event) ->
     return  if @getTokens().length >= TOKEN_LIMIT
-    super
+    return @matchPrefix()  unless @activeRule
+
+    @_lastKeyUp = Date.now()
+    KD.utils.wait 250, =>
+      return  if Date.now() - @_lastKeyUp < 250
+      super event
 
   handleEnter: (event) ->
     return @insertNewline()  if event.shiftKey
