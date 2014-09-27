@@ -33,7 +33,7 @@ var (
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
 	flagUpdateURL = flag.String("update-url",
-		"https://s3.amazonaws.com/koding-kites/klient/"+protocol.Environment+"/latest-version.txt",
+		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
 
 	VERSION = protocol.Version
