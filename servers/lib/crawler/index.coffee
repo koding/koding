@@ -83,10 +83,29 @@ fetchGroupContent = (models, options, callback) ->
     feed.createFeed models, options, callback
 
 
+fetchAnnouncementContent = (models, options, callback) ->
+
+  {JGroup} = models
+
+  options.channelName = "koding"
+
+  # TODO change this slug after groups are implemented
+  JGroup.one slug: "koding", (err, group) ->
+    return callback err  if err
+    return callback notFoundError "group"  unless group
+
+    options.channelId = group.socialApiAnnouncementChannelId
+    options.route = "Announcement"
+    options.contentType = "post"
+    feed.createFeed models, options, callback
+
+
 fetchContent = (models, options, callback) ->
   {section, entrySlug, client} = options
 
   switch section
+    when "Announcement"
+      fetchAnnouncementContent models, options, callback
     when "Public"
       fetchGroupContent models, options, callback
     when "Topic"
