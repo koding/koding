@@ -83,7 +83,7 @@ process.on 'uncaughtException', (err) ->
   console.error " there was an uncaught exception", err
   console.error err.stack
   console.error " ------ FIX ME ------ @chris"
-  process.exit 1
+  # process.exit 1
 
 
 # app.post "/inbound",(req,res)->
