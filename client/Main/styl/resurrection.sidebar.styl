@@ -167,6 +167,13 @@ sidebarSelectedBg = #262626
     ellipsis()
     borderBox()
 
+    &:hover
+      .ws-add-icon
+      .ws-settings-icon
+        opacity       1
+        vendor        transition, opacity .1s .1s ease
+
+
     &.expanded.selected.has-sub-items
       bg              color sidebarSelectedBg
       rounded         4px 4px 0 0
@@ -268,7 +275,8 @@ sidebarSelectedBg = #262626
           r-sprite    app vm-settings-icon
           right       6px
           top         5px
-          opacity     .5
+          opacity     0
+          vendor      transition, opacity .1s .1s ease
           abs()
         &:hover > span
           opacity     1
@@ -294,6 +302,8 @@ sidebarSelectedBg = #262626
     r-sprite          app circle-plus-14
     right             8px
     top               10px
+    opacity           0
+    vendor            transition, opacity .1s .1s ease
     pointer()
     abs()
 
@@ -694,6 +704,8 @@ h3.sidebar-title
     font-weight     600
     color           #7F7F80
     margin          0 5px 0 0
+    opacity         0
+    vendor          transition, opacity .1s .1s ease
     fr()
 
     &.add-icon
@@ -703,6 +715,7 @@ h3.sidebar-title
 
   &:hover
     a
+      opacity       1
       color         sidebarGray
 
 .vms h3.sidebar-title:after
