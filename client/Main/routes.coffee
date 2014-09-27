@@ -42,12 +42,8 @@ do ->
 
       {router} = KD.singletons
       route = name unless route
-      contentDisplay = router.openRoutes[route.split('?')[0]]
 
-      if contentDisplay?
-        KD.singleton('display').hideAllDisplays contentDisplay
-        contentDisplay.emit 'handleQuery', query
-      else if models?
+      if models?
         router.openContent name, section, models, route, query, passOptions
       else
         router.loadContent name, section, slug, route, query, passOptions
@@ -59,6 +55,8 @@ do ->
       KD.mixpanel "Visit referrer url, success", {username}
       # give a notification to tell that this is a referral link here - SY
       @handleRoute if KD.isLoggedIn() then "/Activity" else "/"
+    '/:name?/Login'         : ({params:{name}})->
+      @handleRoute "/IDE"  if KD.isLoggedIn()
     '/:name?/Logout'         : ({params:{name}})->
       requireLogin ->
         {mainController} = KD.singletons

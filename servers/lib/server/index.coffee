@@ -83,7 +83,7 @@ process.on 'uncaughtException', (err) ->
   console.error " there was an uncaught exception", err
   console.error err.stack
   console.error " ------ FIX ME ------ @chris"
-  process.exit 1
+  # process.exit 1
 
 
 # app.post "/inbound",(req,res)->
@@ -181,6 +181,24 @@ app.get "/-/auth/check/:key", (req, res)->
     return res.send 401, authTemplate "Key doesn't exist" unless status
     res.send 200, {result: 'key is added successfully'}
 
+app.post "/-/support/new", (req, res)->
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+    return res.send 401, authTemplate "Koding Auth Error - 1"  if err
+
+    unless loggedIn
+      errMessage = "You are not logged in! Please log in with your Koding username and password"
+      res.send 401, authTemplate errMessage
+      return
+
+    unless account and account.profile and account.profile.nickname
+      errMessage = "Your account is not found, it may be a system error"
+      res.send 401, authTemplate errMessage
+      return
+
+    (require './helpscout') account, req, res
+
+
 app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params
 
@@ -214,7 +232,7 @@ app.post "/:name?/Register", (req, res) ->
   redirect ?= '/'
   koding.fetchClient req.cookies.clientId, context, (client) ->
     JUser.convert client, req.body, (err, result) ->
-      return res.send 403, err  if err
+      return res.send 400, err.message  if err
       res.cookie 'clientId', result.newToken
       # handle the request as an XHR response:
       return res.send 200, null if req.xhr
@@ -227,15 +245,23 @@ app.post "/:name?/Login", (req, res) ->
   { clientId } = req.cookies
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.send 403, err  if err
+    return res.send 403, err.message  if err
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
       version : '2.0'
     info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.send 500, "Internal error"  if err
-      res.cookie 'clientId', response.replacementToken
-      res.send 200, 'ok'
+      return res.send 500, 'Internal error'  if err
+      res.cookie 'clientId', info.replacementToken
+      res.send 200, null
+
+app.post "/:name?/Recover", (req, res) ->
+  { JPasswordRecovery } = koding.models
+  { email } = req.body
+
+  JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
+    return res.send 403, err.message  if err
+    res.send 200, null
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
@@ -264,16 +290,16 @@ app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
 app.get "/-/healthCheck", (req, res) ->
-  {socialapi, newkontrol} = KONFIG
+  {socialapi, newkontrol, publicPort} = KONFIG
   {socialApiUri, broker} = KONFIG.client.runtimeOptions
 
   errs = []
   urls = [
     socialapi.proxyUrl
     newkontrol.url
-    "#{KONFIG.publicHostname}#{socialApiUri}"
-    "#{KONFIG.publicHostname}#{broker.uri}/info"
-    "#{KONFIG.publicHostname}/kloud/kite/info"
+    "http://localhost:#{publicPort}#{socialApiUri}"
+    "http://localhost:#{publicPort}#{broker.uri}/info"
+    "http://localhost:#{publicPort}/kloud/kite/info"
   ]
 
   urlFns = urls.map (url)->->
@@ -356,6 +382,10 @@ app.get "/-/oauth/google/callback"   , require "./google_callback"
 app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
 app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
 app.get '/-/image/cache'             , require "./image_cache"
+
+# Handlers for Stripe
+app.post '/-/stripe/webhook'         , require "./stripe_webhook"
+app.get  '/-/subscriptions'          , require "./subscriptions"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->

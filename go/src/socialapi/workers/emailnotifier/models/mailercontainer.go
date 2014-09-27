@@ -148,7 +148,7 @@ func (mc *MailerContainer) prepareObjectType(cm *socialmodels.ChannelMessage) {
 	case socialmodels.ChannelMessage_TYPE_REPLY:
 		mc.ObjectType = "comment"
 	case socialmodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		mc.ObjectType = "private message"
+		mc.ObjectType = "chat message"
 	}
 }
 

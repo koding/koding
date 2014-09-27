@@ -41,7 +41,10 @@ class ActivityListItemView extends KDListItemView
 
     {commentViewClass, activitySettings: {disableFollow}} = options
 
+    {socialapi} = KD.singletons
+
     @commentBox  = new commentViewClass options.commentSettings, data
+
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
@@ -70,7 +73,10 @@ class ActivityListItemView extends KDListItemView
     else
       new KDCustomHTMLView
 
-    @timeAgoView = new KDTimeAgoView {}, @getData().createdAt
+    @timeAgoView =
+      if @getData().createdAt
+      then new KDTimeAgoView {}, @getData().createdAt
+      else new KDView
 
     @editWidgetWrapper = new KDCustomHTMLView
       cssClass         : 'edit-widget-wrapper'
@@ -128,6 +134,8 @@ class ActivityListItemView extends KDListItemView
     @editWidget.destroy()
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
+    list = @getDelegate()
+    list.emit 'EditMessageReset'
 
 
   delete: ->
@@ -236,7 +244,7 @@ class ActivityListItemView extends KDListItemView
         {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
       </div>
       {{> @editWidgetWrapper}}
-      {article{KD.utils.formatContent #(body)}}
+      {article.has-markdown{KD.utils.formatContent #(body)}}
       {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}

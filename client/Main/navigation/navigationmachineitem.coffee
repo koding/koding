@@ -6,11 +6,11 @@ class NavigationMachineItem extends JView
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
 
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     machine            = data
-    @alias             = machine.label
-    path               = KD.utils.groupifyLink "/IDE/VM/#{machine.uid}"
+    @alias             = machine.slug or machine.label
+    path               = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
@@ -23,13 +23,31 @@ class NavigationMachineItem extends JView
     @machine   = @getData()
 
     @label     = new KDCustomHTMLView
-      partial  : @alias
+      partial  : machine.label or @alias
 
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    KD.singletons.computeController.on "public-#{@machine._id}", (event)=>
-      @handleMachineEvent event
+    KD.singletons.computeController
+
+      .on "public-#{@machine._id}", (event)=>
+        @handleMachineEvent event
+
+      # These are updating machine data on this instance indivudally
+      # but since we have more data to update, I'm updating all machines
+      # for now.
+      #
+      # .on "revive-#{@machine._id}", (machine)=>
+      #   @machine = machine
+
+      #   @label.updatePartial @machine.label
+      #   @alias   = @machine.slug or @label
+      #   newPath  = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
+
+      #   @setAttributes
+      #     href   : newPath
+      #     title  : "Open IDE for #{@alias}"
+
 
   handleMachineEvent: (event) ->
 
@@ -40,7 +58,9 @@ class NavigationMachineItem extends JView
     #  else @setState status
 
     @setState status
-    @updateProgressBar percentage
+
+    if percentage?
+      @updateProgressBar percentage
 
 
   setState: (state) ->

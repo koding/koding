@@ -81,7 +81,9 @@ class CommentView extends KDView
     @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message) -> @controller.addItem message
+  putMessage: (message, index) ->
+
+    @controller.addItem message, index or @controller.getItemCount()
 
 
   createFakeItemView: (value, clientRequestId) ->
@@ -97,16 +99,18 @@ class CommentView extends KDView
 
   replaceFakeItemView: (message) ->
 
-    @putMessage message
-
-    @removeFakeMessage message.clientRequestId
+    @putMessage message, @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
 
     return  unless item = @fakeMessageMap[identifier]
 
+    index = @controller.getListView().getItemIndex item
+
     @controller.removeItem item
+
+    return index
 
 
   messageSubmitFailed: (err, clientRequestId) ->

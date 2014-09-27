@@ -1,5 +1,38 @@
 class PaymentController extends KDController
 
+  DEFAULT_PROVIDER = "stripe"
+
+  subscribe: (token, planTitle, planInterval, options, callback)->
+    params          = {token, planTitle, planInterval}
+
+    params.email    = options.email     if options.email
+    params.provider = options.provider  or DEFAULT_PROVIDER
+
+    @api().subscribe params, (err, result)=>
+      @emit "UserPlanUpdated"  unless err?
+      callback err, result
+
+
+  subscriptions: (callback)-> @api().subscriptions {}, callback
+
+  invoices: (callback)-> @api().invoices {}, callback
+
+  creditCard: (callback)-> @api().creditCard {}, callback
+
+  updateCreditCard: (token, callback)->
+    params          = {token}
+    params.provider = DEFAULT_PROVIDER
+
+    @api().updateCreditCard params, callback
+
+  canChangePlan: (planTitle, callback)->
+    @api().canChangePlan {planTitle}, callback
+
+  api:-> KD.remote.api.Payment
+
+
+  ##########################################################
+
   fetchPaymentMethods: (callback) ->
 
     {dash}                 = Bongo

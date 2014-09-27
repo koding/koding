@@ -1,49 +1,179 @@
 package main
 
 import (
-	"github.com/koding/kloud"
-	"github.com/koding/kloud/idlock"
-	"github.com/koding/kloud/machinestate"
+	"math/rand"
+	"strconv"
+	"sync"
+	"time"
+
+	"koding/kites/kloud/idlock"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/koding"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
 )
 
-var locks = idlock.New()
+// FIXME: Test multiple usernames which contain invalid characters such as .,_!
+// and etc.
+const username = "kloudtestuser"
 
+var (
+	TestMachineData = make(map[string]*protocol.Machine)
+	TestMu          sync.Mutex
+)
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+
+	instanceName := "kloudtest-" + strconv.Itoa(rand.Intn(100000))
+
+	TestMachineData = map[string]*protocol.Machine{
+		"koding_id0": &protocol.Machine{
+			Id:        "koding_id0",
+			Provider:  "koding",
+			Username:  username,
+			IpAddress: "",
+			Builder: map[string]interface{}{
+				"username":     username,
+				"type":         "amazon",
+				"region":       "us-east-1",
+				"source_ami":   "ami-2651904e",
+				"storage_size": 3,
+				"alwaysOn":     false,
+				"instanceName": instanceName,
+			},
+			Credential: map[string]interface{}{
+				"username": "kodinginc",
+				"apiKey":   "96d6388ccb936f047fd35eb29c36df17",
+			},
+			State: machinestate.NotInitialized,
+			Domain: protocol.Domain{
+				Name: "foo." + username + ".dev.koding.io",
+			},
+		},
+	}
+}
+
+// TestStorage satisfies the Storage interface
 type TestStorage struct{}
 
-func (t *TestStorage) Assignee() string { return "TestStorage" }
+func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
+	return GetMachineData(id), nil
+}
 
-func (t *TestStorage) Get(id string) (*kloud.Machine, error) {
-	machineData := GetTestData(id)
-	locks.Get(testuser).Lock()
-	return machineData, nil
+func (t *TestStorage) Delete(id string) error {
+	// delete(TestMachineData, id)
+	return nil
 }
 
 func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
-	machineData := GetTestData(id)
+	machine := GetMachineData(id)
 
-	if s.Type == "build" {
-		machineData.Data["queryString"] = s.Data["queryString"].(string)
-		machineData.Data["ipAddress"] = s.Data["ipAddress"].(string)
-		machineData.Data["instanceId"] = s.Data["instanceId"].(string)
-		machineData.Data["instanceName"] = s.Data["instanceName"].(string)
+	switch s.Type {
+	case "build", "reinit":
+		machine.QueryString = s.Data["queryString"].(string)
+		machine.IpAddress = s.Data["ipAddress"].(string)
+		machine.Domain.Name = s.Data["domainName"].(string)
+		machine.Builder["instanceId"] = s.Data["instanceId"]
+		machine.Builder["instanceName"] = s.Data["instanceName"]
+	case "start":
+		machine.IpAddress = s.Data["ipAddress"].(string)
+		machine.Domain.Name = s.Data["domainName"].(string)
+		machine.Builder["instanceId"] = s.Data["instanceId"]
+	case "stop", "resize":
+		machine.IpAddress = s.Data["ipAddress"].(string)
+	default:
+		return nil
 	}
 
-	if s.Type == "info" {
-		machineData.Data["instanceName"] = s.Data["instanceName"].(string)
-	}
+	SetMachineData(id, machine)
 
-	TestData[id] = machineData
 	return nil
 }
 
 func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
-	machineData := GetTestData(id)
+	machineData := GetMachineData(id)
 	machineData.State = state
-	TestData[id] = machineData
+	SetMachineData(id, machineData)
 	return nil
 }
 
-func (t *TestStorage) ResetAssignee(id string) error {
-	locks.Get(testuser).Unlock()
+// TestLocker satisfies the Locker interface
+type TestLocker struct {
+	*idlock.IdLock
+}
+
+func (l *TestLocker) Lock(id string) error {
+	l.Get(id).Lock()
 	return nil
+}
+
+func (l *TestLocker) Unlock(id string) {
+	l.Get(id).Unlock()
+}
+
+// TestChecker satisfies Checker interface
+type TestChecker struct{}
+
+func (c *TestChecker) Total() error {
+	return nil
+}
+
+func (c *TestChecker) AlwaysOn() error {
+	return nil
+}
+
+func (c *TestChecker) Timeout() error {
+	return nil
+}
+
+func (c *TestChecker) Storage(wantStorage int) error {
+	return nil
+}
+
+func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
+	return nil
+}
+
+// Test Data
+func GetMachineData(id string) *protocol.Machine {
+	TestMu.Lock()
+	defer TestMu.Unlock()
+	return TestMachineData[id]
+}
+
+func SetMachineData(id string, machine *protocol.Machine) {
+	TestMu.Lock()
+	defer TestMu.Unlock()
+	TestMachineData[id] = machine
+}
+
+func newInstanceName() string {
+	return "kloudtest-" + strconv.Itoa(rand.Intn(100000))
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+
+	TestMachineData = map[string]*protocol.Machine{
+		"koding_id0": &protocol.Machine{
+			Id:        "koding_id0",
+			Provider:  "koding",
+			Username:  username,
+			IpAddress: "",
+			Builder: map[string]interface{}{
+				"username":     username,
+				"type":         "amazon",
+				"region":       "us-east-1",
+				"source_ami":   "ami-2651904e",
+				"storage_size": 3,
+				"alwaysOn":     false,
+				"instanceName": newInstanceName(),
+			},
+			State: machinestate.NotInitialized,
+			Domain: protocol.Domain{
+				Name: "foo." + username + ".dev.koding.io",
+			},
+		},
+	}
 }

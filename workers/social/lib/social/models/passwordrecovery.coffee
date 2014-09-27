@@ -80,41 +80,43 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:yes}, callback
+      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:yes}, callback
     # Disable it until we find a solution ~ GG
     # else if JUser.validateAt 'username', usernameOrEmail
-    #   @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:yes}, callback
+    #   @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:yes}, callback
     else callback new KodingError 'Invalid input.'
 
   @resendVerification = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
     else if JUser.validateAt 'username', usernameOrEmail
-      @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = (client, options, callback)->
+  @recoverPasswordByUsername = (options, callback) ->
     JUser = require './user'
-    {delegate} = client.connection
-    {username} = options
-    JUser.one {username}, (err, user)=>
-      unless user then callback new KodingError "Unknown username"
-      else
-        options.email = user.getAt('email')
-        @create client, options, callback
+    { username } = options
 
-  @recoverPasswordByEmail = secure (client, options, callback)->
+    JUser.one { username }, (err, user)=>
+      unless user
+        return callback new KodingError "Unknown username"
+
+      options.email = user.getAt('email')
+      @create options, callback
+
+  @recoverPasswordByEmail = (options, callback) ->
     JUser = require './user'
-    {delegate} = client.connection
-    {email} = options
-    JUser.count {email}, (err, num)=>
-      unless num then callback null # pretend like everything went fine.
-      else
-        options.email = email
-        @create client, options, callback
+    { email } = options
 
-  @create = (client, options, callback)->
+    JUser.count { email }, (err, num) =>
+      unless num
+        return callback null # pretend like everything went fine.
+
+      options.email = email
+      @create options, callback
+
+  @create = (options, callback)->
     JUser = require './user'
     token = createId()
 

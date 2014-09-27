@@ -10,27 +10,39 @@ class SidebarMessageItem extends SidebarItem
 
     super options, data
 
-    data = @getData()
+    data.on 'ChannelDeleted', @bound 'channelDeleted'
 
-    # users can send messages to themselves and to others; if they're others
-    # show their avatars, fallback to user's avatar if they're the only one
-    if data.participantsPreview.length is 1
-      origin = data.participantsPreview[0]
-    else
-      for account in data.participantsPreview when account._id isnt KD.userAccount._id
-        origin = account
-        break
+    @icon = new SidebarMessageItemIcon {}, data
+    @text = new SidebarMessageItemText {}, data
 
-    origin = constructorName : 'JAccount', id : origin._id
+    owner = data.creatorId is KD.whoami().socialApiId
 
-    @actor = new ProfileTextView {origin}
-
-    # we need a multiple avatarview here
-    @avatar = new AvatarStaticView
-      size       : width : 24, height : 24
-      cssClass   : "avatarview"
-      showStatus : yes
-      origin     : origin
+    @endButton = if owner
+    then new LeaveChannelButton {}, data
+    else new KDView
 
 
-  pistachio: -> "{{> @avatar}}{{> @actor}}{{> @unreadCount}}"
+  channelDeleted: ->
+
+    if location.pathname is "/#{@getOption 'route'}"
+      KD.singletons.router.clear()
+
+    @getDelegate().removeItem this
+
+
+  click: (event) ->
+
+    KD.utils.stopDOMEvent event
+    KD.singleton('router').handleRoute "/#{@getOption 'route'}"
+
+    super event
+
+
+  pistachio: ->
+
+    """
+    {{> @icon}}
+    {{> @text}}
+    {{> @endButton}}
+    {{> @unreadCount}}
+    """

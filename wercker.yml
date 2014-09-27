@@ -13,14 +13,19 @@ build:
     - script:
         name: npm install
         code: |
+          npm cache clean
           npm set registry https://registry.npmjs.org/
           npm install || :
+          cd client/Framework && npm install && cd ../../
+          cd client/landing && npm install && cd ../../
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot /opt/koding
     - script:
         name: build client
-        code: ./run
+        code: |
+          sudo chown -R $USER ~/.npm
+          ./run
     - script:
         name: build go binaries
         code: go/build.sh
@@ -44,13 +49,6 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
 
 deploy:
   steps:
@@ -82,10 +80,3 @@ deploy:
           env-name: $EB_ENV_NAME
           app-location: $S3_EB_DEPLOY/$ARCHIVE
           version-label: $ARCHIVE
-  after-steps:
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140

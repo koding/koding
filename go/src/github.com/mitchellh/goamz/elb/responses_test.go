@@ -148,6 +148,12 @@ var DescribeInstanceHealthExample = `
         <State>InService</State>
         <ReasonCode>N/A</ReasonCode>
       </member>
+      <member>
+        <Description>N/A</Description>
+        <InstanceId>i-06ea3e60</InstanceId>
+        <State>OutOfService</State>
+        <ReasonCode>N/A</ReasonCode>
+      </member>
     </InstanceStates>
   </DescribeInstanceHealthResult>
   <ResponseMetadata>

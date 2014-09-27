@@ -3,20 +3,21 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"log"
 	"net/url"
 	"os"
 	"time"
 
-	"github.com/fatih/structs"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/keys"
+	"koding/kites/kloud/koding"
+
+	"koding/kites/kloud/kloud"
+	kloudprotocol "koding/kites/kloud/protocol"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/kloud"
-	kloudprotocol "github.com/koding/kloud/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
@@ -31,7 +32,10 @@ type Config struct {
 	Id          string
 
 	// Connect to Koding mongodb
-	MongoURL string
+	MongoURL string `required:"true"`
+
+	// Endpoint for fetchin plans
+	PlanEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -47,23 +51,20 @@ type Config struct {
 	TestMode bool
 
 	// Defines the base domain for domain creation
-	HostedZone string
+	HostedZone string `required:"true"`
 
 	// Defines the default AMI Tag to use for koding provider
 	AMITag string
 
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
-	KontrolURL string
+	KontrolURL string `required:"true"`
 
 	// Private key to create kite.key
-	PrivateKey string
+	PrivateKey string `required:"true"`
 
 	// Public key to create kite.key
-	PublicKey string
-
-	// Contains the users home directory to be added into a image
-	TemplateDir string
+	PublicKey string `required:"true"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -80,12 +81,6 @@ func main() {
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
 		os.Exit(0)
-	}
-
-	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
-
-	if conf.HostedZone == "" {
-		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
 	}
 
 	k := newKite(conf)
@@ -107,8 +102,6 @@ func main() {
 
 		registerURL = u
 	}
-
-	fmt.Printf("registering with url %+v\n", registerURL)
 
 	if conf.Proxy {
 		k.Log.Info("Proxy mode is enabled")
@@ -165,68 +158,109 @@ func newKite(conf *Config) *kite.Kite {
 	modelhelper.Initialize(conf.MongoURL)
 	db := modelhelper.Mongo
 
+	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
+
 	kodingProvider := &koding.Provider{
-		Kite:         k,
-		Log:          newLogger("koding", conf.DebugMode),
-		AssigneeName: id,
-		Session:      db,
-		Test:         conf.TestMode,
-		TemplateDir:  conf.TemplateDir,
-		HostedZone:   conf.HostedZone,
+		Kite:              k,
+		Log:               newLogger("koding", conf.DebugMode),
+		AssigneeName:      id,
+		Session:           db,
+		Test:              conf.TestMode,
+		HostedZone:        conf.HostedZone,
+		KontrolURL:        getKontrolURL(conf.KontrolURL),
+		KontrolPrivateKey: kontrolPrivateKey,
+		KontrolPublicKey:  kontrolPublicKey,
+		Bucket:            koding.NewBucket("koding-kites", klientFolder),
+		KeyName:           keys.DeployKeyName,
+		PublicKey:         keys.DeployPublicKey,
+		PrivateKey:        keys.DeployPrivateKey,
+	}
+
+	// be sure they they satisfy the provider interface
+	var _ kloudprotocol.Provider = kodingProvider
+
+	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
+		a, err := kodingProvider.NewClient(m)
+		if err != nil {
+			return nil, err
+		}
+
+		return &koding.PlanChecker{
+			Api:      a,
+			Provider: kodingProvider,
+			DB:       kodingProvider.Session,
+			Kite:     kodingProvider.Kite,
+			Log:      kodingProvider.Log,
+			Username: m.Username,
+			Machine:  m,
+		}, nil
+	}
+
+	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
+		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaner(time.Minute)
 
-	privateKey, publicKey := kontrolKeys(conf)
-
-	deployer := &KodingDeploy{
-		Kite:              k,
-		Log:               newLogger("kloud-deploy", conf.DebugMode),
-		KontrolURL:        kontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: privateKey,
-		KontrolPublicKey:  publicKey,
-		Bucket:            newBucket("koding-kites", klientFolder),
-		DB:                db,
-	}
-
-	kld := kloud.NewKloud()
+	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
-
-	// be sure it compiles correctly,
-	var _ kloudprotocol.Builder = kodingProvider
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
 
-	injectDeploy := func(r *kite.Request) (interface{}, error) {
-		d := kloudprotocol.ProviderDeploy{
-			KeyName:    keys.DeployKeyName,
-			PublicKey:  keys.DeployPublicKey,
-			PrivateKey: keys.DeployPrivateKey,
-			Username:   r.Username,
+	// Admin bypass if the username is koding or kloud
+	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
+		if r.Args == nil {
+			return nil, nil
 		}
 
-		r.Context.Set("deployData", structs.Map(d))
-		return true, nil
-	}
+		if _, err := r.Args.SliceOfLength(1); err != nil {
+			return nil, nil
+		}
 
-	k.Handle("build", kld.NewBuild(deployer)).PreHandleFunc(injectDeploy)
+		var args struct {
+			MachineId string
+			Username  string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
+			return nil, nil
+		}
+
+		if koding.IsAdmin(r.Username) && args.Username != "" {
+			k.Log.Warning("[%s] ADMIN COMMAND: replacing username from '%s' to '%s'",
+				args.MachineId, r.Username, args.Username)
+			r.Username = args.Username
+		}
+
+		return nil, nil
+	})
+
+	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("restart", kld.Restart)
 	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
+	k.HandleFunc("resize", kld.Resize)
+	k.HandleFunc("reinit", kld.Reinit)
+
+	// let's use the wrapper function "ControlFunc" which is doing a lot of
+	// things on behalf of us, like document locking, getting the machine
+	// document, and so on..
 	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
-		// let's use the helper function which is doing a lot of things on
-		// behalf of us, like document locking, getting the machine document,
-		// and so on..
-		return kld.ControlFunc(kodingProvider.DomainSet).ServeKite(r)
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainSet(r, m)
 	})
 
 	return k
@@ -273,7 +307,7 @@ func kontrolKeys(conf *Config) (string, string) {
 	return privateKey, publicKey
 }
 
-func kontrolURL(ownURL string) string {
+func getKontrolURL(ownURL string) string {
 	// read kontrolURL from kite.key if it doesn't exist.
 	kontrolURL := kiteconfig.MustGet().KontrolURL
 

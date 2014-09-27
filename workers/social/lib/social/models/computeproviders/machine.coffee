@@ -11,14 +11,20 @@ module.exports = class JMachine extends Module
   { ObjectId, signature, daisy } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
-  {permit} = require '../group/permissionset'
+
+  {slugify} = require '../../traits/slugifiable'
+  {permit}  = require '../group/permissionset'
 
   @share()
 
   @set
 
     indexes             :
-      kiteId            : 'unique'
+      uid               : 'unique'
+      slug              : 'sparse'
+      users             : 'sparse'
+      groups            : 'sparse'
+      domain            : 'sparse'
 
     sharedEvents        :
       static            : [ ]
@@ -37,12 +43,15 @@ module.exports = class JMachine extends Module
           (signature String, Function)
         setDomain       :
           (signature String, Function)
+        setLabel        :
+          (signature String, Function)
 
     permissions         :
       'list machines'   : ['member']
       'populate users'  : ['member']
       'set provisioner' : ['member']
       'set domain'      : ['member']
+      'set label'       : ['member']
 
     schema              :
 
@@ -66,6 +75,8 @@ module.exports = class JMachine extends Module
       label             :
         type            : String
         default         : -> ""
+
+      slug              : String
 
       provisioners      :
         type            : [ ObjectId ]
@@ -110,7 +121,7 @@ module.exports = class JMachine extends Module
         assignedAt      : Date
 
 
-  @create = (data)->
+  @create = (data, callback)->
 
     # JMachine.uid is a unique id which is generated from:
     #
@@ -122,22 +133,67 @@ module.exports = class JMachine extends Module
 
     {user, group, provider} = data
 
-    data.uid = "u#{user[0]}#{group[0]}#{provider[0]}#{(require 'hat')(32)}"
+    data.user  = username  = user.username
+    data.group = groupSlug = group.slug
+
+    data.users     = [{ id: user.getId(), sudo: yes, owner: yes }]
+    data.groups    = [{ id: group.getId() }]
+
+    data.uid = "u#{username[0]}#{groupSlug[0]}#{provider[0]}#{(require 'hat')(32)}"
     data.createdAt = new Date()
+
+    data.label    ?= data.uid
 
     data.assignee  =
       inProgress   : no
       assignedAt   : data.createdAt
 
-    data.status  =
-      state      : "NotInitialized"
-      modifiedAt : data.createdAt
+    data.status    =
+      state        : "NotInitialized"
+      modifiedAt   : data.createdAt
 
     { userSitesDomain } = KONFIG
-    data.domain         = "#{data.uid}.#{user}.#{userSitesDomain}"
+    data.domain         = "#{data.uid}.#{username}.#{userSitesDomain}"
     data.provisioners  ?= [ ]
 
-    return new JMachine data
+    {label} = data
+
+    generateSlugFromLabel {user, group, label}, (err, slug)->
+
+      return callback err  if err?
+
+      data.slug = slug
+
+      machine = new JMachine data
+      machine.save (err)->
+
+        if err
+          callback err
+          console.warn "Failed to create Machine for ", {username, groupSlug}
+        else
+          callback null, machine
+
+
+  generateSlugFromLabel = ({user, group, label, index}, callback)->
+
+    slug = if index? then "#{label}-#{index}" else label
+    slug = slugify slug
+
+    JMachine.count {
+      users : $elemMatch: id: user.getId()
+      groups: $elemMatch: id: group.getId()
+      slug
+    }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+        callback null, slug
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromLabel {user, group, label, index}, callback
+
 
 
   @one$: permit 'list machines',
@@ -182,6 +238,17 @@ module.exports = class JMachine extends Module
         callback err, machines
 
 
+
+  isOwner  = (user, machine) ->
+
+    userId = user.getId()
+
+    owner  = no
+    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+
+    return owner
+
+
   setProvisioner: permit 'set provisioner',
 
     success: revive
@@ -191,21 +258,17 @@ module.exports = class JMachine extends Module
 
     , (client, provisioner, callback)->
 
-      { r: { group, user } } = client
+      { r: { user } } = client
 
-      userId    = user.getId()
-      approved  = no
-      approved |= u.owner and u.id.equals userId  for u, i in @users
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
-      if approved
-        JProvisioner = require './provisioner'
-        JProvisioner.one$ client, slug: provisioner, (err, provision)=>
-          if err or not provision?
-            callback new KodingError 'Provisioner not found'
-          else
-            @update $set: provisioners: [ provision.slug ], callback
-      else
-        callback new KodingError 'Access denied'
+      JProvisioner = require './provisioner'
+      JProvisioner.one$ client, slug: provisioner, (err, provision)=>
+        if err or not provision?
+          callback new KodingError 'Provisioner not found'
+        else
+          @update $set: provisioners: [ provision.slug ], callback
 
 
   reviveUsers: permit 'populate users',
@@ -235,7 +298,17 @@ module.exports = class JMachine extends Module
 
   setDomain: permit 'set domain',
 
-    success: (client, domain, callback)->
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, domain, callback)->
+
+      { r: { user } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
       { nickname } = client.connection.delegate.profile
       { userSitesDomain } = KONFIG
@@ -254,3 +327,32 @@ module.exports = class JMachine extends Module
             "The domain #{domain} already exists", "DUPLICATEDOMAIN"
 
         @update $set: { domain }, (err)-> callback err
+
+
+  setLabel: permit 'set domain',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, label, callback)->
+
+      { r: { user, group } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
+
+      kallback = (err, slug)->
+        if err?
+        then callback err
+        else callback null, slug
+
+      slug = slugify label
+
+      if slug isnt @slug
+        generateSlugFromLabel { user, group, label }, (err, slug)=>
+          return callback err  if err?
+          @update $set: { slug, label }, (err)-> kallback err, slug
+      else
+        @update $set: { label }, (err)-> kallback err, slug

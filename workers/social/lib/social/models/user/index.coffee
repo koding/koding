@@ -456,14 +456,14 @@ Team Koding
                 account.updateCounts()
                 JUser.clearOauthFromSession session, ->
                   callback null, {account, replacementToken}
-                  options = targetOptions: selector: tags: $in: ["nosync"]
-                  account.fetchSubscriptions {}, options, (err, subscriptions) ->
-                    console.warn err  if err
-                    if subscriptions.length is 0
-                      JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
-                        console.warn err  if err
-                        subscription.debitPack tag: "vm", (err) ->
-                          console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+                  # options = targetOptions: selector: tags: $in: ["nosync"]
+                  # account.fetchSubscriptions {}, options, (err, subscriptions) ->
+                  #   console.warn err  if err
+                  #   if subscriptions.length is 0
+                  #     JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
+                  #       console.warn err  if err
+                  #       subscription.debitPack tag: "vm", (err) ->
+                  #         console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
@@ -648,7 +648,7 @@ Team Koding
               @persistOauthInfo user.username, sessionToken, kallback
         else
           if user
-            afterLogin client.connection, user, sessionToken, session, kallback
+            afterLogin user, sessionToken, session, kallback
           else
             info = session.foreignAuth[provider]
             {username, email, firstName, lastName} = info
@@ -818,25 +818,26 @@ Team Koding
       #     resetPassword : no
       #     expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-      #   JPasswordRecovery.create client, passwordOptions, (err, token)->
+      #   JPasswordRecovery.create passwordOptions, (err, token)->
       #     recoveryToken = token
       #     queue.next()
-      ->
-        JPaymentSubscription.createFreeSubscription account, (err) ->
-          console.warn err  if err
-          queue.next()
-      ->
-        options = targetOptions: selector: tags: "vm"
-        account.fetchSubscriptions null, options, (err = "", [subscription]) ->
-          return callback err  if err
-          return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
+      # ->
+      #   JPaymentSubscription.createFreeSubscription account, (err) ->
+      #     console.warn err  if err
+      #     queue.next()
+      # ->
+      #   options = targetOptions: selector: tags: "vm"
+      #   account.fetchSubscriptions null, options, (err = "", [subscription]) ->
+      #     return callback err  if err
+      #     return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
 
-          subscription.debitPack tag: "vm", (err) ->
-            console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
-            queue.next()
-      ->
+      #     subscription.debitPack tag: "vm", (err) ->
+      #       console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+      #       queue.next()
+      # ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
+
       ->
         callback error, {account, recoveryToken, newToken}
         queue.next()

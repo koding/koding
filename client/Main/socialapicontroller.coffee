@@ -12,14 +12,14 @@ class SocialApiController extends KDController
     return [] unless KD.socialApiData
 
     data = if dataPath is 'navigated'
-    then KD.socialApiData[dataPath].data.messageList
+    then KD.socialApiData[dataPath]?.data?.messageList
     else KD.socialApiData[dataPath]
 
     return [] unless data
 
     fn = switch dataPath
-      when 'popularTopics', 'followedChannels' then mapChannels
-      when 'pinnedMessages', 'navigated'       then mapActivities
+      when 'followedChannels' then mapChannels
+      when 'popularPosts', 'pinnedMessages', 'navigated' then mapActivities
       when 'privateMessages'                   then mapPrivateMessages
 
     return fn(data) or []
@@ -27,6 +27,16 @@ class SocialApiController extends KDController
 
   eachCached: (id, fn) ->
     fn section[id]  for own name, section of @_cache when id of section
+
+  isAnnouncementItem: (channelId) ->
+    return no   unless channelId
+
+    # super admins can see/post anyting
+    return no   if KD.checkFlag "super-admin"
+
+    {socialApiAnnouncementChannelId} = KD.getGroup()
+
+    return  channelId is socialApiAnnouncementChannelId
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
@@ -300,8 +310,8 @@ class SocialApiController extends KDController
       {event: "MessageAdded", mapperFn: mapActivity}
       {event: "MessageRemoved", mapperFn: mapActivity}
       {event: "AddedToChannel", mapperFn: mapParticipant}
+      {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
-
 
   message:
     byId                 : messageRequesterFn
@@ -369,6 +379,11 @@ class SocialApiController extends KDController
       fnName                  : 'sendPrivateMessageFromBot'
       validateOptionsWith     : ['body', 'channelId']
       mapperFn                : mapPrivateMessages
+
+    search               : messageRequesterFn
+      fnName             : 'search'
+      validateOptionsWith: ['name']
+      mapperFn           : mapPrivateMessages
 
     fetchPrivateMessages : messageRequesterFn
       fnName             : 'fetchPrivateMessages'

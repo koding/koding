@@ -108,16 +108,49 @@ class ComputeController.UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, target, callback)->
+  @askFor: (action, target, force, callback)->
+
+    return callback()  if force
+
+    tasks =
+
+      reinit    :
+        title   : "Reinitialize VM?"
+        message : "
+          If you choose to proceed, this VM will be reset to default state.
+          You will loose all your files, workspaces and data but your VM
+          settings (VM aliases, sub-domains etc.) will not be lost.
+        "
+        button  : "Proceed"
+      destroy   :
+        title   : "Remove VM?"
+        message : "
+          <p>Terminating this VM will destroy all of its:</p>
+            <br/>
+            <li> files and data </li>
+            <li> workspaces </li>
+            <li> running services </li>
+            <li> settings </li>
+            <li> custom domains (if any) </li>
+            <br/>
+          <p>This action cannot be reversed!
+          Are you sure you want to proceed?</p>
+
+        "
+        button  : "Yes, remove"
+
+    if tasks[action]?
+      {title, message, button} = tasks[action]
 
     modal = KDModalView.confirm
-      title       : "Remove machine"
-      description : "Do you want to remove ?"
+      title       : title   ? "Remove?"
+      description : message ? "Do you want to remove ?"
       ok          :
-        title     : "Yes, remove"
+        title     : button  ? "Yes, remove"
         callback  : ->
           modal.destroy()
           callback()
+
 
   @askMachineForApp: (app, callback)->
 
