@@ -43,8 +43,9 @@ class WelcomeModal extends KDModalView
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
       title       : 'Find out more about all the new features'
-      click       : ->
+      click       : =>
         KD.singletons['router'].handleRoute '/Features'
+        @destroy()
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
