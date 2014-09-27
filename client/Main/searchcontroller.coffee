@@ -31,7 +31,11 @@ class SearchController extends KDObject
         throw new Error "No data!" if data.length is 0
         return data
       .map ({ objectID }) -> KD.remote.cacheableAsync 'JAccount', objectID
-      .catch (err) => @searchAccountsMongo seed
+      .catch (err) =>
+        console.warn 'algolia strategy failed; trying mongo'
+        console.warn err
+
+        return @searchAccountsMongo seed
       .filter Boolean
 
   searchTopics: (seed) ->
