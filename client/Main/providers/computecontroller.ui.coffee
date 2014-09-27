@@ -108,7 +108,9 @@ class ComputeController.UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, target, callback)->
+  @askFor: (action, target, force, callback)->
+
+    return callback()  if force
 
     tasks =
 

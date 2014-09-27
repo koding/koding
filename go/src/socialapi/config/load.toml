@@ -1,4 +1,4 @@
-Mongo              = "dev:k9lc4G1k32nyD72@iad-mongos2.objectrocket.com:15400/koding"
+Mongo              = "10.0.0.239:27017/koding"
 Environment        = "prod"
 Region             = "prod"
 Hostname           = "prod.koding.com"

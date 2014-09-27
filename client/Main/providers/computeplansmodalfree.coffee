@@ -15,6 +15,6 @@ class ComputePlansModal.Free extends ComputePlansModal
         'hobbyist' : "Hobbyist plan is restricted to only one VM. <br/>"
       }[@getOption 'plan']
 
-    content.addSubView new CustomLinkView
+    @addSubView new CustomLinkView
       title    : 'Upgrade your account for more VMs RAM and Storage'
       href     : '/Pricing'

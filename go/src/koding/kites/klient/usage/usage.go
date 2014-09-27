@@ -32,6 +32,9 @@ type Usage struct {
 
 	// Methodcalls stores the number of method calls
 	MethodCalls int32 `json:"method_calls"`
+
+	// CountedMethods
+	CountedMethods map[string]bool
 }
 
 func NewUsage() *Usage {
@@ -42,13 +45,14 @@ func NewUsage() *Usage {
 			timeout: time.Minute * 30,
 		},
 		latestActivity: time.Now(),
+		CountedMethods: make(map[string]bool, 0),
 	}
 }
 
 // Counter resets the current usage and counts the incoming calls.
 func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
-	// Do not count usage itself
-	if r.Method == MethodName {
+	// don't reset for incoming methods that are not allowed
+	if _, ok := u.CountedMethods[r.Method]; !ok {
 		return nil, nil
 	}
 

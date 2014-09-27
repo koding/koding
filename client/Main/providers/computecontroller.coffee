@@ -189,6 +189,7 @@ class ComputeController extends KDController
 
       if @_trials[machine.uid][task]++ < 2
         info "Trying again to do '#{task}'..."
+        @_force = yes
         this[task] machine
         return yes
 
@@ -196,6 +197,7 @@ class ComputeController extends KDController
     (err)=>
 
       retried = no
+      @_force = no
       @eventListener.revertToPreviousState machine
 
       switch err.name
@@ -228,7 +230,7 @@ class ComputeController extends KDController
 
   destroy: (machine)->
 
-    ComputeController.UI.askFor 'destroy', machine, =>
+    ComputeController.UI.askFor 'destroy', machine, @_force, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -239,6 +241,8 @@ class ComputeController extends KDController
       call = @kloud.destroy { machineId: machine._id }
 
       .then (res)=>
+
+        @_force = no
 
         log "destroy res:", res
         @emit "MachineBeingDestroyed", machine
@@ -254,7 +258,7 @@ class ComputeController extends KDController
 
   reinit: (machine)->
 
-    ComputeController.UI.askFor 'reinit', machine, =>
+    ComputeController.UI.askFor 'reinit', machine, @_force, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -265,6 +269,8 @@ class ComputeController extends KDController
       call = @kloud.reinit { machineId: machine._id }
 
       .then (res)=>
+
+        @_force = no
 
         log "reinit res:", res
         @emit "MachineBeingDestroyed", machine
