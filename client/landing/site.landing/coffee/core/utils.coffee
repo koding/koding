@@ -62,7 +62,10 @@ utils.extend utils,
   # relies on `window.opener` to be present to communicate back to the
   # parent window, which isn't available in a chrome app. Therefore, we
   # disable/change oauth behavior based on this flag: SA.
-  oauthEnabled: -> window.name isnt "chromeapp"
+  #
+  # UPDATE: Since we moved not logged out pages to own app, oauth login
+  # functionality is currently: SA.
+  oauthEnabled: -> return false
 
   md5: do ->
     md5cycle = (x, k) ->
