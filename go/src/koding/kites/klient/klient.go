@@ -64,6 +64,18 @@ func main() {
 
 	klog = k.Log
 
+	if *flagUpdateInterval < time.Minute {
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		*flagUpdateInterval = time.Minute
+	}
+
+	updater := &Updater{
+		Endpoint: *flagUpdateURL,
+		Interval: *flagUpdateInterval,
+	}
+
+	go updater.Run()
+
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
 
@@ -79,23 +91,32 @@ func main() {
 		return true, nil
 	})
 
+	// count only those methods, please add/remove methods here that will reset
+	// the timer of a klient.
+	usg.CountedMethods = map[string]bool{
+		"fs.readDirectory":    true,
+		"fs.glob":             true,
+		"fs.readFile":         true,
+		"fs.writeFile":        true,
+		"fs.uniquePath":       true,
+		"fs.getInfo":          true,
+		"fs.setPermissions":   true,
+		"fs.remove":           true,
+		"fs.rename":           true,
+		"fs.createDirectory":  true,
+		"fs.move":             true,
+		"fs.copy":             true,
+		"webterm.getSessions": true,
+		"webterm.connect":     true,
+		"webterm.killSession": true,
+		"exec":                true,
+	}
+
 	// we measure every incoming request
 	k.PreHandleFunc(usg.Counter)
 
 	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
-
-	if *flagUpdateInterval < time.Minute {
-		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		*flagUpdateInterval = time.Minute
-	}
-
-	updater := &Updater{
-		Endpoint: *flagUpdateURL,
-		Interval: *flagUpdateInterval,
-	}
-
-	go updater.Run()
 
 	// also invoke updating
 	k.Handle("klient.update", updater)
