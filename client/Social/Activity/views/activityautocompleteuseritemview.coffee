@@ -11,7 +11,7 @@ class ActivityAutoCompleteUserItemView extends KDAutoCompleteListItemView
 
     userInput = @getOptions().userInput or @getDelegate().userInput
 
-    @addSubView @addSubView new AvatarStaticView
+    @addSubView new AvatarStaticView
       size      :
         width   : 25
         height  : 25

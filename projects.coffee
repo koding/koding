@@ -105,6 +105,12 @@ projects =
     script        : "website/a/js/__app.pricing.js"
     sourceMapRoot : "Pricing/"
 
+  Features        :
+    path          : "client/Features"
+    style         : "website/a/css/__app.features.css"
+    script        : "website/a/js/__app.features.js"
+    sourceMapRoot : "Features/"
+
 bundles           =
 
   KodingIn        :

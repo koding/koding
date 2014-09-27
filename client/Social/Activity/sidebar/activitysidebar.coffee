@@ -571,7 +571,7 @@ class ActivitySidebar extends KDCustomHTMLView
     limit = 3
 
     @addSubView @sections.messages = new ActivitySideView
-      title      : 'Chat'
+      title      : 'Messages'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
       searchClass: ChatSearchModal
