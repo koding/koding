@@ -629,6 +629,12 @@ Configuration = (options={}) ->
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
+        echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
+        cd #{projectRoot}
+        ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+
       }
 
       function services () {
