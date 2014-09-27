@@ -181,6 +181,24 @@ app.get "/-/auth/check/:key", (req, res)->
     return res.send 401, authTemplate "Key doesn't exist" unless status
     res.send 200, {result: 'key is added successfully'}
 
+app.post "/-/support/new", (req, res)->
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+    return res.send 401, authTemplate "Koding Auth Error - 1"  if err
+
+    unless loggedIn
+      errMessage = "You are not logged in! Please log in with your Koding username and password"
+      res.send 401, authTemplate errMessage
+      return
+
+    unless account and account.profile and account.profile.nickname
+      errMessage = "Your account is not found, it may be a system error"
+      res.send 401, authTemplate errMessage
+      return
+
+    (require './helpscout') account, req, res
+
+
 app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params
 
