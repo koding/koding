@@ -47,8 +47,8 @@ class ActivityAppView extends KDView
     # @addSubView @sidebar
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
-    @addSubView @widgetsBar
     @addSubView @tabs
+    @addSubView @widgetsBar
 
 
   scroll: ->
