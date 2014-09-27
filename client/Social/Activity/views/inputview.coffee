@@ -80,7 +80,7 @@ class ActivityInputView extends KDTokenizedInput
 
   keyDown: (event) ->
     super event
-    return  if event.isPropagationStopped()
+    # return  if event.isPropagationStopped()
     switch event.which
       when 13 # Enter
         KD.utils.stopDOMEvent event
