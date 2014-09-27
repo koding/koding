@@ -5,6 +5,7 @@ import (
 	"socialapi/request"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -148,6 +149,7 @@ func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) e
 	return nil
 }
 
+// Tests are done in channelmessagelist.
 func (c *ChannelParticipant) FetchUnreadCount() (int, error) {
 	cml := NewChannelMessageList()
 	return cml.UnreadCount(c)
@@ -228,15 +230,10 @@ func (c *ChannelParticipant) ListAccountIds(limit int) ([]int64, error) {
 	return participants, nil
 }
 
-func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
-	if a.Id == 0 {
-		return nil, ErrAccountIdIsNotSet
-	}
+func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
+	c := NewChannelParticipant()
 
-	channelIds := make([]int64, 0)
-
-	// var results []ChannelParticipant
-	query := bongo.B.DB.
+	return bongo.B.DB.
 		Model(c).
 		Table(c.TableName()).
 		Select("api.channel_participant.channel_id").
@@ -253,6 +250,41 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 		q.Type,
 		ChannelParticipant_STATUS_ACTIVE,
 	)
+}
+
+func (c *ChannelParticipant) ParticipatedChannelCount(a *Account, q *request.Query) (*CountResponse, error) {
+	if a.Id == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	query := getParticipatedChannelsQuery(a, q)
+
+	// add exempt clause if needed
+	if !q.ShowExempt {
+		query = query.Where("api.channel.meta_bits = ?", Safe)
+	}
+
+	var count int
+	query = query.Count(&count)
+	if query.Error != nil {
+		return nil, query.Error
+	}
+
+	res := new(CountResponse)
+	res.TotalCount = count
+
+	return res, nil
+}
+
+func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.Query) ([]int64, error) {
+	if a.Id == 0 {
+		return nil, ErrAccountIdIsNotSet
+	}
+
+	channelIds := make([]int64, 0)
+
+	// var results []ChannelParticipant
+	query := getParticipatedChannelsQuery(a, q)
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
@@ -296,24 +328,52 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 	return channelIds, nil
 }
 
+// fetchDefaultChannels fetchs the default channels of the system, currently we
+// have two different default channels, group channel and announcement channel
+// that everyone in the system should be a member of them, they cannot opt-out,
+// they will be able to see the contents of it, they will get the notifications,
+// they will see the unread count
 func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, error) {
 	var channelIds []int64
 	channel := NewChannel()
-	bongoQuery := &bongo.Query{
-		Selector: map[string]interface{}{
-			"group_name":    q.GroupName,
-			"type_constant": Channel_TYPE_GROUP,
-		},
-		Pluck:      "id",
-		Pagination: *bongo.NewPagination(1, 0),
+	res := bongo.B.DB.
+		Model(channel).
+		Table(channel.TableName()).
+		Where(
+		"group_name = ? AND type_constant IN (?)",
+		q.GroupName,
+		[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
+	).
+		// no need to traverse all database, limit with a known count
+		Limit(2).
+		// only select ids
+		Pluck("id", &channelIds)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
 	}
 
-	err := channel.Some(&channelIds, bongoQuery)
-	if err != nil {
+	// be sure that this account is a participant of default channels
+	if err := c.ensureParticipation(q.AccountId, channelIds); err != nil {
 		return nil, err
 	}
 
 	return channelIds, nil
+}
+
+func (c *ChannelParticipant) ensureParticipation(accountId int64, channelIds []int64) error {
+	for _, channelId := range channelIds {
+		cp := NewChannelParticipant()
+		cp.ChannelId = channelId
+		cp.AccountId = accountId
+		// create is idempotent, multiple calls wont cause any problem, if the
+		// user is already a participant, will return as if a succesful request
+		if err := cp.Create(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // FetchParticipantCount fetchs the participant count in the channel
@@ -354,6 +414,8 @@ func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
 
 // Put them all behind an interface
 // channels, messages, lists, participants, etc
+//
+// Tests are done.
 func (c *ChannelParticipant) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
 	if err != nil {
@@ -367,6 +429,7 @@ func (c *ChannelParticipant) MarkIfExempt() error {
 	return nil
 }
 
+// Tests are done.
 func (c *ChannelParticipant) isExempt() (bool, error) {
 	// return early if channel is already exempt
 	if c.MetaBits.Is(Troll) {

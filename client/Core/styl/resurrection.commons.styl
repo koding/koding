@@ -55,6 +55,88 @@ body.environments
         shadow            inset 0 -3px 0 #01B05A
         color             #575757
 
+validationRed = rgba(217, 58, 55, 0.65)
+
+.kdtooltip.validation-error
+.kdtooltip.validation-error.just-text
+  min-width                   none
+  max-width                   234px
+  min-height                  none
+
+  div.wrapper
+    bg                        color, validationRed
+    shadow                    none
+    padding                   10px 15px
+    min-height                auto
+    min-width                 auto
+    rounded                   4px
+    p
+      font-size               14px
+      font-weight             600
+      text-align              center
+      line-height             18px
+      -webkit-font-smoothing  antialiased
+
+  &.placement-right
+    &:after
+      border-right-color    validationRed
+
+  &.placement-left
+    &:after
+      border-left-color     validationRed
+
+  &.placement-bottom
+    &:after
+      border-bottom-color   validationRed
+
+  &.placement-top
+    &:after
+      border-top-color      validationRed
+
+    &.direction-left:after
+      right                 9px
+
+.kdbutton.topic-follow-btn
+.kdbutton.leave-channel
+  size                    24px 18px
+  background              transparent
+  shadow                  none
+  outline                 none
+  rounded                 3px
+  border                  none
+  margin                  0
+  padding                 0
+  borderBox()
+
+  &:hover
+    border          none
+    .icon
+      r-sprite      activity 'check-gray'
+
+  .icon
+    r-sprite        activity 'check-gray'
+    margin          0 6px 0 0
+    padding         0
+    fr()
+
+  .button-title
+    hidden()
+
+  &.following
+    bg              color transparent
+    border-color    transparent
+
+    .icon
+      r-sprite      activity 'check-green'
+
+    &:hover
+      border        1px solid #b1b1b1
+
+      .icon
+        r-sprite    activity 'check-green'
+        opacity     .6
+
+
 .avatarview
   background-image          url('/a/images/defaultavatar/avatar.svg')
   background-size           100% 100%
@@ -84,6 +166,7 @@ aside.app-sidebar
   styleScrollBars()
 
 .app-content
+  min-height       100vh
   padding-left     34px
   borderBox()
 
@@ -548,7 +631,7 @@ button.app-settings-menu
     font-weight       400
     line-height       42px
   span.icon
-    margin            2px 0 0 0
+    margin            12px 12px 0 0
 
 .kdbutton.solid.red
   bg                   color #D75B5B
@@ -1754,95 +1837,44 @@ FOOTER VIEW
 
 footer.main-footer
   padding               56px 0
-  font-size             13px
+  font-family           openSansFamily
   font-weight           400
-  background            #2c3134
+  background            #F0F0F0
+  border-top            1px solid #E8E8E8
+  height                auto
 
   .inner-container
-    max-width             1290px
-    padding               0px 45px
-    margin                0 auto
-    display               block
-    position              relative
+    max-width           1290px
+    padding             0px 45px
+    margin              0 auto
+    display             block
+    position            relative
     borderBox()
 
   .footer-block
-    width               25%
+    width               50%
+    font-size           0
     borderBox()
     fl()
+    &:last-child
+      text-align        right
 
     a
-      color              #b3b3b3
-      display            inline
-      noTextDeco()
-
-    h5
-      margin             0 0 6px 0
-      color              #858585
-
-  .about-koding
-    h5
-      font-weight        600
-      color              #c5c5c5
-
-    p
-      padding-right      72px
-      margin             2px 0 4px 0
-      line-height        18px
-      color              #838485
-      borderBox()
-
-    a
-      color              #525658
-      text-decoration    underline
-
-  nav
-    a
+      vertical-align     middle
+      font-size          14px
       line-height        22px
-
-      &:after
-        content         '\A'
-        display         block
-        white-space     pre
-        line-height     0
-        padding         0
-        margin          0
-        height          0
-
-  cite
-    display             block
-    clear               both
-
-  address
-    clear                both
-    display              block
-    text-align           center
-    margin               50px auto 0 auto
-    padding              25px 0 0
-    font-size            14px
-    color                #b3b3b3
-    position             relative
-
-    &:before
-      content           ""
-      display           block
-      size              80%, 1px
-      background-image  -webkit-linear-gradient(left, rgba(59, 64, 67, 0) 0%, rgba(59, 64, 67, 1) 10%, rgba(59, 64, 67, 1) 90%, rgba(59, 64, 67, 0) 100%)
-      abs               0px 0 0 50%
-      vendor            transform, translateX(-50%)
-
-  .social-links
-    color               #838485
-    display             block
-    text-align          center
-    margin              30px 0 0
-    word-spacing        5px
-
-    a
-      color             #838485
-      font-size         13px
-      font-weight       400
+      color              #747474
+      display            inline
+      margin-right       12px
       noTextDeco()
+
+  a.social
+    display             inline-block
+    margin-right        8px
+    &.tw
+      r-sprite          app 'social-tw'
+    &.fb
+      r-sprite          app 'social-fb'
 
 
 // new private message and topics modal common styles
@@ -1945,8 +1977,4 @@ footer.main-footer
 
       &~.footer-block
         margin-top      18px
-        padding-top     18px
         border-top      1px solid rgba(255,255,255,.05)
-
-      &.about-koding p
-        padding         0

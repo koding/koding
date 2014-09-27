@@ -30,6 +30,8 @@ class MainController extends KDController
     @detectIdleUser()
     @startCachingAssets()  unless KD.isLoggedInOnLoad
 
+    @welcomeUser()
+
     emojify.setConfig
       img_dir : 'https://s3.amazonaws.com/koding-cdn/emojis'
       ignored_tags  :
@@ -37,6 +39,29 @@ class MainController extends KDController
         'A'         : 1,
         'PRE'       : 1,
         'CODE'      : 1
+
+  welcomeUser : ->
+
+    return unless KD.isLoggedIn()
+
+    {appStorageController} = KD.singletons
+    storage                = appStorageController.storage 'WelcomeModal', '1.0.0'
+
+    storage.fetchStorage (_storage) =>
+
+      return if storage.getValue('shownBefore')
+
+      account = KD.whoami()
+
+      registrationDate = new Date(account.meta.createdAt)
+      releaseDate      = new Date() #this must be updated before release[BC]
+
+      if registrationDate < releaseDate
+
+        storage.setValue 'shownBefore', 'true'
+
+        return new WelcomeModal
+
 
   createSingletons:->
 
@@ -67,7 +92,7 @@ class MainController extends KDController
     KD.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
     KD.registerSingleton 'socialapi',                 new SocialApiController
-    KD.registerSingleton 'autocomplete',              new AutoCompleteController
+    KD.registerSingleton 'search',                    new SearchController
 
     router.listen()
     @mainViewController = mvc

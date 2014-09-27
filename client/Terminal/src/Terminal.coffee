@@ -180,12 +180,12 @@ class WebTerm.Terminal extends KDObject
     @scrollToBottom()
 
     [@currentWidth, @currentHeight] = [swidth, sheight]
-    {width, height} = @getCharSizes()
+    {width: charWidth, height: charHeight} = @getCharSizes()
 
-    newWidth  = Math.max width,  Math.floor swidth  / width
-    newHeight = Math.max height, Math.floor sheight / height
+    newCols = Math.max 1, Math.floor swidth  / charWidth
+    newRows = Math.max 1, Math.floor sheight / charHeight
 
-    @setSize newWidth, newHeight
+    @setSize newCols, newRows
 
   windowDidResize: _.throttle (-> @updateSize()), 500
 

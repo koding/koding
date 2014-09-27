@@ -2,7 +2,7 @@ class PrivateMessageModal extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
-    options.title    or= 'START A PRIVATE CONVERSATION WITH:'
+    options.title    or= 'START A CHAT WITH:'
     options.cssClass or= 'private-message activity-modal'
     options.content  or= ''
     options.overlay   ?= yes
@@ -30,7 +30,7 @@ class PrivateMessageModal extends KDModalViewWithForms
             recipient      :
               itemClass    : KDView
             purpose        :
-              placeholder  : 'What\'s your purpose?'
+              placeholder  : 'Purpose? (optional)'
               name         : 'purpose'
             body           :
               label        : ''
@@ -120,13 +120,13 @@ class PrivateMessageModal extends KDModalViewWithForms
 
 
   fetchAccounts: (args, callback) ->
-    { autocomplete } = KD.singletons
+    { search } = KD.singletons
 
     blacklist = @getOptions().blacklist ? []
 
     { inputValue } = args
 
-    autocomplete.searchAccounts inputValue
+    search.searchAccounts inputValue
       .filter (it) -> it.profile.nickname not in blacklist
       # the data source callback is not error-first style,
       # so just pass the callback to .then():

@@ -20,6 +20,8 @@ type iterOptions struct {
 	// Filter for limiting the result set
 	Filter modelhelper.Selector
 
+	Sort []string
+
 	// Iteration collection
 	CollectionName string
 
@@ -79,6 +81,11 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		index := skip              // this is the item count to be processed
 		limit := iterOptions.Limit // this will be the ending point
 		count := index + limit     // total count
+		sort := iterOptions.Sort
+
+		if len(sort) == 0 {
+			sort = []string{"$natural"}
+		}
 
 		iteration := 0
 		for {
@@ -98,7 +105,7 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 				break
 			}
 
-			iter := query.Skip(index).Limit(count - index).Iter()
+			iter := query.Sort(sort...).Skip(index).Limit(count - index).Iter()
 
 			for iter.Next(iterOptions.Result) {
 				if err := iterOptions.F(iterOptions.Result); err != nil {

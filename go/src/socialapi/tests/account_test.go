@@ -1,10 +1,14 @@
 package main
 
 import (
-	"labix.org/v2/mgo/bson"
+	"math/rand"
 	"socialapi/models"
 	"socialapi/rest"
+	"strconv"
 	"testing"
+	"time"
+
+	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -49,6 +53,58 @@ func TestAccountCreation(t *testing.T) {
 
 				So(firstAccount.Id, ShouldEqual, secondAccount.Id)
 			})
+		})
+	})
+}
+
+func TestCheckOwnership(t *testing.T) {
+	Convey("accounts can own things", t, func() {
+		bob := models.NewAccount()
+		bob.Nick = "bob"
+		bob.OldId = bson.NewObjectId().Hex()
+		bobsAccount, err := rest.CreateAccount(bob)
+		So(err, ShouldBeNil)
+
+		ted := models.NewAccount()
+		ted.Nick = "ted"
+		ted.OldId = bson.NewObjectId().Hex()
+		tedsAccount, err := rest.CreateAccount(ted)
+		So(err, ShouldBeNil)
+
+		rand.Seed(time.Now().UnixNano())
+		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+		bobsGroup, err := rest.CreateChannelByGroupNameAndType(bobsAccount.Id, groupName, models.Channel_TYPE_GROUP)
+		So(err, ShouldBeNil)
+
+		bobsPost, err := rest.CreatePost(bobsGroup.Id, bobsAccount.Id)
+		So(err, ShouldBeNil)
+
+		Convey("it should say when an account owns a post", func() {
+			isOwner, err := rest.CheckPostOwnership(bobsAccount, bobsPost)
+			So(err, ShouldBeNil)
+			So(isOwner, ShouldBeTrue)
+		})
+
+		Convey("it should say when an account doesn't own a post", func() {
+			isOwner, err := rest.CheckPostOwnership(tedsAccount, bobsPost)
+			So(err, ShouldBeNil)
+			So(isOwner, ShouldBeFalse)
+		})
+
+		bobsChannel, err := rest.CreateChannel(bob.Id)
+		So(err, ShouldBeNil)
+
+		Convey("it should say when an account owns a channel", func() {
+			isOwner, err := rest.CheckChannelOwnership(bobsAccount, bobsChannel)
+			So(err, ShouldBeNil)
+			So(isOwner, ShouldBeTrue)
+		})
+
+		Convey("it should say when an account doesn't own a channel", func() {
+			isOwner, err := rest.CheckChannelOwnership(tedsAccount, bobsChannel)
+			So(err, ShouldBeNil)
+			So(isOwner, ShouldBeFalse)
 		})
 	})
 }

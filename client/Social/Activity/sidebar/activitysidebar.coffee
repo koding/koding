@@ -35,7 +35,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {
       notificationController
+      computeController
       socialapi
+      router
     } = KD.singletons
 
     @sections     = {}
@@ -45,6 +47,9 @@ class ActivitySidebar extends KDCustomHTMLView
     @selectedItem = null
 
     # @appsList = new DockController
+
+    router
+      .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -59,6 +64,10 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
+    computeController
+      .on 'MachineDataModified',       @bound 'updateMachineTree'
+      .on 'RenderMachines',            @bound 'renderMachines'
+      .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
   # event handling
 
@@ -130,9 +139,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem channel, yes
+      channel.isParticipant    = yes
       channel.participantCount = participantCount
       channel.emit 'update'
+
+      item = @addItem channel, no
       item.setUnreadCount unreadCount
 
 
@@ -142,9 +153,12 @@ class ActivitySidebar extends KDCustomHTMLView
     {id, typeConstant}              = update.channel
     {unreadCount, participantCount} = update
 
-    # @removeItem id
+    @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
+      return KD.showError err  if err
+
+      channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
 
@@ -175,7 +189,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getItems: ->
 
     items = []
-    items = items.concat @sections.followedTopics.listController.getListItems()
+    items = items.concat @sections.channels.listController.getListItems()
     items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
 
@@ -185,7 +199,7 @@ class ActivitySidebar extends KDCustomHTMLView
   getListController: (type) ->
 
     section = switch type
-      when 'topic'                  then @sections.followedTopics
+      when 'topic'                  then @sections.channels
       when 'pinnedactivity', 'post' then @sections.conversations
       when 'privatemessage'         then @sections.messages
       else {}
@@ -266,7 +280,7 @@ class ActivitySidebar extends KDCustomHTMLView
     return # until we have either fav or hot lists back - SY
 
     item  = @sections.hot.listController.itemForId id
-    state = if state then 'Following' else 'Follow'
+    state = if state then 'Unfollow' else 'Follow'
     item?.followButton.setState state
 
 
@@ -310,21 +324,6 @@ class ActivitySidebar extends KDCustomHTMLView
       listController.deselectAllItems()
 
 
-  getItemByRouteParams: (type, slug) ->
-
-    typeConstant = k for own k, v of typeMap when v is type
-
-    itemWeWant = null
-    for own name, section of @sections
-
-      section.listController.getListItems().forEach (item)->
-        if item.typeConstant is typeConstant
-          slugProp = slugProps[item.bongo_.constructorName]
-          itemWeWant = item[slugProp] is slug
-
-    return itemWeWant
-
-
   viewAppended: ->
 
     super
@@ -334,26 +333,19 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
-    unless KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
-      @addSubView @activityLink = new CustomLinkView
-        title    : 'Activity'
-        cssClass : 'kdlistitemview-sidebar-item activity'
-        href     : '/Activity/Public'
-        click    : ->
-          @setClass 'selected'
-          @$('cite.count').remove()
-        icon     : {}
-
-      @activityLink.setPartial '<cite class=\'count hidden\'>1</cite>'
 
   initiateFakeCounter: ->
 
-    return  if KD.singletons.mainController.isFeatureDisabled 'activity-link'
-
     KD.utils.wait 5000, =>
-      @activityLink.setClass 'unread'
-      @activityLink.$('cite').removeClass 'hidden'
+      publicLink = @sections.channels.listController.getListItems().first
+      publicLink.setClass 'unread'
+      publicLink.unreadCount.updatePartial 1
+      publicLink.unreadCount.show()
+
+      publicLink.on 'click', ->
+        KD.utils.wait 177, ->
+          publicLink.unsetClass 'unread'
+          publicLink.unreadCount.hide()
 
 
 
@@ -365,28 +357,90 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
-        id       : "#{id}-workspaces"
-        title    : 'Workspaces'
-        type     : 'title'
-        parentId : id
-      treeData.push
-        title    : 'My Workspace'
-        type     : 'workspace'
-        href     : "/IDE/VM/#{machine.uid}"
-        parentId : id
-      # treeData.push
-      #   id       : "#{id}-apps"
-      #   title    : 'Apps'
-      #   type     : 'title'
-      #   parentId : id
-      # treeData.push
-      #   title    : 'App Store'
-      #   type     : 'app'
-      #   href     : '/Apps'
-      #   parentId : id
+        title        : 'Workspaces <span class="ws-add-icon"></span>'
+        type         : 'title'
+        parentId     : id
+        id           : machine._id
+        machineUId   : machine.uid
+        machineLabel : machine.slug or machine.label
 
+      treeData.push
+        title        : 'My Workspace'
+        type         : 'workspace'
+        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
+        id           : "#{machine.slug or machine.label}-workspace"
+        parentId     : id
+        machineLabel : machine.slug or machine.label
+
+      KD.userWorkspaces.forEach (workspace) ->
+        if workspace.machineUId is machine.uid
+          treeData.push
+            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            type         : 'workspace'
+            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            machineLabel : machine.slug or machine.label
+            data         : workspace
+            id           : workspace._id
+            parentId     : id
 
     @machineTree.addNode data for data in treeData
+
+
+  selectWorkspace: (data) ->
+
+    data = @latestWorkspaceData or {}  unless data
+    { workspace, machine } = data
+
+    return if not machine or not workspace
+
+    tree = @machineTree
+
+    for key, node of tree.nodes
+      nodeData         = node.getData()
+      isSameMachine    = nodeData.uid is machine.uid
+      isMachineRunning = machine.status.state is Machine.State.Running
+
+      if node.type is 'machine'
+        if isSameMachine
+          if isMachineRunning
+            tree.expand node
+          else
+            tree.selectNode node
+            @watchMachineState workspace, machine
+        else
+          tree.collapse node
+
+      else if node.type is 'workspace'
+        if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
+          slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+          tree.selectNode node  if slug is workspace.slug
+
+    @latestWorkspaceData = data
+
+    localStorage         = KD.getSingleton("localStorageController").storage "IDE"
+    minimumDataToStore   = machineLabel: (machine.slug or machine.label), workspaceSlug: workspace.slug
+
+    localStorage.setValue 'LatestWorkspace', minimumDataToStore
+
+
+  watchMachineState: (workspace, machine) ->
+    @watchedMachines  or= {}
+    computeController   = KD.getSingleton 'computeController'
+    appManager          = KD.getSingleton 'appManager'
+    isSameMachineActive = appManager.getFrontApp().mountedMachineUId is machine.uid
+    {Running}           = Machine.State
+
+    return  if @watchedMachines[machine._id]
+
+    callback = (state) =>
+      if state.status is Running
+        machine.status.state = Running
+        if isSameMachineActive
+          @selectWorkspace { workspace, machine }
+          delete @watchedMachines[machine._id]
+
+    computeController.on "public-#{machine._id}", callback
+    @watchedMachines[machine._id] = yes
 
 
   fetchMachines: (callback) ->
@@ -405,7 +459,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
@@ -416,7 +472,7 @@ class ActivitySidebar extends KDCustomHTMLView
     # for this and put this logic into there ~ FIXME ~ GG
     @machineTree.dblClick = (nodeView, event)->
       machine = nodeView.getData()
-      if machine.status.state is Machine.State.Running
+      if machine.status?.state is Machine.State.Running
         @toggle nodeView
 
     section.addSubView header = new KDCustomHTMLView
@@ -427,7 +483,8 @@ class ActivitySidebar extends KDCustomHTMLView
     header.addSubView new KDCustomHTMLView
       tagName  : 'a'
       cssClass : 'buy-vm'
-      click    : @bound 'createBuyNewMachineModal'
+      click    : KD.singletons.computeController
+        .bound 'handleNewMachineRequest'
 
     section.addSubView @machineTree.getView()
 
@@ -441,6 +498,7 @@ class ActivitySidebar extends KDCustomHTMLView
     else
       @fetchMachines @bound 'listMachines'
 
+
   handleMachineItemClick: (machineItem, event) ->
 
     machine  = machineItem.getData()
@@ -451,68 +509,49 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if event.target.nodeName is 'SPAN'
 
-      if status.state is Running
+      if status?.state is Running
         KD.utils.stopDOMEvent event
         KD.singletons.mainView.openMachineModal machine, machineItem
       else return
 
-    else if event.target.nodeName is 'CITE' and machineItem.type is 'machine'
-
-      @handleMachineToggle machineItem, event
-
-    else if machineItem.type in ['app', 'workspace']
-
-      @machineTree.deselectNode machineItem
-      @machineTree.selectNode @machineTree.nodes[machineItem.getData().parentId]
+    else if machineItem.getData().status?.state is Machine.State.Building
 
       return
-
-    else if machineItem.getData().status.state is Machine.State.Building
-
-      return
-
-
-  handleMachineToggle: (machineItem, event) ->
-
-    KD.utils.stopDOMEvent event
-
-    unless machineItem.child.hasClass 'running'
-      @machineTree.deselectNode machineItem
-      return
-
-    @machineTree.toggle machineItem
-
-    for id, node of @machineTree.nodes when node.type is 'machine' and node.id isnt machineItem.id
-      @machineTree.collapse node
-
 
 
   addFollowedTopics: ->
 
-    @addSubView @sections.followedTopics = new ActivitySideView
+    limit = 10
+
+    @addSubView @sections.channels = new ActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
       itemClass  : SidebarTopicItem
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
-      headerLink : KD.utils.groupifyLink '/Activity/Topic/All'
+      searchLink : '/Activity/Topic/Following'
+      limit      : limit
+      headerLink : new CustomLinkView
+        cssClass : 'add-icon'
+        title    : ' '
+        href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
-          limit : 5
+          limit : limit
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
-      @sections.followedTopics.hide()
-
-
+      @sections.channels.hide()
 
 
   addConversations: ->
 
     @addSubView @sections.conversations = new ActivitySideView
       title      : 'Threads'
-      cssClass   : 'conversations'
+      cssClass   : 'conversations hidden'
       itemClass  : SidebarPinnedItem
       dataPath   : 'pinnedMessages'
       delegate   : this
@@ -529,66 +568,141 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addMessages: ->
 
+    limit = 3
+
     @addSubView @sections.messages = new ActivitySideView
-      title      : 'Private Messages'
+      title      : 'Messages'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
+      searchClass: ChatSearchModal
       dataPath   : 'privateMessages'
       delegate   : this
-      noItemText : "No private messages yet."
+      noItemText : "No chat messages yet."
+      searchLink : '/Activity/Chat/All'
+      limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit  : 5
+          limit  : limit
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
 
 
-  createBuyNewMachineModal: ->
+  addNewWorkspace: (machineItem) ->
+    return if @addWorkspaceView
 
-    modal = new KDModalView
-      width       : 340
-      overlay     : yes
-      cssClass    : 'coming-soon-modal activity-modal'
-      position    :
-        top       : 20
-        left      : 255
-      content     : """
-        <h4>Coming soon...</h4>
-        <p>The ability to add new VMs will be available on <strong>Sep 7</strong>.</p>
+    {machineUId, machineLabel} = machineItem.getData()
+    type     = 'new-workspace'
+    delegate = machineItem.getDelegate()
+    parentId = machineUId
+    id       = "#{machineUId}-input"
+    data     = { type, machineUId, machineLabel, parentId, id }
+    tree     = @machineTree
 
-      """
+    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
-    modal.addSubView (new KDCustomHTMLView cssClass: 'modal-arrow'), 'kdmodal-inner', yes
+    @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
+      delegate.removeItem @addWorkspaceView
+      @addWorkspaceView = null
+
+    @addWorkspaceView.child.input.setFocus()
 
 
-    # modal = new BuyMachineModal
+  createNewWorkspace: (options = {}) ->
+    {name, machineUId, rootPath, machineLabel} = options
+    {computeController, router } = KD.singletons
+    layout = {}
 
-    # modal.once 'MachineCreated', (newMachine) =>
-    #   @updateMachineTree =>
-    #     tree = @machineTree
+    if not name or not machineUId
+      return warn 'Missing options to create a new workspace'
 
-    #     for node, i in tree.indexedNodes
-    #       if node.data?._id is newMachine._id
-    #         index = i
+    unless rootPath
+      rootPath       = "/home/#{KD.nick()}/Workspaces/#{KD.utils.slugify name}"
+      emptyWorkspace = yes
 
-    #     if index
-    #       tree.selectNode tree.nodes[tree.getNodeId tree.indexedNodes[index]]
-    #       KD.getSingleton('router').handleRoute "/IDE/VM/#{newMachine.uid}"
+    data    = { name, machineUId, machineLabel, rootPath, layout }
+    machine = m for m in computeController.machines when m.uid is machineUId
+    command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
+
+    return warn "Machine not found."  unless machine
+
+    callback = =>
+      KD.remote.api.JWorkspace.create data, (err, workspace) =>
+        if err
+          @emit 'WorkspaceCreateFailed'
+          return KD.showError "Couldn't create new workspace"
+
+        for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+          parentId = nodeData.id
+
+        view    = @addWorkspaceView
+        data    =
+          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
+          type  : 'workspace'
+          href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+          data  : workspace
+          id    : workspace._id
+          machineLabel : machineLabel
+          parentId: parentId
+
+        if view
+          list  = view.getDelegate()
+          list.removeItem view  if view
+        else
+          for key, node of @machineTree.nodes when node.type is 'title'
+            list = node.getDelegate()
+
+        @machineTree.addNode data
+
+        KD.userWorkspaces.push workspace
+
+        router.handleRoute data.href
+        @emit 'WorkspaceCreated', workspace
+
+    if emptyWorkspace
+      machine.getBaseKite().exec({ command })
+      .then  (res) => callback()
+      .catch (err) ->
+        KD.showError 'Unable to create a new workspace'
+    else
+      callback()
 
 
   updateMachineTree: (callback = noop) ->
 
     @fetchMachines (machines) =>
-      jMachines = []
-      tree      = @machineTree
-      jMachines.push machine.data for machine in machines
 
-      tree.removeAllNodes()
-      @listMachines jMachines
-      callback()
+      @renderMachines machines, callback
+
+
+  renderMachines: (machines, callback = noop)->
+
+    jMachines = []
+    jMachines.push machine.data for machine in machines
+
+    @machineTree.removeAllNodes()
+    @listMachines jMachines
+
+    @selectWorkspace()
+    callback()
+
+
+  invalidateWorkspaces: (machine)->
+
+    return  unless machine?
+
+    KD.remote.api.JWorkspace.deleteByUid machine.uid, (err)=>
+
+      return warn err  if err?
+
+      KD.userWorkspaces =
+        ws for ws in KD.userWorkspaces when ws.machineUId isnt machine.uid
+
+      @updateMachineTree()

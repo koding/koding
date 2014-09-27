@@ -8,7 +8,8 @@ ITEMSPERPAGE = 20
 
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
-  {page, channelId, client, route, contentType} = options
+  { page, channelId, client
+    route, contentType, channelName } = options
 
   return callback "channelId not set"  unless channelId
 
@@ -17,35 +18,42 @@ createFeed = (models, options, callback)->
     skip = (page - 1) * ITEMSPERPAGE
 
   options = {
-    id    : channelId
-    limit : ITEMSPERPAGE
-    skip  : skip
+    id          : channelId
+    limit       : ITEMSPERPAGE
+    skip        : skip
+    channelName : channelName
   }
 
   SocialChannel.fetchActivityCount {channelId}, (err, response)->
     return callback err  if err
     itemCount = response?.totalCount
-    return callback null, getEmptyPage()  unless itemCount
+    return callback null, getEmptyPage channelName  unless itemCount
 
     options.replyLimit = 25
     SocialChannel.fetchActivities client, options, (err, result) ->
       return callback err  if err
 
       {messageList} = result
-      return callback null, getEmptyPage() unless messageList?.length
+      return callback null, getEmptyPage channelName unless messageList?.length
 
       options.page = page
       buildContent models, result.messageList, options, (err, pageContent) ->
         return callback err  if err
         schemaorgTagsOpening = getSchemaOpeningTags contentType
         schemaorgTagsClosing = getSchemaClosingTags contentType
+        channelTitleContent  = getChannelTitleContent channelName
 
-        content = schemaorgTagsOpening + pageContent + schemaorgTagsClosing
+        content = schemaorgTagsOpening + channelTitleContent +
+          pageContent + schemaorgTagsClosing
 
         pagination = getPagination page, itemCount, "Activity/#{route}"
         fullPage = putContentIntoFullPage content, pagination
 
         callback null, fullPage
+
+
+getChannelTitleContent = (channelName) ->
+  content = "<div class='logged-out channel-title'>##{channelName}</div>"
 
 
 buildContent = (models, messageList, options, callback) ->
@@ -183,13 +191,15 @@ getSidebar = ->
     <div class="kdcustomscrollview">
       <main class="kdview kdscrollview">
         <div class="activity-sidebar">
-          <a class="custom-link-view kdlistitemview-sidebar-item activity" href="/Activity/Public">
-            <span class="icon"></span>
-            <span class="title">Activity</span>
-          </a>
+          <section class="followed topics">
+            <h3 class="sidebar-title">Channels</h3>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag" data-paths="name">#public</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/koding"><span class="ttag" data-paths="name">#koding</span></a>
+          </section>
           <section class='sidebar-join'>
-            Join our community of developers building full stack applications
-            on Koding.
+            Join our growing community of developers from all over the world who
+            are building awesome applications on their full-featured, cloud-based
+            development environment powered by Koding.
             <form action="/Register">
               <button type="submit" class="kdbutton solid green medium">
                 <span class="button-title">Sign Up</span>
@@ -198,9 +208,8 @@ getSidebar = ->
             <a href="/Login" class='login-link'>Login</a>
           </section>
           <section class='sidebar-bottom-links'>
-            <a href='http://learn.koding.com/'>University</a>
             <a href='http://koding.com'>Features</a>
-            <a href='http://koding.com/About'>About</a>
+            <a href='http://koding.com/About'>About Koding</a>
           </section>
         </div>
       </main>
@@ -208,8 +217,11 @@ getSidebar = ->
   </aside>
   """
 
-getEmptyPage = ->
-  putContentIntoFullPage "There is no activity yet", ""
+getEmptyPage = (channelName) ->
+  content  = getChannelTitleContent channelName
+  content += "<div class='no-item-found'>There is no activity.</div>"
+
+  putContentIntoFullPage content, ""
 
 putContentIntoFullPage = (content, pagination, graphMeta)->
   getGraphMeta  = require './graphmeta'

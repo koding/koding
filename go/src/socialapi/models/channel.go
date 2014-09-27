@@ -52,6 +52,7 @@ type Channel struct {
 const (
 	// TYPES
 	Channel_TYPE_GROUP           = "group"
+	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
@@ -459,7 +460,7 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	query := bongo.B.BuildQuery(c, bongoQuery)
-	query = query.Where("name like ?", q.Name+"%")
+	query = query.Where("name like ?", "%"+q.Name+"%")
 
 	if err := bongo.CheckErr(
 		query.Find(&channels),
@@ -663,6 +664,11 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return true, nil
 	}
 
+	// anyone can read announcement activity
+	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+		return true, nil
+	}
+
 	// anyone can read topic feed
 	// this is here for non-participated topic channels
 	if c.TypeConstant == Channel_TYPE_TOPIC {
@@ -767,4 +773,89 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.Id
 	return cp.IsParticipant(accountId)
+}
+
+func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
+	messageIds, err := NewChannelMessageList().
+		FetchMessageIdsByChannelId(channelId, &request.Query{
+		Skip:  c * 100,
+		Limit: 100,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return NewChannelMessage().FetchByIds(messageIds)
+}
+
+func isMessageCrossIndexed(messageId int64) (error, bool) {
+	count, err := NewChannelMessageList().CountWithQuery(&bongo.Query{
+		Selector: map[string]interface{}{
+			"message_id": messageId,
+		},
+	})
+	if err != nil {
+		return err, false
+	}
+	return nil, count > 1
+}
+
+func (c *Channel) deleteChannelMessages() error {
+	if c.Id == 0 {
+		return ErrIdIsNotSet
+	}
+	for i := 0; ; i++ {
+		messages, err := getMessageBatch(c.Id, i)
+		if err != nil {
+			return err
+		}
+		for _, message := range messages {
+			err, isCrossIndexed := isMessageCrossIndexed(message.Id)
+			if err != nil {
+				return err
+			}
+
+			if isCrossIndexed {
+				continue
+			}
+
+			if err = message.Delete(); err != nil {
+				return err
+			}
+		}
+		if len(messages) < 100 {
+			return nil
+		}
+	}
+}
+
+func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
+	var listings []ChannelMessageList
+	q := &bongo.Query{
+		Selector: map[string]interface{}{"channel_id": channelId},
+		Pagination: bongo.Pagination{
+			Skip:  100 * c,
+			Limit: 100,
+		}}
+	if err := NewChannelMessageList().Some(&listings, q); err != nil {
+		return nil, err
+	}
+	return listings, nil
+}
+
+func (c *Channel) deleteChannelLists() error {
+	for i := 0; ; i++ {
+		listings, err := getListingBatch(c.Id, i)
+		if err != nil {
+			return err
+		}
+
+		for _, listing := range listings {
+			if err := listing.Delete(); err != nil {
+				return err
+			}
+		}
+		if len(listings) < 100 {
+			return nil
+		}
+	}
 }

@@ -12,18 +12,17 @@ class PrivateMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
-    options.wrapper     ?= yes
-    options.lastToFirst  = yes
+    options.wrapper      ?= yes
+    options.lastToFirst   = yes
+    options.itemClass   or= PrivateMessageListItemView
 
     super options, data
-
-    channel = @getData()
 
     @listPreviousLink = new ReplyPreviousLink
       delegate : @listController
       click    : @bound 'listPreviousReplies'
       linkCopy : 'Show previous replies'
-    , channel
+    , data
 
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
@@ -37,6 +36,20 @@ class PrivateMessagePane extends MessagePane
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
+    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+
+    KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
+
+
+  handleScroll: do ->
+
+    previous = 0
+
+    KD.utils.throttle ->
+      current = document.body.scrollTop
+      @listPreviousReplies()  if current < 20 and current < previous
+      previous = current
+    , 200
 
 
   createInputWidget: ->
@@ -44,6 +57,14 @@ class PrivateMessagePane extends MessagePane
     channel = @getData()
 
     @input = new ReplyInputWidget {channel}
+
+    @input.on 'UpKeyIsPressed', @bound 'editLastMessage'
+
+
+  editLastMessage: ->
+
+    items = @listController.getItemsOrdered().slice(0).reverse()
+    return item.showEditWidget() for item in items when KD.isMyPost item.getData()
 
 
   # override this so that it won't
@@ -112,6 +133,11 @@ class PrivateMessagePane extends MessagePane
     return item
 
 
+  putMessage: (message, index) ->
+
+    @appendMessage message, index or @listController.getItemCount()
+
+
   setResponseMode: (mode) ->
 
     if mode is on
@@ -126,28 +152,42 @@ class PrivateMessagePane extends MessagePane
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
 
-  listPreviousReplies: (event) ->
+  listPreviousReplies: do ->
 
-    @listController.showLazyLoader()
+    inProgress = false
 
-    {appManager} = KD.singletons
-    first         = @listController.getItemsOrdered().first
-    return  unless first
+    (event) ->
 
-    from         = first.getData().createdAt
+      return  if inProgress
 
-    @fetch {from, limit: 10}, (err, items = []) =>
-      @listController.hideLazyLoader()
+      inProgress = true
+      @listController.showLazyLoader()
 
-      return KD.showError err  if err
+      {appManager} = KD.singletons
+      first         = @listController.getItemsOrdered().first
+      return  unless first
 
-      items.forEach @lazyBound 'loadMessage'
+      from         = first.getData().createdAt
+
+      @fetch {from, limit: 10}, (err, items = []) =>
+        @listController.hideLazyLoader()
+
+        return KD.showError err  if err
+
+        items.forEach @lazyBound 'loadMessage'
+
+        inProgress = false
 
 
   messageAdded: (item, index) ->
 
     @scrollDown item
-    {data} = item
+    data         = item.getData()
+    listView     = @listController.getView()
+    headerHeight = @heads?.getHeight() or 0
+
+    if window.innerHeight - headerHeight < listView.getHeight()
+      listView.unsetClass 'padded'
 
     # TODO: This is a temporary fix,
     # we need to revisit this part.
@@ -193,6 +233,21 @@ class PrivateMessagePane extends MessagePane
       nextSibling.unsetClass 'consequent'
 
 
+  appendMessageDeferred: (item) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @appendMessage item
+
+
+  populate: ->
+
+    super =>
+
+      listView = @listController.getView()
+      @listPreviousReplies()  if listView.getHeight() <= window.innerHeight
+
+
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>
@@ -224,7 +279,10 @@ class PrivateMessagePane extends MessagePane
 
     @participantsView = new KDCustomHTMLView
       cssClass    : 'chat-heads'
-      partial     : '<span class="description">Private conversation between</span>'
+      partial     : '<span class="description">Chat between</span>'
+
+
+    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
 
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
@@ -251,3 +309,8 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
+
+  setFilter: ->
+
+
+  defaultFilter: 'Most Recent'

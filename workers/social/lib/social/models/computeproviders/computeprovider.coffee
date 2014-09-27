@@ -42,6 +42,10 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchAvailable    :
           (signature Object, Function)
+        fetchUsage        :
+          (signature Object, Function)
+        fetchPlans        :
+          (signature Object, Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -86,7 +90,9 @@ module.exports = class ComputeProvider extends Base
 
         { meta, postCreateOptions, credential } = machineData
 
-        @createMachine {
+        label ?= machineData.label
+
+        JMachine.create {
           provider : provider.slug
           label, meta, group, user
           credential, provisioners
@@ -140,8 +146,40 @@ module.exports = class ComputeProvider extends Base
     provider.fetchAvailable client, options, callback
 
 
+  @fetchUsage$ = secure (client, options, callback)->
+    ComputeProvider.fetchUsage client, options, callback
 
-  @update = secure revive no, (client, options, callback)->
+  @fetchUsage = revive
+
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
+
+    {provider} = options
+    provider.fetchUsage client, options, callback
+
+
+  @fetchPlans$ = secure (client, options, callback)->
+    ComputeProvider.fetchPlans client, options, callback
+
+  @fetchPlans = revive
+
+    shouldReviveClient   : no
+    shouldPassCredential : no
+
+  , (client, options, callback)->
+
+    {provider} = options
+    provider.fetchPlans client, options, callback
+
+
+  @update = secure revive
+
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
 
     {provider} = options
     provider.update client, options, callback
@@ -151,29 +189,6 @@ module.exports = class ComputeProvider extends Base
 
     {provider} = options
     provider.remove client, options, callback
-
-
-
-
-  @createMachine = (options, callback)->
-
-    { provider, label, meta, group, user, credential, provisioners } = options
-
-    users  = [{ id: user.getId(), sudo: yes, owner: yes }]
-    groups = [{ id: group.getId() }]
-
-    machine = JMachine.create {
-      group : group.slug, user : user.username
-      provider, users, groups, meta, label, credential, provisioners
-    }
-
-    machine.save (err)->
-
-      if err
-        callback err
-        return console.warn "Failed to create Machine for ", {users, groups}
-
-      callback null, machine
 
 
 
@@ -281,9 +296,7 @@ module.exports = class ComputeProvider extends Base
 
         queue.push ->
 
-          callback null, stack
-          # `results` keeps track of the all operation
-          # if needed return with callback.
+          callback null, {stack, results}
 
         daisy queue
 
@@ -301,11 +314,13 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      ComputeProvider.createGroupStack client, (err, res)->
+      ComputeProvider.createGroupStack client, (err, res = {})->
+
+        {stack, results} = res
 
         if err?
           {nickname} = member.profile
-          console.log "Create group stack failed for #{nickname}:", err
+          console.log "Create group stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
