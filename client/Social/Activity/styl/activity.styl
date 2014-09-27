@@ -1924,6 +1924,11 @@ span.collapsedtext
     .kdautocompletewrapper
       width             100%
       min-width         0
+      &.delete-mode
+        .kdinput.text::-webkit-input-placeholder
+          color         rgba(217, 58, 55, 0.9)
+        .kdinput.text:-moz-input-placeholder
+          color         rgba(217, 58, 55, 0.9)
 
     .autocomplete-heads
       width             auto
@@ -1931,8 +1936,17 @@ span.collapsedtext
 
       .chat-head
         white-space     nowrap
-        line-height     40px
+        line-height     25px
+        margin          1px 14px 1px -5px
+        padding         5px
         fl()
+
+        &.selected// > span.first-name:after
+          // content       ' - remove?'
+          // font-size     12px
+          // font-style    italic
+          bg            color, rgba(217, 58, 55, 0.15)
+          rounded       5px
 
         > span
           display       inline-block
@@ -1941,10 +1955,8 @@ span.collapsedtext
 
         .avatarview
           height        25px
-          margin        7px 12px 0 0
+          margin        0 7px 0 0
 
-        &~.chat-head
-          margin-left   14px
 
     .input-wrapper
       margin            0
@@ -1957,23 +1969,25 @@ span.collapsedtext
       font-size         14px
       shadow            none
       outline           none
+      padding-left      0
       fr()
 
       &::-webkit-input-placeholder
         color           #D0D0D0
-
       &:-moz-input-placeholder
         color           #D0D0D0
 
     .formline
       position          relative
       background        #fff
-      height            40px
+      height            auto
       border            1px solid #E8E8E8
       rounded           3px 3px 0 0
-      padding-left      97px
+      padding-left      47px
 
       &.purpose
+        height          40px
+        padding-left    85px
         rounded         0 0 3px 3px
         border-top      none
 
@@ -1986,6 +2000,7 @@ span.collapsedtext
       color             #9A9A9A
       font-size         12px
       font-weight       600
+      min-width         0
 
 
   .list-previous-link
@@ -2656,41 +2671,6 @@ body.group.members
     &:focus
       shadow      none
 
-// new private message modal
-.kdmodal.private-message.add-participant
-
-  .formline.recipient
-    border        1px solid transparent
-
-  .close-icon
-    hidden()
-
-  .kdmodal-inner
-    margin        20px
-
-  .chat-heads
-    display       block
-    padding       0
-    borderBox()
-    rel()
-
-    .chat-head:first-of-type
-      margin-left 0
-
-  .formline.button-field
-
-    button.kdbutton.add-to-convo
-      size                  100% 43px
-      span.button-title
-        line-height         43px
-        font-size           14px
-        padding-left        30px
-      span.icon
-        margin              14px 0 0 0
-        display             inline-block
-        size                20px 20px
-        r-sprite            activity 'add-participant'
-        abs()
 
 .kdautocomplete.listview-wrapper.private-message
   border            1px solid #E0E0E0
