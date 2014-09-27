@@ -664,6 +664,11 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return true, nil
 	}
 
+	// anyone can read announcement activity
+	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+		return true, nil
+	}
+
 	// anyone can read topic feed
 	// this is here for non-participated topic channels
 	if c.TypeConstant == Channel_TYPE_TOPIC {
