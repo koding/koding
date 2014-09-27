@@ -9,7 +9,6 @@ class ActivityInputWidget extends KDView
 
     super options, data
 
-
     @createSubViews()
     @initEvents()
 
@@ -88,13 +87,13 @@ class ActivityInputWidget extends KDView
     return  if @locked
     return @reset yes  unless body = value.trim()
 
-    activity = @getData()
-    {app, channel}    = @getOptions()
-    payload  = @getPayload()
+    activity       = @getData()
+    {app, channel} = @getOptions()
+    payload        = @getPayload()
 
     timestamp       = Date.now()
     clientRequestId = KD.utils.generateFakeIdentifier timestamp
-    channelId       = channel.id
+    channelId       = channel?.id
 
     @lockSubmit()
 

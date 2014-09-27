@@ -134,9 +134,8 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       else
         if name is 'announcement-koding'
-          AnnouncementPane
-        else
-          ActivityPane
+        then AnnouncementPane
+        else ActivityPane
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
