@@ -119,6 +119,14 @@ class ActivityInputView extends KDTokenizedInput
     then @insertNewline()
     else @emit 'Enter', value
 
+  cancel: ->
+
+    if @activeRule
+      {prefix} = @activeRule
+      value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
+      @addToken name: value
+
+    super
 
   insertNewline: ->
     document.execCommand 'insertText', no, "\n"
