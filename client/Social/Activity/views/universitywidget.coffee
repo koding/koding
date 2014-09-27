@@ -19,5 +19,4 @@ class ActivityUniversityWidget extends ActivityBaseWidget
           <li><a href='http://learn.koding.com/' target='_blank'>more...</a></li>
         </ol>
       </p>
-      {{> @readMoreLink}}{{> @readLessLink}}
     """

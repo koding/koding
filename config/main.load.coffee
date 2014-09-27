@@ -34,7 +34,7 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.load'              }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
-  postgres            = { host:     "prod-test.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:           5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  postgres            = { host:     "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:           5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
