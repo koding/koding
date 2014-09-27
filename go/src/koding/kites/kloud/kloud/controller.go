@@ -182,11 +182,17 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 	return k.coreMethods(r, destroyFunc)
 }
 
-func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
+func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
 	machine, err := k.PrepareMachine(r)
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if infoErr != nil {
+			k.Log.Error("[%s] info failed. err: %s", machine.Id, infoErr.Error())
+		}
+	}()
 
 	if machine.State == machinestate.NotInitialized {
 		return &protocol.InfoArtifact{
