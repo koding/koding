@@ -146,11 +146,11 @@ func newKite(conf *Config) *kite.Kite {
 		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
-	klientFolder := "klient/development/latest"
+	klientFolder := "development/latest"
 	checkInterval := time.Second * 5
 	if conf.ProdMode {
 		k.Log.Info("Prod mode enabled")
-		klientFolder = "klient/production/latest"
+		klientFolder = "production/latest"
 		checkInterval = time.Millisecond * 500
 	}
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
@@ -170,7 +170,7 @@ func newKite(conf *Config) *kite.Kite {
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
 		KontrolPublicKey:  kontrolPublicKey,
-		Bucket:            koding.NewBucket("koding-kites", klientFolder),
+		Bucket:            koding.NewBucket("koding-klient", klientFolder),
 		KeyName:           keys.DeployKeyName,
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
