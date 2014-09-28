@@ -1917,11 +1917,34 @@ span.collapsedtext
   vendor                transform, translateX(0)
   borderBox()
 
+  > .listview-wrapper > .kdscrollview
+    overflow            scroll
+    kalc                height, 100vh \- 58px
+
   .new-message-form
     abs                 0px 0 0 0px
     width               100%
     padding             34px
     borderBox()
+
+    &.inline
+      top               0px
+      background        #fff
+      z-index           10
+      padding-bottom    12px
+      vendor            transition, top .2s ease \,
+                                    opacity .2s ease
+      opacity           0
+      vendor              pointer-events, none
+
+      .formline.recipient
+        padding-left    16px
+
+      &.active
+        top             19px
+        opacity         1
+        vendor          pointer-events, auto
+
 
     .kdautocompletewrapper
       width             100%
@@ -2025,7 +2048,7 @@ span.collapsedtext
     line-height             58px
     width                   100%
     max-width               566px
-    z-index                 1
+    z-index                 11
     fix()
 
     .description
@@ -2072,6 +2095,11 @@ span.collapsedtext
         margin            0 0 0 9px
         display           block
         r-sprite          'activity', 'new-participant-plus'
+        -webkit-transition -webkit-transform .2s ease
+        -moz-transition    -moz-transform .2s ease
+
+      &.active .icon
+        vendor            transform, rotateZ(45deg)
 
   .kdlistview-privatemessage
     padding-bottom          100px

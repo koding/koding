@@ -31,6 +31,7 @@ class PrivateMessagePane extends MessagePane
     @participantMap = {}
 
     @createParticipantsView()
+    @createAddParticipantForm()
 
     @kodingBot = new KodingBot delegate : this
 
@@ -293,17 +294,53 @@ class PrivateMessagePane extends MessagePane
       cssClass    : 'new-participant'
       iconOnly    : yes
       callback    : =>
-        new PrivateMessageRecipientModal
-          blacklist : participantsPreview.map (item) -> item._id
-          position  :
-            top     : @participantsView.getY() + 50
-            left    : @participantsView.getX() - 150
-        , @getData()
+        @autoCompleteForm.toggleClass 'active'
+        @newParticipantButton.toggleClass 'active'
+        @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
+
+
+  createAddParticipantForm: ->
+
+    @autoCompleteForm = new KDFormViewWithFields
+      title              : 'START A CHAT WITH:'
+      cssClass           : 'new-message-form inline'
+      fields             :
+        recipient        :
+          itemClass      : KDView
+
+    @autoComplete = new KDAutoCompleteController
+      name                : 'userController'
+      placeholder         : 'Type a username...'
+      itemClass           : ActivityAutoCompleteUserItemView
+      itemDataPath        : 'profile.nickname'
+      outputWrapper       : new KDView cssClass: 'hidden'
+      listWrapperCssClass : 'private-message hidden'
+      submitValuesAsText  : yes
+      dataSource          : @bound 'fetchAccounts'
+
+    @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
+
+    @autoComplete.on 'ItemListChanged', (count) =>
+      participant  = @autoComplete.getSelectedItemData()[count - 1]
+      options      =
+        channelId  : @getData().getId()
+        accountIds : [participant.socialApiId]
+
+      {channel} = KD.singleton 'socialapi'
+      channel.addParticipants options, (err, result) =>
+        if err
+          KD.showError err
+          @autoComplete.reset()
+          return
+
+
+  fetchAccounts: PrivateMessageForm::fetchAccounts
 
 
   viewAppended: ->
 
     @addSubView @participantsView
+    @addSubView @autoCompleteForm
     @addSubView @listPreviousLink
     @addSubView @listController.getView()
     @addSubView @input  if @input
