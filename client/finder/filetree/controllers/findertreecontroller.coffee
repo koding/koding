@@ -627,10 +627,20 @@ class NFinderTreeController extends JTreeViewController
   performDownKey:(nodeView, event)->
 
     if event.altKey
-      offset = nodeView.$('.chevron').offset()
-      event.pageY = offset.top
-      event.pageX = offset.left
-      @contextMenu nodeView, event
+
+      # We have to create a fakeEvent object here
+      # since event.pageY/X is read-only so updating
+      # offsets was not working which was causing to
+      # create context menu in a wrong position when
+      # altkey shortcut used
+      offset    = nodeView.$('.chevron').offset()
+      fakeEvent =
+        pageY   : offset.top
+        pageX   : offset.left
+        stopPropagation : ->
+        preventDefault  : ->
+
+      @contextMenu nodeView, fakeEvent
     else
       super
 
