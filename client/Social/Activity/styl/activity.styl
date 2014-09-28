@@ -1566,6 +1566,7 @@ span.collapsedtext
     .lazy-loader
       width                 100%
       text-align            center
+      position              static
 
     .no-item-found
       font-size             12px
@@ -1647,7 +1648,7 @@ span.collapsedtext
         margin-top          6px
 
     ol
-      padding               12px 0 12px 20px
+      padding               0 0 12px 20px
       counter-reset         orderedList
       display               none
 
@@ -1663,6 +1664,7 @@ span.collapsedtext
 
       ol
         padding-top         0
+        padding-bottom      0
 
         li:before
           content           counter(orderedList, lower-latin) ")"
