@@ -63,20 +63,22 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     {appManager, mainView} = KD.singletons
     ideApp = appManager.getFrontApp()
+    isKodingSidebarCollapsed = mainView.isSidebarCollapsed
 
-    ideSidebarState    = if ideApp.isSidebarCollapsed then 'Expand' else 'Collapse'
-    kodingSidebarState = if mainView.isCollapsed      then 'Expand' else 'Collapse'
+    ideSidebarStateText    = if ideApp.isSidebarCollapsed then 'Expand' else 'Collapse'
+    kodingSidebarStateText = if isKodingSidebarCollapsed  then 'Expand' else 'Collapse'
 
     items = {}
 
-    items["#{ideSidebarState} IDE sidebar"] =
+    items["#{ideSidebarStateText} IDE sidebar"] =
       callback: =>
         appManager.tell 'IDE', 'toggleSidebar'
         @contextMenu.destroy()
 
-    items["#{kodingSidebarState} Koding sidebar"] =
+    items["#{kodingSidebarStateText} Koding sidebar"] =
       callback: =>
         mainView.toggleSidebar()
+        ideApp.isKodingSidebarCollapsed = !isKodingSidebarCollapsed
         @contextMenu.destroy()
 
     @contextMenu = new KDContextMenu options, items

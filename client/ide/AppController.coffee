@@ -115,12 +115,25 @@ class IDEAppController extends AppController
 
         {@finderPane} = @workspace.panel.getPaneByName 'filesPane'
 
+        @bindRouteHandler()
+
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
       if app instanceof IDEAppController
         KD.singletons.windowController.notifyWindowResizeListeners()
+
+  bindRouteHandler: ->
+    {router, mainView} = KD.singletons
+
+    router.on 'RouteInfoHandled', (routeInfo) =>
+      if routeInfo.path.indexOf('/IDE') is -1
+        if mainView.isSidebarCollapsed
+          mainView.toggleSidebar()
+      else
+        if @isKodingSidebarCollapsed and not mainView.isSidebarCollapsed
+          mainView.toggleSidebar()
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
