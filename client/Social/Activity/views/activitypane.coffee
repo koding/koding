@@ -46,7 +46,7 @@ class ActivityPane extends MessagePane
         from = null
         skip = @mostLiked.getLoadedCount()
 
-        @fetch { from, skip }, @createContentAppender 'mostLiked'
+        @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
   createMostRecentView: (options, data) ->
     new ActivityContentPane options, data
