@@ -1913,7 +1913,7 @@ span.collapsedtext
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
 
-
+deleteRed = rgba(217, 58, 55, 0.9)
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            100vh
   padding               58px 34px 0 34px
@@ -1956,9 +1956,9 @@ span.collapsedtext
       min-width         0
       &.delete-mode
         .kdinput.text::-webkit-input-placeholder
-          color         rgba(217, 58, 55, 0.9)
+          color         deleteRed
         .kdinput.text:-moz-input-placeholder
-          color         rgba(217, 58, 55, 0.9)
+          color         deleteRed
 
     .autocomplete-heads
       width             auto
@@ -1971,12 +1971,10 @@ span.collapsedtext
         padding         5px
         fl()
 
-        &.selected// > span.first-name:after
-          // content       ' - remove?'
-          // font-size     12px
-          // font-style    italic
-          bg            color, rgba(217, 58, 55, 0.15)
-          rounded       5px
+        &.selected
+          > span
+            text-decoration   line-through
+            color             deleteRed
 
         > span
           display       inline-block
@@ -2706,11 +2704,14 @@ body.group.members
     &:focus
       shadow      none
 
+dropdownShadow = 0 1px 1px rgba(0,0,0,.1)
+dropdownBorder = 1px solid #E0E0E0
 
 .kdautocomplete.listview-wrapper.private-message
-  border            1px solid #E0E0E0
+  border            dropdownBorder
+  border-top-color  transparent
   rounded           0
-  shadow            0 1px 16px rgba(0,0,0,.09)
+  shadow            dropdownShadow
   margin-top        0
   fix()
 
@@ -2729,9 +2730,16 @@ body.group.members
       margin        1px 10px 1px 5px
       size          25px, 25px
 
-  .kdautocompletelistitem.active
-    color           white
-    bg              color #7a7a7a
+    &.fetching
+    &.no-result
+      width         207px
+      color         #888
+      text-align    center
+
+
+    &.active
+      color           white
+      bg              color #7a7a7a
 
 .kdcontextmenu.tags-autocomplete
   margin-top          -1px
