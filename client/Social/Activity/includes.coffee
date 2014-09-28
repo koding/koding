@@ -4,17 +4,36 @@ module.exports = [
   "activitylistcontroller.coffee"
   "pinnedactivitylistcontroller.coffee"
 
+
+  "sidebar/morelink.coffee"
+  "sidebar/searchmodal.coffee"
+  "sidebar/morechannelsmodal.coffee"
+  "sidebar/conversationsmodal.coffee"
+  "sidebar/topicsearchmodal.coffee"
+  "sidebar/chatsearchmodal.coffee"
+  "sidebar/leavechannelbutton.coffee"
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
+  "sidebar/messageitem.coffee"
   "sidebar/memberitem.coffee"
+  "sidebar/messageitemtext.coffee"
+  "sidebar/messageitemicon.coffee"
   "sidebar/messageitem.coffee"
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
   "sidebar/groupdescription.coffee"
 
+  "views/basewidget.coffee"
+  "views/guidewidget.coffee"
+  "views/topicswidget.coffee"
+  "views/universitywidget.coffee"
+  "views/widgetsbar.coffee"
+
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
+  "views/activitypane.coffee"
+  "views/announcementpane.coffee"
 
   "views/filterlinks.coffee"
 
@@ -32,9 +51,8 @@ module.exports = [
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
   "views/alltopicsmodal.coffee"
-  "views/yourtopicsmodal.coffee"
-  "views/conversationsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
+  "views/searchinputview.coffee"
 
   "views/embedbox.coffee"
   "views/embedboxwidget.coffee"
@@ -62,11 +80,9 @@ module.exports = [
   "views/inputeditwidget.coffee"
   "views/settingsview.coffee"
 
-  "widgets/widgetcontroller.coffee"
-  "widgets/widgetview.coffee"
-  "widgets/widgetbutton.coffee"
-  "widgets/activitywidgetformview.coffee"
-  "widgets/statuswidget.coffee"
+  "views/activitytabhandle.coffee"
+  "views/activitycontentpane.coffee"
+  "views/activitysearchresultspane.coffee"
 
   "ContentDisplays/activitycontentdisplay.coffee"
   "ContentDisplays/StatusUpdate.coffee"
@@ -97,14 +113,16 @@ module.exports = [
   "views/comments/timeview.coffee"
 
   "views/privatemessage/listitem.coffee"
-  "views/privatemessage/modal.coffee"
+  "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
-  "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
+  "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
+  "views/privatemessage/deletemodal.coffee"
+  "views/privatemessage/settingsview.coffee"
 
   "views/buymachinemodal.coffee"
 

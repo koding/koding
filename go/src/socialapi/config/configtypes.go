@@ -44,6 +44,8 @@ type (
 		// Limits holds limits for various cases
 		Limits Limits
 
+		Stripe Stripe
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
@@ -114,5 +116,9 @@ type (
 		MessageBodyMinLen    int    `env:"key=KONFIG_SOCIALAPI_LIMITS_MESSAGEBODYMINLEN     required default=1"`
 		PostThrottleDuration string `env:"key=KONFIG_SOCIALAPI_LIMITS_POSTTHROTTLEDURATION  required default=5s"`
 		PostThrottleCount    int    `env:"key=KONFIG_SOCIALAPI_LIMITS_POSTTHROTTLECOUNT     required default=20"`
+	}
+
+	Stripe struct {
+		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
 	}
 )

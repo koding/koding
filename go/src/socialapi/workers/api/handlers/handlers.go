@@ -14,7 +14,7 @@ import (
 	"socialapi/workers/common/handler"
 
 	"github.com/koding/metrics"
-	"github.com/rcrowley/go-tigertonic"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
 func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
@@ -292,6 +292,14 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	mux.Handle("GET", "/account/{id}/channels/count", handler.Wrapper(
+		handler.Request{
+			Handler: account.ParticipatedChannelCount,
+			Name:    "account-channel-list-count",
+			Metrics: metrics,
+		},
+	))
+
 	// list posts of the account
 	mux.Handle("GET", "/account/{id}/posts", handler.Wrapper(
 		handler.Request{
@@ -318,6 +326,15 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "account-unfollow",
 			CollectMetrics: true,
 			Metrics:        metrics,
+		},
+	))
+
+	// check ownership of an object
+	mux.Handle("GET", "/account/{id}/owns", handler.Wrapper(
+		handler.Request{
+			Handler: account.CheckOwnership,
+			Name:    "account-owns",
+			Metrics: metrics,
 		},
 	))
 
@@ -390,7 +407,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 
 	// exempt contents are filtered
 	// TODO add caching
-	mux.Handle("GET", "/popular/posts/{channelName}/{statisticName}", handler.Wrapper(
+	mux.Handle("GET", "/popular/posts/{channelName}", handler.Wrapper(
 		handler.Request{
 			Handler: popular.ListPosts,
 			Name:    "list-popular-posts",
@@ -421,6 +438,22 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		handler.Request{
 			Handler: privatemessage.List,
 			Name:    "privatemessage-list",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/privatemessage/search", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Search,
+			Name:    "privatemessage-search",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/privatemessage/count", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Count,
+			Name:    "privatemessage-count",
 			Metrics: metrics,
 		},
 	))

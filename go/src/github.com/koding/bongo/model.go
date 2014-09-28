@@ -37,6 +37,10 @@ func (b *Bongo) ById(i Modellable, id int64) error {
 	return nil
 }
 
+func (b *Bongo) Unscoped() *gorm.DB {
+	return b.DB.Unscoped()
+}
+
 func (b *Bongo) UnscopedById(i Modellable, id int64) error {
 	if err := b.DB.
 		Unscoped().
@@ -83,6 +87,11 @@ func (b *Bongo) Delete(i Modellable) error {
 	}
 
 	return nil
+}
+
+// Purge deletes all data, and must be used with care.
+func (b *Bongo) Purge(i Modellable) error {
+	return b.DB.Delete(i).Error
 }
 
 // FetchByIds fetches records by their ids and returns results in the same order

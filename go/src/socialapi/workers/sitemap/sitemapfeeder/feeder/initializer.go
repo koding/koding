@@ -14,6 +14,11 @@ var fileMap map[string]struct{}
 
 func (c *Controller) Start() error {
 	fileMap = make(map[string]struct{})
+
+	if err := c.deleteSitemaps(); err != nil {
+		return fmt.Errorf("old sitemaps are not purged: %s", err)
+	}
+
 	// iterate accounts
 	if err := c.createAccounts(); err != nil {
 		return fmt.Errorf("account sitemap not created: %s", err)
@@ -30,6 +35,12 @@ func (c *Controller) Start() error {
 	}
 
 	return c.createFileNames()
+}
+
+func (c *Controller) deleteSitemaps() error {
+	f := models.NewSitemapFile()
+
+	return f.Purge()
 }
 
 func (c *Controller) createAccounts() error {

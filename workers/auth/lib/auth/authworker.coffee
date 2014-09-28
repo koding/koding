@@ -244,7 +244,7 @@ module.exports = class AuthWorker extends EventEmitter
       {JPermissionSet, JGroup, SocialChannel} = @bongo.models
       client = {context: {group: group.slug}, connection: delegate: account}
       JPermissionSet.checkPermission client, "read group activity", group,
-        callback
+        null, callback
 
     joinGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models

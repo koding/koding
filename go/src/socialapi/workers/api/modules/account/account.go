@@ -35,6 +35,23 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
+func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if query.Type == "" {
+		query.Type = models.Channel_TYPE_TOPIC
+	}
+	cp := models.NewChannelParticipant()
+	a := &models.Account{Id: accountId}
+
+	return response.HandleResultAndError(cp.ParticipatedChannelCount(a, query))
+}
+
 func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 	buildMessageQuery := query.Clone()
@@ -96,4 +113,46 @@ func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 	}
 
 	return response.HandleResultAndError(req.Unfollow(targetId))
+}
+
+func CheckOwnership(u *url.URL, h http.Header) (int, http.Header, interface{}, error) {
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query := request.GetQuery(u)
+
+	ownershipResponse := func(err error) (int, http.Header, interface{}, error) {
+		var success bool
+		switch err {
+		case bongo.RecordNotFound:
+			success = false
+		case nil:
+			success = true
+		default:
+			return response.NewBadRequest(err)
+		}
+		return response.NewOK(map[string]bool{"success": success})
+	}
+
+	switch query.Type {
+	case "channel":
+		channel := models.NewChannel()
+		err = channel.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"creator_id": accountId,
+			},
+		})
+	case "channel-message":
+		channelMessage := models.NewChannelMessage()
+		err = channelMessage.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"id":         query.ObjectId,
+				"account_id": accountId,
+			},
+		})
+	}
+	return ownershipResponse(err)
 }

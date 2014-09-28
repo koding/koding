@@ -5,7 +5,6 @@ request        = require 'request'
 {secure, daisy, dash, signature, Base} = Bongo
 {throttle} = require 'underscore'
 
-
 module.exports = class SocialChannel extends Base
   @share()
 
@@ -47,6 +46,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchFollowedChannels:
           (signature Object, Function)
+        fetchFollowedChannelCount:
+          (signature Object, Function)
         searchTopics         :
           (signature Object, Function)
         fetchProfileFeed     :
@@ -56,6 +57,8 @@ module.exports = class SocialChannel extends Base
         glancePinnedPost     :
           (signature Object, Function)
         cycleChannel:
+          (signature Object, Function)
+        delete:
           (signature Object, Function)
 
     schema             :
@@ -155,6 +158,9 @@ module.exports = class SocialChannel extends Base
   # fetchFollowedChannels - lists followed channels(topics) of an account
   @fetchFollowedChannels = secureRequest fnName: 'fetchFollowedChannels'
 
+  # fetchFollowedChannelCount - fetch followed channel count of an account
+  @fetchFollowedChannelCount = secureRequest fnName: 'fetchFollowedChannelCount'
+
   # updateLastSeenTime - updates user's channel presence data
   @updateLastSeenTime = secureRequest
     fnName  : 'updateLastSeenTime'
@@ -199,7 +205,9 @@ module.exports = class SocialChannel extends Base
     {connection:{delegate}} = client
     options.showExempt = delegate.checkFlag "super-admin"
     options.channelId = options.id
-    doRequest 'fetchChannelActivities', client, options, callback
+    # just to create social channels
+    ensureGroupChannel client, (err, socialApiChannelId)->
+      doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->
     {fetchActivityCount} = require './requests'
@@ -231,3 +239,20 @@ module.exports = class SocialChannel extends Base
           creatorId   : targetId
         method = if options.unfollow then unfollowUser else followUser
         method data, callback
+
+  { deleteChannel } = require './requests'
+
+  @delete = permit
+    advanced: [
+      {
+        permission: 'delete own posts'
+        validateWith: require('./validators').own
+      }
+      {
+        permission: 'delete posts'
+        validateWith: require('../group/validators').any
+      }
+    ]
+    success: (client, options, callback) ->
+      return deleteChannel options, callback  if options.channelId?
+      callback message: "channel id not provided"

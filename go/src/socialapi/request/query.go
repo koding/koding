@@ -36,6 +36,7 @@ type Query struct {
 	ReplyLimit      int       `url:"replyLimit"`
 	ReplySkip       int       `url:"replySkip"`
 	AddIsInteracted bool      `url:"addIsInteracted"`
+	ObjectId        int64     `url:"objectId"`
 }
 
 func NewQuery() *Query {
@@ -110,6 +111,8 @@ func (q *Query) MapURL(u *url.URL) *Query {
 		replySkip, _ := strconv.Atoi(replySkip)
 		q.ReplySkip = replySkip
 	}
+
+	q.ObjectId, _ = GetURIInt64(u, "objectId")
 
 	return q
 }

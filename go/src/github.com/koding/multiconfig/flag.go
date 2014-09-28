@@ -18,6 +18,9 @@ type FlagLoader struct {
 	// --foo is converted to --prefix-foo.
 	// --foo-bar is converted to --prefix-foo-bar.
 	Prefix string
+
+	// args defines a custom argument list that overides os.Args[]
+	args []string
 }
 
 // Load loads the source into the config defined by struct s
@@ -40,7 +43,12 @@ func (f *FlagLoader) Load(s interface{}) error {
 		fmt.Println("")
 	}
 
-	return flagSet.Parse(os.Args[1:])
+	args := os.Args[1:]
+	if f.args != nil {
+		args = f.args
+	}
+
+	return flagSet.Parse(args)
 }
 
 // processField generates a flag based on the given field and fieldName. If a

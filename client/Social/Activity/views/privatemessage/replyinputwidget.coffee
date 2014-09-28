@@ -12,8 +12,9 @@ class ReplyInputWidget extends ActivityInputWidget
   initEvents: ->
     @input.on "Escape", @bound "reset"
     @input.on "Enter",  @bound "submit"
-    @input.on "keyup", =>
+    @input.on "keyup", (event) =>
       @showPreview() if @preview #Updates preview if it exists
+      @emit 'UpKeyIsPressed' if event.keyCode is 38
 
 
   createSubViews: ->

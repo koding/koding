@@ -1,175 +1,197 @@
 class PricingAppView extends KDView
 
+  JView.mixin @prototype
+
+  getInitialState : ->
+    {
+      planInterval : 'year'
+      promotedPlan : 'hobbyist'
+    }
+
   constructor:(options = {}, data) ->
+
     options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
+
     super options, data
 
-    # CtF I know this does not belongs here, but the problem was for the partial registration
-    # there is an async situation of app storage operations caused by guest users/registered
-    # members conversion
-    @appStorage = KD.getSingleton('appStorageController').storage 'Login', '1.0'
+    @state = KD.utils.extend @getInitialState(), options.state
 
-    @productForm = new PricingProductForm name: "plan"
-    @productForm.on "PlanSelected", (plan, options) =>
-      @showBreadcrumb plan, options
-      if "custom-plan" in plan.tags
-        @addGroupForm()
+    @loadPlan()  if KD.isLoggedIn()
+    @initViews()
+    @initEvents()
 
-  viewAppended: ->
-    @addSubView @breadcrumb = new BreadcrumbView
+    { planInterval, promotedPlan } = @state
 
-    paymentController = KD.singleton "paymentController"
-    @setWorkflow paymentController.createUpgradeWorkflow {@productForm}
-
-  setWorkflow: (workflow) ->
-    @workflow.destroy()  if @workflow
-    @groupForm?.destroy()
-    @thankYou?.destroy()
-    @sorry?.destroy()
-
-    workflow.on 'Finished', @bound "workflowFinished"
-    workflow.on 'Cancel', @bound "cancel"
-    workflow.on "SubscriptionTransitionCompleted", @bound "createGroup"
-    workflow.off 'FormIsShown'
-
-    workflow.on 'Failed', =>
-      @hideWorkflow()
-      @showGroupCreationFailed()
-
-    workflow.on 'FormIsShown', (form) =>
-      return  unless workflow.active
-      @breadcrumb.selectItem workflow.active.getOption 'name'
-
-    @addSubView @workflow = workflow
-
-  showWorkflow: ->
-    @workflow.show()
-
-  hideWorkflow: ->
-    @workflow.hide()
-
-  workflowFinished: (@formData) ->
-    @hideWorkflow()
-    @showPaymentSucceded()  if "vm" in @formData.productData.plan.tags
-
-  cancel: ->
-    KD.singleton("router").handleRoute "/Activity"
-
-  showBreadcrumb: (plan, options) ->
-    @breadcrumb.show()
-    @breadcrumb.showPlan plan, options  if plan and options
-
-  hideBreadcrumb: ->
-    @breadcrumb?.hide()
-    document.body.classList.remove 'flow'
-
-  showGroupForm: ->
-
-    return  if @groupForm and not @groupForm.isDestroyed
-    @hideWorkflow()
-    @addSubView @groupForm = new PricingGroupForm
-
-    @breadcrumb.selectItem 'details'
-
-  showGroupCreationFailed: ->
-
-    @addSubView @sorry = new KDView
-      name     : "thanks"
-      cssClass : "pricing-final payment-workflow"
-      partial  :
-        """
-        <i class="error-icon"></i>
-        <h3 class="pricing-title">Something went wrong!</h3>
-        <h6 class="pricing-subtitle">We're sorry to tell that something unexpected has happened,<br/>please contact our support <a href='mailto:support@koding.com' target='_self'>support@koding.com</a>, we'll sort it out ASAP.</h6>
-        """
-
-    @sorry.addSubView new KDButtonView
-      style    : "solid medium"
-      title    : "Go back"
-      callback : ->
-        KD.singleton("router").handleRoute "/"
-
-    @hideBreadcrumb()
+    @plans.planViews[promotedPlan].setClass 'promoted'  unless KD.isLoggedIn()
+    @selectIntervalToggle @state.planInterval
 
 
-  showPaymentSucceded: ->
-    {createAccount, loggedIn} = @formData
-    @breadcrumb.selectItem 'thanks'
+  initViews: ->
 
-    subtitle =
-      if loggedIn then "Now it’s time, time to start Koding!"
-      else "Go to your inbox to complete your registration"
+    @header = new KDCustomHTMLView
+      partial   : "Our pricing, your terms"
+      tagName   : "h4"
+      cssClass  : "pricing-heading"
 
-    @addSubView @thankYou = new KDView
-      cssClass : "pricing-final payment-workflow"
-      partial  :
-        """
-        <i class="check-icon"></i>
-        <h3 class="pricing-title">So much wow, so much horse-power!</h3>
-        <h6 class="pricing-subtitle">#{subtitle}</h6>
-        """
+    @headerDescription = new KDCustomHTMLView
+      tagName   : 'p'
+      cssClass  : 'pricing-description'
+      partial   : "
+        Get started for free or go right into high gear with one of our paid plans.
+        Our simple pricing is designed to help you get the most out of your Koding experience.
+        Trusted by your peers worldwide.
+      "
 
-    if loggedIn
-      @thankYou.addSubView new KDButtonView
-        style    : "solid medium green"
-        title    : "Go to your environment"
-        callback : ->
-          KD.singleton("router").handleRoute "/Environments"
+    @intervalToggle = new KDButtonGroupView
+      cssClass     : 'interval-toggle'
+      buttons      :
+        'month'    :
+          title    : 'MONTHLY'
+          callback : => @emit 'IntervalToggleChanged', { planInterval : 'month' }
+        'year'     :
+          title    : 'YEARLY'
+          callback : => @emit 'IntervalToggleChanged', { planInterval : 'year' }
 
-  showGroupCreated: (group, subscription) ->
-    {createAccount, loggedIn} = @formData
-    @breadcrumb.selectItem 'thanks'
+    @plans = new PricingPlansView { @state }
 
-    planCodes = Object.keys subscription.quantities
+    @footer = @initFooter()
 
-    @addSubView @thankYou = new KDView
-      cssClass : "pricing-final payment-workflow"
-      partial  :
-        """
-        <i class="check-icon"></i>
-        <h3 class="pricing-title"><strong>#{group.title}</strong> has been successfully created</h3>
-        """
+    @kodingFooter = new FooterView
 
-    KD.singleton("appManager").tell "Login", "setStorageData", "redirectTo", group.slug
 
-    if loggedIn
-      @thankYou.addSubView new KDButtonView
-        style    : "solid medium green"
-        title    : "Go to Group"
-        callback : ->
-          window.open "#{window.location.origin}/#{group.slug}", "_blank"
-    else if createAccount
-      @thankYou.addSubView new KDCustomHTMLView
-        partial: "Go to your inbox to complete your registration"
+  initEvents: ->
 
-  getCompleteYourRegistrationButton: ->
-    return new KDButtonView
-      style    : "solid green"
-      title    : "Complete your registration"
-      callback : =>
-        log "Complete my registration"
+    @plans.on 'PlanSelected', @bound 'planSelected'
 
-  addGroupForm: ->
-    @groupForm = new PricingGroupForm
-    @groupForm.on "Submit", => @workflow.collectData "group": yes
-    @workflow.requireData ["group"]
-    @workflow.addForm "group", @groupForm, ["group"]
-    @workflow.on "FormIsShown", (form) =>
-      if form is @groupForm
-        @breadcrumb.selectItem "details"
+    @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
 
-  createGroup: ->
-    return  unless @groupForm
-    groupName  = @groupForm.inputs.GroupName.getValue()
-    visibility = @groupForm.inputs.Visibility.getValue()
-    slug       = @groupForm.inputs.GroupSlug.getValue()
 
-    options      =
-      title      : groupName
-      slug       : slug
-      visibility : visibility
+  initFooter: ->
 
-    {JGroup} = KD.remote.api
-    JGroup.create options, (err, { group, subscription }) =>
-      return KD.showError err  if err
-      @showGroupCreated group, subscription
+    features = [
+      'Full sudo access'
+      'VMs hosted on Amazon EC2'
+      'SSH Access'
+      'Real EC2 VM, no LXCs/hypervising'
+
+      'Custom sub-domains'
+      'Publicly accessible IP'
+      'Ubuntu 14.04'
+      'IDE/Terminal/Collaboration'
+    ]
+
+    footer = new KDCustomHTMLView
+      cssClass : 'pricing-footer'
+
+    footer.addSubView new KDCustomHTMLView
+      tagName : 'h4'
+      partial : 'All plans include:'
+
+    footer.addSubView featuresWrapper = new KDCustomHTMLView
+      tagName  : 'ul'
+      cssClass : 'features clearfix'
+
+    features.forEach (feature) ->
+      featuresWrapper.addSubView new KDCustomHTMLView
+        tagName  : 'li'
+        cssClass : 'single-feature'
+        partial  : feature
+
+    footer.addSubView new CustomLinkView
+      title    : 'Learn more about all our features'
+      cssClass : "learn-more"
+      href     : "/Features"
+
+    footer.addSubView new KDCustomHTMLView
+      cssClass : 'footer-msg'
+      partial  : "
+        <p>Don't worry, you can upgrade or downgrade your plan at any time.</p>
+        <p class='footer-note'>(you can cancel a yearly plan within 3 months -
+        no questions asked! outside of 3 months there is 2 month fee.)</p>
+      "
+
+    return footer
+
+
+  selectIntervalToggle: (planInterval) ->
+
+    button = @intervalToggle.buttons[planInterval]
+    @intervalToggle.buttonReceivedClick button
+
+
+  handleToggleChanged: ({ planInterval }) ->
+
+    @state.planInterval = planInterval
+
+    @selectIntervalToggle planInterval
+
+    @plans.switchTo planInterval
+
+
+  loadPlan: (callback = noop) ->
+
+    { paymentController } = KD.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+
+      return KD.showError err  if err?
+
+      { planTitle } = subscription
+
+      @state.currentPlan = planTitle
+      @plans.planViews[planTitle].disable()
+
+      if planTitle is 'free'
+        @plans.planViews[@state.promotedPlan].setClass 'promoted'
+
+      callback()
+
+
+  planSelected: (options) ->
+
+    return KD.singletons
+      .router
+      .handleRoute '/Login'  unless KD.isLoggedIn()
+
+    return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
+
+    @setState options
+
+    @workflowController = new PaymentWorkflow { @state, delegate: this }
+
+    @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
+
+      plan.enable()  for own _, plan of @plans.planViews
+
+      { planTitle } = state
+      @plans.planViews[planTitle].disable()
+
+      @state.currentPlan = state.planTitle
+
+      KD.singletons
+        .router
+        .handleRoute '/'
+
+
+  continueFrom: (planTitle, planInterval) ->
+
+    @emit 'IntervalToggleChanged', {planInterval}
+
+    plan = @plans.planViews[planTitle]
+    plan.select()
+
+
+  setState: (obj) -> @state = KD.utils.extend @state, obj
+
+
+  pistachio: ->
+    """
+      {{> @header}}
+      {{> @headerDescription}}
+      {{> @intervalToggle}}
+      {{> @plans}}
+      {{> @footer}}
+      {{> @kodingFooter}}
+    """
+
+

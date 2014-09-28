@@ -1,6 +1,5 @@
 {
   "Name": "koding",
-  "Port": 6060,
   "Enabled": true,
   "Users": [
     "ankara",
@@ -14,7 +13,6 @@
       "192.168.2.2",
       "192.168.2.3"
     ],
-    "DBName": "configdb",
     "AvailabilityRatio": 8.23
   }
 }

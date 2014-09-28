@@ -14,6 +14,8 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	paymentapi "socialapi/workers/payment/api"
+	"socialapi/workers/payment/stripe"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
@@ -21,7 +23,6 @@ import (
 )
 
 var (
-	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
 
 	Name = "SocialAPI"
@@ -55,6 +56,10 @@ func main() {
 
 	mux = handlers.Inject(mux, r.Metrics)
 
+	// init payment handlers, this done here instead of in `init()`
+	// like others so we can've access to `metrics`
+	mux = paymentapi.InitHandlers(mux, r.Metrics)
+
 	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello from socialapi")
 	})
@@ -65,6 +70,17 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+
+	// init stripe client
+	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
+
+	go func() {
+		err := stripe.CreateDefaultPlans()
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+	}()
 
 	r.Wait()
 }

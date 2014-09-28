@@ -4,8 +4,8 @@ import "testing"
 
 type (
 	Server struct {
-		Name     string
-		Port     int
+		Name     string `required:"true"`
+		Port     int    `default:"6060"`
 		Enabled  bool
 		Users    []string
 		Postgres Postgres
@@ -14,9 +14,9 @@ type (
 	// Postgres holds Postgresql database related configuration
 	Postgres struct {
 		Enabled           bool
-		Port              int
-		Hosts             []string
-		DBName            string
+		Port              int      `required:"true" customRequired:"yes"`
+		Hosts             []string `required:"true"`
+		DBName            string   `default:"configdb"`
 		AvailabilityRatio float64
 	}
 )
@@ -57,8 +57,26 @@ func TestLoad(t *testing.T) {
 	testStruct(t, s, getDefaultServer())
 }
 
-func testStruct(t *testing.T, s *Server, d *Server) {
+func TestDefaultLoader(t *testing.T) {
+	m := New()
 
+	s := new(Server)
+	if err := m.Load(s); err != nil {
+		t.Error(err)
+	}
+
+	if err := m.Validate(s); err != nil {
+		t.Error(err)
+	}
+	testStruct(t, s, getDefaultServer())
+
+	s.Name = ""
+	if err := m.Validate(s); err == nil {
+		t.Error("Name should be required")
+	}
+}
+
+func testStruct(t *testing.T, s *Server, d *Server) {
 	if s.Name != d.Name {
 		t.Errorf("Name value is wrong: %s, want: %s", s.Name, d.Name)
 	}
@@ -84,11 +102,11 @@ func testStruct(t *testing.T, s *Server, d *Server) {
 	// Explicitly state that Enabled should be true, no need to check
 	// `x == true` infact.
 	if s.Postgres.Enabled != d.Postgres.Enabled {
-		t.Errorf("Enabled is wrong %t, want: %t", s.Postgres.Enabled, d.Postgres.Enabled)
+		t.Errorf("Postgres enabled is wrong %t, want: %t", s.Postgres.Enabled, d.Postgres.Enabled)
 	}
 
 	if s.Postgres.Port != d.Postgres.Port {
-		t.Errorf("Port value is wrong: %d, want: %d", s.Postgres.Port, d.Postgres.Port)
+		t.Errorf("Postgres Port value is wrong: %d, want: %d", s.Postgres.Port, d.Postgres.Port)
 	}
 
 	if s.Postgres.DBName != d.Postgres.DBName {

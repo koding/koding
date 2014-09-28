@@ -34,10 +34,9 @@ class ActivityAppController extends AppController
 
   post: (options = {}, callback = noop) ->
 
-    {body, payload, clientRequestId} = options
     {socialapi} = KD.singletons
 
-    socialapi.message.post {body, payload, clientRequestId}, callback
+    socialapi.message.post options, callback
 
 
   edit: (options = {}, callback = noop) ->
@@ -77,13 +76,14 @@ class ActivityAppController extends AppController
 
 
 
-  fetch: ({channelId, from, limit}, callback = noop) ->
+  fetch: ({channelId, from, limit, skip, mostLiked}, callback = noop) ->
 
+    prefetchedKey = if mostLiked then "popularPosts" else "navigated"
     id = channelId
     {socialapi, router} = KD.singletons
     {socialApiChannelId} = KD.getGroup()
     id ?= socialApiChannelId
-    prefetchedItems = socialapi.getPrefetchedData 'navigated'
+    prefetchedItems = socialapi.getPrefetchedData prefetchedKey
 
     isCorrectPath = ->
       {section, name, slug} = KD.socialApiData.navigated
@@ -93,13 +93,20 @@ class ActivityAppController extends AppController
       return router.getCurrentPath().search(routeToLookUp) > 0
 
     if firstFetch and prefetchedItems.length > 0 and isCorrectPath()
-      messages = socialapi.getPrefetchedData 'navigated'
+      messages = socialapi.getPrefetchedData prefetchedKey
       KD.utils.defer ->  callback null, messages
     else
-      socialapi.channel.fetchActivities {id, from, limit}, callback
+      if mostLiked then @fetchMostLikedPosts({skip, limit}, callback)
+      else socialapi.channel.fetchActivities {id, from, limit}, callback
 
     firstFetch = no
 
+  fetchMostLikedPosts : (options, callback)->
+    options.group       = KD.getGroup().slug
+    options.channelName = "public"
+
+    {socialapi} = KD.singletons
+    socialapi.channel.fetchPopularPosts options, callback
 
   bindModalDestroy: (modal, lastRoute) ->
 

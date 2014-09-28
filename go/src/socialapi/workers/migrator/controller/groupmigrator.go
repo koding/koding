@@ -75,6 +75,9 @@ func (mwc *Controller) migrateAllGroups() {
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = groupName
+	if groupName == "koding" {
+		c.Name = "public"
+	}
 	c.GroupName = groupName
 	c.TypeConstant = models.Channel_TYPE_GROUP
 

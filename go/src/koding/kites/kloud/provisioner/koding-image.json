@@ -2,7 +2,9 @@
     "variables": {
         "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
         "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
-        "template_dir": "website/"
+        "template_dir": "website/",
+        "bash_dir": "bash/",
+        "kodingart_dir": "kodingart/"
     },
     "builders": [
         {
@@ -12,6 +14,8 @@
             "instance_type": "m3.medium",
             "region": "us-east-1",
             "source_ami": "ami-680fd500",
+            "subnet_id": "subnet-98d30fef",
+            "vpc_id": "vpc-bf65dada",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs"
         }
@@ -25,6 +29,7 @@
                 "sudo apt-get install -y ubuntu-standard ubuntu-minimal htop git net-tools aptitude apache2 php5 libapache2-mod-php5 php5-cgi ruby screen fish sudo mc iotop iftop software-properties-common python-fcgi ruby-fcgi",
                 "wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo tar -C /usr/local/ --strip-components=1 -zxv",
                 "sudo apt-get install -y ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go",
+                "sudo apt-get install --only-upgrade bash",
                 "sudo apt-get clean",
                 "sudo a2enmod cgi",
                 "sudo a2enmod rewrite",
@@ -33,11 +38,14 @@
                 "sudo a2enmod proxy_wstunnel",
                 "sudo a2enmod proxy_fcgi",
                 "mkdir -p /tmp/userdata/Web",
+                "mkdir -p /tmp/userdata/bash",
+                "mkdir -p /tmp/userdata/kodingart",
                 "sudo mkdir -p /opt/koding/userdata/",
                 "sudo mkdir -p /opt/koding/userdata/Web",
                 "sudo mkdir -p /opt/koding/userdata/Applications",
                 "sudo mkdir -p /opt/koding/userdata/Backup",
-                "sudo mkdir -p /opt/koding/userdata/Documents"
+                "sudo mkdir -p /opt/koding/userdata/Documents",
+                "sudo mkdir -p /etc/koding"
             ]
         },
         {
@@ -46,9 +54,21 @@
             "destination": "/tmp/userdata/Web"
         },
         {
+            "type": "file",
+            "source": "{{user `bash_dir`}}",
+            "destination": "/tmp/userdata/bash"
+        },
+        {
+            "type": "file",
+            "source": "{{user `kodingart_dir`}}",
+            "destination": "/tmp/userdata/kodingart"
+        },
+        {
             "type": "shell",
             "inline": [
-                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/"
+                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
             ]
         }
     ]

@@ -5,13 +5,11 @@ fs                    = require 'fs'
 
 Configuration = (options={}) ->
 
-  options.hostname       = "prod.koding.com"
-  options.publicHostname = "https://#{options.hostname}"
-
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
 
-  hostname            = options.hostname       or "koding.com"
-  publicHostname      = options.publicHostname or "https://koding.com"
+  publicPort          = options.publicPort     = "80"
+  hostname            = options.hostname       ="prod.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname      = options.publicHostname = "https://#{options.hostname}"
   region              = "aws"
   configName          = "prod"
   environment         = "production"
@@ -22,7 +20,7 @@ Configuration = (options={}) ->
   githubuser          = options.githubuser     or "koding"
 
   mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
-  etcd                = "10.0.0.126:4001,10.0.0.127:4001,10.0.0.128:4001"
+  etcd                = "10.0.0.98:4001,10.0.0.99:4001,10.0.0.100:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
@@ -33,7 +31,7 @@ Configuration = (options={}) ->
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
-  algolia             = { appId:    '8KD9RHY1OA'                                     , apiKey:             'e4a8ebe91bf848b67c9ac31a6178c64b'    , indexSuffix:     ''                   }
+  algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
   postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
@@ -63,6 +61,7 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
+    stripe            : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -73,10 +72,11 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
-    uri                            : {address: "#{customDomain.public}:#{customDomain.port}"}
+    uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
     projectRoot                    : projectRoot
     socialapi                      : socialapi
@@ -163,6 +163,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
+    stripe            : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -196,7 +197,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{publicHostname}/-/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -275,10 +276,10 @@ Configuration = (options={}) ->
       nginx             :
         locations       : ["/xhr"]
 
-    guestCleaner        :
-      group             : "webserver"
-      supervisord       :
-        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+    # guestCleaner        :
+      # group             : "webserver"
+      # supervisord       :
+        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
 
     # clientWatcher       :
     #   group             : "webserver"
@@ -300,6 +301,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+
+    algoliaconnector    :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/algoliaconnector -c #{socialapi.configFilePath}"
 
     notification        :
       group             : "socialapi"

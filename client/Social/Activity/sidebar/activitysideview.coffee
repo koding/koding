@@ -7,7 +7,7 @@ class ActivitySideView extends JView
 
     super options, data
 
-    {itemClass, headerLink, noItemText} = @getOptions()
+    {itemClass, headerLink, noItemText, searchLink} = @getOptions()
     sidebar = @getDelegate()
 
     if noItemText
@@ -59,6 +59,10 @@ class ActivitySideView extends JView
       @listController.selectSingleItem item
       sidebar.selectedItem = item
 
+    {countSource, limit} = @getOptions()
+    @moreLink = new SidebarMoreLink {href: searchLink, countSource, limit}
+    @moreLink.hide()
+
 
   init: ->
 
@@ -79,16 +83,18 @@ class ActivitySideView extends JView
 
 
   renderItems: (err, items = []) ->
+    {limit} = @getOptions()
 
     @listController.hideLazyLoader()
 
     return  if err
 
-    @listController.addItem itemData for itemData in items
+    @listController.addItem itemData for itemData, i in items when i < limit
 
 
   pistachio: ->
     """
     {{> @header}}
     {{> @listView}}
+    {{> @moreLink}}
     """

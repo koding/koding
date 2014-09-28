@@ -80,41 +80,43 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:yes}, callback
+      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:yes}, callback
     # Disable it until we find a solution ~ GG
     # else if JUser.validateAt 'username', usernameOrEmail
-    #   @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:yes}, callback
+    #   @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:yes}, callback
     else callback new KodingError 'Invalid input.'
 
   @resendVerification = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
-      @recoverPasswordByEmail client, {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByEmail {email: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
     else if JUser.validateAt 'username', usernameOrEmail
-      @recoverPasswordByUsername client, {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
+      @recoverPasswordByUsername {username: usernameOrEmail, resetPassword:no, verb:"Verify"}, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = (client, options, callback)->
+  @recoverPasswordByUsername = (options, callback) ->
     JUser = require './user'
-    {delegate} = client.connection
-    {username} = options
-    JUser.one {username}, (err, user)=>
-      unless user then callback new KodingError "Unknown username"
-      else
-        options.email = user.getAt('email')
-        @create client, options, callback
+    { username } = options
 
-  @recoverPasswordByEmail = secure (client, options, callback)->
+    JUser.one { username }, (err, user)=>
+      unless user
+        return callback new KodingError "Unknown username"
+
+      options.email = user.getAt('email')
+      @create options, callback
+
+  @recoverPasswordByEmail = (options, callback) ->
     JUser = require './user'
-    {delegate} = client.connection
-    {email} = options
-    JUser.count {email}, (err, num)=>
-      unless num then callback null # pretend like everything went fine.
-      else
-        options.email = email
-        @create client, options, callback
+    { email } = options
 
-  @create = (client, options, callback)->
+    JUser.count { email }, (err, num) =>
+      unless num
+        return callback null # pretend like everything went fine.
+
+      options.email = email
+      @create options, callback
+
+  @create = (options, callback)->
     JUser = require './user'
     token = createId()
 
@@ -189,35 +191,37 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     query.status = 'active'
     @update query, {$set: status: 'invalidated'}, callback
 
-  @resetPassword = secure (client, token, newPassword, callback)->
+  @resetPassword = (token, newPassword, callback) ->
+    @one {token}, (err, certificate)->
+      return callback err  if err
+      return callback { message: 'Invalid token.' }  unless certificate
+      {status, expiresAt} = certificate
+      if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
+        return callback message: """
+          This password recovery certificate cannot be redeemed.
+          """
+
+      {username} = certificate
+
+      JUser.one {username}, (err, user)->
+        return callback err or { message: "Unknown user!" }  if err or not user
+        certificate.redeem (err)->
+          return callback err  if err
+          user.changePassword newPassword, (err)->
+            return callback err  if err
+            JPasswordRecovery.invalidate {username}, (err)->
+              return callback UNKNOWN_ERROR if err
+              user.confirmEmail (err)->
+                return callback UNKNOWN_ERROR if err
+                callback err, unless err then username
+
+  @resetPassword$ = secure (client, token, newPassword, callback)->
     JUser = require './user'
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
       callback { message: 'You are already logged in!' }
     else
-      @one {token}, (err, certificate)->
-        return callback err  if err
-        return callback { message: 'Invalid token.' }  unless certificate
-        {status, expiresAt} = certificate
-        if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
-          console.warn 'Old-style password reset token is expired', delegate.profile.nickname
-          return callback message: """
-            This password recovery certificate cannot be redeemed.
-            """
-
-        {username} = certificate
-
-        JUser.one {username}, (err, user)->
-          return callback err or { message: "Unknown user!" }  if err or not user
-          certificate.redeem (err)->
-            return callback err  if err
-            user.changePassword newPassword, (err)->
-              return callback err  if err
-              JPasswordRecovery.invalidate {username}, (err)->
-                return callback UNKNOWN_ERROR if err
-                user.confirmEmail (err)->
-                  return callback UNKNOWN_ERROR if err
-                  callback err, unless err then username
+      @resetPassword token, newPassword, callback
 
   @fetchRegistrationDetails = (token, callback) ->
     JAccount = require './account'

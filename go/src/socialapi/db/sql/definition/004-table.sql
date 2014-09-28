@@ -10,6 +10,7 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'followers',
     'pinnedactivity',
     'privatemessage',
+    'announcement',
     'default'
 );
 ALTER TYPE "api"."channel_type_constant_enum" OWNER TO "social";
@@ -179,3 +180,4 @@ CREATE TABLE "api"."message_reply" (
 
 -- ALTER TABLE "api"."message_reply" OWNER TO "social";
 GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
+

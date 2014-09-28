@@ -25,18 +25,15 @@ class ActivityActionsView extends JView
 
         KD.utils.stopDOMEvent event
 
-        data = @getData()
-        if data?.group? and data.group isnt "koding"
-          shareUrl = "#{KD.config.mainUri}/#{data.group}/Activity/Post/#{data.slug}"
-        else
-          shareUrl = "#{KD.config.mainUri}/Activity/Post/#{data.slug}"
+        url      = "Activity/Post/#{data.slug}"
+        shareUrl = KD.utils.groupifyLink(url, yes)
 
         new KDContextMenu
           cssClass    : "activity-share-popup"
           type        : "activity-share"
           delegate    : this
-          x           : @shareLink.getX() + 25
-          y           : @shareLink.getY() - 7
+          x           : @shareLink.getX() + window.scrollX + 25
+          y           : @shareLink.getY() + window.scrollY - 7
           menuMaxWidth: 400
           menuMinWidth: 192
           lazyLoad    : yes
@@ -49,7 +46,7 @@ class ActivityActionsView extends JView
     @loader = new KDLoaderView
       cssClass      : 'action-container'
       size          :
-        width       : 16
+        width       : 12
       loaderOptions :
         color       : '#6B727B'
 
