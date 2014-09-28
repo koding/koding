@@ -256,7 +256,7 @@ do ->
 
       Thanks! ~ Koding Devs.
 
-      psst! we're hiring -> apply_at_koding.com
+      psst! we're hiring -> apply@koding.com
 
     """
 
