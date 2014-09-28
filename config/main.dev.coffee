@@ -510,20 +510,21 @@ Configuration = (options={}) ->
 
         echo "Usage: "
         echo ""
-        echo "  run                    : to start koding"
-        echo "  run killall            : to kill every process started by run script"
-        echo "  run install            : to compile/install client and "
-        echo "  run buildclient        : to see of specified worker logs only"
-        echo "  run logs               : to see all workers logs"
-        echo "  run log [worker]       : to see of specified worker logs only"
-        echo "  run buildservices      : to initialize and start services"
-        echo "  run services           : to stop and restart services"
-        echo "  run worker             : to list workers"
-        echo "  run chaosmonkey        : to restart every service randomly to test resilience."
-        echo "  run testendpoints      : to test every URL endpoint programmatically."
-        echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
-        echo "  run worker [worker]    : to run a single worker"
-        echo "  run help               : to show this list"
+        echo "  run                       : to start koding"
+        echo "  run killall               : to kill every process started by run script"
+        echo "  run install               : to compile/install client and "
+        echo "  run buildclient           : to see of specified worker logs only"
+        echo "  run logs                  : to see all workers logs"
+        echo "  run log [worker]          : to see of specified worker logs only"
+        echo "  run buildservices         : to initialize and start services"
+        echo "  run buildservices sandbox : to initialize and start services on sandbox"
+        echo "  run services              : to stop and restart services"
+        echo "  run worker                : to list workers"
+        echo "  run chaosmonkey           : to restart every service randomly to test resilience."
+        echo "  run testendpoints         : to test every URL endpoint programmatically."
+        echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
+        echo "  run worker [worker]       : to run a single worker"
+        echo "  run help                  : to show this list"
         echo ""
 
       }
@@ -665,6 +666,17 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
 
+      function sandbox_buildservices () {
+        SANDBOX_SERVICES=54.165.122.100
+        SANDBOX_WEB_1=54.165.177.88
+        SANDBOX_WEB_2=54.84.179.170
+
+        echo "cd /opt/koding; ./run buildservices" | ssh root@$SANDBOX_SERVICES @/bin/bash
+
+        echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_1 /bin/bash
+        echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_2 /bin/bash
+      }
+
       if [[ "$1" == "killall" ]]; then
 
         kill_all
@@ -698,6 +710,18 @@ Configuration = (options={}) ->
         services
 
       elif [ "$1" == "buildservices" ]; then
+
+        if [ "$2" == "sandbox" ]; then
+          read -p "This will destroy sandbox databases (y/N)" -n 1 -r
+          echo ""
+          if [[ ! $REPLY =~ ^[Yy]$ ]]
+          then
+              exit 1
+          fi
+
+          sandbox_buildservices
+          exit 0
+        fi
 
         check_service_dependencies
 
