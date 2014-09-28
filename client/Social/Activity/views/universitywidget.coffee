@@ -1,4 +1,4 @@
-class ActivityUniversityWidget extends ActivityGuideWidget
+class ActivityUniversityWidget extends ActivityBaseWidget
 
   constructor: (options = {}, data) ->
 
@@ -19,5 +19,4 @@ class ActivityUniversityWidget extends ActivityGuideWidget
           <li><a href='http://learn.koding.com/' target='_blank'>more...</a></li>
         </ol>
       </p>
-      {{> @readMoreLink}}{{> @readLessLink}}
     """

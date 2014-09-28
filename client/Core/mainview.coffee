@@ -42,23 +42,26 @@ class MainView extends KDView
     @header.addSubView new TopNavigation
 
     @header.addSubView @logo = new KDCustomHTMLView
-      tagName   : "a"
-      domId     : "koding-logo"
-      cssClass  : if entryPoint?.type is 'group' then 'group' else ''
-      partial   : '<cite></cite>'
+      tagName    : "a"
+      attributes : href : '/'
+      domId      : "koding-logo"
+      cssClass   : if entryPoint?.type is 'group' then 'group' else ''
+      partial    : '<cite></cite>'
       click     : (event)=>
         KD.utils.stopDOMEvent event
         {router} = KD.singletons
-        if KD.isLoggedIn()
-        then router.handleRoute '/Activity', {entryPoint}
-        else router.handleRoute '/', {entryPoint}
+        router.handleRoute router.getDefaultRoute()
 
     @logo.setClass KD.config.environment
 
     @header.addSubView @logotype = new CustomLinkView
       cssClass : 'logotype'
       title    : 'Koding'
-      href     : '/Home'
+      href     : '/'
+      click    : (event)=>
+        KD.utils.stopDOMEvent event
+        {router} = KD.singletons
+        router.handleRoute router.getDefaultRoute()
 
 
   createSidebar: ->
@@ -69,9 +72,19 @@ class MainView extends KDView
       tagName  : 'aside'
       domId    : 'main-sidebar'
 
-    @aside.addSubView new KDCustomHTMLView
+    logoWrapper = new KDCustomHTMLView
       cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
-      partial   : "<a href='/'><figure></figure></a>"
+
+    logoWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
+      partial    : '<figure></figure>'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        {router} = KD.singletons
+        router.handleRoute router.getDefaultRoute()
+
+    @aside.addSubView logoWrapper
 
     @aside.addSubView @sidebar = new KDCustomScrollView
       offscreenIndicatorClassName: 'unread'

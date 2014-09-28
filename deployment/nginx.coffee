@@ -179,6 +179,15 @@ module.exports.create = (workers, environment)->
 
       #{createStubLocation(environment)}
 
+      # temporary exception for kloud to reach webserver without auth
+      location /-/subscriptions {
+        proxy_pass            http://webserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
       # special case for ELB here, for now
       location /-/healthCheck {
         proxy_pass            http://webserver;

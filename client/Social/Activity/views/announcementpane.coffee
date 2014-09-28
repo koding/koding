@@ -4,13 +4,14 @@ class AnnouncementPane extends ActivityPane
     options.cssClass = "activity-pane announcement-pane #{options.type}"
     super options, data
 
-  viewAppended: ->
-    super()
 
-    # TODO: this will be a false negative if the roles are not loaded yet.
-    #       this should be fixed upstream by making sure the roles are
-    #       available when the page is loaded. C.T.
-    @input.hide()  unless 'admin' in KD.config.roles
+  viewAppended: ->
+
+    @addSubView @channelTitleView
+    KD.singletons.mainView.ready =>
+      @addSubView @input  if 'admin' in KD.config.roles
+      @addSubView @tabView
+
 
   createContentViews: ->
     data = @getData()

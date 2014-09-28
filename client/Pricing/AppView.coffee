@@ -100,7 +100,7 @@ class PricingAppView extends KDView
     footer.addSubView new CustomLinkView
       title    : 'Learn more about all our features'
       cssClass : "learn-more"
-      href     : "/"
+      href     : "/Features"
 
     footer.addSubView new KDCustomHTMLView
       cssClass : 'footer-msg'

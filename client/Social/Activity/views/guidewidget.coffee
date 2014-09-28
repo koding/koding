@@ -6,6 +6,22 @@ class ActivityGuideWidget extends ActivityBaseWidget
 
     super options, data
 
+    @readLessLink       = new CustomLinkView
+      title             : 'hide info...'
+      cssClass          : 'read-more-link hidden'
+      click             : =>
+        @unsetClass 'expand'
+        @readMoreLink.show()
+        @readLessLink.hide()
+
+    @readMoreLink       = new CustomLinkView
+      title             : 'read more...'
+      cssClass          : 'read-more-link'
+      click             : =>
+        @setClass 'expand'
+        @readMoreLink.hide()
+        @readLessLink.show()
+
 
   pistachio : ->
 
@@ -43,7 +59,7 @@ class ActivityGuideWidget extends ActivityBaseWidget
             Don’t share private info (email address, phone number, etc.)
           </li>
           <li>
-            Use Markdown whenever possible (postint code fragments, links, images, etc.)
+            Use Markdown whenever possible (posting code fragments, links, images, etc.)
             Our handy Markdown guide can be found <a href='http://learn.koding.com/guides/markdown/' target='_blank'>here</a>. Preview your Markdown before
             posting using the M↓ button.
           </li>

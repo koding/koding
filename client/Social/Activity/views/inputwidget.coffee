@@ -9,7 +9,6 @@ class ActivityInputWidget extends KDView
 
     super options, data
 
-
     @createSubViews()
     @initEvents()
 
@@ -34,15 +33,6 @@ class ActivityInputWidget extends KDView
     @buttonBar    = new KDCustomHTMLView
       cssClass    : "widget-button-bar"
 
-    @bugNotification = new KDCustomHTMLView
-      cssClass : 'bug-notification hidden'
-      partial  : '<figure></figure>Posts tagged
-        with <strong>#bug</strong> will be
-        moved to <a href="/Bugs" target="_blank">
-        Bug Tracker</a>.'
-
-    @bugNotification.bindTransitionEnd()
-
     @previewIcon = new KDCustomHTMLView
       tagName    : "span"
       cssClass   : "preview-icon"
@@ -61,7 +51,6 @@ class ActivityInputWidget extends KDView
 
     @input.on "TokenAdded", (type, token) =>
       if token.slug is "bug" and type is "tag"
-        @bugNotification.show()
         @setClass "bug-tagged"
 
     # FIXME we need to hide bug warning in a proper way ~ GG
@@ -72,15 +61,8 @@ class ActivityInputWidget extends KDView
       @helperView?.checkForCommonQuestions val
       if val.indexOf("5051003840118f872e001b91") is -1
         @unsetClass 'bug-tagged'
-        @bugNotification.hide()
 
-    @on "SubmitStarted", =>
-
-      @hidePreview()  if @preview
-
-      @unsetClass "bug-tagged"
-      @bugNotification.once 'transitionend', =>
-        @bugNotification.hide()
+    @on "SubmitStarted", => @hidePreview()  if @preview
 
 
   submit: (value) ->
@@ -88,13 +70,13 @@ class ActivityInputWidget extends KDView
     return  if @locked
     return @reset yes  unless body = value.trim()
 
-    activity = @getData()
-    {app, channel}    = @getOptions()
-    payload  = @getPayload()
+    activity       = @getData()
+    {app, channel} = @getOptions()
+    payload        = @getPayload()
 
     timestamp       = Date.now()
     clientRequestId = KD.utils.generateFakeIdentifier timestamp
-    channelId       = channel.id
+    channelId       = channel?.id
 
     @lockSubmit()
 
@@ -247,7 +229,6 @@ class ActivityInputWidget extends KDView
     @addSubView @input
     @addSubView @embedBox
     @addSubView @buttonBar
-    @addSubView @bugNotification
     @addSubView @helperView
     @buttonBar.addSubView @submitButton
     @buttonBar.addSubView @previewIcon

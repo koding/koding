@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -22,6 +23,8 @@ import (
 	"koding/kites/kloud/machinestate"
 	kloudprotocol "koding/kites/kloud/protocol"
 	"koding/kites/kloud/sshutil"
+
+	"github.com/mitchellh/goamz/ec2"
 )
 
 var (
@@ -29,11 +32,12 @@ var (
 	kld       *kloud.Kloud
 	remote    *kite.Client
 	conf      *config.Config
+	provider  *koding.Provider
 )
 
 const (
-	machineId = "koding_id0"
-	etcdIp    = "192.168.59.103:4001"
+	machineId0 = "koding_id0"
+	etcdIp     = "192.168.59.103:4001"
 )
 
 type args struct {
@@ -72,6 +76,7 @@ func init() {
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("stop", kld.Stop)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
 
 	go kloudKite.Run()
@@ -97,6 +102,8 @@ func init() {
 	}
 }
 
+// Main VM action tests (build, start, stop, destroy, resize, reinit)
+
 func TestPing(t *testing.T) {
 	_, err := remote.Tell("kite.ping")
 	if err != nil {
@@ -104,33 +111,120 @@ func TestPing(t *testing.T) {
 	}
 }
 
+func TestInvalidMethodsOnUnitialized(t *testing.T) {
+	if err := start(machineId0); err == nil {
+		t.Error("`start` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := destroy(machineId0); err == nil {
+		t.Error("`destroy` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := resize(machineId0); err == nil {
+		t.Error("`resize` method can not be called on `uninitialized` machines.")
+	}
+
+	if err := reinit(machineId0); err == nil {
+		t.Error("`reinit` method can not be called on `uninitialized` machines.")
+	}
+}
+
 func TestBuild(t *testing.T) {
-	if err := build(machineId); err != nil {
+	if err := build(machineId0); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnRunning(t *testing.T) {
+	t.Log("Running invalid methods on a running VM.")
+	if err := build(machineId0); err == nil {
+		t.Error("`build` method can not be called on `running` machines.")
 	}
 }
 
 func TestStop(t *testing.T) {
-	if err := stop(machineId); err != nil {
+	if err := stop(machineId0); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnStopped(t *testing.T) {
+	t.Log("Running invalid methods on a stopped VM.")
+	// run the tests now.
+	if err := build(machineId0); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 }
 
 func TestStart(t *testing.T) {
-	if err := start(machineId); err != nil {
+	if err := start(machineId0); err != nil {
 		t.Error(err)
 	}
 }
 
+func TestResize(t *testing.T) {
+	storageWant := 5
+	m := GetMachineData(machineId0)
+	m.Builder["storage_size"] = storageWant
+	SetMachineData(machineId0, m)
+
+	if err := resize(machineId0); err != nil {
+		t.Error(err)
+	}
+
+	storageGot, err := getAmazonStorageSize(machineId0)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if storageGot != storageWant {
+		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+			storageWant,
+			storageGot,
+		)
+	}
+}
+
 func TestReinit(t *testing.T) {
-	if err := reinit(machineId); err != nil {
+	if err := reinit(machineId0); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestDestroy(t *testing.T) {
-	if err := destroy(machineId); err != nil {
+	if err := destroy(machineId0); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestInvalidMethodsOnTerminated(t *testing.T) {
+	t.Log("Running invalid methods on a terminated VM.")
+	if err := stop(machineId0); err == nil {
+		t.Error("`stop` method can not be called on `terminated` machines.")
+	}
+
+	if err := start(machineId0); err == nil {
+		t.Error("`start` method can not be called on `terminated` machines.")
+	}
+
+	if err := destroy(machineId0); err == nil {
+		t.Error("`destroy` method can not be called on `terminated` machines.")
+	}
+
+	if err := resize(machineId0); err == nil {
+		t.Error("`resize` method can not be called on `terminated` machines.")
+	}
+
+	if err := reinit(machineId0); err == nil {
+		t.Error("`reinit` method can not be called on `terminated` machines.")
 	}
 }
 
@@ -214,7 +308,6 @@ func destroy(id string) error {
 	if err != nil {
 		return err
 	}
-
 	eArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
 			EventId: destroyArgs.MachineId,
@@ -319,6 +412,36 @@ func reinit(id string) error {
 	return nil
 }
 
+func resize(id string) error {
+	resizeArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("resize", resizeArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: resizeArgs.MachineId,
+			Type:    "resize",
+		},
+	})
+
+	if err := listenEvent(eArgs, machinestate.Running); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
 // reached in 10 miunuts.
@@ -373,14 +496,14 @@ func newKloud() *kloud.Kloud {
 	kld.Storage = testStorage
 	kld.Debug = true
 
-	provider := &koding.Provider{
+	provider = &koding.Provider{
 		Kite: kloudKite,
 		Log:  newLogger("koding", false),
 
 		KontrolURL:        conf.KontrolURL,
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
-		Bucket:            koding.NewBucket("koding-kites", "klient/development/latest"),
+		Bucket:            koding.NewBucket("koding-klient", "development/latest"),
 		Test:              true,
 		HostedZone:        "dev.koding.io", // TODO: Use test.koding.io
 		AssigneeName:      "kloud-test",
@@ -395,4 +518,38 @@ func newKloud() *kloud.Kloud {
 	kld.AddProvider("koding", provider)
 
 	return kld
+}
+
+func getAmazonStorageSize(machineId string) (int, error) {
+	m := GetMachineData(machineId0)
+
+	a, err := provider.NewClient(m)
+	if err != nil {
+		return 0, err
+	}
+
+	instance, err := a.Instance(a.Id())
+	if err != nil {
+		return 0, err
+	}
+
+	if len(instance.BlockDevices) == 0 {
+		return 0, fmt.Errorf("fatal error: no block device available")
+	}
+
+	// we need in a lot of placages!
+	oldVolumeId := instance.BlockDevices[0].VolumeId
+
+	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	if err != nil {
+		return 0, err
+	}
+
+	volSize := oldVolResp.Volumes[0].Size
+	currentSize, err := strconv.Atoi(volSize)
+	if err != nil {
+		return 0, err
+	}
+
+	return currentSize, nil
 }

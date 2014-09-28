@@ -24,6 +24,8 @@ class ActivityAppView extends KDView
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
 
+    @widgetsBar = new ActivityWidgetsBar
+
     @tabs = new KDTabView
       tagName             : 'main'
       cssClass            : 'app-content'
@@ -46,6 +48,7 @@ class ActivityAppView extends KDView
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
+    @addSubView @widgetsBar
 
 
   scroll: ->
@@ -61,11 +64,7 @@ class ActivityAppView extends KDView
 
     {socialapi, router, notificationController} = KD.singletons
 
-    if type is 'topic' and (@widgetsBar?.isDestroyed or !@widgetsBar)
-        @addSubView @widgetsBar = new ActivityWidgetsBar
-
-    else if type isnt 'topic' and @widgetsBar
-        @widgetsBar.destroy()
+    if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
 
     kallback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
@@ -134,9 +133,8 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       else
         if name is 'announcement-koding'
-          AnnouncementPane
-        else
-          ActivityPane
+        then AnnouncementPane
+        else ActivityPane
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
@@ -154,6 +152,7 @@ class ActivityAppView extends KDView
 
   showNewMessageForm: ->
 
+    @widgetsBar.hide()
     @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
       .addSubView form = new PrivateMessageForm
       .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane
