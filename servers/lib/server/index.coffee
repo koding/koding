@@ -234,7 +234,7 @@ handleClientIdNotFound = (res, req)->
   return res.send 500, err
 
 
-app.get "/:name?/Register", (req, res) ->
+app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
   { redirect } = req.body
