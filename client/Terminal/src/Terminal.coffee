@@ -14,7 +14,7 @@ class WebTerm.Terminal extends KDObject
 
     { containerView, @readOnly } = options
 
-    super()
+    super options
 
     if @readOnly
       for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
@@ -162,8 +162,8 @@ class WebTerm.Terminal extends KDObject
 
   getCharSizes:->
     sizes =
-      width  : @measurebox.getWidth()  or @_mbWidth
-      height : @measurebox.getHeight() or @_mbHeight
+      width  : @measurebox.getWidth()  or @_mbWidth  or 7
+      height : @measurebox.getHeight() or @_mbHeight or 14
 
     [@_mbWidth, @_mbHeight] = [@measurebox.getWidth(), @measurebox.getHeight()]
 
