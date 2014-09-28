@@ -19,10 +19,15 @@ class ActivityInputView extends KDTokenizedInput
     @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
+
     KD.singletons.search.searchTopics inputValue
       .then (tags) =>
+        pad = 46
         @showMenu
-          itemChildClass: TagContextMenuItem
+          itemChildClass : TagContextMenuItem
+          x              : @getX() + pad
+          y              : @getY() + @getHeight()
+          cssClass       : 'tags-autocomplete'
         , tags.map (tag) -> new AlgoliaResult tag
 
   menuItemClicked: (item) ->
@@ -48,7 +53,7 @@ class ActivityInputView extends KDTokenizedInput
     value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
     tokens = @menu.getData().filter @getTokenFilter()
     for token in tokens
-      if value is token.name.toLowerCase()
+      if value is token.title.toLowerCase()
         @addToken token, @getOptions().tokenViewClass
         @hideMenu()
         return  true
@@ -79,14 +84,16 @@ class ActivityInputView extends KDTokenizedInput
     @tokenInput.remove()
 
   keyDown: (event) ->
+
     super event
-    return  if event.isPropagationStopped()
+
+    return  if event.isPropagationStopped?()
+
     switch event.which
       when 13 # Enter
-        KD.utils.stopDOMEvent event
         @handleEnter event
       when 27 # Escape
-        @emit "Escape"
+        @emit 'Escape'
 
     if /\W/.test String.fromCharCode event.which
       if @selectToken() then KD.utils.stopDOMEvent event
@@ -94,7 +101,9 @@ class ActivityInputView extends KDTokenizedInput
 
     return yes
 
+
   keyUp: (event) ->
+
     return  if @getTokens().length >= TOKEN_LIMIT
     return @matchPrefix()  unless @activeRule
 
@@ -104,6 +113,9 @@ class ActivityInputView extends KDTokenizedInput
       super event
 
   handleEnter: (event) ->
+
+    KD.utils.stopDOMEvent event
+
     return @insertNewline()  if event.shiftKey
 
     position = @getPosition() + 1
