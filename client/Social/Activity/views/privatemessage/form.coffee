@@ -61,6 +61,8 @@ class PrivateMessageForm extends KDFormViewWithFields
       # the data source callback is not error-first style,
       # so just pass the callback to .then():
       .then callback
+      .timeout 1e4
+      .catch Promise.TimeoutError, callback.bind this, []
 
 
   handleRecipientKeydown: (event) ->

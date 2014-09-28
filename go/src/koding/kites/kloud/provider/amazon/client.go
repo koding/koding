@@ -284,8 +284,8 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 	instance, err := a.Instance(a.Id())
 	if err == aws.ErrNoInstances {
 		return &protocol.InfoArtifact{
-			State: machinestate.Terminated,
-			Name:  "terminated-instance",
+			State: machinestate.NotInitialized,
+			Name:  "not-existing-instance",
 		}, nil
 	}
 

@@ -327,11 +327,31 @@ module.exports = class ComputeProvider extends Base
     JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
 
       return  unless oldUsername and username
-      return  unless isRegistration
+
+      JMachine = require './machine'
+
+      unless isRegistration
+
+        console.log "Removing user #{oldUsername} vms..."
+
+        JMachine.update
+          provider      : 'koding'
+          credential    : oldUsername
+        ,
+          $set          :
+            userDeleted : yes
+        ,
+          multi         : yes
+        , (err)->
+          if err?
+            console.error \
+              "Failed to mark them as deleted for #{oldUsername}:", err
+
+        return
+
 
       oldDomain = "#{oldUsername}.#{KONFIG.userSitesDomain}"
 
-      JMachine = require './machine'
       JMachine.one
 
         provider : 'koding'

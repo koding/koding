@@ -95,15 +95,21 @@ class ActivityPane extends MessagePane
       maxHandleWidth    : Infinity
       paneData          : @getPaneData()
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on "PaneDidShow", @bound 'openPane'
+    @tabView.on 'PaneDidShow', @bound 'openPane'
 
-  openPane: (pane) -> switch pane
-    when @mostLiked?.parent
-      @select 'mostLiked', mostLiked: yes
-    when @mostRecent?.parent
-      @select 'mostRecent'
-    when @searchResults?.parent
-      @activeContent = @searchResults
+
+  openPane: (pane) ->
+
+    switch pane
+      when @mostLiked?.parent
+        @setSearchedState no
+        @select 'mostLiked', mostLiked: yes
+      when @mostRecent?.parent
+        @setSearchedState no
+        @select 'mostRecent'
+      when @searchResults?.parent
+        @setSearchedState yes
+        @activeContent = @searchResults
 
   clearSearch: ->
     @searchInput?.clear()
@@ -162,15 +168,30 @@ class ActivityPane extends MessagePane
         @searchResults.appendContent results
       .catch KD.showError
 
+
+  setSearchedState: (state)->
+
+    @isSearched = state
+    {tabHandleContainer} = @tabView
+
+    if state
+    then tabHandleContainer.setClass 'search-active'
+    else tabHandleContainer.unsetClass 'search-active'
+
+    return state
+
+
   createSearchInput: ->
     @searchInput = new SearchInputView
-      placeholder : 'Search channel'
+      placeholder : 'Search...'
 
     @tabView.tabHandleContainer.addSubView @searchInput
 
     searchIcon = new KDCustomHTMLView
       tagName  : 'cite'
       cssClass : 'search-icon'
+      click    : =>
+        @tabView.showPane @tabView.panes[1]  if @isSearched
 
     @tabView.tabHandleContainer.addSubView searchIcon
 

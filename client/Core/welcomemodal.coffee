@@ -21,12 +21,12 @@ class WelcomeModal extends KDModalView
 
     content.addSubView new KDHeaderView
       type        : 'medium'
-      title       : 'All new Koding, All ready to go!'
+      title       : 'An all new Koding, all ready to go!'
 
     content.addSubView new KDCustomHTMLView
       tagName     : 'p'
       partial     : "
-        Robust VMs, a new IDE, Terminal and awesome new social
+        Robust VMs, a new IDE/Terminal and awesome new social
         features... all that is just a click away. You are about to
         experience a whole new Koding and you will fall in love all
         over again. <span>(Please note, you will need to migrate data
@@ -42,11 +42,13 @@ class WelcomeModal extends KDModalView
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
-      title       : 'Find out more about all the new features'
-      click       : ->
-        KD.singletons['router'].handleRoute '/Features'
+      title       : 'Read our blog post about this release'
+      click       : =>
+        window.open 'http://blog.koding.com/2014/09/new-release'
+        @destroy()
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
-      title       : 'Let me explore the New Koding'
+      title       : 'Explore the new koding now'
       click       : @bound 'cancel'
+

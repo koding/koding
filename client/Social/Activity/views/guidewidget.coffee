@@ -59,7 +59,7 @@ class ActivityGuideWidget extends ActivityBaseWidget
             Don’t share private info (email address, phone number, etc.)
           </li>
           <li>
-            Use Markdown whenever possible (postint code fragments, links, images, etc.)
+            Use Markdown whenever possible (posting code fragments, links, images, etc.)
             Our handy Markdown guide can be found <a href='http://learn.koding.com/guides/markdown/' target='_blank'>here</a>. Preview your Markdown before
             posting using the M↓ button.
           </li>

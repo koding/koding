@@ -116,7 +116,6 @@ module.exports = [
   "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
-  "views/privatemessage/recipientmodal.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
