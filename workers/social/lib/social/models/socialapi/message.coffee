@@ -48,12 +48,18 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         fetchPrivateMessages:
           (signature Object, Function)
+        fetchPrivateMessageCount:
+          (signature Object, Function)
+        search :
+          (signature Object, Function)
         fetch  :
           (signature Object, Function)
         fetchDataFromEmbedly: [
           (signature String, Object, Function)
           (signature [String], Object, Function)
         ]
+        paymentSubscribe:
+          (signature Object, Function)
 
     schema          :
       id               : Number
@@ -76,7 +82,7 @@ module.exports = class SocialMessage extends Base
   @post = permit 'create posts',
     success: (client, data, callback)->
       ensureGroupChannel client, (err, socialApiChannelId)->
-        data.channelId = socialApiChannelId
+        data.channelId = socialApiChannelId unless data.channelId
         doRequest 'postToChannel', client, data, callback
 
   @reply = permit 'create posts',
@@ -141,6 +147,10 @@ module.exports = class SocialMessage extends Base
     permissionName: 'list private messages'
     fnName        : 'fetchPrivateMessages'
 
+  @fetchPrivateMessageCount = secureRequest
+    permissionName: 'list private messages'
+    fnName        : 'fetchPrivateMessageCount'
+
   @fetch = permittedRequest
     permissionName: 'read posts'
     fnName        : 'fetchMessage'
@@ -193,6 +203,8 @@ module.exports = class SocialMessage extends Base
         client.connection.delegate = account
         sendPrivateMessageHelper client, data, callback
 
+  # searchChats - browse chats depending on purpose/username fields
+  @search  = secureRequest fnName: 'searchChats'
 
   # todo-- ask Chris about using validators.own
   # how to implement for this case
@@ -249,4 +261,10 @@ module.exports = class SocialMessage extends Base
         cachedEmbedlyResult[urls] = result
         callback err, result
 
+  { fetchGroup, secureRequest,
+    doRequest, permittedRequest,
+    ensureGroupChannel, fetchGroup } = require "./helper"
+
+  @paymentSubscribe = secure (client, options, callback)->
+    doRequest "paymentSubscribe", client, options, callback
 

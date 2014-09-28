@@ -1,19 +1,26 @@
 package popularpost
 
 import (
+	"errors"
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
 	"time"
 
+	"github.com/jinzhu/now"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
 )
 
 var (
-	PopularPostKey = "popularpost"
+	PopularPostKeyName = "popularpost"
+	keyExistsRegistry  = map[string]bool{}
 )
+
+func init() {
+	now.FirstDayMonday = true
+}
 
 type Controller struct {
 	log   logging.Logger
@@ -40,14 +47,14 @@ func New(log logging.Logger, redis *redis.RedisSession) *Controller {
 }
 
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
-	return f.handleInteractionEvent(1, i)
+	return f.handleInteraction(1, i)
 }
 
 func (f *Controller) InteractionDeleted(i *models.Interaction) error {
-	return f.handleInteractionEvent(-1, i)
+	return f.handleInteraction(-1, i)
 }
 
-func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Interaction) error {
+func (f *Controller) handleInteraction(inc float64, i *models.Interaction) error {
 	cm, err := models.ChannelMessageById(i.MessageId)
 	if err != nil {
 		return err
@@ -58,36 +65,156 @@ func (f *Controller) handleInteractionEvent(incrementCount int, i *models.Intera
 		return err
 	}
 
-	if !f.isEligible(c, cm) {
+	if !isEligibleForPopularPost(c, cm) {
 		f.log.Error(fmt.Sprintf("Not eligible Interaction Id:%d", i.Id))
 		return nil
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetDailyKey(c, cm, i), incrementCount, i.MessageId)
+	keyname := &KeyName{
+		GroupName: c.GroupName, ChannelName: c.Name,
+		Time: cm.CreatedAt,
+	}
+
+	err = f.saveToBucket(keyname.Today(), inc, i.MessageId)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.redis.SortedSetIncrBy(GetWeeklyKey(c, cm, i), incrementCount, i.MessageId)
-	if err != nil {
-		return err
+	keyname = &KeyName{
+		GroupName: c.GroupName, ChannelName: c.Name,
+		Time: time.Now().UTC(),
 	}
+	weight := getWeight(i.CreatedAt, cm.CreatedAt, inc)
 
-	_, err = f.redis.SortedSetIncrBy(GetMonthlyKey(c, cm, i), incrementCount, i.MessageId)
+	err = f.saveToSevenDayBucket(keyname, weight, i.MessageId)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
-func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bool {
-	if c.MetaBits.Is(models.Troll) {
-		return false
+func (f *Controller) saveToBucket(key string, inc float64, id int64) error {
+	score, err := f.redis.SortedSetIncrBy(key, inc, id)
+	if err != nil {
+		return err
 	}
 
-	if cm.MetaBits.Is(models.Troll) {
+	if score <= 0 {
+		_, err := f.redis.SortedSetRem(key, id)
+		if err != nil {
+			return err
+		}
+	}
+
+	return err
+}
+
+func (f *Controller) saveToSevenDayBucket(k *KeyName, inc float64, id int64) error {
+	key := k.Weekly()
+
+	_, ok := keyExistsRegistry[key]
+	if !ok {
+		exists := f.redis.Exists(key)
+		if !exists {
+			err := f.CreateSevenDayBucket(k)
+			if err != nil {
+				return err
+			}
+		}
+
+		keyExistsRegistry[key] = true
+
+		return nil
+	}
+
+	err := f.saveToBucket(key, inc, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *Controller) CreateSevenDayBucket(k *KeyName) error {
+	keys, weights := []string{}, []interface{}{}
+
+	from := getStartOfDayUTC(k.Time)
+	aggregate := "SUM"
+
+	for i := 0; i <= 6; i++ {
+		currentDate := getDaysAgo(from, i)
+		keys = append(keys, k.Before(currentDate))
+
+		// add by 1 to prevent divide by 0 errors
+		weight := float64(i + 1)
+		weights = append(weights, float64(1/weight))
+	}
+
+	_, err := f.redis.SortedSetsUnion(k.Weekly(), keys, weights, aggregate)
+
+	return err
+}
+
+func PopularPostKey(groupName, channelName string, current time.Time) string {
+	name := KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: current.UTC(),
+	}
+
+	return name.Weekly()
+}
+
+//----------------------------------------------------------
+// KeyName
+//----------------------------------------------------------
+
+type KeyName struct {
+	GroupName, ChannelName string
+	Time                   time.Time
+}
+
+func NewKeyName(groupName, channelName string, t time.Time) (*KeyName, error) {
+	if groupName == "" || channelName == "" {
+		return nil, errors.New("groupName and channelName are required")
+	}
+
+	k := &KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: t,
+	}
+
+	return k, nil
+}
+
+func (k *KeyName) Today() string {
+	return k.String(getStartOfDayUTC(k.Time))
+}
+
+func (k *KeyName) Before(t time.Time) string {
+	return k.String(t)
+}
+
+func (k *KeyName) Weekly() string {
+	current := getStartOfDayUTC(k.Time.UTC())
+	sevenDaysAgo := getDaysAgo(current, 7).UTC().Unix()
+
+	return fmt.Sprintf("%s-%d", k.String(current), sevenDaysAgo)
+}
+
+func (k *KeyName) String(t time.Time) string {
+	return fmt.Sprintf("%s:%s:%s:%s:%d",
+		config.MustGet().Environment, k.GroupName, PopularPostKeyName,
+		k.ChannelName, t.UTC().Unix(),
+	)
+}
+
+//----------------------------------------------------------
+// helpers
+//----------------------------------------------------------
+
+func isEligibleForPopularPost(c *models.Channel, cm *models.ChannelMessage) bool {
+	if c.MetaBits.Is(models.Troll) {
 		return false
 	}
 
@@ -95,69 +222,67 @@ func (f *Controller) isEligible(c *models.Channel, cm *models.ChannelMessage) bo
 		return false
 	}
 
+	if cm.MetaBits.Is(models.Troll) {
+		return false
+	}
+
 	if cm.TypeConstant != models.ChannelMessage_TYPE_POST {
+		return false
+	}
+
+	if isCreatedMoreThan7DaysAgo(cm.CreatedAt) {
 		return false
 	}
 
 	return true
 }
 
-func PreparePopularPostKey(group, channelName, statisticName string, year, dateNumber int) string {
-	return fmt.Sprintf(
-		"%s:%s:%s:%s:%d:%s:%d",
-		config.MustGet().Environment,
-		group,
-		PopularPostKey,
-		channelName,
-		year,
-		statisticName,
-		dateNumber,
-	)
+//----------------------------------------------------------
+// Time helpers
+//----------------------------------------------------------
+
+func isCreatedMoreThan7DaysAgo(t time.Time) bool {
+	t = t.UTC()
+	delta := time.Now().Sub(t)
+
+	return delta.Hours()/24 > 7
 }
 
-func GetDailyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	day := 0
-	year := 2014
-
-	if !i.CreatedAt.IsZero() {
-		day = i.CreatedAt.UTC().YearDay()
-		year, _, _ = i.CreatedAt.UTC().Date()
-	} else {
-		// no need to convert it to UTC
-		now := time.Now().UTC()
-		day = now.YearDay()
-		year, _, _ = now.Date()
-	}
-
-	return PreparePopularPostKey(c.GroupName, c.Name, "daily", year, day)
+func getStartOfDayUTC(t time.Time) time.Time {
+	t = t.UTC()
+	return now.New(t).BeginningOfDay()
 }
 
-func GetWeeklyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	weekNumber := 0
-	year := 2014
+func getDaysAgo(t time.Time, days int) time.Time {
+	t = t.UTC()
+	daysAgo := -time.Hour * 24 * time.Duration(days)
 
-	if !i.CreatedAt.IsZero() {
-		_, weekNumber = i.CreatedAt.ISOWeek()
-		year, _, _ = i.CreatedAt.UTC().Date()
-	} else {
-		// no need to convert it to UTC
-		now := time.Now()
-		_, weekNumber = now.ISOWeek()
-		year, _, _ = now.UTC().Date()
-	}
-
-	return PreparePopularPostKey(c.GroupName, c.Name, "weekly", year, weekNumber)
+	return t.Add(daysAgo)
 }
 
-func GetMonthlyKey(c *models.Channel, cm *models.ChannelMessage, i *models.Interaction) string {
-	var month time.Month
-	year := 2014
+//----------------------------------------------------------
+func (t *Controller) CreateKeyAtStartOfDay(groupName, channelName string) {
+	endOfDay := now.EndOfDay().UTC()
+	difference := time.Now().UTC().Sub(endOfDay)
 
-	if !i.CreatedAt.IsZero() {
-		year, month, _ = i.CreatedAt.UTC().Date()
-	} else {
-		year, month, _ = time.Now().UTC().Date()
+	<-time.After(difference * -1)
+
+	keyname := &KeyName{
+		GroupName: groupName, ChannelName: channelName,
+		Time: time.Now().UTC(),
 	}
 
-	return PreparePopularPostKey(c.GroupName, c.Name, "monthly", year, int(month))
+	t.CreateSevenDayBucket(keyname)
+}
+
+func (t *Controller) ResetRegistry() {
+	keyExistsRegistry = map[string]bool{}
+}
+
+func getWeight(iCreatedAt, mCreatedAt time.Time, inc float64) float64 {
+	difference := int(iCreatedAt.Sub(mCreatedAt).Hours()/24) + 1
+	weight := 1 / float64(difference) * float64(inc)
+	truncated := float64(int(weight*10)) / 10
+
+	return truncated
 }

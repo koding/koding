@@ -29,20 +29,40 @@ class CommentListItemView extends KDListItemView
     else @unsetClass 'edited'
 
 
-  click: (event) ->
+  # setAnchors: ->
 
-    if event.target.classList.contains 'profile-link'
-      @handleProfileLink event
+  #   @$("p a").each (index, element) ->
+  #     href = element.getAttribute "href"
+  #     return  unless href
 
-    KD.utils.showMoreClickHandler event
+  #     {location: {origin}} = window
+
+  #     beginning = href.substring 0, origin.length
+  #     rest      = href.substring origin.length + 1
+
+  #     if beginning is origin
+  #       element.setAttribute "href", "/#{rest}"
+  #     else if href is "/#{rest}" continue
+  #     else
+  #       element.setAttribute "target", "_blank"
 
 
-  handleProfileLink: (event) ->
+  # click: (event) ->
+
+  #   KD.utils.stopDOMEvent event
+
+  #   KD.singletons.router.handleRoute event.target.getAttribute 'href'
+
+  #   KD.utils.showMoreClickHandler event
+
+  #   return false
+
+
+  handleInternalLink: (event) ->
 
     KD.utils.stopDOMEvent event
-
-    {target} = event
-    KD.getSingleton('router').handleRoute target.getAttribute 'href'
+    href = event.target.getAttribute 'href'
+    KD.singletons.router.handleRoute href
 
 
   showEditForm: ->
@@ -194,7 +214,7 @@ class CommentListItemView extends KDListItemView
 
     @body       = new JCustomHTMLView
       cssClass  : 'comment-body-container'
-      pistachio : '{p{KD.utils.formatContent #(body), yes}}'
+      pistachio : '{p.has-markdown{KD.utils.formatContent #(body), yes}}'
     , data
 
     @formWrapper = new KDCustomHTMLView cssClass: 'edit-comment-wrapper hidden'
@@ -215,6 +235,7 @@ class CommentListItemView extends KDListItemView
     @timeAgoView = new KDTimeAgoView {}, createdAt
 
     JView::viewAppended.call this
+    # @setAnchors()
 
 
   # updateTemplate: (force = no) ->

@@ -22,17 +22,18 @@ func GetInteractions(interactionType string, postId int64) ([]string, error) {
 	return interactions, nil
 }
 
-func AddInteraction(interactionType string, postId, accountId int64) error {
+func AddInteraction(iType string, postId, accountId int64) (*models.Interaction, error) {
 	cm := models.NewInteraction()
 	cm.AccountId = accountId
 	cm.MessageId = postId
 
-	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, interactionType)
+	url := fmt.Sprintf("/message/%d/interaction/%s/add", postId, iType)
 	_, err := sendModel("POST", url, cm)
 	if err != nil {
-		return err
+		return cm, err
 	}
-	return nil
+
+	return cm, nil
 }
 
 func DeleteInteraction(interactionType string, postId, accountId int64) error {

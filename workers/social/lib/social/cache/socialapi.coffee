@@ -10,6 +10,13 @@ module.exports = (options={}, callback)->
   defaultOptions =
     limit: 5
 
+  fetchPopularPosts = (cb)->
+    opt =
+      channelName : params.section
+      limit       : 25
+
+    SocialChannel.fetchPopularPosts client, opt, cb
+
   fetchPopularTopics = (cb)->
     opt =
       type        : "weekly"
@@ -19,7 +26,10 @@ module.exports = (options={}, callback)->
     SocialChannel.fetchPopularTopics opt, cb
 
   fetchFollowedChannels = (cb)->
-    SocialChannel.fetchFollowedChannels client, defaultOptions, cb
+    options  =
+       limit : 9
+
+    SocialChannel.fetchFollowedChannels client, options, cb
 
   fetchPinnedMessages = (cb)->
     SocialChannel.fetchPinnedMessages client, defaultOptions, cb
@@ -49,13 +59,14 @@ module.exports = (options={}, callback)->
     return cb null, null unless params
 
     switch params.section
-      when "Topic"   then fetchChannelActivities params.slug, cb
-      when "Message" then SocialChannel.fetchActivities client, {id: params.slug}, cb
-      when "Post"    then SocialMessage.bySlug client, {slug: params.slug}, cb
+      when "Topic"           then fetchChannelActivities params.slug, cb
+      when "Message"         then SocialChannel.fetchActivities client, {id: params.slug}, cb
+      when "Post"            then SocialMessage.bySlug client, {slug: params.slug}, cb
+      when "Announcement"    then cb {message: "announcement not implemented"}
       else fetchGroupActivities cb
 
   reqs = [
-    # { fn:fetchPopularTopics,     key: 'popularTopics'    }
+    { fn:fetchPopularPosts,      key: 'popularPosts'     }
     { fn:fetchFollowedChannels,  key: 'followedChannels' }
     { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages'  }
@@ -77,7 +88,7 @@ module.exports = (options={}, callback)->
         slug:    params?.slug    or "/"
         data:    data
 
-      queue.localPrefetchedFeeds.navigated = res
+      queue.localPrefetchedFeeds.navigated = res unless err?
       queue.fin()
 
   dash queue, ()-> callback null, queue.localPrefetchedFeeds

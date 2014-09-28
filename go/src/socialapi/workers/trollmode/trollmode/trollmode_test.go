@@ -237,7 +237,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			post1, err := rest.CreatePost(groupChannel.Id, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post1, err)
 
-			err = rest.AddInteraction("like", post1.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id)
 			So(err, ShouldBeNil)
 
 			So(controller.markInteractions(trollUser, models.Safe), ShouldBeNil)
@@ -426,7 +426,8 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post, err)
 
 			// add like
-			So(rest.AddInteraction("like", post.Id, trollUser.Id), ShouldBeNil)
+			_, err = rest.AddInteraction("like", post.Id, trollUser.Id)
+			So(err, ShouldBeNil)
 
 			// fetch likes
 			i := models.NewInteraction()
@@ -640,15 +641,15 @@ func TestMarkedAsTroll(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(post1, err)
 
 			// add like from normal user
-			err = rest.AddInteraction("like", post1.Id, adminUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, adminUser.Id)
 			So(err, ShouldBeNil)
 
 			// add like from normal user
-			err = rest.AddInteraction("like", post1.Id, normalUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, normalUser.Id)
 			So(err, ShouldBeNil)
 
 			// add like from troll user
-			err = rest.AddInteraction("like", post1.Id, trollUser.Id)
+			_, err = rest.AddInteraction("like", post1.Id, trollUser.Id)
 			So(err, ShouldBeNil)
 
 			history, err := rest.GetPostWithRelatedData(
@@ -685,7 +686,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			// add interactions
 			for _, userId := range users {
 				// add like from troll user
-				err = rest.AddInteraction("like", post.Id, userId)
+				_, err = rest.AddInteraction("like", post.Id, userId)
 				So(err, ShouldBeNil)
 			}
 
@@ -899,13 +900,14 @@ func TestMarkedAsTroll(t *testing.T) {
 }
 
 func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
+	pmr := models.PrivateMessageRequest{}
+	pmr.AccountId = accountId
+	pmr.Body = "this is a body for private message @sinan"
+	pmr.GroupName = groupName
+	pmr.Recipients = []string{"sinan"}
+
 	// create first private channel
-	cmc, err := rest.SendPrivateMessage(
-		accountId,
-		"this is a body for private message @sinan",
-		groupName,
-		[]string{"sinan"},
-	)
+	cmc, err := rest.SendPrivateMessage(pmr)
 	if err != nil {
 		return 0, err
 	}

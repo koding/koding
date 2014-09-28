@@ -27,11 +27,13 @@ var (
 type Controller struct {
 	log     logging.Logger
 	cronJob *cron.Cron
+	ready   chan bool
 }
 
 func New(log logging.Logger) (*Controller, error) {
 	wc := &Controller{
-		log: log,
+		log:   log,
+		ready: make(chan bool, 1),
 	}
 
 	return wc, nil
@@ -39,7 +41,8 @@ func New(log logging.Logger) (*Controller, error) {
 
 func (mwc *Controller) Schedule() error {
 	mwc.cronJob = cron.New()
-	err := mwc.cronJob.AddFunc(SCHEDULE, mwc.Start)
+	mwc.ready <- true
+	err := mwc.cronJob.AddFunc(SCHEDULE, mwc.CronStart)
 	if err != nil {
 		return err
 	}
@@ -52,7 +55,20 @@ func (mwc *Controller) Shutdown() {
 	mwc.cronJob.Stop()
 }
 
+func (mwc *Controller) CronStart() {
+	select {
+	case <-mwc.ready:
+		mwc.Start()
+	default:
+		mwc.log.Debug("Ongoing migration process")
+	}
+}
+
 func (mwc *Controller) Start() {
+	mwc.log.Notice("Migration started")
+
+	mwc.migrateAllAccountsToAlgolia()
+
 	mwc.migrateAllAccounts()
 
 	mwc.migrateAllGroups()
@@ -60,6 +76,10 @@ func (mwc *Controller) Start() {
 	mwc.migrateAllTags()
 
 	mwc.migrateAllPosts()
+
+	mwc.log.Notice("Migration finished")
+
+	mwc.ready <- true
 }
 
 func (mwc *Controller) migrateAllPosts() {

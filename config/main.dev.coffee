@@ -2,13 +2,15 @@ zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
+os                    = require 'os'
 
 Configuration = (options={}) ->
 
   boot2dockerbox      = "192.168.59.103"
 
-  hostname            = options.hostname       or "lvh.me:8090"
-  publicHostname      = options.publicHostname or process.env.USER
+  publicPort          = options.publicPort     or "8090"
+  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
@@ -21,19 +23,19 @@ Configuration = (options={}) ->
   mongo               = "#{boot2dockerbox}:27017/koding"
   etcd                = "#{boot2dockerbox}:4001"
 
-  redis               = { host:     "#{boot2dockerbox}"                         , port:               "6379"                                  , db:                 0                         }
-  rabbitmq            = { host:     "#{boot2dockerbox}"                         , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
-  mq                  = { host:     "#{rabbitmq.host}"                          , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{publicHostname}.ngrok.com" , public_:            "koding-#{publicHostname}.ngrok.com"    , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
-  sendgrid            = { username: "koding"                                    , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                   , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"       , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
-  broker              = { name:     "broker"                                    , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
-  regions             = { kodingme: "#{configName}"                             , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        '.dev'                    }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                          , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        "#{algolia.indexSuffix}"    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
-  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"          , enabled:            no                                    }
-  postgres            = { host:     "#{boot2dockerbox}"                         , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
+  rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
+  mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
+  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
+  sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
+  email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
+  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
+  broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
+  regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
+  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
+  postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kiteKeyName         = if environment is "dev" then "koding" else environment
   kiteHome            = "#{projectRoot}/kite_home/#{kiteKeyName}"
 
@@ -61,6 +63,7 @@ Configuration = (options={}) ->
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
+    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -71,10 +74,11 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
     broker                         : broker
-    uri                            : {address: "#{customDomain.public}"}
+    uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
     projectRoot                    : projectRoot
     socialapi                      : socialapi
@@ -147,8 +151,8 @@ Configuration = (options={}) ->
     logResourceName   : logQueueName
     socialApiUri      : "/xhr"
     apiUri            : null
-    mainUri           : null
     sourceMapsUri     : "/sourcemaps"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -161,6 +165,7 @@ Configuration = (options={}) ->
     sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14 , secure: no   }
     troubleshoot      : {idleTime     : 1000 * 60 * 60           , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha         : '6LdLAPcSAAAAAG27qiKqlnowAM8FXfKSpW1wx_bU'
+    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
     externalProfiles  :
       google          : {nicename: 'Google'  }
       linkedin        : {nicename: 'LinkedIn'}
@@ -194,7 +199,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{publicHostname}/-/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -202,12 +207,12 @@ Configuration = (options={}) ->
     ngrokProxy          :
       group             : "environment"
       supervisord       :
-        command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
+        command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
     reverseProxy        :
       group             : "environment"
       supervisord       :
-        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
+        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{process.env.USER}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"
@@ -424,12 +429,11 @@ Configuration = (options={}) ->
 
       function checkrunfile () {
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
-            echo your run file is older than your config file. doing ./run install and then ./run for you.
+            echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
-            ./run install
-            ./run services
-            ./run $@
+
+            echo -e "\n\nPlease do ./run again\n"
             exit 1;
         fi
       }
@@ -562,8 +566,24 @@ Configuration = (options={}) ->
 
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
 
+        check_gulp_version
+      }
 
+      function check_gulp_version () {
+           VERSION=$(npm info gulp version 2> /dev/null)
 
+           while IFS=".", read MAJOR MINOR REVISION; do
+              if [[ $MAJOR -lt 3 ]]; then
+                  MISMATCH=1
+              elif [[ $MAJOR -eq 3 && $MINOR -lt 7 ]]; then
+                  MISMATCH=1
+              fi
+          done < <(echo $VERSION)
+
+          if [[ -n $MISMATCH ]]; then
+              echo 'Installed gulp version must be >= 3.7.0'
+              exit 1
+          fi
       }
 
       function build_services () {
@@ -609,6 +629,12 @@ Configuration = (options={}) ->
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
+        echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
+        cd #{projectRoot}
+        ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+
       }
 
       function services () {
@@ -636,8 +662,8 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
-
 
       if [[ "$1" == "killall" ]]; then
 
@@ -709,6 +735,10 @@ Configuration = (options={}) ->
 
       elif [ "$#" == "0" ]; then
 
+        checkrunfile
+        if ! ./pg-update #{postgres.host} #{postgres.port}; then
+          exit 1
+        fi
         run
 
       else

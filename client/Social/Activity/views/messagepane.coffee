@@ -2,10 +2,11 @@ class MessagePane extends KDTabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.type    or= ''
-    options.cssClass  = "message-pane #{options.type}"
-    options.wrapper     ?= yes
-    options.lastToFirst ?= no
+    options.type        or= ''
+    options.cssClass      = "message-pane #{options.type}"
+    options.wrapper      ?= yes
+    options.lastToFirst  ?= no
+    options.itemClass   or= ActivityListItemView
 
     super options, data
 
@@ -15,23 +16,36 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, type, lastToFirst, wrapper, channelId} = @getOptions()
+    {itemClass, lastToFirst, wrapper, channelId} = @getOptions()
     {typeConstant} = @getData()
-    viewOptions = {itemOptions: {channelId}}
 
-    @listController = new ActivityListController { wrapper, itemClass, type: typeConstant, viewOptions, lastToFirst}
+    @listController = new ActivityListController {
+      type          : typeConstant
+      viewOptions   :
+        itemOptions : {channelId}
+      wrapper
+      itemClass
+      lastToFirst
+    }
 
+    @listController.getView().setClass 'padded'
+
+    @createChannelTitle()
     @createInputWidget()
     @createFilterLinks()
     @bindInputEvents()
 
+    @submitIsPending = no
+
     @fakeMessageMap = {}
+
+    @setFilter @getDefaultFilter()
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    if typeConstant in ['group', 'topic']
+    if typeConstant in ['group', 'topic', 'announcement']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
@@ -43,7 +57,7 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       when 'privatemessage'
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
-      when 'group'
+      when 'group', 'announcement'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
@@ -53,23 +67,32 @@ class MessagePane extends KDTabPaneView
     return  unless @input
 
     @input
-      .on 'SubmitStarted',   @bound 'handleEnter'
-      .on 'SubmitSucceeded', @bound 'replaceFakeItemView'
-      .on 'SubmitFailed',    @bound 'messageSubmitFailed'
+      .on 'SubmitStarted',    @bound 'handleEnter'
+      .on 'SubmitStarted',    => @submitIsPending = yes
+      .on 'SubmitSucceeded',  @bound 'replaceFakeItemView'
+      .on 'SubmitSucceeded',  => KD.utils.defer => @submitIsPending = no
+      .on 'SubmitFailed',     @bound 'messageSubmitFailed'
 
+  whenSubmitted: ->
+    new Promise (resolve) =>
+      unless @submitIsPending
+        resolve()
+      else
+        @input.once 'SubmitSucceeded', -> resolve()
 
   replaceFakeItemView: (message) ->
-
-    @putMessage message
-
-    @removeFakeMessage message.clientRequestId
+    @putMessage message, @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
 
     return  unless item = @fakeMessageMap[identifier]
 
+    index = @listController.getListView().getItemIndex item
+
     @listController.removeItem item
+
+    return index
 
 
   handleEnter: (value, clientRequestId) ->
@@ -77,15 +100,14 @@ class MessagePane extends KDTabPaneView
     return  unless value
 
     @input.reset yes
-    @createFakeItemView value, clientRequestId
+
+    switch @currentFilter
+      when 'Most Liked' then @setFilter 'Most Recent'
+      else @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message) ->
-
-    {lastToFirst} = @getOptions()
-    index = if lastToFirst then @listController.getItemCount() else 0
-    @appendMessage message, index
-
+  putMessage: (message, index = 0) ->
+    @listController.addItem message, index
 
   createFakeItemView: (value, clientRequestId) ->
 
@@ -153,23 +175,51 @@ class MessagePane extends KDTabPaneView
       document.body.scrollTop = @lastScrollTops.body
 
 
-  createInputWidget: ->
+  createChannelTitle: ->
+
+    type = @getOption 'type'
+
+    if type is 'privatemessage' or type is 'post' then return
+
+    {name, isParticipant, typeConstant} = @getData()
+
+    @channelTitleView = new KDCustomHTMLView
+      partial   : "##{name}"
+      cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
+
+    if typeConstant not in ['group', 'announcement']
+      @channelTitleView.addSubView new TopicFollowButton null, @getData()
+
+  createInputWidget: (placeholder) ->
 
     return  if @getOption("type") is 'post'
 
     channel = @getData()
+    {socialapi} = KD.singletons
 
-    @input = new ActivityInputWidget {channel}
+    @input = new ActivityInputWidget { channel, placeholder }
 
 
   createFilterLinks: ->
 
-    return if @getOption 'type' is 'privatemessage'
+    type = @getOption 'type'
 
-    @filterLinks = new FilterLinksView {},
-      'Most Liked'  :
-        active      : yes
-      'Most Recent' : {}
+    if type is 'privatemessage' or type is 'post' then return
+
+    filters = ['Most Liked', 'Most Recent']
+
+    {socialapi} = KD.singletons
+    # remove the first item from filters
+    filters.shift() if socialapi.isAnnouncementItem @getData().id
+
+    @filterLinks or= new FilterLinksView
+      filters: filters
+      default: filters[0]
+
+    @filterLinks.on 'FilterSelected', (filter) =>
+      @listController.removeAllItems()
+      @listController.showLazyLoader()
+      @setFilter filter
 
 
   bindChannelEvents: (channel) ->
@@ -183,7 +233,8 @@ class MessagePane extends KDTabPaneView
 
   addMessage: (message) ->
 
-    return  if message.account._id is KD.whoami()._id
+    return  if KD.isMyPost message
+    return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
 
     {lastToFirst} = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
@@ -211,10 +262,10 @@ class MessagePane extends KDTabPaneView
 
   viewAppended: ->
 
-    @addSubView @input  if @input
-    @addSubView @filterLinks if @filterLinks
+    @addSubView @channelTitleView  if @channelTitleView
+    @addSubView @input             if @input
+    @addSubView @filterLinks       if @filterLinks
     @addSubView @listController.getView()
-    @populate()
 
 
   show: ->
@@ -235,7 +286,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless item?.count
     # no need to send updatelastSeenTime or glance when checking publicfeeds
-    return  if name is 'public'
+    return  if name in ['public', 'announcement']
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
@@ -250,24 +301,36 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
+    # do not focus if we are in announcement channel
+    {socialapi} = KD.singletons
+    return  if socialapi.isAnnouncementItem @getData().id
+
     if @input
       @input.focus()
     else
-      @listController.getListItems().first?.commentBox.input.focus()
+      # TODO - undefined is not a function
+      @listController?.getListItems().first.commentBox.input.focus()
 
 
-  populate: ->
+  populate: (callback = noop) ->
+
+    filter = @currentFilter
 
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
 
-      console.time('populate')
+      return  if @currentFilter isnt filter
+
       @listController.hideLazyLoader()
-      @listController.instantiateListItems items
-      console.timeEnd('populate')
+      items.forEach @bound 'appendMessageDeferred'
 
       KD.utils.defer @bound 'focus'
+
+      callback()
+
+
+  appendMessageDeferred: (item) -> KD.utils.defer @lazyBound 'appendMessage', item
 
 
   fetch: (options = {}, callback)->
@@ -284,11 +347,11 @@ class MessagePane extends KDTabPaneView
     options.type      = type
     options.channelId = channelId
 
-    # if it is a post it means we already have the data
-    if type is 'post'
-    then KD.utils.defer -> callback null, [data]
-    else appManager.tell 'Activity', 'fetch', options, callback
-
+    @whenSubmitted().then ->
+      # if it is a post it means we already have the data
+      if type is 'post'
+      then KD.utils.defer -> callback null, [data]
+      else appManager.tell 'Activity', 'fetch', options, callback
 
   lazyLoad: ->
 
@@ -297,11 +360,15 @@ class MessagePane extends KDTabPaneView
     {appManager} = KD.singletons
     last         = @listController.getItemsOrdered().last
 
-    return  unless last
+    return @listController.hideLazyLoader()  unless last
 
-    from         = last.getData().createdAt
+    if @currentFilter is 'Most Liked'
+      from = null
+      skip = @listController.getItemsOrdered().length
+    else
+      from = last.getData().createdAt
 
-    @fetch {from}, (err, items = []) =>
+    @fetch {from, skip}, (err, items=[])=>
       @listController.hideLazyLoader()
 
       return KD.showError err  if err
@@ -317,3 +384,20 @@ class MessagePane extends KDTabPaneView
     @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
+
+
+  setFilter: (filter) ->
+
+    return  if @currentFilter is filter
+
+    @filterLinks.selectFilter @currentFilter
+    @populate()
+
+
+  getDefaultFilter:->
+
+    {socialapi} = KD.singletons
+
+    if socialapi.isAnnouncementItem @getData().id
+    then 'Most Recent'
+    else 'Most Liked'

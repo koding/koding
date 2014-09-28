@@ -83,7 +83,7 @@ func (u *Updater) checkAndUpdate() error {
 
 	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
 
-	basePath := "https://s3.amazonaws.com/koding-kites/klient/" + protocol.Environment + "/latest"
+	basePath := "https://s3.amazonaws.com/koding-klient/" + protocol.Environment + "/latest"
 	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
 
 	return updateBinary(latestKlientURL)

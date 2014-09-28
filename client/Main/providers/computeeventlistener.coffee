@@ -32,18 +32,28 @@ class ComputeEventListener extends KDObject
     KD.utils.killWait @timer
 
 
+  uniqueAdd = (list, type, eventId)->
+
+    for item in list
+      return no  if item.type is type and item.eventId is eventId
+
+    list.push { type, eventId }
+    return yes
+
+
   addListener:(type, eventId)->
 
-    inList = no
-    @listeners.forEach (_)->
-      inList |= _.type is type and _.eventId is eventId
+    {computeController} = KD.singletons
 
-    unless inList
-      @listeners.push { type, eventId }
+    if uniqueAdd @listeners, type, eventId
+
       @start()  unless @running
+      computeController.stateChecker.ignore eventId
 
 
   triggerState:(machine, event)->
+
+    return  unless machine?
 
     {computeController} = KD.singletons
 
@@ -70,6 +80,7 @@ class ComputeEventListener extends KDObject
     stop    : public : "MachineStopped",   private : Machine.State.Stopped
     start   : public : "MachineStarted",   private : Machine.State.Running
     build   : public : "MachineBuilt",     private : Machine.State.Running
+    reinit  : public : "MachineBuilt",     private : Machine.State.Running
     destroy : public : "MachineDestroyed", private : Machine.State.Terminated
 
 
@@ -90,18 +101,21 @@ class ComputeEventListener extends KDObject
 
         if res.err? and not res.event?
           warn "Error on '#{res.event_id}':", res.err
+          computeController.stateChecker.watch res.event_id
           return
 
         [type, eventId] = res.event.eventId.split '-'
 
-        if res.event.percentage < 100
-          activeListeners.push { type, eventId }
+        if res.event.percentage < 100 and \
+           res.event.status isnt Machine.State.Unknown
+          uniqueAdd activeListeners, type, eventId
 
         log "#{res.event.eventId}", res.event
 
         if res.event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, machineId: eventId
           computeController.emit "stateChanged-#{eventId}", ev.private
+          computeController.stateChecker.watch eventId
           computeController.triggerReviveFor eventId
 
         unless res.event.status is 'Unknown'

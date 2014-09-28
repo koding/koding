@@ -7,6 +7,7 @@ class KodingKite_KloudKite extends KodingKite
     start     : 'start'
     build     : 'build'
     event     : 'event'
+    reinit    : 'reinit'
     restart   : 'restart'
     destroy   : 'destroy'
     setDomain : 'domain.set'
@@ -14,25 +15,25 @@ class KodingKite_KloudKite extends KodingKite
   constructor: (options) ->
     super options
     @requestingInfo = KD.utils.dict()
-    @needsRequest = yes
+    @needsRequest   = KD.utils.dict()
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
   # will be queued up and resolved by the pending request
 
   info: ({ machineId }) ->
-    if @needsRequest
-      @needsRequest = no
+    if @needsRequest[machineId] in [undefined, yes]
+      @needsRequest[machineId] = no
       @tell 'info', { machineId }
         .then (info) =>
           @requestingInfo[machineId].forEach ({ resolve }) -> resolve info
           @requestingInfo[machineId] = null
         .timeout ComputeController.timeout
-        .catch Promise.TimeoutError, (err) =>
+        .catch (err) =>
           @requestingInfo[machineId].forEach ({ reject }) -> reject err
           @requestingInfo[machineId] = null
         .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!
-        .finally => @needsRequest = yes
+        .finally => @needsRequest[machineId] = yes
 
     new Promise (resolve, reject) =>
       @requestingInfo[machineId] ?= []

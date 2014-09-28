@@ -4,10 +4,15 @@ class HomeRegisterForm extends RegisterInlineForm
 
     super
 
+    @email.setOption 'stickyTooltip', yes
+    @username.setOption 'stickyTooltip', yes
+
     @email.input.on    'focus', @bound 'handleFocus'
     @username.input.on 'focus', @bound 'handleFocus'
-    # @email.input.on    'blur', @bound 'handleBlur'
-    # @username.input.on 'blur', @bound 'handleBlur'
+
+    KD.singletons.router.on 'RouteInfoHandled', =>
+      @email.icon.unsetTooltip()
+      @username.icon.unsetTooltip()
 
 
   handleFocus: -> @setClass 'focused'

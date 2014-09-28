@@ -18,6 +18,7 @@ RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.co
 ADD definition              /definition
 ADD notification_definition /notification_definition
 ADD sitemap_definition      /sitemap_definition
+ADD payment_definition      /payment_definition
 
 
 USER root

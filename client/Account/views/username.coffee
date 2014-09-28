@@ -53,7 +53,7 @@ class AccountEditUsername extends JView
           cssClass         : "medium"
           placeholder      : "lastname"
           name             : "lastName"
-          label            : 'Lastname'
+          label            : 'Last name'
         email              :
           cssClass         : "medium"
           placeholder      : "you@yourdomain.com"
@@ -121,7 +121,7 @@ class AccountEditUsername extends JView
 
       @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
 
-  update:(formData)->
+  update: (formData) ->
 
     {daisy} = Bongo
     {JUser} = KD.remote.api
@@ -169,7 +169,10 @@ class AccountEditUsername extends JView
       =>
         # on third turn update password
         # check for password confirmation
-        return  notify "Passwords did not match" if password isnt confirmPassword
+        if password isnt confirmPassword
+          notify "Passwords did not match"
+          @emailForm.buttons.Save.hideLoader()
+          return
         # if password is empty than discard operation
         if password is ""
           {token} = KD.utils.parseQuery()

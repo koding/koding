@@ -11,7 +11,7 @@ resurrection.styl
 sidebarGray       = #A0A0A0
 sidebarActive     = #F4F1ED
 sidebarSubtitle   = #979087
-sidebarSelectedBg = #15171A
+sidebarSelectedBg = #262626
 
 #main-sidebar
 
@@ -79,13 +79,13 @@ sidebarSelectedBg = #15171A
   size            18px 18px
   margin-top      -9px
   margin-left     -9px
-  display         block
+  display         none
   z-index         11
   rounded         9px
   cursor          pointer
   top             50%
   fix()
-  hidden()
+  // hidden()
   &:after
     abs()
     top           4px
@@ -100,9 +100,11 @@ sidebarSelectedBg = #15171A
   &.collapsed
 
     #main-panel-wrapper
-      kalc            width, 100% \- 63px
-      margin-left     63px
-      shadow         -8px 0 16px #323232
+      // kalc            width, 100% \- 63px
+      // margin-left     63px
+      // shadow         -8px 0 16px #323232
+      margin-left 0
+      width       100%
 
     #sidebar-toggle:after
       left               7px
@@ -121,11 +123,31 @@ sidebarSelectedBg = #15171A
         font-weight     400
         rounded         3px
         shadow          none
+        z-index         1000
 
 .activity-sidebar
   font-family         openSansFamily
   padding             1px 16px
   borderBox()
+
+  .more-link
+    font-size         12px
+    color             #ababab
+    margin            0 0 0 8px
+    border-bottom     1px dotted #ababab
+    noTextDeco()
+
+  .workspace.has-sub-items
+    cite
+      display         none !important
+
+  ul.expanded
+    .expanded
+      bg                color, sidebarSelectedBg
+    ul.expanded
+      rounded           0 0 4px 4px
+    li.expanded
+      rounded           4px 4px 0 0
 
   li.selected + ul.kdlistview-main-nav.expanded
     bg                color sidebarSelectedBg
@@ -137,28 +159,20 @@ sidebarSelectedBg = #15171A
 
   li.kdlistitemview-main-nav
     z-index           1
-    vendor            transition, top .2s  linear \,\
-                                left .2s linear
+    vendor            transition, top .2s linear \,\
+                                 left .2s linear
     font-size         14px
     line-height       18px
     rounded           4px
     ellipsis()
     borderBox()
 
-    &.has-sub-items cite
-      font-style      normal
-      display         block
-      size            20px 26px
-      abs             0px 0 0 0px
-      z-index         2
-      cursor          pointer
-      &:after
-        content       ' '
-        border        5px solid sidebarGray
-        border-color  transparent transparent transparent sidebarGray
-        size          10px 10px
-        abs           8px 0 0 8px
-        borderBox()
+    &:hover
+      .ws-add-icon
+      .ws-settings-icon
+        opacity       1
+        vendor        transition, opacity .1s .1s ease
+
 
     &.expanded.selected.has-sub-items
       bg              color sidebarSelectedBg
@@ -177,15 +191,16 @@ sidebarSelectedBg = #15171A
     &.workspace
       color           sidebarActive
       font-size       12px
-      line-height     18px
+      line-height     26px
       padding         0 0 0 43px
+      rounded         0
 
       figure
         display       block
         width         16px
         height        16px
         bg            color #222
-        abs           2px 0 0 22px
+        abs           5px 0 0 22px
         r-sprite      activity nav-workspace
       a
         padding           0
@@ -215,7 +230,7 @@ sidebarSelectedBg = #15171A
       hidden()
 
     &.selected
-      bg              color sidebarSelectedBg
+      bg              color rgba(21, 23, 26, 0.42)
 
     a
       padding           5px 8px 5px 42px
@@ -237,7 +252,11 @@ sidebarSelectedBg = #15171A
         width         16px
         height        16px
         bg            color #222
-        abs           6px 0 0 20px
+        abs           6px 0 0 10px
+
+      > div
+        position      relative
+        left          -10px
 
 
       &.social > figure
@@ -256,7 +275,8 @@ sidebarSelectedBg = #15171A
           r-sprite    app vm-settings-icon
           right       6px
           top         5px
-          opacity     .5
+          opacity     0
+          vendor      transition, opacity .1s .1s ease
           abs()
         &:hover > span
           opacity     1
@@ -276,17 +296,50 @@ sidebarSelectedBg = #15171A
             border      none
             shadow      none
 
+  .ws-add-icon
+  .ws-settings-icon
+    display           inline-block
+    r-sprite          app circle-plus-14
+    right             8px
+    top               10px
+    opacity           0
+    vendor            transition, opacity .1s .1s ease
+    pointer()
+    abs()
+
+  .ws-settings-icon
+    r-sprite          app vm-settings-icon
+    right             6px
+    top               5px
+    opacity           .6
+
+  .add-workpace-view
+    .cancel
+      display         inline-block
+      r-sprite        'app', 'circle-plus-14'
+      vendor          transform, rotate(45deg)
+      top             2px
+      position        relative
+      pointer()
+
+    .kdinput
+      border-radius   3px
+      bg              image, none
+      size            152px, 22px
+      margin-right    5px
+      font-size       12px
+      padding         5px
 
   > section
     size              auto auto
     overflow          visible
-    margin            0 0 3px 0
+    margin            0 0 15px 0
 
 
     .lazy-loader
-      margin            0
-      top               -28px
-      right             36px
+      margin          0
+      top             -28px
+      right           36px
       abs()
 
     .kdlistview
@@ -327,9 +380,11 @@ sidebarSelectedBg = #15171A
     &:hover
       bg              color rgba(0,0,0,.01)
       pointer()
+      .purpose
       .profile
       .ttag
         text-decoration underline
+
     &.activity
       font-size       14px
       padding-left    30px
@@ -368,55 +423,21 @@ sidebarSelectedBg = #15171A
       fr()
 
     .ttag
-      display       block
-      font-weight   500
-      color         sidebarActive
-      line-height   18px
-      font-size     14px
+      display        block
+      font-weight    500
+      color          sidebarActive
+      line-height    18px
+      font-size      14px
 
     .profile
       ellipsis()
-      color         sidebarGray
+      color          sidebarGray
 
     .topic-follow-btn
-      size          24px 18px
-      abs           5px 7px 0 0
-      border        1px solid #b1b1b1
-      background    transparent
-      shadow        none
-      outline       none
-      rounded       3px
-      margin        0
-      padding       0
-      borderBox()
-      &:hover
-        border          none
-        right           8px
-        .icon
-          r-sprite      activity 'check-gray'
-
-      .icon
-        r-sprite        activity 'check-gray'
-        margin          0 6px 0 0
-        padding         0
-        fr()
-
-      .button-title
-        hidden()
+      abs            5px 7px 0 0
 
       &.following
-        bg              color transparent
-        border-color    transparent
-        right           8px
-
-        .icon
-          r-sprite      activity 'check-green'
-
-        &:hover
-          border        1px solid #b1b1b1
-          .icon
-            r-sprite    activity 'check-green'
-            opacity     .6
+        right        6px
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -437,14 +458,8 @@ sidebarSelectedBg = #15171A
 
     .topic-follow-btn
       border-color      #e9e9e9
-
-      &.follow:before
-        color           #d1efdf
-
-      &.following
-        bg              color transparent
-        border-color    transparent
-
+      border            1px solid #b1b1b1
+      right             6px
 
   .conversations
   .messages
@@ -454,16 +469,6 @@ sidebarSelectedBg = #15171A
       min-height    0
       margin        0
       borderBox()
-
-      > .profile
-        display     block
-        float       none
-        padding     0 0 0 36px
-        line-height 18px
-        width       auto
-        color       sidebarGray
-        font-weight 600
-        borderBox()
 
       > .user-numbers
         padding     0 0 0 36px
@@ -484,10 +489,39 @@ sidebarSelectedBg = #15171A
           font-weight inherit
           color       inherit
 
+      .sidebar-message-icon
       .avatarview
-        top           6px
-        left          8px
+        top           0
+        left          0
         abs()
+
+      .stacked
+
+        margin-left   -1px
+        margin-top    2px
+        size          auto auto
+        display       block
+
+        .avatarview
+
+          img
+            border      1px solid rgb(50, 50, 50)
+            borderBox()
+
+          &:nth-of-type(1)
+            top       0
+            left      6px
+            z-index   1
+
+          &:nth-of-type(2)
+            top       3px
+            left      9px
+            z-index   2
+
+          &:nth-of-type(3)
+            top       6px
+            left      12px
+            z-index   3
 
       &.unread
         > .profile
@@ -499,14 +533,33 @@ sidebarSelectedBg = #15171A
   .messages
 
     .kdlistitemview-sidebar-item
-      height            28px
+      height            34px
 
+
+      .sidebar-message-text
+        > .purpose
+        > .profile
+          display     block
+          float       none
+          padding     0 0 0 36px
+          line-height 18px
+          width       auto
+          color       sidebarActive
+          font-weight 600
+          borderBox()
+          ellipsis()
+          margin-top  3px
+
+        > .profile > .profile
+            color     sidebarActive
+
+      > .purpose
       > .profile
         color           sidebarActive
 
       .avatarview
         size            24px 24px
-        top             2px
+        top             5px
         left            8px
 
 
@@ -564,7 +617,6 @@ sidebarSelectedBg = #15171A
       padding         0 8px
       height          28px
       line-height     28px
-
 
 .account-area
   bottom            0
@@ -636,15 +688,15 @@ sidebarSelectedBg = #15171A
 
 
 h3.sidebar-title
+  position        relative
   font-weight     600
   size            auto 1em
-  padding         0 6px
   line-height     1em
-  font-size       14px
+  font-size       12px
   color           #7F7F80
-  // text-transform  uppercase
+  text-transform  uppercase
   word-spacing    .2em
-  margin          19px 0 9px
+  padding         19px 6px 12px
   pointer()
 
   a
@@ -652,6 +704,8 @@ h3.sidebar-title
     font-weight     600
     color           #7F7F80
     margin          0 5px 0 0
+    opacity         0
+    vendor          transition, opacity .1s .1s ease
     fr()
 
     &.add-icon
@@ -661,7 +715,18 @@ h3.sidebar-title
 
   &:hover
     a
+      opacity       1
       color         sidebarGray
+
+.vms h3.sidebar-title:after
+  top             -2px
+  r-sprite        'app', 'sidebar-vms'
+
+.followed.topics h3.sidebar-title:after
+  r-sprite        'app', 'sidebar-channels'
+
+.messages h3.sidebar-title:after
+  r-sprite        'app', 'sidebar-chat'
 
 
 //Coming soon modal

@@ -115,8 +115,23 @@ createLocations = (workers={}) ->
 
   return locations
 
-nginxTemplate = (workers)->
+createStubLocation = (env)->
+  stub = """\n
+      # nginx status location, it retuns info about connections and requests
+      location /nginx_status {
+          # Turn on nginx status page
+          stub_status on;
+          # only allow requests coming from localhost
+          allow 127.0.0.1;
+          # Deny the rest of the connections
+          deny all;
+      }
+  \n"""
 
+  if env is "dev"
+    stub = ""
+
+  return stub
 
 module.exports.create = (workers, environment)->
   config = """
@@ -149,7 +164,7 @@ module.exports.create = (workers, environment)->
     gzip_comp_level 6;
     gzip_buffers 16 8k;
     gzip_http_version 1.1;
-    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     # start server
     server {
@@ -162,14 +177,15 @@ module.exports.create = (workers, environment)->
         #access_log off;
       }
 
-      # nginx status location, it retuns info about connections and requests
-      location /nginx_status {
-          # Turn on nginx status page
-          stub_status on;
-          # only allow requests coming from localhost
-          allow 127.0.0.1;
-          # Deny the rest of the connections
-          deny all;
+      #{createStubLocation(environment)}
+
+      # temporary exception for kloud to reach webserver without auth
+      location /-/subscriptions {
+        proxy_pass            http://webserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
       }
 
       # special case for ELB here, for now

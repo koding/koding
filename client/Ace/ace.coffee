@@ -1,11 +1,3 @@
-###
-  todo:
-
-    - fix setSoftWrap it goes back to off when you reopen the settings
-
-###
-
-
 class Ace extends KDView
 
   constructor:(options, file)->
@@ -60,7 +52,6 @@ class Ace extends KDView
       @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no     ,no
       @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes    ,no
       @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no     ,no
-      @setSoftWrap            @appStorage.getValue('softWrap')            or 'off' ,no
       @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
       @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
@@ -178,8 +169,8 @@ class Ace extends KDView
     localSync.on 'LocalContentCouldntSynced', (file) =>
       @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
-  requestSaveAs: (options) ->
-    @emit 'ace.requests.saveAs', @getContents(), options
+  requestSaveAs: ->
+    @emit 'ace.requests.saveAs', @getContents()
 
   fetchContents:(callback)->
     file = @getData()
@@ -227,13 +218,6 @@ class Ace extends KDView
   getUseWordWrap:->
     @appStorage.getValue('useWordWrap') ? @editor.getSession().getUseWrapMode()
 
-  getSoftWrap:->
-
-    limit = @appStorage.getValue('softWrap') ? @editor.getSession().getWrapLimitRange().max
-    if limit then limit
-    else
-      if @getUseWordWrap() then 'free' else 'off'
-
   getKeyboardHandler: ->
     @appStorage.getValue('keyboardHandler') ? 'default'
 
@@ -254,7 +238,6 @@ class Ace extends KDView
     showInvisibles      : @getShowInvisibles()
     fontSize            : @getFontSize()
     tabSize             : @getTabSize()
-    softWrap            : @getSoftWrap()
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
@@ -368,23 +351,6 @@ class Ace extends KDView
 
   setOpenRecentFiles:(value, save = yes)->
     @appStorage.setValue 'openRecentFiles', value
-
-
-  setSoftWrap:(value, save = yes)->
-    softWrapValueMap =
-      'off'  : [ null, 80 ]
-      '40'   : [ 40,   40 ]
-      '80'   : [ 80,   80 ]
-      'free' : [ null, 80 ]
-
-    [limit, margin] = softWrapValueMap[value]
-
-    @editor.getSession().setWrapLimitRange limit, limit
-    @editor.renderer.setPrintMarginColumn margin
-    @setUseWordWrap no if value is 'off'
-
-    return  unless save
-    @appStorage.setValue 'softWrap', value
 
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber

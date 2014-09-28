@@ -3,7 +3,7 @@ class AccountListViewController extends KDListViewController
   constructor: (options, data)->
 
     options.noItemFoundWidget = new KDView
-      cssClass: "no-item-found hidden"
+      cssClass: "no-item-found"
       partial : "<cite>#{options.noItemFoundText}</cite>"
 
     options.lazyLoaderOptions =

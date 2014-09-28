@@ -18,12 +18,17 @@ class ComputeController extends KDController
         environment  : KD.config.environment
 
       @eventListener = new ComputeEventListener
-      @computeStateChecker = new ComputeStateChecker
+      @stateChecker  = new ComputeStateChecker
 
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
 
       @fetchStacks =>
+
+        KD.singletons
+          .paymentController.on 'UserPlanUpdated', =>
+            @lastKnownUserPlan = null
+            @fetchUserPlan()
 
         if @stacks.length is 0 then do @createDefaultStack
 
@@ -62,6 +67,10 @@ class ComputeController extends KDController
 
           @machines = machines
           @stacks   = stacks
+
+          KD.userMachines = machines
+          @emit "MachineDataUpdated"
+
           cb null, stacks  for cb in queue
 
         else
@@ -94,8 +103,8 @@ class ComputeController extends KDController
             machines.push machine
 
         @machines = machines
-        @computeStateChecker.machines = machines
-        @computeStateChecker.start()
+        @stateChecker.machines = machines
+        @stateChecker.start()
 
         cb null, machines  for cb in queue
         queue = []
@@ -121,15 +130,29 @@ class ComputeController extends KDController
   fetchAvailable: (options, callback)->
     KD.remote.api.ComputeProvider.fetchAvailable options, callback
 
-  fetchExisting: (options, callback)->
-    KD.remote.api.ComputeProvider.fetchExisting options, callback
+  fetchUsage: (options, callback)->
+    KD.remote.api.ComputeProvider.fetchUsage options, callback
+
+  setAlwaysOn: (machine, state, callback = noop)->
+
+    options =
+      machineId : machine._id
+      provider  : machine.provider
+      alwaysOn  : state
+
+    KD.remote.api.ComputeProvider.update options, (err)=>
+      @triggerReviveFor machine._id  unless err?
+      callback err
+
 
   create: (options, callback)->
-    KD.remote.api.ComputeProvider.create options, callback
+    KD.remote.api.ComputeProvider.create options, (err, machine)=>
+      @reset yes  unless err?
+      callback err, machine
 
   createDefaultStack: ->
     return  unless KD.isLoggedIn()
-    KD.remote.api.ComputeProvider.createGroupStack (err, stack)=>
+    KD.remote.api.ComputeProvider.createGroupStack (err, res)=>
       return  if KD.showError err
       @reset yes
 
@@ -138,11 +161,12 @@ class ComputeController extends KDController
 
     @stacks   = []
     @machines = []
+    @plans    = null
     @_trials  = {}
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
-      @emit "renderStacks"
+      @emit "RenderMachines", @machines
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}
@@ -163,15 +187,17 @@ class ComputeController extends KDController
       @_trials[machine.uid]       ?= {}
       @_trials[machine.uid][task] ?= 0
 
-      if @_trials[machine.uid][task]++ < 20
+      if @_trials[machine.uid][task]++ < 2
         info "Trying again to do '#{task}'..."
-        KD.singletons.computeController[task] machine
+        @_force = yes
+        this[task] machine
         return yes
 
 
     (err)=>
 
       retried = no
+      @_force = no
       @eventListener.revertToPreviousState machine
 
       switch err.name
@@ -195,13 +221,16 @@ class ComputeController extends KDController
         @emit "error", { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
 
-      unless retried
-        warn "#{task} failed:", err, this
+      warn "#{task} failed:", err, this
+
+      @stateChecker.watch machine._id
+
+      return err
 
 
   destroy: (machine)->
 
-    ComputeController.UI.askFor 'destroy', machine, =>
+    ComputeController.UI.askFor 'destroy', machine, @_force, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -209,13 +238,15 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      @_clearTrialCounts machine
-
       call = @kloud.destroy { machineId: machine._id }
 
       .then (res)=>
 
+        @_force = no
+
         log "destroy res:", res
+        @emit "MachineBeingDestroyed", machine
+        @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
       .timeout ComputeController.timeout
@@ -223,6 +254,34 @@ class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'destroy', machine) err
+
+
+  reinit: (machine)->
+
+    ComputeController.UI.askFor 'reinit', machine, @_force, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Terminating
+        percentage  : 0
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      call = @kloud.reinit { machineId: machine._id }
+
+      .then (res)=>
+
+        @_force = no
+
+        log "reinit res:", res
+        @emit "MachineBeingDestroyed", machine
+        @_clearTrialCounts machine
+        @eventListener.addListener 'reinit', machine._id
+
+      .timeout ComputeController.timeout
+
+      .catch (err)=>
+
+        (@errorHandler call, 'reinit', machine) err
 
 
   build: (machine)->
@@ -312,7 +371,12 @@ class ComputeController extends KDController
     stateEvent = StateEventMap[machine.status.state]
 
     if stateEvent
+
       @eventListener.addListener stateEvent, machine._id
+
+      if stateEvent in ["build", "destroy"]
+        @eventListener.addListener "reinit", machine._id
+
       return yes
 
     return no
@@ -348,6 +412,76 @@ class ComputeController extends KDController
 
   # Utils beyond this point
   #
+
+  fetchPlans: (callback = noop)->
+
+    if @plans
+      KD.utils.defer => callback @plans
+    else
+      KD.remote.api.ComputeProvider.fetchPlans
+        provider: "koding"
+      , (err, plans)=>
+          if err? then warn err
+          else @plans = plans
+          callback plans
+
+  fetchUserPlan: (callback = noop)->
+
+    if @lastKnownUserPlan?
+      return callback @lastKnownUserPlan
+
+    KD.singletons.paymentController.subscriptions (err, subscription)=>
+
+      warn "Failed to fetch subscription:", err  if err?
+
+      if err? or not subscription?
+      then callback 'free'
+      else callback @lastKnownUserPlan = subscription.planTitle
+
+
+  handleNewMachineRequest: ->
+
+    return  if @_inprogress
+    @_inprogress = yes
+
+    @fetchUserPlan (plan)=>
+
+      @fetchPlans (plans)=>
+
+        @fetchUsage provider: "koding", (err, usage)=>
+
+          if KD.showError err
+            return @_inprogress = no
+
+          limits  = plans[plan]
+          options = { plan, limits, usage }
+
+          if plan in ['developer', 'professional', 'super']
+
+            new ComputePlansModal.Paid options
+            @_inprogress = no
+
+          else
+
+            @fetchMachines (err, machines)=>
+
+              warn err  if err?
+
+              if err? or machines.length > 0
+                new ComputePlansModal.Free options
+                @_inprogress = no
+
+              else if machines.length is 0
+
+                stack = @stacks.first._id
+
+                @create { provider : "koding", stack }, (err, machine)=>
+
+                  @_inprogress = no
+
+                  unless KD.showError err
+                    KD.userMachines.push machine
+
 
   triggerReviveFor:(machineId)->
 

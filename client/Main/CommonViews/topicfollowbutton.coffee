@@ -3,7 +3,7 @@ class TopicFollowButton extends KDToggleButton
   constructor : (options = {}, data) ->
 
     options.cssClass      = @utils.curry "topic-follow-btn", options.cssClass
-    options.defaultState  = if data.isParticipant then "Following" else "Follow"
+    options.defaultState  = if data.isParticipant then "Unfollow" else "Follow"
     options.loader        =
       color               : "#7d7d7d"
     options.icon          = yes
@@ -14,7 +14,7 @@ class TopicFollowButton extends KDToggleButton
       apiMethod : "follow"
       callback  : @bound "setFollowingState"
     ,
-      title     : "Following"
+      title     : "Unfollow"
       cssClass  : "following"
       apiMethod : "unfollow"
       callback  : @bound "setFollowingState"
@@ -55,4 +55,3 @@ class TopicFollowButton extends KDToggleButton
           @toggleState()
 
           @setClass @getState().cssClass
-

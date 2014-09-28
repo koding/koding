@@ -50,16 +50,37 @@ class Machine extends KDObject
 
     computeController.on "revive-#{machine._id}", (machine)=>
 
-      # update machine data
-      @jMachine = machine
-      @updateLocalData()
+      if machine?
+        # update machine data
+        @jMachine = machine
+        @updateLocalData()
+      else
+        @status = Machine.State.Terminated
+        @queryString = null
+        computeController.reset yes
 
 
   updateLocalData:->
     { @label, @ipAddress, @_id, @provisioners, @provider
-      @status, @uid, @domain, @queryString } = @jMachine
+      @status, @uid, @domain, @queryString, @slug } = @jMachine
+    @alwaysOn = @jMachine.meta.alwaysOn ? no
+
+
+  setLabel:(label, callback)->
+
+    {computeController} = KD.singletons
+
+    @jMachine.setLabel label, (err, newSlug)=>
+
+      unless err?
+        computeController.triggerReviveFor this._id
+        computeController.emit 'MachineDataModified'
+
+      callback err, newSlug
+
 
   getName: ->
+
     {uid, label, ipAddress} = this
 
     return label or ipAddress or uid or "one of #{KD.nick()}'s machines"

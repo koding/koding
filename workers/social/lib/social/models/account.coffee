@@ -493,7 +493,7 @@ module.exports = class JAccount extends jraphical.Module
     advanced =
       if Array.isArray permission then permission
       else JPermissionSet.wrapPermission permission
-    JPermissionSet.checkPermission client, advanced, target, callback
+    JPermissionSet.checkPermission client, advanced, target, null, callback
 
   @renderHomepage: require '../render/profile.coffee'
 
@@ -747,9 +747,8 @@ module.exports = class JAccount extends jraphical.Module
 
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
-                  "sent-hil", "kiwigeraint", "cihangirsavas", "leventyalcin",
-                  "leeolayvar", "stefanbc", "szkl", "canthefason", "nitin",
-                  "rsbrown"]
+                  "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
+                  "szkl", "canthefason", "nitin"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -779,7 +778,9 @@ module.exports = class JAccount extends jraphical.Module
   markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
     return callback new KodingError 'Access denied'  unless delegate.can 'flag', this
+    return @markUserAsExemptUnsafe client, exempt, callback
 
+  markUserAsExemptUnsafe: (client, exempt, callback)->
     # mark user as troll in social api
     @markUserAsExemptInSocialAPI client, exempt, (err, data)=>
       return callback new ApiError err  if err

@@ -40,9 +40,9 @@ ensureGroupChannel = (client, callback)->
   fetchGroup client, (err, group)->
     return callback err  if err
     return callback { message: "Group not found" } unless group
-    group.createSocialApiChannelId (err, socialApiChannelId)->
+    group.createSocialApiChannels (err, result)->
       return callback err  if err
-      callback null, socialApiChannelId
+      callback null, result.socialApiChannelId
 
 doRequest = (funcName, client, options, callback)->
   fetchGroup client, (err, group)->
@@ -64,6 +64,10 @@ doRequest = (funcName, client, options, callback)->
 
 bareRequest = (funcName, options, callback)->
   requests = require './requests'
+  requests[funcName] options, callback
+
+paymentRequest = (funcName, options, callback)->
+  requests = require './payment_requests'
   requests[funcName] options, callback
 
 module.exports = {
