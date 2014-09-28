@@ -334,7 +334,7 @@ class PrivateMessagePane extends MessagePane
           return
 
 
-  fetchAccounts: PrivateMessageForm::fetchAccounts({inputValue}, callback) ->
+  fetchAccounts: PrivateMessageForm::fetchAccounts
 
 
   viewAppended: ->
