@@ -503,7 +503,7 @@ func newKloud() *kloud.Kloud {
 		KontrolURL:        conf.KontrolURL,
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
-		Bucket:            koding.NewBucket("koding-kites", "klient/development/latest"),
+		Bucket:            koding.NewBucket("koding-klient", "development/latest"),
 		Test:              true,
 		HostedZone:        "dev.koding.io", // TODO: Use test.koding.io
 		AssigneeName:      "kloud-test",
