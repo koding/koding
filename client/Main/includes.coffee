@@ -12,7 +12,6 @@ module.exports = [
   'libs/marked.js'
   'libs/date.format.js'
   'libs/highlight.pack.js'
-  'libs/cookies.js'
   'libs/jquery-timeago.js'
   'libs/emojify.js'
 
