@@ -130,7 +130,7 @@ class MainView extends KDView
 
     @toggleClass 'collapsed'
 
-    @isCollapsed = !@isCollapsed
+    @isSidebarCollapsed = !@isSidebarCollapsed
 
     {appManager, windowController} = KD.singletons
 
