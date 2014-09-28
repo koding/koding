@@ -13,6 +13,9 @@ class SearchController extends KDObject
   search: (indexName, seed, options) ->
 
     new Promise (resolve, reject) =>
+
+      return reject new Error 'Illegal input'  if seed is ''
+
       index = @getIndex "#{ indexName }#{ KD.config.algolia.indexSuffix }"
       index.search seed, (success, results) ->
 
@@ -32,7 +35,10 @@ class SearchController extends KDObject
       .then (it) -> [it]
 
   searchAccounts: (seed) ->
-    @search 'accounts', seed
+
+    seed = seed.replace /\W/g, ''
+
+    @search 'accounts', seed, hitsPerPage : 10
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data
