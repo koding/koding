@@ -158,11 +158,11 @@ class PaymentForm extends JView
 
 
   getPricePartial: (planInterval) ->
-    { monthPrice, yearPrice } = @state
+    { monthPrice, reducedMonth } = @state
 
     map =
       month : "#{monthPrice}<span>/month</span>"
-      year  : "#{yearPrice}<span>/year</span>"
+      year  : "#{reducedMonth}<span>/month</span>"
 
     return map[planInterval]
 
