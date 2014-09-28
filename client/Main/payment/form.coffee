@@ -10,9 +10,10 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  initialState     :
+  getInitialState: -> {
     planInterval   : PaymentWorkflow.planInterval.MONTH
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
+  }
 
 
   constructor: (options = {}, data) ->
@@ -23,7 +24,7 @@ class PaymentForm extends JView
 
     { state } = @getOptions()
 
-    @state = KD.utils.extend @initialState, state
+    @state = KD.utils.extend @getInitialState(), state
 
     @initViews()
     @initEvents()
@@ -32,7 +33,8 @@ class PaymentForm extends JView
   initViews: ->
 
     {
-      planTitle, planInterval, reducedMonth, currentPlan
+      planTitle, planInterval, reducedMonth
+      currentPlan, yearPrice
     } = @state
 
     @plan = new KDCustomHTMLView
@@ -76,6 +78,10 @@ class PaymentForm extends JView
 
     @submitButton.addSubView @totalPrice  if isUpgrade
 
+    @yearPriceMessage = new KDCustomHTMLView
+      cssClass  : 'year-price-msg'
+      partial   : "(You will be billed $#{yearPrice} for 12 months.)"
+
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
       partial   : "
@@ -90,14 +96,18 @@ class PaymentForm extends JView
 
   filterViews: ->
 
-    { FREE } = PaymentWorkflow.planTitle
-    { currentPlan, planTitle } = @state
+    { FREE }  = PaymentWorkflow.planTitle
+    { MONTH } = PaymentWorkflow.planInterval
+    { currentPlan, planTitle, planInterval } = @state
+
+    @yearPriceMessage.hide()  if planInterval is MONTH
 
     # no need to show those views when they are
     # downgrading to free account.
     if selectedPlan = planTitle is FREE
       @securityNote.hide()
       @existingCreditCardMessage.hide()
+      @yearPriceMessage.hide()
 
     # if their currentPlan is not free it means that
     # we already have their credit card,
@@ -157,11 +167,11 @@ class PaymentForm extends JView
 
 
   getPricePartial: (planInterval) ->
-    { monthPrice, yearPrice } = @state
+    { monthPrice, reducedMonth } = @state
 
     map =
       month : "#{monthPrice}<span>/month</span>"
-      year  : "#{yearPrice}<span>/year</span>"
+      year  : "#{reducedMonth}<span>/month</span>"
 
     return map[planInterval]
 
@@ -175,6 +185,7 @@ class PaymentForm extends JView
     {{> @existingCreditCardMessage}}
     {{> @successMessage}}
     {{> @submitButton}}
+    {{> @yearPriceMessage}}
     {{> @securityNote}}
     """
 

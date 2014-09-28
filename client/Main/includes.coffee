@@ -76,6 +76,7 @@ module.exports = [
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
   "CommonViews/uploadimagemodalview.coffee",
+  "CommonViews/helpsupportmodal.coffee",
 
   # idle detection
   "idleuserdetector.coffee"
@@ -206,6 +207,7 @@ module.exports = [
   "payment/stripeformview.coffee",
   "payment/form.coffee",
   "payment/basemodal.coffee",
+  "payment/downgradeerrormodal.coffee",
   "payment/modal.coffee",
   "payment/creditcardmodal.coffee",
 

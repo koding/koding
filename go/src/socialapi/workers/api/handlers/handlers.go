@@ -292,6 +292,14 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	mux.Handle("GET", "/account/{id}/channels/count", handler.Wrapper(
+		handler.Request{
+			Handler: account.ParticipatedChannelCount,
+			Name:    "account-channel-list-count",
+			Metrics: metrics,
+		},
+	))
+
 	// list posts of the account
 	mux.Handle("GET", "/account/{id}/posts", handler.Wrapper(
 		handler.Request{
@@ -430,6 +438,22 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		handler.Request{
 			Handler: privatemessage.List,
 			Name:    "privatemessage-list",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/privatemessage/search", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Search,
+			Name:    "privatemessage-search",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/privatemessage/count", handler.Wrapper(
+		handler.Request{
+			Handler: privatemessage.Count,
+			Name:    "privatemessage-count",
 			Metrics: metrics,
 		},
 	))

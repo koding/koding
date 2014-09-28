@@ -52,6 +52,7 @@ type Channel struct {
 const (
 	// TYPES
 	Channel_TYPE_GROUP           = "group"
+	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
@@ -459,7 +460,7 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	query := bongo.B.BuildQuery(c, bongoQuery)
-	query = query.Where("name like ?", q.Name+"%")
+	query = query.Where("name like ?", "%"+q.Name+"%")
 
 	if err := bongo.CheckErr(
 		query.Find(&channels),
@@ -660,6 +661,11 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 
 	// anyone can read group activity
 	if c.TypeConstant == Channel_TYPE_GROUP {
+		return true, nil
+	}
+
+	// anyone can read announcement activity
+	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
 		return true, nil
 	}
 

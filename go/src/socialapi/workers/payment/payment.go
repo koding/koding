@@ -3,7 +3,8 @@ package payment
 import (
 	"errors"
 	"fmt"
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"time"
 )
@@ -44,29 +45,23 @@ type SubscriptionRequest struct {
 }
 
 type SubscriptionsResponse struct {
-	AcccountId         string    `json:"acccountId"`
+	AccountId          string    `json:"accountId"`
 	PlanTitle          string    `json:"planTitle"`
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
-	CreatedAt          time.Time `json:"createdAt"`
-	CanceledAt         time.Time `json:"canceledAt"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
 
+// Do checks if given `account_id` is a paying customer and returns
+// the current plan the current is subscribed if any.
+//
+// Errors:
+//		paymenterrors.ErrCustomerNotFound if user is found
+//		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
+//		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
 func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
-	resp := &SubscriptionsResponse{
-		AcccountId:   s.AccountId,
-		PlanTitle:    "free",
-		PlanInterval: "month",
-		State:        "active",
-	}
-
 	customer, err := stripe.FindCustomerByOldId(s.AccountId)
-	if err == stripe.ErrCustomerNotFound {
-		return resp, nil
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	}
 
 	if len(subscriptions) == 0 {
-		return resp, nil
+		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	currentSubscription := subscriptions[0]
@@ -88,13 +83,47 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 		return nil, err
 	}
 
-	resp.PlanTitle = plan.Title
-	resp.PlanInterval = plan.Interval
-	resp.CurrentPeriodStart = currentSubscription.CurrentPeriodStart
-	resp.CurrentPeriodEnd = currentSubscription.CurrentPeriodEnd
-	resp.State = currentSubscription.State
+	resp := &SubscriptionsResponse{
+		AccountId:          s.AccountId,
+		PlanTitle:          plan.Title,
+		PlanInterval:       plan.Interval,
+		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
+		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
+		State:              currentSubscription.State,
+	}
 
 	return resp, nil
+}
+
+// DoWithDefault is different from Do since client excepts to get
+// "free" plan regardless of user not found or doesn't have any
+// subscriptions etc.
+func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
+	resp, err := s.Do()
+	if err == nil {
+		return resp, nil
+	}
+
+	defaultResp := &SubscriptionsResponse{
+		AccountId:    s.AccountId,
+		PlanTitle:    "free",
+		PlanInterval: "month",
+		State:        "active",
+	}
+
+	defaultResponseErrs := []error{
+		paymenterrors.ErrCustomerNotSubscribedToAnyPlans,
+		paymenterrors.ErrCustomerNotFound,
+		paymenterrors.ErrPlanNotFound,
+	}
+
+	for _, respError := range defaultResponseErrs {
+		if err == respError {
+			return defaultResp, nil
+		}
+	}
+
+	return nil, err
 }
 
 //----------------------------------------------------------

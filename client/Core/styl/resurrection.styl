@@ -288,508 +288,6 @@ aside.app-sidebar
     vendor            transform, scale(0)
 
 
-/*3d loading*/
-/* logo */
-#main-loading
-  vendor               perspective, 600px
-  vendor               transform-style, preserve-3d
-  abs()
-  top                 0
-  left                0
-  z-index             10000
-  bg                  color, #111617
-  vendor              transition, opacity .75s ease-in-out
-  opacity             1
-  overflow            hidden
-  &.out
-    opacity           0
-
-  figure.splash
-    // max-width         40%
-    // margin            0 auto
-    text-align        center
-    text-shadow       0 1px 0 rgba(0,0,0,.5)
-    padding           20px
-    // bg                color, rgba(0, 0, 0, .05)
-    // border            1px solid rgba(0, 0, 0, .1)
-    top               50px
-    rel()
-    .splash-title
-      font-weight     300
-      font-size       18px
-      padding         0 0 20px
-      color           #eee
-    .splash-name
-      bg              color, rgba(0, 0, 0, .05)
-      display         inline-block
-      font-weight     300
-      font-size       24px
-      color           linkColor1
-      padding         5px 10px
-    .splash-body
-      font-weight     300
-      margin          0 auto
-      max-width       400px
-      max-height      100px
-      font-size       14px
-      color           #ccc
-
-.threed-logo
-  left                 50%
-  top                  50%;
-  size                 200px, 260px
-  margin               -130px 0 0 -100px
-  // -moz-animation       logoHeartBeat 2s infinite ease
-  abs()
-
-  &
-  & *
-    vendor             transform-style, preserve-3d
-
-  .line
-    display            block
-    position           relative
-    size               200px, 60px
-    bg                 color, #fff
-
-    &~.line
-      margin-top       20px
-
-    &:nth-child(1)
-      bg               color, #ff9200
-    &:nth-child(2)
-      width            142px
-
-    i
-      abs()
-      top              0
-      left             0
-      display          block
-      size             100%, 20px
-      bg               color, #eee
-      vendor           backface-visibility, hidden
-      vendor           transform, rotateX(90deg) translateZ(10px) translateY(-10px)
-
-      &:after
-        abs()
-        top            0
-        left           0
-        content        ""
-        display        block
-        bg             color, #ccc
-        size           100%, 100%
-        vendor         backface-visibility, hidden
-        vendor         transform, translateZ(-60px) rotateX(180deg)
-
-    &:nth-child(1) i
-      bg               color, #c97200
-      &:after
-        bg             color, #b86800
-
-    &:nth-child(1)
-      vendor           animation, lineRotate 2.5s 0.01s infinite forwards ease-out /* .01s = hack for firefox :@ */
-    &:nth-child(2)
-      vendor           animation, lineRotate 2.5s .5s infinite forwards ease-out
-    &:nth-child(3)
-      vendor           animation, lineRotate 2.5s 1s infinite forwards ease-out
-
-
-//
-// BOOK STYLES
-//
-
-#instruction-book
-  abs()
-  bottom                    15px
-  left                      -1609px
-  size                      1509px, 425px
-  z-index                   1000
-  rounded                   4px
-  shadow                    inset 0 5px 5px rgba(0,0,0,.35), 0 15px 40px rgba(0,0,0,.8)
-  background                transparent url("../images/book/book.jpg") no-repeat 0 0
-  vendor                    transition, all .3s ease-in-out
-  overflow                  visible
-  &.more-terminal
-      bottom                40px
-  &.moveUp
-    bottom                  145px
-  &.in
-    left                    -700px
-  &.aside
-    left                    -1500px
-  .contents
-    overflow                auto
-    height                  290px
-    padding-right           0.7em
-    li
-      min-height            26px
-  .controls
-    abs()
-    top                     33px
-    right                   61px
-    z-index                 999
-    size                    auto, auto
-    text-align              right
-    .page-nav
-      display               inline-block
-      margin-left           15px
-      text-align            center
-      a
-        width               28px
-        padding             0
-        margin              0
-        i
-          display                          inline-block
-          size                             0,0
-          border                           7px solid #727272
-          border-top-width                 5px
-          border-bottom-width              5px
-          border-top-color                 transparent
-          border-bottom-color              transparent
-          margin-top                       8px
-        &:first-child
-          border-top-right-radius          0
-          border-bottom-right-radius       0
-          border-right                     0
-          i
-            border-left-color              transparent
-            margin-left                    -7px
-        &:last-child
-          border-top-left-radius           0
-          border-bottom-left-radius        0
-          i
-            border-right-color             transparent
-            margin-right                   -7px
-        &.disabled
-          i.prev
-            border-right-color             #ccc
-          i.next
-            border-left-color              #ccc
-    a
-      noTextDeco()
-      font-size                            11px
-      color                                #727272
-      text-shadow                          0 1px 0 #fff
-      border-radius                        4px
-      background                           linear-gradient(#fff 0%, #F0F0F0 100%)
-      border                               1px solid #D9D9D9
-      shadow                               0 1px 0 0 #fff
-      height                               26px
-      line-height                          26px
-      display                              inline-block
-      padding                              0 0.8em
-      vendor                               transition, color .1s linear
-      font-weight                          600
-      margin-left                          15px
-      &.dismiss-button
-        abs()
-        top                                 -50px
-        right                               -73px
-        background                          transparent url('../images/book/close_button.png') center center no-repeat
-        border                              0
-        size                                30px, 30px
-        line-height                         50px
-        padding                             0
-        text-indent                         -100px
-        overflow                            hidden
-        color                               transparent
-        noTextDeco()
-        text-align                          left
-        shadow                              0 0 0 0 #fff
-        &:hover
-        &:focus
-          color                             transparent
-          background-color                  transparent
-      &:hover
-      &:focus
-        color                               rgba(0,0,0,.8)
-  .controls .cta_button
-  .cta_button
-    color                   #fff
-    text-shadow             0 1px 1px #2E1A00
-    border-radius           4px
-    gradient                #FFAB23 0%, #F27500 100%
-    background              linear-gradient(#FFAB23 0%, #F27500 100%)
-    font-weight             600
-    border                  1px solid #C1650F
-    shadow                  0 1px 1px 0 #fff
-    noTextDeco()
-    &.full_width
-      display               block
-      font-size             13px
-      width                 auto
-      border-bottom-color   #8F4907
-      line-height           20px
-      text-align            center
-      margin                1em auto
-      padding               0.6em 1em
-      shadow                0 1px 3px 0 rgba(194,110,0,0.50)
-    &:hover
-    &:focus
-      gradient              #FFBF57 0%, #F27500 100%
-      background            linear-gradient(#FFBF57 0%, #F27500 100%)
-      color                 #fff
-    &:active
-      shadow                inset 0 1px 3px 0 rgba(0,0,0,.5)
-      gradient              #F27500 0%, #FC7A00 100%
-      background            linear-gradient(#F27500 0%, #FC7A00 100%)
-
-  &.new-feature
-    >div
-      &.right-page
-        background          url(/a/images/book/new-feature.png) bottom right no-repeat
-
-  >div
-    size                    735px, 408px
-    vendor                  transition, opacity .3s ease-out
-    &.left-page
-      margin                6px 0 0 15px
-    &.right-page
-      margin                6px 0 0 0
-    &.out
-      opacity               0
-
-section.page
-  background            transparent no-repeat 0 0
-  &.table-of-contents
-    bg                  image, url("../images/book/01.png")
-    bg                  position, 55px 90px
-    .embedded
-      margin            20px 30px 0 450px
-      line-height       25px
-      font-size         14px
-      a
-        color           linkColor1
-        fl()
-      span
-        fr()
-
-  &.a-story
-    bg                  image, url("../images/book/02.png")
-    bg                  position, center 74px
-    >article
-      text-align        center
-      margin            250px 0 0 0
-    &.no-header
-      bg                position, center top
-      >article
-        margin          324px 0 0 0
-
-    &.more-1
-      bg                image, url("../images/book/03.png")
-    &.more-2
-      bg                image, url("../images/book/04.png")
-    &.more-3
-      bg                image, url("../images/book/05.png")
-    &.more-4
-      bg                image, url("../images/book/06.png")
-    &.more-5
-      bg                image, url("../images/book/07.png")
-    &.more-6
-      bg                image, url("../images/book/08.png")
-
-  &.foreword
-    bg                  image, url("../images/book/09.png")
-    bg                  position, right bottom
-
-  &.activity
-    bg                  image, url("../images/book/10.png")
-    bg                  position, center bottom
-    p
-      width             auto
-  &.topics
-    bg                  image, url("../images/book/11.png")
-    bg                  position, left 174px
-    p
-      width             55%
-      margin-left       45%
-      padding           15px 20px 0 0
-
-    .embedded
-      abs()
-      top               97px
-      left              43px
-      size              260px, 130px
-      .ttag
-        font-size       12px
-        margin          0 6px 6px 0
-        line-height     20px
-        padding         0 7px
-        max-width       150px
-        rounded         4px
-      .kdloader
-        margin          40px 0 0 120px
-
-
-  &.members
-    bg                  image, url("../images/book/12.png")
-    bg                  position, left bottom
-    >article
-      margin            20px 0 0 255px
-      gradient          rgba(247, 247, 247, 0), rgba(247, 247, 247, .65)
-      p
-        width           auto
-        padding-left    0
-
-  &.develop
-    bg                  image, url("../images/book/13.png")
-    bg                  position, left bottom
-    &.enviroments
-      >article
-        margin-top      80px
-        padding-left    35px
-        p
-          padding-left  0
-    >article
-      margin            20px 15px 0 360px
-      .tip
-        margin-top    7px
-        display       block
-        font-style    italic
-        color         #777
-        padding       7px 13px
-        background    #eee
-        rounded       4px
-        span
-          color       k-orange
-          font-weight 600
-      p
-        width           auto
-    &.more-1
-      bg                image, url("../images/book/14.png")
-      bg                position, left center
-      >article
-        padding-top     60px
-        p
-          padding-left  0
-        strong
-          color         linkColor1
-          font-weight   600
-          word-break    break-all
-    &.more-2
-      bg                image, url("../images/book/15.png")
-      bg                position, center center
-      >article
-        margin          130px 20px 0 120px
-    &.more-3
-      bg                image, url("../images/book/17.png")
-      bg                position, center center
-      >article
-        margin          160px 60px 0 330px
-    &.more-4
-      >article
-        margin          70px 30px 0 400px
-        p
-          padding-left  0
-
-      .embedded
-        .editor-advanced-settings-menu
-          top           66px
-          left          336px
-    &.more-5
-      bg                image, url("../images/book/drag-drop.jpg")
-      bg                position, 40px 70px
-      >article
-        margin          70px 30px 0 400px
-        p
-          padding-left  0
-
-  &.terminal
-    bg                  image, url("../images/book/13a.png")
-    bg                  position, left 80px
-    >article
-      margin            55px 20px 0 260px
-      font-size         13px
-      p
-        width           auto
-    &.more-1
-      >article
-        strong
-          color         linkColor1
-          font-weight   600
-        code
-          margin        14px 20px 0 40px
-          display       block
-          font-size     14px
-          padding       3px 6px
-          color         #28fe14
-          background    #444
-          font-weight   400
-          border        1px solid #eee
-          word-break    break-all
-          rounded       2px
-
-  &.apps
-    bg                  image, url("../images/book/18.png")
-    bg                  position, right bottom
-
-  &.share
-    bg                  image, url("../images/book/share.jpg")
-    bg                  position, 90% 100px
-
-  &.etiquette
-    bg                  image, url("../images/book/19.png")
-    bg                  position, right 90%
-    >article
-      font-size         13px
-    p
-      padding-right     0
-      &:last-child
-        abs()
-        top             0
-        right           0
-        padding         15px 20px 0 20px
-
-  &.enjoy
-    bg                  image, url("../images/book/08.png")
-    bg                  position, center 74px
-    .embedded
-      abs               30px, 165px
-    >article
-      overflow          visible
-      p
-        padding         300px 0 0
-        text-align      center
-        width           100%
-      span
-        abs()
-        top             15px
-        right           20px
-        font-weight     300
-        font-size       12px
-        line-height     16px
-        color           #aaa
-        a
-          color         linkColor1
-
-  >article
-    size                auto, auto
-    font-size           14px
-    >p
-      padding           15px 20px 0 43px
-      line-height       1.75em
-      width             50%
-      borderBox()
-      &.centered
-        margin          0 auto
-        padding-top     5em
-    ul
-    ol
-      li
-        margin-left      2em
-        list-style-type  disc
-        line-height      1.75em
-
-  >header
-    color               #37342f
-    padding-top         13px
-    size                auto, 60px
-    line-height         60px
-    font-size           32px
-    border-bottom       1px solid rgba(0,0,0,.08)
-    padding-left        43px
-
-
 #kdmaincontainer > .pointer
   abs()
   bottom                380px
@@ -1166,12 +664,21 @@ div.nominateicon
     padding-left          3px
     color                 #99999B
 
-  .kdbutton.solid.red
-    left                  50%
-    width                 124px
-    margin                24px 0 10px -66px
+  .kdbutton.solid
     font-weight           600
-    background            #D43130
+    &.red
+      background          #D43130
+    &.reinit
+      background          #F69D03
+
+  .button-container
+
+    text-align            center
+
+    button
+      margin              10px 10px 0 10px !important
+      width               124px
+
 
   .kdbutton.subdomain-toggler
     padding-right           0
@@ -1376,6 +883,18 @@ body.account
       a
         color           #01B05A
 
+    .downgrade-error-msg
+      color             #7f7f7f
+      font-size         16px
+      line-height       24px
+      text-align        left
+
+      .description
+        margin-top      20px
+
+        strong
+          font-weight   600
+
     .submit-btn
       width             100% !important
       height            50px !important
@@ -1404,6 +923,16 @@ body.account
           font-size     12px
           opacity       .99
 
+    .year-price-msg
+      display           block
+      font-size         14px
+      color             #7f7f7f
+      line-height       19px
+      margin            20px 0 0px
+      opacity           .99
+      text-align        center
+
+
     .security-note
       font-size         12px
       color             #A7A7A7
@@ -1426,3 +955,191 @@ body.account
         r-sprite        'pricing', 'lock'
         margin          0 auto 10px
 
+
+.kdmodal.help-support-modal
+
+  bg                      color, #FCFCFC
+
+  .kdmodal-inner
+    margin                10px
+    bg                    color, #FCFCFC
+
+    a
+      color               #0DA84C
+      font-weight         700
+      line-height         27px
+
+    .kdmodal-title
+      text-align          center
+
+      span.title
+        font-size         17px !important
+        font-weight       bold
+        color             #0DA84C
+        padding-top       28px
+        padding-bottom    11px
+
+      span.subtitle
+        color             #222
+        margin-top        -5px
+
+
+    .kdmodal-content
+      font-size           14px !important;
+      padding             16px 10px 0 !important;
+
+
+  .kdscrollview.kdtabview
+    float                 right
+    width                 46%
+    padding-left          18px
+    border-left           1px solid #EEE
+
+    label.kdlabel
+      width               100%
+      float               none !important
+      font-weight         bold
+      color               #666
+      margin-top          0
+      margin-bottom       4px
+
+    textarea
+      min-height          85px
+
+    .input-wrapper
+      margin-bottom       12px
+
+    input.kdinput.text,
+    textarea.kdinput.text
+      font-size           12px
+      border-radius       4px
+      background          white
+      font-weight         500
+      width               274px
+
+    .kdtabpaneview.main
+      padding-left        2px
+
+    .button-field
+      height              40px !important
+
+      button.kdbutton
+        top               -13px
+        right             13px
+        width             68px
+        height            33px
+        background        #04A84C
+        abs()
+
+        span.button-title
+          line-height     36px
+
+  .container
+    float                 left
+    width                 45%
+    padding               0 10px 10px 20px
+
+    .topics-header
+      margin-bottom       10px
+      color               #666
+      font-weight         bold
+
+    .message-footer
+      bottom              20px
+      abs()
+
+.kdmodal.welcome-modal
+  overflow                hidden
+  rounded                 3px
+
+  .kdmodal-inner
+    margin                0
+
+  .kdmodal-content
+    margin                0 !important
+    max-height            100% !important
+
+  .decoration-image
+    size                  258px, 519px
+    background            url('../images/welcome-decoration.jpg') no-repeat center center #45a66c
+    fl()
+
+  .content
+    size                  508px, 519px
+    padding               38px
+    borderBox()
+    fl()
+
+    h1
+      font-size           24px
+      line-height         1em
+      color               #27ae60
+      font-weight         600
+      border              none
+      padding             0
+      margin              0 0 4px
+      height              auto
+
+      span
+        padding           0
+        margin            0
+
+    h2
+      font-size           18px
+      line-height         1em
+      color               #848484
+      font-weight         200
+      border              none
+      padding             0
+      margin              0 0 26px
+      height              auto
+
+      span
+        padding           0
+        margin            0
+
+    p
+      display             block
+      margin              0
+      padding             16px 0 20px
+      border-top          1px dashed #cccccc
+      font-size           14px
+      color               #4b4b4b
+      line-height         27px
+
+      span
+        font-size         12px
+        color             red
+
+    .welcome-btn
+      display             block
+      size                100%, 55px
+      margin-top          -1px
+      border              1px solid #dcdcdc
+      line-height         55px
+      padding-left        25px
+      font-size           14px
+      color               #525252
+      font-weight         400
+      noTextDeco()
+      borderBox()
+
+      &:first-of-type
+        rounded           3px 3px 0 0
+
+      &:last-of-type
+        rounded           0 0 3px 3px
+
+      &:hover
+        color             #27ae60
+        border-color      #27ae60
+
+        & + .welcome-btn
+          border-top-color transparent
+
+      &:after
+        content           ''
+        display           block
+        r-sprite          'app', 'welcome-btn-chevron'
+        margin            21px 24px 0 0
+        fr()

@@ -1,7 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 	"time"
 
 	"github.com/koding/bongo"
@@ -23,7 +24,7 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 
 	sub, err := stripeSub.New(subParams)
 	if err != nil {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	start := time.Unix(sub.PeriodStart, 0)
@@ -75,7 +76,7 @@ func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmo
 
 	err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
 	if err != nil {
-		return err
+		return handleStripeError(err)
 	}
 
 	err = subscription.UpdateState(SubscriptionStateCanceled)
@@ -90,7 +91,7 @@ func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Qu
 	var subs = []paymentmodel.Subscription{}
 
 	if customer.Id == 0 {
-		return nil, ErrCustomerIdIsNotSet
+		return nil, paymenterrors.ErrCustomerIdIsNotSet
 	}
 
 	s := paymentmodel.Subscription{}

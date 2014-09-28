@@ -2,10 +2,11 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
-  initialState : {
-    planInterval : 'year'
-    promotedPlan : 'hobbyist'
-  }
+  getInitialState : ->
+    {
+      planInterval : 'year'
+      promotedPlan : 'hobbyist'
+    }
 
   constructor:(options = {}, data) ->
 
@@ -13,7 +14,7 @@ class PricingAppView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     @loadPlan()  if KD.isLoggedIn()
     @initViews()
@@ -59,6 +60,7 @@ class PricingAppView extends KDView
 
 
   initEvents: ->
+
     @plans.on 'PlanSelected', @bound 'planSelected'
 
     @on 'IntervalToggleChanged', @bound 'handleToggleChanged'
@@ -98,7 +100,7 @@ class PricingAppView extends KDView
     footer.addSubView new CustomLinkView
       title    : 'Learn more about all our features'
       cssClass : "learn-more"
-      href     : "/"
+      href     : "/Features"
 
     footer.addSubView new KDCustomHTMLView
       cssClass : 'footer-msg'
@@ -112,6 +114,7 @@ class PricingAppView extends KDView
 
 
   selectIntervalToggle: (planInterval) ->
+
     button = @intervalToggle.buttons[planInterval]
     @intervalToggle.buttonReceivedClick button
 
@@ -130,6 +133,9 @@ class PricingAppView extends KDView
     { paymentController } = KD.singletons
 
     paymentController.subscriptions (err, subscription) =>
+
+      return KD.showError err  if err?
+
       { planTitle } = subscription
 
       @state.currentPlan = planTitle
@@ -147,7 +153,7 @@ class PricingAppView extends KDView
       .router
       .handleRoute '/Login'  unless KD.isLoggedIn()
 
-    return @loadPlan @bound 'planSelected'  unless @state.currentPlan?
+    return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
 
     @setState options
 
@@ -165,6 +171,14 @@ class PricingAppView extends KDView
       KD.singletons
         .router
         .handleRoute '/'
+
+
+  continueFrom: (planTitle, planInterval) ->
+
+    @emit 'IntervalToggleChanged', {planInterval}
+
+    plan = @plans.planViews[planTitle]
+    plan.select()
 
 
   setState: (obj) -> @state = KD.utils.extend @state, obj

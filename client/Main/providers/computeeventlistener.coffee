@@ -53,6 +53,8 @@ class ComputeEventListener extends KDObject
 
   triggerState:(machine, event)->
 
+    return  unless machine?
+
     {computeController} = KD.singletons
 
     state = { status : event.status, reverted : event.reverted }
@@ -78,6 +80,7 @@ class ComputeEventListener extends KDObject
     stop    : public : "MachineStopped",   private : Machine.State.Stopped
     start   : public : "MachineStarted",   private : Machine.State.Running
     build   : public : "MachineBuilt",     private : Machine.State.Running
+    reinit  : public : "MachineBuilt",     private : Machine.State.Running
     destroy : public : "MachineDestroyed", private : Machine.State.Terminated
 
 

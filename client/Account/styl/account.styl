@@ -15,9 +15,13 @@ body.account
   #main-tab-view
     overflow                      visible
 
+  .kdtabpaneview.account
+    vendor                        transform, translateX(0)
+
   .app-sidebar
     background                    #EFEFEF
     padding                       21px 16px 16px 34px
+    left                          0
 
     nav
       a
@@ -313,6 +317,53 @@ body.account
 
           a
             color                 #323232
+
+    &.ssh-keys
+      .ssh-key-item
+        size                      100%, auto
+        padding                   23px 0
+        margin                    0
+        border-bottom             1px solid #DEDEDE
+
+        .kdview
+          height                  auto
+
+        .ssh-key-info
+          font-size               14px
+          line-height             19px
+          fl()
+
+          h4
+            font-weight           600
+            margin                0 0 1px
+            padding               0
+            color                 #4C4C4C
+
+          p
+            font-weight           400
+            color                 #7B7B7B
+
+        .buttons
+          fr()
+
+          // .kdbutton
+          //   display               block
+          //   margin                10px 0 0 16px
+          //   background            transparent
+          //   border                none
+          //   fr()
+
+          //   &.share
+          //     r-sprite            'app', 'share-gray-16'
+
+          //   &.show
+          //     r-sprite            'app', 'zoomin-gray-16'
+
+          //   &.participants
+          //     r-sprite            'app', 'users-gray-16'
+
+          //   &.delete
+          //     r-sprite            'app', 'delete-gray-16'
 
 
     &.billing

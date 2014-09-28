@@ -50,9 +50,14 @@ class Machine extends KDObject
 
     computeController.on "revive-#{machine._id}", (machine)=>
 
-      # update machine data
-      @jMachine = machine
-      @updateLocalData()
+      if machine?
+        # update machine data
+        @jMachine = machine
+        @updateLocalData()
+      else
+        @status = Machine.State.Terminated
+        @queryString = null
+        computeController.reset yes
 
 
   updateLocalData:->
@@ -75,6 +80,7 @@ class Machine extends KDObject
 
 
   getName: ->
+
     {uid, label, ipAddress} = this
 
     return label or ipAddress or uid or "one of #{KD.nick()}'s machines"

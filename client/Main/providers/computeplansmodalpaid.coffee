@@ -86,7 +86,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
       provider : "koding", stack, storage
     }, (err, machine)=>
 
-      KD.showError err
+      return  if KD.showError err
 
       KD.userMachines.push machine
 

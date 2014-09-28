@@ -23,7 +23,6 @@ import (
 )
 
 var (
-	hMux       tigertonic.HostServeMux
 	mux, nsMux *tigertonic.TrieServeMux
 
 	Name = "SocialAPI"

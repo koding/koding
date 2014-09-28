@@ -41,7 +41,10 @@ class ActivityListItemView extends KDListItemView
 
     {commentViewClass, activitySettings: {disableFollow}} = options
 
+    {socialapi} = KD.singletons
+
     @commentBox  = new commentViewClass options.commentSettings, data
+
     @actionLinks = new ActivityActionsView delegate: @commentBox, data
 
     @commentBox.forwardEvent @actionLinks, "Reply"
@@ -142,35 +145,35 @@ class ActivityListItemView extends KDListItemView
     @destroy()
 
 
-  setAnchors: ->
+  # setAnchors: ->
 
-    @$("article a").each (index, element) ->
-      {location: {origin}} = window
-      href = element.getAttribute "href"
-      return  unless href
+  #   @$("article a").each (index, element) ->
+  #     {location: {origin}} = window
+  #     href = element.getAttribute "href"
+  #     return  unless href
 
-      beginning = href.substring 0, origin.length
-      rest      = href.substring origin.length + 1
+  #     beginning = href.substring 0, origin.length
+  #     rest      = href.substring origin.length + 1
 
-      if beginning is origin
-        element.setAttribute "href", "/#{rest}"
-        element.classList.add "internal"
-        element.classList.add "teamwork"  if rest.match /^Teamwork/
-      else
-        element.setAttribute "target", "_blank"
+  #     if beginning is origin
+  #       element.setAttribute "href", "/#{rest}"
+  #       element.classList.add "internal"
+  #       element.classList.add "teamwork"  if rest.match /^Teamwork/
+  #     else
+  #       element.setAttribute "target", "_blank"
 
 
-  click: (event) ->
+  # click: (event) ->
 
-    {target} = event
+  #   {target} = event
 
-    if $(target).is "article a.internal"
-      @utils.stopDOMEvent event
-      href = target.getAttribute "href"
+  #   if $(target).is "article a.internal"
+  #     @utils.stopDOMEvent event
+  #     href = target.getAttribute "href"
 
-      if target.classList.contains("teamwork") and KD.singleton("appManager").get "Teamwork"
-      then window.open "#{window.location.origin}#{href}", "_blank"
-      else KD.singleton("router").handleRoute href
+  #     if target.classList.contains("teamwork") and KD.singleton("appManager").get "Teamwork"
+  #     then window.open "#{window.location.origin}#{href}", "_blank"
+  #     else KD.singleton("router").handleRoute href
 
 
   showResend: ->
@@ -218,8 +221,6 @@ class ActivityListItemView extends KDListItemView
     JView::viewAppended.call this
 
     emojify.run @getElement()
-
-    @setAnchors()
 
     { updatedAt, createdAt } = @getData()
 

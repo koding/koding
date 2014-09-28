@@ -1,7 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeCard "github.com/stripe/stripe-go/card"
@@ -56,7 +57,7 @@ func UpdateCreditCard(oldId, token string) error {
 
 	_, err = stripeCustomer.Update(customer.ProviderCustomerId, customerParams)
 	if err != nil {
-		return err
+		return handleStripeError(err)
 	}
 
 	return nil
@@ -70,7 +71,7 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 
 	creditCardList := externalCustomer.Cards
 	if IsNoCreditCards(creditCardList) {
-		return ErrNoCreditCard
+		return paymenterrors.ErrNoCreditCard
 	}
 
 	if IsTooManyCreditCards(creditCardList) {

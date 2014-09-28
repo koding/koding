@@ -82,7 +82,7 @@ class ShowMoreDataModalView extends KDModalView
       for modal in @controller.getItemsOrdered()
         button = modal.followButton
         id = button?.getData()?.getId()
-        button.setState 'Following' if id and id in followees
+        button.setState 'Unfollow' if id and id in followees
 
   prepareList:->
 

@@ -29,30 +29,23 @@ body.activity
       z-index       1
       padding       0 25px 0 13px
       background    #fff
-      border        solid 1px #cecece
+      border        1px solid #E8E8E8
       border-radius 16px
-      font-size     14px
+      font-size     12px
       outline       0
       borderBox()
       abs()
 
       &::-webkit-input-placeholder
         color           #ddd
-        font-weight     400
         opacity         .99
       &:-moz-placeholder
         color           #ddd
-        font-weight     400
         opacity         .99
 
     cite.search-icon
-      content     ''
-      display     block
-      top         23px
-      right       7px
-      z-index     2
-      r-sprite    'activity', 'search'
-      abs()
+      abs         23px 12px
+      opacity     .6
 
     .activity-pane
       .kdtabhandle
@@ -67,6 +60,12 @@ body.activity
         height            62px
         borderBox()
         shadow            inset 0 -3px 0 #e0e0e0
+
+        &.search-active
+          cite.search-icon
+            cursor            pointer
+            abs               22px 8px
+            r-sprite          app '20-close-tab'
 
         .filter
           border              none
@@ -95,6 +94,8 @@ body.activity
             color             #575757
             background        none
 
+    .announcement-pane .kdtabhandlecontainer.filters
+        height          auto
 
     .message-pane > .listview-wrapper
       margin-top        34px
@@ -118,13 +119,23 @@ body.activity
       line-height       24px
       font-weight       600
       color             #9D9D9D
-      margin            13px 0 0
+      margin            9px 0 0
+
+      &.logged-out
+        margin-bottom   20px
 
       .topic-follow-btn
         margin          4px 0 0 13px
 
         &.following:hover
           margin-left  14px
+
+  cite.search-icon
+    content     ''
+    display     block
+    r-sprite    'activity', 'search'
+    z-index     2
+
 
 .content-page.activity
 .member.content-display
@@ -413,7 +424,11 @@ body.activity
     .user-numbers
       float           none
 
-.kdmodal.your-topics
+.kdmodal.topic-search
+  .lazy-loader
+    text-align        center
+    margin            22px 0
+
   .kdmodal-inner
     margin            22px 30px
 
@@ -448,6 +463,9 @@ body.activity
       color           #848484
       font-weight     400
       opacity         .99
+
+  .search-input + cite.search-icon
+    abs               9px, 9px
 
   .topics-list
     margin            26px 0 0
@@ -510,6 +528,140 @@ body.activity
       font-style      italic
 
 
+.sidebar-dark-modal
+  background          #2A2929
+
+  .arrow
+    position          fixed !important
+    border            8px solid transparent
+    border-right      8px solid #2A2929
+    margin            1px 0 0 -6px
+
+  .lazy-loader
+    text-align        center
+    margin-top        22px
+
+  .kdmodal-inner
+    background        inherit
+    margin            18px
+
+    .kdmodal-content
+      margin          0 !important
+
+    .close-icon
+      hidden()
+
+  .kdmodal-title
+    font-size         14px !important
+    margin-bottom     18px !important
+    color             #F4F1ED !important
+    font-weight       600 !important
+    border            none
+
+    span.title
+      font-size       inherit !important
+
+  .search-input
+    height            30px !important
+    rounded           40px !important
+    border            1px solid #CECECE
+    font-size         14px !important
+    font-weight       600 !important
+
+    .text
+      bg              color, white
+
+    &::-webkit-input-placeholder
+      font-weight       600 !important
+
+    &:-moz-placeholder
+      font-weight       600 !important
+
+  .search-input + cite.search-icon
+    abs                 7px, 17px
+
+  .search-input ~ .listview-wrapper
+    margin-top        20px
+    height            95px
+
+    .kdcustomscrollview.has-vertical
+      padding-right   0
+
+      .kdscrolltrack
+        display       none
+
+    .kdlistitemview-sidebar-item
+      color           #F4F1ED
+      line-height     23px
+      font-size       14px
+      padding         4px 0
+      display         block
+      noTextDeco()
+
+    .topic-follow-btn
+      size            auto, 23px
+      background      #61C17F
+      padding         0 10px
+      fr()
+
+      &.following
+        background    #686868
+
+      .button-title
+        display       inline
+        visibility    visible
+        color         #fff
+        font-size     14px
+        font-weight   600
+
+      .icon
+        display       none
+
+      &:hover
+        border        none !important
+
+  &.more-channels
+
+    .kdmodal-content
+      overflow        hidden
+
+    .search-input ~ .listview-wrapper
+      height          auto
+
+    .topics-list
+      max-height      310px
+
+.kdmodal.chat-search.sidebar-dark-modal
+
+  .listview-wrapper .kdlistitemview-sidebar-item
+    height            23px
+
+  .sidebar-message-icon
+    hidden()
+
+  .kdbutton.leave-channel
+    size            auto, 23px
+    background      #686868
+    padding         0 10px
+    fr()
+
+    .button-title
+      display       inline
+      visibility    visible
+      color         #fff
+      font-size     14px
+      font-weight   600
+
+    .icon
+      display       none
+
+    &:hover
+      border        none !important
+
+  .sidebar-message-text
+    fl()
+    width           155px
+    overflow        auto
 
 div.kdtooltip.activity-helper
   code
@@ -529,7 +681,7 @@ div.kdtooltip.activity-helper
 
 .activity-input-widget
   size                auto auto
-  margin              19px 0 13px 0
+  margin              12px 0 13px
   overflow            visible
 
   .help-container
@@ -1402,6 +1554,153 @@ span.collapsedtext
       .preview-image + .preview-text
         border-top-color    #d2d2d2
 
+.activity-widgets-bar
+  max-width                 295px
+  margin                    45px 0 0 31px
+  fl()
+
+  .activity-widget
+    margin-bottom           12px
+    background              #fff
+    border                  1px solid #E8E8E8
+    rounded                 4px
+    padding                 15px 26px
+    font-size               12px
+    borderBox()
+
+    .lazy-loader
+      width                 100%
+      text-align            center
+      position              static
+
+    .no-item-found
+      font-size             12px
+
+    h3
+      line-height           20px
+      color                 #6D6D6D
+      font-weight           600
+      font-size             12px
+      margin-bottom         7px
+
+    .nothing
+      font-size             12px
+      padding               16px
+      line-height           16px
+      text-align            center
+      color                 #7a7a7a
+
+    a.kdlistitemview-sidebar-item
+      font-size             12px
+      color                 #575757
+      line-height           23px
+      noTextDeco()
+
+      .participant-count
+        display             inline-block !important
+        visibility          visible
+        opacity             .49
+        color               #848484
+        font-size           12px
+        margin-left         15px
+
+      .count
+        display             none
+
+      .topic-follow-btn
+        margin-top          2px
+        fr()
+
+  .university-widget
+    a
+      color                 #848484
+      display               block
+      line-height           18px
+      noTextDeco()
+
+  .posting-guide-widget
+    background              #FFFFF7
+    color                   #6D6D6D
+    overflow                hidden
+    height                  188px
+    borderBox()
+
+    h3
+      font-weight           600
+      line-height           20px
+      margin-bottom         6px
+
+    h4
+      font-weight           600
+      line-height           20px
+      display               none
+
+    p
+      line-height           20px
+
+    li
+      position              relative
+      line-height           20px
+      display               none
+
+      &:first-of-type
+        display             block
+
+      a
+        color               #6D6D6D
+
+      & ~ li
+        margin-top          6px
+
+    ol
+      padding               0 0 12px 20px
+      counter-reset         orderedList
+      display               none
+
+      &:first-of-type
+        display             block
+
+      li:before
+        counter-increment   orderedList
+        content             counter(orderedList) "."
+        display             block
+        abs                 0px 0 0 -20px
+        font-weight         600
+
+      ol
+        padding-top         0
+        padding-bottom      0
+
+        li:before
+          content           counter(orderedList, lower-latin) ")"
+
+        li ~ li
+          margin-top        1px
+
+    ul
+      padding               12px 0 12px 20px
+
+      li:before
+        content             ''
+        size                4px, 4px
+        abs                 7px 0 0 -17px
+        rounded             2px
+        background          rgba(0,0,0,0.2)
+
+    &.expand
+      kalc                  width, 100vw \- 914px
+      height                auto
+
+      ol, li, h4
+        display             block
+
+    .read-more-link
+      line-height           20px
+      color                 #BABABA
+      margin-top            6px
+      display               block
+      noTextDeco()
+
 
 // .activity-item.status
 //   .link-embed-box
@@ -1614,13 +1913,123 @@ span.collapsedtext
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
 
-
+deleteRed = rgba(217, 58, 55, 0.9)
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            100vh
   padding               58px 34px 0 34px
   background            #fff
   margin-left           -34px
+  vendor                transform, translateX(0)
   borderBox()
+
+  > .listview-wrapper > .kdscrollview
+    overflow            scroll
+    kalc                height, 100vh \- 58px
+
+  .new-message-form
+    abs                 0px 0 0 0px
+    width               100%
+    padding             34px
+    borderBox()
+
+    &.inline
+      top               0px
+      background        #fff
+      z-index           10
+      padding-bottom    12px
+      vendor            transition, top .2s ease \,
+                                    opacity .2s ease
+      opacity           0
+      vendor              pointer-events, none
+
+      .formline.recipient
+        padding-left    16px
+
+      &.active
+        top             19px
+        opacity         1
+        vendor          pointer-events, auto
+
+
+    .kdautocompletewrapper
+      width             100%
+      min-width         0
+      &.delete-mode
+        .kdinput.text::-webkit-input-placeholder
+          color         deleteRed
+        .kdinput.text:-moz-input-placeholder
+          color         deleteRed
+
+    .autocomplete-heads
+      width             auto
+      fl()
+
+      .chat-head
+        white-space     nowrap
+        line-height     25px
+        margin          1px 14px 1px 0
+        padding         5px
+        fl()
+
+        &.selected
+          > span
+            text-decoration   line-through
+            color             deleteRed
+
+        > span
+          display       inline-block
+          font-size     14px
+          color         #8B8B8B
+
+        .avatarview
+          height        25px
+          margin        0 7px 0 0
+
+
+    .input-wrapper
+      margin            0
+      padding           0
+
+    .kdinput.text
+      background        transparent
+      border            none
+      height            40px
+      font-size         14px
+      shadow            none
+      outline           none
+      padding-left      5px
+      fr()
+
+      &::-webkit-input-placeholder
+        color           #D0D0D0
+      &:-moz-input-placeholder
+        color           #D0D0D0
+
+    .formline
+      position          relative
+      background        #fff
+      height            auto
+      border            1px solid #E8E8E8
+      rounded           3px 3px 0 0
+      padding-left      47px
+
+      &.purpose
+        height          40px
+        padding-left    85px
+        rounded         0 0 3px 3px
+        border-top      none
+
+    .kdlabel
+      abs               0px 0 0 0px
+      line-height       40px
+      z-index           20
+      padding           0 0 0 17px
+      margin            0
+      color             #9A9A9A
+      font-size         12px
+      font-weight       600
+      min-width         0
+
 
   .list-previous-link
     size                100% 47px
@@ -1642,11 +2051,7 @@ span.collapsedtext
     line-height             58px
     width                   100%
     max-width               566px
-    z-index                 1
-    background -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(255,255,255,1) 65%, rgba(255,255,255,0) 100%)
-    background -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(65%,rgba(255,255,255,1)), color-stop(100%,rgba(255,255,255,0)))
-    background -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
-    background linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(255,255,255,1) 65%,rgba(255,255,255,0) 100%)
+    z-index                 11
     fix()
 
     .description
@@ -1693,6 +2098,11 @@ span.collapsedtext
         margin            0 0 0 9px
         display           block
         r-sprite          'activity', 'new-participant-plus'
+        -webkit-transition -webkit-transform .2s ease
+        -moz-transition    -moz-transform .2s ease
+
+      &.active .icon
+        vendor            transform, rotateZ(45deg)
 
   .kdlistview-privatemessage
     padding-bottom          100px
@@ -1975,8 +2385,9 @@ span.collapsedtext
   .reply-input-widget
     position            fixed
     bottom              0
+    left                34px
     height              auto
-    kalc                width, 100% \- 360px
+    width               100%
     max-width           532px
     padding             0 0 30px
     bg                  color white
@@ -2293,152 +2704,54 @@ body.group.members
     &:focus
       shadow      none
 
-
-// new private message modal
-.kdmodal.private-message
-
-  .formline.purpose,
-  .formline.recipient
-    border        1px solid #d1d1d1
-    border-bottom none
-    rounded       5px
-    margin-bottom 16px
-    bg            color white
-
-
-    .input-wrapper
-      margin-bottom 0
-
-
-    input.kdinput.text
-      border      none
-      bg          color, transparent
-      outline     none
-      &:focus
-        outline   none
-        shadow    none
-
-    .kdautocompletewrapper
-      width       100%
-      fr()
-
-  .chat-heads
-    display       inline-block
-    width         auto
-    padding       9px 0
-    z-index       10
-    borderBox()
-    abs()
-
-  .chat-head
-    display         inline-block
-    height          30px
-    margin-right    7px
-    rel()
-
-    &:first-of-type
-      margin-left   9px
-
-    &:last-of-type
-      margin-right  0
-
-    &:hover
-    &.selected
-      .close-icon
-        bg        color rgba(255,255,255,.9)
-        shadow    0 0 0 5px rgba(255,255,255,.9)
-        visible()
-
-    .close-icon
-      top             5px
-      left            5px
-      size            20px 20px
-      hidden()
-
-    .avatarview
-      size            30px 30px
-      fl()
-
-    .first-name
-      display         inline-block
-      height          30px
-      font-size       12px
-      background      #ececec
-      font-weight     600
-      margin-left     -15px
-      padding         4px 7px 2px 22px
-      z-index         -1
-      border-radius   0 3px 3px 0
-      borderBox()
-      rel()
-
-  .formline.button-field
-
-    button.kdbutton
-      text-align            center
-      rounded               8px
-
-    button.kdbutton.message-send
-      size                  77px 34px
-      span.icon
-        display             inline-block
-        size                20px 20px
-        r-sprite            activity 'paper-plane'
-
-// new private message modal
-.kdmodal.private-message.add-participant
-
-  .formline.recipient
-    border        1px solid transparent
-
-  .close-icon
-    hidden()
-
-  .kdmodal-inner
-    margin        20px
-
-  .chat-heads
-    display       block
-    padding       0
-    borderBox()
-    rel()
-
-    .chat-head:first-of-type
-      margin-left 0
-
-  .formline.button-field
-
-    button.kdbutton.add-to-convo
-      size                  100% 43px
-      span.button-title
-        line-height         43px
-        font-size           14px
-        padding-left        30px
-      span.icon
-        margin              14px 0 0 0
-        display             inline-block
-        size                20px 20px
-        r-sprite            activity 'add-participant'
-        abs()
+dropdownShadow = 0 1px 1px rgba(0,0,0,.1)
+dropdownBorder = 1px solid #E0E0E0
 
 .kdautocomplete.listview-wrapper.private-message
-
-  border            1px solid #d1d1d1
-  border-top        1px solid transparent
-  shadow            0 3px 6px rgba(0,0,0,0.1)
+  border            dropdownBorder
+  border-top-color  transparent
+  rounded           0
+  shadow            dropdownShadow
+  margin-top        0
   fix()
 
   .kdautocompletelistitem
-    font-size       12px
-    font-weight     600
-    padding         0 5px
+    font-size       14px
+    padding         5px 10px 5px 5px
     border          none
     cursor          pointer
     line-height     27px
     bg              color transparent
-    color           #838383
+    color           #6D6D6D
     borderBox()
 
-  .kdautocompletelistitem.active
-    color           white
-    bg              color logoBg
+    .avatarview
+      display       inline-block
+      margin        1px 10px 1px 5px
+      size          25px, 25px
+
+    &.fetching
+    &.no-result
+      width         207px
+      color         #888
+      text-align    center
+
+
+    &.active
+      color           white
+      bg              color #7a7a7a
+
+.kdcontextmenu.tags-autocomplete
+  margin-top          -1px
+  .kdlistview-contextmenu
+    bg                color white
+    border            dropdownBorder
+    border-top-color  transparent
+    padding           5px 0
+    rounded           0 0 4px 4px
+    shadow            dropdownShadow
+
+@media (min-width: 0px) and (max-width: 1215px)
+
+  .activity-widgets-bar
+    hidden()

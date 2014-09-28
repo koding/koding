@@ -41,6 +41,31 @@ class CommentInputWidget extends ActivityInputWidget
   setFocus: -> @input.focus()
 
 
+  submit: (value) ->
+
+    return  if @locked
+    return @reset yes  unless body = value.trim()
+
+    activity = @getData()
+    {app}    = @getOptions()
+    payload  = @getPayload()
+
+    timestamp = Date.now()
+    clientRequestId = KD.utils.generateFakeIdentifier timestamp
+
+    @lockSubmit()
+
+    obj = { body, payload, clientRequestId }
+
+    fn = if activity
+    then @bound 'update'
+    else @bound 'create'
+
+    fn(obj, @bound 'submissionCallback')
+
+    @emit 'SubmitStarted', body, clientRequestId
+
+
   create: ({body, clientRequestId}, callback) ->
 
     { activity } = @getOptions()

@@ -5,6 +5,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"socialapi/workers/payment/paymenterrors"
+
 	stripe "github.com/stripe/stripe-go"
 	stripeSub "github.com/stripe/stripe-go/sub"
 	stripeToken "github.com/stripe/stripe-go/token"
@@ -16,7 +18,7 @@ func TestSubscribe(t *testing.T) {
 		err := Subscribe(token, accId, email, "random_plans", "random_interval")
 
 		Convey("Then it should throw error", func() {
-			So(err, ShouldEqual, ErrPlanNotFound)
+			So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
 		})
 	})
 
@@ -45,7 +47,7 @@ func TestSubscribe(t *testing.T) {
 
 			Convey("Then customer can't subscribe to same plan again", func() {
 				err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
-				So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
+				So(err, ShouldEqual, paymenterrors.ErrCustomerAlreadySubscribedToPlan)
 			})
 		}),
 	)
@@ -83,7 +85,7 @@ func TestSubscribe(t *testing.T) {
 
 			Convey("Then customer can't subscribe to same plan again", func() {
 				err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
-				So(err, ShouldEqual, ErrCustomerAlreadySubscribedToPlan)
+				So(err, ShouldEqual, paymenterrors.ErrCustomerAlreadySubscribedToPlan)
 			})
 
 			Convey("When customer upgrades to higher plan", func() {

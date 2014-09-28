@@ -17,6 +17,7 @@ do ->
     '/:name?/Activity/Public' : ({params: {name}}) ->
       @handleRoute "/#{if name then name else ''}/Activity/Public/Liked",
         replaceState: yes
+        shouldPushState: no
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
       activityPane (pane) ->
@@ -26,6 +27,12 @@ do ->
       activityPane (pane) ->
         pane.tabView.showPane pane.tabView.getPaneByName 'Most Recent'
 
+    # TODO ~ i tried to unify this route and following 4 routes, couldnt manage
+    # to make it work, did not spend so much time on it and gave up, it would be
+    # better to have only one route for those 5
+    '/:name?/Activity/Announcement/:slug' : ({params: {name, slug}}) ->
+      handleChannel 'announcement', slug
+
     '/:name?/Activity/Topic/:slug?' : ({params:{name, slug}, query}) ->
       if slug is 'public'
       then KD.singletons.router.handleRoute '/Activity/Public'
@@ -34,20 +41,26 @@ do ->
     '/:name?/Activity/Post/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
 
-    '/:name?/Activity/Message/New' : ->
-      handleChannel null, null, (app) -> app.getView().showNewMessageModal()
-
-    '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
-      handleChannel null, null, (app) -> app.getView().showAllTopicsModal()
-
-    '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
-      handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
-
     '/:name?/Activity/Message/:slug?' : ({params:{name, slug}, query}) ->
       handleChannel 'message', slug
 
     '/:name?/Activity/:slug' : ({params:{name, slug}, query}) ->
       handleChannel 'post', slug
+
+    '/:name?/Activity/Message/New' : ->
+      handleChannel null, null, (app) -> app.getView().showNewMessageForm()
+
+    '/:name?/Activity/Topic/All' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showAllTopicsModal()
+
+    '/:name?/Activity/Topic/Following' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showFollowingTopicsModal()
+
+    '/:name?/Activity/Post/All' : ({params:{name, slug}, query}) ->
+      handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
+
+    '/:name?/Activity/Chat/All' : ->
+      handleChannel null, null, (app) -> app.getView().showAllChatsModal()
 
     '/:name?/Activity' : ({params:{name, slug}, query}) ->
       # handle legacy topic routes
