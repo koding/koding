@@ -46,8 +46,8 @@ func (b *Bucket) URL(path string) string {
 
 func NewBucket(name, folder string) *Bucket {
 	auth := aws.Auth{
-		AccessKey: "AKIAI6IUMWKF3F4426CA",
-		SecretKey: "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",
+		AccessKey: "AKIAID3W3H55STBQ5IXQ",
+		SecretKey: "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",
 	}
 
 	s := s3.New(auth, aws.USEast)
