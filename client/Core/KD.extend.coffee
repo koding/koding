@@ -232,3 +232,32 @@ KD.extend
   runningInFrame: -> window.top isnt window.self
 
   tell: -> KD.getSingleton('appManager').tell arguments...
+
+
+do ->
+  logsEnabled = (Cookies.get 'enableLogs') or !KD.config?.suppressLogs
+  unless logsEnabled
+    # Koding 3d logo
+    console.log """
+
+       __                 __
+      /\\ \\               /\\ \\  __
+      \\ \\ \\/'\\     ___   \\_\\ \\/\\_\\    ___      __
+       \\ \\ , <    / __`\\ /'_` \\/\\ \\ /' _ `\\  /'_ `\\
+        \\ \\ \\\\`\\ /\\ \\L\\ \\\\ \\L\\ \\ \\ \\/\\ \\/\\ \\/\\ \\L\\ \\
+         \\ \\_\\ \\_\\ \\____/ \\___,_\\ \\_\\ \\_\\ \\_\\ \\____ \\
+          \\/_/\\/_/\\/___/ \\/__,_ /\\/_/\\/_/\\/_/\\/___L\\ \\
+                                               /\\____/
+            The Cloud Development Environment  \\_/__/
+
+
+      Hello! console.{log, info, warn, error} disabled.
+      If you need them please call KD.enableLogs() first.
+
+      Thanks! ~ Koding Devs.
+
+      psst! we're hiring -> apply_at_koding.com
+
+    """
+
+  KD.enableLogs logsEnabled

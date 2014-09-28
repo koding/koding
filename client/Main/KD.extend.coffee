@@ -273,5 +273,3 @@ KD.extend
 Object.defineProperty KD, "defaultSlug",
   get:->
     if KD.isGuest() then 'guests' else 'koding'
-
-KD.enableLogs (Cookies.get 'enableLogs') or !KD.config?.suppressLogs
