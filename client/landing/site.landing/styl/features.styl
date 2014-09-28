@@ -71,8 +71,7 @@ body.features
         vendor                animation, tabLeave .4s 1 ease-out
 
       article
-        border-bottom         1px solid #e0dcdc
-        padding               67px 0 43px
+        padding               40px 0 43px
         margin-bottom         81px
 
         .tab-text
@@ -104,12 +103,15 @@ body.features
 
     .bottom-features
       max-width               1200px
-      margin                  0 auto
+      margin                  40px auto 0
       padding-bottom          22px
+      padding-top             80px
+      border-top              1px solid #e0dcdc
 
       .feature-item
         width                 32%
         margin-left           2%
+        min-height            165px
         borderBox()
         fl()
 
@@ -121,17 +123,97 @@ body.features
           line-height         22px
           color               #27ae60
           font-weight         600
+          position            relative
+
+          &:before
+            content           ''
+            margin            2px 18px 0 10px
+            width             17px !important
+            height            17px !important
+            fl()
+
+          &.vms-access:before
+            r-sprite          'features', 'vms-access'
+            margin-top        6px
+          &.vms-install:before
+            r-sprite          'features', 'vms-install'
+          &.vms-publicip:before
+            r-sprite          'features', 'vms-publicip'
+          &.vms-multiple:before
+            r-sprite          'features', 'vms-multiple'
+          &.vms-alwayson:before
+            r-sprite          'features', 'vms-alwayson'
+            margin-left       11px
+          &.vms-specs:before
+            r-sprite          'features', 'vms-specs'
+          &.ide-autocomplete:before
+            r-sprite          'features', 'ide-autocomplete'
+            margin-top        4px
+          &.ide-collapse:before
+            r-sprite          'features', 'ide-collapse'
+          &.ide-fold:before
+            r-sprite          'features', 'ide-fold'
+          &.ide-multiplecursor:before
+            r-sprite          'features', 'ide-multiplecursor'
+            margin-top        4px
+          &.ide-opensource:before
+            r-sprite          'features', 'ide-opensource'
+          &.ide-permissions:before
+            r-sprite          'features', 'ide-permissions'
+          &.ide-preview:before
+            r-sprite          'features', 'ide-preview'
+          &.ide-settings:before
+            r-sprite          'features', 'ide-settings'
+            margin-top        1px
+          &.ide-workspaces:before
+            r-sprite          'features', 'ide-workspaces'
+          &.terminal-chromebook:before
+            r-sprite          'features', 'terminal-chromebook'
+          &.terminal-fonts:before
+            r-sprite          'features', 'terminal-fonts'
+          &.terminal-resize:before
+            r-sprite          'features', 'terminal-resize'
+          &.terminal-split:before
+            r-sprite          'features', 'terminal-split'
+          &.com-diverse:before
+            r-sprite          'features', 'com-diverse'
+
+          cite
+            display        block
+            width          36px
+            height         36px
+            background     #ccc
+            border-radius  18px
+            position       absolute
+            z-index        -1
+            top            -7px
+
+          &.pink cite
+            background     #ffb5b4
+          &.sand cite
+            background     #ffdfb2
+          &.green cite
+            background     #b3ffbf
+          &.light-blue cite
+            background     #7de3fa
+          &.blue cite
+            background     #7fbefa
+          &.purple cite
+            background     #d3a5ff
+          &.red cite
+            background     #fa8082
+          &.yellow cite
+            background     #f8f579
+          &.tinted-yellow cite
+            background     #f9e47a
 
           &.window-icon:before
-            content           ''
-            margin            -1px 18px 0 0
             r-sprite          'app', 'green-window'
-            fl()
 
         p
           font-size           14px
           color               #727272
-          padding             11px 0 55px
+          padding             11px 0 55px 46px
           line-height         24px
           font-weight         600
 
