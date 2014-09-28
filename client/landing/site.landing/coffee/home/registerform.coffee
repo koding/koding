@@ -12,9 +12,27 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @email.input.on    'focus', @bound 'handleFocus'
     @username.input.on 'focus', @bound 'handleFocus'
 
+    @email.input.on 'keydown', @email.input.lazyBound 'setValidationResult', 'available', null
+    @username.input.on 'keydown', @username.input.lazyBound 'setValidationResult', 'usernameCheck', null
+
     KD.singletons.router.on 'RouteInfoHandled', =>
       @email.icon.unsetTooltip()
       @username.icon.unsetTooltip()
+
+    @on 'EmailError', @bound 'showEmailError'
+    @on 'UsernameError', @bound 'showUsernameError'
+
+
+  showEmailError: ->
+
+    @email.input.setValidationResult 'available',
+      'Sorry, this email is already in use!'
+
+
+  showUsernameError: ->
+
+    @username.input.setValidationResult 'usernameCheck',
+      'Sorry, this username is already taken!'
 
 
   handleFocus: -> @setClass 'focused'

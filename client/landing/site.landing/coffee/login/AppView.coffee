@@ -430,12 +430,23 @@ module.exports = class LoginView extends JView
 
         return location.replace "/#{redirectTo}#{query}"
 
-      error       : (xhr) ->
+      error       : (xhr) =>
         {responseText} = xhr
-        form.button.hideLoader()
-        form.notificationsDisabled = no
-        new KDNotificationView title : responseText
-        form.emit 'SubmitFailed', responseText
+        @showError form, responseText
+
+
+  showError: (form, message) ->
+
+    form.button.hideLoader()
+    form.notificationsDisabled = no
+    form.emit 'SubmitFailed', message
+
+    if /duplicate key error/.test message
+      form.emit 'EmailError'
+    else if message is 'Errors were encountered during validation'
+      form.emit 'UsernameError'
+    else
+      new KDNotificationView title: message
 
 
   doFinishRegistration: (formData) ->
