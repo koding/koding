@@ -48,7 +48,7 @@ class ActivityInputView extends KDTokenizedInput
     value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
     tokens = @menu.getData().filter @getTokenFilter()
     for token in tokens
-      if value is token.title.toLowerCase()
+      if value is token.name.toLowerCase()
         @addToken token, @getOptions().tokenViewClass
         @hideMenu()
         return  true
@@ -89,14 +89,19 @@ class ActivityInputView extends KDTokenizedInput
         @emit "Escape"
 
     if /\W/.test String.fromCharCode event.which
-      if @tokenInput and /^\W+$/.test @tokenInput.textContent then @cancel()
-      else if @selectToken() then KD.utils.stopDOMEvent event
+      if @selectToken() then KD.utils.stopDOMEvent event
+      else if @activeRule then @cancel()
 
     return yes
 
-  keyUp: ->
+  keyUp: (event) ->
     return  if @getTokens().length >= TOKEN_LIMIT
-    super
+    return @matchPrefix()  unless @activeRule
+
+    @_lastKeyUp = Date.now()
+    KD.utils.wait 250, =>
+      return  if Date.now() - @_lastKeyUp < 250
+      super event
 
   handleEnter: (event) ->
     return @insertNewline()  if event.shiftKey
@@ -114,6 +119,14 @@ class ActivityInputView extends KDTokenizedInput
     then @insertNewline()
     else @emit 'Enter', value
 
+  cancel: ->
+
+    if @activeRule
+      {prefix} = @activeRule
+      value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
+      @addToken name: value
+
+    super
 
   insertNewline: ->
     document.execCommand 'insertText', no, "\n"
@@ -197,7 +210,7 @@ class ActivityInputView extends KDTokenizedInput
       tokenView.emit "viewAppended"
       return tokenView.getElement().outerHTML
 
-  getTokenFilter: -> noop
+  getTokenFilter: ->-> true
 
   fillTokenMap = (tokens, map) ->
     tokens.forEach (token) ->
