@@ -1,6 +1,7 @@
 class SearchController extends KDObject
 
   constructor: (options, data) ->
+
     super options, data
 
     { appId, apiKey } = KD.config.algolia
@@ -8,13 +9,21 @@ class SearchController extends KDObject
     @indexes = {}
     @algolia = new AlgoliaSearch appId, apiKey
 
+
   search: (indexName, seed, options) ->
+
     new Promise (resolve, reject) =>
+
+      return reject new Error 'Illegal input'  if seed is ''
+
       index = @getIndex "#{ indexName }#{ KD.config.algolia.indexSuffix }"
       index.search seed, (success, results) ->
+
         return reject new Error "Couldn't search algolia"  unless success
         return resolve results.hits ? []
+
       , options
+
 
   searchAccountsMongo: (seed) ->
     val = seed.replace /^@/, ''
@@ -26,7 +35,10 @@ class SearchController extends KDObject
       .then (it) -> [it]
 
   searchAccounts: (seed) ->
-    @search 'accounts', seed
+
+    seed = seed.replace /\W/g, ''
+
+    @search 'accounts', seed, hitsPerPage : 10
       .then (data) ->
         throw new Error "No data!" if data.length is 0
         return data

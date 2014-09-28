@@ -1,6 +1,9 @@
 class TagContextMenuItem extends JContextMenuItem
+
   constructor: (options = {}, data) ->
+
     options.cssClass = KD.utils.curry "tag-context-menu-item", options.cssClass
+
     super options, data
 
   viewAppended: JView::viewAppended
