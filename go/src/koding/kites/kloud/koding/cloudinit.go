@@ -151,7 +151,7 @@ write_files:
       echo
       echo "Extracting your files to directory $(pwd)/$vm_name..."
       mkdir -p Backup/$vm_name
-      tar -xzvf $archive -C $vm_name --strip-components 1 > /dev/null
+      tar -xzvf $archive -C Backup/$vm_name --strip-components 1 > /dev/null
       rm $archive
       echo
       echo "You have successfully migrated $vm_name to the new Koding environment."
