@@ -19,10 +19,15 @@ class ActivityInputView extends KDTokenizedInput
     @defaultTokens = initializeDefaultTokens()
 
   fetchTopics: (inputValue, callback) ->
+
     KD.singletons.search.searchTopics inputValue
       .then (tags) =>
+        pad = 46
         @showMenu
-          itemChildClass: TagContextMenuItem
+          itemChildClass : TagContextMenuItem
+          x              : @getX() + pad
+          y              : @getY() + @getHeight()
+          cssClass       : 'tags-autocomplete'
         , tags.map (tag) -> new AlgoliaResult tag
 
   menuItemClicked: (item) ->
@@ -81,10 +86,11 @@ class ActivityInputView extends KDTokenizedInput
   keyDown: (event) ->
 
     super event
-    # return  if event.isPropagationStopped()
+
+    return  if event.isPropagationStopped?()
+
     switch event.which
       when 13 # Enter
-        KD.utils.stopDOMEvent event
         @handleEnter event
       when 27 # Escape
         @emit 'Escape'
@@ -107,6 +113,8 @@ class ActivityInputView extends KDTokenizedInput
       super event
 
   handleEnter: (event) ->
+
+    KD.utils.stopDOMEvent event
 
     return @insertNewline()  if event.shiftKey
 
