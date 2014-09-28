@@ -48,7 +48,7 @@ class ActivityInputView extends KDTokenizedInput
     value = @tokenInput.textContent.substring(prefix.length).toLowerCase()
     tokens = @menu.getData().filter @getTokenFilter()
     for token in tokens
-      if value is token.name.toLowerCase()
+      if value is token.title.toLowerCase()
         @addToken token, @getOptions().tokenViewClass
         @hideMenu()
         return  true
@@ -79,6 +79,7 @@ class ActivityInputView extends KDTokenizedInput
     @tokenInput.remove()
 
   keyDown: (event) ->
+
     super event
     # return  if event.isPropagationStopped()
     switch event.which
@@ -86,7 +87,7 @@ class ActivityInputView extends KDTokenizedInput
         KD.utils.stopDOMEvent event
         @handleEnter event
       when 27 # Escape
-        @emit "Escape"
+        @emit 'Escape'
 
     if /\W/.test String.fromCharCode event.which
       if @selectToken() then KD.utils.stopDOMEvent event
@@ -94,7 +95,9 @@ class ActivityInputView extends KDTokenizedInput
 
     return yes
 
+
   keyUp: (event) ->
+
     return  if @getTokens().length >= TOKEN_LIMIT
     return @matchPrefix()  unless @activeRule
 
@@ -104,6 +107,7 @@ class ActivityInputView extends KDTokenizedInput
       super event
 
   handleEnter: (event) ->
+
     return @insertNewline()  if event.shiftKey
 
     position = @getPosition() + 1
