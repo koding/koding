@@ -324,7 +324,7 @@ class IDEAppController extends AppController
     @machineStateModal = new IDE.MachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
-    @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady()
+    @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady machineItem
 
   collapseSidebar: ->
     panel        = @workspace.getView()
