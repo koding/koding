@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/willdonnelly/passwd"
 )
 
 const (
@@ -30,12 +33,35 @@ var (
 	ErrInvalidSession = errors.New("ErrInvalidSession")
 )
 
+func getDefaultShell(username string) string {
+	fallbackShell := "/bin/bash"
+	entries, err := passwd.Parse()
+	if err != nil {
+		log.Println("terminal: couldn't get default shell ", err)
+		return fallbackShell
+	}
+
+	user, ok := entries[username]
+	if !ok {
+		log.Printf("terminal: no entry for username '%s'", username)
+		return fallbackShell
+	}
+
+	if user.Shell == "" {
+		log.Println("terminal: shell entry is empty")
+		return fallbackShell
+	}
+
+	return user.Shell
+}
+
 // newCmd returns a new command instance that is used to start the terminal.
 // The command line is created differently based on the incoming mode.
 func newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
-	args := []string{"-e^Bb", "-s", "/bin/bash", "-S"}
+	defaultShell := getDefaultShell(username)
+	args := []string{"-e^Bb", "-s", defaultShell, "-S"}
 
 	switch mode {
 	case "shared", "resume":
@@ -54,7 +80,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 			args = append(args, "-raAd") // resume
 		}
 	case "noscreen":
-		name = "/bin/bash"
+		name = defaultShell
 		args = []string{}
 	case "create":
 		session = randomString()
