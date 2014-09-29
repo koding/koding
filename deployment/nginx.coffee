@@ -135,7 +135,7 @@ createStubLocation = (env)->
 
 module.exports.create = (workers, environment)->
   config = """
-  worker_processes  5;
+  worker_processes #{if environment is "dev" then 5 else 16};
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
@@ -147,6 +147,8 @@ module.exports.create = (workers, environment)->
 
   # start http
   http {
+    # for proper content type setting, include mime.types
+    include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
 
     #{createUpstreams(workers)}
 
