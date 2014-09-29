@@ -29,7 +29,7 @@ authTemplate = (msg)->
   template authRegisterTemplate, {msg}
 
 authenticationFailed = (res, err)->
-  res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
+  res.status(403).send "forbidden! (reason: #{err?.message or "no session!"})"
 
 findUsernameFromKey = (req, res, callback) ->
   fetchJAccountByKiteUserNameAndKey req, (err, account)->
@@ -38,7 +38,7 @@ findUsernameFromKey = (req, res, callback) ->
       callback err, null
     else if not account
       console.error "couldnt find the account"
-      res.send 401
+      res.status(401).end()
       callback false, null
     else
       callback false, account.profile.nickname
@@ -53,13 +53,13 @@ findUsernameFromSession = (req, res, callback) ->
         console.error err
         callback err, undefined, ""
       else unless result?
-        res.send 403, 'Access denied!'
+        res.status(403).send 'Access denied!'
         callback null, false, ""
 
       { session } = result
 
       unless session?
-        res.send 403, 'Access denied!'
+        res.status(403).send 'Access denied!'
         callback null, false, ""
       else
         callback null, false, session.username
@@ -108,7 +108,7 @@ serveHome = (req, res, next) ->
       return next()
     isLoggedIn req, res, (err, state, account)->
       if err
-        res.send 500, error_500()
+        res.status(500).send error_500()
         return console.error err
 
       {params}              = req
