@@ -162,30 +162,35 @@ module.exports = class LoginView extends JView
       isUserLoggedIn = KD.isLoggedIn()
       params = {isUserLoggedIn, provider}
 
-      (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
-        if err
-          showError err
-          KD.mixpanel "Authenticate with oauth, fail", {provider}
+      @doOAuth params, (err, resp)=>
+        return KDNotificationView msg: err  if err
+
+        {account, replacementToken, isNewUser, userInfo} = resp
+        if isNewUser
+          KD.getSingleton('router').handleRoute '/Register'
+          @animateToForm "register"
+          for own field, value of userInfo
+            setValue field, value
+
         else
-          {account, replacementToken, isNewUser, userInfo} = resp
-          if isNewUser
-            KD.getSingleton('router').handleRoute '/Register'
-            @animateToForm "register"
-            for own field, value of userInfo
-              setValue field, value
+          if isUserLoggedIn
+            mainController.emit "ForeignAuthSuccess.#{provider}"
+            new KDNotificationView
+              title : "Your #{provider.capitalize()} account has been linked."
+              type  : "mini"
 
-            KD.mixpanel "Github auth register, success"
           else
-            if isUserLoggedIn
-              mainController.emit "ForeignAuthSuccess.#{provider}"
-              KD.mixpanel "Authenticate with oauth, success", {provider}
-              new KDNotificationView
-                title : "Your #{provider.capitalize()} account has been linked."
-                type  : "mini"
+            location.replace "/"
 
-            else
-              @afterLoginCallback err, {account, replacementToken}
-              KD.mixpanel "Github auth login, success"
+
+  doOAuth: (params, callback)->
+    $.ajax
+      url         : '/OAuth'
+      data        : params
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : (resp)-> callback null, resp
+      error       : (err)-> callback err
 
 
   viewAppended:->
