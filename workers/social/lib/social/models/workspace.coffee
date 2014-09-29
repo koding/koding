@@ -9,13 +9,18 @@ module.exports = class JWorkspace extends Module
   @share()
 
   @set
+
+    indexes        :
+      originId     : 'sparse'
+      slug         : 'sparse'
+
     schema         :
       name         : String
       slug         : String
       machineUId   : String
       machineLabel : String
       rootPath     : String
-      owner        : String
+      originId     : ObjectId
       layout       : Object
 
     sharedMethods  :
@@ -75,15 +80,17 @@ module.exports = class JWorkspace extends Module
       return callback null, workspace
 
   @fetch = secure (client, query = {}, callback) ->
-    query.owner = client.connection.delegate._id
-    JWorkspace.some query, {}, callback
+
+    query.originId = client.connection.delegate._id
+
+    JWorkspace.some query, limit: 30, callback
 
 
   @deleteById = secure (client, id, callback)->
 
-    selector =
-      owner  : client.connection.delegate._id
-      _id    : ObjectId id
+    selector   =
+      originId : client.connection.delegate._id
+      _id      : ObjectId id
 
     JWorkspace.one selector, (err, ws)->
       return callback err  if err?
@@ -96,7 +103,7 @@ module.exports = class JWorkspace extends Module
   @deleteByUid = secure (client, uid, callback)->
 
     selector     =
-      owner      : client.connection.delegate._id
+      originId   : client.connection.delegate._id
       machineUId : uid
 
     JWorkspace.remove selector, (err)->
@@ -107,7 +114,7 @@ module.exports = class JWorkspace extends Module
 
     { delegate } = client.connection
 
-    unless delegate.getId().equals this.owner
+    unless delegate.getId().equals this.originId
       return callback new KodingError 'Access denied'
 
     @remove callback
