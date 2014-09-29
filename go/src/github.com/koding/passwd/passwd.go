@@ -1,6 +1,6 @@
 package passwd
 
-import "os"
+import "io"
 import "bufio"
 import "errors"
 import "strings"
@@ -17,12 +17,8 @@ type Entry struct {
 
 // Parse opens the '/etc/passwd' file and parses it into a map from usernames
 // to Entries
-func Parse() (map[string]Entry, error) {
-	file, err := os.Open("/etc/passwd")
-	if err != nil {
-		return nil, err
-	}
-	lines := bufio.NewReader(file)
+func Parse(r io.Reader) (map[string]Entry, error) {
+	lines := bufio.NewReader(r)
 	entries := make(map[string]Entry)
 	for {
 		line, _, err := lines.ReadLine()
