@@ -75,7 +75,7 @@ class IDEAppController extends AppController
       splitOptions    :
         direction     : 'vertical'
         name          : 'BaseSplit'
-        sizes         : [ 234, null ]
+        sizes         : [ 250, null ]
         maximums      : [ 400, null ]
         views         : [
           {
@@ -332,7 +332,7 @@ class IDEAppController extends AppController
     floatedPanel = splitView.panels.first
     filesPane    = panel.getPaneByName 'filesPane'
     {tabView}    = filesPane
-    desiredSize  = 289
+    desiredSize  = 250
 
     splitView.once 'PanelSetToFloating', =>
       floatedPanel._lastSize = desiredSize
