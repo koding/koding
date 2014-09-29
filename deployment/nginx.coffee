@@ -133,9 +133,7 @@ createStubLocation = (env)->
 
   return stub
 
-module.exports.create = (KONFIG, environment)->
-  workers = KONFIG.workers
-
+module.exports.create = (workers, environment)->
   config = """
   worker_processes  5;
 
@@ -170,18 +168,13 @@ module.exports.create = (KONFIG, environment)->
 
     # start server
     server {
-
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
-      # root /usr/share/nginx/html;
+      root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
         return 200;
         #access_log off;
-      }
-
-      location /a/ {
-        root  #{KONFIG.projectRoot}/website/a;
       }
 
       #{createStubLocation(environment)}
