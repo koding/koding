@@ -776,7 +776,7 @@ Configuration = (options={}) ->
 
   KONFIG.ENV            = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
+  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
   KONFIG.runFile        = generateRunFile        KONFIG
 
   fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
