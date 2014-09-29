@@ -106,6 +106,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     terminalPane = new IDE.TerminalPane { machine, path }
     @createPane_ terminalPane, { name: 'Terminal' }
 
+    terminalPane.once 'WebtermCreated', =>
+      terminalPane.webtermView.on 'click', @bound 'click'
+
   createDrawingBoard: ->
     @createPane_ new IDE.DrawingPane, { name: 'Drawing' }
 
