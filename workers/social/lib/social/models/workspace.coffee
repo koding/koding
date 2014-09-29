@@ -34,50 +34,52 @@ module.exports = class JWorkspace extends Module
       static       : []
       instance     : []
 
+
   @create = secure (client, data, callback) ->
-    data.owner = client.connection.delegate._id
-    data.slug  = slugify data.name?.toLowerCase()
 
-    {name, slug, machineUId, rootPath, owner, layout, machineLabel} = data
+    data.originId = client.connection.delegate._id
+    data.slug     = slugify data.name?.toLowerCase()
 
-    JWorkspace.one { slug }, (err, workspace) ->
-      return callback err, null  if err
+    {name, slug, machineUId, rootPath,
+     originId, layout, machineLabel} = data
 
-      if workspace or name is 'My Workspace'
-        query   =
-          owner : client.connection.delegate._id
-          slug  : new RegExp slug
+    generateUniqueName { originId, name }, (err, res)->
 
-        options =
-          sort  : slug: -1
-          limit : 1
+      return callback err  if err?
 
-        JWorkspace.some query, options, (err, workspaces) ->
-          return callback err, null  if err
+      { slug, name } = res
 
-          if name is 'My Workspace' and workspaces?.length is 0
-            workspaces = [ { name: 'My Workspace', slug: 'my-workspace' } ]
+      data.name = name
+      data.slug = slug
 
-          workspace = workspaces[0]
+      workspace = new JWorkspace data
 
-          return callback null, null  unless workspace
+      workspace.save (err) ->
+        return callback err  if err
+        return callback null, workspace
 
-          parts = workspace.slug.split '-'
-          last  = parts[parts.length - 1]
-          seed  = if isNaN last then 1 else ++last
-          name  = "#{name} #{seed}"
-          slug  = "#{slug}-#{seed}"
 
-          create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
+  generateUniqueName = ({originId, name, index}, callback)->
+
+    slug = if index? then "#{name}-#{index}" else name
+    slug = slugify slug
+
+    JWorkspace.count { originId, slug }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+
+        name = "#{name} #{index}"  if index?
+        callback null, { name, slug }
+
       else
-        create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
 
-  create_ = (data, callback) ->
-    workspace  = new JWorkspace data
+        index ?= 0
+        index += 1
 
-    workspace.save (err) ->
-      return callback err  if err
-      return callback null, workspace
+        generateUniqueName { originId, name, index }, callback
+
 
   @fetch = secure (client, query = {}, callback) ->
 
