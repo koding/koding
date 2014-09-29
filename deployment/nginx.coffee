@@ -174,7 +174,7 @@ module.exports.create = (workers, environment)->
       index index.html index.htm;
       location = /healthcheck {
         return 200;
-        #access_log off;
+        access_log off;
       }
 
       #{createStubLocation(environment)}
