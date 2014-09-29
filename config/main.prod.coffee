@@ -139,7 +139,7 @@ Configuration = (options={}) ->
     kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia           : algolia
     logToExternal     : yes                                # rollbar , mixpanel etc.
-    suppressLogs      : no
+    suppressLogs      : yes
     logToInternal     : no                                 # log worker
     authExchange      : "auth"
     environment       : environment                        # this is where browser knows what kite environment to query for
