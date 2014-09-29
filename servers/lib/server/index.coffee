@@ -525,16 +525,11 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 # Main Handler for Koding.com
 #
 app.get "/", (req, res, next)->
-  console.log Date(), "global handler /"
-  # User requests
-  #
   if req.query._escaped_fragment_?
     staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
     return res.send 200, staticHome() if slug is ""
     return Crawler.crawl koding, {req, res, slug}
-  # Handle crawler request
-  #
   else
     serveHome req, res, next
 
