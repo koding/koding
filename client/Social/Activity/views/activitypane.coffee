@@ -95,10 +95,10 @@ class ActivityPane extends MessagePane
       maxHandleWidth    : Infinity
       paneData          : @getPaneData()
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on 'PaneDidShow', @bound 'openPane'
+    @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
 
 
-  openPane: (pane) ->
+  handlePaneShown: (pane) ->
 
     switch pane
       when @mostLiked?.parent
