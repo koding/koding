@@ -409,8 +409,8 @@ sidebarSelectedBg = #262626
       size            auto 20px
       line-height     20px
       color           #fff
+      abs             4px 7px 0 0
       padding         0 10px
-      abs             7px 7px 0 0
       font-size       10px
       font-weight     700
       background      #E06F6F
@@ -443,6 +443,7 @@ sidebarSelectedBg = #262626
 
       &.following
         right        6px
+        hidden()
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -468,6 +469,9 @@ sidebarSelectedBg = #262626
       min-height    0
       margin        0
       borderBox()
+
+      cite.count
+        abs         7px 7px 0 0
 
       > .user-numbers
         padding     0 0 0 36px
