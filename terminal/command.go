@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -35,13 +34,7 @@ var (
 )
 
 func getUserEntry(username string) (*passwd.Entry, error) {
-	file, err := os.Open("/etc/passwd")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	entries, err := passwd.Parse(file)
+	entries, err := passwd.Parse()
 	if err != nil {
 		return nil, err
 	}
