@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/willdonnelly/passwd"
+	"github.com/koding/passwd"
 )
 
 const (
@@ -33,26 +34,40 @@ var (
 	ErrInvalidSession = errors.New("ErrInvalidSession")
 )
 
+func getUserEntry(username string) (*passwd.Entry, error) {
+	file, err := os.Open("/etc/passwd")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	entries, err := passwd.Parse(file)
+	if err != nil {
+		return nil, err
+	}
+
+	user, ok := entries[username]
+	if !ok {
+		return nil, err
+	}
+
+	if user.Shell == "" {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func getDefaultShell(username string) string {
 	fallbackShell := "/bin/bash"
-	entries, err := passwd.Parse()
+
+	entry, err := getUserEntry(username)
 	if err != nil {
 		log.Println("terminal: couldn't get default shell ", err)
 		return fallbackShell
 	}
 
-	user, ok := entries[username]
-	if !ok {
-		log.Printf("terminal: no entry for username '%s'", username)
-		return fallbackShell
-	}
-
-	if user.Shell == "" {
-		log.Println("terminal: shell entry is empty")
-		return fallbackShell
-	}
-
-	return user.Shell
+	return entry.Shell
 }
 
 // newCmd returns a new command instance that is used to start the terminal.
