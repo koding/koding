@@ -111,6 +111,10 @@ class ActivityPane extends MessagePane
         @setSearchedState yes
         @activeContent = @searchResults
 
+
+  open: (name, query) ->
+
+    @tabView.showPane @tabView.getPaneByName name
   clearSearch: ->
     @searchInput?.clear()
     @searchResults?.clear()
@@ -126,7 +130,8 @@ class ActivityPane extends MessagePane
   lazyLoad: -> @activeContent?.loadMore()
 
   putMessage: (message, index = 0) ->
-    @tabView.showPane @tabView.getPaneByName 'Most Recent'
+    {router} = KD.singletons
+    router.handleRoute '/Activity/Public/Recent'
     @mostRecent.listController.addItem message, index
 
   contentMethod = (method) -> (contentName) -> (err, content) =>
