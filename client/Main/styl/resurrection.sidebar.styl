@@ -428,7 +428,7 @@ sidebarSelectedBg = #262626
     .ttag
       display        block
       font-weight    500
-      color          sidebarActive
+      color          sidebarGray
       line-height    18px
       font-size      14px
 
@@ -445,6 +445,8 @@ sidebarSelectedBg = #262626
   .kdlistitemview-sidebar-item.selected
     background          #15171A
 
+    .ttag
+      color             sidebarActive
 
     cite.count
       shadow            0 0 10px 10px #15171A
@@ -456,8 +458,11 @@ sidebarSelectedBg = #262626
 
   .messages
 
+    .nothing
+      hidden()
+
     .kdlistitemview-sidebar-item
-      height        40px
+      height        34px
       min-height    0
       margin        0
       borderBox()
@@ -522,6 +527,11 @@ sidebarSelectedBg = #262626
         > .user-numbers
           color       #C9C9CC
 
+      &.selected
+        .sidebar-message-text
+          > .user-numbers
+          > .profile
+            color       sidebarActive
 
 
       .sidebar-message-text
@@ -532,7 +542,7 @@ sidebarSelectedBg = #262626
           padding     0 0 0 36px
           line-height 18px
           width       auto
-          color       sidebarActive
+          color       sidebarGray
           font-weight 600
           borderBox()
           ellipsis()
