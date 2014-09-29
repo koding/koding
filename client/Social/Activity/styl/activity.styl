@@ -164,24 +164,6 @@ body.activity
   overflow              visible
   min-height            100vh
 
-  .kdbuttonwithmenu-wrapper.activity-settings-menu
-    z-index             1
-    size                15px 10px
-    padding             0
-    cursor              pointer
-    abs                 22px 33px 0 0
-    button.kdbutton
-      size              15px 10px
-      bg                color transparent
-      border            none
-      padding           0
-      padding-right     0 !important
-      cursor            pointer
-    .chevron-separator
-      hidden()
-    .chevron
-      r-sprite          activity chevron-icon
-
   &.group
     margin-top          55px
     min-height          2070px
@@ -482,7 +464,8 @@ body.activity
     a.kdlistitemview-sidebar-item
       font-size       14px
       color           #575757
-      line-height     23px
+      line-height     25px
+      display         block
       noTextDeco()
 
       .participant-count
@@ -500,6 +483,7 @@ body.activity
         size          auto, 23px
         background    #61C17F
         padding       0 10px
+        margin-top    1px
         fr()
 
         &.following
@@ -2053,6 +2037,24 @@ deleteRed = rgba(217, 58, 55, 0.9)
     max-width               566px
     z-index                 11
     fix()
+
+    .kdbuttonwithmenu-wrapper.activity-settings-menu
+      z-index             1
+      size                15px 10px
+      padding             0
+      cursor              pointer
+      abs                 22px 33px 0 0
+      button.kdbutton
+        size              15px 10px
+        bg                color transparent
+        border            none
+        padding           0
+        padding-right     0 !important
+        cursor            pointer
+      .chevron-separator
+        hidden()
+      .chevron
+        r-sprite          activity chevron-icon
 
     .description
       color                 #4a4a4a

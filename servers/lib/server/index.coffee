@@ -225,14 +225,33 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.send 200, authTemplate data
 
+getClientId = (req, res)->
+  return req.cookies.clientId or req.pendingCookies.clientId
+
+handleClientIdNotFound = (res, req)->
+  err = {message: "clientId is not set"}
+  console.error JSON.stringify {req: req.body, err}
+  return res.send 500, err
+
+
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
   { redirect } = req.body
   redirect ?= '/'
-  koding.fetchClient req.cookies.clientId, context, (client) ->
+  clientId =  getClientId req, res
+
+  return handleClientIdNotFound res, req unless clientId
+
+  koding.fetchClient clientId, context, (client) ->
+    # when there is an error in the fetchClient, it returns message in it
+    if client.message
+      console.error JSON.stringify {req, client}
+      return res.send 500, client.message
+
     JUser.convert client, req.body, (err, result) ->
       return res.send 400, err.message  if err?
+
       res.cookie 'clientId', result.newToken
       # handle the request as an XHR response:
       return res.send 200, null if req.xhr
@@ -242,7 +261,10 @@ app.post "/:name?/Register", (req, res) ->
 app.post "/:name?/Login", (req, res) ->
   { JUser } = koding.models
   { username, password, redirect } = req.body
-  { clientId } = req.cookies
+
+  clientId =  getClientId req, res
+
+  return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
     return res.send 403, err.message  if err?

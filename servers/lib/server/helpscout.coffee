@@ -1,7 +1,7 @@
 request = require 'request'
 
 baseUrl = "https://api.helpscout.net/v1"
-key     = "3673d12d3a1b45dc8fd3e0fc4e1a586e1f1918b7"
+key     = "b041e4da61c0934cb73d47e1626098430738b049"
 
 module.exports = (account, req, res) ->
 

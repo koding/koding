@@ -253,11 +253,10 @@ Configuration = (options={}) ->
 
     webserver           :
       group             : "webserver"
-      instances         : 2
+      instances         : 6
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
-      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :

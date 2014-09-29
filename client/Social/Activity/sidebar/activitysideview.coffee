@@ -39,6 +39,9 @@ class ActivitySideView extends JView
       # click   : @bound 'reload'
 
 
+    @listController.on 'ListIsEmptied', @lazyBound 'setClass', 'empty'
+    @listController.on 'ListIsNoMoreEmpty', @lazyBound 'unsetClass', 'empty'
+
     if headerLink instanceof KDView
     then @header.addSubView headerLink
     else if 'string' is typeof headerLink
