@@ -577,7 +577,7 @@ class ActivitySidebar extends KDCustomHTMLView
       searchClass: ChatSearchModal
       dataPath   : 'privateMessages'
       delegate   : this
-      noItemText : "No chat messages yet."
+      noItemText : 'nothing here.'
       searchLink : '/Activity/Chat/All'
       limit      : limit
       headerLink : new CustomLinkView

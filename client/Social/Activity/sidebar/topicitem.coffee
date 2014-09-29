@@ -4,15 +4,13 @@ class SidebarTopicItem extends SidebarItem
 
   constructor: (options = {}, data) ->
 
-    {name, typeConstant, participantCount}    = data
+    {name, typeConstant, participantCount} = data
 
-    # rewrite grop channel as topic?
-    firstRoute              = if typeConstant is "group" then "topic" else typeConstant
-    # uppercase first letter of the type constant for route
-    firstRoute              = "#{firstRoute.charAt(0).toUpperCase()}#{firstRoute.slice 1}"
-    # build route with firstRoute and name
-    options.route           = "#{firstRoute}/#{name}"
-    options.cssClass        = 'clearfix'
+    # rewrite group channel as topic?
+    route            = if typeConstant is 'group' then 'topic' else typeConstant
+    route            = route.capitalize()
+    options.route    = "#{route}/#{name}"
+    options.cssClass = 'clearfix'
 
     super options, data
 
@@ -25,7 +23,6 @@ class SidebarTopicItem extends SidebarItem
 
     """
     {span.ttag{ '#' + #(name)}}
-    {span.hidden.participant-count{#(participantCount) + ' followers'}}
     {{> @followButton}}
     {{> @unreadCount}}
     """
