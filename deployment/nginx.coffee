@@ -182,8 +182,12 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
+      # no need to send static file serving requests to webserver
+      # serve static content from nginx
       location /a/ {
-        root  #{KONFIG.projectRoot}/website/a;
+        root  #{KONFIG.projectRoot}/website/;
+        # no need to send those requests to nginx access_log
+        access_log off;
       }
 
       #{createStubLocation(environment)}
