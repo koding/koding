@@ -149,7 +149,7 @@ write_files:
       archive="$vm_name.tgz"
       echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://migrate.sj.koding.com:3000/export-files" | xargs curl > $archive
       echo
-      echo "Extracting your files to directory $(pwd)/$vm_name..."
+      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
       mkdir -p Backup/$vm_name
       tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
       rm $archive
