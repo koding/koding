@@ -33,6 +33,7 @@
     "csv": "0.3.6",
     "dateformat": "1.0.2-1.2.3",
     "deep-equal": "0.1.2",
+    "dogapi": "^0.1.5",
     "embedly": "1.0.1",
     "es": "0.4.x",
     "express": "^3.4.0",
