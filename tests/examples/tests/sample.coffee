@@ -78,10 +78,10 @@ module.exports = client =
       .click                  "[testpath='public-feed-link']"
       .waitForElementVisible  "[testpath='ActivityInputView'] div[contenteditable='true']", 10000
       .click                  "[testpath='ActivityTabHandle-/Activity/Public/Recent']"
-      .waitForElementVisible  "[testpath='ActivityListItemView']", 10000
+      .waitForElementVisible  "[testpath='ActivityListItemView']", 60000
 
       for i in [0..30]
-        post = getPost()
+        post = i+ " " + getPost()
         browser.execute                postActivity,[post]
         browser.click                  "[testpath='post-activity-button']"
         browser.assert.containsText    "[testpath='ActivityListItemView'] article",post
