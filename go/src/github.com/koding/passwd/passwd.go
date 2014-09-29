@@ -1,9 +1,13 @@
+// Package passwd parsed content and files in form of /etc/passwd
 package passwd
 
-import "io"
-import "bufio"
-import "errors"
-import "strings"
+import (
+	"bufio"
+	"errors"
+	"io"
+	"os"
+	"strings"
+)
 
 // An Entry contains all the fields for a specific user
 type Entry struct {
@@ -17,7 +21,25 @@ type Entry struct {
 
 // Parse opens the '/etc/passwd' file and parses it into a map from usernames
 // to Entries
-func Parse(r io.Reader) (map[string]Entry, error) {
+func Parse() (map[string]Entry, error) {
+	return ParseFile("/etc/passwd")
+}
+
+// ParseFile opens the file and parses it into a map from usernames to Entries
+func ParseFile(path string) (map[string]Entry, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	defer file.Close()
+
+	return ParseReader(file)
+}
+
+// ParseReader consumes the contents of r and parses it into a map from
+// usernames to Entries
+func ParseReader(r io.Reader) (map[string]Entry, error) {
 	lines := bufio.NewReader(r)
 	entries := make(map[string]Entry)
 	for {
