@@ -80,7 +80,7 @@ class ActivityPane extends MessagePane
         route         : '/Activity/Public/Recent'
       }
       {
-        name          : 'Search Tab'
+        name          : 'Search'
         view          : @searchResults
         closable      : no
         shouldShow    : no
@@ -115,6 +115,19 @@ class ActivityPane extends MessagePane
   open: (name, query) ->
 
     @tabView.showPane @tabView.getPaneByName name
+
+    if name is 'Search' and not query
+      KD.singletons.router.handleRoute '/Activity/Public/Recent'
+      return
+
+    return  unless query
+
+    @searchInput.setValue query
+    @searchInput.setFocus()
+    @search query
+    @currentSearch = query
+
+
   clearSearch: ->
     @searchInput?.clear()
     @searchResults?.clear()
@@ -187,6 +200,9 @@ class ActivityPane extends MessagePane
 
 
   createSearchInput: ->
+
+    {router} = KD.singletons
+
     @searchInput = new SearchInputView
       placeholder : 'Search...'
 
@@ -196,13 +212,7 @@ class ActivityPane extends MessagePane
       tagName  : 'cite'
       cssClass : 'search-icon'
       click    : =>
-        @tabView.showPane @tabView.panes[1]  if @isSearched
+        return  unless @isSearched
+        router.handleRoute '/Activity/Public/Recent'
 
     @tabView.tabHandleContainer.addSubView searchIcon
-
-    @searchInput.on 'SearchRequested', (text) =>
-      @searchInput.setBlur()
-      @tabView.showPane @tabView.panes.last
-      @searchResults.clear()
-      @search text
-      @currentSearch = text
