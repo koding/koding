@@ -15,7 +15,7 @@ module.exports = class JWorkspace extends Module
       machineUId   : String
       machineLabel : String
       rootPath     : String
-      owner        : String
+      originId     : ObjectId
       layout       : Object
 
     sharedMethods  :
@@ -30,18 +30,18 @@ module.exports = class JWorkspace extends Module
       instance     : []
 
   @create = secure (client, data, callback) ->
-    data.owner = client.connection.delegate._id
-    data.slug  = slugify data.name?.toLowerCase()
+    data.originId = client.connection.delegate._id
+    data.slug     = slugify data.name?.toLowerCase()
 
-    {name, slug, machineUId, rootPath, owner, layout, machineLabel} = data
+    {name, slug, machineUId, rootPath, originId, layout, machineLabel} = data
 
     JWorkspace.one { slug }, (err, workspace) ->
       return callback err, null  if err
 
       if workspace or name is 'My Workspace'
-        query   =
-          owner : client.connection.delegate._id
-          slug  : new RegExp slug
+        query      =
+          originId : client.connection.delegate._id
+          slug     : new RegExp slug
 
         options =
           sort  : slug: -1
@@ -63,9 +63,9 @@ module.exports = class JWorkspace extends Module
           name  = "#{name} #{seed}"
           slug  = "#{slug}-#{seed}"
 
-          create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
+          create_ { name, slug, machineUId, machineLabel, rootPath, originId, layout }, callback
       else
-        create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
+        create_ { name, slug, machineUId, machineLabel, rootPath, originId, layout }, callback
 
   create_ = (data, callback) ->
     workspace  = new JWorkspace data
@@ -75,15 +75,15 @@ module.exports = class JWorkspace extends Module
       return callback null, workspace
 
   @fetch = secure (client, query = {}, callback) ->
-    query.owner = client.connection.delegate._id
+    query.originId = client.connection.delegate._id
     JWorkspace.some query, {}, callback
 
 
   @deleteById = secure (client, id, callback)->
 
     selector =
-      owner  : client.connection.delegate._id
-      _id    : ObjectId id
+      originId : client.connection.delegate._id
+      _id      : ObjectId id
 
     JWorkspace.one selector, (err, ws)->
       return callback err  if err?
@@ -96,7 +96,7 @@ module.exports = class JWorkspace extends Module
   @deleteByUid = secure (client, uid, callback)->
 
     selector     =
-      owner      : client.connection.delegate._id
+      originId   : client.connection.delegate._id
       machineUId : uid
 
     JWorkspace.remove selector, (err)->
@@ -107,7 +107,7 @@ module.exports = class JWorkspace extends Module
 
     { delegate } = client.connection
 
-    unless delegate.getId().equals this.owner
+    unless delegate.getId().equals this.originId
       return callback new KodingError 'Access denied'
 
     @remove callback
