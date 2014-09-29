@@ -32,6 +32,11 @@ class IDE.TerminalPane extends IDE.Pane
         @runCommand "cd #{path}" if path
 
     @webtermView.connectToTerminal()
+    @webtermView.once "WebTerm.terminated", =>
+      paneView = @parent
+      tabView  = paneView.parent
+
+      tabView.removePane paneView
 
   getMode: ->
     return 'create'
