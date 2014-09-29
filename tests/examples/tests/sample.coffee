@@ -42,6 +42,13 @@ module.exports = client = do ()->
         host   : "load.koding.com"
         type   : "counter"
 
+      gs = new (require("google-spreadsheet"))("1rG-ZRmhiIiM6h6oorG90cGofDhbW67bO_ZUHfO6zW-k")
+      gs.setAuth "kodingtester@koding.com", "raj5cos6op6owt3", (err) ->
+        gs.addRow 1,
+          testName : browser.currentTest.name
+          startDate: Date.now()-browser.globals.time
+          endDate  : Date.now()
+
       doglog.add_metrics series:[metric], ()->
         done()
 
