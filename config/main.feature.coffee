@@ -1,4 +1,4 @@
-zlib                  = require 'compress-buffer'
+
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
@@ -220,7 +220,7 @@ Configuration = (options={}) ->
   b64z = (str,strict=yes,compress=yes)->
     if str
       _b64 = new Buffer(str)
-      _b64 = zlib.compress _b64 if compress
+      _b64 =
       # log "[b64z] before #{str.length} after #{_b64.length}"
       return _b64.toString('base64')
     else

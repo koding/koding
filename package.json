@@ -36,6 +36,7 @@
     "embedly": "1.0.1",
     "es": "0.4.x",
     "express": "^3.4.0",
+    "faker": "^1.1.0",
     "formidable": "1.0.12",
     "gulp": "^3.8.7",
     "hat": "0.0.3",
@@ -87,8 +88,7 @@
     "url": "0.4.9",
     "validator": "0.2.0",
     "ws": "0.4.25",
-    "xml2js": "0.2.6",
-    "zlib": "^1.0.5"
+    "xml2js": "0.2.6"
   },
   "devDependencies": {
     "which": "^1.0.5"
