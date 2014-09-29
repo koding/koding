@@ -67,8 +67,8 @@ class MessagePane extends KDTabPaneView
     return  unless @input
 
     @input
-      .on 'SubmitStarted',    @bound 'handleEnter'
       .on 'SubmitStarted',    => @submitIsPending = yes
+      .on 'SubmitStarted',    @bound 'handleEnter'
       .on 'SubmitSucceeded',  @bound 'replaceFakeItemView'
       .on 'SubmitSucceeded',  => KD.utils.defer => @submitIsPending = no
       .on 'SubmitFailed',     @bound 'messageSubmitFailed'
