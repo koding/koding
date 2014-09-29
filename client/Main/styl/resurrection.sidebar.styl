@@ -208,6 +208,8 @@ sidebarSelectedBg = #262626
         size              auto 26px
         opacity           1
         color             sidebarActive
+        max-width         155px
+        ellipsis()
         borderBox()
         noTextDeco()
 
@@ -335,6 +337,9 @@ sidebarSelectedBg = #262626
     overflow          visible
     margin            0 0 15px 0
 
+    &:hover h3.sidebar-title a
+      opacity       1
+      color         sidebarGray
 
     .lazy-loader
       margin          0
@@ -425,7 +430,7 @@ sidebarSelectedBg = #262626
     .ttag
       display        block
       font-weight    500
-      color          sidebarActive
+      color          sidebarGray
       line-height    18px
       font-size      14px
 
@@ -442,17 +447,9 @@ sidebarSelectedBg = #262626
   .kdlistitemview-sidebar-item.selected
     background          #15171A
 
-    // .profile
-    //   color             #F9F7F3
+    .ttag
+      color             sidebarActive
 
-    // .user-numbers
-    //   color             sidebarGray !important
-
-    // .ttag
-    //   color             #F9F7F3
-
-    // .tag-info
-    //   color             sidebarGray
     cite.count
       shadow            0 0 10px 10px #15171A
 
@@ -461,11 +458,13 @@ sidebarSelectedBg = #262626
       border            1px solid #b1b1b1
       right             6px
 
-  .conversations
   .messages
 
+    .nothing
+      hidden()
+
     .kdlistitemview-sidebar-item
-      height        40px
+      height        34px
       min-height    0
       margin        0
       borderBox()
@@ -530,10 +529,11 @@ sidebarSelectedBg = #262626
         > .user-numbers
           color       #C9C9CC
 
-  .messages
-
-    .kdlistitemview-sidebar-item
-      height            34px
+      &.selected
+        .sidebar-message-text
+          > .user-numbers
+          > .profile
+            color       sidebarActive
 
 
       .sidebar-message-text
@@ -544,7 +544,7 @@ sidebarSelectedBg = #262626
           padding     0 0 0 36px
           line-height 18px
           width       auto
-          color       sidebarActive
+          color       sidebarGray
           font-weight 600
           borderBox()
           ellipsis()
@@ -597,16 +597,6 @@ sidebarSelectedBg = #262626
       &~a
         margin-left       12px
 
-
-  .conversations
-
-    .kdlistitemview-sidebar-item
-
-      > .user-numbers
-        color           sidebarActive
-
-      cite.count
-        abs             10px 7px 0 0
 
   a.kdlistitemview-sidebar-item
 
@@ -713,20 +703,10 @@ h3.sidebar-title
       margin        -2px 0 0 0
       r-sprite      app , 'circle-plus-16'
 
-  &:hover
-    a
-      opacity       1
-      color         sidebarGray
 
-.vms h3.sidebar-title:after
-  top             -2px
-  r-sprite        'app', 'sidebar-vms'
+.messages.empty h3.sidebar-title a.add-icon
+  opacity           1
 
-.followed.topics h3.sidebar-title:after
-  r-sprite        'app', 'sidebar-channels'
-
-.messages h3.sidebar-title:after
-  r-sprite        'app', 'sidebar-chat'
 
 
 //Coming soon modal

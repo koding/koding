@@ -135,8 +135,7 @@ class MainView extends KDView
     {appManager, windowController} = KD.singletons
 
     if appManager.getFrontApp().getOption('name') is 'IDE'
-      KD.utils.wait 250, ->
-        windowController.notifyWindowResizeListeners()
+      windowController.notifyWindowResizeListeners()
 
 
   createAccountArea:->

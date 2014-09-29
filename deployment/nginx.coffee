@@ -137,7 +137,7 @@ module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
 
   config = """
-  worker_processes  5;
+  worker_processes #{if environment is "dev" then 5 else 16};
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
@@ -149,6 +149,8 @@ module.exports.create = (KONFIG, environment)->
 
   # start http
   http {
+    # for proper content type setting, include mime.types
+    include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
 
     #{createUpstreams(workers)}
 
@@ -177,11 +179,15 @@ module.exports.create = (KONFIG, environment)->
       index index.html index.htm;
       location = /healthcheck {
         return 200;
-        #access_log off;
+        access_log off;
       }
 
+      # no need to send static file serving requests to webserver
+      # serve static content from nginx
       location /a/ {
-        root  #{KONFIG.projectRoot}/website/a;
+        root  #{KONFIG.projectRoot}/website/;
+        # no need to send those requests to nginx access_log
+        access_log off;
       }
 
       #{createStubLocation(environment)}
