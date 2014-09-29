@@ -39,6 +39,7 @@
     "express": "^3.4.0",
     "faker": "^1.1.0",
     "formidable": "1.0.12",
+    "google-spreadsheet": "^0.2.8",
     "gulp": "^3.8.7",
     "hat": "0.0.3",
     "helmet": "~0.2.4",
