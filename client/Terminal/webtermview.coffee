@@ -148,6 +148,9 @@ class WebTermView extends KDView
         @reconnectionInProgress = false
         throw err
 
+    kite.on 'close', =>
+      @webtermConnect 'resume'  unless kite.isDisconnected
+
 
   connectToTerminal: ->
 
