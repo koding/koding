@@ -7,469 +7,226 @@ about.styl
 */
 }
 
-innerWrapper(innerWidth = 1043px)
-  kalc              padding-left, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
-  kalc              padding-right, \(100% \- innerWidth\)\/2  // (100px - 1043px)/2
-
 body.about
   -webkit-font-smoothing antialiased
+
   #main-panel-wrapper
-    bg              color #f0f0f0
+    bg                        color #f9f9f9
+    height                    auto
 
-.kdtabpaneview.about
-  bg                color #f1f3f2
+  #main-header
+    max-width                 100%
+    top                       0
+    padding-left              calc((100% \- 1200px) / 2)
+    padding-right             calc((100% \- 1200px) / 2)
+    height                    73px
+    background                #fff
+    position                  fixed
+    shadow                    0 1px 16px rgba(0,0,0,.1)
 
-.content-page.about
-  max-width         100%
-  width             100%
-  padding           0
+    #koding-logo
+      margin-top              25px
 
-  > section
-    size              100%, auto
-    min-height        626px
-    padding           0 45px
-    border-bottom     1px solid transparent
-    borderBox()
+      cite
+        r-sprite              'app', 'logo-full-dark'
 
-    div.wrapper
-      padding         112px 0 0
-      max-width       1200px
-      margin          0 auto
-      rel()
-      borderBox()
-
-
-      aside
-        abs()
-        top             0
-        right           0
-        opacity         .9
-
-
-    h2
-      display         block
-      font-size       26px
-      font-weight     600
-      letter-spacing  .1px
-      margin-bottom   30px
-      color           #515151
-
-    h4
-      color           rgba(113,113,113,.5)
-      display         block
-      font-size       18px
-      font-size       18px
-      margin          8px 0 53px
-      a
-        borderize     #8a8a8a
-
-    &.careers
-      h4
-        color           #8a8a8a
-        a
-          color         #8a8a8a
-
-    &.about-company
-      background        #323232 url(imagePath + 'city.jpg') no-repeat center bottom
-      bg                size, cover
-      position          relative
-      font-size         24px
-      color             #fff
-      letter-spacing    .9px
-
-      > div.wrapper
-        padding-top       139px
-
-        article
-          padding            0 310px 60px 0
-          font-size          18px
-          line-height        24px
-
-          p
-            color            white
-            letter-spacing   .2px
-            vendor           font-smoothing, antialiased
-            vendor           text-rendering, geometricPrecision
-
-          > a
-
-            font-size        14px
-            borderize        rgba(255,255,255,.4)
-            color            rgba(255,255,255,.5)
-            margin-top       18px
-            line-height      1
-            letter-spacing   0
-
-        aside
-          top             180px
-          >div
-            margin        0 0 41px
-            position      relative
-
-            i
-              display     block
-              top         50%
-              vendor      transform, translateX(-75px) translateY(-45%)
-              abs()
-
-            &.based i
-              r-sprite    "about", "map"
-            &.talents i
-              r-sprite    "about", "talent"
-              left        1px
-            &.lines i
-              r-sprite    "about", "box"
-              left        6px
-
-      h2
-        color           white
-
-      h4
-        color           #bbd5c7
-
-      h6
-        color           #fff
-        opacity         .5
-        font-size       18px
-        margin          0 0 6px
-
-
-
-    &.member-list
-      size              100%, auto
-      background        #f1f3f2
-      border-bottom     1px solid transparent
-      h2
-        margin-bottom   10px
-        span
-          font-weight   400
-      h4
-        rel()
-        cite
-          abs()
-          font-size     16px
-          right         0
-          bottom        0
-
-      .kdlistview-team
-        margin           82px 0 44px -40px
-
-      .kdlistitemview-team
-        fl()
-        size              180px 290px
-        text-align        center
-        margin            0 0 0 40px
-
-        figure
-          margin          0 auto
-          size            160px 160px
-          display         block
-          overflow        hidden
-
-        .avatarview
-          display         block
-          vendor          filter, grayscale(100%)
-          vendor          transition, all .177s ease
-          rounded         5px
-          &:hover
-            vendor        filter, grayscale(0%)
-
-
-        figcaption
-          overflow        visible
-
-        a.profile
-          display         block
-          margin          28px 0 7px
-          color           #515151
-          font-size       18px
-          line-height     24px
-          font-weight     400
-          white-space     nowrap
-          noTextDeco()
-
-        cite
-          color           #515151
-          opacity         .5
-          line-height     22px
-          font-size       14px
-          font-weight     400
-
-    &.press-kit
-      background          #e3e3e3
-      min-height          542px
-      h4
-        color            #8a8a8a
-        margin-bottom    68px
-
-      .kdbutton.solid.green
-        display          block
-        size             327px, 66px
-        line-height      66px
-        color            #fff
-        font-size        18px
-        font-weight      400
-        background       #1aaf5d
-        rounded          12px
-        padding          0 0 0 40px
-        text-align       left
-        margin-bottom    23px
-        noTextDeco()
-
-        .icon
-          r-sprite       about "download"
-          padding        0
-          margin         0
-          abs            17px 24px 0 0
-
-        .title
-          color          inherit
-          line-height    inherit
-          font-size      inherit
-          font-weight    inherit
-
-    &.careers
-      min-height          254px
-      background          #fff
-
-      h2
-        margin-bottom     10px
-        span
-          font-weight     400
-
-
-.jobs-view
-  margin                  82px 0 0
-  overflow                visible
-
-  >.kdloader
-    abs                   -138px 0 0 165px
-
-  .jobs-error
-    font-size             18px
-    margin                -30px 0 60px
-    color                 #717171
-    font-weight           400px
-    rounded               4px
-
-    a
-      color               #919191
-
-
-  .jobs-item-view
-    bg                    color, #f1f3f2
-    rounded               6px
-    padding               30px
-    margin                0 0 3px
-    vendor                transform, translateY(-30px)
-    opacity               0
-    -webkit-transition    -webkit-transform .3s ease \,
-                          opacity .3s ease
-    -moz-transition       -moz-transform .3s ease \,
-                          opacity .3s ease
-
-    borderBox()
-
-    &:last-of-type
-      margin-bottom       82px
-
-    .apply-button
-      display             inline-block
-      height              51px
-      line-height         51px
-      background          #1aad5b
-      color               #fff
-      font-size           14px
-      padding             0 24px
-      font-weight         700
-      rounded             9px
-      borderBox()
-      noTextDeco()
-
-      &.border-only
-        background        transparent
-        border            3px solid #1aad5b
-        color             #1aad5b
-        line-height       45px
-
-    > .apply-button
-        opacity           0
-        visibility        hidden
-        vendor            transition, opacity .2s ease
-        fr()
-
-    h3
-      font-size           22px
-      display             inline-block
-      font-weight         600
-      color               #717171
-      margin-bottom       16px
-      cursor              pointer
-
-      span
-        vertical-align    middle
-        display           inline-block
-        height            21px
-        line-height       21px
-        font-size         12px
-        color             #fff
-        margin-left       8px
-        background        #9a9a9a
-        rounded           3px
-        padding           0 6px
-        text-transform    uppercase
-
-        &.location
-          background      #5c5c5c
-
-        &.commitment
-          &.full-timepart-time
-            background    #f5c531
-
-          &.part-time
-            background    #f5c531
-
-          &.full-time
-            background    #f59331
-
-        &.team
-          background      #9a9a9a
-
-    p
-      font-size           14px
-      color               #474747
-      font-weight         400
-      line-height         20px
-      letter-spacing      .02em
-      margin-right        250px
+    nav
+      line-height             73px
 
       a
-        color             #717171
+        color                 #6f6f6f
 
-      a.read-more-link
-        color             #717171
-        font-size         12px
+      a.login
+        border-color          #bcbcbc
 
-    article.details
-      display             none
-      padding-top         30px
-      margin-top          30px
-      border-top          1px solid #e2e3e3
+  .content-page.about
+    padding-top               73px
+    font-family               sloganFont
 
-      p
-        margin-bottom     22px
+    section.introduction
+      bg                      image, url(imagePath + "/about/introbg.jpg")
+      bg                      size, cover
+      bg                      repeat, no-repeat
+      bg                      position, center
+      size                    100%, auto
+      border-top              1px solid transparent
+      padding-bottom          68px
 
-        &:last-of-type
-          margin-bottom   42px
+      > *
+        display               block
+        width                 auto
+        max-width             780px
+        padding-right         45px
+        padding-left          45px
+        text-align            center
+        margin-left           auto
+        margin-right          auto
 
-      h5
-        font-size         14px
-        color             #474747
-        font-weight       600
-        margin            42px 0 16px 40px
-        margin-bottom     16px
+      h2
+        font-size             44px
+        font-weight           600
+        height                auto
+        margin-top            182px
+        margin-bottom         42px
+        color                 #fff
+
+      p.main-description
+        font-size             18px
+        color                 #fff
+        font-weight           600
+        line-height           24px
+        margin-bottom         26px
+
+      .bottom-note
+        font-size             12px
+        font-weight           700
+        color                 #898989
+        text-align            left
+        line-height           16px
 
       ul
-        font-size         14px
-        color             #474747
-        font-weight       400
-        line-height       20px
-        letter-spacing    .02em
-        margin-left       18px
-        margin-right      250px
-
-        &:last-of-type
-          margin-bottom   42px
+        list-style-type       decimal
 
         li
-          line-height     24px
+          margin-left         18px
 
-          &:before
-            content         ""
-            display         inline-block
-            size            5px, 5px
-            rounded         100%
-            background      #babbbc
-            vertical-align  middle
-            margin-right    17px
+    section.stats
+      width                   100%
+      background              #38383f
+      padding                 31px 0
 
-    &.show-details
-      bg                    color, #f7f7f7
+      .inner-container
+        max-width             960px
+        margin                0 auto
 
-      > .apply-button
-        visibility          visible
-        display             block
-        opacity             1
-
-      article.details
-        display             block
-
-  &.animate
-    .jobs-item-view
-      vendor                transform, translateY(0px)
-      opacity               1
-
-@media only screen and (min-width : 320px) and (max-width : 568px)
-
-  .content-page.about > section.about-company div.wrapper
-    article
-      padding               40px 0
-
-      h2
-        font-size           22px
-
-    aside
-      position              relative
-      top                   initial
-      left                  74px
-      margin-bottom         40px
-      margin-top            40px
-
-  .content-page.about > section.member-list div.wrapper
-    .kdlistview-team
-      margin-bottom         0
-
-    .kdlistitemview-team
-      width                 33%
-
-      figure
-        size                100% !important, auto !important
-
-      .avatarview
-        size                100% !important, auto !important
-
-        img
-          size              100% !important, auto !important
-
-  .jobs-view
-    .jobs-item-view
-
-      padding               15px
-
-      h3
-        display             block
-        font-size           16px
+      .stat-item
+        size                  33.3%, 80px
+        color                 #9b9b9c
+        font-size             14px
+        fl()
 
         span
-          display           block
-          margin            4px 0 0
+          display             block
+          color               #d2d2d2
+          font-size           24px
+          font-weight         600
+          margin              17px 0 11px
 
-      .apply-button
-        float               none
-        clear               both
-        width               100%
-        margin              0 0 12px 0
-        text-align          center
+        &:before
+          content             ''
+          display             block
+          size                78px, 78px
+          border              2px solid #4c4c53
+          rounded             50%
+          margin-right        32px
+          fl()
 
-      > .apply-button
-        display             none
+    section.contact
+    section.where
+    section.assets
+      padding                 82px 45px 40px
 
-      p
-        margin-right        0
-        font-size           12px
+      .inner-container
+        max-width             1200px
+        margin                0 auto
 
-      article.details
-        ul
-          margin-right      0
-          font-size         12px
+      h3
+        font-size             28px
+        font-weight           600
+        color                 #5b5b5b
+        text-align            center
+        display               block
+        padding               0
+        margin                0
 
+    section.contact
+      .contact-item
+        width                 33.3%
+        margin                82px 0 0 0
+        line-height           62px
+        font-size             18px
+        color                 #626262
+        font-weight           600
+        fl()
+
+        &:before
+          content             ''
+          display             block
+          size                62px, 62px
+          background          #cacaca
+          rounded             50%
+          margin-right        22px
+          fl()
+
+    section.where
+      padding-left            0
+      padding-right           0
+
+      address
+        display               block
+        text-align            center
+        font-size             14px
+        font-weight           600
+        color                 #8b8b8b
+        margin                18px 0 0
+
+      .map-container
+        width                 100%
+        height                0
+        padding-bottom        27%
+        background            #cacaca
+        position              relative
+        margin-top            62px
+
+        > iframe
+          width               100% !important
+          height              100% !important
+          abs                 0px 0 0 0px
+
+    section.assets
+      padding-bottom          82px
+
+      .brand-box
+        size                  48%, auto
+        border                1px solid #c0c0c0
+        rounded               6px
+        margin-left           2%
+        padding               44px
+        margin-top            82px
+        borderBox()
+        fl()
+
+        &:first-of-type
+          margin-left         0
+
+        .info
+          font-size           16px
+          color               #616161
+          line-height         22px
+          margin-top          5px
+          fl()
+
+        a
+          color               #ccc
+          font-weight         600
+          noTextDeco()
+
+          &:hover
+            text-decoration   underline
+
+        .examples
+          margin-left         80px
+          fl()
+
+          a
+            display           block
+            margin-top        6px
+            color             #b5b5b5
+            text-decoration   underline
+
+        &.logo figure
+          r-sprite            'about', 'logo-example'
+          margin-top          15px
+
+        &.font figure
+          r-sprite            'about', 'font-example'
