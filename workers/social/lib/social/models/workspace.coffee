@@ -61,6 +61,7 @@ module.exports = class JWorkspace extends Module
 
   generateUniqueName = ({originId, name, index}, callback)->
 
+    name = "#{name} 1"  if name is 'My Workspace'
     slug = if index? then "#{name}-#{index}" else name
     slug = slugify slug
 
