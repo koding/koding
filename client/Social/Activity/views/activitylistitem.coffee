@@ -9,6 +9,8 @@ class ActivityListItemView extends KDListItemView
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
     options.activitySettings or= {}
+    options.attributes       or= {}
+    options.attributes.testpath = "ActivityListItemView"
 
     super options, data
 
