@@ -65,6 +65,8 @@ class CommentInputWidget extends ActivityInputWidget
 
     @emit 'SubmitStarted', body, clientRequestId
 
+    KD.utils.defer @bound 'focus'
+
 
   create: ({body, clientRequestId}, callback) ->
 
