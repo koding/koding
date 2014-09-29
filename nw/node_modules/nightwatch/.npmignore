@@ -1,0 +1,8 @@
+.project
+*.DS_Store
+*.idea
+/nightwatch.json
+node_modules
+npm-debug.log
+selenium-debug.log
+phantomjsdriver.log

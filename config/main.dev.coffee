@@ -1,4 +1,4 @@
-zlib                  = require 'compress-buffer'
+
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'

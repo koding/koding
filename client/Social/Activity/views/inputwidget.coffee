@@ -28,7 +28,10 @@ class ActivityInputWidget extends KDView
       title       : "SEND"
       cssClass    : "solid green small"
       loader      : yes
+      attributes  :
+        testpath  : "post-activity-button"
       callback    : => @submit @input.getValue()
+
 
     @buttonBar    = new KDCustomHTMLView
       cssClass    : "widget-button-bar"
