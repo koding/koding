@@ -754,7 +754,7 @@ utils.extend utils,
         when (post?.match /\S/) and (offset + match.length) isnt text.length
           return match
 
-      href = KD.utils.groupifyLink "Activity/Topic/#{tag}", no
+      href = KD.utils.groupifyLink "/Activity/Topic/#{tag}", no
       return "[##{tag}](#{href})"
 
 
