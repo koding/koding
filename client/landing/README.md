@@ -20,10 +20,10 @@ npm i
 
 ```
 # cd into the site
-cd ./site.campaign
+cd ./site.landing
 
 #gulp it
-gulp --siteName=landing  --devMode
+gulp --siteName=site.landing  --devMode
 ```
 
 #### Start the server:
