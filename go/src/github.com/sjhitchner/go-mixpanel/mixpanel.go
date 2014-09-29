@@ -78,8 +78,6 @@ func (m *MixpanelClient) makeRequest(action string, obj interface{}) error {
 
 	uri := fmt.Sprintf("%s/%s/?data=%s", m.baseUrl, action, payload)
 
-	log.Println(uri)
-
 	client := new(http.Client)
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
