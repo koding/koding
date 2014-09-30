@@ -610,6 +610,9 @@ class IDEAppController extends AppController
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 
+  toggleFullscreenIDEView: ->
+    @activeTabView.parent.toggleFullscreen()
+
   doResize: ->
     @forEachSubViewInIDEViews_ (pane) ->
       {paneType} = pane.options
