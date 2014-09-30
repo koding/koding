@@ -38,10 +38,10 @@ func (s *SubscribeRequest) Do() (interface{}, error) {
 }
 
 //----------------------------------------------------------
-// SubscriptionRequest
+// AccountRequest
 //----------------------------------------------------------
 
-type SubscriptionRequest struct {
+type AccountRequest struct {
 	AccountId string
 }
 
@@ -61,12 +61,12 @@ type SubscriptionsResponse struct {
 //		paymenterrors.ErrCustomerNotFound if user is found
 //		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
 //		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
-func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
-	if s.AccountId == "" {
+func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
+	if a.AccountId == "" {
 		return nil, paymenterrors.ErrAccountIdIsNotSet
 	}
 
-	customer, err := stripe.FindCustomerByOldId(s.AccountId)
+	customer, err := stripe.FindCustomerByOldId(a.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	}
 
 	resp := &SubscriptionsResponse{
-		AccountId:          s.AccountId,
+		AccountId:          a.AccountId,
 		PlanTitle:          plan.Title,
 		PlanInterval:       plan.Interval,
 		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
@@ -103,14 +103,14 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 // DoWithDefault is different from Do since client excepts to get
 // "free" plan regardless of user not found or doesn't have any
 // subscriptions etc.
-func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
-	resp, err := s.Do()
+func (a *AccountRequest) DoWithDefault() (*SubscriptionsResponse, error) {
+	resp, err := a.Subscriptions()
 	if err == nil {
 		return resp, nil
 	}
 
 	defaultResp := &SubscriptionsResponse{
-		AccountId:    s.AccountId,
+		AccountId:    a.AccountId,
 		PlanTitle:    "free",
 		PlanInterval: "month",
 		State:        "active",
@@ -131,16 +131,8 @@ func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
 	return nil, err
 }
 
-//----------------------------------------------------------
-// InvoiceRequest
-//----------------------------------------------------------
-
-type InvoiceRequest struct {
-	AccountId string
-}
-
-func (i *InvoiceRequest) Do() ([]*stripe.StripeInvoiceResponse, error) {
-	invoices, err := stripe.FindInvoicesForCustomer(i.AccountId)
+func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
+	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -148,21 +140,17 @@ func (i *InvoiceRequest) Do() ([]*stripe.StripeInvoiceResponse, error) {
 	return invoices, nil
 }
 
-//----------------------------------------------------------
-// GetCreditCard
-//----------------------------------------------------------
-
-type CreditCardRequest struct {
-	AccountId string
-}
-
-func (c *CreditCardRequest) Do() (*stripe.CreditCardResponse, error) {
-	resp, err := stripe.GetCreditCard(c.AccountId)
+func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
+	resp, err := stripe.GetCreditCard(a.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	return resp, nil
+}
+
+func (a *AccountRequest) Delete() (interface{}, error) {
+	return nil, nil
 }
 
 //----------------------------------------------------------
