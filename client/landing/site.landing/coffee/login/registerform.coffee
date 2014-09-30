@@ -172,6 +172,3 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     </section>
     {{> @invitationCode}}
     """
-      # <div>{{> @fullName}}</div>
-    #   <div>{{> @password}}</div>
-    #   <div>{{> @passwordConfirm}}</div>
