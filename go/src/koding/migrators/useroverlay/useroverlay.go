@@ -167,8 +167,8 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 			log.Error(commandError("umount failed.", err, out).Error())
 		}
 	}()
-	// tar the resulting directory structure:
-	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName).CombinedOutput(); err != nil {
+	// tar the resulting home directory:
+	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName+"/home").CombinedOutput(); err != nil {
 		return nil, commandError("tar failed.", err, out)
 	}
 	defer func() {
