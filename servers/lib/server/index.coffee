@@ -241,6 +241,24 @@ handleClientIdNotFound = (res, req)->
   console.error JSON.stringify {req: req.body, err}
   return res.status(500).send err
 
+app.post "/:name?/Validate", (req, res) ->
+  { JUser } = koding.models
+  { fields } = req.body
+
+  unless fields?
+    res.status(400).send "Bad request"
+    return
+
+  validations = Object.keys fields
+    .filter (key) -> key in ['username', 'email']
+    .reduce (memo, key) ->
+      { isValid, message } = JUser.validateAt key, fields[key], yes
+      memo.fields[key] = { isValid, message }
+      memo.isValid = no  unless isValid
+      memo
+    , { fields: {} }
+
+  res.status(if validations.isValid then 200 else 400).send validations
 
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
