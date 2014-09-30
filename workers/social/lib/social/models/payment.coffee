@@ -44,7 +44,7 @@ module.exports = class Payment extends Base
 
   @subscriptions = (client, data, callback)->
     data.accountId = getAccountId client
-    url = "/payments/subscriptions/#{data.accountId}"
+    url = "/payments/subscriptions?account_id=#{data.accountId}"
 
     get url, data, callback
 

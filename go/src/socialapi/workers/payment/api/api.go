@@ -16,7 +16,7 @@ func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, h
 
 func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	subscriptionRequest := &payment.SubscriptionRequest{
-		AccountId: u.Query().Get("accountId"),
+		AccountId: u.Query().Get("account_id"),
 	}
 
 	return response.HandleResultAndClientError(

@@ -13,8 +13,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-const SecretKey = "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
-
 type SubscriptionsResponse struct {
 	AccountId          string    `json:"accountId"`
 	PlanTitle          string    `json:"planTitle"`
@@ -48,7 +46,6 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan,
 
 	q := userEndpoint.Query()
 	q.Set("account_id", account.Id.Hex())
-	q.Set("kloud_key", SecretKey)
 	userEndpoint.RawQuery = q.Encode()
 
 	p.Log.Debug("[%s] fetching plan via URL: '%s'", m.Id, userEndpoint.String())
