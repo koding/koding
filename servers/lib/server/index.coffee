@@ -271,6 +271,22 @@ app.post "/:name?/Validate/Username/:username?", (req, res) ->
       res.status(200).send response
     else if kodingUser
       res.status(400).send response
+
+app.post "/:name?/Validate/Email/:email?", (req, res) ->
+
+  { JUser } = koding.models
+  { email } = req.params
+
+  return res.status(400).send 'Bad request'  unless email?
+
+  JUser.emailAvailable email, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    return if response
+    then res.status(200).send response
+    else res.status(400).send 'Email is taken!'
+
+
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
