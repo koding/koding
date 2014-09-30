@@ -158,8 +158,8 @@ class ActivityPane extends MessagePane
   createContentAppender: contentMethod 'appendContent'
 
   viewAppended: ->
-    @addSubView @channelTitleView  if @channelTitleView
-    @addSubView @input             if @input
+    @addSubView @channelTitleView
+    @addSubView @input
     @addSubView @tabView
 
   removeFakeMessage: (identifier) ->
