@@ -622,56 +622,60 @@ class ActivitySidebar extends KDCustomHTMLView
     if not name or not machineUId
       return warn 'Missing options to create a new workspace'
 
-    unless rootPath
-      rootPath       = "/home/#{KD.nick()}/Workspaces/#{KD.utils.slugify name}"
-      emptyWorkspace = yes
-
-    data    = { name, machineUId, machineLabel, rootPath, layout }
     machine = m for m in computeController.machines when m.uid is machineUId
-    command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
+    data    = { name, machineUId, machineLabel, rootPath, layout }
 
     return warn "Machine not found."  unless machine
 
-    callback = =>
-      KD.remote.api.JWorkspace.create data, (err, workspace) =>
+    KD.remote.api.JWorkspace.create data, (err, workspace) =>
+      if err
+        @emit 'WorkspaceCreateFailed'
+        return KD.showError "Couldn't create your new workspace"
+
+      folderOptions =
+        type        : 'folder'
+        path        : workspace.rootPath
+        recursive   : yes
+
+      machine.fs.create folderOptions, (err, folder) =>
         if err
           @emit 'WorkspaceCreateFailed'
-          return KD.showError "Couldn't create new workspace"
+          return KD.showError "Couldn't create your new workspace"
 
-        for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
-          parentId = nodeData.id
+        filePath   = "#{workspace.rootPath}/README.md"
+        readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-        view    = @addWorkspaceView
-        data    =
-          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
-          type  : 'workspace'
-          href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-          data  : workspace
-          id    : workspace._id
-          machineLabel : machineLabel
-          parentId: parentId
+        readMeFile.save IDE.contents.workspace, (err) =>
+          if err
+            @emit 'WorkspaceCreateFailed'
+            return KD.showError "Couldn't create your new workspace"
 
-        if view
-          list  = view.getDelegate()
-          list.removeItem view  if view
-        else
-          for key, node of @machineTree.nodes when node.type is 'title'
-            list = node.getDelegate()
+          for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+            parentId = nodeData.id
 
-        @machineTree.addNode data
+          view    = @addWorkspaceView
+          data    =
+            title : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            type  : 'workspace'
+            href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            data  : workspace
+            id    : workspace._id
+            machineLabel : machineLabel
+            parentId: parentId
 
-        KD.userWorkspaces.push workspace
+          if view
+            list  = view.getDelegate()
+            list.removeItem view  if view
+          else
+            for key, node of @machineTree.nodes when node.type is 'title'
+              list = node.getDelegate()
 
-        router.handleRoute data.href
-        @emit 'WorkspaceCreated', workspace
+          @machineTree.addNode data
 
-    if emptyWorkspace
-      machine.getBaseKite().exec({ command })
-      .then  (res) => callback()
-      .catch (err) ->
-        KD.showError 'Unable to create a new workspace'
-    else
-      callback()
+          KD.userWorkspaces.push workspace
+
+          router.handleRoute data.href
+          @emit 'WorkspaceCreated', workspace
 
 
   updateMachineTree: (callback = noop) ->
