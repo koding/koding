@@ -485,8 +485,9 @@ app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
 app.post "/:name?/OAuth"              , require  "./oauth"
 app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
-# Handlers for Stripe
-app.post '/-/stripe/webhook' , require "./stripe_webhook"
+bodyParser = require 'body-parser'
+app.post '/-/stripe/webhook' , bodyParser.json(), require "./stripe_webhook"
+
 app.get  '/-/subscriptions'  , require "./subscriptions"
 
 # TODO: we need to add basic auth!
