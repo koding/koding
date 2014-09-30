@@ -32,14 +32,14 @@ var (
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
 disable_ec2_metadata: true
-hostname: {{.Hostname}}
+hostname: '{{.Hostname}}'
 
 bootcmd:
   - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
 
 users:
   - default
-  - name: {{.Username}}
+  - name: '{{.Username}}'
     groups: sudo
     shell: /bin/bash
     gecos: koding user

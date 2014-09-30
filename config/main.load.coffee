@@ -56,7 +56,7 @@ Configuration = (options={}) ->
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "30" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
@@ -410,7 +410,7 @@ Configuration = (options={}) ->
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
-  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
+  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 

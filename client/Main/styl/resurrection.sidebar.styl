@@ -42,6 +42,7 @@ sidebarSelectedBg = #262626
       margin          0
       display         block
       r-sprite        app logo-full
+      cursor          default
 
   .more-items
     size              238px 20px
@@ -208,6 +209,8 @@ sidebarSelectedBg = #262626
         size              auto 26px
         opacity           1
         color             sidebarActive
+        max-width         155px
+        ellipsis()
         borderBox()
         noTextDeco()
 
@@ -313,7 +316,7 @@ sidebarSelectedBg = #262626
     top               5px
     opacity           .6
 
-  .add-workpace-view
+  .add-workspace-view
     .cancel
       display         inline-block
       r-sprite        'app', 'circle-plus-14'
@@ -407,8 +410,8 @@ sidebarSelectedBg = #262626
       size            auto 20px
       line-height     20px
       color           #fff
-      padding         0 10px
       abs             4px 7px 0 0
+      padding         0 10px
       font-size       10px
       font-weight     700
       background      #E06F6F
@@ -441,6 +444,7 @@ sidebarSelectedBg = #262626
 
       &.following
         right        6px
+        hidden()
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
@@ -466,6 +470,9 @@ sidebarSelectedBg = #262626
       min-height    0
       margin        0
       borderBox()
+
+      cite.count
+        abs         7px 7px 0 0
 
       > .user-numbers
         padding     0 0 0 36px

@@ -298,7 +298,9 @@ module.exports = class JReferral extends jraphical.Message
   do =>
     JAccount.on 'AccountRegistered', (me, referrerCode)->
       return console.error "Account is not defined in event" unless me
-      return console.log "User dont have any referrer" unless referrerCode
+
+      # User dont have any referrer
+      return unless referrerCode
       if me.profile.nickname is referrerCode
           return console.error "#{me.profile.nickname} - User tried to refer themself"
 

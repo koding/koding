@@ -28,6 +28,12 @@ class SearchInputView extends KDHitEnterInputView
 
       @setFocus()
 
+    @on 'EscapePerformed', =>
+      router.handleRoute "/Activity/Public/Recent"
+      @setValue ''
+      @lastValue = ''
+      @setBlur()
+
 
   clear: ->
 

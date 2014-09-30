@@ -224,6 +224,7 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 	// Topic
 	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
 		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_ANNOUNCEMENT &&
 		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
 		return 0, fmt.Errorf("not supported channel type for unread count calculation %+v", cue.Channel.TypeConstant)
 	}

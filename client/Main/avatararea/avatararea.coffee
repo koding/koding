@@ -27,6 +27,7 @@ class AvatarArea extends KDCustomHTMLView
       cssClass   : 'groups acc-dropdown-icon'
       attributes :
         title    : 'Your groups'
+        testpath : 'AvatarAreaIconLink'
       delegate   : @groupSwitcherPopup
 
     @once 'viewAppended', =>

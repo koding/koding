@@ -50,13 +50,20 @@ app        = express()
   isLoggedIn
   getAlias
   addReferralCode
+  handleClientIdNotFound
+  getClientId
 }          = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
 
-app.configure ->
+do ->
+  cookieParser = require 'cookie-parser'
+  session = require 'express-session'
+  bodyParser = require 'body-parser'
+  compression = require 'compression'
+
   app.set 'case sensitive routing', on
 
   headers = {}
@@ -64,10 +71,13 @@ app.configure ->
     headers.maxAge = 1000 * 60 * 60 * 24 # 1 day
 
   app.use express.static "#{projectRoot}/website/", headers
-  app.use express.cookieParser()
-  app.use express.session {"secret":"foo"}
-  app.use express.bodyParser()
-  app.use express.compress()
+  app.use cookieParser()
+  app.use session
+    secret: "foo"
+    resave: yes
+    saveUninitialized: true
+  app.use bodyParser.urlencoded()
+  app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
   app.use helmet.iexss()
@@ -122,30 +132,30 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
   {kiteToken, user, groupId} = req.params
   {JAccount, JKite, JGroup}  = koding.models
 
-  return res.send 401, { err: "TOKEN_REQUIRED"     } unless kiteToken
-  return res.send 401, { err: "USERNAME_REQUIRED"  } unless user
-  return res.send 401, { err: "GROUPNAME_REQUIRED" } unless groupId
+  return res.status(401).send { err: "TOKEN_REQUIRED"     } unless kiteToken
+  return res.status(401).send { err: "USERNAME_REQUIRED"  } unless user
+  return res.status(401).send { err: "GROUPNAME_REQUIRED" } unless groupId
 
   JKite.one kiteCode: kiteToken, (err, kite) ->
-    return res.send 401, { err: "KITE_NOT_FOUND" }  if err or not kite
+    return res.status(401).send { err: "KITE_NOT_FOUND" }  if err or not kite
 
     JAccount.one { "profile.nickname": user }, (err, account) ->
-      return res.send 401, err: "USER_NOT_FOUND"  if err or not account
+      return res.status(401).send err: "USER_NOT_FOUND"  if err or not account
 
       JGroup.one { "_id": groupId }, (err, group) =>
-        return res.send 401, err: "GROUP_NOT_FOUND"  if err or not group
+        return res.status(401).send err: "GROUP_NOT_FOUND"  if err or not group
 
         group.isMember account, (err, isMember) =>
-          return res.send 401, err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
+          return res.status(401).send err: "NOT_A_MEMBER_OF_GROUP"  if err or not isMember
 
           kite.fetchPlans (err, plans) ->
-            return res.send 401, err: "KITE_HAS_NO_PLAN"  if err or not plans
+            return res.status(401).send err: "KITE_HAS_NO_PLAN"  if err or not plans
 
             planMap = {}
             planMap[plan.planCode] = plan  for plan in plans
 
             kallback = (err, subscriptions) ->
-              return res.send 401, err: "NO_SUBSCRIPTION"  if err or not subscriptions
+              return res.status(401).send err: "NO_SUBSCRIPTION"  if err or not subscriptions
 
               freeSubscription = null
               paidSubscription = null
@@ -157,9 +167,9 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
 
               subscription = paidSubscription or freeSubscription
               if subscription and plan = planMap[subscription.planCode]
-                  res.send 200, planId: plan.planCode, planName: plan.title
+                  res.status(200).send planId: plan.planCode, planName: plan.title
               else
-                res.send 401, err: "NO_SUBSCRIPTION"
+                res.status(401).send err: "NO_SUBSCRIPTION"
 
             if group.slug is "koding"
               targetOptions =
@@ -178,22 +188,22 @@ app.get "/-/auth/check/:key", (req, res)->
 
   {JKodingKey} = koding.models
   JKodingKey.checkKey {key}, (err, status)=>
-    return res.send 401, authTemplate "Key doesn't exist" unless status
-    res.send 200, {result: 'key is added successfully'}
+    return res.status(401).send authTemplate "Key doesn't exist" unless status
+    res.status(200).send {result: 'key is added successfully'}
 
 app.post "/-/support/new", (req, res)->
 
   isLoggedIn req, res, (err, loggedIn, account)->
-    return res.send 401, authTemplate "Koding Auth Error - 1"  if err
+    return res.status(401).send authTemplate "Koding Auth Error - 1"  if err
 
     unless loggedIn
       errMessage = "You are not logged in! Please log in with your Koding username and password"
-      res.send 401, authTemplate errMessage
+      res.status(401).send authTemplate errMessage
       return
 
     unless account and account.profile and account.profile.nickname
       errMessage = "Your account is not found, it may be a system error"
-      res.send 401, authTemplate errMessage
+      res.status(401).send authTemplate errMessage
       return
 
     (require './helpscout') account, req, res
@@ -203,16 +213,16 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
   {key, hostname} = req.params
 
   isLoggedIn req, res, (err, loggedIn, account)->
-    return res.send 401, authTemplate "Koding Auth Error - 1" if err
+    return res.status(401).send authTemplate "Koding Auth Error - 1" if err
 
     unless loggedIn
       errMessage = "You are not logged in! Please log in with your Koding username and password"
-      res.send 401, authTemplate errMessage
+      res.status(401).send authTemplate errMessage
       return
 
     unless account and account.profile and account.profile.nickname
       errMessage = "Your account is not found, it may be a system error"
-      res.send 401, authTemplate errMessage
+      res.status(401).send authTemplate errMessage
       return
 
     username = account.profile.nickname
@@ -221,17 +231,60 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
     {JKodingKey} = koding.models
     JKodingKey.registerHostnameAndKey {username, hostname, key}, (err, data)=>
       if err
-        res.send 401, authTemplate err.message
+        res.status(401).send authTemplate err.message
       else
-        res.send 200, authTemplate data
+        res.status(200).send authTemplate data
 
-getClientId = (req, res)->
-  return req.cookies.clientId or req.pendingCookies.clientId
+app.post "/:name?/Validate", (req, res) ->
+  { JUser } = koding.models
+  { fields } = req.body
 
-handleClientIdNotFound = (res, req)->
-  err = {message: "clientId is not set"}
-  console.error JSON.stringify {req: req.body, err}
-  return res.send 500, err
+  unless fields?
+    res.status(400).send "Bad request"
+    return
+
+  validations = Object.keys fields
+    .filter (key) -> key in ['username', 'email']
+    .reduce (memo, key) ->
+      { isValid, message } = JUser.validateAt key, fields[key], yes
+      memo.fields[key] = { isValid, message }
+      memo.isValid = no  unless isValid
+      memo
+    , { fields: {} }
+
+  res.status(if validations.isValid then 200 else 400).send validations
+
+
+app.post "/:name?/Validate/Username/:username?", (req, res) ->
+
+  { JUser } = koding.models
+  { username } = req.params
+
+  return res.status(400).send 'Bad request'  unless username?
+
+  JUser.usernameAvailable username, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    {kodingUser, forbidden} = response
+
+    if not kodingUser and not forbidden
+      res.status(200).send response
+    else if kodingUser
+      res.status(400).send response
+
+app.post "/:name?/Validate/Email/:email?", (req, res) ->
+
+  { JUser } = koding.models
+  { email } = req.params
+
+  return res.status(400).send 'Bad request'  unless email?
+
+  JUser.emailAvailable email, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    return if response
+    then res.status(200).send response
+    else res.status(400).send 'Email is taken!'
 
 
 app.post "/:name?/Register", (req, res) ->
@@ -247,14 +300,14 @@ app.post "/:name?/Register", (req, res) ->
     # when there is an error in the fetchClient, it returns message in it
     if client.message
       console.error JSON.stringify {req, client}
-      return res.send 500, client.message
+      return res.status(500).send client.message
 
     JUser.convert client, req.body, (err, result) ->
-      return res.send 400, err.message  if err?
+      return res.status(400).send err.message  if err?
 
       res.cookie 'clientId', result.newToken
       # handle the request as an XHR response:
-      return res.send 200, null if req.xhr
+      return res.status(200).end() if req.xhr
       # handle the request with an HTTP redirect:
       res.redirect 301, redirect
 
@@ -267,31 +320,32 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.send 403, err.message  if err?
+    return res.status(403).send err.message  if err?
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
       version : '2.0'
     info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.send 500, 'Internal error'  if err?
+      return res.status(500).send 'Internal error'  if err?
       res.cookie 'clientId', info.replacementToken
-      res.send 200, null
+      res.status(200).end()
 
 app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models
   { email } = req.body
 
   JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
-    return res.send 403, err.message  if err?
-    res.send 200, null
+    return res.status(403).send err.message  if err?
+
+    res.status(200).end()
 
 app.post '/:name/Reset', (req, res) ->
   { JPasswordRecovery } = koding.models
   { recoveryToken, password } = req.body
 
   JPasswordRecovery.resetPassword { token, password }, (err, username) ->
-    return res.send 400, err.message  if err?
-    res.send 200, null
+    return res.status(400).send err.message  if err?
+    res.status(200).end()
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
@@ -340,9 +394,9 @@ app.get "/-/healthCheck", (req, res) ->
   dash urlFns, ->
     if Object.keys(errs).length > 0
       console.log "HEALTHCHECK ERROR:", errs
-      res.send 500
+      res.status(500).end()
     else
-      res.send 200
+      res.status(200).end()
 
 app.get "/-/version", (req, res) ->
   res.jsonp(version:KONFIG.version)
@@ -354,7 +408,7 @@ app.get "/-/jobs", (req, res) ->
     json  : yes
 
   request options, (err, r, postings) ->
-    res.send 404 if err
+    res.status(404).send "Not found" if err
     res.json postings
 
 simple_recaptcha = require "simple-recaptcha"
@@ -387,7 +441,7 @@ getSiteMap = (name, req, res)->
 
 app.get "/-/presence/:service", (req, res) ->
   # if services[service] and services[service].count > 0
-  res.send 200
+  res.status(200).end()
   # else
     # res.send 404
 
@@ -404,18 +458,22 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/api/app/:app"            , require "./applications"
-app.get "/-/oauth/odesk/callback"    , require "./odesk_callback"
-app.get "/-/oauth/github/callback"   , require "./github_callback"
-app.get "/-/oauth/facebook/callback" , require "./facebook_callback"
-app.get "/-/oauth/google/callback"   , require "./google_callback"
-app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
-app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
-app.get '/-/image/cache'             , require "./image_cache"
+app.get "/-/api/app/:app" , require "./applications"
+app.get '/-/image/cache'  , require "./image_cache"
+
+# Handlers for OAuth
+app.get  "/-/oauth/odesk/callback"    , require  "./odesk_callback"
+app.get  "/-/oauth/github/callback"   , require  "./github_callback"
+app.get  "/-/oauth/facebook/callback" , require  "./facebook_callback"
+app.get  "/-/oauth/google/callback"   , require  "./google_callback"
+app.get  "/-/oauth/linkedin/callback" , require  "./linkedin_callback"
+app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
+app.post "/:name?/OAuth"              , require  "./oauth"
+app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
 # Handlers for Stripe
-app.post '/-/stripe/webhook'         , require "./stripe_webhook"
-app.get  '/-/subscriptions'          , require "./subscriptions"
+app.post '/-/stripe/webhook' , require "./stripe_webhook"
+app.get  '/-/subscriptions'  , require "./subscriptions"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->
@@ -464,7 +522,7 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
 
         return  serveHome req, res, next  if loggedIn
         staticHome = require "../crawler/staticpages/kodinghome"
-        return res.send 200, staticHome() if path is ""
+        return res.status(200).send staticHome() if path is ""
 
         return Crawler.crawl koding, {req, res, slug: path}
 
@@ -502,11 +560,11 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
   #
   else
     isLoggedIn req, res, (err, loggedIn, account)->
-      return res.send 404, error_404()  if err
+      return res.status(404).send error_404()  if err
 
       JName.fetchModels name, (err, result)->
         return next err  if err
-        return res.send 404, error_404()  unless result?
+        return res.status(404).send error_404()  unless result?
         { models } = result
         if models.last?
           if models.last.bongo_?.constructorName isnt "JGroup" and not loggedIn
@@ -519,22 +577,17 @@ app.all '/:name/:section?/:slug?*', (req, res, next)->
             models.last.fetchHomepageView homePageOptions, (err, view)->
               if err then next err
               else if view? then res.send view
-              else res.send 404, error_404()
+              else res.status(404).send error_404()
         else next()
 
 # Main Handler for Koding.com
 #
 app.get "/", (req, res, next)->
-  console.log Date(), "global handler /"
-  # User requests
-  #
   if req.query._escaped_fragment_?
     staticHome = require "../crawler/staticpages/kodinghome"
     slug = req.query._escaped_fragment_
-    return res.send 200, staticHome() if slug is ""
+    return res.status(200).send staticHome() if slug is ""
     return Crawler.crawl koding, {req, res, slug}
-  # Handle crawler request
-  #
   else
     serveHome req, res, next
 
@@ -555,8 +608,7 @@ app.get '*', (req,res)->
     then "#{alias}#{query}"
     else "/#!#{urlOnly}#{query}"
 
-  res.header 'Location', redirectTo
-  res.send 301
+  res.redirect 301, redirectTo
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
@@ -567,4 +619,4 @@ app.use (err, req, res, next) ->
   console.error "request error"
   console.error err
   console.error err.stack
-  res.send 500, error_500()
+  res.status(500).send error_500()

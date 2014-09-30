@@ -53,6 +53,15 @@ class PrivateMessagePane extends MessagePane
     , 200
 
 
+  scrollDown: (item) ->
+
+    super item
+
+    KD.utils.defer =>
+
+      @listController.getListView().scrollDown()
+
+
   createInputWidget: ->
 
     channel = @getData()
