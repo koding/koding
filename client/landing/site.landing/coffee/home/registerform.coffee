@@ -1,10 +1,19 @@
 RegisterInlineForm = require './../login/registerform'
+CustomLinkView     = require './../core/customlinkview'
 
 module.exports = class HomeRegisterForm extends RegisterInlineForm
 
   constructor: ->
 
     super
+
+    @github = new CustomLinkView
+      cssClass : 'octo'
+      title    : 'Sign up with GitHub'
+      alt      : 'Sign up with GitHub'
+      click    : ->
+        KD.mixpanel "Github auth button in /Home, click"
+        KD.singletons.oauthController.openPopup "github"
 
     @email.setOption 'stickyTooltip', yes
     @username.setOption 'stickyTooltip', yes
@@ -48,5 +57,6 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       <div class='fl email'>{{> @email}}</div>
       <div class='fl username'>{{> @username}}</div>
       <div class='fl submit'>{{> @button}}</div>
+      {{> @github}}
     </section>
     """

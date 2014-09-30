@@ -31,8 +31,19 @@ body.home
 
     section
 
+      a.octo
+        size              32px 32px
+        r-sprite          home 'octo-home'
+        margin            3px 0 0 57px
+        opacity           .7
+        fl()
+        &:hover
+          r-sprite        home 'octo-home-white'
+        span.title
+          hidden()
+
       > div
-        width             calc(50% - 64px)
+        width             calc(50% - 104px)
         padding-right     10px
         rel()
         borderBox()
@@ -42,15 +53,30 @@ body.home
           z-index         10
           abs             12px 0 0 18px
 
+        &:last-child
+          padding-right   0
+
         &.email:before
           r-sprite        home 'input-email'
 
         &.username:before
           r-sprite        home 'input-username'
 
-        &:last-child
-          padding-right   0
-          width           128px
+        &.submit
+          width           108px
+
+        &.submit:after
+          content         'OR'
+          font-size       12px
+          text-transform  uppercase
+          color           rgba(0,0,0,.5)
+          font-size       12px
+          font-weight     700
+          padding         0 15px 0 9px
+          opacity         .99
+          border-right    1px solid rgba(0,0,0,.1)
+          abs             5px 0 0 100%
+
 
         .kdbutton.solid.medium
           bg                color #F6E556
@@ -152,8 +178,15 @@ body.home
 
       section.introduction
         bg                color, #2C3E51
+        div.submit:after
+          color           rgba(255,255,255,.6)
+          border-right    1px solid rgba(255,255,255,.1)
         &:before
           opacity         .3
+        a.octo
+          r-sprite          home 'octo-home-white'
+          &:hover
+            opacity         1
 
       section.introduction > div:after
         shadow            0 0 400px rgba(255, 255, 179, .5)
