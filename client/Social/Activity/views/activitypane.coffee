@@ -216,11 +216,3 @@ class ActivityPane extends MessagePane
         router.handleRoute '/Activity/Public/Recent'
 
     @tabView.tabHandleContainer.addSubView searchIcon
-
-
-class SingleActivityPane extends ActivityPane
-
-  viewAppended: ->
-    @addSubView @tabView
-    for handle in @tabView.handles when handle.options.title is "Most Liked"
-      handle.hide()
