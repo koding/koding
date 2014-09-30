@@ -235,19 +235,27 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       'New Terminal'      : callback : => @createTerminal()
       'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
-        callback      : => @createDrawingBoard()
-        separator     : yes
+        callback          : => @createDrawingBoard()
+        separator         : yes
       'Split Vertically':
-        callback      : ->
+        callback          : ->
           KD.getSingleton('appManager').getFrontApp().splitVertically()
       'Split Horizontally':
-        callback      : ->
+        callback          : ->
           KD.getSingleton('appManager').getFrontApp().splitHorizontally()
 
     if @parent instanceof KDSplitViewPanel
       items['Undo Split'] =
-        callback      : ->
+        separator         : yes
+        callback          : ->
           KD.getSingleton('appManager').getFrontApp().mergeSplitView()
+    else
+      items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
+        type              : 'separator'
+
+    label                 = if @isFullScreen then 'Exit Fullscren' else 'Enter Fullscren'
+    items[label]          =
+      callback            : @bound 'toggleFullscreen'
 
     return items
 
