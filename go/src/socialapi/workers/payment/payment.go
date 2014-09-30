@@ -201,6 +201,10 @@ type StripeWebhook struct {
 func (s *StripeWebhook) Do() (interface{}, error) {
 	var err error
 
+	if !s.Livemode {
+		return nil, nil
+	}
+
 	switch s.Name {
 	case "customer.subscription.deleted":
 		raw, err := json.Marshal(s.Data.Object)
