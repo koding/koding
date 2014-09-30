@@ -40,8 +40,11 @@ module.exports = class JWorkspace extends Module
     data.originId = client.connection.delegate._id
     data.slug     = slugify data.name?.toLowerCase()
 
-    {name, slug, machineUId, rootPath,
-     originId, layout, machineLabel} = data
+    {name, slug, machineUId, rootPath, originId, machineLabel} = data
+
+    # we don't support saving layout for now, i will set it to empty object
+    # to prevent storing any kind of data in it. -- acetz!
+    data.layout = {}
 
     generateUniqueName { originId, name }, (err, res)->
 
