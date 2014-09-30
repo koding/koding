@@ -2,7 +2,7 @@ class AddWorkspaceView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'add-workpace-view'
+    options.cssClass = 'add-workspace-view'
 
     super options, data
 
