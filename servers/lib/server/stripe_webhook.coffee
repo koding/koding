@@ -6,6 +6,6 @@ module.exports = (req, res) ->
   url = "/payments/stripe/webhook"
   post url, data, (err)->
     if err
-      return res.send 500
+      return res.status(500).end()
 
-    res.send 200
+    res.status(200).end()

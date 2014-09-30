@@ -143,7 +143,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, no
+      item = @addItem channel, yes
       item.setUnreadCount unreadCount
 
 
@@ -220,12 +220,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addItem: (data, prepend = no) ->
 
-    index          = if prepend then 0
+    index          = if prepend then 2
     listController = @getListController data.typeConstant
 
     if item = @getItemByData data
-      listController.moveItemToIndex item, index
-
+      listController.moveItemToIndex item, index  if index
       return item
 
     item = listController.addItem data, index

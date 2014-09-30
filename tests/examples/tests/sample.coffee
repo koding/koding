@@ -1,40 +1,73 @@
-
-
 faker    = require('faker')
-user     = faker.Helpers.createCard()
 
-# enable tweets some other time vs boring fuckin lorem ipsums.
-# twit     = new require('twitter')
-#     consumer_key        : '2WX5bYPbkosELsee5m5sRTkww'
-#     consumer_secret     : '8oNpgHakB81AU6KnXfzgyVSPrgvTaMGRWYrRoWyFRZvyBgivWV'
-#     access_token_key    : '42704386-mdSOlYAbl2psZgueScsRT5nUprgZak0eaLkXRUnBU'
-#     access_token_secret : 'owpnsShoaRyOND6DXfPkfN2jrCLHUCmRzopClPaBWcFks'
+dogapi = require 'dogapi'
 
-# tweets = []
-# twit.search 'nodejs OR #node',(data) -> tweets = data
+options =
+  api_key: 'da163c47df4e1bdec0645604a129846c'
+  app_key: 'eb916d4dd0b7101b8e5b00a73b405cae5d804b8e'
 
-# gotTweet = []
-# getTweet = ->
-#   randomnumber = Math.floor(Math.random()*11)
-#   tweet =
-#     text : tweets.statuses[randomnumber].text
-#     username :
+doglog = new dogapi options
 
-#   gotTweet.push tweet
-#   return tweet
-
-# getLastTweet = ->
-#   return gotTweet[gotTweet.length-1]
+gsReady = null
+gs = new (require("google-spreadsheet"))("1rG-ZRmhiIiM6h6oorG90cGofDhbW67bO_ZUHfO6zW-k")
+gs.setAuth "kodingtester@koding.com", "raj5cos6op6owt3", (err) ->
+  gsReady = yes
 
 
+module.exports = client = do ()->
+
+  user = faker.Helpers.createCard()
+
+  getTerminalInput = ->
+    x =Math.floor(Math.random()*110000)
+    y =Math.floor(Math.random()*110000)
+    input  = "echo $((#{x}*#{y}))"
+    result = (x*y)
+    return [input,result]
+
+  getPost = ->
+    lastPost = faker.Lorem.sentence()
+
+  postActivity = (data) ->
+    $("[testpath='ActivityInputView'] div[contenteditable='true']").html(data)
 
 
-module.exports = client =
-  "Registration": (browser) ->
+  tests =
+    beforeEach: (browser, done)->
+      browser.globals.time = new Date()
+      done()
 
-    koding_username = "ktu-#{user.name.replace(/[^A-Za-z0-9]/g, '')}"
+    afterEach: (done)->
+      browser = this.client;
 
-    browser
+      duration = (new Date()) - browser.globals.time
+
+      replaceAllRegex = new RegExp(" ", 'g')
+      metricName = browser.currentTest.name.replace(replaceAllRegex, "_")
+      metricName = metricName.toLowerCase()
+      metricName = "load_test."+metricName
+
+      metric =
+        metric : metricName
+        points : [[Date.now()/1000, duration]]
+        host   : "load.koding.com"
+        type   : "gauge"
+
+
+      if gsReady
+        gs.addRow 1,
+          testName : browser.currentTest.name
+          duration : duration
+
+
+      doglog.add_metrics series:[metric], ()->
+        done()
+
+
+    "Registration": (browser) ->
+      koding_username = "ktu-#{user.name.replace(/[^A-Za-z0-9]/g, '')}"
+
+      browser
         # .url                    "http://koding:1q2w3e4r@sandbox.koding.com/"
         # .url                    "http://sandbox.koding.com/"
         .url                    "http://lvh.me:8090"
@@ -42,7 +75,6 @@ module.exports = client =
         .setValue               "input[name='email']"    , "devrim+#{user.username}@koding.com"
         .setValue               "input[name='username']" , koding_username
         .click                  "button[type='button']"
-
         .waitForElementVisible  "div.kdmodal.password", 10000
         .setValue               "form input[name='password']", "1q2w3e4r"
         .setValue               "form input[name='passwordConfirm']","1q2w3e4r"
@@ -50,58 +82,45 @@ module.exports = client =
         .waitForElementVisible  "body.logged-in", 10000
 
 
-  "Logged in": (browser) ->
-    browser
-        # .assert.containsText    "input[name='email']", "nightwatch"
+    "Logged in": (browser) ->
+      browser
         .waitForElementVisible  "div.welcome-modal", 10000
         .click                  "div.welcome-modal a.custom-link-view:nth-child(6)"
-        # .saveScreenshot         "hulo1.png"
 
-  "Change name": (browser) ->
-    browser
-      .click                    "[testpath='AvatarAreaIconLink']"
-      .click                    "[testpath='AccountSettingsLink']"
-      .waitForElementVisible    "form input[name='firstName']", 10000
-      .clearValue               "form input[name='firstName']"
-      .setValue                 "form input[name='firstName']", user.name.split(" ")[0]
-      .setValue                 "form input[name='lastName']", [user.name.split(" ")[1],browser.Keys.ENTER]
+    "Change name": (browser) ->
+      browser
+        .click                    "[testpath='AvatarAreaIconLink']"
+        .click                    "[testpath='AccountSettingsLink']"
+        .waitForElementVisible    "form input[name='firstName']", 10000
+        .clearValue               "form input[name='firstName']"
+        .setValue                 "form input[name='firstName']", user.name.split(" ")[0]
+        .setValue                 "form input[name='lastName']", [user.name.split(" ")[1],browser.Keys.ENTER]
 
-  "Test Activity": (browser)->
+  for i in [1..20]
+    tests["Test Activity #{i}"] = do (i)-> (browser)->
+      # open activity only first time
+      if i is 1
+        browser
+          .click                  "[testpath='public-feed-link']"
+          .waitForElementVisible  "[testpath='ActivityInputView'] div[contenteditable='true']", 10000
+          .click                  "[testpath='ActivityTabHandle-/Activity/Public/Recent']"
+          .waitForElementVisible  "[testpath='ActivityListItemView']", 60000
 
-    getPost = ->
-      lastPost = faker.Lorem.sentence()
+      post = i+ " " + getPost()
+      browser.execute                postActivity,[post]
+      browser.click                  "[testpath='post-activity-button']"
+      browser.assert.containsText    "[testpath='ActivityListItemView'] article",post
+      browser.pause                  1000
 
-    postActivity = (data) ->
-      $("[testpath='ActivityInputView'] div[contenteditable='true']").html(data)
+  for i in [1..20]
+    tests["Test IDE #{i}"] = do (i)-> (browser)->
+      # select VM only first time, no need to select it again
+      if i is 1
+        browser
+          .click                  "a[href='/IDE/koding-vm-0/my-workspace']"
+          .waitForElementVisible  "div.kdview.pane.terminal-pane.terminal",200000
+          .pause                  2000
 
-    browser
-      .click                  "[testpath='public-feed-link']"
-      .waitForElementVisible  "[testpath='ActivityInputView'] div[contenteditable='true']", 10000
-      .click                  "[testpath='ActivityTabHandle-/Activity/Public/Recent']"
-      .waitForElementVisible  "[testpath='ActivityListItemView']", 10000
-
-      for i in [0..30]
-        post = getPost()
-        browser.execute                postActivity,[post]
-        browser.click                  "[testpath='post-activity-button']"
-        browser.assert.containsText    "[testpath='ActivityListItemView'] article",post
-        browser.pause                  1000
-
-  "Test IDE": (browser)->
-
-    getTerminalInput = ->
-      x =Math.floor(Math.random()*110000)
-      y =Math.floor(Math.random()*110000)
-      input  = "echo $((#{x}*#{y}))"
-      result = (x*y)
-      return [input,result]
-
-    browser
-      .click                  "a[href='/IDE/koding-vm-0/my-workspace']"
-      .waitForElementVisible  "div.kdview.pane.terminal-pane.terminal",200000
-      .pause                  2000
-
-    for i in [0..30]
       [input,result]               = getTerminalInput()
       browser.execute              "KD.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('#{input}');"
       browser.execute              "KD.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
@@ -109,4 +128,8 @@ module.exports = client =
       browser.assert.containsText  "div.kdview.kdtabpaneview.terminal.clearfix.active div[contenteditable='true']",result
       browser.pause                1000
 
-    browser.end()
+
+      # specialcase, close test suite when we reach to end
+      browser.end() if i is 20
+
+  return tests

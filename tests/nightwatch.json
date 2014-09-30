@@ -24,8 +24,8 @@
       "selenium_host"  : "localhost",
       "silent": true,
       "screenshots" : {
-        "enabled" : true,
-        "path" : "./screenshots"
+        "enabled" : false,
+        "path" : ""
       },
       "desiredCapabilities": {
         "browserName": "firefox",

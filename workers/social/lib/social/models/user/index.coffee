@@ -341,9 +341,6 @@ Team Koding
       constructor = this
       JSession.fetchSession clientId, (err, { session })->
         return callback err  if err
-        # temp fix:
-        # this broke login, reverted. - SY
-        # if not session? or session.username isnt username
         unless session
           console.error "login: session not found", username
           return callback { message: "Couldn't restore your session!" }
