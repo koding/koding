@@ -488,4 +488,5 @@ module.exports = {
   checkOwnership
   post
   get
+  deleteReq
 }

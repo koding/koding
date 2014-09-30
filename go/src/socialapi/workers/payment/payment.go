@@ -122,7 +122,8 @@ func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
 }
 
 func (a *AccountRequest) Delete() (interface{}, error) {
-	return nil, nil
+	err := stripe.DeleteCustomer(a.AccountId)
+	return nil, err
 }
 
 //----------------------------------------------------------
