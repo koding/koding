@@ -170,7 +170,7 @@ addReferralCode = (req, res)->
 handleClientIdNotFound = (res, req)->
   err = {message: "clientId is not set"}
   console.error JSON.stringify {req: req.body, err}
-  return res.send 500, err
+  return res.status(500).send err
 
 getClientId = (req, res)->
   return req.cookies.clientId or req.pendingCookies.clientId

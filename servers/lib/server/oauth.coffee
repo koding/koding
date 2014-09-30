@@ -12,7 +12,7 @@ module.exports = (req, res)->
 
   koding.fetchClient clientId, context, (client) ->
     if client.message
-      return res.send 500, client.message
+      return res.status(500).send client.message
 
     {body} = req
     {isUserLoggedIn} = body
@@ -24,9 +24,9 @@ module.exports = (req, res)->
     {JUser} = koding.models
     JUser.authenticateWithOauth client, body, (err, result)->
       if err?
-        return res.send 400, err.message
+        return res.status(400).send err.message
 
       {replacementToken} = result
       res.cookie 'clientId', replacementToken  if replacementToken
 
-      res.send 200, result
+      res.status(200).send result
