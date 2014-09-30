@@ -254,6 +254,23 @@ app.post "/:name?/Validate", (req, res) ->
 
   res.status(if validations.isValid then 200 else 400).send validations
 
+
+app.post "/:name?/Validate/Username/:username?", (req, res) ->
+
+  { JUser } = koding.models
+  { username } = req.params
+
+  return res.status(400).send 'Bad request'  unless username?
+
+  JUser.usernameAvailable username, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    {kodingUser, forbidden} = response
+
+    if not kodingUser and not forbidden
+      res.status(200).send response
+    else if kodingUser
+      res.status(400).send response
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
