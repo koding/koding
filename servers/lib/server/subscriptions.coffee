@@ -12,21 +12,21 @@ module.exports = (req, res) ->
   {account_id, kloud_key} = req.query
 
   unless account_id
-    return res.send 400, errMsg "account_id is required"
+    return res.status(400).send errMsg "account_id is required"
 
   unless kloud_key
-    return res.send 401, errMsg "kloud_key is required"
+    return res.status(401).send errMsg "kloud_key is required"
 
   # Hardcoding is wrong, however this key won't change
   # depending on environments, so there's point of
   # putting it in config : SA
   unless kloud_key is "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
-    return res.send 401, errMsg "kloud_key is wrong"
+    return res.status(401).send errMsg "kloud_key is wrong"
 
   url  = "/payments/subscriptions/#{account_id}"
   url += "?default=false"
 
   get url, {}, (err, response)->
-    return res.send 400, err  if err
+    return res.status(400).send err  if err
 
-    res.send 200, response
+    res.status(200).send response

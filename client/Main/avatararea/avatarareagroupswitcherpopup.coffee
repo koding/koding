@@ -124,9 +124,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
-      attributes : href : '/Account'
+      attributes : href : '/Account', testpath : "AccountSettingsLink"
       cssClass   : 'bottom-separator'
-      partial    : 'Account settings'
+      partial    : 'Account Settings'
       click      : (event)=>
         KD.utils.stopDOMEvent event
         router.handleRoute '/Account'
@@ -166,7 +166,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"
       cssClass : "bottom hidden"
-      partial  : "Group dashboard"
+      partial  : "Group Dashboard"
       click    : (event) =>
         KD.utils.stopDOMEvent event
         KD.getSingleton("router").handleRoute "/Dashboard"

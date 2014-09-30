@@ -131,6 +131,7 @@ class ActivityAppView extends KDView
     paneClass = switch type
       when 'topic'          then TopicMessagePane
       when 'privatemessage' then PrivateMessagePane
+      when 'post'           then SingleActivityPane
       else
         if name is 'announcement-koding'
         then AnnouncementPane

@@ -39,12 +39,15 @@ class WelcomeModal extends KDModalView
       cssClass    : 'welcome-btn'
       title       : 'Learn how to migrate data from your old VM(s)'
       href        : 'http://learn.koding.com/migrate'
+      click       : =>
+        window.open 'http://learn.koding.com/migrate', '_blank'
+        @destroy()
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
       title       : 'Read our blog post about this release'
       click       : =>
-        window.open 'http://blog.koding.com/2014/09/new-release'
+        window.open 'http://blog.koding.com/2014/09/new-release', '_blank'
         @destroy()
 
     content.addSubView new CustomLinkView

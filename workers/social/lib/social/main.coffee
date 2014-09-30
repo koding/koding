@@ -105,12 +105,17 @@ express = require 'express'
 cors = require 'cors'
 helmet = require 'helmet'
 app = express()
-app.use express.compress()
-app.use express.bodyParser()
-helmet.defaults app
-app.use cors()
 
-app.post '/xhr', koding.expressify()
-app.get '/xhr',(req,res)->
-  res.send "Socialworker is OK"
-app.listen argv.p
+do ->
+  compression = require 'compression'
+  bodyParser = require 'body-parser'
+
+  app.use compression()
+  app.use bodyParser.json()
+  helmet.defaults app
+  app.use cors()
+
+  app.post '/xhr', koding.expressify()
+  app.get '/xhr',(req,res)->
+    res.send "Socialworker is OK"
+  app.listen argv.p
