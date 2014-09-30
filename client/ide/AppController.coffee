@@ -131,9 +131,6 @@ class IDEAppController extends AppController
       if routeInfo.path.indexOf('/IDE') is -1
         if mainView.isSidebarCollapsed
           mainView.toggleSidebar()
-      else
-        if @isKodingSidebarCollapsed and not mainView.isSidebarCollapsed
-          mainView.toggleSidebar()
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
