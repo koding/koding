@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"socialapi/workers/payment/paymenterrors"
@@ -192,8 +193,9 @@ type StripeWebhook struct {
 	Created  int    `json:"created"`
 	Livemode bool   `json:"livemode"`
 	Id       string `json:"id"`
-	Data     []byte `json:"data"`
-	Object   string `json:"object"`
+	Data     struct {
+		Object interface{} `json:"object"`
+	} `json:"data"`
 }
 
 func (s *StripeWebhook) Do() (interface{}, error) {
@@ -201,7 +203,12 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 
 	switch s.Name {
 	case "customer.subscription.deleted":
-		err = stripe.SubscriptionDeletedWebhook(s.Data)
+		raw, err := json.Marshal(s.Data.Object)
+		if err != nil {
+			return nil, err
+		}
+
+		err = stripe.SubscriptionDeletedWebhook(raw)
 	default:
 		fmt.Println("Unhandled Stripe webhook", s.Name)
 	}
