@@ -96,7 +96,9 @@ createUserMachineLocation = (path) ->
       }
   \n"""
 
-createLocations = (workers={}) ->
+createLocations = (KONFIG) ->
+  workers = KONFIG.workers
+
   locations = ""
   for name, options of workers when options.ports?
     options.nginx = {}  unless options.nginx
@@ -111,7 +113,8 @@ createLocations = (workers={}) ->
       else
         createWebLocation
 
-      locations += fn name, location, options.nginx.auth
+      auth = if KONFIG.configName is "load" then no else options.nginx.auth
+      locations += fn name, location, auth
 
   return locations
 
@@ -133,9 +136,11 @@ createStubLocation = (env)->
 
   return stub
 
-module.exports.create = (workers, environment)->
+module.exports.create = (KONFIG, environment)->
+  workers = KONFIG.workers
+
   config = """
-  worker_processes  5;
+  worker_processes #{if environment is "dev" then 5 else 16};
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
@@ -147,6 +152,8 @@ module.exports.create = (workers, environment)->
 
   # start http
   http {
+    # for proper content type setting, include mime.types
+    include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
 
     #{createUpstreams(workers)}
 
@@ -168,16 +175,34 @@ module.exports.create = (workers, environment)->
 
     # start server
     server {
+
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
-      root /usr/share/nginx/html;
+      # root /usr/share/nginx/html;
       index index.html index.htm;
       location = /healthcheck {
         return 200;
-        #access_log off;
+        access_log off;
+      }
+
+      # no need to send static file serving requests to webserver
+      # serve static content from nginx
+      location /a/ {
+        root  #{KONFIG.projectRoot}/website/;
+        # no need to send those requests to nginx access_log
+        access_log off;
       }
 
       #{createStubLocation(environment)}
+
+      # temporary exception for kloud to reach webserver without auth
+      location /-/subscriptions {
+        proxy_pass            http://webserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
 
       # special case for ELB here, for now
       location /-/healthCheck {
@@ -188,7 +213,7 @@ module.exports.create = (workers, environment)->
         proxy_connect_timeout 1;
       }
 
-      #{createLocations(workers)}
+      #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
     # close server

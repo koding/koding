@@ -7,6 +7,7 @@ class KodingKite_KloudKite extends KodingKite
     start     : 'start'
     build     : 'build'
     event     : 'event'
+    reinit    : 'reinit'
     restart   : 'restart'
     destroy   : 'destroy'
     setDomain : 'domain.set'
@@ -28,7 +29,7 @@ class KodingKite_KloudKite extends KodingKite
           @requestingInfo[machineId].forEach ({ resolve }) -> resolve info
           @requestingInfo[machineId] = null
         .timeout ComputeController.timeout
-        .catch Promise.TimeoutError, (err) =>
+        .catch (err) =>
           @requestingInfo[machineId].forEach ({ reject }) -> reject err
           @requestingInfo[machineId] = null
         .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!

@@ -34,23 +34,46 @@ class PaymentWorkflow extends KDController
     (arr.indexOf selected) > (arr.indexOf current)
 
 
-  initialState: {}
+  getInitialState: -> KD.utils.dict()
 
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     KD.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
 
   start: ->
 
+    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+
+    if isUpgrade
+    then @startRegularFlow()
+    else @startDowngradeFlow()
+
+
+  startRegularFlow: ->
+
     @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished', @bound 'finish'
     @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
+
+
+  startDowngradeFlow: ->
+
+    { paymentController } = KD.singletons
+
+    paymentController.canChangePlan @state.planTitle, (err) =>
+
+      if err?
+        @state.error = err
+        @modal = new PaymentDowngradeErrorModal { @state }
+        return
+
+      @startRegularFlow()
 
 
   handlePaymentSubmit: (formData) ->

@@ -32,7 +32,10 @@ type Config struct {
 	Id          string
 
 	// Connect to Koding mongodb
-	MongoURL string
+	MongoURL string `required:"true"`
+
+	// Endpoint for fetchin plans
+	PlanEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -48,23 +51,20 @@ type Config struct {
 	TestMode bool
 
 	// Defines the base domain for domain creation
-	HostedZone string
+	HostedZone string `required:"true"`
 
 	// Defines the default AMI Tag to use for koding provider
 	AMITag string
 
 	// --- KLIENT DEVELOPMENT ---
 	// KontrolURL to connect and to de deployed with klient
-	KontrolURL string
+	KontrolURL string `required:"true"`
 
 	// Private key to create kite.key
-	PrivateKey string
+	PrivateKey string `required:"true"`
 
 	// Public key to create kite.key
-	PublicKey string
-
-	// Contains the users home directory to be added into a image
-	TemplateDir string
+	PublicKey string `required:"true"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
@@ -81,12 +81,6 @@ func main() {
 	if conf.Version {
 		fmt.Println(kloud.VERSION)
 		os.Exit(0)
-	}
-
-	fmt.Printf("Kloud loaded with following configuration variables: %+v\n", conf)
-
-	if conf.HostedZone == "" {
-		panic("hosted zone is not set. Pass it via -hostedzone or CONFIG_HOSTEDZONE environment variable")
 	}
 
 	k := newKite(conf)
@@ -108,8 +102,6 @@ func main() {
 
 		registerURL = u
 	}
-
-	fmt.Printf("registering with url %+v\n", registerURL)
 
 	if conf.Proxy {
 		k.Log.Info("Proxy mode is enabled")
@@ -154,11 +146,11 @@ func newKite(conf *Config) *kite.Kite {
 		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
-	klientFolder := "klient/development/latest"
+	klientFolder := "development/latest"
 	checkInterval := time.Second * 5
 	if conf.ProdMode {
 		k.Log.Info("Prod mode enabled")
-		klientFolder = "klient/production/latest"
+		klientFolder = "production/latest"
 		checkInterval = time.Millisecond * 500
 	}
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
@@ -174,12 +166,11 @@ func newKite(conf *Config) *kite.Kite {
 		AssigneeName:      id,
 		Session:           db,
 		Test:              conf.TestMode,
-		TemplateDir:       conf.TemplateDir,
 		HostedZone:        conf.HostedZone,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
 		KontrolPublicKey:  kontrolPublicKey,
-		Bucket:            koding.NewBucket("koding-kites", klientFolder),
+		Bucket:            koding.NewBucket("koding-klient", klientFolder),
 		KeyName:           keys.DeployKeyName,
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
@@ -203,6 +194,10 @@ func newKite(conf *Config) *kite.Kite {
 			Username: m.Username,
 			Machine:  m,
 		}, nil
+	}
+
+	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
+		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

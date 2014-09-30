@@ -17,6 +17,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         updateCreditCard  :
           (signature Object, Function)
+        canChangePlan     :
+          (signature Object, Function)
 
 
   { get, post } = require "./socialapi/requests"
@@ -29,7 +31,7 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       return callback err  if err
 
-      canChangeplan client, data.planTitle, (err)->
+      canChangePlan client, data.planTitle, (err)->
         return callback err  if err
 
         data.accountId = getAccountId client
@@ -37,9 +39,12 @@ module.exports = class Payment extends Base
 
         post url, data, callback
 
-  @subscriptions = secure (client, data, callback)->
+  @subscriptions$ = secure (client, data, callback)->
+    Payment.subscriptions client, data, callback
+
+  @subscriptions = (client, data, callback)->
     data.accountId = getAccountId client
-    url = "/payments/subscriptions/#{data.accountId}"
+    url = "/payments/subscriptions?account_id=#{data.accountId}"
 
     get url, data, callback
 
@@ -66,6 +71,12 @@ module.exports = class Payment extends Base
 
       post url, data, callback
 
+  @canChangePlan = secure (client, data, callback)->
+    requiredParams = [ "planTitle" ]
+
+    validateParams requiredParams, data, (err)->
+      canChangePlan client, data.planTitle, callback
+
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams
@@ -77,7 +88,16 @@ module.exports = class Payment extends Base
   getAccountId = (client)->
     return client.connection.delegate.getId()
 
-  canChangeplan = (client, planTitle, callback)->
+  prettifyFeature = (name)->
+    switch name
+      when "alwaysOn"
+        "alwaysOn vms"
+      when "storage"
+        "GB storage"
+      when "total"
+        "total vms"
+
+  canChangePlan = (client, planTitle, callback)->
     fetchPlan client, planTitle, (err, plan)->
       return callback err  if err
 
@@ -86,10 +106,12 @@ module.exports = class Payment extends Base
 
         for name in ["alwaysOn", "storage", "total"]
           if usage[name] > plan[name]
-            return callback {"message" : "
-              You can't change to '#{planTitle}' plan since you're
-              current using #{usage[name]} #{name}. The new plan only
-              allows #{plan[name]} #{name}."
+            return callback {
+              "message"   : "Sorry, your request to downgrade can't be processed because you are currently using more resources than the plan you are trying to downgrade to allows."
+              "allowed"   : plan[name]
+              "usage"     : usage[name]
+              "planTitle" : planTitle
+              "name"      : prettifyFeature name
             }
 
         callback null

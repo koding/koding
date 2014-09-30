@@ -43,10 +43,16 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	resp, err := a.Client.Instances([]string{id}, ec2.NewFilter())
 	if err != nil {
+		if awsErr, ok := err.(*ec2.Error); ok {
+			if awsErr.Code == "InvalidInstanceID.NotFound" {
+				return ec2.Instance{}, ErrNoInstances
+			}
+		}
+
 		return ec2.Instance{}, err
 	}
 
-	if len(resp.Reservations) != 1 {
+	if len(resp.Reservations) == 0 {
 		fmt.Errorf("the instance ID '%s' does not exist", id)
 		return ec2.Instance{}, ErrNoInstances
 	}

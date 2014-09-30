@@ -170,8 +170,6 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    ComputeProvider.fetchPlans client, options, callback
-
     {provider} = options
     provider.fetchPlans client, options, callback
 
@@ -298,9 +296,7 @@ module.exports = class ComputeProvider extends Base
 
         queue.push ->
 
-          callback null, stack
-          # `results` keeps track of the all operation
-          # if needed return with callback.
+          callback null, {stack, results}
 
         daisy queue
 
@@ -318,22 +314,44 @@ module.exports = class ComputeProvider extends Base
           delegate : member
         context    : group : group.slug
 
-      ComputeProvider.createGroupStack client, (err, res)->
+      ComputeProvider.createGroupStack client, (err, res = {})->
+
+        {stack, results} = res
 
         if err?
           {nickname} = member.profile
-          console.log "Create group stack failed for #{nickname}:", err
+          console.log "Create group stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
     JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
 
       return  unless oldUsername and username
-      return  unless isRegistration
+
+      JMachine = require './machine'
+
+      unless isRegistration
+
+        console.log "Removing user #{oldUsername} vms..."
+
+        JMachine.update
+          provider      : 'koding'
+          credential    : oldUsername
+        ,
+          $set          :
+            userDeleted : yes
+        ,
+          multi         : yes
+        , (err)->
+          if err?
+            console.error \
+              "Failed to mark them as deleted for #{oldUsername}:", err
+
+        return
+
 
       oldDomain = "#{oldUsername}.#{KONFIG.userSitesDomain}"
 
-      JMachine = require './machine'
       JMachine.one
 
         provider : 'koding'
@@ -342,8 +360,8 @@ module.exports = class ComputeProvider extends Base
       , (err, machine)->
 
         if err? or not machine
-          console.log "Failed to find machine for #{username}", err
-
+          # discard any error or not found cases
+          # console.log "Failed to find machine for #{username}", err
         else
 
           newDomain = "#{machine.uid}.#{username}.#{KONFIG.userSitesDomain}"

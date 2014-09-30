@@ -49,9 +49,9 @@ class MembersAppController extends AppController
       else
         @createGroupMembersView contentDisplay
 
-      contentDisplay.addSubView new FilterLinksView {},
-        'Posts'  :
-          active : yes
+      contentDisplay.addSubView new FilterLinksView
+        filters    : ['Posts']
+        default    : 'Posts'
 
       @showContentDisplay contentDisplay
       @utils.defer -> callback contentDisplay

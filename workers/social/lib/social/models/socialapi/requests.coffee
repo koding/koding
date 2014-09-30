@@ -226,6 +226,13 @@ fetchFollowedChannels = (data, callback)->
   url = "/account/#{data.accountId}/channels"
   get url, data, callback
 
+fetchFollowedChannelCount = (data, callback)->
+  if not data.accountId or not data.groupName
+    return callback { message: "Request is not valid"}
+
+  url = "/account/#{data.accountId}/channels/count"
+  get url, data, callback
+
 initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
     return callback { message: "Request is not valid"}
@@ -242,6 +249,10 @@ sendPrivateMessage = (data, callback)->
 
 fetchPrivateMessages = (data, callback)->
   url = "/privatemessage/list"
+  get url, data, callback
+
+fetchPrivateMessageCount = (data, callback)->
+  url = "/privatemessage/count"
   get url, data, callback
 
 followUser = (data, callback)->
@@ -273,6 +284,12 @@ searchTopics = (data, callback)->
   if not data.name
     return callback { message: "Name should be set for topic search"}
   url = "/channel/search"
+  get url, data, callback
+
+searchChats = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for chat search"}
+  url = "/privatemessage/search"
   get url, data, callback
 
 fetchProfileFeed = (data, callback)->
@@ -391,10 +408,13 @@ module.exports = {
   updateLastSeenTime
   fetchProfileFeed
   searchTopics
+  searchChats
   fetchPrivateMessages
+  fetchPrivateMessageCount
   initPrivateMessage
   sendPrivateMessage
   fetchFollowedChannels
+  fetchFollowedChannelCount
   listParticipants
   addParticipants
   removeParticipants

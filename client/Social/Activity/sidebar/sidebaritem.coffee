@@ -6,6 +6,7 @@ class SidebarItem extends KDListItemView
     options.route        = KD.utils.groupifyLink "/Activity/#{options.route}"
     options.tagName    or= 'a'
     options.attributes or= href : options.route
+    options.attributes.testpath = "public-feed-link"
 
     super options, data
 

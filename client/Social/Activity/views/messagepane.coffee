@@ -2,10 +2,11 @@ class MessagePane extends KDTabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.type    or= ''
-    options.cssClass  = "message-pane #{options.type}"
-    options.wrapper     ?= yes
-    options.lastToFirst ?= no
+    options.type        or= ''
+    options.cssClass      = "message-pane #{options.type}"
+    options.wrapper      ?= yes
+    options.lastToFirst  ?= no
+    options.itemClass   or= ActivityListItemView
 
     super options, data
 
@@ -38,13 +39,13 @@ class MessagePane extends KDTabPaneView
 
     @fakeMessageMap = {}
 
-    @setFilter @defaultFilter
+    @setFilter @getDefaultFilter()
 
     {socialapi} = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    if typeConstant in ['group', 'topic']
+    if typeConstant in ['group', 'topic', 'announcement']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
@@ -56,7 +57,7 @@ class MessagePane extends KDTabPaneView
           listView.on 'ItemWasAdded', @bound 'scrollDown'
       when 'privatemessage'
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
-      when 'group'
+      when 'group', 'announcement'
       else
         @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
 
@@ -66,8 +67,8 @@ class MessagePane extends KDTabPaneView
     return  unless @input
 
     @input
-      .on 'SubmitStarted',    @bound 'handleEnter'
       .on 'SubmitStarted',    => @submitIsPending = yes
+      .on 'SubmitStarted',    @bound 'handleEnter'
       .on 'SubmitSucceeded',  @bound 'replaceFakeItemView'
       .on 'SubmitSucceeded',  => KD.utils.defer => @submitIsPending = no
       .on 'SubmitFailed',     @bound 'messageSubmitFailed'
@@ -106,7 +107,7 @@ class MessagePane extends KDTabPaneView
 
 
   putMessage: (message, index = 0) ->
-    @mostRecent.listController.addItem message, index
+    @listController.addItem message, index
 
   createFakeItemView: (value, clientRequestId) ->
 
@@ -180,23 +181,23 @@ class MessagePane extends KDTabPaneView
 
     if type is 'privatemessage' or type is 'post' then return
 
-    {name, isParticipant} = @getData()
+    {name, isParticipant, typeConstant} = @getData()
 
     @channelTitleView = new KDCustomHTMLView
       partial   : "##{name}"
       cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
 
-    unless name is 'public'
+    if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
 
-
-  createInputWidget: ->
+  createInputWidget: (placeholder) ->
 
     return  if @getOption("type") is 'post'
 
     channel = @getData()
+    {socialapi} = KD.singletons
 
-    @input = new ActivityInputWidget {channel}
+    @input = new ActivityInputWidget { channel, placeholder }
 
 
   createFilterLinks: ->
@@ -205,9 +206,15 @@ class MessagePane extends KDTabPaneView
 
     if type is 'privatemessage' or type is 'post' then return
 
+    filters = ['Most Liked', 'Most Recent']
+
+    {socialapi} = KD.singletons
+    # remove the first item from filters
+    filters.shift() if socialapi.isAnnouncementItem @getData().id
+
     @filterLinks or= new FilterLinksView
-      filters: ['Most Liked', 'Most Recent']
-      default: 'Most Liked'
+      filters: filters
+      default: filters[0]
 
     @filterLinks.on 'FilterSelected', (filter) =>
       @listController.removeAllItems()
@@ -279,7 +286,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless item?.count
     # no need to send updatelastSeenTime or glance when checking publicfeeds
-    return  if name is 'public'
+    return  if name in ['public', 'announcement']
 
     if typeConstant is 'post'
     then socialapi.channel.glancePinnedPost   messageId : id, @bound 'glanced'
@@ -294,10 +301,15 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
+    # do not focus if we are in announcement channel
+    {socialapi} = KD.singletons
+    return  if socialapi.isAnnouncementItem @getData().id
+
     if @input
       @input.focus()
     else
-      @listController.getListItems().first?.commentBox.input.focus()
+      # TODO - undefined is not a function
+      @listController?.getListItems().first.commentBox.input.focus()
 
 
   populate: (callback = noop) ->
@@ -382,4 +394,10 @@ class MessagePane extends KDTabPaneView
     @populate()
 
 
-  defaultFilter: 'Most Liked'
+  getDefaultFilter:->
+
+    {socialapi} = KD.singletons
+
+    if socialapi.isAnnouncementItem @getData().id
+    then 'Most Recent'
+    else 'Most Liked'

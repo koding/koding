@@ -341,9 +341,6 @@ Team Koding
       constructor = this
       JSession.fetchSession clientId, (err, { session })->
         return callback err  if err
-        # temp fix:
-        # this broke login, reverted. - SY
-        # if not session? or session.username isnt username
         unless session
           console.error "login: session not found", username
           return callback { message: "Couldn't restore your session!" }
@@ -839,16 +836,6 @@ Team Koding
         queue.next()
 
       ->
-        # if username starts with ktu mark it as exempt this is a temp fix for
-        # load test, we dont want test user's posts to be seen by others
-        if username.indexOf("ktu-") is 0
-          account.markUserAsExemptUnsafe client, yes, (err, res)->
-            return callback err if err?
-            queue.next()
-        else
-          queue.next()
-      ->
-
         callback error, {account, recoveryToken, newToken}
         queue.next()
     ]

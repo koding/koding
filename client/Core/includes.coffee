@@ -2,6 +2,7 @@ module.exports = [
 
   'libs/bluebird.js',
   'libs/pistachio.js',
+  'libs/cookies.js'
   'utils.coffee'
   'KD.extend.coffee'
   'oauthcontroller.coffee'
@@ -12,6 +13,7 @@ module.exports = [
   'maintabview.coffee'
   'maintabpaneview.coffee'
   'maincontroller.coffee'
+  'welcomemodal.coffee'
   'mainview.coffee'
   'mainviewcontroller.coffee'
   'topnavigation.coffee'

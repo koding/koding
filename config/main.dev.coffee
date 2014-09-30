@@ -1,4 +1,3 @@
-zlib                  = require 'compress-buffer'
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
@@ -26,7 +25,7 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
+  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
@@ -59,7 +58,7 @@ Configuration = (options={}) ->
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "30" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
@@ -119,8 +118,8 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
-    statsd                         : {use           : false                                          , ip            : "#{customDomain.host}"                       , port: 8125}
-    graphite                       : {use           : false                                          , host          : "#{customDomain.host}"                       , port: 2003}
+    statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
+    graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
     aws                            : {key           : "AKIAJSUVKX6PD254UGAA"                         , secret        : "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"}
@@ -199,7 +198,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -510,20 +509,21 @@ Configuration = (options={}) ->
 
         echo "Usage: "
         echo ""
-        echo "  run                    : to start koding"
-        echo "  run killall            : to kill every process started by run script"
-        echo "  run install            : to compile/install client and "
-        echo "  run buildclient        : to see of specified worker logs only"
-        echo "  run logs               : to see all workers logs"
-        echo "  run log [worker]       : to see of specified worker logs only"
-        echo "  run buildservices      : to initialize and start services"
-        echo "  run services           : to stop and restart services"
-        echo "  run worker             : to list workers"
-        echo "  run chaosmonkey        : to restart every service randomly to test resilience."
-        echo "  run testendpoints      : to test every URL endpoint programmatically."
-        echo "  run printconfig        : to print koding config environment variables (output in json via --json flag)"
-        echo "  run worker [worker]    : to run a single worker"
-        echo "  run help               : to show this list"
+        echo "  run                       : to start koding"
+        echo "  run killall               : to kill every process started by run script"
+        echo "  run install               : to compile/install client and "
+        echo "  run buildclient           : to see of specified worker logs only"
+        echo "  run logs                  : to see all workers logs"
+        echo "  run log [worker]          : to see of specified worker logs only"
+        echo "  run buildservices         : to initialize and start services"
+        echo "  run buildservices sandbox : to initialize and start services on sandbox"
+        echo "  run services              : to stop and restart services"
+        echo "  run worker                : to list workers"
+        echo "  run chaosmonkey           : to restart every service randomly to test resilience."
+        echo "  run testendpoints         : to test every URL endpoint programmatically."
+        echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
+        echo "  run worker [worker]       : to run a single worker"
+        echo "  run help                  : to show this list"
         echo ""
 
       }
@@ -629,6 +629,12 @@ Configuration = (options={}) ->
         mongorestore -h#{boot2dockerbox} -dkoding dump/koding
         rm -rf ./dump
 
+        echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
+        cd #{projectRoot}
+        ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+        ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
+
       }
 
       function services () {
@@ -657,6 +663,17 @@ Configuration = (options={}) ->
         node #{projectRoot}/scripts/user-importer
 
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+      }
+
+      function sandbox_buildservices () {
+        SANDBOX_SERVICES=54.165.122.100
+        SANDBOX_WEB_1=54.165.177.88
+        SANDBOX_WEB_2=54.84.179.170
+
+        echo "cd /opt/koding; ./run buildservices" | ssh root@$SANDBOX_SERVICES @/bin/bash
+
+        echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_1 /bin/bash
+        echo "sudo supervisorctl restart all"      | ssh ec2-user@$SANDBOX_WEB_2 /bin/bash
       }
 
       if [[ "$1" == "killall" ]]; then
@@ -692,6 +709,18 @@ Configuration = (options={}) ->
         services
 
       elif [ "$1" == "buildservices" ]; then
+
+        if [ "$2" == "sandbox" ]; then
+          read -p "This will destroy sandbox databases (y/N)" -n 1 -r
+          echo ""
+          if [[ ! $REPLY =~ ^[Yy]$ ]]
+          then
+              exit 1
+          fi
+
+          sandbox_buildservices
+          exit 0
+        fi
 
         check_service_dependencies
 
@@ -746,7 +775,7 @@ Configuration = (options={}) ->
 
   KONFIG.ENV            = (require "../deployment/envvar.coffee").create KONFIG
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
+  KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile        = generateRunFile        KONFIG
 
   fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf

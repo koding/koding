@@ -30,7 +30,7 @@ func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
 	for !list.Stop() {
 		raw, err := list.Next()
 		if err != nil {
-			return nil, err
+			return nil, handleStripeError(err)
 		}
 
 		start := time.Unix(raw.Start, 0)

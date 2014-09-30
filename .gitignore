@@ -1,3 +1,5 @@
+/tests/*/reports
+selenium-debug.log
 .dev.nginx.conf
 .dev.nginx.pid
 *.dump
@@ -89,6 +91,7 @@ website/a/js/bongo.js
 website/a/js/kd.js
 website/a/js/kd.libs.js
 website/a/js/koding.js
+website/a/site.*
 client/Main/__generated*
 website/a/sprites/*.sprite.png
 /run

@@ -2,7 +2,7 @@ class ActivityPane extends MessagePane
 
   constructor: (options, data) ->
     options.type        or= ''
-    options.cssClass      = "activity-pane #{options.type}"
+    options.cssClass     ?= "activity-pane #{options.type}"
     options.wrapper      ?= yes
     options.lastToFirst  ?= no
 
@@ -11,6 +11,7 @@ class ActivityPane extends MessagePane
     @createChannelTitle()
     @createInputWidget()
     @bindInputEvents()
+    @createContentViews()
     @createTabView()
     @createSearchInput()
 
@@ -22,79 +23,119 @@ class ActivityPane extends MessagePane
     if @getData().typeConstant in ['group', 'topic']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
-  createTabView: ->
-    o = @getOptions()
+  createContentViews: ->
     data = @getData()
+    options = @getContentOptions()
 
-    options =
-      lastToFirst   : o.lastToFirst
-      channelId     : o.channelId
-      wrapper       : o.wrapper
-      itemClass     : o.itemClass
-      typeConstant  : data.typeConstant
+    @mostLiked = @createMostLikedView options, data
+    @mostRecent = @createMostRecentView options, data
+    @searchResults = @createSearchResultsView options, data
 
-    @mostLiked = new ActivityContentPane options, data
+  getContentOptions: ->
+    o = @getOptions()
+
+    lastToFirst   : o.lastToFirst
+    channelId     : o.channelId
+    wrapper       : o.wrapper
+    itemClass     : o.itemClass
+    typeConstant  : @getData().typeConstant
+
+  createMostLikedView: (options, data) ->
+    new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = null
         skip = @mostLiked.getLoadedCount()
 
-        @fetch { from, skip }, @createContentAppender 'mostLiked'
+        @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
-    @mostRecent = new ActivityContentPane options, data
+  createMostRecentView: (options, data) ->
+    new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = @mostRecent.getContentFrom()
         skip = null
 
         @fetch { from, skip }, @createContentAppender 'mostRecent'
 
-    @searchResults = new ActivitySearchResultsPane options, data
+  createSearchResultsView: (options, data) ->
+    new ActivitySearchResultsPane options, data
       .on "NeedsMoreContent", =>
         if @searchResults.currentPage?
           page = @searchResults.currentPage += 1
 
           @search @currentSearch, { page }
 
+  getPaneData: ->
+    [
+      {
+        name          : 'Most Liked'
+        view          : @mostLiked
+        closable      : no
+        route         : '/Activity/Public/Liked'
+      }
+      {
+        name          : 'Most Recent'
+        view          : @mostRecent
+        closable      : no
+        shouldShow    : no
+        route         : '/Activity/Public/Recent'
+      }
+      {
+        name          : 'Search'
+        view          : @searchResults
+        closable      : no
+        shouldShow    : no
+        hiddenHandle  : yes
+      }
+    ]
+
+  createTabView: ->
     @tabView = new KDTabView
       cssClass          : 'activity-tab-view'
       tabHandleClass    : ActivityTabHandle
       maxHandleWidth    : Infinity
-      paneData          : [
-        {
-          name          : 'Most Liked'
-          view          : @mostLiked
-          closable      : no
-          shouldShow    : yes
-          route         : '/Activity/Public/Liked'
-        }
-        {
-          name          : 'Most Recent'
-          view          : @mostRecent
-          closable      : no
-          shouldShow    : no
-          route         : '/Activity/Public/Recent'
-        }
-        {
-          name          : 'Search Tab'
-          view          : @searchResults
-          closable      : no
-          shouldShow    : no
-          hiddenHandle  : yes
-        }
-      ]
+      paneData          : @getPaneData()
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on "PaneDidShow", (pane) => switch pane
-      when @mostLiked.parent
+    @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
+
+
+  handlePaneShown: (pane) ->
+
+    switch pane
+      when @mostLiked?.parent
+        @setSearchedState no
         @select 'mostLiked', mostLiked: yes
-      when @mostRecent.parent
+      when @mostRecent?.parent
+        @setSearchedState no
         @select 'mostRecent'
-      when @searchResults.parent
+      when @searchResults?.parent
+        @setSearchedState yes
         @activeContent = @searchResults
+
+
+  open: (name, query) ->
+
+    @tabView.showPane @tabView.getPaneByName name
+
+    if name is 'Search' and not query
+      KD.singletons.router.handleRoute '/Activity/Public/Recent'
+      return
+
+    return  unless query
+
+    @searchInput.setValue query
+    @searchInput.setFocus()
+    @search query
+    @currentSearch = query
+
+
+  clearSearch: ->
+    @searchInput?.clear()
+    @searchResults?.clear()
 
   select: (contentName, options = {}) ->
     content = @[contentName]
 
-    @searchInput.clear()
-    @searchResults.clear()
+    @clearSearch()
 
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
@@ -102,7 +143,8 @@ class ActivityPane extends MessagePane
   lazyLoad: -> @activeContent?.loadMore()
 
   putMessage: (message, index = 0) ->
-    @tabView.showPane @tabView.getPaneByName 'Most Recent'
+    {router} = KD.singletons
+    router.handleRoute '/Activity/Public/Recent'
     @mostRecent.listController.addItem message, index
 
   contentMethod = (method) -> (contentName) -> (err, content) =>
@@ -144,20 +186,33 @@ class ActivityPane extends MessagePane
         @searchResults.appendContent results
       .catch KD.showError
 
+
+  setSearchedState: (state)->
+
+    @isSearched = state
+    {tabHandleContainer} = @tabView
+
+    if state
+    then tabHandleContainer.setClass 'search-active'
+    else tabHandleContainer.unsetClass 'search-active'
+
+    return state
+
+
   createSearchInput: ->
+
+    {router} = KD.singletons
+
     @searchInput = new SearchInputView
-      placeholder : 'Search channel'
+      placeholder : 'Search...'
 
     @tabView.tabHandleContainer.addSubView @searchInput
 
     searchIcon = new KDCustomHTMLView
       tagName  : 'cite'
       cssClass : 'search-icon'
+      click    : =>
+        return  unless @isSearched
+        router.handleRoute '/Activity/Public/Recent'
 
     @tabView.tabHandleContainer.addSubView searchIcon
-
-    @searchInput.on 'SearchRequested', (text) =>
-      @tabView.showPane @tabView.panes.last
-      @searchResults.clear()
-      @search text
-      @currentSearch = text

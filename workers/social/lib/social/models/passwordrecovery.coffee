@@ -191,35 +191,37 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     query.status = 'active'
     @update query, {$set: status: 'invalidated'}, callback
 
-  @resetPassword = secure (client, token, newPassword, callback)->
+  @resetPassword = (token, newPassword, callback) ->
+    @one {token}, (err, certificate)->
+      return callback err  if err
+      return callback { message: 'Invalid token.' }  unless certificate
+      {status, expiresAt} = certificate
+      if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
+        return callback message: """
+          This password recovery certificate cannot be redeemed.
+          """
+
+      {username} = certificate
+
+      JUser.one {username}, (err, user)->
+        return callback err or { message: "Unknown user!" }  if err or not user
+        certificate.redeem (err)->
+          return callback err  if err
+          user.changePassword newPassword, (err)->
+            return callback err  if err
+            JPasswordRecovery.invalidate {username}, (err)->
+              return callback UNKNOWN_ERROR if err
+              user.confirmEmail (err)->
+                return callback UNKNOWN_ERROR if err
+                callback err, unless err then username
+
+  @resetPassword$ = secure (client, token, newPassword, callback)->
     JUser = require './user'
     {delegate} = client.connection
     unless delegate.type is 'unregistered'
       callback { message: 'You are already logged in!' }
     else
-      @one {token}, (err, certificate)->
-        return callback err  if err
-        return callback { message: 'Invalid token.' }  unless certificate
-        {status, expiresAt} = certificate
-        if (status isnt 'active') or (expiresAt? and expiresAt < new Date)
-          console.warn 'Old-style password reset token is expired', delegate.profile.nickname
-          return callback message: """
-            This password recovery certificate cannot be redeemed.
-            """
-
-        {username} = certificate
-
-        JUser.one {username}, (err, user)->
-          return callback err or { message: "Unknown user!" }  if err or not user
-          certificate.redeem (err)->
-            return callback err  if err
-            user.changePassword newPassword, (err)->
-              return callback err  if err
-              JPasswordRecovery.invalidate {username}, (err)->
-                return callback UNKNOWN_ERROR if err
-                user.confirmEmail (err)->
-                  return callback UNKNOWN_ERROR if err
-                  callback err, unless err then username
+      @resetPassword token, newPassword, callback
 
   @fetchRegistrationDetails = (token, callback) ->
     JAccount = require './account'

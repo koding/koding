@@ -61,27 +61,34 @@ class DeleteModalView extends KDModalViewWithForms
             {username}      = dangerForm.inputs
             {confirmButton} = dangerForm.buttons
 
-            JUser.unregister username.getValue(), (err)=>
-              if err then new KDNotificationView title : 'There was a problem, please try again!'
-              else
-                surveyLink = "https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform"
-                @setTitle 'Account successfully deleted'
-                @setContent """
-                  <div class='modalformline'>
-                    <p>
-                      Thanks for trying out Koding. Sorry to see you go. We'd appreciate if you take a moment to tell us why.
-                    </p>
-                    <br>
-                    <p><a href='#{surveyLink}' target='_blank'>Click to take the 1 minute survey.</a></p>
-                  </div>
-                  """
-                  # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
-                @_windowDidResize()
-                KD.mixpanel "Delete account, success"
-                KD.utils.wait 30000, ->
-                  Cookies.expire 'clientId'
-                  location.replace '/'
-              confirmButton.hideLoader()
+            @destroyExistingMachines =>
+
+              JUser.unregister username.getValue(), (err)=>
+                if err then new KDNotificationView title : 'There was a problem, please try again!'
+                else
+                  surveyLink = "https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform"
+                  @setTitle 'Account successfully deleted'
+                  @setContent """
+                    <div class='modalformline'>
+                      <p>
+                        Thanks for trying out Koding. Sorry to see you go. We'd appreciate if you take a moment to tell us why.
+                      </p>
+                      <br>
+                      <p><a href='#{surveyLink}' target='_blank'>Click to take the 1 minute survey.</a></p>
+                    </div>
+                    """
+                    # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
+                  @_windowDidResize()
+                  KD.mixpanel "Delete account, success"
+
+                  logout =->
+                    Cookies.expire 'clientId'
+                    location.replace '/'
+
+                  @on "KDObjectWillBeDestroyed", logout
+                  KD.utils.wait 20000, logout
+
+                confirmButton.hideLoader()
 
           buttons            :
             confirmButton    :
@@ -120,3 +127,27 @@ class DeleteModalView extends KDModalViewWithForms
     else
       @modalTabs.forms.dangerForm.buttons.confirmButton.disable()
       input.setValidationResult 'keyupCheck', 'Sorry, entered value does not match your username!', showError
+
+  destroyExistingMachines: (callback)->
+
+    { computeController } = KD.singletons
+
+    KD.remote.api.JMachine.some provider: "koding", (err, machines)=>
+
+      if err? or not machines? then callback()
+      else
+
+        machines.forEach (machine)->
+          computeController.kloud
+          .destroy { machineId: machine._id }
+          .then  (res)->
+            info res if res?
+            computeController.emit "revive-#{machine._id}"
+          .timeout ComputeController.timeout
+          .catch (err)->
+            KD.utils.wait 400, ->
+              computeController.kloud
+              .destroy { machineId: machine._id }
+            warn err if err?
+
+        KD.utils.wait 4000, -> callback()

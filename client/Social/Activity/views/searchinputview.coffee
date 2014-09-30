@@ -9,7 +9,30 @@ class SearchInputView extends KDHitEnterInputView
 
     super options, data
 
-    @on "EnterPerformed", => @emit "SearchRequested", @getValue()
+    @lastValue = null
+    {router}   = KD.singletons
+
+    @on 'EnterPerformed', =>
+
+      value = @getValue().trim()
+
+      if value is ''
+        router.handleRoute "/Activity/Public/Recent"
+        @lastValue = value
+        @setBlur()
+        return
+
+      return  if value is @lastValue
+
+      router.handleRoute "/Activity/Public/Search?q=#{value}"
+
+      @setFocus()
+
+    @on 'EscapePerformed', =>
+      router.handleRoute "/Activity/Public/Recent"
+      @setValue ''
+      @lastValue = ''
+      @setBlur()
 
 
   clear: ->

@@ -6,11 +6,11 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     data = @getData()
 
     @settings = new KDButtonViewWithMenu
-      title: ''
-      cssClass: 'activity-settings-menu'
-      itemChildClass: ActivityItemMenuItem
-      menu: @bound 'settingMenu'
-      style: 'resurrection'
+      title          : ''
+      cssClass       : 'activity-settings-menu'
+      itemChildClass : ActivityItemMenuItem
+      menu           : @bound 'settingMenu'
+      style          : 'resurrection'
 
   viewAppended: ->
     if KD.checkFlag('super-admin') or KD.isMyChannel @getData()
@@ -30,13 +30,4 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     channel = @getData()
 
     @addMenuItem 'Delete Conversation', ->
-      modal = KDModalView.confirm
-        title       : 'Are you sure?'
-        description : 'Delete this conversation?'
-        ok          :
-          title     : 'Remove'
-          callback  : ->
-            { SocialChannel } = KD.remote.api
-            channelId = channel.getId()
-            modal.destroy()
-            SocialChannel.delete({ channelId }).catch KD.showError
+      PrivateMessageDeleteModal.create channel

@@ -1,10 +1,10 @@
 class StripeFormView extends KDFormViewWithFields
 
-  initialState: {}
+  getInitialState: -> KD.utils.dict()
 
   constructor: (options = {}, data) ->
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     { firstName, lastName } = KD.whoami().profile
 

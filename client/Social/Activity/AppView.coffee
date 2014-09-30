@@ -20,10 +20,11 @@ class ActivityAppView extends KDView
       mainView
     }             = KD.singletons
     {entryPoint}  = KD.config
-    @_lastMessage = null
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     # @groupHeader = new FeedCoverPhotoView
+
+    @widgetsBar = new ActivityWidgetsBar
 
     @tabs = new KDTabView
       tagName             : 'main'
@@ -47,6 +48,7 @@ class ActivityAppView extends KDView
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
+    @addSubView @widgetsBar
 
 
   scroll: ->
@@ -62,6 +64,7 @@ class ActivityAppView extends KDView
 
     {socialapi, router, notificationController} = KD.singletons
 
+    if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
 
     kallback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
@@ -128,13 +131,13 @@ class ActivityAppView extends KDView
     paneClass = switch type
       when 'topic'          then TopicMessagePane
       when 'privatemessage' then PrivateMessagePane
-      else ActivityPane
+      when 'post'           then SingleActivityPane
+      else
+        if name is 'announcement-koding'
+        then AnnouncementPane
+        else ActivityPane
 
-    itemClass = switch type
-      when 'privatemessage' then PrivateMessageListItemView
-      else ActivityListItemView
-
-    @tabs.addPane pane = new paneClass {name, itemClass, type, channelId}, data
+    @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
     return pane
 
@@ -148,33 +151,27 @@ class ActivityAppView extends KDView
     return pane
 
 
-  showNewMessageModal: ->
+  showNewMessageForm: ->
 
-    @open 'topic', 'public'  unless @tabs.getActivePane()
-
-    bounds = @sidebar.sections.messages.options.headerLink.getBounds()
-
-    top      = bounds.y - 310
-    left     = bounds.x + bounds.w + 40
-    arrowTop = 310 + (bounds.h / 2) - 10 #10 = arrow height
-    arrowTop = arrowTop + top  if top < 0
-
-    modal = new PrivateMessageModal
-      delegate     : this
-      _lastMessage : @_lastMessage
-      position     :
-        top        : Math.max top, 0
-        left       : left
-      arrowTop     : arrowTop
-
-    return modal
-
+    @widgetsBar.hide()
+    @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
+      .addSubView form = new PrivateMessageForm
+      .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane
 
   showAllTopicsModal: ->
 
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
-    return new YourTopicsModal delegate : this
+    return new TopicSearchModal delegate : this
+
+  showFollowingTopicsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    modalClass = MoreChannelsModal
+    {moreLink} = @sidebar.sections.channels
+
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
 
 
   showAllConversationsModal: ->
@@ -182,3 +179,38 @@ class ActivityAppView extends KDView
     @open 'topic', 'public'  unless @tabs.getActivePane()
 
     return new ConversationsModal delegate : this
+
+
+  showAllChatsModal: ->
+
+    @open 'topic', 'public'  unless @tabs.getActivePane()
+
+    modalClass = ChatSearchModal
+    {moreLink} = @sidebar.sections.messages
+
+    KD.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
+
+
+  showMoreModal: ({modalClass, moreLink}) ->
+
+    modal      = new modalClass
+      delegate : this
+      width    : 271
+      position : @getModalArrowPosition moreLink
+
+    modal.addSubView new KDCustomHTMLView
+      cssClass : 'arrow'
+      position :
+        top    : moreLink.getY()
+        left   : moreLink.getX() + moreLink.getWidth()
+
+
+  getModalArrowPosition: (ref) ->
+
+    top  = ref.getY() - 80
+    left = ref.getX() + ref.getWidth() + 10
+
+    if window.innerHeight <= (top + 218)
+      top = window.innerHeight - 220
+
+    return {top, left}

@@ -1,7 +1,8 @@
 package stripe
 
 import (
-	"socialapi/workers/payment/models"
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 
 	stripe "github.com/stripe/stripe-go"
 	stripePlan "github.com/stripe/stripe-go/plan"
@@ -13,7 +14,7 @@ import (
 func CreateDefaultPlans() error {
 	for id, pl := range DefaultPlans {
 		plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
-		if err != nil && err != ErrPlanNotFound {
+		if err != nil && err != paymenterrors.ErrPlanNotFound {
 			return err
 		}
 
@@ -43,7 +44,7 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 
 	_, err := stripePlan.New(planParams)
 	if err != nil && err.Error() != ErrStripePlanAlreadyExists.Error() {
-		return nil, err
+		return nil, handleStripeError(err)
 	}
 
 	planModel := &paymentmodel.Plan{
@@ -70,15 +71,15 @@ func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, err
 
 	exists, err := plan.ByTitleAndInterval()
 	if err != nil {
-		if ErrPlanNotFoundFn(err) {
-			return nil, ErrPlanNotFound
+		if paymenterrors.ErrPlanNotFoundFn(err) {
+			return nil, paymenterrors.ErrPlanNotFound
 		}
 
 		return nil, err
 	}
 
 	if !exists {
-		return nil, ErrPlanNotFound
+		return nil, paymenterrors.ErrPlanNotFound
 	}
 
 	return plan, nil

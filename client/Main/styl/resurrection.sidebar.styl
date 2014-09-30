@@ -42,6 +42,7 @@ sidebarSelectedBg = #262626
       margin          0
       display         block
       r-sprite        app logo-full
+      cursor          default
 
   .more-items
     size              238px 20px
@@ -79,13 +80,13 @@ sidebarSelectedBg = #262626
   size            18px 18px
   margin-top      -9px
   margin-left     -9px
-  display         block
+  display         none
   z-index         11
   rounded         9px
   cursor          pointer
   top             50%
   fix()
-  hidden()
+  // hidden()
   &:after
     abs()
     top           4px
@@ -100,9 +101,11 @@ sidebarSelectedBg = #262626
   &.collapsed
 
     #main-panel-wrapper
-      kalc            width, 100% \- 63px
-      margin-left     63px
-      shadow         -8px 0 16px #323232
+      // kalc            width, 100% \- 63px
+      // margin-left     63px
+      // shadow         -8px 0 16px #323232
+      margin-left 0
+      width       100%
 
     #sidebar-toggle:after
       left               7px
@@ -121,11 +124,19 @@ sidebarSelectedBg = #262626
         font-weight     400
         rounded         3px
         shadow          none
+        z-index         1000
 
 .activity-sidebar
   font-family         openSansFamily
   padding             1px 16px
   borderBox()
+
+  .more-link
+    font-size         12px
+    color             #ababab
+    margin            0 0 0 8px
+    border-bottom     1px dotted #ababab
+    noTextDeco()
 
   .workspace.has-sub-items
     cite
@@ -156,6 +167,13 @@ sidebarSelectedBg = #262626
     rounded           4px
     ellipsis()
     borderBox()
+
+    &:hover
+      .ws-add-icon
+      .ws-settings-icon
+        opacity       1
+        vendor        transition, opacity .1s .1s ease
+
 
     &.expanded.selected.has-sub-items
       bg              color sidebarSelectedBg
@@ -191,6 +209,8 @@ sidebarSelectedBg = #262626
         size              auto 26px
         opacity           1
         color             sidebarActive
+        max-width         155px
+        ellipsis()
         borderBox()
         noTextDeco()
 
@@ -213,7 +233,7 @@ sidebarSelectedBg = #262626
       hidden()
 
     &.selected
-      bg              color #000
+      bg              color rgba(21, 23, 26, 0.42)
 
     a
       padding           5px 8px 5px 42px
@@ -258,7 +278,8 @@ sidebarSelectedBg = #262626
           r-sprite    app vm-settings-icon
           right       6px
           top         5px
-          opacity     .5
+          opacity     0
+          vendor      transition, opacity .1s .1s ease
           abs()
         &:hover > span
           opacity     1
@@ -284,6 +305,8 @@ sidebarSelectedBg = #262626
     r-sprite          app circle-plus-14
     right             8px
     top               10px
+    opacity           0
+    vendor            transition, opacity .1s .1s ease
     pointer()
     abs()
 
@@ -293,7 +316,7 @@ sidebarSelectedBg = #262626
     top               5px
     opacity           .6
 
-  .add-workpace-view
+  .add-workspace-view
     .cancel
       display         inline-block
       r-sprite        'app', 'circle-plus-14'
@@ -313,8 +336,11 @@ sidebarSelectedBg = #262626
   > section
     size              auto auto
     overflow          visible
-    margin            0 0 3px 0
+    margin            0 0 15px 0
 
+    &:hover h3.sidebar-title a
+      opacity       1
+      color         sidebarGray
 
     .lazy-loader
       margin          0
@@ -384,8 +410,8 @@ sidebarSelectedBg = #262626
       size            auto 20px
       line-height     20px
       color           #fff
-      padding         0 10px
       abs             4px 7px 0 0
+      padding         0 10px
       font-size       10px
       font-weight     700
       background      #E06F6F
@@ -405,7 +431,7 @@ sidebarSelectedBg = #262626
     .ttag
       display        block
       font-weight    500
-      color          sidebarActive
+      color          sidebarGray
       line-height    18px
       font-size      14px
 
@@ -418,21 +444,14 @@ sidebarSelectedBg = #262626
 
       &.following
         right        6px
+        hidden()
 
   .kdlistitemview-sidebar-item.selected
     background          #15171A
 
-    // .profile
-    //   color             #F9F7F3
+    .ttag
+      color             sidebarActive
 
-    // .user-numbers
-    //   color             sidebarGray !important
-
-    // .ttag
-    //   color             #F9F7F3
-
-    // .tag-info
-    //   color             sidebarGray
     cite.count
       shadow            0 0 10px 10px #15171A
 
@@ -441,14 +460,19 @@ sidebarSelectedBg = #262626
       border            1px solid #b1b1b1
       right             6px
 
-  .conversations
   .messages
 
+    .nothing
+      hidden()
+
     .kdlistitemview-sidebar-item
-      height        40px
+      height        34px
       min-height    0
       margin        0
       borderBox()
+
+      cite.count
+        abs         7px 7px 0 0
 
       > .user-numbers
         padding     0 0 0 36px
@@ -510,10 +534,11 @@ sidebarSelectedBg = #262626
         > .user-numbers
           color       #C9C9CC
 
-  .messages
-
-    .kdlistitemview-sidebar-item
-      height            34px
+      &.selected
+        .sidebar-message-text
+          > .user-numbers
+          > .profile
+            color       sidebarActive
 
 
       .sidebar-message-text
@@ -524,7 +549,7 @@ sidebarSelectedBg = #262626
           padding     0 0 0 36px
           line-height 18px
           width       auto
-          color       sidebarActive
+          color       sidebarGray
           font-weight 600
           borderBox()
           ellipsis()
@@ -539,7 +564,7 @@ sidebarSelectedBg = #262626
 
       .avatarview
         size            24px 24px
-        top             2px
+        top             5px
         left            8px
 
 
@@ -578,16 +603,6 @@ sidebarSelectedBg = #262626
         margin-left       12px
 
 
-  .conversations
-
-    .kdlistitemview-sidebar-item
-
-      > .user-numbers
-        color           sidebarActive
-
-      cite.count
-        abs             10px 7px 0 0
-
   a.kdlistitemview-sidebar-item
 
     noTextDeco()
@@ -597,7 +612,6 @@ sidebarSelectedBg = #262626
       padding         0 8px
       height          28px
       line-height     28px
-
 
 .account-area
   bottom            0
@@ -669,15 +683,15 @@ sidebarSelectedBg = #262626
 
 
 h3.sidebar-title
+  position        relative
   font-weight     600
   size            auto 1em
-  padding         0 6px
   line-height     1em
-  font-size       14px
+  font-size       12px
   color           #7F7F80
   text-transform  uppercase
   word-spacing    .2em
-  margin          19px 0 9px
+  padding         19px 6px 12px
   pointer()
 
   a
@@ -685,6 +699,8 @@ h3.sidebar-title
     font-weight     600
     color           #7F7F80
     margin          0 5px 0 0
+    opacity         0
+    vendor          transition, opacity .1s .1s ease
     fr()
 
     &.add-icon
@@ -692,9 +708,10 @@ h3.sidebar-title
       margin        -2px 0 0 0
       r-sprite      app , 'circle-plus-16'
 
-  &:hover
-    a
-      color         sidebarGray
+
+.messages.empty h3.sidebar-title a.add-icon
+  opacity           1
+
 
 
 //Coming soon modal

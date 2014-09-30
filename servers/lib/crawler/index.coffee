@@ -52,6 +52,8 @@ fetchPostContent = (models, options, callback) ->
 fetchTopicContent = (models, options, callback) ->
   {client, entrySlug} = options
 
+  options.channelName = entrySlug
+
   {SocialChannel} = models
   SocialChannel.byName client, name: entrySlug, (err, channel) ->
     return callback err  if err or not channel
@@ -67,6 +69,8 @@ fetchGroupContent = (models, options, callback) ->
   entrySlug ||= "koding"
   {JGroup} = models
 
+  options.channelName = "public"
+
   # TODO change this slug after groups are implemented
   JGroup.one slug: "koding", (err, group) ->
     return callback err  if err
@@ -79,10 +83,29 @@ fetchGroupContent = (models, options, callback) ->
     feed.createFeed models, options, callback
 
 
+fetchAnnouncementContent = (models, options, callback) ->
+
+  {JGroup} = models
+
+  options.channelName = "koding"
+
+  # TODO change this slug after groups are implemented
+  JGroup.one slug: "koding", (err, group) ->
+    return callback err  if err
+    return callback notFoundError "group"  unless group
+
+    options.channelId = group.socialApiAnnouncementChannelId
+    options.route = "Announcement"
+    options.contentType = "post"
+    feed.createFeed models, options, callback
+
+
 fetchContent = (models, options, callback) ->
   {section, entrySlug, client} = options
 
   switch section
+    when "Announcement"
+      fetchAnnouncementContent models, options, callback
     when "Public"
       fetchGroupContent models, options, callback
     when "Topic"
@@ -109,11 +132,11 @@ module.exports =
     handleError = (err, content) ->
       if err
         console.error err
-        return res.send 404, error_404()  if err.error is 'koding.NotFoundError'
-        return res.send 500, error_500()
+        return res.status(404).send error_404()  if err.error is 'koding.NotFoundError'
+        return res.status(500).send error_500()
       unless content
         console.error "not found"
-        return res.send 404, error_404()
+        return res.status(404).send error_404()
 
     {models} = bongo
     {generateFakeClient}   = require "../server/client"
@@ -125,4 +148,4 @@ module.exports =
       options = {section, entrySlug, client, page, isProfile, name}
       fetchContent models, options, (err, content) ->
         return handleError err  if err or not content
-        return res.send 200, content
+        return res.status(200).send content

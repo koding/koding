@@ -145,15 +145,80 @@ KD.extend
 
   resetAppScripts    :-> @appScripts = {}
 
+  parseLogs:->
+    KD.__logs   ?= []
+    l = "\n"; l += "#{line}\n"  for line in KD.__logs
+    l+= "\nEOF Logs.\n"
+
   disableLogs:->
-    for method in ['log','warn','error','trace','info','time','timeEnd']
+
+    KD.__logs      ?= []
+    window.konsole ?= {}
+
+    stringfy = ->
+
+      depth  = 0
+      ccache = []
+
+      (key, value)->
+
+        return if depth > 4
+        return 'undefined'  unless value
+
+        depth++
+
+        if typeof value is 'object'
+          return  unless ccache.indexOf value is -1
+          ccache.push value
+        else if typeof value is 'function'
+          return value.toString()
+
+        value
+
+    _log = (method)->
+
+      ->
+        line = "[#{dateFormat Date.now(), "HH:MM:ss"}][#{method[0]}] "
+        for arg in arguments
+          if typeof arg is 'object'
+            try arg = JSON.stringify arg, stringfy(), "\t"
+          line += "#{arg} "
+
+        unless line is KD.__logs.last
+          KD.__logs.push line
+
+        return line
+
+    window.onerror = (err, url, line)->
+      (_log 'error') "#{err} at #{url} line #{line}"
+      return true
+
+    for method in ['trace','time','timeEnd']
       window[method] = noop
       KD[method]     = noop
+
+    for method in ['warn','log','error','info']
+      window.konsole[method] ?= window.console[method]
+      window.console[method] = KD[method] = window[method] = _log method
+
     delete KD.logsEnabled
     return "Logs are disabled now."
 
   enableLogs:(state = yes)->
+
     return KD.disableLogs()  unless state
+    return if KD.logsEnabled
+
+    if window.konsole?
+
+      window.onerror = null
+
+      KD.__logs?.push \
+        "[#{dateFormat Date.now(), "HH:MM:ss"}][!] Logging disabled manually."
+
+      for method in ['warn','log','error','info']
+        window.console[method] = window.konsole[method]
+
     KD.log     = window.log     = console.log.bind     console
     KD.warn    = window.warn    = console.warn.bind    console
     KD.error   = window.error   = console.error.bind   console
@@ -161,8 +226,38 @@ KD.extend
     KD.time    = window.time    = console.time.bind    console
     KD.timeEnd = window.timeEnd = console.timeEnd.bind console
     KD.logsEnabled = yes
+
     return "Logs are enabled now."
 
   runningInFrame: -> window.top isnt window.self
 
   tell: -> KD.getSingleton('appManager').tell arguments...
+
+
+do ->
+  logsEnabled = (Cookies.get 'enableLogs') or !KD.config?.suppressLogs
+  unless logsEnabled
+    # Koding 3d logo
+    console.log """
+
+       __                 __
+      /\\ \\               /\\ \\  __
+      \\ \\ \\/'\\     ___   \\_\\ \\/\\_\\    ___      __
+       \\ \\ , <    / __`\\ /'_` \\/\\ \\ /' _ `\\  /'_ `\\
+        \\ \\ \\\\`\\ /\\ \\L\\ \\\\ \\L\\ \\ \\ \\/\\ \\/\\ \\/\\ \\L\\ \\
+         \\ \\_\\ \\_\\ \\____/ \\___,_\\ \\_\\ \\_\\ \\_\\ \\____ \\
+          \\/_/\\/_/\\/___/ \\/__,_ /\\/_/\\/_/\\/_/\\/___L\\ \\
+                                               /\\____/
+            The Cloud Development Environment  \\_/__/
+
+
+      Hello! console.{log, info, warn, error} disabled.
+      If you need them please call KD.enableLogs() first.
+
+      Thanks! ~ Koding Devs.
+
+      psst! we're hiring -> apply@koding.com
+
+    """
+
+  KD.enableLogs logsEnabled

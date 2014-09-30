@@ -1,6 +1,6 @@
 class SinglePlanView extends KDView
 
-  initialState: {
+  getInitialState: -> {
     planInterval: 'year'
   }
 
@@ -10,7 +10,7 @@ class SinglePlanView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @initialState, options.state
+    @state = KD.utils.extend @getInitialState(), options.state
 
     @initViews()
 
@@ -72,14 +72,19 @@ class SinglePlanView extends KDView
       style     : 'plan-buy-button'
       title     : 'SELECT'
       state     : { name, monthPrice, yearPrice }
-      callback  : =>
-        { title, monthPrice, yearPrice } = @getOptions()
-        planTitle = title.toLowerCase()
+      callback  : @bound 'select'
 
-        @emit 'PlanSelected', {
-          planTitle, monthPrice, yearPrice
-          reducedMonth, discount
-        }
+  select: ->
+
+    { title, monthPrice, yearPrice
+      reducedMonth, discount } = @getOptions()
+
+    planTitle = title.toLowerCase()
+
+    @emit 'PlanSelected', {
+      planTitle, monthPrice, yearPrice
+      reducedMonth, discount
+    }
 
 
   setPlanInterval: (planInterval) ->

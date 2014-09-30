@@ -45,7 +45,7 @@ class ActivityContentPane extends KDView
     @listController.getListView().items.length
 
   removeMessage: (message) ->
-    items = @listController.items.getItems()
+    { items } = @listController.getListView()
 
     items
       .filter (item) -> item.getData().getId() is message.getId()

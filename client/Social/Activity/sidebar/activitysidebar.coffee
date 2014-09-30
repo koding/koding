@@ -67,6 +67,7 @@ class ActivitySidebar extends KDCustomHTMLView
     computeController
       .on 'MachineDataModified',       @bound 'updateMachineTree'
       .on 'RenderMachines',            @bound 'renderMachines'
+      .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
   # event handling
 
@@ -138,9 +139,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem channel, yes
+      channel.isParticipant    = yes
       channel.participantCount = participantCount
       channel.emit 'update'
+
+      item = @addItem channel, yes
       item.setUnreadCount unreadCount
 
 
@@ -150,9 +153,12 @@ class ActivitySidebar extends KDCustomHTMLView
     {id, typeConstant}              = update.channel
     {unreadCount, participantCount} = update
 
-    # @removeItem id
+    @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
+      return KD.showError err  if err
+
+      channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
 
@@ -214,12 +220,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addItem: (data, prepend = no) ->
 
-    index          = if prepend then 0
+    index          = if prepend then 2
     listController = @getListController data.typeConstant
 
     if item = @getItemByData data
-      listController.moveItemToIndex item, index
-
+      listController.moveItemToIndex item, index  if index
       return item
 
     item = listController.addItem data, index
@@ -274,7 +279,7 @@ class ActivitySidebar extends KDCustomHTMLView
     return # until we have either fav or hot lists back - SY
 
     item  = @sections.hot.listController.itemForId id
-    state = if state then 'Following' else 'Follow'
+    state = if state then 'Unfollow' else 'Follow'
     item?.followButton.setState state
 
 
@@ -453,7 +458,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView tagName : 'section'
+    @addSubView section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'vms'
 
     @machineTree = new JTreeViewController
       type                : 'main-nav'
@@ -513,6 +520,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addFollowedTopics: ->
 
+    limit = 10
+
     @addSubView @sections.channels = new ActivitySideView
       title      : 'Channels'
       cssClass   : 'followed topics'
@@ -520,14 +529,18 @@ class ActivitySidebar extends KDCustomHTMLView
       dataPath   : 'followedChannels'
       delegate   : this
       noItemText : 'You don\'t follow any topics yet.'
+      searchLink : '/Activity/Topic/Following'
+      limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Topic/All'
       dataSource : (callback) ->
         KD.singletons.socialapi.channel.fetchFollowedChannels
-          limit : 5
+          limit : limit
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'channels'
       @sections.channels.hide()
@@ -554,21 +567,28 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addMessages: ->
 
+    limit = 3
+
     @addSubView @sections.messages = new ActivitySideView
-      title      : 'Chat'
+      title      : 'Messages'
       cssClass   : 'messages'
       itemClass  : SidebarMessageItem
+      searchClass: ChatSearchModal
       dataPath   : 'privateMessages'
       delegate   : this
-      noItemText : "No chat messages yet."
+      noItemText : 'nothing here.'
+      searchLink : '/Activity/Chat/All'
+      limit      : limit
       headerLink : new CustomLinkView
         cssClass : 'add-icon'
         title    : ' '
         href     : KD.utils.groupifyLink '/Activity/Message/New'
       dataSource : (callback) ->
         KD.singletons.socialapi.message.fetchPrivateMessages
-          limit  : 5
+          limit  : limit
         , callback
+      countSource: (callback) ->
+        KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
@@ -600,55 +620,62 @@ class ActivitySidebar extends KDCustomHTMLView
     layout = {}
 
     if not name or not machineUId
-      return warn 'Missing options for create new workspace'
+      return warn 'Missing options to create a new workspace'
 
-    unless rootPath
-      rootPath       = "/home/#{KD.nick()}/Workspaces/#{name}"
-      emptyWorkspace = yes
-
-    data    = { name, machineUId, machineLabel, rootPath, layout }
     machine = m for m in computeController.machines when m.uid is machineUId
-    command = "mkdir -p '#{rootPath}' ; cd '#{rootPath}' ; touch README.md"
+    data    = { name, machineUId, machineLabel, rootPath, layout }
 
     return warn "Machine not found."  unless machine
 
-    callback = =>
-      KD.remote.api.JWorkspace.create data, (err, workspace) =>
-        return KD.showError "Couldn't create new workspace"  if err
+    KD.remote.api.JWorkspace.create data, (err, workspace) =>
+      if err
+        @emit 'WorkspaceCreateFailed'
+        return KD.showError "Couldn't create your new workspace"
 
-        for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
-          parentId = nodeData.id
+      folderOptions =
+        type        : 'folder'
+        path        : workspace.rootPath
+        recursive   : yes
 
-        view    = @addWorkspaceView
-        data    =
-          title : "#{workspace.name} <span class='ws-settings-icon'></span>"
-          type  : 'workspace'
-          href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-          data  : workspace
-          id    : workspace._id
-          machineLabel : machineLabel
-          parentId: parentId
+      machine.fs.create folderOptions, (err, folder) =>
+        if err
+          @emit 'WorkspaceCreateFailed'
+          return KD.showError "Couldn't create your new workspace"
 
-        if view
-          list  = view.getDelegate()
-          list.removeItem view  if view
-        else
-          for key, node of @machineTree.nodes when node.type is 'title'
-            list = node.getDelegate()
+        filePath   = "#{workspace.rootPath}/README.md"
+        readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-        @machineTree.addNode data
+        readMeFile.save IDE.contents.workspace, (err) =>
+          if err
+            @emit 'WorkspaceCreateFailed'
+            return KD.showError "Couldn't create your new workspace"
 
-        KD.userWorkspaces.push workspace
+          for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+            parentId = nodeData.id
 
-        router.handleRoute data.href
+          view    = @addWorkspaceView
+          data    =
+            title : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            type  : 'workspace'
+            href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            data  : workspace
+            id    : workspace._id
+            machineLabel : machineLabel
+            parentId: parentId
 
-    if emptyWorkspace
-      machine.getBaseKite().exec({ command })
-      .then  (res) => callback()
-      .catch (err) ->
-        KD.showError 'Unable to create a new workspace'
-    else
-      callback()
+          if view
+            list  = view.getDelegate()
+            list.removeItem view  if view
+          else
+            for key, node of @machineTree.nodes when node.type is 'title'
+              list = node.getDelegate()
+
+          @machineTree.addNode data
+
+          KD.userWorkspaces.push workspace
+
+          router.handleRoute data.href
+          @emit 'WorkspaceCreated', workspace
 
 
   updateMachineTree: (callback = noop) ->
@@ -668,3 +695,17 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @selectWorkspace()
     callback()
+
+
+  invalidateWorkspaces: (machine)->
+
+    return  unless machine?
+
+    KD.remote.api.JWorkspace.deleteByUid machine.uid, (err)=>
+
+      return warn err  if err?
+
+      KD.userWorkspaces =
+        ws for ws in KD.userWorkspaces when ws.machineUId isnt machine.uid
+
+      @updateMachineTree()

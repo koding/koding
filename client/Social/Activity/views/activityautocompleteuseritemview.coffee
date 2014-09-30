@@ -7,10 +7,15 @@ class ActivityAutoCompleteUserItemView extends KDAutoCompleteListItemView
     super options, data
 
 
-
   viewAppended: ->
 
     userInput = @getOptions().userInput or @getDelegate().userInput
+
+    @addSubView new AvatarStaticView
+      size      :
+        width   : 25
+        height  : 25
+    , @getData()
 
     @addSubView @profileLink = new AutoCompleteProfileTextView {
       shouldShowNick : yes

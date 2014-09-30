@@ -12,7 +12,6 @@ module.exports = [
   'libs/marked.js'
   'libs/date.format.js'
   'libs/highlight.pack.js'
-  'libs/cookies.js'
   'libs/jquery-timeago.js'
   'libs/emojify.js'
 
@@ -76,6 +75,7 @@ module.exports = [
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
   "CommonViews/uploadimagemodalview.coffee",
+  "CommonViews/helpsupportmodal.coffee",
 
   # idle detection
   "idleuserdetector.coffee"
@@ -206,6 +206,7 @@ module.exports = [
   "payment/stripeformview.coffee",
   "payment/form.coffee",
   "payment/basemodal.coffee",
+  "payment/downgradeerrormodal.coffee",
   "payment/modal.coffee",
   "payment/creditcardmodal.coffee",
 
