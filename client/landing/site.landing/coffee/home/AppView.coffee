@@ -26,7 +26,10 @@ module.exports = class HomeView extends KDView
     @signUpForm.button.unsetClass 'green'
     @signUpForm.button.setClass 'yellow'
 
-    @slideShow = new KDView
+    @slideShow    = new KDView
+    @slideShowNav = new KDView
+      tagName     : 'nav'
+      cssClass    : 'slideshow-nav'
 
     @footer = new FooterView
 
@@ -51,40 +54,50 @@ module.exports = class HomeView extends KDView
     @addSubView @nextButton, '.screenshots'
     @addSubView @prevButton, '.screenshots'
 
+    @addSubView @slideShowNav, '.used-at'
+
     view = this
-    @images = for image, i in IMAGES
+    @imageSets = for image, i in IMAGES
       @slideShow.addSubView slide = new KDCustomHTMLView
         tagName  : 'figure'
         cssClass : ORDER[i]
         partial  : "<img src='#{IMAGEPATH}/#{IMAGES[i]}' />"
         click    : ->
-          if @hasClass 'current'
-          then view.rotateImagesBy -1
-          else if @hasClass 'prev'
-          then view.rotateImagesBy 1
-          else if @hasClass 'next'
-          else view.rotateImagesBy 2
+          for [_slide, _dot], _i in view.imageSets when _slide is this
+            view.rotateImagesBy _i - 1
 
-      slide
+      @slideShowNav.addSubView dot = new CustomLinkView
+        title    : "Screenshot ##{i}"
+        delegate : slide
+        img      : IMAGES[i]
+        cssClass : "nav-dot#{if i is 1 then ' active' else ''}"
+        click    : -> @getDelegate().emit 'click'
+
+      [slide, dot]
 
     INDEX = KD.utils.getRandomNumber(COLORS.length - 1)
     @changeColor()
 
     @once 'viewAppended', ->
       @setClass 'anim'
+      @$('section.introduction').addClass 'shine'
       KD.utils.repeat 3e5, @bound 'nextColor'
+
 
   rotateImagesBy: (n) ->
 
-    {length} = @images
+    {length} = @imageSets
     n += length while length and n < 0
-    @images.push.apply @images, @images.splice 0, n
+    @imageSets.push.apply @imageSets, @imageSets.splice 0, n
 
     allClasses = ORDER.join ' '
 
-    for image, i in @images
+    for [image, dot], i in @imageSets
       image.unsetClass allClasses
+      dot.unsetClass 'active'
       image.setClass ORDER[i]
+      if ORDER[i] is 'current'
+        dot.setClass 'active'
 
 
   nextColor: -> @changeColor INDEX = (INDEX + 1) % COLORS.length
