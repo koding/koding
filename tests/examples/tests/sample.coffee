@@ -36,11 +36,17 @@ module.exports = client = do ()->
 
       duration = (new Date()) - browser.globals.time
 
+      replaceAllRegex = new RegExp(" ", 'g')
+      metricName = browser.currentTest.name.replace(replaceAllRegex, "_")
+      metricName = metricName.toLowerCase()
+      metricName = "load_test."+metricName
+
       metric =
-        metric : browser.currentTest.name
-        points : [[Date.now(), duration]]
+        metric : metricName
+        points : [[Date.now()/1000, duration]]
         host   : "load.koding.com"
-        type   : "counter"
+        type   : "gauge"
+
 
       gs = new (require("google-spreadsheet"))("1rG-ZRmhiIiM6h6oorG90cGofDhbW67bO_ZUHfO6zW-k")
       gs.setAuth "kodingtester@koding.com", "raj5cos6op6owt3", (err) ->
