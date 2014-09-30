@@ -74,7 +74,7 @@ do ->
     secret: "foo"
     resave: yes
     saveUninitialized: true
-  app.use bodyParser.json()
+  app.use bodyParser.urlencoded()
   app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
@@ -293,7 +293,7 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.status(403).send  err.message  if err?
+    return res.status(403).send err.message  if err?
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
