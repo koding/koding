@@ -93,7 +93,8 @@
     "url": "0.4.9",
     "validator": "0.2.0",
     "ws": "0.4.25",
-    "xml2js": "0.2.6"
+    "xml2js": "0.2.6",
+    "express-session": "^1.8.2"
   },
   "devDependencies": {
     "which": "^1.0.5"
