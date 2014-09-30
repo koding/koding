@@ -167,6 +167,14 @@ addReferralCode = (req, res)->
   if match and refCode = match[1]
     res.cookie "referrer", refCode, { maxAge: 900000, secure: true }
 
+handleClientIdNotFound = (res, req)->
+  err = {message: "clientId is not set"}
+  console.error JSON.stringify {req: req.body, err}
+  return res.status(500).send err
+
+getClientId = (req, res)->
+  return req.cookies.clientId or req.pendingCookies.clientId
+
 module.exports = {
   error_
   error_404
@@ -183,4 +191,6 @@ module.exports = {
   addReferralCode
   saveOauthToSession
   renderOauthPopup
+  handleClientIdNotFound
+  getClientId
 }

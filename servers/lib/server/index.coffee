@@ -50,6 +50,8 @@ app        = express()
   isLoggedIn
   getAlias
   addReferralCode
+  handleClientIdNotFound
+  getClientId
 }          = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
@@ -74,7 +76,7 @@ do ->
     secret: "foo"
     resave: yes
     saveUninitialized: true
-  app.use bodyParser.json()
+  app.use bodyParser.urlencoded()
   app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
@@ -233,14 +235,6 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.status(200).send authTemplate data
 
-getClientId = (req, res)->
-  return req.cookies.clientId or req.pendingCookies.clientId
-
-handleClientIdNotFound = (res, req)->
-  err = {message: "clientId is not set"}
-  console.error JSON.stringify {req: req.body, err}
-  return res.status(500).send err
-
 app.post "/:name?/Validate", (req, res) ->
   { JUser } = koding.models
   { fields } = req.body
@@ -259,6 +253,39 @@ app.post "/:name?/Validate", (req, res) ->
     , { fields: {} }
 
   res.status(if validations.isValid then 200 else 400).send validations
+
+
+app.post "/:name?/Validate/Username/:username?", (req, res) ->
+
+  { JUser } = koding.models
+  { username } = req.params
+
+  return res.status(400).send 'Bad request'  unless username?
+
+  JUser.usernameAvailable username, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    {kodingUser, forbidden} = response
+
+    if not kodingUser and not forbidden
+      res.status(200).send response
+    else if kodingUser
+      res.status(400).send response
+
+app.post "/:name?/Validate/Email/:email?", (req, res) ->
+
+  { JUser } = koding.models
+  { email } = req.params
+
+  return res.status(400).send 'Bad request'  unless email?
+
+  JUser.emailAvailable email, (err, response) =>
+    return res.status(400).send 'Bad request'  if err
+
+    return if response
+    then res.status(200).send response
+    else res.status(400).send 'Email is taken!'
+
 
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
@@ -293,7 +320,7 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.status(403).send  err.message  if err?
+    return res.status(403).send err.message  if err?
     # implementing a temporary opt-out for new koding:
     storageOptions =
       appId   : 'NewKoding'
@@ -431,18 +458,22 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/api/app/:app"            , require "./applications"
-app.get "/-/oauth/odesk/callback"    , require "./odesk_callback"
-app.get "/-/oauth/github/callback"   , require "./github_callback"
-app.get "/-/oauth/facebook/callback" , require "./facebook_callback"
-app.get "/-/oauth/google/callback"   , require "./google_callback"
-app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
-app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
-app.get '/-/image/cache'             , require "./image_cache"
+app.get "/-/api/app/:app" , require "./applications"
+app.get '/-/image/cache'  , require "./image_cache"
+
+# Handlers for OAuth
+app.get  "/-/oauth/odesk/callback"    , require  "./odesk_callback"
+app.get  "/-/oauth/github/callback"   , require  "./github_callback"
+app.get  "/-/oauth/facebook/callback" , require  "./facebook_callback"
+app.get  "/-/oauth/google/callback"   , require  "./google_callback"
+app.get  "/-/oauth/linkedin/callback" , require  "./linkedin_callback"
+app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
+app.post "/:name?/OAuth"              , require  "./oauth"
+app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
 # Handlers for Stripe
-app.post '/-/stripe/webhook'         , require "./stripe_webhook"
-app.get  '/-/subscriptions'          , require "./subscriptions"
+app.post '/-/stripe/webhook' , require "./stripe_webhook"
+app.get  '/-/subscriptions'  , require "./subscriptions"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->
