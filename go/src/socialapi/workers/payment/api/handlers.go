@@ -21,7 +21,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 		},
 	))
 
-	mux.Handle("GET", "/payments/subscriptions/{accountId}", handler.Wrapper(
+	mux.Handle("GET", "/payments/subscriptions", handler.Wrapper(
 		handler.Request{
 			Handler: SubscriptionRequest,
 			Name:    "payment-subscriptions",
