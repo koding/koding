@@ -199,6 +199,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @tabView.showPaneByIndex index
       return editorPane = pane.view
 
+  toggleFullscreen: ->
+    @toggleClass 'fullscren'
+    KD.getSingleton('windowController').notifyWindowResizeListeners()
+    @isFullScreen = !@isFullScreen
+
   handlePaneRemoved: (pane) ->
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
