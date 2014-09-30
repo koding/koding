@@ -9,6 +9,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @createFilesPane()
     @createSettingsPane()
+    @createKodingSidebarHandle()
 
     # temp hack to fix collapsed panel tab change bug
     dummyPane  = new KDTabPaneView
@@ -82,3 +83,17 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
         @contextMenu.destroy()
 
     @contextMenu = new KDContextMenu options, items
+
+  createKodingSidebarHandle: ->
+
+    { mainView } = KD.singletons
+
+    handle       = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'koding-sidebar-handle'
+      attributes : alt: 'Double-click to toggle main sidebar'
+      dblclick   : (event) ->
+        KD.utils.stopDOMEvent event
+        mainView.toggleSidebar()
+
+    @tabView.addSubView handle
