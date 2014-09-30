@@ -54,30 +54,33 @@ type SubscriptionsResponse struct {
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
 
-// Do checks if given `account_id` is a paying customer and returns
-// the current plan the current is subscribed if any.
-//
-// Errors:
-//		paymenterrors.ErrCustomerNotFound if user is found
-//		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
-//		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
+// Subscriptions return given `account_id` subscription if it exists.
+// In case of no customer, or no subscriptions or no plan found, it
+// returns the default plan as subscription.
 func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	if a.AccountId == "" {
 		return nil, paymenterrors.ErrAccountIdIsNotSet
 	}
 
+	defaultResp := &SubscriptionsResponse{
+		AccountId:    a.AccountId,
+		PlanTitle:    "free",
+		PlanInterval: "month",
+		State:        "active",
+	}
+
 	customer, err := stripe.FindCustomerByOldId(a.AccountId)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	subscriptions, err := stripe.FindCustomerActiveSubscriptions(customer)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	if len(subscriptions) == 0 {
-		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+		return defaultResp, nil
 	}
 
 	currentSubscription := subscriptions[0]
@@ -85,7 +88,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	plan := &paymentmodel.Plan{}
 	err = plan.ById(currentSubscription.PlanId)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	resp := &SubscriptionsResponse{
@@ -98,37 +101,6 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	}
 
 	return resp, nil
-}
-
-// DoWithDefault is different from Do since client excepts to get
-// "free" plan regardless of user not found or doesn't have any
-// subscriptions etc.
-func (a *AccountRequest) DoWithDefault() (*SubscriptionsResponse, error) {
-	resp, err := a.Subscriptions()
-	if err == nil {
-		return resp, nil
-	}
-
-	defaultResp := &SubscriptionsResponse{
-		AccountId:    a.AccountId,
-		PlanTitle:    "free",
-		PlanInterval: "month",
-		State:        "active",
-	}
-
-	defaultResponseErrs := []error{
-		paymenterrors.ErrCustomerNotSubscribedToAnyPlans,
-		paymenterrors.ErrCustomerNotFound,
-		paymenterrors.ErrPlanNotFound,
-	}
-
-	for _, respError := range defaultResponseErrs {
-		if err == respError {
-			return defaultResp, nil
-		}
-	}
-
-	return nil, err
 }
 
 func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
