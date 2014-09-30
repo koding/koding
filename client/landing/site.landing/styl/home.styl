@@ -318,16 +318,17 @@ body.home
       max-height          575px
       width               838px
       margin              0 auto
+      padding             0 !important
       rel()
 
 
     figure
-      display             block
-      top                 0px
-      size                738px 100%
-      display             none
+      top                 0
+      opacity             0
+      height              360px
+      vendor              transform, translateX(0px) translateY(123px)
       contentBox()
-      abs()
+
       &:after
         content           ''
         size              6px 6px
@@ -350,35 +351,40 @@ body.home
         opacity           .7
         bg                color #3A3E41
         margin-top        2px
+        // vendor            transition, opacity .3s ease
 
       &.current
-        display           block
+        opacity           1
+        height            738px
+        vendor            transform, translateX(50px) translateY(0px)
         z-index           4
-        left              50px
+        display           block
+        abs()
+        vendor            transition, opacity .177s ease
 
         img
           opacity         1
 
       &.prev
-        left              0
+        vendor            transform, translateX(0px) translateY(123px)
 
       &.next
-        right             0
+        vendor            transform, translateX(100px) translateY(123px)
 
       &.prev
       &.next
+        opacity           .7
         display           block
         z-index           3
-        margin-top        123px
-        height            360px
+        abs()
         &:after
-          size              5px 5px
-          abs               8px 0 0 13px
-          shadow            7px 0 0 rgba(255, 255, 255, .3),\
-                            14px 0 0 rgba(255, 255, 255, .3)
+          size            5px 5px
+          abs             8px 0 0 13px
+          shadow          7px 0 0 rgba(255, 255, 255, .3),\
+                          14px 0 0 rgba(255, 255, 255, .3)
         &:before
-          rounded           4px 4px 0 0
-          size              100% 20px
+          rounded         4px 4px 0 0
+          size            100% 20px
 
 
 
@@ -388,6 +394,7 @@ body.home
     margin                0 auto
     height                224px
     bg                    color #F0F0F0
+    rel()
 
     > div
       &:after
