@@ -67,6 +67,7 @@ Configuration = (options={}) ->
   logQueueName        = socialQueueName+'log'
 
   KONFIG              =
+    configName                     : configName
     environment                    : environment
     regions                        : regions
     region                         : region
