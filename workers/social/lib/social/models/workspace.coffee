@@ -37,7 +37,10 @@ module.exports = class JWorkspace extends Module
 
   @create = secure (client, data, callback) ->
 
-    data.originId = client.connection.delegate._id
+    {delegate}    = client.connection
+    data.originId = delegate._id
+
+    nickname      = delegate.profile.nickname
     data.slug     = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, originId, machineLabel} = data
@@ -52,10 +55,10 @@ module.exports = class JWorkspace extends Module
 
       { slug, name } = res
 
-      data.name = name
-      data.slug = slug
-
-      workspace = new JWorkspace data
+      data.name     = name
+      data.slug     = slug
+      data.rootPath = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
+      workspace     = new JWorkspace data
 
       workspace.save (err) ->
         return callback err  if err
