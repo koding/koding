@@ -61,6 +61,10 @@ type SubscriptionsResponse struct {
 //		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
 //		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
 func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
+	if s.AccountId == "" {
+		return nil, paymenterrors.ErrAccountIdIsNotSet
+	}
+
 	customer, err := stripe.FindCustomerByOldId(s.AccountId)
 	if err != nil {
 		return nil, err
