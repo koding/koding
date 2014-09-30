@@ -3,6 +3,9 @@ package paymentmodel
 import (
 	"errors"
 
+	"socialapi/workers/payment/paymenterrors"
+
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -52,12 +55,13 @@ func NewCustomer() *Customer {
 
 func (c *Customer) FindByOldId(oldId string) error {
 	selector := map[string]interface{}{"old_id": oldId}
+
 	err := c.One(bongo.NewQS(selector))
-	if err != nil {
-		return err
+	if err == gorm.RecordNotFound {
+		return paymenterrors.ErrCustomerNotFound
 	}
 
-	return nil
+	return err
 }
 
 func (c *Customer) FindActiveSubscription() (*Subscription, error) {
@@ -72,4 +76,8 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 	}
 
 	return subscription, nil
+}
+
+func (c *Customer) Delete() error {
+	return bongo.B.Delete(c)
 }

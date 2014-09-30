@@ -66,3 +66,25 @@ func GetCustomer(id string) (*stripe.Customer, error) {
 
 	return customer, nil
 }
+
+func DeleteCustomer(accId string) error {
+	customer := paymentmodel.NewCustomer()
+	err := customer.FindByOldId(accId)
+	if err != nil {
+		return err
+	}
+
+	currentSubscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return err
+	}
+
+	err = CancelSubscriptionAndRemoveCC(customer, currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	err = stripeCustomer.Del(customer.ProviderCustomerId)
+
+	return err
+}
