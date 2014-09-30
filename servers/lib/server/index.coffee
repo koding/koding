@@ -50,6 +50,8 @@ app        = express()
   isLoggedIn
   getAlias
   addReferralCode
+  handleClientIdNotFound
+  getClientId
 }          = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
@@ -232,14 +234,6 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
         res.status(401).send authTemplate err.message
       else
         res.status(200).send authTemplate data
-
-getClientId = (req, res)->
-  return req.cookies.clientId or req.pendingCookies.clientId
-
-handleClientIdNotFound = (res, req)->
-  err = {message: "clientId is not set"}
-  console.error JSON.stringify {req: req.body, err}
-  return res.status(500).send err
 
 app.post "/:name?/Validate", (req, res) ->
   { JUser } = koding.models
@@ -431,18 +425,22 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get "/-/api/app/:app"            , require "./applications"
-app.get "/-/oauth/odesk/callback"    , require "./odesk_callback"
-app.get "/-/oauth/github/callback"   , require "./github_callback"
-app.get "/-/oauth/facebook/callback" , require "./facebook_callback"
-app.get "/-/oauth/google/callback"   , require "./google_callback"
-app.get "/-/oauth/linkedin/callback" , require "./linkedin_callback"
-app.get "/-/oauth/twitter/callback"  , require "./twitter_callback"
-app.get '/-/image/cache'             , require "./image_cache"
+app.get "/-/api/app/:app" , require "./applications"
+app.get '/-/image/cache'  , require "./image_cache"
+
+# Handlers for OAuth
+app.get  "/-/oauth/odesk/callback"    , require  "./odesk_callback"
+app.get  "/-/oauth/github/callback"   , require  "./github_callback"
+app.get  "/-/oauth/facebook/callback" , require  "./facebook_callback"
+app.get  "/-/oauth/google/callback"   , require  "./google_callback"
+app.get  "/-/oauth/linkedin/callback" , require  "./linkedin_callback"
+app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
+app.post "/:name?/OAuth"              , require  "./oauth"
+app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
 # Handlers for Stripe
-app.post '/-/stripe/webhook'         , require "./stripe_webhook"
-app.get  '/-/subscriptions'          , require "./subscriptions"
+app.post '/-/stripe/webhook' , require "./stripe_webhook"
+app.get  '/-/subscriptions'  , require "./subscriptions"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->
