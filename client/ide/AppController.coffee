@@ -112,6 +112,7 @@ class IDEAppController extends AppController
         appView.emit 'KeyViewIsSet'
 
         @createInitialView()
+        @bindCollapseEvents()
 
         {@finderPane} = @workspace.panel.getPaneByName 'filesPane'
 
@@ -131,6 +132,21 @@ class IDEAppController extends AppController
       if routeInfo.path.indexOf('/IDE') is -1
         if mainView.isSidebarCollapsed
           mainView.toggleSidebar()
+
+  bindCollapseEvents: ->
+
+    { panel } = @workspace
+
+    filesPane = @workspace.panel.getPaneByName 'filesPane'
+
+    # We want double click to work
+    # if only the sidebar is collapsed. ~Umut
+    filesPane.on 'dblclick', (event) =>
+      KD.utils.stopDOMEvent event
+      @expandSidebar()  if @isSidebarCollapsed
+
+    baseSplit = panel.layout.getSplitViewByName 'BaseSplit'
+    baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
   setActiveTabView: (tabView) ->
     @activeTabView = tabView
