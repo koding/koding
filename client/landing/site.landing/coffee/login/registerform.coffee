@@ -121,23 +121,22 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     rules       :
       required  : yes
       email     : yes
-      # available : (input, event) =>
-      #   return if event?.which is 9
-      #   input.setValidationResult 'available', null
-      #   email = input.getValue()
-      #   if input.valid
-      #     # @email.loader.show()
-      #     KD.remote.api.JUser.emailAvailable email, (err, response)=>
-      #       # @email.loader.hide()
-      #       if err then warn err
-      #       else
-      #         if response
-      #           input.setValidationResult 'available', null
-      #           EMAIL_VALID = yes
-      #         else
-      #           input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
-      #           EMAIL_VALID = no
-      #   return
+      available : (input, event) =>
+        return if event?.which is 9
+        input.setValidationResult 'available', null
+        email = input.getValue()
+
+        if input.valid
+          $.ajax
+            url         : "/Validate/Email/#{email}"
+            type        : 'POST'
+            xhrFields   : withCredentials : yes
+            success     : ->
+              input.setValidationResult 'available', null
+              EMAIL_VALID = yes
+            error       : ({responseJSON}) ->
+              input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
+              EMAIL_VALID = no
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
