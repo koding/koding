@@ -176,13 +176,17 @@ body.home
 
     // shining effect behind the screenshots
     section.introduction > div:after
+      opacity           0
       content           ''
       abs               0 0 0px 50%
       margin-left       -369px
       size              738px 400px
       rounded           50%
-      shadow            0 0 400px rgba(255, 255, 179, 1)
+      shadow            0 0 400px rgb(255, 255, 179)
       z-index           0
+      vendor            transition, opacity 2s 2s ease
+    section.introduction.shine > div:after
+      opacity           1
 
 
 
