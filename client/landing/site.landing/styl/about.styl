@@ -103,6 +103,7 @@ body.about
         size                  33.3%, 80px
         color                 #9b9b9c
         font-size             14px
+        position              relative
         fl()
 
         span
@@ -120,6 +121,25 @@ body.about
           rounded             50%
           margin-right        32px
           fl()
+
+        &:after
+          content             ''
+          display             block
+          top                 50%
+          vendor              transform, translateY(-50%)
+          abs()
+
+        &.vms:after
+          left                28px
+          r-sprite            'about', 'vm-icon'
+
+        &.code:after
+          left                29px
+          r-sprite            'about', 'code-icon'
+
+        &.developers:after
+          left                30px
+          r-sprite            'about', 'developer-icon'
 
     section.contact
     section.where
@@ -147,6 +167,7 @@ body.about
         font-size             18px
         color                 #626262
         font-weight           600
+        position              relative
         fl()
 
         &:before
@@ -157,6 +178,58 @@ body.about
           rounded             50%
           margin-right        22px
           fl()
+
+        &:after
+          content             ''
+          display             block
+          top                 50%
+          vendor              transform, translateY(-50%)
+          left                23px
+          abs()
+
+        &.sales
+          &:after
+            left              26px
+            r-sprite          'about', 'sales-icon'
+
+          &:before
+            background        #fabbbb
+
+        &.support
+          &:after
+
+            r-sprite          'about', 'support-icon'
+
+          &:before
+            background        #bbf5fa
+
+        &.partnerships
+          &:after
+            r-sprite          'about', 'partnerships-icon'
+
+          &:before
+            background        #bbfadd
+
+        &.press
+          &:after
+            r-sprite          'about', 'press-icon'
+
+          &:before
+            background        #bbe3fa
+
+        &.hello
+          &:after
+            r-sprite          'about', 'hello-icon'
+
+          &:before
+            background        #fabbdf
+
+        &.careers
+          &:after
+            r-sprite          'about', 'careers-icon'
+
+          &:before
+            background        #faeabb
 
     section.where
       padding-left            0
@@ -182,6 +255,14 @@ body.about
           width               100% !important
           height              100% !important
           abs                 0px 0 0 0px
+
+        &:after
+          display             block
+          content             ''
+          width               100%
+          height              100%
+          abs                 0px 0 0 0px
+
 
     section.assets
       padding-bottom          82px
@@ -215,8 +296,7 @@ body.about
             text-decoration   underline
 
         .examples
-          margin-left         80px
-          fl()
+          fr()
 
           a
             display           block
