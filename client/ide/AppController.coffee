@@ -34,6 +34,7 @@ class IDEAppController extends AppController
       'go to left tab'      : 'goToLeftTab'
       'go to right tab'     : 'goToRightTab'
       'go to tab number'    : 'goToTabNumber'
+      'fullscren ideview'   : 'toggleFullscreenIDEView'
     keyBindings: [
       { command: 'find file by name',   binding: 'ctrl+alt+o', global: yes }
       { command: 'search all files',    binding: 'ctrl+alt+f', global: yes }
@@ -61,6 +62,7 @@ class IDEAppController extends AppController
       { command: 'go to tab number',    binding: 'ctrl+alt+7', global: yes }
       { command: 'go to tab number',    binding: 'ctrl+alt+8', global: yes }
       { command: 'go to tab number',    binding: 'ctrl+alt+9', global: yes }
+      { command: 'fullscren ideview',   binding: 'meta+shift+enter', global: yes }
     ]
 
   constructor: (options = {}, data) ->
