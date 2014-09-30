@@ -1,7 +1,7 @@
 request = require 'request'
 
 baseUrl = "https://api.helpscout.net/v1"
-key     = "3673d12d3a1b45dc8fd3e0fc4e1a586e1f1918b7"
+key     = "b041e4da61c0934cb73d47e1626098430738b049"
 
 module.exports = (account, req, res) ->
 
@@ -10,12 +10,12 @@ module.exports = (account, req, res) ->
   account.fetchUser (err, user)->
 
     if err? or not user?
-      return res.send 401
+      return res.status(401).end()
 
     {message, subject} = req.body
 
     if not message or not subject
-      return res.send 400,
+      return res.status(400).send
         description : "message and subject required"
         error       : "bad_request"
 
@@ -63,6 +63,6 @@ module.exports = (account, req, res) ->
 
         if error || body
           console.error error, body
-          res.send 400, ok: 0
+          res.status(400).send ok: 0
         else
-          res.send 200, ok: 1
+          res.status(200).send ok: 1

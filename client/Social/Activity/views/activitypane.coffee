@@ -46,7 +46,7 @@ class ActivityPane extends MessagePane
         from = null
         skip = @mostLiked.getLoadedCount()
 
-        @fetch { from, skip }, @createContentAppender 'mostLiked'
+        @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
   createMostRecentView: (options, data) ->
     new ActivityContentPane options, data
@@ -80,7 +80,7 @@ class ActivityPane extends MessagePane
         route         : '/Activity/Public/Recent'
       }
       {
-        name          : 'Search Tab'
+        name          : 'Search'
         view          : @searchResults
         closable      : no
         shouldShow    : no
@@ -95,10 +95,10 @@ class ActivityPane extends MessagePane
       maxHandleWidth    : Infinity
       paneData          : @getPaneData()
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on 'PaneDidShow', @bound 'openPane'
+    @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
 
 
-  openPane: (pane) ->
+  handlePaneShown: (pane) ->
 
     switch pane
       when @mostLiked?.parent
@@ -110,6 +110,23 @@ class ActivityPane extends MessagePane
       when @searchResults?.parent
         @setSearchedState yes
         @activeContent = @searchResults
+
+
+  open: (name, query) ->
+
+    @tabView.showPane @tabView.getPaneByName name
+
+    if name is 'Search' and not query
+      KD.singletons.router.handleRoute '/Activity/Public/Recent'
+      return
+
+    return  unless query
+
+    @searchInput.setValue query
+    @searchInput.setFocus()
+    @search query
+    @currentSearch = query
+
 
   clearSearch: ->
     @searchInput?.clear()
@@ -126,7 +143,8 @@ class ActivityPane extends MessagePane
   lazyLoad: -> @activeContent?.loadMore()
 
   putMessage: (message, index = 0) ->
-    @tabView.showPane @tabView.getPaneByName 'Most Recent'
+    {router} = KD.singletons
+    router.handleRoute '/Activity/Public/Recent'
     @mostRecent.listController.addItem message, index
 
   contentMethod = (method) -> (contentName) -> (err, content) =>
@@ -182,6 +200,9 @@ class ActivityPane extends MessagePane
 
 
   createSearchInput: ->
+
+    {router} = KD.singletons
+
     @searchInput = new SearchInputView
       placeholder : 'Search...'
 
@@ -191,13 +212,7 @@ class ActivityPane extends MessagePane
       tagName  : 'cite'
       cssClass : 'search-icon'
       click    : =>
-        @tabView.showPane @tabView.panes[1]  if @isSearched
+        return  unless @isSearched
+        router.handleRoute '/Activity/Public/Recent'
 
     @tabView.tabHandleContainer.addSubView searchIcon
-
-    @searchInput.on 'SearchRequested', (text) =>
-      @searchInput.setBlur()
-      @tabView.showPane @tabView.panes.last
-      @searchResults.clear()
-      @search text
-      @currentSearch = text

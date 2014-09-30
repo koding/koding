@@ -47,6 +47,8 @@ class HelpSupportModal extends KDModalViewWithForms
       {submit} = @modalTabs.forms.Main.buttons
       {subject, message} = form
 
+      message += "\n\n --- LOGS FROM KD.parseLogs() --- \n #{KD.parseLogs()}"
+
       request = $.ajax "#{window.location.origin}/-/support/new",
         type        : "POST"
         contentType : "application/json"

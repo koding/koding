@@ -32,14 +32,14 @@ var (
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
 disable_ec2_metadata: true
-hostname: {{.Hostname}}
+hostname: '{{.Hostname}}'
 
 bootcmd:
   - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
 
 users:
   - default
-  - name: {{.Username}}
+  - name: '{{.Username}}'
     groups: sudo
     shell: /bin/bash
     gecos: koding user
@@ -149,9 +149,9 @@ write_files:
       archive="$vm_name.tgz"
       echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://migrate.sj.koding.com:3000/export-files" | xargs curl > $archive
       echo
-      echo "Extracting your files to directory $(pwd)/$vm_name..."
+      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
       mkdir -p Backup/$vm_name
-      tar -xzvf $archive -C $vm_name --strip-components 1 > /dev/null
+      tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
       rm $archive
       echo
       echo "You have successfully migrated $vm_name to the new Koding environment."

@@ -9,13 +9,18 @@ module.exports = class JWorkspace extends Module
   @share()
 
   @set
+
+    indexes        :
+      originId     : 'sparse'
+      slug         : 'sparse'
+
     schema         :
       name         : String
       slug         : String
       machineUId   : String
       machineLabel : String
       rootPath     : String
-      owner        : String
+      originId     : ObjectId
       layout       : Object
 
     sharedMethods  :
@@ -29,61 +34,72 @@ module.exports = class JWorkspace extends Module
       static       : []
       instance     : []
 
+
   @create = secure (client, data, callback) ->
-    data.owner = client.connection.delegate._id
-    data.slug  = slugify data.name?.toLowerCase()
 
-    {name, slug, machineUId, rootPath, owner, layout, machineLabel} = data
+    {delegate}    = client.connection
+    data.originId = delegate._id
 
-    JWorkspace.one { slug }, (err, workspace) ->
-      return callback err, null  if err
+    nickname      = delegate.profile.nickname
+    data.slug     = slugify data.name?.toLowerCase()
 
-      if workspace or name is 'My Workspace'
-        query   =
-          owner : client.connection.delegate._id
-          slug  : new RegExp slug
+    {name, slug, machineUId, rootPath, originId, machineLabel} = data
 
-        options =
-          sort  : slug: -1
-          limit : 1
+    # we don't support saving layout for now, i will set it to empty object
+    # to prevent storing any kind of data in it. -- acetz!
+    data.layout = {}
 
-        JWorkspace.some query, options, (err, workspaces) ->
-          return callback err, null  if err
+    generateUniqueName { originId, name }, (err, res)->
 
-          if name is 'My Workspace' and workspaces?.length is 0
-            workspaces = [ { name: 'My Workspace', slug: 'my-workspace' } ]
+      return callback err  if err?
 
-          workspace = workspaces[0]
+      { slug, name } = res
 
-          return callback null, null  unless workspace
+      data.name     = name
+      data.slug     = slug
+      data.rootPath = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
+      workspace     = new JWorkspace data
 
-          parts = workspace.slug.split '-'
-          last  = parts[parts.length - 1]
-          seed  = if isNaN last then 1 else ++last
-          name  = "#{name} #{seed}"
-          slug  = "#{slug}-#{seed}"
+      workspace.save (err) ->
+        return callback err  if err
+        return callback null, workspace
 
-          create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
+
+  generateUniqueName = ({originId, name, index}, callback)->
+
+    name = "#{name} 1"  if name is 'My Workspace'
+    slug = if index? then "#{name}-#{index}" else name
+    slug = slugify slug
+
+    JWorkspace.count { originId, slug }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+
+        name = "#{name} #{index}"  if index?
+        callback null, { name, slug }
+
       else
-        create_ { name, slug, machineUId, machineLabel, rootPath, owner, layout }, callback
 
-  create_ = (data, callback) ->
-    workspace  = new JWorkspace data
+        index ?= 0
+        index += 1
 
-    workspace.save (err) ->
-      return callback err  if err
-      return callback null, workspace
+        generateUniqueName { originId, name, index }, callback
+
 
   @fetch = secure (client, query = {}, callback) ->
-    query.owner = client.connection.delegate._id
-    JWorkspace.some query, {}, callback
+
+    query.originId = client.connection.delegate._id
+
+    JWorkspace.some query, limit: 30, callback
 
 
   @deleteById = secure (client, id, callback)->
 
-    selector =
-      owner  : client.connection.delegate._id
-      _id    : ObjectId id
+    selector   =
+      originId : client.connection.delegate._id
+      _id      : ObjectId id
 
     JWorkspace.one selector, (err, ws)->
       return callback err  if err?
@@ -96,7 +112,7 @@ module.exports = class JWorkspace extends Module
   @deleteByUid = secure (client, uid, callback)->
 
     selector     =
-      owner      : client.connection.delegate._id
+      originId   : client.connection.delegate._id
       machineUId : uid
 
     JWorkspace.remove selector, (err)->
@@ -107,7 +123,7 @@ module.exports = class JWorkspace extends Module
 
     { delegate } = client.connection
 
-    unless delegate.getId().equals this.owner
+    unless delegate.getId().equals this.originId
       return callback new KodingError 'Access denied'
 
     @remove callback

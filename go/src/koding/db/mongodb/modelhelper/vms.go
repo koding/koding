@@ -39,7 +39,7 @@ func GetUserVMs(username string) ([]models.VM, error) {
 			"webHome":   username,
 			"vmType":    "user",
 			"isEnabled": true,
-		}).Iter()
+		}).Sort("hostnameAlias").Iter()
 		for iter.Next(&vm) {
 			vms = append(vms, *vm)
 		}

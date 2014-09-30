@@ -1,0 +1,9 @@
+#!/bin/bash
+first=$2
+second=".js"
+first=${first/.coffee/$second}
+
+coffee -c $2
+nightwatch $1 $first
+rm $first
+

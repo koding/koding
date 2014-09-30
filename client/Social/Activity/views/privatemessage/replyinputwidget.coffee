@@ -16,6 +16,7 @@ class ReplyInputWidget extends ActivityInputWidget
       @showPreview() if @preview #Updates preview if it exists
       @emit 'UpKeyIsPressed' if event.keyCode is 38
 
+    @on 'SubmitStarted', => KD.utils.defer @bound 'focus'
 
   createSubViews: ->
     { inputViewClass, defaultValue, placeholder } = @getOptions()

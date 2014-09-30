@@ -20,12 +20,14 @@ do ->
         shouldPushState: no
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
-      activityPane (pane) ->
-        pane.tabView.showPane pane.tabView.getPaneByName 'Most Liked'
+      activityPane (pane) -> pane.open 'Most Liked'
 
     '/:name?/Activity/Public/Recent': ({ params: {name}}) ->
-      activityPane (pane) ->
-        pane.tabView.showPane pane.tabView.getPaneByName 'Most Recent'
+      activityPane (pane) -> pane.open 'Most Recent'
+
+    '/:name?/Activity/Public/Search': ({ params: {name}, query}) ->
+      activityPane (pane) -> pane.open 'Search', query.q
+
 
     # TODO ~ i tried to unify this route and following 4 routes, couldnt manage
     # to make it work, did not spend so much time on it and gave up, it would be
