@@ -69,7 +69,7 @@ func newCommand(mode, session, username string) (*Command, error) {
 	// let's assume by default its Screen
 	name := defaultScreenPath
 	defaultShell := getDefaultShell(username)
-	args := []string{"-e^Bb", "-s", defaultShell, "-S"}
+	args := []string{"-e''", "-s", defaultShell, "-S"}
 
 	switch mode {
 	case "shared", "resume":

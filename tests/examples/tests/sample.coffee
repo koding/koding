@@ -110,9 +110,8 @@ module.exports = client = do ()->
       browser.execute                postActivity,[post]
       browser.click                  "[testpath='post-activity-button']"
       browser.assert.containsText    "[testpath='ActivityListItemView'] article",post
-      browser.pause                  1000
+      browser.pause                  45000
 
-  for i in [1..20]
     tests["Test IDE #{i}"] = do (i)-> (browser)->
       # select VM only first time, no need to select it again
       if i is 1
@@ -126,7 +125,7 @@ module.exports = client = do ()->
       browser.execute              "KD.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
       browser.pause                2000
       browser.assert.containsText  "div.kdview.kdtabpaneview.terminal.clearfix.active div[contenteditable='true']",result
-      browser.pause                1000
+      browser.pause                43000
 
 
       # specialcase, close test suite when we reach to end

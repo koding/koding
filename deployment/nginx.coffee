@@ -96,7 +96,9 @@ createUserMachineLocation = (path) ->
       }
   \n"""
 
-createLocations = (workers={}) ->
+createLocations = (KONFIG) ->
+  workers = KONFIG.workers
+
   locations = ""
   for name, options of workers when options.ports?
     options.nginx = {}  unless options.nginx
@@ -111,7 +113,8 @@ createLocations = (workers={}) ->
       else
         createWebLocation
 
-      locations += fn name, location, options.nginx.auth
+      auth = if KONFIG.configName is "load" then no else options.nginx.auth
+      locations += fn name, location, auth
 
   return locations
 
@@ -210,7 +213,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      #{createLocations(workers)}
+      #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
     # close server
