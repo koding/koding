@@ -43,13 +43,13 @@ module.exports = class HomeView extends KDView
       title    : ''
       cssClass : 'ss-button next'
       icon     : {}
-      click    : => @rotateImagesBy -1
+      click    : => @rotateImagesBy 1
 
     @prevButton = new CustomLinkView
       title    : ''
       cssClass : 'ss-button prev'
       icon     : {}
-      click    : => @rotateImagesBy 1
+      click    : => @rotateImagesBy -1
 
     @addSubView @nextButton, '.screenshots'
     @addSubView @prevButton, '.screenshots'
