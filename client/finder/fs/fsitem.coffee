@@ -19,14 +19,15 @@ class FSItem extends KDObject
   #
   # If requested path already exists, it generates new paths
   # eg, if /tmp/foo then /tmp/foo_1 will be created, and so on.
-  @create = ({ path, type, machine }, callback = noop)->
+  @create = ({ path, type, machine, recursive }, callback = noop)->
 
     unless path or machine
       warn message = "pass a path and machine to create a file"
       return callback { message }
 
-    type ?= "file"
-    kite  = machine.getBaseKite()
+    type      ?= "file"
+    recursive ?= no
+    kite       = machine.getBaseKite()
 
     kite.init()
 
@@ -39,10 +40,12 @@ class FSItem extends KDObject
         then "fsCreateDirectory"
         else "fsWriteFile"
 
-      options =
+      options = {
         path            : plainPath
         content         : ''
         donotoverwrite  : yes
+        recursive
+      }
 
       kite.fsUniquePath path: plainPath
 
