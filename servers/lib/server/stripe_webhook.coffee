@@ -4,7 +4,7 @@
 
 module.exports = (req, res) ->
   url = "/payments/stripe/webhook"
-  post url, data, (err)->
+  post url, req.body, (err)->
     if err
       return res.status(500).end()
 
