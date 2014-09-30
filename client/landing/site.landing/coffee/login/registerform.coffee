@@ -38,8 +38,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required     : yes
             rangeLength  : [4, 25]
             regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
-            # usernameCheck: (input, event)=> @usernameCheck input, event
-            # finalCheck   : (input, event)=> @usernameCheck input, event, 0
+            usernameCheck: (input, event)=> @usernameCheck input, event
+            finalCheck   : (input, event)=> @usernameCheck input, event, 0
           messages       :
             required     : 'Please enter a username.'
             regExp       : 'For username only lowercase letters and numbers are allowed!'
@@ -48,8 +48,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             required     : 'blur'
             rangeLength  : 'blur'
             regExp       : 'keyup'
-            # usernameCheck: 'keyup'
-            # finalCheck   : 'blur'
+            usernameCheck: 'keyup'
+            finalCheck   : 'blur'
         decorateValidation: no
 
     {buttonTitle} = @getOptions()
@@ -83,34 +83,36 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     input.clearValidationFeedback() for input in inputs
     super
 
-  # usernameCheck:(input, event, delay=800)->
-  #   return if event?.which is 9
-  #   return if input.getValue().length < 4
+  usernameCheck:(input, event, delay=800)->
+    return if event?.which is 9
+    return if input.getValue().length < 4
 
-  #   KD.utils.killWait usernameCheckTimer
-  #   input.setValidationResult "usernameCheck", null
-  #   name = input.getValue()
+    KD.utils.killWait usernameCheckTimer
+    input.setValidationResult "usernameCheck", null
+    username = input.getValue()
 
-  #   if input.valid
-  #     usernameCheckTimer = KD.utils.wait delay, =>
-  #       # @username.loader.show()
-  #       KD.remote.api.JUser.usernameAvailable name, (err, response) =>
-  #         # @username.loader.hide()
-  #         {kodingUser, forbidden} = response
-  #         if err
-  #           if response?.kodingUser
-  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-  #             USERNAME_VALID = no
-  #         else
-  #           if forbidden
-  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
-  #             USERNAME_VALID = no
-  #           else if kodingUser
-  #             input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-  #             USERNAME_VALID = no
-  #           else
-  #             input.setValidationResult "usernameCheck", null
-  #             USERNAME_VALID = yes
+    if input.valid
+      usernameCheckTimer = KD.utils.wait delay, =>
+        $.ajax
+          url         : "/Validate/Username/#{username}"
+          type        : 'POST'
+          xhrFields   : withCredentials : yes
+          success     : ->
+            input.setValidationResult 'usernameCheck', null
+            USERNAME_VALID = yes
+          error       : ({responseJSON}) ->
+
+            {forbidden, kodingUser} = responseJSON
+
+            if forbidden
+              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
+              USERNAME_VALID = no
+            else if kodingUser
+              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
+              USERNAME_VALID = no
+            else
+              input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
+              USERNAME_VALID = no
 
 
   getEmailValidator: ->
