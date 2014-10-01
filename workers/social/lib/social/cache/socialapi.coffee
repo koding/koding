@@ -27,7 +27,7 @@ module.exports = (options={}, callback)->
 
   fetchFollowedChannels = (cb)->
     options  =
-       limit : 9
+       limit : 8
 
     SocialChannel.fetchFollowedChannels client, options, cb
 
