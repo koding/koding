@@ -23,9 +23,8 @@ class EnvironmentMachineContainer extends EnvironmentContainer
 
     # Plus button on machinesContainer uses the vmController
     @on 'PlusButtonClicked', =>
-      return unless KD.isLoggedIn()
-        new KDNotificationView
-          title: "You need to login to create a new machine."
+      return new KDNotificationView
+        title: "Creating new vms is disabled on old Koding"
 
       @addVmModal = new KDModalView
         title        : 'Add Virtual Machine'
