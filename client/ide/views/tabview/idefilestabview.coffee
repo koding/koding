@@ -20,10 +20,10 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
 
     @tabView.showPaneByIndex 0
 
-    @tabView.tabHandleContainer.tabs.addSubView @toggle = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'toggle'
-      click    : @bound 'createToggleMenu'
+    # @tabView.tabHandleContainer.tabs.addSubView @toggle = new KDCustomHTMLView
+    #   tagName  : 'span'
+    #   cssClass : 'toggle'
+    #   click    : @bound 'createToggleMenu'
 
     @tabView.tabHandleContainer.tabs.addSubView @logo = new KDCustomHTMLView
       tagName  : 'span'
@@ -55,34 +55,34 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     @tabView.addPane settingsPane
 
 
-  createToggleMenu: ->
+  # createToggleMenu: ->
 
-    options =
-      menuWidth: 180
-      x: @toggle.getX()
-      y: @toggle.getY() + 20
+  #   options =
+  #     menuWidth: 180
+  #     x: @toggle.getX()
+  #     y: @toggle.getY() + 20
 
-    {appManager, mainView} = KD.singletons
-    ideApp = appManager.getFrontApp()
-    isKodingSidebarCollapsed = mainView.isSidebarCollapsed
+  #   {appManager, mainView} = KD.singletons
+  #   ideApp = appManager.getFrontApp()
+  #   isKodingSidebarCollapsed = mainView.isSidebarCollapsed
 
-    ideSidebarStateText    = if ideApp.isSidebarCollapsed then 'Expand' else 'Collapse'
-    kodingSidebarStateText = if isKodingSidebarCollapsed  then 'Expand' else 'Collapse'
+  #   ideSidebarStateText    = if ideApp.isSidebarCollapsed then 'Expand' else 'Collapse'
+  #   kodingSidebarStateText = if isKodingSidebarCollapsed  then 'Expand' else 'Collapse'
 
-    items = {}
+  #   items = {}
 
-    items["#{ideSidebarStateText} IDE sidebar"] =
-      callback: =>
-        appManager.tell 'IDE', 'toggleSidebar'
-        @contextMenu.destroy()
+  #   items["#{ideSidebarStateText} IDE sidebar"] =
+  #     callback: =>
+  #       appManager.tell 'IDE', 'toggleSidebar'
+  #       @contextMenu.destroy()
 
-    items["#{kodingSidebarStateText} Koding sidebar"] =
-      callback: =>
-        mainView.toggleSidebar()
-        ideApp.isKodingSidebarCollapsed = !isKodingSidebarCollapsed
-        @contextMenu.destroy()
+  #   items["#{kodingSidebarStateText} Koding sidebar"] =
+  #     callback: =>
+  #       mainView.toggleSidebar()
+  #       ideApp.isKodingSidebarCollapsed = !isKodingSidebarCollapsed
+  #       @contextMenu.destroy()
 
-    @contextMenu = new KDContextMenu options, items
+  #   @contextMenu = new KDContextMenu options, items
 
   createKodingSidebarHandle: ->
 
