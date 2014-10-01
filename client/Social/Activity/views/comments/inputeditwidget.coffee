@@ -8,7 +8,7 @@ class CommentInputEditWidget extends CommentInputWidget
 
     super options, data
 
-    @input.setContent Encoder.htmlDecode data.body
+    @input.setValue Encoder.htmlDecode data.body
 
 
   initEvents: ->
@@ -62,12 +62,8 @@ class CommentInputEditWidget extends CommentInputWidget
 
     data         = @getData()
     {body, link} = data
-    content      = ""
 
-    for line in body.split "\n"
-      content += "<div>#{Encoder.htmlEncode line}&nbsp;</div>"
-
-    @input.setContent content, data
+    @input.setValue body, data
 
     @addSubView new KDCustomHTMLView
       cssClass  : 'cancel-description'

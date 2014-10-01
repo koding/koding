@@ -992,49 +992,57 @@ span.collapsedtext
         > .kdlistview
           overflow        visible
 
-    .avatarview
-      abs               0px 0 0 0px
-      display           block
-      z-index           2
-
-      img
-        display         block
 
     .comment-input-widget
-      margin-top          0
-      margin-bottom       0
+      position          relative
+      margin-top        0
+      margin-bottom     0
+      height            auto
 
-    .item-add-comment-box
-      position            relative
-      padding-left        37px
-      borderBox()
+      .avatarview
+        abs               0 0 0 0px
+        display           block
+        z-index           2
 
-      &.placeholder
-        > div
-          color         #BABABA
-          &:hover
-            color         #9a9a9a
-            border-color  #EAEAEA
+        img
+          display         block
 
-      > div
-        font-weight       300
-        background        #fff
-        width             100%
+      .comment-input-wrapper
+        margin-left       37px
+        padding           0 7px
+        height            auto
         min-height        30px
+        kalc              width (100% \- 37px)
         rounded           3px
         border            1px solid #EAEAEA
-        padding           6px 13px 8px 13px
-        margin-top        -1px
-        font-size         12px
-        line-height       16px
-        color             #444
-        vendor            transition, none
+        // vendor            transition, height .177s ease
+        background        #fff
         borderBox()
+
         &:hover
           border          1px solid #DADADA
         &:focus
           border          1px solid #CACACA
+
+      .comment-input-view
+        font-weight       300
+        font-size         12px
+        color             #444
+        border            none
+        background        transparent
+        padding           0
+        min-height        24px
+        margin            5px 0 0
+
+        &:focus
           shadow          none
+
+        &.placeholder
+          > div
+            color         #BABABA
+            &:hover
+              color         #9a9a9a
+              border-color  #EAEAEA
 
     .list-previous-link
       size                100%, auto
@@ -1203,14 +1211,9 @@ span.collapsedtext
         .input-view
           padding-left    0
 
-        div[contenteditable=true]
-          rounded         3px
-          background      #fff
-          color           #4c4c4c
-          line-height     18px
-          padding         5px
-          shadow          none
-          borderBox()
+        .comment-input-wrapper
+          margin-left     0
+          width           100%
 
         .cancel-description
           font-size       12px
