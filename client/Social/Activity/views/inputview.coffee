@@ -28,7 +28,4 @@ class ActivityInputView extends KDHitEnterInputView
 
   setFocus: ->
     el = @getElement()
-    # move cursor to the end
-    if el.selectionStart? and el.selectionEnd?
-      el.selectionStart = el.selectionEnd = el.value.length
-
+    @setCaretPosition @getValue().length
