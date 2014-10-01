@@ -7,22 +7,3 @@ class CommentInputView extends ActivityInputView
     options.attributes.testpath = "CommentInputView"
 
     super options, data
-
-
-
-  forceBlur: -> no
-
-
-  focus: ->
-
-    super
-
-    @emit 'focus'
-
-
-  blur: ->
-
-    super
-
-    @emit 'blur'
-
