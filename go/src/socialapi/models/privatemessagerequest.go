@@ -16,6 +16,11 @@ type PrivateMessageRequest struct {
 	Purpose         string `json:"purpose"`
 }
 
+type ChatActivity interface {
+	GetType() string
+	GetBody(*PrivateMessageRequest) string
+}
+
 func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 	// validate the request
 	if err := p.validate(); err != nil {
