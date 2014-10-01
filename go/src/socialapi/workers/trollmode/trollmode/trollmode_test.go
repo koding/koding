@@ -587,7 +587,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(history.MessageList, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 1)
+			So(len(history.MessageList), ShouldEqual, 3)
 
 		})
 
@@ -612,7 +612,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(history.MessageList, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 2)
+			So(len(history.MessageList), ShouldEqual, 4)
 		})
 
 		// channel_message
