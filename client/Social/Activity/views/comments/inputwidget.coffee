@@ -38,7 +38,7 @@ class CommentInputWidget extends ActivityInputWidget
   unlockSubmit: -> @locked = no
 
 
-  setFocus: -> @input.focus()
+  setFocus: -> @input.setFocus()
 
 
   submit: (value) ->
