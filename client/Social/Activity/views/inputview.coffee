@@ -15,6 +15,9 @@ class ActivityInputView extends KDTokenizedInput
         pistachio    : "\#{{#(title)}}"
         dataSource   : @bound "fetchTopics"
 
+    options.attributes          or= {}
+    options.attributes.testpath or= "ActivityInputView"
+
     super options, data
     @defaultTokens = initializeDefaultTokens()
 

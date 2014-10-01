@@ -33,6 +33,7 @@ module.exports = [
   "views/messagepane.coffee"
   "views/topicmessagepane.coffee"
   "views/activitypane.coffee"
+  "views/singleactivitypane.coffee"
   "views/announcementpane.coffee"
 
   "views/filterlinks.coffee"

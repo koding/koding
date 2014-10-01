@@ -15,6 +15,7 @@ var (
 	ErrCustomerNotSubscribedToAnyPlans = errors.New("user is not subscribed to any plans")
 	ErrTokenIsEmpty                    = errors.New("token is required")
 	ErrNoCreditCard                    = errors.New("no credit card")
+	ErrAccountIdIsNotSet               = errors.New("account_id is not set")
 
 	ErrStripePlanAlreadyExists = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
 

@@ -6,11 +6,11 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     data = @getData()
 
     @settings = new KDButtonViewWithMenu
-      title: ''
-      cssClass: 'activity-settings-menu'
-      itemChildClass: ActivityItemMenuItem
-      menu: @bound 'settingMenu'
-      style: 'resurrection'
+      title          : ''
+      cssClass       : 'activity-settings-menu'
+      itemChildClass : ActivityItemMenuItem
+      menu           : @bound 'settingMenu'
+      style          : 'resurrection'
 
   viewAppended: ->
     if KD.checkFlag('super-admin') or KD.isMyChannel @getData()

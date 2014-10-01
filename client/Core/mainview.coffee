@@ -79,10 +79,9 @@ class MainView extends KDView
       tagName    : 'a'
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
-      click      : (event)=>
+      click      : (event) =>
         KD.utils.stopDOMEvent event
-        {router} = KD.singletons
-        router.handleRoute router.getDefaultRoute()
+        KD.mixpanel 'Koding Logo, click'
 
     @aside.addSubView logoWrapper
 
@@ -130,13 +129,12 @@ class MainView extends KDView
 
     @toggleClass 'collapsed'
 
-    @isCollapsed = !@isCollapsed
+    @isSidebarCollapsed = !@isSidebarCollapsed
 
     {appManager, windowController} = KD.singletons
 
     if appManager.getFrontApp().getOption('name') is 'IDE'
-      KD.utils.wait 250, ->
-        windowController.notifyWindowResizeListeners()
+      windowController.notifyWindowResizeListeners()
 
 
   createAccountArea:->

@@ -4,7 +4,7 @@ generateHumanstxt = (req, res)->
   {JAccount}       = bongo.models
   JAccount.some {'globalFlags': 'staff'}, {}, (err, accounts)->
     if err or not accounts
-      return res.send 500
+      return res.status(500).end()
     else
       body = ""
       for acc in accounts
@@ -39,6 +39,6 @@ generateHumanstxt = (req, res)->
         """
       content = header + body + footer
       res.setHeader 'Content-Type', 'text/plain'
-      return res.send 200, content
+      return res.status(200).send content
 
 module.exports = { generateHumanstxt }

@@ -80,9 +80,14 @@ class DeleteModalView extends KDModalViewWithForms
                     # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
                   @_windowDidResize()
                   KD.mixpanel "Delete account, success"
-                  KD.utils.wait 20000, ->
+
+                  logout =->
                     Cookies.expire 'clientId'
                     location.replace '/'
+
+                  @on "KDObjectWillBeDestroyed", logout
+                  KD.utils.wait 20000, logout
+
                 confirmButton.hideLoader()
 
           buttons            :

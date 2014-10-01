@@ -56,7 +56,7 @@ Configuration = (options={}) ->
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "30" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
@@ -67,6 +67,7 @@ Configuration = (options={}) ->
   logQueueName        = socialQueueName+'log'
 
   KONFIG              =
+    configName                     : configName
     environment                    : environment
     regions                        : regions
     region                         : region
@@ -196,7 +197,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{publicHostname}/-/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -253,11 +254,10 @@ Configuration = (options={}) ->
 
     webserver           :
       group             : "webserver"
-      instances         : 2
+      instances         : 6
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
-      instances         : 2
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
@@ -411,7 +411,7 @@ Configuration = (options={}) ->
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
-  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG.workers, environment
+  KONFIG.nginxConf       = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile         = generateRunFile KONFIG
   KONFIG.supervisorConf  = (require "../deployment/supervisord.coffee").create KONFIG
 

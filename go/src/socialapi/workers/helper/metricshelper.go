@@ -19,7 +19,8 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 		// change those loggers
 		// https://github.com/rcrowley/go-metrics/blob/37df06ff62a7d8b4473b48d355008c838da87561/log.go
 		// get those numbers from config
-		go metrics.Log(metric.Registry, 1e10, slog.New(os.Stderr, "metrics: ", slog.Lmicroseconds))
+		// output metrics every 1 minutes
+		go metrics.Log(metric.Registry, 6e10, slog.New(os.Stderr, "metrics: ", slog.Lmicroseconds))
 	}
 
 	// for Mac
@@ -33,7 +34,7 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 	if err != nil {
 		log.Error("Err while initing syslog for metrics, metrics wont be in the syslog %s", err.Error())
 	} else {
-		go metrics.Syslog(metric.Registry, 1e10, w)
+		go metrics.Syslog(metric.Registry, 6e10, w)
 	}
 
 	return metric

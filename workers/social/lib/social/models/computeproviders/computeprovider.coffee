@@ -360,8 +360,8 @@ module.exports = class ComputeProvider extends Base
       , (err, machine)->
 
         if err? or not machine
-          console.log "Failed to find machine for #{username}", err
-
+          # discard any error or not found cases
+          # console.log "Failed to find machine for #{username}", err
         else
 
           newDomain = "#{machine.uid}.#{username}.#{KONFIG.userSitesDomain}"
