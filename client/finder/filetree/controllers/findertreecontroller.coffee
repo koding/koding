@@ -338,18 +338,14 @@ class NFinderTreeController extends JTreeViewController
     results = nodes.map (node) =>
       sourceItem = node.getData()
       targetItem = @nodes[sourceItem.parentPath].getData()
-      FSItem.copy(sourceItem, targetItem).then ->
+      sourceItem.copy(targetItem.path).then ->
         duplicatedNodes.push node
 
     Promise.all(results).then =>
       @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", "success"
-      parentNodes = []
-      duplicatedNodes.forEach (node)=>
-        parentNode = @nodes[node.getData().parentPath]
-        parentNodes.push parentNode unless parentNode in parentNodes
-      @refreshFolder parentNode for parentNode in parentNodes
 
     .catch (err) =>
+      warn "Duplicate file failed with error:", err
       @notify null, null, err
 
     .nodeify callback
