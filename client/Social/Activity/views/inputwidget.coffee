@@ -70,13 +70,11 @@ class ActivityInputWidget extends KDView
 
     @lockSubmit()
 
-    obj = { channelId, body, payload, clientRequestId }
+    options = { channelId, body, payload, clientRequestId }
 
-    fn = if activity
-    then @bound 'update'
-    else @bound 'create'
-
-    fn(obj, @bound 'submissionCallback')
+    if activity
+    then @update options, @bound 'submissionCallback'
+    else @create options, @bound 'submissionCallback'
 
     @emit 'SubmitStarted', body, clientRequestId
 
