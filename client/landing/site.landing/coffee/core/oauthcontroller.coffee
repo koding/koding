@@ -22,7 +22,7 @@ module.exports = class OAuthController extends KDController
       newWindow  = window.open url, name, size
 
       unless newWindow
-        notify "Please disable your popup blocker and try again."
+        notify {message : "Please disable your popup blocker and try again."}
         return
 
       newWindow.onunload =->
@@ -40,5 +40,5 @@ module.exports = class OAuthController extends KDController
       mainController.emit "ForeignAuthCompleted", provider
 
   notify = (err)->
-    message = if err then "#{err.message}" else "Something went wrong"
+    message = if err then err.message else "Something went wrong"
     new KDNotificationView title : message
