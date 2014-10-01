@@ -119,8 +119,7 @@ write_files:
       echo
       echo 'This migration assistant will help you move your VMs from the old Koding'
       echo 'environment to the new one. For each VM that you have, we will copy your'
-      echo 'home directory (and any files you have changed) from the old VM into a'
-      echo 'Backup directory on the new one.'
+      echo 'home directory from the old VM into a Backup directory on the new one.'
       echo
       echo 'Please note:'
       echo '  - This script will copy changed files on the old VM and place them in '
@@ -130,26 +129,49 @@ write_files:
       echo '    You will need to move those files yourself.'
       echo '  - This script will NOT start any servers or configure any ports.'
       echo
-      echo "Your VMs:"
-      echo
-      for vm in "${vm_names[@]}"; do
-        echo " - [$counter] $vm"
-        let counter=counter+1
-      done
-      echo
-      index=''
-      while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
-        echo -n "Which vm would you like to migrate? (0-$count) "
-        read index
-      done
+      if [[ ${#vm_names[@]} -eq 1 ]]; then
+        index=0
+        confirm=''
+        while true; do
+          read -p "Do you wish to continue?" yn
+          case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+          esac
+        done
+      else
+        echo "Your VMs:"
+        echo
+        for vm in "${vm_names[@]}"; do
+          echo " - [$counter] $vm"
+          let counter=counter+1
+        done
+        echo
+        index=''
+        while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
+          echo -n "Which vm would you like to migrate? (0-$count) "
+          read index
+        done
+      fi
       vm_name="${vm_names[$index]}"
       echo
       echo "Downloading files from $vm_name (this could take a while)..."
       echo
       archive="$vm_name.tgz"
-      echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} --insecure https://migrate.sj.koding.com:3000/export-files" | xargs curl > $archive
+      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -s -w %{http_code} --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
+      if [[ $status -ne 200 ]]; then
+        error=$(cat $archive)
+        rm $archive
+        echo
+        echo "An error occured: $error"
+        echo
+        echo "Migration failed. Try again or contact support@koding.com"
+        echo
+        exit 1
+      fi
       echo
-      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
+      echo "Extracting your files to directory $(pwd)/$vm_name..."
       mkdir -p Backup/$vm_name
       tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
       rm $archive

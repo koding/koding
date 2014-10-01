@@ -106,7 +106,8 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 	}()
 	archive, err := exportUserFiles(vm)
 	if err != nil {
-		respond(w, 500, err.Error())
+		log.Error("server error: '%s'", err.Error())
+		respond(w, 500, "server error")
 		return
 	}
 	w.Header().Set("Content-type", "application/octet-stream")
@@ -183,8 +184,8 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 
 func respond(w http.ResponseWriter, code int, body string) {
 	log.Error("server error: '%s' (%d)", body, code)
-	w.WriteHeader(500)
-	io.WriteString(w, "server error")
+	w.WriteHeader(code)
+	io.WriteString(w, body)
 }
 
 func commandError(message string, err error, out []byte) error {
