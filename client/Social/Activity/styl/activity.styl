@@ -644,49 +644,20 @@ div.kdtooltip.activity-helper
     z-index           2
     abs()
 
-  // .avatarview
-  //   top               10px
-  //   left              14px
-  //   z-index           2
-  //   abs()
-
-  .input-view
+  .input-view.hitenterview
+    rounded         3px 3px 0 0
+    size            100% auto
+    min-height      54px
+    line-height     18px
+    font-size       14px
+    color           #3c4752
+    padding         16px 16px 16px 46px
+    background      #fff
+    border          1px solid #e4e4e4
+    outline         none
     borderBox()
-
-    > div
-      rounded         3px 3px 0 0
-      size            100% auto
-      min-height      54px
-      line-height     18px
-      font-size       14px
-      color           #3c4752
-      padding         16px 16px 16px 46px
-      background      #fff
-      border          1px solid #e4e4e4
-      outline         none
-      // border-bottom   none
-      // border-right    none
-      borderBox()
-      &:hover
-        border-color  #DADADA
-
-    &.placeholder
-      > div
-        color         #BABABA
-        &:hover
-          color         #9a9a9a
-          border-color  #EAEAEA
-
-      & + .widget-button-bar
-        hidden()
-
-    &:not(.placeholder)
-      >div
-        border-bottom 1px solid #e4e4e4
-        rounded       4px 4px 0 0
-
-      & + .widget-button-bar
-        show()
+    &:hover
+      border-color  #DADADA
 
   .widget-button-bar
     size              100%, 43px
