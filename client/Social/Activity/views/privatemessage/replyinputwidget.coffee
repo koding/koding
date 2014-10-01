@@ -8,11 +8,13 @@ class ReplyInputWidget extends ActivityInputWidget
 
     super options, data
 
+    @addSubView @input
+
 
   initEvents: ->
-    @input.on "Escape", @bound "reset"
-    @input.on "Enter",  @bound "submit"
-    @input.on "keyup", (event) =>
+    @input.on 'Escape', @bound 'reset'
+    @input.on 'Enter',  @bound 'submit'
+    @input.on 'keyup', (event) =>
       @showPreview() if @preview #Updates preview if it exists
       @emit 'UpKeyIsPressed' if event.keyCode is 38
 
@@ -36,6 +38,14 @@ class ReplyInputWidget extends ActivityInputWidget
   empty: -> @input.empty()
 
 
+  reset: (unlock = yes) ->
+
+    @input.empty()
+    @embedBox.resetEmbedAndHide()
+
+    if unlock then @unlockSubmit()
+    else KD.utils.wait 8000, @bound 'unlockSubmit'
+
   create: ({body, clientRequestId}, callback) ->
 
     {channel: {id: channelId}}  =  @getOptions()
@@ -48,7 +58,4 @@ class ReplyInputWidget extends ActivityInputWidget
 
 
   viewAppended: ->
-
-    @addSubView @icon
-    @addSubView @input
 
