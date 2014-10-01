@@ -182,6 +182,8 @@ func (p *PlanChecker) Total() error {
 		return err
 	}
 
+	go p.checkGhostMachines(instances)
+
 	if len(instances) >= allowedMachines {
 		p.Log.Info("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
@@ -193,6 +195,34 @@ func (p *PlanChecker) Total() error {
 		p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 
 	return nil
+}
+
+func (p *PlanChecker) checkGhostMachines(instances []ec2.Instance) {
+	for _, instance := range instances {
+		for _, tag := range instance.Tags {
+			if tag.Key != "koding-machineId" {
+				continue
+			}
+
+			machineId := tag.Value
+
+			// this is just for logging, so we don't care about handling
+			// the error
+			p.DB.Run("jMachines", func(c *mgo.Collection) error {
+				n, err := c.FindId(bson.ObjectIdHex(machineId)).Count()
+				if err != nil {
+					return err
+				}
+
+				if n != 0 {
+					return nil
+				}
+
+				p.Log.Warning("Detected a Ghost Machine in AWS! Instance id: %s", instance.InstanceId)
+				return nil
+			})
+		}
+	}
 }
 
 func (p *PlanChecker) Storage(wantStorage int) error {
