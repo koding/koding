@@ -67,3 +67,13 @@ deploy:
           s3cmd del $S3DIR/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
           s3cmd -P put latest-version.txt  $S3DIR/latest-version.txt
+
+  after-steps:
+    - sherzberg/slack-notify@0.0.11:
+        token: $KLIENT_SLACK_TOKEN
+        subdomain: koding
+        username: wercker
+        channel: "#announce"
+        passed-message: "klient/$KLIENT_CHANNEL: A new klient (ver. $NEWBUILDNO) is successfuly built and deployed."
+        failed-message: "klient/$KLIENT_CHANNEL: New Klient could not be built or deployed. See $WERCKER_DEPLOY_URL for the details."
+
