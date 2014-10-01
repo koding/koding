@@ -1904,12 +1904,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
   padding               58px 34px 0 34px
   background            #fff
   margin-left           -34px
-  vendor                transform, translateX(0)
   borderBox()
-
-  > .listview-wrapper > .kdscrollview
-    overflow            scroll
-    kalc                height, 100vh \- 58px
 
   .new-message-form
     abs                 0px 0 0 0px
@@ -2037,6 +2032,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
     width                   100%
     max-width               566px
     z-index                 11
+    bg                      color white
     fix()
 
     .kdbuttonwithmenu-wrapper.activity-settings-menu
@@ -2386,17 +2382,20 @@ deleteRed = rgba(217, 58, 55, 0.9)
             color           #b2b2b2
 
   .reply-input-widget
-    position            fixed
-    bottom              0
-    left                34px
-    height              auto
-    width               100%
+    bottom              30px
+    left                291px
+    size                100% auto
     max-width           532px
-    padding             0 0 30px
+    padding             14px 14px 14px 54px
+    margin              0
+    border              2px solid #eaeaea
     bg                  color white
-    margin-top          8px
-    margin-bottom       0
     vendor              transition, width .177s ease
+    rounded             0
+    z-index             1
+    cursor              text
+    borderBox()
+    fix()
 
     &:before
       content         ""
@@ -2406,9 +2405,34 @@ deleteRed = rgba(217, 58, 55, 0.9)
       z-index         2
       abs()
 
-    div[contenteditable=true]
-      border-radius   0
-      border          2px solid #eaeaea
+    &:after
+      content         ""
+      display         block
+      margin-top      2px
+      height          30px
+      width           100%
+      bg              color white
+      abs             100% 0 0 0px
+      z-index         0
+
+
+
+    .input-view.hitenterview
+      bg              color transparent
+      bg              image none
+      border          none
+      margin          0
+      width           100%
+      font-size       14px
+      line-height     22px
+      min-height      22px
+      padding         0
+      font-weight     400
+      rounded         0
+      &:focus
+        outline       none
+        shadow        none
+
 
 #kdmaincontainer.collapsed .reply-input-widget
   kalc                width, 100% \- 131px
