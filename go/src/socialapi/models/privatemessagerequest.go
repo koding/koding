@@ -3,6 +3,8 @@ package models
 import (
 	"koding/db/mongodb/modelhelper"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type PrivateMessageRequest struct {
@@ -84,6 +86,13 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 			continue
 		}
 
+		ja := p.Clone()
+
+		ja.AccountId = participantId
+		if err = ja.AddJoinActivity(c, a); err != nil {
+			return nil, err
+		}
+
 		if participantId != p.AccountId {
 			continue
 		}
@@ -98,7 +107,7 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 	}
 
 	// create private message
-	cmc, err := p.handlePrivateMessageCreation(c)
+	cmc, err := p.AddMessage(c)
 	if err != nil {
 		return nil, err
 	}
@@ -153,11 +162,9 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	return p.handlePrivateMessageCreation(c)
+	return p.AddMessage(c)
 }
 
-func (p *PrivateMessageRequest) handlePrivateMessageCreation(c *Channel) (*ChannelContainer, error) {
-	cm, err := p.createMessage(c.Id)
 func (p *PrivateMessageRequest) Clone() *PrivateMessageRequest {
 	clone := new(PrivateMessageRequest)
 	*clone = *p
@@ -165,15 +172,45 @@ func (p *PrivateMessageRequest) Clone() *PrivateMessageRequest {
 	return clone
 }
 
+func (p *PrivateMessageRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
+	cm, err := p.createActivity(c, ChatMessage{})
+	if err != nil {
+		return nil, err
+	}
+
+	return p.buildContainer(c, cm)
+}
+
+func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy *Account) error {
+	cj := ChatJoin{}
+	if p.AccountId != addedBy.Id {
+		cj.AddedBy = addedBy.Nick
+	}
+
+	_, err := p.createActivity(c, cj)
+
+	return err
+}
+
+func (p *PrivateMessageRequest) AddLeaveActivity(c *Channel) error {
+	_, err := p.createActivity(c, ChatLeave{})
+
+	return err
+}
+
+func (p *PrivateMessageRequest) createActivity(c *Channel, ca ChatActivity) (*ChannelMessage, error) {
+	cm, err := p.createMessage(c.Id, ca)
 	if err != nil {
 		return nil, err
 	}
 
 	// add message to the channel
 	_, err = c.AddMessage(cm.Id)
-	if err != nil {
-		return nil, err
-	}
+
+	return cm, err
+}
+
+func (p *PrivateMessageRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
 
 	lastMessageContainer, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
@@ -252,12 +289,23 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	return participantIds
 }
 
-func (p *PrivateMessageRequest) createMessage(channelId int64) (*ChannelMessage, error) {
+func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) (*ChannelMessage, error) {
 	cm := NewChannelMessage()
-	cm.Body = p.Body
-	cm.TypeConstant = ChannelMessage_TYPE_PRIVATE_MESSAGE
+	cm.Body = ca.GetBody(p)
+	cm.TypeConstant = ca.GetType()
 	cm.AccountId = p.AccountId
 	cm.InitialChannelId = channelId
+
+	switch ca.(type) {
+	case ChatJoin:
+		if ca.(ChatJoin).AddedBy != "" {
+			cm.Payload = gorm.Hstore{}
+			addedBy := ca.(ChatJoin).AddedBy
+
+			cm.Payload["addedBy"] = &addedBy
+		}
+	}
+
 	if err := cm.Create(); err != nil {
 		return nil, err
 	}
