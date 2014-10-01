@@ -60,6 +60,11 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		}
 
 		participants[i] = participant
+
+		if err := addJoinActivity(query.Id, participant.AccountId, query.AccountId); err != nil {
+			return response.NewBadRequest(err)
+		}
+
 	}
 
 	return response.NewOK(participants)
@@ -79,6 +84,10 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	for i := range participants {
 		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if err := addLeaveActivity(query.Id, participants[i].AccountId); err != nil {
 			return response.NewBadRequest(err)
 		}
 	}
@@ -176,4 +185,23 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	}
 
 	return nil
+}
+
+func addJoinActivity(channelId, participantId, addedBy int64) error {
+	a := models.NewAccount()
+	if err := a.ById(addedBy); err != nil {
+		return err
+	}
+
+	c := &models.Channel{Id: channelId}
+	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+
+	return pmr.AddJoinActivity(c, a)
+}
+
+func addLeaveActivity(channelId, participantId int64) error {
+	c := &models.Channel{Id: channelId}
+	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+
+	return pmr.AddLeaveActivity(c)
 }
