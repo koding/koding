@@ -162,7 +162,6 @@ class PrivateMessagePane extends MessagePane
       return  if inProgress
 
       inProgress = true
-      @listController.showLazyLoader()
 
       {appManager} = KD.singletons
       first         = @listController.getItemsOrdered().first
@@ -171,7 +170,6 @@ class PrivateMessagePane extends MessagePane
       from         = first.getData().createdAt
 
       @fetch {from, limit: 10}, (err, items = []) =>
-        @listController.hideLazyLoader()
 
         return KD.showError err  if err
 
