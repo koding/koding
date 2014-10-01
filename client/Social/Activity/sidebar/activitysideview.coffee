@@ -66,6 +66,9 @@ class ActivitySideView extends JView
     @moreLink = new SidebarMoreLink {href: searchLink, countSource, limit}
     @moreLink.hide()
 
+    @listController.getListView().on 'ItemWasAdded', =>
+      @moreLink.updateCount @listController.getItemCount()
+
 
   init: ->
 
