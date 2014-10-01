@@ -13,9 +13,6 @@ class ActivityInputWidget extends KDView
     @initEvents()
 
 
-  click: -> @input.setFocus()
-
-
   createSubViews: ->
 
     {defaultValue, placeholder, inputViewClass} = @getOptions()
