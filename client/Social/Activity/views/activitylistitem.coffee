@@ -116,24 +116,36 @@ class ActivityListItemView extends KDListItemView
 
   showEditWidget : ->
 
-    @editWidget?.destroy()
-    @editWidget = new ActivityEditWidget null, @getData()
-    @editWidget.on 'SubmitSucceeded', @bound 'resetEditing'
-    @editWidget.input.on 'Escape', @bound 'resetEditing'
+    unless @editWidget
+      @editWidget = new ActivityEditWidget null, @getData()
+      @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
+      @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
+      @editWidget.input.on 'blur', @bound 'resetEditing'
+      @editWidgetWrapper.addSubView @editWidget, null, yes
 
-    KD.utils.defer @editWidget.bound 'focus'
+    KD.utils.defer =>
+      {input} = @editWidget
+      {body}  = document
+      input.setFocus()
+      input.resize()
+      input.setCaretPosition input.getValue().length
+      input.getElement().scrollIntoView yes
 
-    @editWidgetWrapper.addSubView @editWidget, null, yes
     @editWidgetWrapper.show()
 
     @setClass 'editing'
     @unsetClass 'edited'
 
 
+  destroyEditWidget: ->
+
+    @resetEditing()
+    @editWidget.destroy()
+    @editWidget = null
+
 
   resetEditing : ->
 
-    @editWidget.destroy()
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
     list = @getDelegate()

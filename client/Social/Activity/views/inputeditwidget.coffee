@@ -2,7 +2,7 @@ class ActivityEditWidget extends ActivityInputWidget
 
   constructor: (options = {}, data) ->
 
-    options.cssClass        = KD.utils.curry "edit-widget", options.cssClass
+    options.cssClass        = KD.utils.curry 'edit-widget', options.cssClass
     options.destroyOnSubmit = yes
 
     super options, data
@@ -11,12 +11,8 @@ class ActivityEditWidget extends ActivityInputWidget
 
     data         = @getData()
     {body, link} = data
-    content      = ""
 
-    for line in body.split "\n"
-      content += "<div>#{Encoder.htmlEncode line}&nbsp;</div>"
-
-    @input.setContent content, data
+    @input.setValue body
     @embedBox.loadEmbed link.link_url  if link
 
     @addSubView @input
