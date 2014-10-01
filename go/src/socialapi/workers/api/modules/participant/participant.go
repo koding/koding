@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var ErrSkipActivity = errors.New("skip activity")
+
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
@@ -188,20 +190,51 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 }
 
 func addJoinActivity(channelId, participantId, addedBy int64) error {
+
+	c, err := fetchChannelWithValidation(channelId)
+	if err != nil {
+		if err == ErrSkipActivity {
+			return nil
+		}
+
+		return err
+	}
+
 	a := models.NewAccount()
 	if err := a.ById(addedBy); err != nil {
 		return err
 	}
 
-	c := &models.Channel{Id: channelId}
 	pmr := &models.PrivateMessageRequest{AccountId: participantId}
 
 	return pmr.AddJoinActivity(c, a)
 }
 
 func addLeaveActivity(channelId, participantId int64) error {
-	c := &models.Channel{Id: channelId}
+	c, err := fetchChannelWithValidation(channelId)
+	if err != nil {
+		if err == ErrSkipActivity {
+			return nil
+		}
+
+		return err
+	}
+
 	pmr := &models.PrivateMessageRequest{AccountId: participantId}
 
 	return pmr.AddLeaveActivity(c)
+}
+
+func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return nil, err
+	}
+
+	// add activity information for private message channel
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return nil, ErrSkipActivity
+	}
+
+	return c, nil
 }
