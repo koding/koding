@@ -103,7 +103,14 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem data, yes
+      index = switch data.typeConstant
+        when 'topic'        then 2
+        when 'group'        then 2
+        when 'announcement' then 2
+        else 0
+
+      item = @addItem data, index
+
       item.setUnreadCount unreadCount
 
 
@@ -132,7 +139,7 @@ class ActivitySidebar extends KDCustomHTMLView
       socialapi.eachCached data.getId(), (it) -> it.isFollowed = yes
       # and add to the sidebar
       # (if the item is already on sidebar, it's handled on @addItem)
-      item = @addItem data, yes
+      item = @addItem data, 0
       item.setUnreadCount unreadCount
 
 
@@ -156,7 +163,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, yes
+      item = @addItem channel, 2
       item.setUnreadCount unreadCount
 
 
@@ -231,13 +238,13 @@ class ActivitySidebar extends KDCustomHTMLView
 
   # dom manipulation
 
-  addItem: (data, prepend = no) ->
+  addItem: (data, index) ->
 
-    index          = if prepend then 2
     listController = @getListController data.typeConstant
 
     if item = @getItemByData data
-      listController.moveItemToIndex item, index  if index
+      log {index}
+      listController.moveItemToIndex item, index  if index?
       return item
 
     item = listController.addItem data, index
