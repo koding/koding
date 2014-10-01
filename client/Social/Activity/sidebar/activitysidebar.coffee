@@ -54,14 +54,13 @@ class ActivitySidebar extends KDCustomHTMLView
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
       .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
-      .on 'ReplyAdded',                @bound 'replyAdded'
       .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
       .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
+      .on 'ReplyAdded',                @bound 'replyAdded'
 
       .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
-      .on 'ReplyRemoved',              (update) -> log update.event, update
-
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
+      # .on 'ReplyRemoved',              (update) -> log update.event, update
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
@@ -89,6 +88,13 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleFollowedFeedUpdate: (update) ->
 
+    # WARNING: WRONG NAMING ON THE METHODS
+    # these are the situations where we end up here
+    #
+    # when a REPLY is added to a PRIVATE MESSAGE
+    # when a new PRIVATE MESSAGE is posted (because of above i think)
+    # when an ACTIVITY is posted to a FOLLOWED TOPIC
+
     {socialapi}   = KD.singletons
     {unreadCount} = update
     {id}          = update.channel
@@ -97,10 +103,18 @@ class ActivitySidebar extends KDCustomHTMLView
 
       return KD.showError err  if err
 
-      item = @addItem data, yes
+      index = switch data.typeConstant
+        when 'topic'        then 2
+        when 'group'        then 2
+        when 'announcement' then 2
+        else 0
+
+      item = @addItem data, index
+
       item.setUnreadCount unreadCount
 
 
+  # when a comment is added to a post
   replyAdded: (update) ->
 
     {socialapi}        = KD.singletons
@@ -125,11 +139,17 @@ class ActivitySidebar extends KDCustomHTMLView
       socialapi.eachCached data.getId(), (it) -> it.isFollowed = yes
       # and add to the sidebar
       # (if the item is already on sidebar, it's handled on @addItem)
-      item = @addItem data, yes
+      item = @addItem data, 0
       item.setUnreadCount unreadCount
 
 
   accountAddedToChannel: (update) ->
+
+    # WARNING: WRONG NAMING ON THE METHODS
+    # these are the situations where we end up here
+    #
+    # when a new PRIVATE MESSAGE is posted
+    # when a TOPIC is followed
 
     {socialapi}                     = KD.singletons
     {unreadCount, participantCount} = update
@@ -143,7 +163,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, yes
+      item = @addItem channel, 2
       item.setUnreadCount unreadCount
 
 
@@ -218,13 +238,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
   # dom manipulation
 
-  addItem: (data, prepend = no) ->
+  addItem: (data, index) ->
 
-    index          = if prepend then 2
     listController = @getListController data.typeConstant
 
     if item = @getItemByData data
-      listController.moveItemToIndex item, index  if index
+      listController.moveItemToIndex item, index  if index?
       return item
 
     item = listController.addItem data, index
@@ -239,7 +258,9 @@ class ActivitySidebar extends KDCustomHTMLView
       data           = item.getData()
       listController = @getListController data.typeConstant
 
-      listController.removeItem item
+      item.bindTransitionEnd()
+      item.once 'transitionend', -> listController.removeItem item
+      item.setClass 'out'
 
 
   bindItemEvents: (listView) ->

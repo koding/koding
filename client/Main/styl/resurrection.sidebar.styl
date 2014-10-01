@@ -382,6 +382,8 @@ sidebarSelectedBg = #262626
     display           block
     color             sidebarGray
     overflow          hidden
+    vendor            transition, margin-top .2s ease-out\,\
+                                  transform .2s ease-out
     borderBox()
     &:hover
       bg              color rgba(0,0,0,.01)
@@ -403,6 +405,10 @@ sidebarSelectedBg = #262626
         bg            color #222
         abs           7px 0 0 7px
         r-sprite      app new-nav-activity
+
+    &.out
+      margin-top      -28px
+      vendor          transform, translateX(-300px)
 
 
 
@@ -535,9 +541,12 @@ sidebarSelectedBg = #262626
           color       #C9C9CC
 
       &.selected
+
         .sidebar-message-text
+          > .purpose
           > .user-numbers
           > .profile
+          > .profile > .profile
             color       sidebarActive
 
 
@@ -555,8 +564,6 @@ sidebarSelectedBg = #262626
           ellipsis()
           margin-top  3px
 
-        > .profile > .profile
-            color     sidebarActive
 
       > .purpose
       > .profile
