@@ -13,6 +13,15 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
+    {typeConstant, payload, body} = data
+
+    {addedBy} = payload if payload
+
+    if typeConstant in ['join', 'leave']
+      data.body = "has #{@prepareActivity()} the chat"
+
+    data.body = "#{data.body} from an invitation by @#{addedBy}" if addedBy
+
     {createdAt, deletedAt, updatedAt} = data
 
     @likeView = new ReplyLikeView {}, data
@@ -22,6 +31,15 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
 
+  prepareActivity: ->
+    {typeConstant} = @getData()
+    switch typeConstant
+      when 'join'
+        return 'joined'
+      when 'leave'
+        return 'left'
+
+    return ''
 
   decorate: ->
 
