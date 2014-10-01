@@ -25,3 +25,7 @@ class ActivityInputView extends KDHitEnterInputView
 
 
   empty: -> @setValue ''
+
+  setFocus: ->
+    el = @getElement()
+    @setCaretPosition @getValue().length

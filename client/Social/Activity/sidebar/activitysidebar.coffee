@@ -243,7 +243,6 @@ class ActivitySidebar extends KDCustomHTMLView
     listController = @getListController data.typeConstant
 
     if item = @getItemByData data
-      log {index}
       listController.moveItemToIndex item, index  if index?
       return item
 
