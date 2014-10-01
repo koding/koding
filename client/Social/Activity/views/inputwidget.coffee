@@ -51,7 +51,6 @@ class ActivityInputWidget extends KDView
 
     @input.on 'Escape', @bound 'reset'
     @input.on 'Enter',  @bound 'submit'
-    @input.on 'Enter', => @input.setBlur()
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -205,9 +204,7 @@ class ActivityInputWidget extends KDView
     @unsetClass "preview-active"
 
 
-  focus: ->
-    @input.setFocus()
-
+  focus: -> @input.setFocus()
 
 
   viewAppended: ->
