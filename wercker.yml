@@ -24,7 +24,7 @@ build:
 
   after-steps:
     - sherzberg/slack-notify@0.0.11:
-        token: $SLACK_TOKEN
+        token: $KLIENT_SLACK_TOKEN
         subdomain: koding
         username: wercker
         channel: "#testingen"
