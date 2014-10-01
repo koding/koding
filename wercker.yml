@@ -22,16 +22,6 @@ build:
         name: build go binaries
         code: go/build.sh
 
-  after-steps:
-    - sherzberg/slack-notify@0.0.11:
-        token: $KLIENT_SLACK_TOKEN
-        subdomain: koding
-        username: wercker
-        channel: "#testingen"
-        # passed-message: "New build (Version $NEWBUILDNO) of klient is on `$KLIENT_CHANNEL` now."
-        passed-message: "New build of klient."
-        failed-message: "New Klient could not be built."
-
 deploy:
   steps:
     - script:
@@ -61,19 +51,12 @@ deploy:
           gzip -N klient
           mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
-    - script:
-        name: sync with s3
-        code: |
-          #  Copy files to S3.
-          s3cmd -P put *.deb  $S3DIR/$NEWBUILDNO/
-          s3cmd -P put *.gz  $S3DIR/$NEWBUILDNO/
+  after-steps:
+    - sherzberg/slack-notify@0.0.11:
+        token: $KLIENT_SLACK_TOKEN
+        subdomain: koding
+        username: wercker
+        channel: "#testingen"
+        passed-message: "klient/$KLIENT_CHANNEL: A new klient (ver. $NEWBUILDNO) is successfuly built and deployed."
+        failed-message: "klient/$KLIENT_CHANNEL: New Klient could not be deployed. See $WERCKER_DEPLOY_URL for the details."
 
-          # Cleanup the latest/ folder and put the latest one in there
-          s3cmd del --recursive $S3DIR/latest/
-          s3cmd -P put *.deb  $S3DIR/latest/
-          s3cmd -P put *.gz  $S3DIR/latest/
-
-          # Update latest-version.txt with the latest version
-          s3cmd del $S3DIR/latest-version.txt
-          echo $NEWBUILDNO > latest-version.txt
-          s3cmd -P put latest-version.txt  $S3DIR/latest-version.txt
