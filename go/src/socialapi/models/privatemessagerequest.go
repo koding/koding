@@ -21,6 +21,38 @@ type ChatActivity interface {
 	GetBody(*PrivateMessageRequest) string
 }
 
+type ChatMessage struct{}
+
+type ChatJoin struct {
+	AddedBy string
+}
+
+type ChatLeave struct{}
+
+func (cm ChatMessage) GetType() string {
+	return ChannelMessage_TYPE_PRIVATE_MESSAGE
+}
+
+func (cm ChatMessage) GetBody(p *PrivateMessageRequest) string {
+	return p.Body
+}
+
+func (cm ChatJoin) GetType() string {
+	return ChannelMessage_TYPE_JOIN
+}
+
+func (cm ChatJoin) GetBody(p *PrivateMessageRequest) string {
+	return "join"
+}
+
+func (cm ChatLeave) GetType() string {
+	return ChannelMessage_TYPE_LEAVE
+}
+
+func (cm ChatLeave) GetBody(p *PrivateMessageRequest) string {
+	return "leave"
+}
+
 func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 	// validate the request
 	if err := p.validate(); err != nil {
