@@ -158,6 +158,13 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 
 func (p *PrivateMessageRequest) handlePrivateMessageCreation(c *Channel) (*ChannelContainer, error) {
 	cm, err := p.createMessage(c.Id)
+func (p *PrivateMessageRequest) Clone() *PrivateMessageRequest {
+	clone := new(PrivateMessageRequest)
+	*clone = *p
+
+	return clone
+}
+
 	if err != nil {
 		return nil, err
 	}
