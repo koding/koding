@@ -86,17 +86,23 @@ do ->
 
   #        do handler()
 
+  console.log 'new koding'
+
+  NEWKODING = ->
+    @handleRoute '/Home'
+    KD.showNewKodingModal()
+
   KD.registerRoutes 'Login',
     '/:name?/Login/:token?'    : handler (app)-> app.getView().animateToForm 'login'
-    '/:name?/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/:name?/Register'         : handler (app)-> app.getView().animateToForm 'register'
-    '/:name?/Register/:token'  : handleFinishRegistration
-    '/:name?/Recover'          : handleRecovery
+    '/:name?/Redeem'           : NEWKODING
+    '/:name?/Register'         : NEWKODING
+    '/:name?/Register/:token'  : NEWKODING
+    '/:name?/Recover'          : NEWKODING
     '/:name?/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
     '/:name?/Reset/:token'     : handleResetRoute
-    '/:name?/Confirm/:token'   : handleResetRoute
-    '/:name?/Verify/:token?'   : handleVerifyRoute
-    '/:name?/Redeem/:token'    : handleRedeemRoute
+    '/:name?/Confirm/:token'   : NEWKODING
+    '/:name?/Verify/:token?'   : NEWKODING
+    '/:name?/Redeem/:token'    : NEWKODING
     '/:name?/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     #'/:name?/Login/:token?'    : handleRestriction (app)->
         #handler (app)-> app.getView().animateToForm 'login'
