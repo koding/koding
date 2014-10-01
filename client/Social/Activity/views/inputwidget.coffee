@@ -146,7 +146,7 @@ class ActivityInputWidget extends KDView
   reset: (unlock = yes) ->
 
     @input.empty()
-    @input.blur()
+    @input.setBlur()
     @embedBox.resetEmbedAndHide()
 
     if unlock then @unlockSubmit()
