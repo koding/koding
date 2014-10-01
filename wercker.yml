@@ -22,6 +22,18 @@ build:
         name: build go binaries
         code: go/build.sh
 
+  after-steps:
+    - sherzberg/slack-notify@0.0.11:
+        token: $SLACK_TOKEN
+        subdomain: koding
+        username: wercker
+        channel: "#testingen"
+        # passed-message: "New build (Version $NEWBUILDNO) of klient is on `$KLIENT_CHANNEL` now."
+        passed-message: "New build of klient."
+        failed-message: "New Klient could not be built."
+
+deploy:
+  steps:
     - script:
         name: configure s3cmd (temporary workaround)
         code: |
@@ -49,17 +61,6 @@ build:
           gzip -N klient
           mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
-  after-steps:
-    - sherzberg/slack-notify@0.0.11:
-        token: $SLACK_TOKEN
-        subdomain: koding
-        username: wercker
-        channel: "#testingen"
-        passed-message: "New build (Version $NEWBUILDNO) of klient is on `$KLIENT_CHANNEL` now."
-        failed-message: "New Klient could not be built on `$KLIENT_CHANNEL`."
-
-deploy:
-  steps:
     - script:
         name: sync with s3
         code: |
