@@ -16,6 +16,9 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       name     : 'Dummy'
       closable : no
 
+    @tabView.handles.forEach (handle) =>
+      handle.on 'mousedown', => @emit 'TabHandleMousedown'
+
     @tabView.addPane dummyPane
 
     @tabView.showPaneByIndex 0
