@@ -173,6 +173,21 @@ module.exports.create = (KONFIG, environment)->
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
+    # listen for http requests at port 81
+    # this port will be only used for http->https redirection
+    #
+    # do not forget to allow communication via port 81 at security groups(ELB SecGroup)
+    # like : koding-latest,
+
+    # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
+    server {
+      # just a random port
+      listen 81;
+      # use generic names, do not hardcode values
+      return 302 https://$host$request_uri;
+    }
+
+
     # start server
     server {
 
