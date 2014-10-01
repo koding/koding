@@ -101,25 +101,25 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       @machine.setLabel label, (err, newSlug)=>
 
-        if not KD.showError err
+        return if KD.showError err
 
-          nickname.updatePartial "#{label}<cite></cite>"
+        nickname.updatePartial "#{label}<cite></cite>"
 
-          nickEdit.hide()
-          nickname.show()
+        nickEdit.hide()
+        nickname.show()
 
-          frontApp = appManager.getFrontApp()
+        frontApp = appManager.getFrontApp()
 
-          if frontApp.options.name is "IDE" and frontApp.workspaceData?
+        if frontApp.options.name is "IDE" and frontApp.workspaceData?
 
-            return  unless @machine.slug is frontApp.workspaceData.machineLabel
+          return  unless @machine.slug is frontApp.workspaceData.machineLabel
 
-            newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
-            frontApp.workspaceData.machineLabel = newSlug
+          newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
+          frontApp.workspaceData.machineLabel = newSlug
 
-            KD.utils.defer ->
-              computeController.once 'MachineDataUpdated', ->
-                router.clear newRoute
+          KD.utils.defer ->
+            computeController.once 'MachineDataUpdated', ->
+              router.clear newRoute
 
 
   viewAppended:->
@@ -156,6 +156,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : "tiny"
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        domains        :
+          label        : "Domains <span></span>"
+          itemClass    : ManageDomainsView
         advancedView   :
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
