@@ -59,7 +59,7 @@ class PrivateMessagePane extends MessagePane
 
     @input = new ReplyInputWidget {channel}
 
-    @input.on 'UpKeyIsPressed', @bound 'editLastMessage'
+    @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
   editLastMessage: ->
