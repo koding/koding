@@ -53,6 +53,8 @@ utils.extend utils,
 
     return null unless text
 
+    text = text.replace '\\', '\\\\'
+
     options.gfm       ?= true
     options.pedantic  ?= false
     options.sanitize  ?= true

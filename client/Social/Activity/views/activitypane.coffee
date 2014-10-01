@@ -183,7 +183,7 @@ class ActivityPane extends MessagePane
     KD.singletons.search
       .searchChannel text, @getData().id, options
       .then (results) =>
-        @searchResults.appendContent results
+        @searchResults.setContent results
       .catch KD.showError
 
 

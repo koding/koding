@@ -11,7 +11,7 @@ class SidebarMoreLink extends CustomLinkView
     @updateCount()
 
 
-  updateCount: KD.utils.debounce 300, (visibleCount)->
+  updateCount: (visibleCount) ->
 
     @setOption 'visibleCount', visibleCount  if visibleCount
     {countSource} = @getOptions()
