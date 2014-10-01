@@ -169,7 +169,10 @@ class PrivateMessagePane extends MessagePane
 
       from         = first.getData().createdAt
 
+      @listPreviousLink.updatePartial 'Fetching previous messages...'
+
       @fetch {from, limit: 10}, (err, items = []) =>
+        @listPreviousLink.updatePartial @listPreviousLink.getOption 'linkCopy'
 
         return KD.showError err  if err
 
