@@ -239,7 +239,9 @@ class ActivitySidebar extends KDCustomHTMLView
       data           = item.getData()
       listController = @getListController data.typeConstant
 
-      listController.removeItem item
+      item.bindTransitionEnd()
+      item.once 'transitionend', -> listController.removeItem item
+      item.setClass 'out'
 
 
   bindItemEvents: (listView) ->
