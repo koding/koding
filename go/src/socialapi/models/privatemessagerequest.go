@@ -72,6 +72,11 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 		return nil, err
 	}
 
+	a := NewAccount()
+	if err := a.ById(p.AccountId); err != nil {
+		return nil, err
+	}
+
 	// add participants to tha channel
 	for _, participantId := range participantIds {
 		cp, err := c.AddParticipant(participantId)
