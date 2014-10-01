@@ -54,14 +54,13 @@ class ActivitySidebar extends KDCustomHTMLView
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
       .on 'RemovedFromChannel',        @bound 'accountRemovedFromChannel'
-      .on 'ReplyAdded',                @bound 'replyAdded'
       .on 'MessageAddedToChannel',     @bound 'messageAddedToChannel'
       .on 'MessageRemovedFromChannel', @bound 'messageRemovedFromChannel'
+      .on 'ReplyAdded',                @bound 'replyAdded'
 
       .on 'MessageListUpdated',        @bound 'setPostUnreadCount'
-      .on 'ReplyRemoved',              (update) -> log update.event, update
-
       .on 'ParticipantUpdated',        @bound 'handleGlanced'
+      # .on 'ReplyRemoved',              (update) -> log update.event, update
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
@@ -89,6 +88,13 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleFollowedFeedUpdate: (update) ->
 
+    # WARNING: WRONG NAMING ON THE METHODS
+    # these are the situations where we end up here
+    #
+    # when a REPLY is added to a PRIVATE MESSAGE
+    # when a new PRIVATE MESSAGE is posted (because of above i think)
+    # when an ACTIVITY is posted to a FOLLOWED TOPIC
+
     {socialapi}   = KD.singletons
     {unreadCount} = update
     {id}          = update.channel
@@ -101,6 +107,7 @@ class ActivitySidebar extends KDCustomHTMLView
       item.setUnreadCount unreadCount
 
 
+  # when a comment is added to a post
   replyAdded: (update) ->
 
     {socialapi}        = KD.singletons
@@ -130,6 +137,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   accountAddedToChannel: (update) ->
+
+    # WARNING: WRONG NAMING ON THE METHODS
+    # these are the situations where we end up here
+    #
+    # when a new PRIVATE MESSAGE is posted
+    # when a TOPIC is followed
 
     {socialapi}                     = KD.singletons
     {unreadCount, participantCount} = update
