@@ -83,7 +83,7 @@ class ActivityInputWidget extends KDView
 
     if err
       @showError err
-      @emit 'SubmitFailed', err, activity.clientRequestId
+      @emit 'SubmitFailed', err, activity.clientRequestId  if activity
       return
 
     @emit 'SubmitSucceeded', activity
