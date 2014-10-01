@@ -225,7 +225,7 @@ func (p *PrivateMessageRequest) obtainParticipantIds() ([]int64, error) {
 	}
 
 	// append creator to the recipients
-	participantIds = appendCreatorId(participantIds, p.AccountId)
+	participantIds = prependCreatorId(participantIds, p.AccountId)
 
 	// author and atleast one recipient should be in the
 	// recipient list
@@ -237,14 +237,19 @@ func (p *PrivateMessageRequest) obtainParticipantIds() ([]int64, error) {
 	return participantIds, nil
 }
 
-func appendCreatorId(participants []int64, authorId int64) []int64 {
+func prependCreatorId(participants []int64, authorId int64) []int64 {
+	participantIds := make([]int64, 0)
+	participantIds = append(participantIds, authorId)
+
 	for _, participant := range participants {
 		if participant == authorId {
-			return participants
+			continue
 		}
+
+		participantIds = append(participantIds, participant)
 	}
 
-	return append(participants, authorId)
+	return participantIds
 }
 
 func (p *PrivateMessageRequest) createMessage(channelId int64) (*ChannelMessage, error) {
