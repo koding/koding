@@ -46,13 +46,14 @@ type Checker interface {
 }
 
 type PlanChecker struct {
-	Api      *amazon.AmazonClient
-	DB       *mongodb.MongoDB
-	Machine  *protocol.Machine
-	Provider *Provider
-	Kite     *kite.Kite
-	Username string
-	Log      logging.Logger
+	Api        *amazon.AmazonClient
+	DB         *mongodb.MongoDB
+	Machine    *protocol.Machine
+	Provider   *Provider
+	Kite       *kite.Kite
+	Username   string
+	Log        logging.Logger
+	KlientPool *klient.KlientPool
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
@@ -112,11 +113,10 @@ func (p *PlanChecker) AlwaysOn() error {
 
 func (p *PlanChecker) Timeout() error {
 	// connect and get real time data directly from the machines klient
-	klient, err := klient.New(p.Kite, p.Machine.QueryString)
+	klient, err := p.KlientPool.Get(p.Machine.QueryString)
 	if err != nil {
 		return err
 	}
-	defer klient.Close()
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()

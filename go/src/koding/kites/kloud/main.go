@@ -12,6 +12,7 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	kloudprotocol "koding/kites/kloud/protocol"
 
@@ -186,13 +187,14 @@ func newKite(conf *Config) *kite.Kite {
 		}
 
 		return &koding.PlanChecker{
-			Api:      a,
-			Provider: kodingProvider,
-			DB:       kodingProvider.Session,
-			Kite:     kodingProvider.Kite,
-			Log:      kodingProvider.Log,
-			Username: m.Username,
-			Machine:  m,
+			Api:        a,
+			Provider:   kodingProvider,
+			DB:         kodingProvider.Session,
+			Kite:       kodingProvider.Kite,
+			Log:        kodingProvider.Log,
+			Username:   m.Username,
+			Machine:    m,
+			KlientPool: klient.NewPool(kodingProvider.Kite),
 		}, nil
 	}
 
