@@ -136,7 +136,7 @@ func (p *PlanChecker) Timeout() error {
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
 
-	p.Log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// It still have plenty of time to work, do not stop it
