@@ -69,7 +69,7 @@ createUserMachineLocation = (path) ->
   return """\n
       location ~ ^\\/-\\/#{path}\\/(?<ip>.+?)\\/(?<rest>.*) {
         # define our dynamically created backend
-        set $backend $ip:3000/$rest;
+        set $backend $ip:56789/$rest;
 
         # proxy it to the backend
         proxy_pass http://$backend;
@@ -113,7 +113,12 @@ createLocations = (KONFIG) ->
       else
         createWebLocation
 
-      auth = if KONFIG.configName in ["load", "prod"] then no else options.nginx.auth
+      auth = no
+      if KONFIG.configName in ["load", "prod"]
+        auth = no
+      else
+        auth = options.nginx.auth
+
       locations += fn name, location, auth
 
   return locations

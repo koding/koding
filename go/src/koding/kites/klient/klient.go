@@ -22,7 +22,7 @@ import (
 
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
-	flagPort        = flag.Int("port", 3000, "Change running port")
+	flagPort        = flag.Int("port", 56789, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
 	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
