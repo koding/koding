@@ -8,7 +8,7 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
     super
     @usernameOrEmail = new LoginInputView
       inputOptions    :
-        name          : "username-or-email"
+        name          : "email"
         placeholder   : "email"
         testPath      : "recover-password-input"
         validate      :
