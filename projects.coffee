@@ -117,6 +117,12 @@ projects =
     script        : "website/a/js/__app.about.js"
     sourceMapRoot : "About/"
 
+  Legal           :
+    path          : "client/Legal"
+    style         : "website/a/css/__app.legal.css"
+    script        : "website/a/js/__app.legal.js"
+    sourceMapRoot : "Legal/"
+
 bundles           =
 
   KodingIn        :
