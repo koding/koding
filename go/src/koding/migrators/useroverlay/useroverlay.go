@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"koding/tools/tracer"
 	"koding/virt"
 	"net/http"
 	"os"
@@ -100,16 +99,6 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 		respond(w, status, message)
 		return
 	}
-	if err := lockRBD(vm); err != nil {
-		log.Error(err.Error())
-		respond(w, 412, "RBD cannot be locked")
-		return
-	}
-	defer func() {
-		if err := vm.UnlockRBD(); err != nil {
-			log.Error(err.Error())
-		}
-	}()
 
 	log.Info("exporting user files: '%s'", vm.String())
 	archive, err := exportUserFiles(vm)
@@ -173,7 +162,7 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 
 	log.Info("mounting the rbd: '%s'", vm.String())
 	// mount the rbd over an empty rootfs:
-	if out, err := exec.Command("/bin/mount", "-o", "ro", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-o", "ro,noload", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
 		return nil, commandError("mount failed.", err, out)
 	}
 	defer func() {
@@ -211,28 +200,4 @@ func commandError(message string, err error, out []byte) error {
 
 func createToken() {
 	fmt.Println(token.StringToken(*username, *vm))
-}
-
-func lockRBD(vm *virt.VM) error {
-	if err := vm.LockRBD(); err != nil {
-		return relockRBD(vm)
-	}
-	return nil
-}
-
-func relockRBD(vm *virt.VM) error {
-	log.Info("relock rbd: '%s'", vm.String())
-	if err := vm.Unprepare(tracer.DefaultTracer(), false); err != nil {
-		log.Error(err.Error())
-		return err
-	}
-
-	log.Info("lock rbd: '%s'", vm.String())
-	if err := vm.LockRBD(); err != nil {
-		log.Error(err.Error())
-		return err
-	}
-
-	log.Info("rbd locked: '%s'", vm.String())
-	return nil
 }
