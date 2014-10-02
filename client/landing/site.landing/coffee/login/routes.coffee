@@ -13,19 +13,10 @@ do ->
     new KDNotificationView title: "Verification failed!"
     @clear()
 
-  # handleResetRoute = ({params:{token}}) ->
-  #   {appManager} = KD.singletons
-  #   appManager.require 'Login', (app) ->
-  #     if KD.isLoggedIn()
-  #       KD.remote.api.JUser.fetchUser (err, user)->
-  #         if user and user.passwordStatus is "valid"
-  #           KD.getSingleton('router').handleRoute "/Activity"
-  #         else
-  #           KD.getSingleton('router').handleRoute "/Account/Profile?focus=password&token=#{token}"
-  #     else
-  #       appManager.open 'Login', ->
-  #         app.getView().setCustomDataToForm('reset', {recoveryToken:token})
-  #         app.getView().animateToForm('reset')
+  handleResetRoute = ({params:{token}}) ->
+    KD.singletons.router.openSection 'Login', null, null, (app) ->
+      app.getView().setCustomDataToForm('reset', {recoveryToken:token})
+      app.getView().animateToForm('reset')
 
   # handleVerifyRoute = ({params:{token}})->
   #   router = KD.getSingleton 'router'
@@ -98,15 +89,14 @@ do ->
     '/Register'         : handler (app, options)->
       app.getView().animateToForm 'register'
       app.handleQuery options
-    '/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
-    '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
-    '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+    '/Redeem'              : handler (app)-> app.getView().animateToForm 'redeem'
+    '/:name?/Reset/:token' : handleResetRoute
+    '/ResendToken'         : handler (app)-> app.getView().animateToForm 'resendEmail'
+    '/Recover'             : handler (app)-> app.getView().animateToForm 'recover'
 
     '/Verified'          : handleVerified
     '/VerificationFailed': handleVerificationFailed
     # '/:name?/Register/:token'  : handleFinishRegistration
-    # '/:name?/Reset/:token'     : handleResetRoute
     # '/:name?/Confirm/:token'   : handleResetRoute
     # '/:name?/Verify/:token?'   : handleVerifyRoute
     # '/:name?/Redeem/:token'    : handleRedeemRoute
