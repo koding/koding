@@ -124,7 +124,7 @@ write_files:
       - The default web server root is linked to /home/{{ .Username }}/Web
         so any file placed inside that directory will automatically
         be visible from this URL:
-        http://{{.Hostname}}.koding.io/
+        http://{{.UserDomain}}
 
       - You can access this VM using any sub-domains that you may have
         set up. To learn more about sub-domains and how to set them up,
@@ -281,6 +281,7 @@ final_message: "All done!"
 type CloudInitConfig struct {
 	Username        string
 	UserSSHKeys     []string
+	UserDomain      string
 	Hostname        string
 	KiteKey         string
 	LatestKlientURL string // URL of the latest version of the Klient package
