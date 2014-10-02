@@ -209,6 +209,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// validate the userdata first before sending
 	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
+		errLog("Cloudinit template is not a valid YAML file: %v", err)
 		return nil, errors.New("Cloudinit template is not a valid YAML file.")
 	}
 
