@@ -181,6 +181,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
 		Username:        m.Username,
+		UserDomain:      m.Domain.Name,
 		Hostname:        m.Username, // no typo here. hostname = username
 		KiteKey:         kiteKey,
 		LatestKlientURL: latestKlientUrl,
