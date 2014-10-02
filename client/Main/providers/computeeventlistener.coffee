@@ -117,6 +117,8 @@ class ComputeEventListener extends KDObject
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
           computeController.triggerReviveFor eventId
+        else
+          computeController.stateChecker.ignore eventId
 
         unless res.event.status is 'Unknown'
           computeController.emit "public-#{eventId}",    res.event
