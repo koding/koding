@@ -111,6 +111,12 @@ projects =
     script        : "website/a/js/__app.features.js"
     sourceMapRoot : "Features/"
 
+  About           :
+    path          : "client/About"
+    style         : "website/a/css/__app.about.css"
+    script        : "website/a/js/__app.about.js"
+    sourceMapRoot : "About/"
+
 bundles           =
 
   KodingIn        :
