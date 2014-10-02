@@ -114,6 +114,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback null # pretend like everything went fine.
 
       options.email = email
+      options.resetPassword = yes
       @create options, callback
 
   @create = (options, callback)->
