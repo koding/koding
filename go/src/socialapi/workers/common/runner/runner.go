@@ -85,7 +85,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 	// create logger for our package
 	r.Log = helper.CreateLogger(
 		WrapWithVersion(r.Name, flagVersion),
-		*flagDebug,
+		r.Conf.Debug,
 	)
 
 	metrics := helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
@@ -97,7 +97,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 		r.Conf,
 		r.Log,
 		metrics,
-		*flagDebug,
+		r.Conf.Debug,
 	)
 
 	r.ShutdownHandler = func() {}
