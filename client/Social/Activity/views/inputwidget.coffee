@@ -49,23 +49,10 @@ class ActivityInputWidget extends KDView
 
   initEvents: ->
 
-    @input.on "Escape", @bound "reset"
-    @input.on "Enter",  @bound "submit"
+    @input.on 'Escape', @bound 'reset'
+    @input.on 'Enter',  @bound 'submit'
 
-    @input.on "TokenAdded", (type, token) =>
-      if token.slug is "bug" and type is "tag"
-        @setClass "bug-tagged"
-
-    # FIXME we need to hide bug warning in a proper way ~ GG
-    @input.on "keyup", =>
-      @showPreview() if @preview #Updates preview if it exists
-
-      val = @input.getValue()
-      @helperView?.checkForCommonQuestions val
-      if val.indexOf("5051003840118f872e001b91") is -1
-        @unsetClass 'bug-tagged'
-
-    @on "SubmitStarted", => @hidePreview()  if @preview
+    @on 'SubmitStarted', => @hidePreview()  if @preview
 
 
   submit: (value) ->
@@ -83,13 +70,11 @@ class ActivityInputWidget extends KDView
 
     @lockSubmit()
 
-    obj = { channelId, body, payload, clientRequestId }
+    options = { channelId, body, payload, clientRequestId }
 
-    fn = if activity
-    then @bound 'update'
-    else @bound 'create'
-
-    fn(obj, @bound 'submissionCallback')
+    if activity
+    then @update options, @bound 'submissionCallback'
+    else @create options, @bound 'submissionCallback'
 
     @emit 'SubmitStarted', body, clientRequestId
 
@@ -98,7 +83,7 @@ class ActivityInputWidget extends KDView
 
     if err
       @showError err
-      @emit 'SubmitFailed', err, activity.clientRequestId
+      @emit 'SubmitFailed', err, activity.clientRequestId  if activity
       return
 
     @emit 'SubmitSucceeded', activity
@@ -159,13 +144,12 @@ class ActivityInputWidget extends KDView
 
   reset: (unlock = yes) ->
 
-    @input.setContent ""
-    @input.blur()
+    @input.empty()
+    @input.setBlur()
     @embedBox.resetEmbedAndHide()
 
-    if unlock
-    then @unlockSubmit()
-    else KD.utils.wait 8000, @bound "unlockSubmit"
+    if unlock then @unlockSubmit()
+    else KD.utils.wait 8000, @bound 'unlockSubmit'
 
 
   getPayload: ->
@@ -220,9 +204,7 @@ class ActivityInputWidget extends KDView
     @unsetClass "preview-active"
 
 
-  focus: ->
-
-    @input.focus()
+  focus: -> @input.setFocus()
 
 
   viewAppended: ->

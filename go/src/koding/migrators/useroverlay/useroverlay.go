@@ -43,6 +43,10 @@ func serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/export-files", exportFiles).Methods("POST")
 	http.Handle("/", basicAuth(r))
+	http.Handle("/healthcheck", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200)
+		io.WriteString(w, "ok")
+	}))
 	if err := http.ListenAndServeTLS(":3000", *certFile, *keyFile, nil); err != nil {
 		log.Error(err.Error())
 	}
@@ -106,7 +110,8 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 	}()
 	archive, err := exportUserFiles(vm)
 	if err != nil {
-		respond(w, 500, err.Error())
+		log.Error("server error: '%s'", err.Error())
+		respond(w, 500, "server error")
 		return
 	}
 	w.Header().Set("Content-type", "application/octet-stream")
@@ -167,8 +172,8 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 			log.Error(commandError("umount failed.", err, out).Error())
 		}
 	}()
-	// tar the resulting directory structure:
-	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName).CombinedOutput(); err != nil {
+	// tar the resulting home directory:
+	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName+"/home").CombinedOutput(); err != nil {
 		return nil, commandError("tar failed.", err, out)
 	}
 	defer func() {
@@ -183,8 +188,8 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 
 func respond(w http.ResponseWriter, code int, body string) {
 	log.Error("server error: '%s' (%d)", body, code)
-	w.WriteHeader(500)
-	io.WriteString(w, "server error")
+	w.WriteHeader(code)
+	io.WriteString(w, body)
 }
 
 func commandError(message string, err error, out []byte) error {

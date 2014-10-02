@@ -30,16 +30,12 @@
       opacity           1
 
   a.refresh-link
-    // vendor              transition, opacity .15s linear
-    opacity             .3
+    opacity             .5
+    z-index             1
+    top                 13px
+    right               15px
+    r-sprite            'ide', 'refresh'
     abs()
-    top                 10px
-    right               6px
-    height              25px
-    padding             2px
-    size                16px, 16px
-    kdfsprite()
-    bg                  position, -1px -521px
 
   a.address-bar-icon
     abs()
@@ -53,16 +49,26 @@
     size                100%, 40px
     font-size           14px
     line-height         inherit
-    border              1px solid #252E30
+    border              1px solid #131313
     padding             0 0 0 22px
     bg                  image none
-    bg                  color #1B2224
-    noShadow()
+    bg                  color #131313
+    vendor              box-shadow, none
+    color               #484848
+
+    &::-webkit-input-placeholder
+      color             #484848
+
+    &:-moz-placeholder
+      color             #484848
 
     &:focus
-      color             #3AAAAB
-      border-color      #3AAAAB
-      noShadow()
+      &::-webkit-input-placeholder
+        color           #484848
+
+      color             #484848
+      border-color      #484848
+      vendor            box-shadow, none
 
 .kdcontextmenu.editor-advanced-settings-menu
   button.kdbutton.with-icon span.icon.cog-white

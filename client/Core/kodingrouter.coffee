@@ -53,6 +53,7 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
+    return @handleRoute @getDefaultRoute()  if /<|>/.test route
     super route, options
 
 

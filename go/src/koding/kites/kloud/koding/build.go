@@ -2,6 +2,7 @@ package koding
 
 import (
 	"bytes"
+	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -68,7 +69,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
-	infoLog := p.GetInfoLogger(m.Id)
+	infoLog := p.GetCustomLogger(m.Id, "info")
+	errLog := p.GetCustomLogger(m.Id, "error")
 
 	a.InfoLog = infoLog
 
@@ -87,7 +89,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	infoLog("Searching for subnets with tag-key %s", kloudKeyName)
 	subnets, err := a.SubnetsWithTag(kloudKeyName)
 	if err != nil {
-		return nil, err
+		errLog("Searching subnet err: %v", err)
+		return nil, errors.New("searching network configuration failed")
 	}
 
 	// sort and get the lowest
@@ -100,7 +103,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
 	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
 	if err != nil {
-		return nil, err
+		errLog("Checking security group err: %v", err)
+		return nil, errors.New("checking security requirements failed")
 	}
 
 	// add now our security group
@@ -120,7 +124,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
-		return nil, err
+		errLog("Checking ami tag failed err: %v", err)
+		return nil, errors.New("checking base image failed")
 	}
 
 	// Use this ami id, which is going to be a stable one
@@ -167,7 +172,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	latestKlientPath, err := p.Bucket.LatestDeb()
 	if err != nil {
-		return nil, err
+		errLog("Checking klient S3 path failed: %v", err)
+		return nil, errors.New("machine initialization requirements failed [1]")
 	}
 
 	latestKlientUrl := p.Bucket.URL(latestKlientPath)
@@ -195,7 +201,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	var userdata bytes.Buffer
 	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
 	if err != nil {
-		return nil, err
+		errLog("Template execution failed: %v", err)
+		return nil, errors.New("machine initialization requirements failed [2]")
 	}
 
 	// user data is now ready!
@@ -249,7 +256,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	infoLog("Adding user tags %v", tags)
 	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
-		return nil, err
+		errLog("Adding tags failed: %v", err)
+		return nil, errors.New("machine initialization requirements failed [3]")
 	}
 
 	buildArtifact.DomainName = m.Domain.Name
