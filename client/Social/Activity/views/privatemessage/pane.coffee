@@ -53,22 +53,13 @@ class PrivateMessagePane extends MessagePane
     , 200
 
 
-  scrollDown: (item) ->
-
-    super item
-
-    KD.utils.defer =>
-
-      @listController.getListView().scrollDown()
-
-
   createInputWidget: ->
 
     channel = @getData()
 
     @input = new ReplyInputWidget {channel}
 
-    @input.on 'UpKeyIsPressed', @bound 'editLastMessage'
+    @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
   editLastMessage: ->
@@ -171,7 +162,6 @@ class PrivateMessagePane extends MessagePane
       return  if inProgress
 
       inProgress = true
-      @listController.showLazyLoader()
 
       {appManager} = KD.singletons
       first         = @listController.getItemsOrdered().first
@@ -179,8 +169,10 @@ class PrivateMessagePane extends MessagePane
 
       from         = first.getData().createdAt
 
+      @listPreviousLink.updatePartial 'Fetching previous messages...'
+
       @fetch {from, limit: 10}, (err, items = []) =>
-        @listController.hideLazyLoader()
+        @listPreviousLink.updatePartial 'Pull or click here to view more'
 
         return KD.showError err  if err
 

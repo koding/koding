@@ -169,6 +169,8 @@ class StripeFormView extends KDFormViewWithFields
         cardMonth.setValidationResult 'checkMonth', 'Invalid month!'
       when 'cvc'
         cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
+      else
+        KD.showError error.message
 
 
 
