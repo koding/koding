@@ -184,7 +184,7 @@ module.exports.create = (KONFIG, environment)->
       # just a random port
       listen 81;
       # use generic names, do not hardcode values
-      return 302 https://$host$request_uri;
+      return 301 https://$host$request_uri;
     }
 
 
