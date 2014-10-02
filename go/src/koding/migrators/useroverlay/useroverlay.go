@@ -43,6 +43,10 @@ func serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/export-files", exportFiles).Methods("POST")
 	http.Handle("/", basicAuth(r))
+	http.Handle("/healthcheck", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200)
+		io.WriteString(w, "ok")
+	}))
 	if err := http.ListenAndServeTLS(":3000", *certFile, *keyFile, nil); err != nil {
 		log.Error(err.Error())
 	}
