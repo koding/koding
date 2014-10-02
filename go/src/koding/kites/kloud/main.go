@@ -12,6 +12,7 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	kloudprotocol "koding/kites/kloud/protocol"
 
@@ -174,6 +175,7 @@ func newKite(conf *Config) *kite.Kite {
 		KeyName:           keys.DeployKeyName,
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
+		KlientPool:        klient.NewPool(k),
 	}
 
 	// be sure they they satisfy the provider interface
