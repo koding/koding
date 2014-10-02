@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   cloudamqp           = "golden-ox.rmq.cloudamqp.com"
 
   publicPort          = options.publicPort     = "80"
-  hostname            = options.hostname       = "koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
+  hostname            = options.hostname       = "new.koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
   publicHostname      = options.publicHostname = "https://#{options.hostname}"
   region              = "aws"
   configName          = "prod"
