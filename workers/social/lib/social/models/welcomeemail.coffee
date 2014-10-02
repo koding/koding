@@ -11,7 +11,7 @@ module.exports = class WelcomeEmail
 
   Whether you are starting to learn something or looking to tinker with a new project, we hope that Koding will be able to help you achieve your goals.
 
-  We have prepared a lot of introductory material over at http://learn.koding.com . There you will find videos and how-to's as well as extensive guides from how to configure servers to installing Drupal, Wordpress, MySQL, MongoDB, etc on your Koding VM.
+  We have prepared a lot of introductory material over at http://learn.koding.com . There you will find videos and how-to's on Koding as well as extensive guides on installing and configuring software packages like Wordpress, MySQL, MongoDB, Joomla, etc.
 
   Last, but not least, we're improving Koding every day so if you encounter any quirks, just drop us a line at support@koding.com.
 
