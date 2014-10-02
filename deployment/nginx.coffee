@@ -69,7 +69,7 @@ createUserMachineLocation = (path) ->
   return """\n
       location ~ ^\\/-\\/#{path}\\/(?<ip>.+?)\\/(?<rest>.*) {
         # define our dynamically created backend
-        set $backend $ip:3000/$rest;
+        set $backend $ip:56789/$rest;
 
         # proxy it to the backend
         proxy_pass http://$backend;
@@ -113,7 +113,7 @@ createLocations = (KONFIG) ->
       else
         createWebLocation
 
-      auth = if KONFIG.configName is "load" then no else options.nginx.auth
+      auth = if KONFIG.configName in ["load", "prod"] then no else options.nginx.auth
       locations += fn name, location, auth
 
   return locations
@@ -172,6 +172,21 @@ module.exports.create = (KONFIG, environment)->
     gzip_buffers 16 8k;
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # listen for http requests at port 81
+    # this port will be only used for http->https redirection
+    #
+    # do not forget to allow communication via port 81 at security groups(ELB SecGroup)
+    # like : koding-latest,
+
+    # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
+    server {
+      # just a random port
+      listen 81;
+      # use generic names, do not hardcode values
+      return 301 https://$host$request_uri;
+    }
+
 
     # start server
     server {

@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 
-	server := newServer(r.Conf)
+	server := newServer(r)
 	// shutdown server
 	defer server.Close()
 
@@ -85,21 +85,24 @@ func main() {
 	r.Wait()
 }
 
-func newServer(conf *config.Config) *tigertonic.Server {
+func newServer(r *runner.Runner) *tigertonic.Server {
 	// go metrics.Log(
 	// 	metrics.DefaultRegistry,
 	// 	60e9,
 	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
 	// )
 
+	conf := r.Conf
+
 	var handler http.Handler
 	handler = tigertonic.WithContext(nsMux, models.Context{})
 	if conf.Debug {
-		handler = tigertonic.Logged(handler, nil)
+		h := tigertonic.Logged(handler, nil)
+		h.Logger = NewTigerTonicLogger(r.Log)
+		handler = h
 	}
 
 	addr := conf.Host + ":" + conf.Port
-
 	server := tigertonic.NewServer(addr, handler)
 
 	go listener(server)
