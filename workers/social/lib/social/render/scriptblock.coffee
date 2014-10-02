@@ -80,8 +80,6 @@ module.exports = (options = {}, callback)->
     <!-- End Google Analytics -->
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
-
-    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     """
 
   kallback = ->
