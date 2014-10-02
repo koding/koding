@@ -104,7 +104,7 @@ write_files:
 
   # README.md
   - content: |
-      ## Welcome to Koding...You've said goodbye to locahost!
+      ##Welcome to Koding...You've said goodbye to localhost!
 
       Koding is a cloud-based development platform that allows you to:
       - Develop applications in the cloud
@@ -160,7 +160,6 @@ write_files:
       For more questions and FAQ, head over to http://learn.koding.com
       or send us an email at support@koding.com
     path: /home/{{.Username}}/README.md
-    owner: {{.Username}}:{{.Username}}
 
 
 {{if .ShouldMigrate }}
@@ -246,10 +245,14 @@ write_files:
       echo
     path: /home/{{.Username}}/migrate.sh
     permissions: '0755'
-    owner: {{.Username}}:{{.Username}}
 {{end}}
 
 runcmd:
+  # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
+  - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/ubuntu/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
+
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
@@ -300,6 +303,7 @@ type CloudInitConfig struct {
 func (c *CloudInitConfig) setupMigrateScript() {
 	// FIXME: Hack. Revise here.
 	if c.Test {
+		c.ShouldMigrate = true
 		return
 	}
 	vms, err := modelhelper.GetUserVMs(c.Username)

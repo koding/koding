@@ -511,7 +511,7 @@ isInAppRoute = (name)->
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
-app.all '/:name/:section?/:slug?*', (req, res, next)->
+app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
   {params} = req
