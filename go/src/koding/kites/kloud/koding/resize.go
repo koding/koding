@@ -35,7 +35,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// 9. Update Domain record with the new IP (stopping/starting changes the IP)
 	// 10. Check if Klient is running
 
-	infoLog := p.GetInfoLogger(m.Id)
+	infoLog := p.GetCustomLogger(m.Id, "info")
 
 	a, err := p.NewClient(m)
 	if err != nil {

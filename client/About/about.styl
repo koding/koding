@@ -1,0 +1,317 @@
+@import "../Framework/src/themes/default/kdfn"
+@import "../Core/styl/appfn"
+
+@css {
+/*
+About Koding stylesheet
+about.styl
+*/
+}
+
+imagePath = '/a/site.landing/images/'
+
+body.about
+  -webkit-font-smoothing antialiased
+
+  #main-panel-wrapper
+    bg                        color #f9f9f9
+    height                    auto
+
+  #main-header
+    max-width                 100%
+    top                       0
+    padding-right             calc((100% \- 1200px) / 2)
+    height                    73px
+    background                #fff
+    position                  fixed
+    shadow                    0 1px 16px rgba(0,0,0,.1)
+
+    .logotype
+      hidden()
+
+    #koding-logo
+      margin-top              25px
+
+      cite
+        r-sprite              'app', 'logo-full-dark'
+
+    nav
+      line-height             73px
+
+      a
+        color                 #6f6f6f
+
+      a.login
+        border-color          #bcbcbc
+
+  .content-page.about
+    padding-top               73px
+    font-family               sloganFont
+
+    section.introduction
+      bg                      image, url(imagePath + 'about/introbg.jpg')
+      bg                      size, cover
+      bg                      repeat, no-repeat
+      bg                      position, center
+      size                    100%, auto
+      border-top              1px solid transparent
+      padding-bottom          68px
+
+      > *
+        display               block
+        width                 auto
+        max-width             780px
+        padding-right         45px
+        padding-left          45px
+        text-align            center
+        margin-left           auto
+        margin-right          auto
+
+      h2
+        font-size             44px
+        font-weight           600
+        height                auto
+        margin-top            182px
+        margin-bottom         42px
+        color                 #fff
+
+      p.main-description
+        font-size             18px
+        color                 #fff
+        font-weight           600
+        line-height           24px
+        margin-bottom         26px
+
+      .bottom-note
+        font-size             12px
+        font-weight           700
+        color                 #898989
+        text-align            left
+        line-height           16px
+
+      ul
+        list-style-type       decimal
+
+        li
+          margin-left         18px
+
+    section.stats
+      width                   100%
+      background              #38383f
+      padding                 31px 0
+
+      .inner-container
+        max-width             960px
+        margin                0 auto
+
+      .stat-item
+        size                  33.3%, 80px
+        color                 #9b9b9c
+        font-size             14px
+        position              relative
+        fl()
+
+        span
+          display             block
+          color               #d2d2d2
+          font-size           24px
+          font-weight         600
+          margin              17px 0 11px
+
+        &:before
+          content             ''
+          display             block
+          size                78px, 78px
+          border              2px solid #4c4c53
+          rounded             50%
+          margin-right        32px
+          fl()
+
+        &:after
+          content             ''
+          display             block
+          top                 50%
+          vendor              transform, translateY(-50%)
+          abs()
+
+        &.vms:after
+          left                28px
+          r-sprite            'about', 'vm-icon'
+
+        &.code:after
+          left                29px
+          r-sprite            'about', 'code-icon'
+
+        &.developers:after
+          left                30px
+          r-sprite            'about', 'developer-icon'
+
+    section.contact
+    section.where
+    section.assets
+      padding                 82px 45px 40px
+
+      .inner-container
+        max-width             1200px
+        margin                0 auto
+
+      h3
+        font-size             28px
+        font-weight           600
+        color                 #5b5b5b
+        text-align            center
+        display               block
+        padding               0
+        margin                0
+
+    section.contact
+      .contact-item
+        width                 33.3%
+        margin                82px 0 0 0
+        line-height           62px
+        font-size             18px
+        color                 #626262
+        font-weight           600
+        position              relative
+        fl()
+
+        &:before
+          content             ''
+          display             block
+          size                62px, 62px
+          background          #cacaca
+          rounded             50%
+          margin-right        22px
+          fl()
+
+        &:after
+          content             ''
+          display             block
+          top                 50%
+          vendor              transform, translateY(-50%)
+          left                23px
+          abs()
+
+        &.sales
+          &:after
+            left              26px
+            r-sprite          'about', 'sales-icon'
+
+          &:before
+            background        #fabbbb
+
+        &.support
+          &:after
+
+            r-sprite          'about', 'support-icon'
+
+          &:before
+            background        #bbf5fa
+
+        &.partnerships
+          &:after
+            r-sprite          'about', 'partnerships-icon'
+
+          &:before
+            background        #bbfadd
+
+        &.press
+          &:after
+            r-sprite          'about', 'press-icon'
+
+          &:before
+            background        #bbe3fa
+
+        &.hello
+          &:after
+            r-sprite          'about', 'hello-icon'
+
+          &:before
+            background        #fabbdf
+
+        &.careers
+          &:after
+            r-sprite          'about', 'careers-icon'
+
+          &:before
+            background        #faeabb
+
+    section.where
+      padding-left            0
+      padding-right           0
+
+      address
+        display               block
+        text-align            center
+        font-size             14px
+        font-weight           600
+        color                 #8b8b8b
+        margin                18px 0 0
+
+      .map-container
+        width                 100%
+        height                0
+        padding-bottom        27%
+        background            #cacaca
+        position              relative
+        margin-top            62px
+
+        > iframe
+          width               100% !important
+          height              100% !important
+          abs                 0px 0 0 0px
+
+        &:after
+          display             block
+          content             ''
+          width               100%
+          height              100%
+          abs                 0px 0 0 0px
+
+
+    section.assets
+      padding-bottom          82px
+
+      .brand-box
+        size                  48%, auto
+        border                1px solid #c0c0c0
+        rounded               6px
+        margin-left           2%
+        padding               44px
+        margin-top            82px
+        borderBox()
+        fl()
+
+        &:first-of-type
+          margin-left         0
+
+        .info
+          font-size           16px
+          color               #616161
+          line-height         22px
+          margin-top          5px
+          fl()
+
+        a
+          color               #ccc
+          font-weight         600
+          noTextDeco()
+
+          &:hover
+            text-decoration   underline
+
+        .examples
+          fr()
+
+          a
+            display           block
+            margin-top        6px
+            color             #b5b5b5
+            text-decoration   underline
+
+        &.logo figure
+          r-sprite            'about', 'logo-example'
+          margin-top          15px
+
+        &.font figure
+          r-sprite            'about', 'font-example'

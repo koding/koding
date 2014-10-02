@@ -806,32 +806,19 @@ Team Koding
         user.setPassword password, (err) ->
           return callback err  if err?
           queue.next()
-      # =>
-      #   JPasswordRecovery = require '../passwordrecovery'
+      =>
+        JPasswordRecovery = require '../passwordrecovery'
 
-      #   passwordOptions =
-      #     email         : user.email
-      #     verb          : unless username? then 'Register' else 'Confirm'
-      #     resetPassword : no
-      #     expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
+        passwordOptions =
+          email         : user.email
+          verb          : unless username? then 'Register' else 'Verify'
+          resetPassword : no
+          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
 
-      #   JPasswordRecovery.create passwordOptions, (err, token)->
-      #     recoveryToken = token
-      #     queue.next()
-      # ->
-      #   JPaymentSubscription.createFreeSubscription account, (err) ->
-      #     console.warn err  if err
-      #     queue.next()
-      # ->
-      #   options = targetOptions: selector: tags: "vm"
-      #   account.fetchSubscriptions null, options, (err = "", [subscription]) ->
-      #     return callback err  if err
-      #     return callback createKodingError "VM subscription not found, cannot debit"  unless subscription
-
-      #     subscription.debitPack tag: "vm", (err) ->
-      #       console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
-      #       queue.next()
-      # ->
+        JPasswordRecovery.create passwordOptions, (err, token)->
+          recoveryToken = token
+          queue.next()
+      ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
 

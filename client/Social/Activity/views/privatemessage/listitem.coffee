@@ -54,7 +54,7 @@ class PrivateMessageListItemView extends ActivityListItemView
         {{> @author}} {{> @timeView }} {{> @timeAgoView}} {{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
-      {article{KD.utils.formatContent #(body)}}
+      {article.has-markdown{KD.utils.formatContent #(body)}}
       {{> @embedBox}}
     </div>
     """

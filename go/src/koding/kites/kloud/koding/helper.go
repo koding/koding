@@ -9,12 +9,20 @@ type infoFunc func(format string, formatArgs ...interface{})
 
 // GetInfoLogger returns a customized logger with a another prefix. Usually for
 // user based logging.
-func (p *Provider) GetInfoLogger(prefix string) infoFunc {
+func (p *Provider) GetCustomLogger(prefix, mode string) infoFunc {
 	return func(format string, formatArgs ...interface{}) {
 		format = "[%s] " + format
 		args := []interface{}{prefix}
 		args = append(args, formatArgs...)
-		p.Log.Info(format, args...)
+
+		switch mode {
+		case "info":
+			p.Log.Info(format, args...)
+		case "error":
+			p.Log.Error(format, args...)
+		default:
+			p.Log.Info(format, args...)
+		}
 	}
 }
 
