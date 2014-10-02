@@ -55,16 +55,16 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 		}
 
 		k.klients[queryString] = klient
+
+		// remove from the pool if we loose the connection
+		klient.client.OnDisconnect(func() {
+			k.log.Info("klient %s disconnected. removing from the pool", queryString)
+			k.Delete(queryString)
+			klient.Close()
+		})
 	} else {
 		k.log.Debug("fetching already connected klient (%s) from pool", queryString)
 	}
-
-	// remove from the pool if we loose the connection
-	klient.client.OnDisconnect(func() {
-		k.log.Info("klient %s disconnected. removing from the pool", queryString)
-		k.Delete(queryString)
-		klient.Close()
-	})
 
 	return klient, nil
 }
