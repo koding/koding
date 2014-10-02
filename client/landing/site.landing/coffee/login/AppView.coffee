@@ -257,9 +257,10 @@ module.exports = class LoginView extends JView
       url       : '/Reset'
       data      : { recoveryToken, password }
       type      : 'POST'
-      error     : ->
-        new KDNotificationView
-          title : "An error occurred: #{err.message}"
+      error     : (xhr) =>
+        {responseText} = xhr
+        @resetForm.button.hideLoader()
+        new KDNotificationView title : responseText
       success   : =>
         @resetForm.button.hideLoader()
         @resetForm.reset()
