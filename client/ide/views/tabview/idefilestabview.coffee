@@ -98,5 +98,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       dblclick   : (event) ->
         KD.utils.stopDOMEvent event
         mainView.toggleSidebar()
+        KD.utils.wait 233, ->
+          KD.singletons.windowController.notifyWindowResizeListeners()
 
     @tabView.addSubView handle
