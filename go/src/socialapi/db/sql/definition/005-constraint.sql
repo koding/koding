@@ -160,4 +160,7 @@ ALTER TABLE api.message_reply ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMME
 ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_reply_id_fkey" FOREIGN KEY ("reply_id") REFERENCES api.channel_message (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_message_id_fkey" FOREIGN KEY ("message_id") REFERENCES api.channel_message (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
-
+-- ----------------------------
+--  Indexes structure for table message_reply
+-- ----------------------------
+CREATE INDEX  "message_reply_message_id_meta_bit_created_at" ON "api"."message_reply" USING btree(message_id DESC, meta_bits ASC, created_at ASC);
