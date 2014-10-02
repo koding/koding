@@ -63,4 +63,7 @@ module.exports = [
   # stylus
   "styl/ide.finder.styl"
   "styl/ide.styl"
+
+  # 3rd party
+  "../../website/a/js/sketchpad.js"
 ]
