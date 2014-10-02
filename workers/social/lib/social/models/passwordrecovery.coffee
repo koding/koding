@@ -165,7 +165,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               return callback new KodingError "Email cannot saved" if err
               callback null
 
-  @validate = secure ({connection:{delegate}}, token, callback)->
+  @validate = (token, callback)->
     @one {token}, (err, certificate)->
       if err
         callback err
