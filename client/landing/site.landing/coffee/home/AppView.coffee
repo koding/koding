@@ -86,17 +86,24 @@ module.exports = class HomeView extends KDView
 
   rotateImagesBy: (n) ->
 
+    direction = if n > 0 then 'from-left' else 'from-right'
+
     {length} = @imageSets
     n += length while length and n < 0
     @imageSets.push.apply @imageSets, @imageSets.splice 0, n
 
-    allClasses = ORDER.join ' '
+    [nextCurrent] = @imageSets[1]
 
+    allClasses  = ORDER.join ' '
+    allClasses += ' from-left from-right'
     for [image, dot], i in @imageSets
-      image.unsetClass allClasses
       dot.unsetClass 'active'
+      image.unsetClass allClasses
+
+    for [image, dot], i in @imageSets when ORDER[i]
       image.setClass ORDER[i]
       if ORDER[i] is 'current'
+        image.setClass direction
         dot.setClass 'active'
 
 
