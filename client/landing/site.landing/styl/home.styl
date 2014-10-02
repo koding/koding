@@ -244,6 +244,7 @@ body.home
       z-index             2
 
     article
+      // transform-style     preserve-3d
       font-size           22px
       line-height         32px
       font-weight         400
@@ -257,11 +258,17 @@ body.home
         text-shadow       0 1px rgba(0, 0, 0, .4)
 
       h1
+        // vendor            transition, transform .1s ease
+        vendor            transition, opacity .2s ease
         font-size         42px
         font-weight       bold
         font-family       tagLineFont
         margin            0 0 32px
         letter-spacing    .02em
+        opacity           1
+        &.flip
+          // vendor          transform, rotateX(90deg)
+          opacity         0
 
       // cloudW = 350/2.8
       // cloudH = 120/2.8

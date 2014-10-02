@@ -6,7 +6,13 @@ module.exports = class HomeView extends KDView
 
   COLORS    = [ 'gray', 'blue', 'green', 'dark-blue' ]
   IMAGEPATH = '/a/site.landing/images/slideshow'
-  IMAGES    = [ 'ss-terminal.png', 'ss-activity.png', 'ss-ide.png', 'ss-ide-collapsed.png', 'ss-chat.png' ]
+  IMAGES    = [
+    [ 'ss-terminal.png',      '18,000,000+ VMs spun up and counting.' ]
+    [ 'ss-activity.png',      '500,000+ developers are coding here.' ]
+    [ 'ss-ide.png',           '1 Billion+ lines of code written.' ]
+    [ 'ss-ide-collapsed.png', '5+ Petabytes of VM space allocated.' ]
+    [ 'ss-chat.png',          '5,000+ developers coding daily.' ]
+  ]
   ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
 
@@ -33,12 +39,6 @@ module.exports = class HomeView extends KDView
 
     @footer = new FooterView
 
-    @setPartial @partial()
-
-    @addSubView @signUpForm, '.introduction article'
-    @addSubView @slideShow, '.screenshots'
-    @addSubView @footer
-
     @nextButton = new CustomLinkView
       title    : ''
       cssClass : 'ss-button next'
@@ -51,17 +51,14 @@ module.exports = class HomeView extends KDView
       icon     : {}
       click    : => @rotateImagesBy -1
 
-    @addSubView @nextButton, '.screenshots'
-    @addSubView @prevButton, '.screenshots'
-
-    @addSubView @slideShowNav, '.used-at'
-
     view = this
-    @imageSets = for image, i in IMAGES
+    @imageSets = for [image, slogan], i in IMAGES
+
       @slideShow.addSubView slide = new KDCustomHTMLView
         tagName  : 'figure'
         cssClass : ORDER[i]
-        partial  : "<img src='#{IMAGEPATH}/#{IMAGES[i]}' />"
+        slogan   : slogan
+        partial  : "<img src='#{IMAGEPATH}/#{image}' />"
         click    : ->
           for [_slide, _dot], _i in view.imageSets when _slide is this
             view.rotateImagesBy _i - 1
@@ -69,7 +66,7 @@ module.exports = class HomeView extends KDView
       @slideShowNav.addSubView dot = new CustomLinkView
         title    : "Screenshot ##{i}"
         delegate : slide
-        img      : IMAGES[i]
+        img      : image
         cssClass : "nav-dot#{if i is 1 then ' active' else ''}"
         click    : -> @getDelegate().emit 'click'
 
@@ -82,6 +79,25 @@ module.exports = class HomeView extends KDView
       @setClass 'anim'
       @$('section.introduction').addClass 'shine'
       KD.utils.repeat 3e5, @bound 'nextColor'
+
+    @on 'CurrentImageChanged', (current) =>
+      # temp animation
+      # needs a change to match w/ the slideshow animation
+      {slogan} = current.getOptions()
+      $h1 = $('.introduction h1').first()
+      $h1.addClass 'flip'
+      KD.utils.wait 200, ->
+        $h1.text slogan
+        $h1.removeClass 'flip'
+
+
+    @setPartial @partial()
+    @addSubView @signUpForm, '.introduction article'
+    @addSubView @slideShow, '.screenshots'
+    @addSubView @footer
+    @addSubView @nextButton, '.screenshots'
+    @addSubView @prevButton, '.screenshots'
+    @addSubView @slideShowNav, '.used-at'
 
 
   rotateImagesBy: (n) ->
@@ -103,6 +119,7 @@ module.exports = class HomeView extends KDView
     for [image, dot], i in @imageSets when ORDER[i]
       image.setClass ORDER[i]
       if ORDER[i] is 'current'
+        @emit 'CurrentImageChanged', image
         image.setClass direction
         dot.setClass 'active'
 
@@ -117,12 +134,11 @@ module.exports = class HomeView extends KDView
 
 
   partial: ->
-
     """
     <section class="introduction">
       <div>
         <article>
-          <h1>Your next localhost is here.</h1>
+          <h1>#{@imageSets[1][0].getOption 'slogan'}</h1>
           <h2>
             Develop in Go, Python, Node, Ruby, PHP, etc or play with Docker, Wordpress, Django, Laravel or create Android, IOS/iPhone, HTML5 apps. All for FREE!
           </h2>
