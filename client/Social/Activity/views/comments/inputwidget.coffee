@@ -38,7 +38,7 @@ class CommentInputWidget extends ActivityInputWidget
   unlockSubmit: -> @locked = no
 
 
-  setFocus: -> @input.focus()
+  setFocus: -> @input.setFocus()
 
 
   submit: (value) ->
@@ -129,6 +129,10 @@ class CommentInputWidget extends ActivityInputWidget
           height: 30
       , KD.whoami()
 
-    @addSubView @input
+    inputWrapper = new KDCustomHTMLView
+      cssClass : 'comment-input-wrapper'
+
+    inputWrapper.addSubView @input
+    @addSubView inputWrapper
     @addSubView @embedBox
 

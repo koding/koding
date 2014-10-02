@@ -113,7 +113,7 @@ createLocations = (KONFIG) ->
       else
         createWebLocation
 
-      auth = if KONFIG.configName is "load" then no else options.nginx.auth
+      auth = if KONFIG.configName in ["load", "prod"] then no else options.nginx.auth
       locations += fn name, location, auth
 
   return locations
