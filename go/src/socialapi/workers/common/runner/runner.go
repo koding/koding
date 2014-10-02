@@ -74,7 +74,10 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 
 	r.Conf = config.MustRead(configFile)
 
-	r.Conf.Debug = *flagDebug
+	// override Debug if only it is true
+	if *flagDebug {
+		r.Conf.Debug = *flagDebug
+	}
 
 	r.Conf.Host = *flagHost
 	r.Conf.Port = *flagPort
