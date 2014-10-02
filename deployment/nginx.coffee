@@ -187,7 +187,7 @@ module.exports.create = (KONFIG, environment)->
     # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
     server {
       # just a random port
-      listen listen #{if environment is "dev" then 8091 else 81};
+      listen #{if environment is "dev" then 8091 else 81};
       # use generic names, do not hardcode values
       return 301 https://$host$request_uri;
     }
