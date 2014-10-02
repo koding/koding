@@ -7,6 +7,7 @@ import (
 
 	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
@@ -63,6 +64,9 @@ type Provider struct {
 	PublicKey  string `structure:"publicKey"`
 	PrivateKey string `structure:"privateKey"`
 	KeyName    string `structure:"keyName"`
+
+	// A set of connected, ready to use klients
+	KlientPool *klient.KlientPool
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
 	PlanFetcher func(*protocol.Machine) (Plan, error)

@@ -48,7 +48,7 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 
 	klient, ok = k.klients[queryString]
 	if !ok {
-		k.log.Info("creating new klient connection to %s", queryString)
+		k.log.Debug("creating new klient connection to %s", queryString)
 		klient, err = New(k.kite, queryString)
 		if err != nil {
 			return nil, err
@@ -56,7 +56,7 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 
 		k.klients[queryString] = klient
 	} else {
-		k.log.Info("fetching already connected klient (%s) from pool", queryString)
+		k.log.Debug("fetching already connected klient (%s) from pool", queryString)
 	}
 
 	// remove from the pool if we loose the connection
@@ -69,6 +69,7 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 	return klient, nil
 }
 
+// Delete removes the klient with the given queryString from the pool
 func (k *KlientPool) Delete(queryString string) {
 	k.Lock()
 	defer k.Unlock()

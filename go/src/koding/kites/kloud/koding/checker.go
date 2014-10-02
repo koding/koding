@@ -3,7 +3,6 @@ package koding
 import (
 	"fmt"
 	"koding/db/mongodb"
-	"koding/kites/kloud/klient"
 	"strconv"
 
 	"labix.org/v2/mgo"
@@ -46,14 +45,13 @@ type Checker interface {
 }
 
 type PlanChecker struct {
-	Api        *amazon.AmazonClient
-	DB         *mongodb.MongoDB
-	Machine    *protocol.Machine
-	Provider   *Provider
-	Kite       *kite.Kite
-	Username   string
-	Log        logging.Logger
-	KlientPool *klient.KlientPool
+	Api      *amazon.AmazonClient
+	DB       *mongodb.MongoDB
+	Machine  *protocol.Machine
+	Provider *Provider
+	Kite     *kite.Kite
+	Username string
+	Log      logging.Logger
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
@@ -113,7 +111,7 @@ func (p *PlanChecker) AlwaysOn() error {
 
 func (p *PlanChecker) Timeout() error {
 	// connect and get real time data directly from the machines klient
-	klient, err := p.KlientPool.Get(p.Machine.QueryString)
+	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
 	if err != nil {
 		return err
 	}

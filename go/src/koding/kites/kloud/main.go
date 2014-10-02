@@ -175,12 +175,11 @@ func newKite(conf *Config) *kite.Kite {
 		KeyName:           keys.DeployKeyName,
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
+		KlientPool:        klient.NewPool(k),
 	}
 
 	// be sure they they satisfy the provider interface
 	var _ kloudprotocol.Provider = kodingProvider
-
-	klientPool := klient.NewPool(kodingProvider.Kite)
 
 	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
 		a, err := kodingProvider.NewClient(m)
@@ -189,14 +188,13 @@ func newKite(conf *Config) *kite.Kite {
 		}
 
 		return &koding.PlanChecker{
-			Api:        a,
-			Provider:   kodingProvider,
-			DB:         kodingProvider.Session,
-			Kite:       kodingProvider.Kite,
-			Log:        kodingProvider.Log,
-			Username:   m.Username,
-			Machine:    m,
-			KlientPool: klientPool,
+			Api:      a,
+			Provider: kodingProvider,
+			DB:       kodingProvider.Session,
+			Kite:     kodingProvider.Kite,
+			Log:      kodingProvider.Log,
+			Username: m.Username,
+			Machine:  m,
 		}, nil
 	}
 
