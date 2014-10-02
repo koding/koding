@@ -58,7 +58,7 @@ func (cr *ChannelContainer) PopulateWith(c Channel, accountId int64) error {
 	cr.AddParticipantCount().
 		AddParticipantsPreview().
 		AddIsParticipant(accountId).
-		AddLastMessage()
+		AddLastMessage(accountId)
 
 	return cr.Err
 }
@@ -156,21 +156,24 @@ func (cr *ChannelContainer) AddIsParticipant(accountId int64) *ChannelContainer 
 	})
 }
 
-func (cr *ChannelContainer) AddLastMessage() *ChannelContainer {
+func (cr *ChannelContainer) AddLastMessage(accountId int64) *ChannelContainer {
 	return withChecks(cr, func(cc *ChannelContainer) error {
 		// add last message of the channel
-		cm, err := cc.Channel.FetchLastMessage()
-		if err != nil {
+		lastMessageId, err := cc.Channel.FetchLastMessageId()
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
-		if cm != nil {
-			cmc, err := cm.BuildEmptyMessageContainer()
-			if err != nil {
-				return err
-			}
-			cc.LastMessage = cmc
+		if err == bongo.RecordNotFound {
+			return nil
 		}
+
+		cmc := NewChannelMessageContainer()
+		err = cmc.Fetch(lastMessageId, &request.Query{AccountId: accountId})
+		if err != nil {
+			return err
+		}
+		cc.LastMessage = cmc
 
 		return nil
 	})
@@ -290,9 +293,9 @@ func (c *ChannelContainers) AddUnreadCount(accountId int64) *ChannelContainers {
 	return c
 }
 
-func (c *ChannelContainers) AddLastMessage() *ChannelContainers {
+func (c *ChannelContainers) AddLastMessage(accountId int64) *ChannelContainers {
 	for i, container := range *c {
-		(*c)[i] = *container.AddLastMessage()
+		(*c)[i] = *container.AddLastMessage(accountId)
 	}
 
 	return c

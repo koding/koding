@@ -16,7 +16,7 @@ import (
 // complete with paths, statuses, headers, and bodies.  Sensitive information may be
 // redacted by a user-defined function.
 type JSONLogger struct {
-	logger           *log.Logger
+	Logger           Logger
 	handler          http.Handler
 	redactor         Redactor
 	RequestIDCreator RequestIDCreator
@@ -27,7 +27,7 @@ type JSONLogger struct {
 // redacted by a user-defined function.
 func JSONLogged(handler http.Handler, redactor Redactor) *JSONLogger {
 	return &JSONLogger{
-		logger:           log.New(os.Stdout, "", 0),
+		Logger:           log.New(os.Stdout, "", 0),
 		handler:          handler,
 		redactor:         redactor,
 		RequestIDCreator: requestIDCreator,
@@ -72,14 +72,30 @@ func (jl *JSONLogger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Type:      "http",
 	})
 	if err != nil {
-		log.Println(err)
+		jl.Println(err.Error())
 		return
 	}
-	s := string(buf)
+	jl.Println("@json:", string(buf))
+}
+
+func (jl *JSONLogger) Print(v ...interface{}) {
+	jl.Output(2, fmt.Sprint(v...))
+}
+
+func (jl *JSONLogger) Printf(format string, v ...interface{}) {
+	jl.Output(2, fmt.Sprintf(format, v...))
+}
+
+func (jl *JSONLogger) Println(v ...interface{}) {
+	jl.Output(2, fmt.Sprintln(v...))
+}
+
+func (jl *JSONLogger) Output(calldepth int, s string) error {
 	if nil != jl.redactor {
 		s = jl.redactor(s)
 	}
-	jl.logger.Print("@json:", s)
+
+	return jl.Logger.Output(calldepth, s)
 }
 
 func jsonLogHTTPHeader(h http.Header) map[string]string {
