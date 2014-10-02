@@ -170,13 +170,14 @@ module.exports.create = (KONFIG, environment)->
 
     gzip on;
     gzip_disable "msie6";
+    gzip_static on;
 
     gzip_vary on;
     gzip_proxied any;
     gzip_comp_level 6;
     gzip_buffers 16 8k;
     gzip_http_version 1.1;
-    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript image/jpeg image/jpg image/png;
 
     # listen for http requests at port 81
     # this port will be only used for http->https redirection
@@ -187,7 +188,7 @@ module.exports.create = (KONFIG, environment)->
     # i have added  to koding-sandbox, koding-load, koding-prod and koding-prod-deployment-sg
     server {
       # just a random port
-      listen 81;
+      listen #{if environment is "dev" then 8091 else 81};
       # use generic names, do not hardcode values
       return 301 https://$host$request_uri;
     }

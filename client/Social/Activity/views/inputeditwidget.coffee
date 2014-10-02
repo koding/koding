@@ -12,7 +12,7 @@ class ActivityEditWidget extends ActivityInputWidget
     data         = @getData()
     {body, link} = data
 
-    @input.setValue body
+    @input.setValue Encoder.htmlDecode body
     @embedBox.loadEmbed link.link_url  if link
 
     @addSubView @input
