@@ -1855,6 +1855,10 @@ deleteRed = rgba(217, 58, 55, 0.9)
       background        #fff
       z-index           10
       padding-bottom    12px
+      left              258px
+      kalc              width, 100% \- 292px
+      max-width         600px
+      position          fixed
       vendor            transition, top .2s ease \,
                                     opacity .2s ease
       opacity           0
@@ -1864,7 +1868,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         padding-left    16px
 
       &.active
-        top             19px
+        top             25px
         opacity         1
         vendor          pointer-events, auto
 
@@ -2038,8 +2042,8 @@ deleteRed = rgba(217, 58, 55, 0.9)
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-      &.active .icon
-        vendor            transform, rotateZ(45deg)
+      &.active
+        vendor             pointer-events, none
 
   .kdlistview-privatemessage
     padding-bottom          100px
@@ -2690,6 +2694,7 @@ dropdownBorder = 1px solid #E0E0E0
   rounded           0
   shadow            dropdownShadow
   margin-top        0
+  top               100px !important
   fix()
 
   .kdautocompletelistitem

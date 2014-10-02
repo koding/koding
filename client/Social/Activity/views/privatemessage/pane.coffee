@@ -299,6 +299,11 @@ class PrivateMessagePane extends MessagePane
         @newParticipantButton.toggleClass 'active'
         @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
 
+        @autoComplete.getView().once 'blur',=>
+          @autoCompleteForm.toggleClass 'active'
+          @newParticipantButton.toggleClass 'active'
+          @input.input.setFocus()
+
 
   createAddParticipantForm: ->
 
@@ -308,6 +313,9 @@ class PrivateMessagePane extends MessagePane
       fields             :
         recipient        :
           itemClass      : KDView
+      submit             : (e) ->
+        e.preventDefault()
+
 
     @autoComplete = new KDAutoCompleteController
       name                : 'userController'
