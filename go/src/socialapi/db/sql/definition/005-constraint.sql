@@ -92,6 +92,10 @@ CREATE INDEX  "channel_message_list_channel_id_idx" ON api.channel_message_list 
 
 DROP INDEX IF EXISTS "api"."channel_message_list_channel_id_message_id_deleted_at_idx";
 CREATE INDEX  "channel_message_list_channel_id_message_id_deleted_at_idx" ON "api"."channel_message_list" USING btree(deleted_at ASC NULLS LAST, channel_id DESC, message_id DESC);
+
+DROP INDEX IF EXISTS "api"."channel_message_list_added_at_idx";
+CREATE INDEX  "channel_message_list_added_at_idx" ON "api"."channel_message_list" USING btree(added_at DESC NULLS FIRST);
+
 -- ----------------------------------------------------------------------------------------
 --  Structure for table ChannelParticipant
 -- ----------------------------------------------------------------------------------------
