@@ -136,10 +136,20 @@ func (p *Provider) FetchOne() (*MachineDocument, error) {
 			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)},
 		}
 
+		// update so we don't pick up recent things
+		update := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
+		}
+
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
-		err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, &machine)
 		if err != nil {
 			return err
 		}
