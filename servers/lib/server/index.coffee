@@ -287,6 +287,15 @@ app.post "/:name?/Validate/Email/:email?", (req, res) ->
     else res.status(400).send 'Email is taken!'
 
 
+app.get "/Verify/:token", (req, res) ->
+  { JPasswordRecovery } = koding.models
+  { token } = req.params
+
+  JPasswordRecovery.validate token, (err, callback) ->
+    return res.redirect 301, "/VerificationFailed"  if err?
+
+    res.redirect 301, "/Verified"
+
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
