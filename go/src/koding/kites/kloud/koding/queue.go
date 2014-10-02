@@ -25,7 +25,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
 		go func() {
-			machine, err := p.FetchOne(interval)
+			machine, err := p.FetchOne()
 			if err != nil {
 				// do not show an error if the query didn't find anything, that
 				// means there is no such a document, which we don't care
@@ -116,7 +116,7 @@ func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
 // 3. are not always on machines
 // 4. are not assigned to anyone yet (unlocked)
 // 5. are not picked up by others yet recently
-func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
+func (p *Provider) FetchOne() (*MachineDocument, error) {
 	machine := &MachineDocument{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
@@ -124,7 +124,7 @@ func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
 		// 2. are running
 		// 3. are not always on machines
 		// 4. are not assigned to anyone yet (unlocked)
-		// 5. are not picked up by others yet recently
+		// 5. are not picked up by others yet recently in last 30 seconds
 		//
 		// The $ne is used to catch documents whose field is not true including
 		// that do not contain that particular field
@@ -133,13 +133,23 @@ func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
 			"status.state":        machinestate.Running.String(),
 			"meta.alwaysOn":       bson.M{"$ne": true},
 			"assignee.inProgress": bson.M{"$ne": true},
-			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)},
+		}
+
+		// update so we don't pick up recent things
+		update := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
 		}
 
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
-		err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, &machine)
 		if err != nil {
 			return err
 		}
