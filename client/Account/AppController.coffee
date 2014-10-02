@@ -28,12 +28,6 @@ class AccountAppController extends AppController
         { slug: 'Delete', title : "Delete account", listType: "deleteAccount" }
       ]
 
-    tosAndPrivacyPolicy  :
-      title : "Koding"
-      items : [
-        { slug: 'Terms-of-service', title : "Terms of service", listType: "termsOfService" }
-        { slug: 'Privacy-policy', title : "Privacy policy", listType: "privacyPolicy" }
-      ]
 
   if KD.utils.oauthEnabled() is yes
     items.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })

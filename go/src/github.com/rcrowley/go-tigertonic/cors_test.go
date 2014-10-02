@@ -82,7 +82,7 @@ func TestCORSOPTIONS(t *testing.T) {
 	}
 	t.Log(w.Header())
 	if "X-Pizza-Fax" != w.Header().Get(CORSAllowHeaders) {
-		t.Fatalf("Headers received missing pizza fax! %s", w.Header())
+		t.Fatalf("Received headers missing pizza fax! %s", w.Header())
 	}
 }
 
@@ -122,6 +122,7 @@ func TestCORSHeader(t *testing.T) {
 	mux := NewTrieServeMux()
 	mux.Handle("GET", "/foo", NewCORSBuilder().Build(Marshaled(get)))
 	mux.Handle("GET", "/baz", NewCORSBuilder().AddAllowedHeaders("X-Fancy-Header").Build(Marshaled(get)))
+	mux.Handle("GET", "/quux", NewCORSBuilder().AddExposedHeaders("X-Flashing-Header").Build(Marshaled(get)))
 
 	// wildcard
 	w := &testResponseWriter{}
@@ -149,4 +150,15 @@ func TestCORSHeader(t *testing.T) {
 		t.Fatal(w.Header().Get(CORSAllowOrigin))
 	}
 
+	// exposed
+	w = &testResponseWriter{}
+	r, _ = http.NewRequest("GET", "http://example.com/quux", nil)
+	r.Header.Set("Accept", "application/json")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "X-Flashing-Header" != w.Header().Get(CORSExposeHeaders) {
+		t.Fatal(w.Header().Get(CORSAllowOrigin))
+	}
 }
