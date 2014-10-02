@@ -251,11 +251,12 @@ class MessagePane extends KDTabPaneView
   appendMessage: (message, index) -> @listController.addItem message, index
 
 
-  prependMessage: (message, index) ->
+  prependMessage: (message, index, callback = noop) ->
     KD.getMessageOwner message, (err, owner) =>
-      return error err  if err
-      return if KD.filterTrollActivity owner
-      @listController.addItem message, index
+      return callback err  if err
+      return callback() if KD.filterTrollActivity owner
+      item = @listController.addItem message, index
+      callback null, item
 
   removeMessage: (message) -> @listController.removeItem null, message
 
