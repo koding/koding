@@ -54,7 +54,7 @@ class MainController extends KDController
       account = KD.whoami()
 
       registrationDate = new Date(account.meta.createdAt)
-      releaseDate      = new Date() #this must be updated before release[BC]
+      releaseDate      = new Date("Oct 02 2014")
 
       if registrationDate < releaseDate
 

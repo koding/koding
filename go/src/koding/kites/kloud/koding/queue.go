@@ -25,7 +25,7 @@ func (p *Provider) RunChecker(interval time.Duration) {
 	for _ = range time.Tick(interval) {
 		// do not block the next tick
 		go func() {
-			machine, err := p.FetchOne(interval)
+			machine, err := p.FetchOne()
 			if err != nil {
 				// do not show an error if the query didn't find anything, that
 				// means there is no such a document, which we don't care
@@ -72,11 +72,8 @@ func (p *Provider) RunCleaner(interval time.Duration) {
 // certain inactivity time.
 func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
 	if machineDoc == nil {
-		return errors.New("machine is nil")
+		return errors.New("checking machine. document is nil")
 	}
-
-	// release the lock from mongodb after we are done
-	defer p.Unlock(machineDoc.Id.Hex())
 
 	credential := p.GetCredential(machineDoc.Credential)
 
@@ -112,11 +109,14 @@ func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
 	return checker.Timeout()
 }
 
-// FetchOne() fetches a single machine document from mongodb. This document is
-// locked and cannot be retrieved from others anymore. After finishing work with
-// this document locker.Unlock() needs to be called that it's unlocked again
-// so it can be fetched by others.
-func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
+// FetchOne() fetches a single machine document from mongodb that meets the criterias:
+//
+// 1. belongs to koding provider
+// 2. are running
+// 3. are not always on machines
+// 4. are not assigned to anyone yet (unlocked)
+// 5. are not picked up by others yet recently
+func (p *Provider) FetchOne() (*MachineDocument, error) {
 	machine := &MachineDocument{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
@@ -124,37 +124,32 @@ func (p *Provider) FetchOne(interval time.Duration) (*MachineDocument, error) {
 		// 2. are running
 		// 3. are not always on machines
 		// 4. are not assigned to anyone yet (unlocked)
-		// 5. are not picked up by others yet recently
+		// 5. are not picked up by others yet recently in last 30 seconds
 		//
 		// The $ne is used to catch documents whose field is not true including
-		// that do not contain that particual field
+		// that do not contain that particular field
 		egligibleMachines := bson.M{
 			"provider":            "koding",
 			"status.state":        machinestate.Running.String(),
 			"meta.alwaysOn":       bson.M{"$ne": true},
 			"assignee.inProgress": bson.M{"$ne": true},
-			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-interval)},
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)},
 		}
 
-		// once we found something, lock it by modifying the assignee.name. Also
-		// create a new timestamp (assignee.assignedAt) which is needed for
-		// several cases (explained above and below)
-		change := mgo.Change{
+		// update so we don't pick up recent things
+		update := mgo.Change{
 			Update: bson.M{
 				"$set": bson.M{
-					"assignee.inProgress": true,
 					"assignee.assignedAt": time.Now().UTC(),
 				},
 			},
-			ReturnNew: true,
 		}
 
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
-		_, err := c.Find(egligibleMachines).
-			Sort("assignee.assignedAt").
-			Apply(change, &machine)
+		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, &machine)
 		if err != nil {
 			return err
 		}

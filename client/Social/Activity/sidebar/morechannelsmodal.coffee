@@ -20,7 +20,7 @@ class MoreChannelsModal extends SidebarSearchModal
     {sections: {channels}}        = activitySidebar
     {listController}              = channels
 
-    @skipCount = listController.getItemCount() - 1 or 0
+    @skipCount = listController.getItemCount() - 2 or 0
 
 
   fetch: (options = {}, callback = noop) ->

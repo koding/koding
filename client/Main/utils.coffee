@@ -53,9 +53,12 @@ utils.extend utils,
 
     return null unless text
 
+    text = text.replace '\\', '\\\\'
+
     options.gfm       ?= true
     options.pedantic  ?= false
     options.sanitize  ?= true
+    options.breaks    ?= true
     options.highlight ?= (text, lang) ->
       if hljs.getLanguage lang
       then hljs.highlight(lang,text).value

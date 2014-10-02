@@ -48,7 +48,6 @@ module.exports = [
   "views/activityactions.coffee"
   "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
-  "views/filterwarning.coffee"
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
   "views/alltopicsmodal.coffee"
