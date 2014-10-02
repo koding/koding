@@ -57,11 +57,11 @@ module.exports = class PricingPlansView extends KDView
     description  : 'Best for expanded learning or for running a small blog/website'
     cssClass     : 'hobbyist'
     planFeatures : [
-      { partial: '1 GB RAM'     , cssClass: 'ram' }
-      { partial: '1 Core'       , cssClass: 'cpu' }
-      { partial: '3 GB Storage' , cssClass: 'storage' }
-      { partial: '1 VM total'   , cssClass: 'vm-count' }
-      { partial: '1 Always on'  , cssClass: 'always-on disabled' }
+      { partial: '1 GB RAM'      , cssClass: 'ram' }
+      { partial: '1 Core'        , cssClass: 'cpu' }
+      { partial: '10 GB Storage' , cssClass: 'storage' }
+      { partial: '1 VM total'    , cssClass: 'vm-count' }
+      { partial: '1 Always on'   , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Developer'
@@ -74,7 +74,7 @@ module.exports = class PricingPlansView extends KDView
     planFeatures : [
       { partial: '1 GB RAM'      , cssClass: 'ram' }
       { partial: '1 Core'        , cssClass: 'cpu' }
-      { partial: '15 GB Storage' , cssClass: 'storage' }
+      { partial: '25 GB Storage' , cssClass: 'storage' }
       { partial: '3 VMs total'   , cssClass: 'vm-count' }
       { partial: '1 Always on'   , cssClass: 'always-on' }
     ]
@@ -89,7 +89,7 @@ module.exports = class PricingPlansView extends KDView
     planFeatures : [
       { partial: '1 GB RAM'      , cssClass: 'ram' }
       { partial: '1 Core'        , cssClass: 'cpu' }
-      { partial: '25 GB Storage' , cssClass: 'storage' }
+      { partial: '50 GB Storage' , cssClass: 'storage' }
       { partial: '5 VMs total'   , cssClass: 'vm-count' }
       { partial: '2 Always on'   , cssClass: 'always-on' }
     ]
