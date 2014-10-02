@@ -37,7 +37,6 @@ func GetUserVMs(username string) ([]models.VM, error) {
 	query := func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{
 			"webHome":   username,
-			"vmType":    "user",
 			"isEnabled": true,
 		}).Sort("hostnameAlias").Iter()
 		for iter.Next(&vm) {
