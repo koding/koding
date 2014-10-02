@@ -702,6 +702,80 @@ body.ide .kddialogview.save-as-dialog
         color           #767676
         text-decoration underline
 
+// drawing board and toolbar
+.drawing-board-toolbar
+  abs()
+  top                   10px
+  left                  10px
+
+  .item
+    size                42px, 34px
+    margin-bottom       1px
+    bg                  color, #181818
+    pointer()
+    position            relative
+    &:first-child
+      rounded           4px 4px 0 0
+    &:last-child
+      rounded           0 0 4px 4px
+    p
+      left              50%
+      top               50%
+      abs()
+    &.selected
+      width             43px
+      bg                color, #131313
+      p
+        margin-left     -8px !important
+    &.undo p
+      r-sprite          'ide', 'arrow-left'
+      margin            -5px 0 0 -5px
+    &.redo p
+      r-sprite          'ide', 'arrow-right'
+      margin            -5px 0 0 -5px
+    &.clear p
+      r-sprite          'ide', 'refresh'
+      margin            -8px 0 0 -8px
+    &.penSize p
+      r-sprite          'ide', 'dot'
+      margin            -7px 0 0 -7px
+    &.save p
+      r-sprite          'ide', 'download'
+      margin            -8px 0 0 -7px
+    &.color .icon
+      size              14px, 14px
+      rounded           16px
+      bg                color, #CD3A33
+      margin            -7px 0 0 -7px
+
+  &.menu
+    left                53px
+    .item
+      height            35px
+      margin-bottom     0
+      bg                color, #131313
+
+    .pen-size
+      position          relative
+      div
+        bg              color, #5B5B5B
+        rounded         20px
+        top             50%
+        left            50%
+        abs()
+
+    .color
+      position          relative
+      div
+        size            14px, 14px
+        rounded         10px
+        top             50%
+        left            50%
+        margin          -7px 0 0 -7px
+        abs()
+
+
+
 // machine state modal
 .ide-modal-overlay
   bg                    color, rgba(43, 43, 43, .75)
