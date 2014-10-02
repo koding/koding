@@ -7,6 +7,7 @@ About    = require './about/AppController'
 Home     = require './home/AppController'
 Login    = require './login/AppController'
 Features = require './features/AppController'
+Legal    = require './legal/AppController'
 Pricing  = require './pricing/AppController'
 
 # bootstrap app
