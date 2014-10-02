@@ -343,14 +343,19 @@ app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models
   { email } = req.body
 
+  return res.status(400).send 'Invalid email!'  if not email
+
   JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
     return res.status(403).send err.message  if err?
 
     res.status(200).end()
 
-app.post '/:name/Reset', (req, res) ->
+app.post '/:name?/Reset', (req, res) ->
   { JPasswordRecovery } = koding.models
-  { recoveryToken, password } = req.body
+  { recoveryToken: token, password } = req.body
+
+  return res.status(400).send 'Invalid token!'  if not token
+  return res.status(400).send 'Invalid password!'  if not password
 
   JPasswordRecovery.resetPassword { token, password }, (err, username) ->
     return res.status(400).send err.message  if err?
