@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"koding/tools/tracer"
 	"koding/virt"
 	"net/http"
 	"os"
@@ -99,7 +100,8 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 		respond(w, status, message)
 		return
 	}
-	if err := vm.LockRBD(); err != nil {
+	if err := lockRBD(vm); err != nil {
+		log.Error(err.Error())
 		respond(w, 412, "RBD cannot be locked")
 		return
 	}
@@ -108,12 +110,16 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 			log.Error(err.Error())
 		}
 	}()
+
+	log.Info("exporting user files: '%s'", vm.String())
 	archive, err := exportUserFiles(vm)
 	if err != nil {
 		log.Error("server error: '%s'", err.Error())
 		respond(w, 500, "server error")
 		return
 	}
+
+	log.Info("sending data: '%s'", vm.String())
 	w.Header().Set("Content-type", "application/octet-stream")
 	if _, err := io.Copy(w, archive); err != nil {
 		log.Error(err.Error())
@@ -139,10 +145,12 @@ func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, str
 
 func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 	// map the RBD:
+	log.Info("mapping the rbd: '%s'", vm.String())
 	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", virt.VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		return nil, commandError("rbd map failed.", err, out)
 	}
 	defer func() {
+		log.Info("unmapping the rbd: '%s'", vm.String())
 		if out, err := exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/"+virt.VMPool+"/"+vm.String()).CombinedOutput(); err != nil {
 			log.Error(commandError("rbd unmap failed.", err, out).Error())
 		}
@@ -162,21 +170,26 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 			log.Error(err.Error())
 		}
 	}()
+
+	log.Info("mounting the rbd: '%s'", vm.String())
 	// mount the rbd over an empty rootfs:
 	if out, err := exec.Command("/bin/mount", "-o", "ro", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
 		return nil, commandError("mount failed.", err, out)
 	}
 	defer func() {
+		log.Info("unmounting the rbd: '%s'", vm.String())
 		// unmount the rbd:
 		if out, err := exec.Command("/bin/umount", dirName).CombinedOutput(); err != nil {
 			log.Error(commandError("umount failed.", err, out).Error())
 		}
 	}()
+	log.Info("archiving: '%s'", vm.String())
 	// tar the resulting home directory:
 	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName+"/home").CombinedOutput(); err != nil {
 		return nil, commandError("tar failed.", err, out)
 	}
 	defer func() {
+		log.Info("removing the archive: '%s'", vm.String())
 		// remove the archive:
 		if err := os.Remove(archiveName); err != nil {
 			log.Error(err.Error())
@@ -198,4 +211,28 @@ func commandError(message string, err error, out []byte) error {
 
 func createToken() {
 	fmt.Println(token.StringToken(*username, *vm))
+}
+
+func lockRBD(vm *virt.VM) error {
+	if err := vm.LockRBD(); err != nil {
+		return relockRBD(vm)
+	}
+	return nil
+}
+
+func relockRBD(vm *virt.VM) error {
+	log.Info("relock rbd: '%s'", vm.String())
+	if err := vm.Unprepare(tracer.DefaultTracer(), false); err != nil {
+		log.Error(err.Error())
+		return err
+	}
+
+	log.Info("lock rbd: '%s'", vm.String())
+	if err := vm.LockRBD(); err != nil {
+		log.Error(err.Error())
+		return err
+	}
+
+	log.Info("rbd locked: '%s'", vm.String())
+	return nil
 }
