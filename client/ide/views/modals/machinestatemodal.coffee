@@ -30,7 +30,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
-    computeController.on "reinit-#{@machineId}",@bound 'updateStatus'
+
+    computeController.on "reinit-#{@machineId}",(event)=>
+      @updateStatus event, 'reinit'
+
     computeController.on "error-#{@machineId}", =>
       @hasError = yes
       @updateStatus status: Unknown
@@ -39,7 +42,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController.followUpcomingEvents @machine
 
-  updateStatus: (event) ->
+  updateStatus: (event, task) ->
 
     {status, percentage, error} = event
 
@@ -49,22 +52,35 @@ class IDE.MachineStateModal extends IDE.ModalView
         @progressBar?.show()
 
     else
-      @state = status
 
+      @state = status
       @hasError = error?.length > 0
 
-      if percentage? and percentage is 100
-        @progressBar?.updateBar 100
-        @progressBar?.show()
+      if percentage?
 
-        KD.utils.wait 500, => @buildViews()
+        if percentage is 100
+
+          if status is Running
+            @prepareIDE()
+            @destroy()
+
+          else
+            @progressBar?.updateBar 100
+            @progressBar?.show()
+
+            KD.utils.wait 500, => @buildViews()
+
+        else if task is 'reinit'
+          @buildViews { percentage }
+
+        else
+          @buildViews()
 
       else
-        @buildViews()
 
-      if status is Running
-        @prepareIDE()
-        @destroy()
+        if status is Running
+          @prepareIDE()
+          @destroy()
 
 
   buildInitial:->
@@ -105,7 +121,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     if @state in [ Stopped, Running, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Stopping, Terminating, Updating, Rebooting ]
-      @createProgressBar()
+      @createProgressBar response?.percentage
     else if @state is Terminated
       @label.destroy?()
       @createStateLabel """
@@ -165,10 +181,9 @@ class IDE.MachineStateModal extends IDE.ModalView
     @container.addSubView @loader
 
 
-  createProgressBar: ->
+  createProgressBar: (initial = 10)->
 
-    @progressBar = new KDProgressBarView
-      initial    : 10
+    @progressBar = new KDProgressBarView { initial }
 
     @container.addSubView @progressBar
 
