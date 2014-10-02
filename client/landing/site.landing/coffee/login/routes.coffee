@@ -4,6 +4,15 @@ do ->
     cb = (app) -> callback app, options
     KD.singletons.router.openSection 'Login', null, null, cb
 
+
+  handleVerified = ->
+    new KDNotificationView title: "Thanks for verifying"
+    @clear()
+
+  handleVerificationFailed = ->
+    new KDNotificationView title: "Verification failed!"
+    @clear()
+
   # handleResetRoute = ({params:{token}}) ->
   #   {appManager} = KD.singletons
   #   appManager.require 'Login', (app) ->
@@ -93,6 +102,9 @@ do ->
     '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
     '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+
+    '/Verified'          : handleVerified
+    '/VerificationFailed': handleVerificationFailed
     # '/:name?/Register/:token'  : handleFinishRegistration
     # '/:name?/Reset/:token'     : handleResetRoute
     # '/:name?/Confirm/:token'   : handleResetRoute
