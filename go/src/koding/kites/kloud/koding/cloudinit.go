@@ -124,7 +124,7 @@ write_files:
       - The default web server root is linked to /home/{{ .Username }}/Web
         so any file placed inside that directory will automatically
         be visible from this URL:
-        http://[machine_id].koding.io/
+        http://{{.Hostname}}.koding.io/
 
       - You can access this VM using any sub-domains that you may have
         set up. To learn more about sub-domains and how to set them up,
@@ -160,7 +160,6 @@ write_files:
       For more questions and FAQ, head over to http://learn.koding.com
       or send us an email at support@koding.com
     path: /home/{{.Username}}/README.md
-    permissions: '0755'
     owner: {{.Username}}:{{.Username}}
 
 
@@ -168,10 +167,10 @@ write_files:
   # User migration script (~/migrate.sh)
   - content: |
       #!/bin/bash
-      username={{ .Username }}
-      credentials=({{ .Passwords }})
-      vm_names=({{ .VmNames }})
-      vm_ids=({{ .VmIds }})
+      username={{.Username}}
+      credentials=({{.Passwords}})
+      vm_names=({{.VmNames}})
+      vm_ids=({{.VmIds}})
       count=$((${#credentials[@]} - 1))
       counter=0
       clear
