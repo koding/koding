@@ -50,17 +50,6 @@ class MessagePane extends KDTabPaneView
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
-    switch typeConstant
-      when 'post'
-        @listController.getListView().once 'ItemWasAdded', (item) =>
-          listView = @listController.getListItems().first.commentBox.controller.getListView()
-          listView.on 'ItemWasAdded', @bound 'scrollDown'
-      when 'privatemessage'
-        @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
-      when 'group', 'announcement'
-      else
-        @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
-
 
   bindInputEvents: ->
 
@@ -239,6 +228,12 @@ class MessagePane extends KDTabPaneView
     {lastToFirst} = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
     @prependMessage message, index
+
+    switch typeConstant
+      when 'post'
+        @listController.getListView().once 'ItemWasAdded', (item) =>
+          listView = @listController.getListItems().first.commentBox.controller.getListView()
+          listView.on 'ItemWasAdded', @bound 'scrollDown'
 
 
   loadMessage: (message) ->
