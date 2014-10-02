@@ -136,10 +136,6 @@ func (s *Server) TLS(cert, key string) error {
 func (s *Server) tlsConfig() {
 	if nil == s.TLSConfig {
 		s.TLSConfig = &tls.Config{
-			CipherSuites: []uint16{
-				tls.TLS_ECDHE_RSA_WITH_RC4_128_SHA,
-				tls.TLS_RSA_WITH_RC4_128_SHA,
-			},
 			NextProtos: []string{"http/1.1"},
 		}
 	}
