@@ -180,6 +180,8 @@ func newKite(conf *Config) *kite.Kite {
 	// be sure they they satisfy the provider interface
 	var _ kloudprotocol.Provider = kodingProvider
 
+	klientPool := klient.NewPool(kodingProvider.Kite)
+
 	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
 		a, err := kodingProvider.NewClient(m)
 		if err != nil {
@@ -194,7 +196,7 @@ func newKite(conf *Config) *kite.Kite {
 			Log:        kodingProvider.Log,
 			Username:   m.Username,
 			Machine:    m,
-			KlientPool: klient.NewPool(kodingProvider.Kite),
+			KlientPool: klientPool,
 		}, nil
 	}
 
