@@ -30,7 +30,7 @@ func TestJSONLogger(t *testing.T) {
 	}
 
 	b := &bytes.Buffer{}
-	logger.logger = log.New(b, "", 0)
+	logger.Logger = log.New(b, "", 0)
 	logger.ServeHTTP(w, r)
 
 	var m jsonLog
@@ -85,7 +85,7 @@ func TestJSONLoggerRedactor(t *testing.T) {
 	})
 
 	b := &bytes.Buffer{}
-	logger.logger = log.New(b, "", 0)
+	logger.Logger = log.New(b, "", 0)
 	logger.ServeHTTP(w, r)
 	s := b.String()
 
