@@ -104,7 +104,7 @@ write_files:
 
   # README.md
   - content: |
-      ## Welcome to Koding...You've said goodbye to locahost!
+      ## Welcome to Koding...You've said goodbye to localhost!
 
       Koding is a cloud-based development platform that allows you to:
       - Develop applications in the cloud
@@ -250,6 +250,11 @@ write_files:
 {{end}}
 
 runcmd:
+  # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
+  - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/ubuntu/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
+
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
