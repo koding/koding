@@ -187,7 +187,7 @@ func (m *Marshaler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(code)
-	if nil != rs && http.StatusNoContent != code {
+	if nil != rs && http.StatusNoContent != code && (out[2].Kind() != reflect.Ptr || !out[2].IsNil()) {
 		if err := json.NewEncoder(w).Encode(rs); nil != err {
 			log.Println(err)
 		}

@@ -75,7 +75,7 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 	cc.AddIsParticipant(q.AccountId)
 
 	// TODO this should be in the channel cache by default
-	cc.AddLastMessage()
+	cc.AddLastMessage(q.AccountId)
 
 	return response.HandleResultAndError(cc, cc.Err())
 }
@@ -155,7 +155,7 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 	cc.AddIsParticipant(q.AccountId)
 
 	// TODO this should be in the channel cache by default
-	cc.AddLastMessage()
+	cc.AddLastMessage(q.AccountId)
 
 	return response.HandleResultAndError(cc, cc.Err)
 }
