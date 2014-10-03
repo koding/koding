@@ -109,7 +109,14 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("sending data: '%s'", vm.String())
+
+	info, err := archive.Stat()
+	if err != nil {
+		respond(w, 500, "server error")
+	}
+
 	w.Header().Set("Content-type", "application/octet-stream")
+	w.Header().Set("Content-length", strconv.FormatInt(info.Size(), 10))
 	if _, err := io.Copy(w, archive); err != nil {
 		log.Error(err.Error())
 	}
@@ -132,7 +139,7 @@ func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, str
 	return vm, 200, "", nil
 }
 
-func exportUserFiles(vm *virt.VM) (io.Reader, error) {
+func exportUserFiles(vm *virt.VM) (*os.File, error) {
 	// map the RBD:
 	log.Info("mapping the rbd: '%s'", vm.String())
 	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", virt.VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
