@@ -3,6 +3,7 @@ package koding
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
 	"sort"
 	"strconv"
 	"strings"
@@ -209,7 +210,17 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// validate the userdata first before sending
 	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
-		errLog("Cloudinit template is not a valid YAML file: %v", err)
+		// write to temporary file so we can see the yaml file that is not
+		// formatted in a good way.
+		f, err := ioutil.TempFile("", "kloud-cloudinit")
+		if err == nil {
+			if _, err := f.WriteString(userdata.String()); err != nil {
+				errLog("Cloudinit temporary field couldn't be written %v", err)
+			}
+		}
+
+		errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
+			f.Name())
 		return nil, errors.New("Cloudinit template is not a valid YAML file.")
 	}
 

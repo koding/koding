@@ -248,9 +248,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   expire: (callback) -> @update {$set: status: 'expired'}, callback
 
   redeem: (callback) ->
-    if    @token?
-    then  @redeemByToken callback
-    else  @update {$set: status: 'redeemed'}, callback
+    @update {$set: status: 'redeemed'}, callback
 
   redeemByToken: (callback) ->
     JMail = require './email'
