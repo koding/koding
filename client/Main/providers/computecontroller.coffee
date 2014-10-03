@@ -511,9 +511,13 @@ class ComputeController extends KDController
 
               else if machines.length is 0
 
-                stack = @stacks.first._id
+                stack   = @stacks.first._id
+                storage = plans[plan]?.storage or 3
 
-                @create { provider : "koding", stack }, (err, machine)=>
+                @create {
+                  provider : "koding",
+                  stack, storage
+                }, (err, machine)=>
 
                   @_inprogress = no
 
