@@ -58,6 +58,13 @@ class PrivateMessagePane extends MessagePane
     , 200
 
 
+  replaceFakeItemView: (message) ->
+    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
+    item = @putMessage message, index
+    @removeFakeMessage message.clientRequestId
+    @scrollDown item
+
+
   createInputWidget: ->
 
     channel = @getData()

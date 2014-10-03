@@ -69,11 +69,10 @@ class MessagePane extends KDTabPaneView
       else
         @input.once 'SubmitSucceeded', -> resolve()
 
+
   replaceFakeItemView: (message) ->
-    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item = @putMessage message, index
-    @removeFakeMessage message.clientRequestId
-    @scrollDown item
+
+    @putMessage message, @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
