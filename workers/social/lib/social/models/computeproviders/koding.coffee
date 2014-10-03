@@ -133,12 +133,12 @@ module.exports = class Koding extends ProviderInterface
 
   @update = (client, options, callback)->
 
-    { machineId, alwaysOn } = options
+    { machineId, alwaysOn, resize } = options
     { r: { group, user, account } } = client
 
     unless machineId? or alwaysOn?
       return callback new KodingError \
-        "A valid machineId and alwaysOn state required."
+        "A valid machineId and an update option required.", "WrongParameter"
 
     JMachine = require './machine'
 
@@ -154,6 +154,15 @@ module.exports = class Koding extends ProviderInterface
           return callback new KodingError \
             """Total limit of #{userPlan.alwaysOn}
                always on vm limit has been reached.""", "UsageLimitReached"
+
+        if resize?
+          if resize > userPlan.storage
+            return callback new KodingError \
+            """Requested new size exceeds allowed
+               limit of #{userPlan.storage}GB.""", "UsageLimitReached"
+          else if resize < 3
+            return callback new KodingError \
+            """New size can't be less then 3GB.""", "WrongParameter"
 
         { ObjectId } = require 'bongo'
 
@@ -171,10 +180,22 @@ module.exports = class Koding extends ProviderInterface
             err ?= new KodingError "Machine object not found."
             return callback err
 
+          fieldsToUpdate = {}
+
+          if alwaysOn?
+            fieldsToUpdate["meta.alwaysOn"] = alwaysOn
+          if resize?
+
+            if (resize - machine.meta?.storage_size) + usage.storage > userPlan.storage
+              return callback new KodingError \
+              """Requested new size exceeds allowed
+                 limit of #{userPlan.storage}GB.""", "UsageLimitReached"
+
+            fieldsToUpdate["meta.storage_size"] = resize
 
           machine.update
 
-            $set: "meta.alwaysOn": alwaysOn
+            $set: fieldsToUpdate
 
           , (err)-> callback err
 
