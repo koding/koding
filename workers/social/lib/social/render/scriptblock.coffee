@@ -96,17 +96,13 @@ module.exports = (options = {}, callback)->
     queue = [
       ->
         bongoModels.JCustomPartials.one selector, (err, partial)->
-          console.log ">>>>>>>>> partial", partial
           customPartial = partial.data  if not err and partial
           queue.fin()
       ->
         bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-          console.log ">>>>>>>>> group", group
           console.log err if err
 
           bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
-            console.log ">>>>>>>>> JReferralCampaign", campaignData_
-
             if not err and campaignData_ and campaignData_.data
               campaignData = campaignData_.data
 
@@ -127,31 +123,6 @@ module.exports = (options = {}, callback)->
     ]
 
     dash queue, -> callback null, createHTML()
-
-    # add custom partials into body
-    # bongoModels.JCustomPartials.one selector, (err, partial)->
-    #   customPartial = partial.data  if not err and partial
-
-    #   bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-    #     console.log err if err
-
-        # add custom partial into referral campaign
-    #     bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
-
-    #       if not err and campaignData_ and campaignData_.data
-    #         campaignData = campaignData_.data
-
-    #       if group
-    #         currentGroup = group
-
-    #       bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-    #         console.log err  if err
-    #         userWorkspaces = workspaces or []
-
-    #         bongoModels.JMachine.some$ client, {}, (err, machines) ->
-    #           console.log err  if err
-    #           userMachines = machines or []
-    #           callback null, createHTML()
 
 
   socialApiCacheFn = require '../cache/socialapi'
