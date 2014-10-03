@@ -71,7 +71,10 @@ class IDE.MachineStateModal extends IDE.ModalView
             KD.utils.wait 500, => @buildViews()
 
         else if task is 'reinit'
-          @buildViews { percentage }
+
+          @progressBar?.updateBar Math.max percentage, 10
+          @progressBar?.show()
+          @label?.updatePartial @getStateLabel()
 
         else
           @buildViews()
