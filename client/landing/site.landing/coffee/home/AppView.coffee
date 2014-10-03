@@ -8,10 +8,10 @@ module.exports = class HomeView extends KDView
   IMAGEPATH = '/a/site.landing/images/slideshow'
   IMAGES    = [
     [ 'ss-terminal.png',      '18,000,000+ VMs spun up and counting.' ]
-    [ 'ss-activity.png',      '500,000+ developers are coding here.' ]
+    [ 'ss-activity.png',      '500,000+ strong global dev community.' ]
     [ 'ss-ide.png',           '1 Billion+ lines of code written.' ]
     [ 'ss-ide-collapsed.png', '5+ Petabytes of VM space allocated.' ]
-    [ 'ss-chat.png',          '5,000+ developers coding daily.' ]
+    [ 'ss-chat.png',          '5,000+ developers write code here every day.' ]
   ]
   ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
