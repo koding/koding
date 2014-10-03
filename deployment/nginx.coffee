@@ -171,6 +171,8 @@ module.exports.create = (KONFIG, environment)->
     client_header_buffer_size 4k;
     client_max_body_size 10m;
 
+    sendfile on;
+
     # for proper content type setting, include mime.types
     include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
 
