@@ -219,7 +219,7 @@ write_files:
       echo "Downloading files from $vm_name (this could take a while)..."
       echo
       archive="$vm_name.tgz"
-      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -s -w %{http_code} --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
+      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -w %{http_code} --progress-bar --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
       echo "HTTP status: $status"
       echo
       if [[ $status -ne 200 ]]; then
