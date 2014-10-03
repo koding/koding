@@ -295,7 +295,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 
 			status = machine.State
 			msg = ""
-			eventErr = err.Error()
+			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
 				machine.Id, strings.ToUpper(r.Method), status)
