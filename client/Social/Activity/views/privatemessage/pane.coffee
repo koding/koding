@@ -128,10 +128,13 @@ class PrivateMessagePane extends MessagePane
     return  if message.account._id is KD.whoami()._id
 
     item = @prependMessage message, @listController.getItemCount()
-
     isFromBot message, @bound 'setResponseMode'
+    @scrollDown item
 
-    return item
+
+  prependMessage: (message, index) ->
+
+    return @listController.addItem message, index
 
 
   putMessage: (message, index) ->
@@ -183,7 +186,6 @@ class PrivateMessagePane extends MessagePane
 
   messageAdded: (item, index) ->
 
-    @scrollDown item
     data         = item.getData()
     listView     = @listController.getView()
     headerHeight = @heads?.getHeight() or 0
