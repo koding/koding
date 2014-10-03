@@ -69,11 +69,10 @@ class MessagePane extends KDTabPaneView
       else
         @input.once 'SubmitSucceeded', -> resolve()
 
+
   replaceFakeItemView: (message) ->
-    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item = @putMessage message, index
-    @removeFakeMessage message.clientRequestId
-    @scrollDown item
+
+    @putMessage message, @removeFakeMessage message.clientRequestId
 
 
   removeFakeMessage: (identifier) ->
@@ -230,15 +229,9 @@ class MessagePane extends KDTabPaneView
     return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
 
-    {lastToFirst} = @getOptions()
+    {lastToFirst}  = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
     @prependMessage message, index
-
-    switch typeConstant
-      when 'post'
-        @listController.getListView().once 'ItemWasAdded', (item) =>
-          listView = @listController.getListItems().first.commentBox.controller.getListView()
-          listView.on 'ItemWasAdded', @bound 'scrollDown'
 
 
   loadMessage: (message) ->
@@ -274,7 +267,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-    KD.utils.defer @bound 'focus'
+
 
 
   glance: ->
@@ -302,16 +295,6 @@ class MessagePane extends KDTabPaneView
 
   focus: ->
 
-    # do not focus if we are in announcement channel
-    {socialapi} = KD.singletons
-    return  if socialapi.isAnnouncementItem @getData().id
-
-    if @input
-      @input.focus()
-    else
-      # TODO - undefined is not a function
-      @listController?.getListItems().first.commentBox.input.focus()
-
 
   populate: (callback = noop) ->
 
@@ -324,14 +307,21 @@ class MessagePane extends KDTabPaneView
       return  if @currentFilter isnt filter
 
       @listController.hideLazyLoader()
-      items.forEach @bound 'appendMessageDeferred'
+      items.forEach (item, i) =>
+        @appendMessageDeferred item, i, items.length
 
       KD.utils.defer @bound 'focus'
 
       callback()
 
 
-  appendMessageDeferred: (item) -> KD.utils.defer @lazyBound 'appendMessage', item
+  appendMessageDeferred: (item, i, total) ->
+
+    KD.utils.defer =>
+      @appendMessage item
+      if i is total - 1
+        KD.utils.wait 50, => @emit 'ListPopulated'
+
 
 
   fetch: (options = {}, callback)->
