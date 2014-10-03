@@ -1,6 +1,5 @@
-coffee   = require 'coffee-script/register'
-utils    = require '../utils/utils.coffee'
-helpers  = require '../helpers/helpers.coffee'
+utils    = require '../utils/utils.js'
+helpers  = require '../helpers/helpers.js'
 
 module.exports =
 
