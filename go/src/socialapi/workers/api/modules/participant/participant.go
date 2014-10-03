@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var ErrSkipActivity = errors.New("skip activity")
+
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
@@ -60,6 +62,11 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		}
 
 		participants[i] = participant
+
+		if err := addJoinActivity(query.Id, participant.AccountId, query.AccountId); err != nil {
+			return response.NewBadRequest(err)
+		}
+
 	}
 
 	return response.NewOK(participants)
@@ -79,6 +86,10 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	for i := range participants {
 		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if err := addLeaveActivity(query.Id, participants[i].AccountId); err != nil {
 			return response.NewBadRequest(err)
 		}
 	}
@@ -176,4 +187,49 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	}
 
 	return nil
+}
+
+func addJoinActivity(channelId, participantId, addedBy int64) error {
+
+	c, err := fetchChannelWithValidation(channelId)
+	if err != nil {
+		if err == ErrSkipActivity {
+			return nil
+		}
+
+		return err
+	}
+
+	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+
+	return pmr.AddJoinActivity(c, addedBy)
+}
+
+func addLeaveActivity(channelId, participantId int64) error {
+	c, err := fetchChannelWithValidation(channelId)
+	if err != nil {
+		if err == ErrSkipActivity {
+			return nil
+		}
+
+		return err
+	}
+
+	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+
+	return pmr.AddLeaveActivity(c)
+}
+
+func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return nil, err
+	}
+
+	// add activity information for private message channel
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return nil, ErrSkipActivity
+	}
+
+	return c, nil
 }
