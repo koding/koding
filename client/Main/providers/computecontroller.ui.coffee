@@ -114,6 +114,14 @@ class ComputeController.UI
 
     tasks =
 
+      resize    :
+        title   : "Resize VM?"
+        message : "
+          If you choose to proceed, this VM will be resized to 10Gb.
+          You won't be able to use the vm during resize but all your files,
+          workspaces and data will remain safe.
+        "
+        button  : "Proceed"
       reinit    :
         title   : "Reinitialize VM?"
         message : "
