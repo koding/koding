@@ -3,7 +3,6 @@ package koding
 import (
 	"fmt"
 	"koding/db/mongodb"
-	"koding/kites/kloud/klient"
 	"strconv"
 
 	"labix.org/v2/mgo"
@@ -112,11 +111,10 @@ func (p *PlanChecker) AlwaysOn() error {
 
 func (p *PlanChecker) Timeout() error {
 	// connect and get real time data directly from the machines klient
-	klient, err := klient.New(p.Kite, p.Machine.QueryString)
+	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
 	if err != nil {
 		return err
 	}
-	defer klient.Close()
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
@@ -136,7 +134,7 @@ func (p *PlanChecker) Timeout() error {
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
 
-	p.Log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// It still have plenty of time to work, do not stop it

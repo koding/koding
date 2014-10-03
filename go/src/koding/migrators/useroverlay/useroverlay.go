@@ -43,6 +43,10 @@ func serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/export-files", exportFiles).Methods("POST")
 	http.Handle("/", basicAuth(r))
+	http.Handle("/healthcheck", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(200)
+		io.WriteString(w, "ok")
+	}))
 	if err := http.ListenAndServeTLS(":3000", *certFile, *keyFile, nil); err != nil {
 		log.Error(err.Error())
 	}
@@ -95,21 +99,24 @@ func exportFiles(w http.ResponseWriter, r *http.Request) {
 		respond(w, status, message)
 		return
 	}
-	if err := vm.LockRBD(); err != nil {
-		respond(w, 412, "RBD cannot be locked")
-		return
-	}
-	defer func() {
-		if err := vm.UnlockRBD(); err != nil {
-			log.Error(err.Error())
-		}
-	}()
+
+	log.Info("exporting user files: '%s'", vm.String())
 	archive, err := exportUserFiles(vm)
 	if err != nil {
-		respond(w, 500, err.Error())
+		log.Error("server error: '%s'", err.Error())
+		respond(w, 500, "server error")
 		return
 	}
+
+	log.Info("sending data: '%s'", vm.String())
+
+	info, err := archive.Stat()
+	if err != nil {
+		respond(w, 500, "server error")
+	}
+
 	w.Header().Set("Content-type", "application/octet-stream")
+	w.Header().Set("Content-length", strconv.FormatInt(info.Size(), 10))
 	if _, err := io.Copy(w, archive); err != nil {
 		log.Error(err.Error())
 	}
@@ -132,12 +139,14 @@ func validateRequest(w http.ResponseWriter, r *http.Request) (*virt.VM, int, str
 	return vm, 200, "", nil
 }
 
-func exportUserFiles(vm *virt.VM) (io.Reader, error) {
+func exportUserFiles(vm *virt.VM) (*os.File, error) {
 	// map the RBD:
+	log.Info("mapping the rbd: '%s'", vm.String())
 	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", virt.VMPool, "--image", vm.String()).CombinedOutput(); err != nil {
 		return nil, commandError("rbd map failed.", err, out)
 	}
 	defer func() {
+		log.Info("unmapping the rbd: '%s'", vm.String())
 		if out, err := exec.Command("/usr/bin/rbd", "unmap", "/dev/rbd/"+virt.VMPool+"/"+vm.String()).CombinedOutput(); err != nil {
 			log.Error(commandError("rbd unmap failed.", err, out).Error())
 		}
@@ -157,21 +166,26 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 			log.Error(err.Error())
 		}
 	}()
+
+	log.Info("mounting the rbd: '%s'", vm.String())
 	// mount the rbd over an empty rootfs:
-	if out, err := exec.Command("/bin/mount", "-o", "ro", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-o", "ro,noload", "-t", "ext4", "/dev/rbd/vms/"+vm.String(), dirName).CombinedOutput(); err != nil {
 		return nil, commandError("mount failed.", err, out)
 	}
 	defer func() {
+		log.Info("unmounting the rbd: '%s'", vm.String())
 		// unmount the rbd:
 		if out, err := exec.Command("/bin/umount", dirName).CombinedOutput(); err != nil {
 			log.Error(commandError("umount failed.", err, out).Error())
 		}
 	}()
-	// tar the resulting directory structure:
-	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName).CombinedOutput(); err != nil {
+	log.Info("archiving: '%s'", vm.String())
+	// tar the resulting home directory:
+	if out, err := exec.Command("/bin/tar", "--directory", "/tmp", "-czf", archiveName, baseName+"/home").CombinedOutput(); err != nil {
 		return nil, commandError("tar failed.", err, out)
 	}
 	defer func() {
+		log.Info("removing the archive: '%s'", vm.String())
 		// remove the archive:
 		if err := os.Remove(archiveName); err != nil {
 			log.Error(err.Error())
@@ -183,8 +197,8 @@ func exportUserFiles(vm *virt.VM) (io.Reader, error) {
 
 func respond(w http.ResponseWriter, code int, body string) {
 	log.Error("server error: '%s' (%d)", body, code)
-	w.WriteHeader(500)
-	io.WriteString(w, "server error")
+	w.WriteHeader(code)
+	io.WriteString(w, body)
 }
 
 func commandError(message string, err error, out []byte) error {

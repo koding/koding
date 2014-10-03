@@ -114,6 +114,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback null # pretend like everything went fine.
 
       options.email = email
+      options.resetPassword = yes
       @create options, callback
 
   @create = (options, callback)->
@@ -165,7 +166,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               return callback new KodingError "Email cannot saved" if err
               callback null
 
-  @validate = secure ({connection:{delegate}}, token, callback)->
+  @validate = (token, callback)->
     @one {token}, (err, certificate)->
       if err
         callback err
@@ -185,7 +186,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           return callback UNKNOWN_ERROR if err or not user
           user.confirmEmail (err)->
             return callback UNKNOWN_ERROR if err
-            callback null, yes
+
+            welcomeemail = require "./welcomeemail"
+            welcomeemail.send certificate.email, user.username, (err)->
+              return callback err  if err
+              callback null, yes
 
   @invalidate =(query, callback)->
     query.status = 'active'
@@ -243,9 +248,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   expire: (callback) -> @update {$set: status: 'expired'}, callback
 
   redeem: (callback) ->
-    if    @token?
-    then  @redeemByToken callback
-    else  @update {$set: status: 'redeemed'}, callback
+    @update {$set: status: 'redeemed'}, callback
 
   redeemByToken: (callback) ->
     JMail = require './email'

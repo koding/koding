@@ -57,11 +57,11 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
+bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
   session = require 'express-session'
-  bodyParser = require 'body-parser'
   compression = require 'compression'
 
   app.set 'case sensitive routing', on
@@ -191,7 +191,7 @@ app.get "/-/auth/check/:key", (req, res)->
     return res.status(401).send authTemplate "Key doesn't exist" unless status
     res.status(200).send {result: 'key is added successfully'}
 
-app.post "/-/support/new", (req, res)->
+app.post "/-/support/new", bodyParser.json(), (req, res)->
 
   isLoggedIn req, res, (err, loggedIn, account)->
     return res.status(401).send authTemplate "Koding Auth Error - 1"  if err
@@ -287,6 +287,15 @@ app.post "/:name?/Validate/Email/:email?", (req, res) ->
     else res.status(400).send 'Email is taken!'
 
 
+app.get "/Verify/:token", (req, res) ->
+  { JPasswordRecovery } = koding.models
+  { token } = req.params
+
+  JPasswordRecovery.validate token, (err, callback) ->
+    return res.redirect 301, "/VerificationFailed"  if err?
+
+    res.redirect 301, "/Verified"
+
 app.post "/:name?/Register", (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
@@ -334,18 +343,23 @@ app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models
   { email } = req.body
 
+  return res.status(400).send 'Invalid email!'  if not email
+
   JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
     return res.status(403).send err.message  if err?
 
     res.status(200).end()
 
-app.post '/:name/Reset', (req, res) ->
+app.post '/:name?/Reset', (req, res) ->
   { JPasswordRecovery } = koding.models
-  { recoveryToken, password } = req.body
+  { recoveryToken: token, password } = req.body
 
-  JPasswordRecovery.resetPassword { token, password }, (err, username) ->
+  return res.status(400).send 'Invalid token!'  if not token
+  return res.status(400).send 'Invalid password!'  if not password
+
+  JPasswordRecovery.resetPassword token, password, (err, username) ->
     return res.status(400).send err.message  if err?
-    res.status(200).end()
+    res.status(200).send({ username })
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
@@ -497,7 +511,7 @@ isInAppRoute = (name)->
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
-app.all '/:name/:section?/:slug?*', (req, res, next)->
+app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
   {params} = req

@@ -541,6 +541,28 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		return nil, ErrChannelIdIsNotSet
 	}
 
+	messageId, err := c.FetchLastMessageId()
+	if err != nil && err != bongo.RecordNotFound {
+		return nil, err
+	}
+
+	if err == bongo.RecordNotFound {
+		return nil, nil
+	}
+
+	cm := NewChannelMessage()
+	if err := cm.ById(messageId); err != nil {
+		return nil, err
+	}
+
+	return cm, nil
+}
+
+func (c *Channel) FetchLastMessageId() (int64, error) {
+	if c.Id == 0 {
+		return 0, ErrChannelIdIsNotSet
+	}
+
 	cml := NewChannelMessageList()
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -556,19 +578,14 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 	var messageIds []int64
 	err := cml.Some(&messageIds, query)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	if messageIds == nil || len(messageIds) == 0 {
-		return nil, nil
+		return 0, bongo.RecordNotFound
 	}
 
-	cm := NewChannelMessage()
-	if err := cm.ById(messageIds[0]); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
+	return messageIds[0], nil
 }
 
 // FetchPinnedActivityChannel fetch the channel within required fields

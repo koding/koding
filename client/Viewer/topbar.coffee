@@ -15,6 +15,7 @@ class ViewerTopBar extends JView
 
     @pageLocation     = new KDHitEnterInputView
       type            : "text"
+      placeholder     : "Type a URL and hit enter"
       keyup           : =>
         @addressBarIcon.setAttribute "href", @pageLocation.getValue()
       callback        : =>

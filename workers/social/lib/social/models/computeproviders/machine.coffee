@@ -237,9 +237,8 @@ module.exports = class JMachine extends Module
 
       { r: { group, user } } = client
 
-      selector       ?= { }
-      selector.users  = $elemMatch: id: user.getId()
-      selector.groups = $elemMatch: id: group.getId()
+      selector             ?= {}
+      selector['users.id']  = user.getId()
 
       JMachine.some selector, limit: 30, (err, machines)->
         callback err, machines

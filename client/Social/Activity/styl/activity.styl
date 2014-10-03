@@ -705,6 +705,7 @@ div.kdtooltip.activity-helper
       opacity         .99
       min-height      inherit
       margin-bottom   12px
+      font-weight     400
 
 
 span.collapsedtext
@@ -1641,7 +1642,7 @@ span.collapsedtext
 
   ol
   ul
-    padding               10px 42px
+    padding               0 32px
     list-style            none
     display               block
     position              relative
@@ -1665,7 +1666,7 @@ span.collapsedtext
   em
     font-style            italic
   strong
-    font-weight           500
+    font-weight           600
   a
     color                 logoBg
     font-weight           600
@@ -1679,8 +1680,15 @@ span.collapsedtext
     padding               0 10px
     margin                12px 0
   p
-    padding               12px 0
+    padding               0
     word-wrap             break-word
+
+    code
+      font-family         monoFamily
+      font-size           12px
+      color               #8959a8
+      padding             2px 4px
+      background-color    rgba(0, 0, 0, .02)
 
   /* Code */
   pre
@@ -1848,6 +1856,10 @@ deleteRed = rgba(217, 58, 55, 0.9)
       background        #fff
       z-index           10
       padding-bottom    12px
+      left              258px
+      kalc              width, 100% \- 292px
+      max-width         600px
+      position          fixed
       vendor            transition, top .2s ease \,
                                     opacity .2s ease
       opacity           0
@@ -1857,7 +1869,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         padding-left    16px
 
       &.active
-        top             19px
+        top             25px
         opacity         1
         vendor          pointer-events, auto
 
@@ -2031,8 +2043,8 @@ deleteRed = rgba(217, 58, 55, 0.9)
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-      &.active .icon
-        vendor            transform, rotateZ(45deg)
+      &.active
+        vendor             pointer-events, none
 
   .kdlistview-privatemessage
     padding-bottom          100px
@@ -2332,7 +2344,6 @@ deleteRed = rgba(217, 58, 55, 0.9)
     margin              0
     border              2px solid #eaeaea
     bg                  color white
-    vendor              transition, width .177s ease
     rounded             0
     z-index             1
     cursor              text
@@ -2683,6 +2694,7 @@ dropdownBorder = 1px solid #E0E0E0
   rounded           0
   shadow            dropdownShadow
   margin-top        0
+  top               100px !important
   fix()
 
   .kdautocompletelistitem

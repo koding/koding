@@ -17,6 +17,7 @@ import (
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/nu7hatch/gouuid"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -181,6 +182,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// Use cloud-init for initial configuration of the VM
 	cloudInitConfig := &CloudInitConfig{
 		Username:        m.Username,
+		UserDomain:      m.Domain.Name,
 		Hostname:        m.Username, // no typo here. hostname = username
 		KiteKey:         kiteKey,
 		LatestKlientURL: latestKlientUrl,
@@ -203,6 +205,12 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	if err != nil {
 		errLog("Template execution failed: %v", err)
 		return nil, errors.New("machine initialization requirements failed [2]")
+	}
+
+	// validate the userdata first before sending
+	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
+		errLog("Cloudinit template is not a valid YAML file: %v", err)
+		return nil, errors.New("Cloudinit template is not a valid YAML file.")
 	}
 
 	// user data is now ready!

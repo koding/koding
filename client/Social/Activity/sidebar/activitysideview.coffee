@@ -63,6 +63,7 @@ class ActivitySideView extends JView
       sidebar.selectedItem = item
 
     {countSource, limit} = @getOptions()
+    countSource = KD.utils.debounce 300, countSource  if countSource
     @moreLink = new SidebarMoreLink {href: searchLink, countSource, limit}
     @moreLink.hide()
 

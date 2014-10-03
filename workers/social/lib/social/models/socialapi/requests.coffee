@@ -302,8 +302,6 @@ messageById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
   url = "/message/#{data.id}"
-  # accountId is appended in doRequest.
-  delete data.accountId
   get url, data, callback
 
 messageBySlug = (data, callback)->

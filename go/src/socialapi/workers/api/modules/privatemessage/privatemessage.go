@@ -77,7 +77,7 @@ func buildContainer(channelList []models.Channel, q *request.Query) (*models.Cha
 	cc.AddIsParticipant(q.AccountId)
 
 	// TODO this should be in the channel cache by default
-	cc.AddLastMessage()
+	cc.AddLastMessage(q.AccountId)
 	cc.AddUnreadCount(q.AccountId)
 
 	return cc, cc.Err()
