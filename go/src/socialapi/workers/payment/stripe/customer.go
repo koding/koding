@@ -12,6 +12,10 @@ import (
 // Stripe's customer_id; token is previously acquired from Stripe,
 // represents customer's cc info; accId is the `jAccount` id from mongo.
 func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) {
+	if IsEmpty(token) {
+		return nil, paymenterrors.ErrTokenIsEmpty
+	}
+
 	params := &stripe.CustomerParams{
 		Desc:  accId,
 		Email: email,
@@ -54,11 +58,33 @@ func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
 	return customerModel, nil
 }
 
-func GetCustomerFromStripe(id string) (*stripe.Customer, error) {
+func GetCustomer(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
 		return nil, handleStripeError(err)
 	}
 
 	return customer, nil
+}
+
+func DeleteCustomer(accId string) error {
+	customer := paymentmodel.NewCustomer()
+	err := customer.FindByOldId(accId)
+	if err != nil {
+		return err
+	}
+
+	currentSubscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return err
+	}
+
+	err = CancelSubscriptionAndRemoveCC(customer, currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	err = stripeCustomer.Del(customer.ProviderCustomerId)
+
+	return err
 }

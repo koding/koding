@@ -128,3 +128,21 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 		fn(token, accId, email)
 	}
 }
+
+func subscribeWithReturnsFn(fn func(*paymentmodel.Customer, *paymentmodel.Subscription)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+
+		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		So(err, ShouldBeNil)
+
+		customer := paymentmodel.NewCustomer()
+		err = customer.FindByOldId(accId)
+		So(err, ShouldBeNil)
+
+		subscription, err := customer.FindActiveSubscription()
+		So(err, ShouldBeNil)
+
+		fn(customer, subscription)
+	}
+}

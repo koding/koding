@@ -22,7 +22,7 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		return nil, err
 	}
 
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +48,10 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 }
 
 func UpdateCreditCard(oldId, token string) error {
+	if IsEmpty(token) {
+		return paymenterrors.ErrTokenIsEmpty
+	}
+
 	customer, err := FindCustomerByOldId(oldId)
 	if err != nil {
 		return err
@@ -64,7 +68,7 @@ func UpdateCreditCard(oldId, token string) error {
 }
 
 func RemoveCreditCard(customer *paymentmodel.Customer) error {
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return err
 	}
@@ -86,6 +90,22 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 	err = stripeCard.Del(creditCard.Id, creditCardParams)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func UpdateCreditCardIfEmpty(accId, token string) error {
+	ccResp, err := GetCreditCard(accId)
+	if err != nil {
+		return err
+	}
+
+	if IsCreditCardEmpty(ccResp) {
+		err := UpdateCreditCard(accId, token)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -30,6 +30,18 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 	))
 
 	//----------------------------------------------------------
+	// Customers
+	//----------------------------------------------------------
+
+	mux.Handle("GET", "/payments/customers/{accountId}", handler.Wrapper(
+		handler.Request{
+			Handler: DeleteCustomerRequest,
+			Name:    "payment-deletecustomer",
+			Metrics: metrics,
+		},
+	))
+
+	//----------------------------------------------------------
 	// Invoices
 	//----------------------------------------------------------
 
