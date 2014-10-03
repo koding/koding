@@ -36,8 +36,10 @@ class MainView extends KDView
     {entryPoint} = KD.config
 
     @addSubView @header = new KDView
-      tagName  : 'header'
-      domId    : 'main-header'
+      tagName    : 'header'
+      domId      : 'main-header'
+      attributes :
+        testpath : 'main-header'
 
     @header.addSubView new TopNavigation
 
@@ -69,8 +71,10 @@ class MainView extends KDView
     @setClass 'with-sidebar'
 
     @addSubView @aside = new KDCustomHTMLView
-      tagName  : 'aside'
-      domId    : 'main-sidebar'
+      tagName    : 'aside'
+      domId      : 'main-sidebar'
+      attributes :
+        testpath : 'main-sidebar'
 
     logoWrapper = new KDCustomHTMLView
       cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
