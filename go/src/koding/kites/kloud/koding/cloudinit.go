@@ -231,7 +231,7 @@ write_files:
         echo
         exit 1
       fi
-      echo "Extracting your files to directory $(pwd)/$vm_name..."
+      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
       mkdir -p Backup/$vm_name
       tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
       rm $archive
