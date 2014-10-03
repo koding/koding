@@ -49,9 +49,9 @@ class ComputeStateChecker extends KDObject
 
   ignore: (machineId)->
 
-    log "IGNORING: ", {machineId}
-
-    @ignoredMachines.push machineId  unless machineId in @ignoredMachines
+    unless machineId in @ignoredMachines
+      log "IGNORING: ", {machineId}
+      @ignoredMachines.push machineId
 
   watch: (machineId)->
 
