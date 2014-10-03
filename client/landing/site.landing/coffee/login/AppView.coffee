@@ -261,7 +261,7 @@ module.exports = class LoginView extends JView
         {responseText} = xhr
         @resetForm.button.hideLoader()
         new KDNotificationView title : responseText
-      success   : =>
+      success   : ({ username }) =>
         @resetForm.button.hideLoader()
         @resetForm.reset()
         @headBanner.hide()
