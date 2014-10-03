@@ -58,6 +58,17 @@ class PrivateMessagePane extends MessagePane
     , 200
 
 
+  setScrollTops: ->
+
+    @lastScrollTops.body   = document.body.scrollTop or document.body.scrollHeight
+
+
+  applyScrollTops: ->
+
+    KD.utils.defer =>
+      document.body.scrollTop = @lastScrollTops.body
+
+
   replaceFakeItemView: (message) ->
     index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
     item = @putMessage message, index
