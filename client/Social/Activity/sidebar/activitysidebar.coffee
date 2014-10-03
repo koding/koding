@@ -85,6 +85,27 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
 
+  setUnreadCount: (item, data, unreadCount) ->
+
+    return  unless item
+
+    {windowController, appManager} = KD.singletons
+
+    app = appManager.getFrontApp()
+
+    if app.getOption('name') is 'Activity'
+      pane    = app.getView().tabs.getActivePane()
+      channel = pane.getData()
+
+      inCurrentPane = channel.id is data.id
+
+      if inCurrentPane and windowController.isFocused()
+        return pane.glance()
+
+
+    item.setUnreadCount? unreadCount
+
+
 
   handleFollowedFeedUpdate: (update) ->
 
@@ -111,7 +132,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
       item = @addItem data, index
 
-      item.setUnreadCount unreadCount
+      @setUnreadCount item, data, unreadCount
 
 
   # when a comment is added to a post
@@ -140,7 +161,7 @@ class ActivitySidebar extends KDCustomHTMLView
       # and add to the sidebar
       # (if the item is already on sidebar, it's handled on @addItem)
       item = @addItem data, 0
-      item.setUnreadCount unreadCount
+      @setUnreadCount item, data, unreadCount
 
 
   accountAddedToChannel: (update) ->
@@ -164,7 +185,7 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.emit 'update'
 
       item = @addItem channel, 2
-      item.setUnreadCount unreadCount
+      @setUnreadCount item, channel, unreadCount
 
 
   accountRemovedFromChannel: (update) ->
@@ -203,7 +224,7 @@ class ActivitySidebar extends KDCustomHTMLView
     # should be added into list
     @replyAdded data  unless item
 
-    item.setUnreadCount unreadCount  if item?.unreadCount
+    @setUnreadCount item, data, count
 
 
   getItems: ->

@@ -57,11 +57,11 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
+bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
   session = require 'express-session'
-  bodyParser = require 'body-parser'
   compression = require 'compression'
 
   app.set 'case sensitive routing', on
@@ -191,7 +191,7 @@ app.get "/-/auth/check/:key", (req, res)->
     return res.status(401).send authTemplate "Key doesn't exist" unless status
     res.status(200).send {result: 'key is added successfully'}
 
-app.post "/-/support/new", (req, res)->
+app.post "/-/support/new", bodyParser.json(), (req, res)->
 
   isLoggedIn req, res, (err, loggedIn, account)->
     return res.status(401).send authTemplate "Koding Auth Error - 1"  if err
