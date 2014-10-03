@@ -28,9 +28,9 @@ module.exports =
   doLogout: (browser) ->
 
     browser
-      .waitForElementVisible  '.acc-dropdown-icon', 10000
-      .click                  '.acc-dropdown-icon'
-      .click                  'a[href="/Logout"]'
+      .waitForElementVisible  '[testpath=AvatarAreaIconLink]', 10000
+      .click                  '[testpath=AvatarAreaIconLink]'
+      .click                  '[testpath=logout-link]'
       .pause                  3000
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
@@ -42,12 +42,12 @@ module.exports =
     browser
       .url                    @getUrl()
       .waitForElementVisible  '[testpath=main-header]', 10000
-      .setValue               'input[name=email]', user.email
-      .setValue               'input[name=username]', user.username
-      .click                  '.kdbutton.solid.medium'
-      .setValue               'input[name=password]', user.password
-      .setValue               'input[name=passwordConfirm]', user.password
-      .click                  '.kdbutton.solid.green'
+      .setValue               '[testpath=register-form-email]', user.email
+      .setValue               '[testpath=register-form-username]', user.username
+      .click                  '[testpath=signup-button]'
+      .setValue               '[testpath=password-input]', user.password
+      .setValue               '[testpath=confirm-password-input]', user.password
+      .click                  '[testpath=register-submit-button]'
 
     @doLogout browser
 
