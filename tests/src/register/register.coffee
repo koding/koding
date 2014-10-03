@@ -1,12 +1,11 @@
-coffee  = require 'coffee-script/register'
-utils   = require '../utils/utils.coffee'
+utils = require '../utils/utils.js'
 
 
 module.exports =
 
   registerUser: (browser, user) ->
 
-    helpers = require '../helpers/helpers.coffee'
+    helpers = require '../helpers/helpers.js'
 
     helpers.doRegister(browser, user)
 
