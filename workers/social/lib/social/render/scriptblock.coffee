@@ -84,48 +84,46 @@ module.exports = (options = {}, callback)->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
-  generateScript = ->
-    selector =
-      partialType : "HOME"
+  selector =
+    partialType : "HOME"
 
-    if options.isCustomPreview
-      selector.isPreview = yes
-    else
-      selector.isActive  = yes
+  if options.isCustomPreview
+    selector.isPreview = yes
+  else
+    selector.isActive  = yes
 
-    queue = [
-      ->
-        bongoModels.JCustomPartials.one selector, (err, partial)->
-          customPartial = partial.data  if not err and partial
+  queue = [
+    ->
+      socialApiCacheFn = require '../cache/socialapi'
+      socialApiCacheFn options, (err, data)->
+        socialapidata = data
+        queue.fin()
+    ->
+      bongoModels.JCustomPartials.one selector, (err, partial)->
+        customPartial = partial.data  if not err and partial
+        queue.fin()
+    ->
+      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+        console.log err if err
+
+        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+          if not err and campaignData_ and campaignData_.data
+            campaignData = campaignData_.data
+
+          if group
+            currentGroup = group
+
           queue.fin()
-      ->
-        bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-          console.log err if err
+    ->
+      bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+        console.log err  if err
+        userWorkspaces = workspaces or []
+        queue.fin()
+    ->
+      bongoModels.JMachine.some$ client, {}, (err, machines) ->
+        console.log err  if err
+        userMachines = machines or []
+        queue.fin()
+  ]
 
-          bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
-            if not err and campaignData_ and campaignData_.data
-              campaignData = campaignData_.data
-
-            if group
-              currentGroup = group
-
-            queue.fin()
-      ->
-        bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-          console.log err  if err
-          userWorkspaces = workspaces or []
-          queue.fin()
-      ->
-        bongoModels.JMachine.some$ client, {}, (err, machines) ->
-          console.log err  if err
-          userMachines = machines or []
-          queue.fin()
-    ]
-
-    dash queue, -> callback null, createHTML()
-
-
-  socialApiCacheFn = require '../cache/socialapi'
-  socialApiCacheFn options, (err, data)->
-    socialapidata = data
-    return generateScript()   # we can generate html here
+  dash queue, -> callback null, createHTML()
