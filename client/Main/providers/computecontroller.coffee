@@ -358,7 +358,7 @@ class ComputeController extends KDController
 
 
 
-  followUpcomingEvents: (machine)->
+  followUpcomingEvents: (machine, followOthers = no)->
 
     StateEventMap =
 
@@ -374,7 +374,7 @@ class ComputeController extends KDController
 
       @eventListener.addListener stateEvent, machine._id
 
-      if stateEvent in ["build", "destroy"]
+      if stateEvent in ["build", "destroy"] and followOthers
         @eventListener.addListener "reinit", machine._id
 
       return yes
@@ -384,7 +384,7 @@ class ComputeController extends KDController
 
   info: (machine)->
 
-    if @followUpcomingEvents machine
+    if @followUpcomingEvents machine, yes
       return Promise.resolve()
 
     @eventListener.triggerState machine,
