@@ -13,6 +13,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
         forceCase     : "lowercase"
         placeholder   : "username or email"
         testPath      : "login-form-username"
+        attributes    :
+          testpath    : 'login-form-username'
         validate      :
           event       : 'blur'
           rules       :
@@ -26,6 +28,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "password"
         testPath      : "login-form-password"
+        attributes    :
+          testpath    : 'login-form-password'
         validate      :
           event       : 'blur'
           rules       :
@@ -36,6 +40,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     @button = new KDButtonView
       title       : "Sign in"
       style       : "solid medium green"
+      attributes  :
+        testpath  : 'login-button'
       type        : 'submit'
       loader      : yes
 

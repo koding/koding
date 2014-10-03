@@ -51,7 +51,9 @@ module.exports = class LoginView extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = 'login-screen login'
+    options.cssClass   = 'login-screen login'
+    options.attributes =
+      testpath         : 'login-container'
 
     super options, data
 
