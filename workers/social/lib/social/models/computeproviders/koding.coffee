@@ -162,7 +162,7 @@ module.exports = class Koding extends ProviderInterface
                limit of #{userPlan.storage}GB.""", "UsageLimitReached"
           else if resize < 3
             return callback new KodingError \
-            """New size can't be less then 3GB.""", "WrongParameter"
+            """New size can't be less than 3GB.""", "WrongParameter"
 
         { ObjectId } = require 'bongo'
 
@@ -186,7 +186,9 @@ module.exports = class Koding extends ProviderInterface
             fieldsToUpdate["meta.alwaysOn"] = alwaysOn
           if resize?
 
-            if (resize - machine.meta?.storage_size) + usage.storage > userPlan.storage
+            storageSize = machine.meta?.storage_size ? 3
+
+            if (resize - storageSize) + usage.storage > userPlan.storage
               return callback new KodingError \
               """Requested new size exceeds allowed
                  limit of #{userPlan.storage}GB.""", "UsageLimitReached"
