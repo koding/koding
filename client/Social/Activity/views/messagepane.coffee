@@ -229,15 +229,9 @@ class MessagePane extends KDTabPaneView
     return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
 
-    {lastToFirst} = @getOptions()
+    {lastToFirst}  = @getOptions()
     index = if lastToFirst then @listController.getItemCount() else 0
     @prependMessage message, index
-
-    switch typeConstant
-      when 'post'
-        @listController.getListView().once 'ItemWasAdded', (item) =>
-          listView = @listController.getListItems().first.commentBox.controller.getListView()
-          listView.on 'ItemWasAdded', @bound 'scrollDown'
 
 
   loadMessage: (message) ->
