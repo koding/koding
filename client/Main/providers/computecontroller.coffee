@@ -367,6 +367,7 @@ class ComputeController extends KDController
       Starting    : "start"
       Rebooting   : "restart"
       Terminating : "destroy"
+      Pending     : "resize"
 
     stateEvent = StateEventMap[machine.status.state]
 

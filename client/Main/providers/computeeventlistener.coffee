@@ -81,6 +81,7 @@ class ComputeEventListener extends KDObject
     start   : public : "MachineStarted",   private : Machine.State.Running
     build   : public : "MachineBuilt",     private : Machine.State.Running
     reinit  : public : "MachineBuilt",     private : Machine.State.Running
+    resize  : public : "MachineResized",   private : Machine.State.Running
     destroy : public : "MachineDestroyed", private : Machine.State.Terminated
 
 
