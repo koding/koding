@@ -50,17 +50,6 @@ class MessagePane extends KDTabPaneView
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
-    switch typeConstant
-      when 'post'
-        @listController.getListView().once 'ItemWasAdded', (item) =>
-          listView = @listController.getListItems().first.commentBox.controller.getListView()
-          listView.on 'ItemWasAdded', @bound 'scrollDown'
-      when 'privatemessage'
-        @listController.getListView().on 'ItemWasAdded', @bound 'scrollDown'
-      when 'group', 'announcement'
-      else
-        @listController.getListView().on 'ItemWasAdded', @bound 'scrollUp'
-
 
   bindInputEvents: ->
 
@@ -81,7 +70,10 @@ class MessagePane extends KDTabPaneView
         @input.once 'SubmitSucceeded', -> resolve()
 
   replaceFakeItemView: (message) ->
-    @putMessage message, @removeFakeMessage message.clientRequestId
+    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
+    item = @putMessage message, index
+    @removeFakeMessage message.clientRequestId
+    @scrollDown item
 
 
   removeFakeMessage: (identifier) ->
@@ -118,6 +110,8 @@ class MessagePane extends KDTabPaneView
     # save it to a map so that we have a reference
     # to it to be deleted.
     @fakeMessageMap[clientRequestId] = item
+
+    @scrollDown item
 
 
   messageSubmitFailed: (err, clientRequestId) ->
@@ -240,6 +234,12 @@ class MessagePane extends KDTabPaneView
     index = if lastToFirst then @listController.getItemCount() else 0
     @prependMessage message, index
 
+    switch typeConstant
+      when 'post'
+        @listController.getListView().once 'ItemWasAdded', (item) =>
+          listView = @listController.getListItems().first.commentBox.controller.getListView()
+          listView.on 'ItemWasAdded', @bound 'scrollDown'
+
 
   loadMessage: (message) ->
 
@@ -251,11 +251,12 @@ class MessagePane extends KDTabPaneView
   appendMessage: (message, index) -> @listController.addItem message, index
 
 
-  prependMessage: (message, index) ->
+  prependMessage: (message, index, callback = noop) ->
     KD.getMessageOwner message, (err, owner) =>
-      return error err  if err
-      return if KD.filterTrollActivity owner
-      @listController.addItem message, index
+      return callback err  if err
+      return callback() if KD.filterTrollActivity owner
+      item = @listController.addItem message, index
+      callback null, item
 
   removeMessage: (message) -> @listController.removeItem null, message
 
