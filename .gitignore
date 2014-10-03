@@ -101,3 +101,6 @@ client/Core/__generatedroutes__.coffee
 deployment/generated_files
 website/a/out
 *.test
+
+/tests/users.json
+/tests/output/
