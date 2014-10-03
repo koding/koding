@@ -81,6 +81,7 @@ class ComputeEventListener extends KDObject
     start   : public : "MachineStarted",   private : Machine.State.Running
     build   : public : "MachineBuilt",     private : Machine.State.Running
     reinit  : public : "MachineBuilt",     private : Machine.State.Running
+    resize  : public : "MachineResized",   private : Machine.State.Running
     destroy : public : "MachineDestroyed", private : Machine.State.Terminated
 
 
@@ -117,6 +118,8 @@ class ComputeEventListener extends KDObject
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
           computeController.triggerReviveFor eventId
+        else
+          computeController.stateChecker.ignore eventId
 
         unless res.event.status is 'Unknown'
           computeController.emit "public-#{eventId}",    res.event

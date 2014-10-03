@@ -1,6 +1,6 @@
 Mongo              = "192.168.59.103:27017/koding"
 Environment        = "dev"
-Region             = "dev"
+Region             = "aws"
 Hostname           = "http://lvh.me:8090"
 
 [postgres]

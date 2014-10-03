@@ -156,7 +156,8 @@ module.exports.create = (KONFIG, environment)->
   events {
     worker_connections  1024;
     multi_accept on;
-    use epoll;
+    # epoll is only valid for linux environments
+    use #{if environment is 'dev' then 'kqueue' else 'epoll'};
   }
 
   # start http
