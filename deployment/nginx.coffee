@@ -209,12 +209,6 @@ module.exports.create = (KONFIG, environment)->
       return 301 https://$host$request_uri;
     }
 
-    # redirect www to non-www
-    server {
-      server_name ~^(www\.)?(?<domain>.+)$;
-      return 301 https://$domain$request_uri;
-    }
-
     # start server
     server {
 
@@ -260,6 +254,13 @@ module.exports.create = (KONFIG, environment)->
       #{createUserMachineLocation("userproxy")}
     # close server
     }
+
+    # redirect www to non-www
+    server {
+       server_name "~^www.(.*)$" ;
+       return 301 $scheme://$1$request_uri ;
+    }
+
   # close http
   }
   """
