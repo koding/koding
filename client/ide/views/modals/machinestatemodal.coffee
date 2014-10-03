@@ -127,10 +127,19 @@ class IDE.MachineStateModal extends IDE.ModalView
       @createProgressBar response?.percentage
     else if @state is Terminated
       @label.destroy?()
+
       @createStateLabel """
         Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
         Please select a new VM to operate on from the VMs list or create a new one.
       """
+
+      if @machine.status.state is Terminated
+        KD.getSingleton 'computeController'
+          .kloud.info { @machineId }
+          .then (response)=>
+            if response.State is Terminated
+              @createStateButton()
+          .catch noop
 
     @createError()
 
