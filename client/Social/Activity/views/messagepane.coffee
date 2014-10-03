@@ -274,7 +274,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-    KD.utils.defer @bound 'focus'
+
 
 
   glance: ->
@@ -301,16 +301,6 @@ class MessagePane extends KDTabPaneView
 
 
   focus: ->
-
-    # do not focus if we are in announcement channel
-    {socialapi} = KD.singletons
-    return  if socialapi.isAnnouncementItem @getData().id
-
-    if @input
-      @input.focus()
-    else
-      # TODO - undefined is not a function
-      @listController?.getListItems().first.commentBox.input.focus()
 
 
   populate: (callback = noop) ->

@@ -361,4 +361,14 @@ class PrivateMessagePane extends MessagePane
   setFilter: ->
 
 
+  show: ->
+
+    super
+
+    KD.utils.defer @bound 'focus'
+
+
   defaultFilter: 'Most Recent'
+
+
+  focus: -> @input.focus()
