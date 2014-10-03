@@ -67,6 +67,7 @@ deploy:
 
           rm -rf .git .build node_modules
           rm -rf go/bin go/pkg
+          rm -rf website/a/js/*.map
           zip -q --symlinks -r $ARCHIVE .
     - koding/s3put@0.0.3:
           key-id: $S3_KEY_ID

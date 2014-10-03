@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"koding/kites/kloud/klient"
 	"sync"
 	"time"
 
@@ -60,14 +59,13 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	klientChecked := false
 	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
 		klientChecked = true
-		klientRef, err := klient.NewWithTimeout(p.Kite, m.QueryString, time.Second*5)
+
+		klientRef, err := p.KlientPool.Get(m.QueryString)
 		if err != nil {
 			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
 				m.Id, resultState)
 			resultState = machinestate.Stopped
 		} else {
-			defer klientRef.Close()
-
 			// now assume it's running
 			resultState = machinestate.Running
 

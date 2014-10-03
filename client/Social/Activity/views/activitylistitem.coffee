@@ -124,11 +124,15 @@ class ActivityListItemView extends KDListItemView
       @editWidgetWrapper.addSubView @editWidget, null, yes
 
     KD.utils.defer =>
+      {typeConstant} = @getData()
       {input} = @editWidget
       {body}  = document
       input.setFocus()
       input.resize()
       input.setCaretPosition input.getValue().length
+
+      return  unless typeConstant is 'privatemessage'
+
       input.getElement().scrollIntoView yes
 
     @editWidgetWrapper.show()

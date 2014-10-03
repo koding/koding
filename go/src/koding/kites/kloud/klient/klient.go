@@ -6,17 +6,75 @@ import (
 	"fmt"
 	"koding/kite-handler/command"
 	"koding/kites/klient/usage"
+	"sync"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/logging"
 )
+
+// KlientPool represents a pool of connected klients
+type KlientPool struct {
+	kite    *kite.Kite
+	klients map[string]*Klient
+	log     logging.Logger
+	sync.Mutex
+}
 
 // Klient represents a remote klient instance
 type Klient struct {
 	client   *kite.Client
 	kite     *kite.Kite
 	Username string
+}
+
+func NewPool(k *kite.Kite) *KlientPool {
+	return &KlientPool{
+		kite:    k,
+		klients: make(map[string]*Klient),
+		log:     logging.NewLogger("klientpool"),
+	}
+}
+
+// Get returns a ready to use and connected klient from the pool.
+func (k *KlientPool) Get(queryString string) (*Klient, error) {
+	var klient *Klient
+	var ok bool
+	var err error
+
+	k.Lock()
+	defer k.Unlock()
+
+	klient, ok = k.klients[queryString]
+	if !ok {
+		k.log.Debug("creating new klient connection to %s", queryString)
+		klient, err = New(k.kite, queryString)
+		if err != nil {
+			return nil, err
+		}
+
+		k.klients[queryString] = klient
+
+		// remove from the pool if we loose the connection
+		klient.client.OnDisconnect(func() {
+			k.log.Info("klient %s disconnected. removing from the pool", queryString)
+			k.Delete(queryString)
+			klient.Close()
+		})
+	} else {
+		k.log.Debug("fetching already connected klient (%s) from pool", queryString)
+	}
+
+	return klient, nil
+}
+
+// Delete removes the klient with the given queryString from the pool
+func (k *KlientPool) Delete(queryString string) {
+	k.Lock()
+	defer k.Unlock()
+
+	delete(k.klients, queryString)
 }
 
 // New returns a new connected klient instance to the given queryString. The
