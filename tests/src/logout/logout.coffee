@@ -1,17 +1,19 @@
+coffee  = require 'coffee-script/register'
+utils   = require '../utils/utils.coffee'
+helpers = require '../helpers/helpers.coffee'
+
+
 module.exports =
 
-  'Logout': (browser) ->
+  logOut: (browser) ->
 
-    browser
-      .url                    'http://lvh.me:8090'
-      .waitForElementVisible  '#main-header', 10000
-      .click                  '.custom-link-view.login'
-      .waitForElementVisible  '.login-screen.login', 10000
-      .setValue               'input[name=username]', 'didemcik'
-      .setValue               'input[name=password]', '12345678'
-      .click                  '.kdbutton.solid.medium'
-      .waitForElementVisible  '.login-form-holder', 10000
-      .click                  '.acc-dropdown-icon'
-      .click                  'a[href="/Logout"]'
-      .waitForElementVisible  '#main-header', 10000
-      .end()
+    url  = helpers.getUrl()
+    user = utils.getUser()
+
+    browser.url(url)
+
+    helpers.doLogin(browser, user)
+
+    helpers.doLogout(browser)
+
+    browser.end()
