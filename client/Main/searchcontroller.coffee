@@ -36,7 +36,7 @@ class SearchController extends KDObject
 
   searchAccounts: (seed) ->
 
-    seed = seed.replace /\W/g, ''
+    seed = seed.replace /[^-\w]/g, ''
 
     @search 'accounts', seed, hitsPerPage : 10
       .then (data) ->
