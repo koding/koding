@@ -41,7 +41,7 @@ module.exports =
     url     = @getUrl()
 
     browser
-      .url                    'http://lvh.me:8090'
+      .url                    @getUrl()
       .waitForElementVisible  '[testpath=main-header]', 10000
       .setValue               'input[name=email]', user.email
       .setValue               'input[name=username]', user.username
