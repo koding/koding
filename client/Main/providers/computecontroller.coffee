@@ -284,6 +284,43 @@ class ComputeController extends KDController
         (@errorHandler call, 'reinit', machine) err
 
 
+  resize: (machine, resizeTo = 10)->
+
+    ComputeController.UI.askFor 'resize', machine, @_force, =>
+
+      options =
+        machineId : machine._id
+        provider  : machine.provider
+        resize    : resizeTo
+
+      KD.remote.api.ComputeProvider.update options, (err)=>
+
+        return  if KD.showError err
+
+        @eventListener.triggerState machine,
+          status      : Machine.State.Pending
+          percentage  : 0
+
+        machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+        call = @kloud.resize { machineId: machine._id }
+
+        .then (res)=>
+
+          @_force = no
+
+          log "resize res:", res
+          @_clearTrialCounts machine
+          @eventListener.addListener 'resize', machine._id
+
+        .timeout ComputeController.timeout
+
+        .catch (err)=>
+
+          (@errorHandler call, 'resize', machine) err
+
+
+
   build: (machine)->
 
     @eventListener.triggerState machine,
