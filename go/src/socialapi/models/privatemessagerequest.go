@@ -2,6 +2,7 @@ package models
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -26,7 +27,7 @@ type ChatActivity interface {
 type ChatMessage struct{}
 
 type ChatJoin struct {
-	AddedBy string
+	AddedBy int64
 }
 
 type ChatLeave struct{}
@@ -74,11 +75,6 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 		return nil, err
 	}
 
-	a := NewAccount()
-	if err := a.ById(p.AccountId); err != nil {
-		return nil, err
-	}
-
 	// add participants to tha channel
 	for _, participantId := range participantIds {
 		cp, err := c.AddParticipant(participantId)
@@ -89,7 +85,7 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 		ja := p.Clone()
 
 		ja.AccountId = participantId
-		if err = ja.AddJoinActivity(c, a); err != nil {
+		if err = ja.AddJoinActivity(c, p.AccountId); err != nil {
 			return nil, err
 		}
 
@@ -181,10 +177,10 @@ func (p *PrivateMessageRequest) AddMessage(c *Channel) (*ChannelContainer, error
 	return p.buildContainer(c, cm)
 }
 
-func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy *Account) error {
+func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy int64) error {
 	cj := ChatJoin{}
-	if p.AccountId != addedBy.Id {
-		cj.AddedBy = addedBy.Nick
+	if p.AccountId != addedBy {
+		cj.AddedBy = addedBy
 	}
 
 	_, err := p.createActivity(c, cj)
@@ -298,9 +294,9 @@ func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) 
 
 	switch ca.(type) {
 	case ChatJoin:
-		if ca.(ChatJoin).AddedBy != "" {
+		if ca.(ChatJoin).AddedBy != 0 {
 			cm.Payload = gorm.Hstore{}
-			addedBy := ca.(ChatJoin).AddedBy
+			addedBy := strconv.FormatInt(ca.(ChatJoin).AddedBy, 10)
 
 			cm.Payload["addedBy"] = &addedBy
 		}

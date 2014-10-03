@@ -200,14 +200,9 @@ func addJoinActivity(channelId, participantId, addedBy int64) error {
 		return err
 	}
 
-	a := models.NewAccount()
-	if err := a.ById(addedBy); err != nil {
-		return err
-	}
-
 	pmr := &models.PrivateMessageRequest{AccountId: participantId}
 
-	return pmr.AddJoinActivity(c, a)
+	return pmr.AddJoinActivity(c, addedBy)
 }
 
 func addLeaveActivity(channelId, participantId int64) error {
