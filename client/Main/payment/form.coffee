@@ -15,7 +15,6 @@ class PaymentForm extends JView
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
   }
 
-
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'payment-form-wrapper', options.cssClass
@@ -184,8 +183,8 @@ class PaymentForm extends JView
     {{> @form}}
     {{> @existingCreditCardMessage}}
     {{> @successMessage}}
-    {{> @submitButton}}
     {{> @yearPriceMessage}}
+    {{> @submitButton}}
     {{> @securityNote}}
     """
 

@@ -51,7 +51,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	// result state is the final state that is send back to the request
 	resultState := dbState
 
-	p.Log.Info("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
+	p.Log.Debug("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
 		m.Id, dbState, awsState)
 
 	// we don't check if the state is something else. Klient is only available
@@ -87,7 +87,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 			}
 		}
 
-		p.Log.Info("[%s] info decision: based on klient interaction: '%s'",
+		p.Log.Debug("[%s] info decision: based on klient interaction: '%s'",
 			m.Id, resultState)
 	}
 
@@ -108,12 +108,12 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 				m.Id, awsState)
 			resultState = awsState
 		} else {
-			p.Log.Info("[%s] info decision : using current db state '%s'",
+			p.Log.Debug("[%s] info decision : using current db state '%s'",
 				m.Id, resultState)
 		}
 	}
 
-	p.Log.Info("[%s] info result   : '%s'", m.Id, resultState)
+	p.Log.Info("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,
