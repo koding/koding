@@ -30,7 +30,10 @@ class IDE.MachineStateModal extends IDE.ModalView
     computeController.on "start-#{@machineId}", @bound 'updateStatus'
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
-    computeController.on "reinit-#{@machineId}",@bound 'updateStatus'
+
+    computeController.on "reinit-#{@machineId}",(event)=>
+      @updateStatus event, 'reinit'
+
     computeController.on "error-#{@machineId}", =>
       @hasError = yes
       @updateStatus status: Unknown
@@ -39,7 +42,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController.followUpcomingEvents @machine
 
-  updateStatus: (event) ->
+  updateStatus: (event, task) ->
 
     {status, percentage, error} = event
 
@@ -49,22 +52,38 @@ class IDE.MachineStateModal extends IDE.ModalView
         @progressBar?.show()
 
     else
-      @state = status
 
+      @state = status
       @hasError = error?.length > 0
 
-      if percentage? and percentage is 100
-        @progressBar?.updateBar 100
-        @progressBar?.show()
+      if percentage?
 
-        KD.utils.wait 500, => @buildViews()
+        if percentage is 100
+
+          if status is Running
+            @prepareIDE()
+            @destroy()
+
+          else
+            @progressBar?.updateBar 100
+            @progressBar?.show()
+
+            KD.utils.wait 500, => @buildViews()
+
+        else if task is 'reinit'
+
+          @progressBar?.updateBar Math.max percentage, 10
+          @progressBar?.show()
+          @label?.updatePartial @getStateLabel()
+
+        else
+          @buildViews()
 
       else
-        @buildViews()
 
-      if status is Running
-        @prepareIDE()
-        @destroy()
+        if status is Running
+          @prepareIDE()
+          @destroy()
 
 
   buildInitial:->
@@ -105,18 +124,27 @@ class IDE.MachineStateModal extends IDE.ModalView
     if @state in [ Stopped, Running, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Stopping, Terminating, Updating, Rebooting ]
-      @createProgressBar()
+      @createProgressBar response?.percentage
     else if @state is Terminated
       @label.destroy?()
+
       @createStateLabel """
         Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
         Please select a new VM to operate on from the VMs list or create a new one.
       """
 
+      if @machine.status.state is Terminated
+        KD.getSingleton 'computeController'
+          .kloud.info { @machineId }
+          .then (response)=>
+            if response.State is Terminated
+              @createStateButton()
+          .catch noop
+
     @createError()
 
 
-  createStateLabel: (customState)->
+  getStateLabel:->
 
     stateTexts       =
       Stopped        : 'is turned off.'
@@ -133,10 +161,14 @@ class IDE.MachineStateModal extends IDE.ModalView
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+    return "<span class='icon'></span>#{stateText}"
+
+
+  createStateLabel: (customState)->
 
     @label     = new KDCustomHTMLView
       tagName  : 'p'
-      partial  : customState or "<span class='icon'></span>#{stateText}"
+      partial  : customState or @getStateLabel()
       cssClass : "state-label #{@state.toLowerCase()}"
 
     @container.addSubView @label
@@ -165,10 +197,9 @@ class IDE.MachineStateModal extends IDE.ModalView
     @container.addSubView @loader
 
 
-  createProgressBar: ->
+  createProgressBar: (initial = 10)->
 
-    @progressBar = new KDProgressBarView
-      initial    : 10
+    @progressBar = new KDProgressBarView { initial }
 
     @container.addSubView @progressBar
 
