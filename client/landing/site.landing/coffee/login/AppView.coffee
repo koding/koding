@@ -339,6 +339,8 @@ module.exports = class LoginView extends JView
                 cssClass              : 'half'
                 name                  : 'password'
                 placeholder           : 'password'
+                attributes            :
+                  testpath            : 'password-input'
                 validate              :
                   events              :
                     passwordCheck     : 'keyup'
@@ -354,6 +356,8 @@ module.exports = class LoginView extends JView
                     type              : 'password'
                     name              : 'passwordConfirm'
                     placeholder       : 'confirm password'
+                    attributes        :
+                      testpath        : 'confirm-password-input'
                     validate          :
                       events          :
                         passwordCheck : 'keyup'
@@ -367,6 +371,8 @@ module.exports = class LoginView extends JView
               submit          :
                 cssClass      : 'solid green medium'
                 type          : 'submit'
+                attributes    :
+                  testpath    : 'register-submit-button'
                 title         : 'Let\'s go'
                 disabled      : yes
 
