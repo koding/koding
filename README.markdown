@@ -53,7 +53,7 @@ information about the folder structure.
 
 We need to, build (go binaries), transpile (coffee-javascript, stylus-css), generate (sprites), install (npm modules), test the codebase before all kinds of deployment, those are all handled by [Wercker](https://app.wercker.com/#applications/53cd92eedabd120e390b36b). It uses `wercker.yml` file that is located at the root of this repository:
 
-If you want your code to be built, just open merge request to `upstream development branch` (as the time of writing it is `newkoding`, will be replaced by master soon). It will be built automatically, and you will be able to see the result of it under you PR. [e.g](http://note.io/1unWQ7K)
+If you want your code to be built, just open merge request to `upstream development branch` (master). It will be built automatically, and you will be able to see the result of it under you PR. [e.g](http://note.io/1unWQ7K)
 
 # Deployment
 
@@ -72,7 +72,7 @@ Steps that we have in that file:
 
 ### Server Structure
 
-* Sandbox has its own [EB env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf). All of our `workers` are running in one [server](54.165.12.215). Our `services` for sandbox env are: postgres, mongo, redis, rabbitmq, etcd
+* Sandbox has its own [EB env](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-2cvytmsvqf). All of our `workers` are running in [servers](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:tag:environment=sandbox.koding.com;sort=statusChecks). Our `services` for sandbox env are: postgres, mongo, redis, rabbitmq, etcd
 
 ### Deployment process
 
@@ -96,7 +96,10 @@ blocking any other part.
 ### Server Structure
 
 * Production has its own EB env [koding-prod](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-x2yfycg3tm).
+* Servers for production are [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:tag:environment=prod.koding.com;sort=statusChecks)
 * Latest has its own EB env  [koding-latest](https://console.aws.amazon.com/elasticbeanstalk/home?region=us-east-1#/environment/dashboard?applicationName=koding&environmentId=e-3puhn8mma6).
+* Servers for latest  are [here](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#Instances:tag:environment=latest.koding.com;sort=statusChecks)
+
 * All of our `workers` are running in every server that we have for prod. They are exposed to the internet via nginx. We are deamonizing workers in servers with supervisord. You can see all the workers that we have in config files. eg: main.prod.coffee
 * Mongo         : [ObjectRocket](https://app.objectrocket.com/instances/koding_prod01)
 * Postgres      : [RDS](https://console.aws.amazon.com/rds/home?region=us-east-1#dbinstances:id=prod0;sf=all)
