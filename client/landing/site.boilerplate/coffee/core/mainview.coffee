@@ -29,8 +29,8 @@ module.exports = class MainView extends KDView
   createHeader:->
 
     @addSubView @header = new KDView
-      tagName  : 'header'
-      domId    : 'main-header'
+      tagName   : 'header'
+      domId     : 'main-header'
 
     @header.addSubView new TopNavigation
 
