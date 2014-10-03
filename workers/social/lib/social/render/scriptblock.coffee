@@ -1,3 +1,5 @@
+{dash} = require 'bongo'
+
 module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
@@ -80,23 +82,7 @@ module.exports = (options = {}, callback)->
     <!-- End Google Analytics -->
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
-
-    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     """
-
-  kallback = ->
-    {delegate} = options.client.connection
-
-    if 'function' is typeof delegate?.fetchSubscriptions
-      selector = {}
-      fetchOptions = targetOptions: selector :{ tags: $nin: ["nosync"] }
-
-      delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
-        if subscriptions and subscriptions.length
-          usePremiumBroker = yes
-        callback null, createHTML()
-    else
-      callback null, createHTML()
 
   generateScript = ->
     selector =
@@ -107,30 +93,36 @@ module.exports = (options = {}, callback)->
     else
       selector.isActive  = yes
 
-    # add custom partials into body
-    bongoModels.JCustomPartials.one selector, (err, partial)->
-      customPartial = partial.data  if not err and partial
+    queue = [
+      ->
+        bongoModels.JCustomPartials.one selector, (err, partial)->
+          customPartial = partial.data  if not err and partial
+          queue.fin()
+      ->
+        bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+          console.log err if err
 
-      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-        console.log err if err
+          bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+            if not err and campaignData_ and campaignData_.data
+              campaignData = campaignData_.data
 
-        # add custom partial into referral campaign
-        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+            if group
+              currentGroup = group
 
-          if not err and campaignData_ and campaignData_.data
-            campaignData = campaignData_.data
+            queue.fin()
+      ->
+        bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+          console.log err  if err
+          userWorkspaces = workspaces or []
+          queue.fin()
+      ->
+        bongoModels.JMachine.some$ client, {}, (err, machines) ->
+          console.log err  if err
+          userMachines = machines or []
+          queue.fin()
+    ]
 
-          if group
-            currentGroup = group
-
-          bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-            console.log err  if err
-            userWorkspaces = workspaces or []
-
-            bongoModels.JMachine.some$ client, {}, (err, machines) ->
-              console.log err  if err
-              userMachines = machines or []
-              kallback()
+    dash queue, -> callback null, createHTML()
 
 
   socialApiCacheFn = require '../cache/socialapi'
