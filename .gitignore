@@ -103,3 +103,4 @@ website/a/out
 *.test
 
 /tests/users.json
+/tests/output/
