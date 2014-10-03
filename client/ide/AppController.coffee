@@ -1,7 +1,7 @@
 class IDEAppController extends AppController
 
   {
-    Stopped, Running, NotInitialized, Terminated, Unknown,
+    Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
     Starting, Building, Stopping, Rebooting, Terminating, Updating
   } = Machine.State
 
@@ -308,9 +308,10 @@ class IDEAppController extends AppController
                 @machineStateModal.once 'MachineTurnOnStarted', =>
                   KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
+          actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
           computeController.on "public-#{machineId}", (event) =>
 
-            if event.status in [Stopping, Stopped, Terminating, Terminated]
+            if event.status in actionRequiredStates
 
               KodingKontrol.dcNotification?.destroy()
               KodingKontrol.dcNotification = null
@@ -321,7 +322,7 @@ class IDEAppController extends AppController
                 @createMachineStateModal { state, container, machineItem }
 
               else
-                if event.status in [Stopped, Terminated, Stopping, Terminating]
+                if event.status in actionRequiredStates
                   @machineStateModal.updateStatus event
 
         else

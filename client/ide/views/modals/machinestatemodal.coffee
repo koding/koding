@@ -1,7 +1,7 @@
 class IDE.MachineStateModal extends IDE.ModalView
 
   {
-    Stopped, Running, NotInitialized, Terminated, Unknown,
+    Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
     Starting, Building, Stopping, Rebooting, Terminating, Updating
   } = Machine.State
 
@@ -33,6 +33,9 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     computeController.on "reinit-#{@machineId}",(event)=>
       @updateStatus event, 'reinit'
+
+    computeController.on "resize-#{@machineId}",(event)=>
+      @updateStatus event, 'resize'
 
     computeController.on "error-#{@machineId}", =>
       @hasError = yes
@@ -123,7 +126,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     if @state in [ Stopped, Running, NotInitialized, Unknown ]
       @createStateButton()
-    else if @state in [ Starting, Building, Stopping, Terminating, Updating, Rebooting ]
+    else if @state in [ Starting, Building, Pending, Stopping, Terminating, Updating, Rebooting ]
       @createProgressBar response?.percentage
     else if @state is Terminated
       @label.destroy?()
@@ -150,6 +153,7 @@ class IDE.MachineStateModal extends IDE.ModalView
       Stopped        : 'is turned off.'
       Starting       : 'is starting now.'
       Stopping       : 'is stopping now.'
+      Pending        : 'is resizing now.'
       Running        : 'up and running.'
       Building       : 'is building now.'
       NotInitialized : 'is turned off.'
