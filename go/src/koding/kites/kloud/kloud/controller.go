@@ -337,9 +337,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, err
 	}
 
-	k.Log.Info("[%s] ========== %s called by user: %s ==========",
-		args.MachineId, strings.ToUpper(r.Method), r.Username)
-
 	if args.MachineId == "" {
 		return nil, NewError(ErrMachineIdMissing)
 	}
@@ -350,6 +347,9 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	// method call is finished (unlocking is done inside the responsible
 	// method calls).
 	if r.Method != "info" {
+		k.Log.Info("[%s] ========== %s called by user: %s ==========",
+			args.MachineId, strings.ToUpper(r.Method), r.Username)
+
 		if err := k.Locker.Lock(args.MachineId); err != nil {
 			return nil, err
 		}

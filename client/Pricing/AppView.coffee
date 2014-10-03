@@ -155,6 +155,9 @@ class PricingAppView extends KDView
 
     return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
 
+    if options.planTitle is @state.currentPlan
+      return KD.showError "That's already your current plan."
+
     @setState options
 
     @workflowController = new PaymentWorkflow { @state, delegate: this }
