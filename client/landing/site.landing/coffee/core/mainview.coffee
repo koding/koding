@@ -28,11 +28,25 @@ module.exports = class MainView extends KDView
 
   createHeader:->
 
+    @addSubView @mobileMenu = new TopNavigation
+      cssClass     : 'mobile-menu'
+
     @addSubView @header = new KDView
       tagName  : 'header'
       domId    : 'main-header'
 
     @header.addSubView new TopNavigation
+
+    @header.addSubView @hamburgerMenu = new KDButtonView
+      cssClass  : 'hamburger-menu'
+      iconOnly  : yes
+      callback  : =>
+        @hamburgerMenu.toggleClass 'active'
+        @mobileMenu.toggleClass 'active'
+
+        @once 'click', =>
+          @hamburgerMenu.toggleClass 'active'
+          @mobileMenu.toggleClass 'active'
 
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : 'a'

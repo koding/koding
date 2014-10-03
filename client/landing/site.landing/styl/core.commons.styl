@@ -46,6 +46,35 @@ button
 .no-anim
   noAnim()
 
+.mobile-menu
+  height            0
+  overflow          hidden
+  background        #232323
+  vendor            transition, height .3s ease
+  borderBox()
+
+  a
+    display         block
+    line-height     37px
+    font-size       14px
+    color           #f6f6f6
+    font-weight     600
+    padding         0 27px 0 22px
+    noTextDeco()
+    borderBox()
+
+    &:after
+      content       ''
+      r-sprite      'home', 'mobile-menu-arrow'
+      margin        14px 0 0 0
+      fr()
+
+    &:hover
+      opacity       .5
+
+.hamburger-menu
+  display           none
+
 #kdmaincontainer
   width             auto
 
@@ -642,14 +671,3 @@ footer.main-footer
     &.fb
       r-sprite          home 'social-fb'
 
-
-
-@media only screen and (min-width : 320px) and (max-width : 568px)
-  footer.main-footer
-    .footer-block
-      width             100%
-      float             none
-
-      &~.footer-block
-        margin-top      18px
-        border-top      1px solid rgba(255,255,255,.05)
