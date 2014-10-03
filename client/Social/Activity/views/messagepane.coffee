@@ -314,14 +314,21 @@ class MessagePane extends KDTabPaneView
       return  if @currentFilter isnt filter
 
       @listController.hideLazyLoader()
-      items.forEach @bound 'appendMessageDeferred'
+      items.forEach (item, i) =>
+        @appendMessageDeferred item, i, items.length
 
       KD.utils.defer @bound 'focus'
 
       callback()
 
 
-  appendMessageDeferred: (item) -> KD.utils.defer @lazyBound 'appendMessage', item
+  appendMessageDeferred: (item, i, total) ->
+
+    KD.utils.defer =>
+      @appendMessage item
+      if i is total - 1
+        KD.utils.wait 50, => @emit 'ListPopulated'
+
 
 
   fetch: (options = {}, callback)->

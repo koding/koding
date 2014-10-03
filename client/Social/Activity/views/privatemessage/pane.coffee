@@ -35,6 +35,11 @@ class PrivateMessagePane extends MessagePane
 
     @kodingBot = new KodingBot delegate : this
 
+    # unfortunately until we make the listview
+    # more performant we need such hacks - SY
+    @on 'ListPopulated', ->
+      document.body.scrollTop = document.body.scrollHeight
+
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
     @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
@@ -237,11 +242,13 @@ class PrivateMessagePane extends MessagePane
       nextSibling.unsetClass 'consequent'
 
 
-  appendMessageDeferred: (item) ->
+  appendMessageDeferred: (item, i, total) ->
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
     @appendMessage item
+    if i is total - 1
+      KD.utils.wait 50, => @emit 'ListPopulated'
 
 
   populate: ->
