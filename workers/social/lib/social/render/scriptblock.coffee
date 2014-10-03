@@ -1,3 +1,5 @@
+{dash} = require 'bongo'
+
 module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
@@ -82,20 +84,6 @@ module.exports = (options = {}, callback)->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
-  kallback = ->
-    {delegate} = options.client.connection
-
-    if 'function' is typeof delegate?.fetchSubscriptions
-      selector = {}
-      fetchOptions = targetOptions: selector :{ tags: $nin: ["nosync"] }
-
-      delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
-        if subscriptions and subscriptions.length
-          usePremiumBroker = yes
-        callback null, createHTML()
-    else
-      callback null, createHTML()
-
   generateScript = ->
     selector =
       partialType : "HOME"
@@ -105,30 +93,65 @@ module.exports = (options = {}, callback)->
     else
       selector.isActive  = yes
 
-    # add custom partials into body
-    bongoModels.JCustomPartials.one selector, (err, partial)->
-      customPartial = partial.data  if not err and partial
+    queue = [
+      ->
+        bongoModels.JCustomPartials.one selector, (err, partial)->
+          console.log ">>>>>>>>> partial", partial
+          customPartial = partial.data  if not err and partial
+          queue.fin()
+      ->
+        bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+          console.log ">>>>>>>>> group", group
+          console.log err if err
 
-      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-        console.log err if err
+          bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+            console.log ">>>>>>>>> JReferralCampaign", campaignData_
+
+            if not err and campaignData_ and campaignData_.data
+              campaignData = campaignData_.data
+
+            if group
+              currentGroup = group
+
+            queue.fin()
+      ->
+        bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+          console.log err  if err
+          userWorkspaces = workspaces or []
+          queue.fin()
+      ->
+        bongoModels.JMachine.some$ client, {}, (err, machines) ->
+          console.log err  if err
+          userMachines = machines or []
+          queue.fin()
+    ]
+
+    dash queue, -> callback null, createHTML()
+
+    # add custom partials into body
+    # bongoModels.JCustomPartials.one selector, (err, partial)->
+    #   customPartial = partial.data  if not err and partial
+
+    #   bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+    #     console.log err if err
 
         # add custom partial into referral campaign
-        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+    #     bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
 
-          if not err and campaignData_ and campaignData_.data
-            campaignData = campaignData_.data
+    #       if not err and campaignData_ and campaignData_.data
+    #         campaignData = campaignData_.data
 
-          if group
-            currentGroup = group
+    #       if group
+    #         currentGroup = group
 
-          bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-            console.log err  if err
-            userWorkspaces = workspaces or []
+    #       bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+    #         console.log err  if err
+    #         userWorkspaces = workspaces or []
 
-            bongoModels.JMachine.some$ client, {}, (err, machines) ->
-              console.log err  if err
-              userMachines = machines or []
-              kallback()
+    #         bongoModels.JMachine.some$ client, {}, (err, machines) ->
+    #           console.log err  if err
+    #           userMachines = machines or []
+    #           callback null, createHTML()
 
 
   socialApiCacheFn = require '../cache/socialapi'
