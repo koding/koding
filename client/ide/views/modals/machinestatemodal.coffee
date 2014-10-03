@@ -132,7 +132,7 @@ class IDE.MachineStateModal extends IDE.ModalView
     @createError()
 
 
-  createStateLabel: (customState)->
+  getStateLabel:->
 
     stateTexts       =
       Stopped        : 'is turned off.'
@@ -149,10 +149,14 @@ class IDE.MachineStateModal extends IDE.ModalView
       NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
+    return "<span class='icon'></span>#{stateText}"
+
+
+  createStateLabel: (customState)->
 
     @label     = new KDCustomHTMLView
       tagName  : 'p'
-      partial  : customState or "<span class='icon'></span>#{stateText}"
+      partial  : customState or @getStateLabel()
       cssClass : "state-label #{@state.toLowerCase()}"
 
     @container.addSubView @label
