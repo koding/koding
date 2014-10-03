@@ -2,7 +2,7 @@ class NFileItemView extends KDCustomHTMLView
 
   JView.mixin @prototype
 
-  loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
+  # loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
   constructor:(options = {},data)->
 
@@ -30,24 +30,24 @@ class NFileItemView extends KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon"
 
-    for eventName in loaderRequiredEvents
-      fileData.on "fs.#{eventName}.started",  => @showLoader()
-      fileData.on "fs.#{eventName}.finished", => @hideLoader()
+    # for eventName in loaderRequiredEvents
+    #   fileData.on "fs.#{eventName}.started",  => @showLoader()
+    #   fileData.on "fs.#{eventName}.finished", => @hideLoader()
 
   destroy:->
 
-    fileData = @getData()
-    for eventName in loaderRequiredEvents
-      fileData.off "fs.#{eventName}.started"
-      fileData.off "fs.#{eventName}.finished"
+    # fileData = @getData()
+    # for eventName in loaderRequiredEvents
+    #   fileData.off "fs.#{eventName}.started"
+    #   fileData.off "fs.#{eventName}.finished"
 
     super
 
   decorateItem:->
 
-    extension = FSItem.getFileExtension @getData().name
+    extension = FSHelper.getFileExtension @getData().name
     if extension
-      fileType = FSItem.getFileType extension
+      fileType = FSHelper.getFileType extension
       @icon.$().attr "class", "icon #{extension} #{fileType}"
 
   render:->

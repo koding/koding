@@ -1,12 +1,11 @@
-class NVMItemView extends NFileItemView
+class NMachineItemView extends NFileItemView
 
   constructor:(options = {},data)->
 
     options.cssClass or= "vm"
     super options, data
 
-    @vm = KD.getSingleton 'vmController'
-    @vm.on 'StateChanged', @bound 'checkVMState'
+    {@machine} = data
 
     @changePathButton = new KDCustomHTMLView
       tagName  : 'span'
@@ -14,18 +13,12 @@ class NVMItemView extends NFileItemView
       delegate : @
       click    : @bound "createRootContextMenu"
 
-    @vmInfo = new KDCustomHTMLView
+    @machineInfo = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-info'
-      partial  : "on <strong>#{data.vmName}</strong> VM"
+      partial  : "on <strong>#{@machine.getName()}</strong> VM"
 
-    @vm.fetchVMDomains data.vmName, (err, domains)=>
-      if not err and domains.length > 0
-        @vmInfo.updatePartial """
-          on <a id="open-vm-page-#{data.vmName}"
-          href="http://#{domains.first}" target="_blank">
-          #{domains.first}</a> VM
-        """
+    @setClass 'online'  if @machine.status.state is Machine.State.Running
 
   showLoader:->
 
@@ -39,6 +32,7 @@ class NVMItemView extends NFileItemView
 
 
   createRootContextMenu:->
+
     offset = @changePathButton.$().offset()
     currentPath = @getData().path
     width = 30 + currentPath.length * 3
@@ -62,33 +56,20 @@ class NVMItemView extends NFileItemView
       parents.push "/#{path}"
     parents.reverse()
 
-    vm     = @getData().vmName
-    finder = @getData().treeController.getDelegate()
+    { uid } = @machine
+    finder  = @getData().treeController.getDelegate()
 
     @utils.defer ->
       parents.forEach (path)->
+
         contextMenu.treeController.addNode
           title    : path
           callback : ->
-            finder?.updateVMRoot vm, path, contextMenu.bound("destroy")
+            finder?.updateMachineRoot uid, path, contextMenu.bound("destroy")
 
       contextMenu.positionContextMenu()
       contextMenu.treeController.selectFirstNode()
 
-  checkVMState:(err, vm, info)->
-    return unless vm is @getData().vmName
-
-    if err or not info
-      @unsetClass 'online'
-      return warn err
-
-    if info.state is "RUNNING"
-    then @setClass 'online'
-    else @unsetClass 'online'
-
-  viewAppended:->
-    super
-    @getData().getKite()?.vmInfo().nodeify @bound 'checkVMState'
 
   pistachio:->
     path = FSHelper.plainPath @getData().path
@@ -96,8 +77,8 @@ class NVMItemView extends NFileItemView
     """
       {{> @icon}}
       {{> @loader}}
-      {span.title[title="#{path}"]{ #(name)}}
+      <span title="#{path}">#{@machine.getName()}</span>
       {{> @changePathButton}}
-      {{> @vmInfo}}
+      {{> @machineInfo}}
       <span class='chevron'></span>
     """

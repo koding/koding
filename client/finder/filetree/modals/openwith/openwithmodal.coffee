@@ -8,7 +8,7 @@ class OpenWithModal extends KDObject
     # appsController  = KD.getSingleton "kodingAppsController"
     appManager      = KD.getSingleton "appManager"
     fileName        = FSHelper.getFileNameFromPath nodeView.getData().path
-    fileExtension   = FSItem.getFileExtension fileName
+    fileExtension   = FSHelper.getFileExtension fileName
 
     modal = new KDModalView
       title         : "Choose application to open #{fileName}"

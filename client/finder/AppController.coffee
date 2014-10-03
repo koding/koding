@@ -11,33 +11,24 @@ class FinderController extends KDController
     super options, data
 
   create: (options = {}) ->
-    options.useStorage       ?= yes
-    options.addOrphansToRoot ?= no
-    options.addAppTitle      ?= yes
-    options.delegate         ?= this
+    options.useStorage        ?= yes
+    options.addOrphansToRoot  ?= no
+    options.addAppTitle       ?= yes
+    options.bindMachineEvents ?= yes
+    options.delegate          ?= this
 
     @controller = new NFinderController options
     finderView  = @controller.getView()
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
-    finderView.addSubView @getUploader()
-    finderView.addSubView @getMountVMButton()
+    # finderView.addSubView @getUploader()
 
     return @controller
-
-  createFileFromPath: -> FSHelper.createFileFromPath arguments...
 
   getAppTitleView: ->
     return new KDCustomHTMLView
       cssClass : "app-header"
       partial  : "Ace Editor"
-
-  getMountVMButton: ->
-    return new KDButtonView
-      title    : "Mount other VMs"
-      icon     : yes
-      cssClass : "finder-mountvm clean-gray"
-      callback : @bound 'showMountVMModal'
 
   getUploader: ->
     @uploaderPlaceholder = new KDView
@@ -76,59 +67,3 @@ class FinderController extends KDController
     return  if @controller.treeController.internalDragging
     @uploaderPlaceholder.show()
     @uploader.unsetClass "hover"
-
-  showMountVMModal: ->
-    modal = new KDModalView
-      width         : 620
-      cssClass      : "modal-with-text mount-vm"
-      title         : "Mount VMs"
-      overlay       : yes
-
-    vmListController = new KDListViewController
-      view          : list = new KDListView
-        itemClass   : VMListItem
-        type        : "vmlist"
-
-    {vmController} = KD.singletons
-
-
-    list.on "VmStateChanged", (options)=>
-
-      vmController.fetchVmInfo options.hostnameAlias, (err, info)=>
-        return KD.showError err  if err
-        if options.state
-        then @controller.mountVm info
-        else @controller.unmountVm info.hostnameAlias
-
-    list.once 'viewAppended', =>
-
-      vmListController.showLazyLoader()
-      vmController.fetchVMs (err, vms)->
-        vmListController.hideLazyLoader()
-        return KD.showError err  if err
-        vmListController.instantiateListItems vms
-
-    modal.addSubView vmListController.getView()
-
-
-class VMListItem extends KDListItemView
-
-  constructor:(options = {}, data)->
-
-    super options, data
-
-
-  viewAppended:->
-
-    @addSubView loader = new KDLoaderView showLoader : yes
-
-    {hostnameAlias} = @getData()
-    KD.singletons.vmController.info hostnameAlias, (err, name, info)=>
-      loader.hide()
-      return KD.showError err if err
-      @addSubView vmLabel  = new KDLabelView title: hostnameAlias
-      @addSubView vmSwitch = new KodingSwitch
-        cssClass     : 'dark'
-        defaultValue : info.state is "RUNNING"
-        callback     : (state)=>
-          @getDelegate().emit "VmStateChanged", {state, hostnameAlias}

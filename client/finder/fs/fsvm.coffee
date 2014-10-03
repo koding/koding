@@ -1,1 +1,0 @@
-class FSVm extends FSFolder

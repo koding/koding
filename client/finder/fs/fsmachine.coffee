@@ -1,0 +1,1 @@
+class FSMachine extends FSFolder

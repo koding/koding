@@ -5,7 +5,9 @@ class NFinderTreeController extends JTreeViewController
     super
 
     if @getOptions().contextMenu
-      @contextMenuController = new NFinderContextMenuController
+      {contextMenuClass} = @getOptions()
+
+      @contextMenuController = new contextMenuClass
 
       @contextMenuController.on "ContextMenuItemClicked", ({fileView, contextMenuItem})=>
         @contextMenuItemSelected fileView, contextMenuItem
@@ -21,7 +23,7 @@ class NFinderTreeController extends JTreeViewController
   addNode:(nodeData, index)->
     fc = @getDelegate()
     return if @getOption('foldersOnly') and nodeData.type is "file"
-    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.vmName
+    return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.machine.uid
     item = super nodeData, index
 
   highlightFile:(view)->
@@ -54,7 +56,7 @@ class NFinderTreeController extends JTreeViewController
     nodeData = nodeView.getData()
 
     switch nodeData.type
-      when "folder", "mount", "vm"
+      when "folder", "mount", "vm", "machine"
         @toggleFolder nodeView, callback
       when "file"
         @openFile nodeView
@@ -77,31 +79,35 @@ class NFinderTreeController extends JTreeViewController
     {vmName, path} = nodeView.getData()
     @appManager.open "Viewer", params: {path, vmName}
 
-  resetVm:(nodeView)->
-    {vmName} = nodeView.data
-    KD.getSingleton('vmController').reinitialize vmName
+  # resetVm:(nodeView)->
+  #   {vmName} = nodeView.data
+  #   KD.getSingleton('vmController').reinitialize vmName
 
   unmountVm:(nodeView)->
-    {vmName} = nodeView.data
-    @getDelegate().unmountVm vmName
+    { machine: { uid } } = nodeView.getData()
+    @getDelegate().unmountMachine uid
 
-  openVmTerminal:(nodeView)->
-    {vmName} = nodeView.data
-    @appManager.open "Terminal", params: {vmName}, forceNew: yes
+  openMachineTerminal: (nodeView) ->
+    {machine}  = nodeView.getData()
+    appManager = KD.getSingleton 'appManager'
+    ideApp     = appManager.get 'IDE'
+    callback   = -> appManager.tell 'IDE', 'openMachineTerminal', machine
+
+    if ideApp then callback() else appManager.open 'IDE', callback
 
   toggleDotFiles:(nodeView)->
 
-    finder         = @getDelegate()
-    {vmName, path} = nodeView.getData()
+    finder = @getDelegate()
+    { machine: { uid } } = nodeView.getData()
 
-    if finder.isNodesHiddenFor vmName
-    then finder.showDotFiles vmName
-    else finder.hideDotFiles vmName
+    if finder.isNodesHiddenFor uid
+    then finder.showDotFiles uid
+    else finder.hideDotFiles uid
 
   makeTopFolder:(nodeView)->
-    {vmName, path} = nodeView.getData()
+    {machine, path} = nodeView.getData()
     finder = @getDelegate()
-    finder.updateVMRoot vmName, FSHelper.plainPath path
+    finder.updateMachineRoot machine.uid, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
 
@@ -248,33 +254,34 @@ class NFinderTreeController extends JTreeViewController
     nodeView.showRenameView (newValue)=>
       return if newValue is nodeData.name
 
-      nodeData.rename name: newValue, (err)=>
+      nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
 
       # @setKeyView()
       @beingEdited = null
 
   createFile:(nodeView, type = "file")->
+
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
 
-    { vmName } = nodeData
+    { machine } = nodeData
 
     if nodeData.type is "file"
-      {parentPath} = nodeData
+      { parentPath } = nodeData
     else
       parentPath = nodeData.path
 
     path = FSHelper.plainPath \
       "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create { path, type, vmName, treeController: this }, (err, file)=>
+    machine.fs.create { path, type, treeController: this }, (err, file)=>
       if err
         @notify null, null, err
       else
         @refreshFolder @nodes[parentPath], =>
           @notify "#{type} created!", "success"
-          node = @nodes["[#{file.vmName}]#{file.path}"]
+          node = @nodes["[#{file.machine.uid}]#{file.path}"]
           @selectNode node
           @showRenameDialog node
 
@@ -289,7 +296,7 @@ class NFinderTreeController extends JTreeViewController
     movedNodes = []
     results = nodesToBeMoved.map (node) ->
       sourceItem = node.getData()
-      FSItem.move(sourceItem, targetItem).then ->
+      sourceItem.move("#{targetItem.path}/").then ->
         movedNodes.push node
 
     Promise.all(results).then =>
@@ -298,6 +305,7 @@ class NFinderTreeController extends JTreeViewController
       @refreshFolder targetNodeView
 
     .catch (err) =>
+      warn "Move failed with error:", err
       @notify null, null, err
 
     .nodeify callback
@@ -312,14 +320,14 @@ class NFinderTreeController extends JTreeViewController
     copiedNodes = []
     results = nodesToBeCopied.map (node) ->
       sourceItem = node.getData()
-      FSItem.copy(sourceItem, targetItem).then ->
+      sourceItem.copy(targetItem.path).then ->
         copiedNodes.push node
 
     Promise.all(results).then =>
       @notify "#{copiedNodes.length} item#{if copiedNodes.length > 1 then 's' else ''} copied!", "success"
-      @refreshFolder targetNodeView
 
     .catch (err) =>
+      warn "Copy failed with error:", err
       @notify null, null, err
 
     .nodeify callback
@@ -330,18 +338,14 @@ class NFinderTreeController extends JTreeViewController
     results = nodes.map (node) =>
       sourceItem = node.getData()
       targetItem = @nodes[sourceItem.parentPath].getData()
-      FSItem.copy(sourceItem, targetItem).then ->
+      sourceItem.copy(targetItem.path).then ->
         duplicatedNodes.push node
 
     Promise.all(results).then =>
       @notify "#{duplicatedNodes.length} item#{if duplicatedNodes.length > 1 then 's' else ''} duplicated!", "success"
-      parentNodes = []
-      duplicatedNodes.forEach (node)=>
-        parentNode = @nodes[node.getData().parentPath]
-        parentNodes.push parentNode unless parentNode in parentNodes
-      @refreshFolder parentNode for parentNode in parentNodes
 
     .catch (err) =>
+      warn "Duplicate file failed with error:", err
       @notify null, null, err
 
     .nodeify callback
@@ -349,16 +353,15 @@ class NFinderTreeController extends JTreeViewController
   compressFiles:(nodeView, type)->
 
     file = nodeView.getData()
-    FSItem.compress file, type, (err, response)=>
+    file.compress type, (err, response)=>
       if err then @notify null, null, err
       else
         @notify "#{file.type.capitalize()} compressed!", "success"
-        @refreshFolder @nodes[file.parentPath]
 
   extractFiles:(nodeView)->
 
     file = nodeView.getData()
-    FSItem.extract file, (err, response)=>
+    file.extract (err, response)=>
       if err then @notify null, null, err
       else
         @notify "#{file.type.capitalize()} extracted!", "success"
@@ -425,38 +428,36 @@ class NFinderTreeController extends JTreeViewController
   CONTEXT MENU OPERATIONS
   ###
 
-  cmExpand:        (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
-  cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  cmToggleDotFiles:(nodeView, contextMenuItem)-> @toggleDotFiles nodeView
-  cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
-  cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
-  cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
-  cmCreateFile:    (nodeView, contextMenuItem)-> @createFile nodeView
-  cmCreateFolder:  (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  cmRename:        (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  cmDelete:        (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  cmDuplicate:     (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
-  cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> @uploadFile nodeView
-  cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
-  cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
-  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
-  cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
-  cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
-  cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
-  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
-  cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
-  cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
-  cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
-  # cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  # cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
-
-  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
+  cmExpand:              (node) -> @expandFolder         node for node in @selectedNodes
+  cmCollapse:            (node) -> @collapseFolder       node for node in @selectedNodes # error fix this
+  cmMakeTopFolder:       (node) -> @makeTopFolder        node
+  cmRefresh:             (node) -> @refreshFolder        node
+  cmToggleDotFiles:      (node) -> @toggleDotFiles       node
+  # cmResetVm:             (node) -> @resetVm              node
+  cmUnmountVm:           (node) -> @unmountVm            node
+  cmOpenMachineTerminal: (node) -> @openMachineTerminal  node
+  cmCreateFile:          (node) -> @createFile           node
+  cmCreateFolder:        (node) -> @createFile           node, "folder"
+  cmRename:              (node) -> @showRenameDialog     node
+  cmDelete:              (node) -> @confirmDelete        node
+  cmExtract:             (node) -> @extractFiles         node
+  cmZip:                 (node) -> @compressFiles        node, "zip"
+  cmTarball:             (node) -> @compressFiles        node, "tar.gz"
+  cmUpload:              (node) -> @uploadFile           node
+  cmOpenFile:            (node) -> @openFile             node
+  cmPreviewFile:         (node) -> @previewFile          node
+  cmCompile:             (node) -> @compileApp           node
+  cmMakeNewApp:          (node) -> @makeNewApp           node
+  cmPublish:             (node) -> @publishApp           node
+  cmCloneRepo:           (node) -> @cloneRepo            node
+  cmDropboxChooser:      (node) -> @chooseFromDropbox    node
+  cmOpenTerminal:        (node) -> @openTerminalFromHere node
+  cmDuplicate:           (node) -> @duplicateFiles       @selectedNodes
+  cmDownload:            (node) -> @appManager.notify()
+  cmGitHubClone:         (node) -> @appManager.notify()
+  # cmOpenFileWithApp:     (node, contextMenuItem) -> @openFileWithApp  node, contextMenuItem
+  # cmShowOpenWithModal: (node, contextMenuItem) -> @showOpenWithModal node
+  # cmOpenFileWithApp:   (node, contextMenuItem) -> @openFileWithApp  node, contextMenuItem
 
   ###
   CONTEXT MENU CREATE/MANAGE
@@ -516,7 +517,7 @@ class NFinderTreeController extends JTreeViewController
       @contextMenu nodeView, event
       return no
 
-    if $(event.target).is ".arrow"
+    if ($(event.target).is ".icon") and nodeView.getData().type is 'folder'
       @openItem nodeView
       return no
 
@@ -595,7 +596,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
+    return unless nodeView.getData?().type in ['folder', 'mount', 'machine']
 
     @selectedNodes = @selectedNodes.filter (node)->
       targetPath = nodeView.getData?().path
@@ -622,10 +623,20 @@ class NFinderTreeController extends JTreeViewController
   performDownKey:(nodeView, event)->
 
     if event.altKey
-      offset = nodeView.$('.chevron').offset()
-      event.pageY = offset.top
-      event.pageX = offset.left
-      @contextMenu nodeView, event
+
+      # We have to create a fakeEvent object here
+      # since event.pageY/X is read-only so updating
+      # offsets was not working which was causing to
+      # create context menu in a wrong position when
+      # altkey shortcut used
+      offset    = nodeView.$('.chevron').offset()
+      fakeEvent =
+        pageY   : offset.top
+        pageX   : offset.left
+        stopPropagation : ->
+        preventDefault  : ->
+
+      @contextMenu nodeView, fakeEvent
     else
       super
 

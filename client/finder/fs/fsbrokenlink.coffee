@@ -1,1 +1,1 @@
-class FSBrokenLink extends FSItem
+class FSBrokenLink extends FSFile

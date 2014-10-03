@@ -19,14 +19,13 @@ module.exports = [
   "filetree/itemviews/mountitem.coffee",
   "filetree/itemviews/brokenlinkitem.coffee",
   "filetree/itemviews/sectionitem.coffee",
-  "filetree/itemviews/vmitem.coffee",
+  "filetree/itemviews/nomachinefoundview.coffee",
+  "filetree/itemviews/machineitem.coffee",
 
   "filetree/itemsubviews/finderitemdeleteview.coffee",
   "filetree/itemsubviews/finderitemdeletedialog.coffee",
   "filetree/itemsubviews/finderitemrenameview.coffee",
   "filetree/itemsubviews/setpermissionsview.coffee",
-  "filetree/itemsubviews/vmtogglebuttonview.coffee",
-  "filetree/itemsubviews/mounttogglebuttonview.coffee",
   "filetree/itemsubviews/copyurlview.coffee",
 
   # fs representation
@@ -37,8 +36,7 @@ module.exports = [
   "fs/fsfolder.coffee",
   "fs/fsmount.coffee",
   "fs/fsbrokenlink.coffee",
-  "fs/fsvm.coffee",
-  "fs/appswatcher.coffee",
+  "fs/fsmachine.coffee",
 
   # Styles
   # "styl/app.finder.styl"

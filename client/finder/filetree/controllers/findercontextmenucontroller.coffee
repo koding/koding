@@ -11,7 +11,7 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
-        when "vm"         then @getVmMenu fileView
+        when "machine"    then @getMachineMenu fileView
         when "file"       then @getFileMenu fileView
         when "folder"     then @getFolderMenu fileView
         when "mount"      then @getMountMenu fileView
@@ -75,25 +75,25 @@ class NFinderContextMenuController extends KDController
       #   separator                 : yes
       #   action                    : 'download'
       #   disabled                  : yes
-      'Public URL...'             :
-        separator                 : yes
+      # 'Public URL...'             :
       'New file'                  :
+        separator                 : yes
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
       # 'Upload to Dropbox'         :
       #   action                    : 'dropboxSaver'
 
-    if 'archive' isnt FSItem.getFileType FSItem.getFileExtension fileData.name
+    if 'archive' isnt FSHelper.getFileType FSHelper.getFileExtension fileData.name
       delete items.Extract
     else
       delete items.Compress
 
-    unless FSHelper.isPublicPath fileData.path
-      delete items['Public URL...']
-    else
-      items['Public URL...'].children =
-        customView : new NCopyUrlView {}, fileData
+    # unless FSHelper.isPublicPath fileData.path
+    #   delete items['Public URL...']
+    # else
+    #   items['Public URL...'].children =
+    #     customView : new NCopyUrlView {}, fileData
 
     return items
 
@@ -109,8 +109,8 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
-      'Open with...'              :
-        children                  : @getOpenWithMenuItems fileView
+      # 'Open with...'              :
+      #   children                  : @getOpenWithMenuItems fileView
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
         separator                 : yes
@@ -135,11 +135,11 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
-      'Upload file...'            :
-        action                    : 'upload'
-      'Clone a repo here'         :
-        action                    : "cloneRepo"
-        separator                 : yes
+      # 'Upload file...'            :
+      #   action                    : 'upload'
+      # 'Clone a repo here'         :
+      #   action                    : "cloneRepo"
+      #   separator                 : yes
       # Download                    :
       #   disabled                  : yes
       #   action                    : "download"
@@ -151,8 +151,8 @@ class NFinderContextMenuController extends KDController
       #     'Upload to Dropbox'     :
       #       action                : 'dropboxSaver'
       #   separator                 : yes
-      'Public URL...'             :
-        separator                 : yes
+      # 'Public URL...'             :
+      #   separator                 : yes
       Refresh                     :
         action                    : 'refresh'
 
@@ -161,29 +161,29 @@ class NFinderContextMenuController extends KDController
     else
       delete items.Collapse
 
-    unless FSHelper.isPublicPath fileData.path
-      delete items['Public URL...']
-    else
-      items['Public URL...'].children =
-        customView : new NCopyUrlView {}, fileData
+    # unless FSHelper.isPublicPath fileData.path
+    #   delete items['Public URL...']
+    # else
+    #   items['Public URL...'].children =
+    #     customView : new NCopyUrlView {}, fileData
 
-    {nickname} = KD.whoami().profile
+    # {nickname} = KD.whoami().profile
 
-    if ///\/home\/#{nickname}\/Applications$///.test fileData.path
-      items.Refresh.separator         = yes
-      items["Make a new Application"] =
-        action : "makeNewApp"
+    # if ///\/home\/#{nickname}\/Applications$///.test fileData.path
+    #   items.Refresh.separator         = yes
+    #   items["Make a new Application"] =
+    #     action : "makeNewApp"
 
-    if fileData.getExtension() is "kdapp"
-      items.Refresh.separator   = yes
-      items['Application menu'] =
-        children                   :
-          Compile                  :
-            action                 : "compile"
-          "Publish to app catalog" :
-            action                 : "publish"
-    else
-      delete items['Open with...']
+    # if fileData.getExtension() is "kdapp"
+    #   items.Refresh.separator   = yes
+    #   items['Application menu'] =
+    #     children                   :
+    #       Compile                  :
+    #         action                 : "compile"
+    #       "Publish to app catalog" :
+    #         action                 : "publish"
+    # else
+    #   delete items['Open with...']
 
     return items
 
@@ -196,7 +196,7 @@ class NFinderContextMenuController extends KDController
 
     items
 
-  getVmMenu:(fileView)->
+  getMachineMenu:(fileView)->
 
     fileData = fileView.getData()
 
@@ -204,30 +204,59 @@ class NFinderContextMenuController extends KDController
       Refresh                     :
         action                    : 'refresh'
         separator                 : yes
-      'Unmount VM'                :
-        action                    : 'unmountVm'
-      'Open VM terminal'          :
-        action                    : 'openVmTerminal'
-        separator                 : yes
+      # 'Unmount VM'                :
+      #   action                    : 'unmountVm'
+      # 'Open terminal'             :
+      #   action                    : 'openMachineTerminal'
+      #   separator                 : yes
       Expand                      :
         action                    : 'expand'
         separator                 : yes
       Collapse                    :
         action                    : 'collapse'
         separator                 : yes
-      'Toggle invisible files'    :
-        action                    : 'toggleDotFiles'
+      'Change top folder'         :
         separator                 : yes
+        children                  : @getTopFolderItems fileView
       'New file'                  :
         action                    : 'createFile'
       'New folder'                :
         action                    : 'createFolder'
-      'Upload file...'            :
-        action                    : 'upload'
+        separator                 : yes
+      'Toggle invisible files'    :
+        action                    : 'toggleDotFiles'
+      # 'Upload file...'            :
+      #   action                    : 'upload'
 
     if fileView.expanded
     then delete items.Expand
     else delete items.Collapse
+
+    return items
+
+  getTopFolderItems: (fileView) ->
+    currentPath = FSHelper.plainPath fileView.getData().path
+    nickname    = KD.nick()
+    parents     = []
+    nodes       = currentPath.split '/'
+
+    for x in [ 0...nodes.length ]
+      nodes = currentPath.split '/'
+      path  = nodes.splice(1,x).join '/'
+      parents.push "/#{path}"
+
+    parents  = _.unique parents.reverse()
+    items    = {}
+    root     = "/home/#{KD.nick()}/"
+    fileData = fileView.getData()
+    finder   = fileData.treeController.getDelegate()
+
+    parents.forEach (path) =>
+      if path
+        label = path.replace root, '~/'
+        items[label] = callback : =>
+          finder?.updateMachineRoot fileData.machine.uid, path
+          @contextMenu.destroy()
 
     return items
 
@@ -370,7 +399,7 @@ class NFinderContextMenuController extends KDController
 
     {path, type}     = fileView.getData()
     plainPath        = FSHelper.plainPath path
-    fileExtension    = FSItem.getFileExtension path
+    fileExtension    = FSHelper.getFileExtension path
 
     # FIXME: Add this ability later ~ GG
     # appsController   = KD.singleton "kodingAppsController"
