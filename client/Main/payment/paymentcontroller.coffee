@@ -60,8 +60,8 @@ class PaymentController extends KDController
 
   observePaymentSave: (modal, callback) ->
     modal.on 'PaymentInfoSubmitted', (paymentMethodId, updatedPaymentInfo) =>
-      updatedPaymentInfo.challenge = Recaptcha.get_challenge()
-      updatedPaymentInfo.response  = Recaptcha.get_response()
+      # updatedPaymentInfo.challenge = Recaptcha.get_challenge()
+      # updatedPaymentInfo.response  = Recaptcha.get_response()
 
       @updatePaymentInfo paymentMethodId, updatedPaymentInfo, (err, savedPaymentInfo) =>
         if err
