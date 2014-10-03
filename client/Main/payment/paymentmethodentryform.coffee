@@ -193,7 +193,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
 
   addCaptcha:->
 
-    Recaptcha.create KD.config.recaptcha, 'recaptcha', theme : 'clean'
+    # Recaptcha.create KD.config.recaptcha, 'recaptcha', theme : 'clean'
 
   activate: ->
     { cardFirstName, cardLastName, cardNumber } = @inputs

@@ -153,10 +153,26 @@ module.exports.create = (KONFIG, environment)->
 
   #{if environment is 'dev' then '' else 'pid /var/run/nginx.pid;'}
 
-  events { worker_connections  1024; }
+  events {
+    worker_connections  1024;
+    multi_accept on;
+    use epoll;
+  }
 
   # start http
   http {
+
+    # log how long requests take
+    log_format timed_combined '$request $request_time $upstream_response_time $pipe';
+    access_log /var/log/nginx/access.log timed_combined;
+
+    # batch response body
+    client_body_in_single_buffer on;
+    client_header_buffer_size 4k;
+    client_max_body_size 10m;
+
+    sendfile on;
+
     # for proper content type setting, include mime.types
     include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
 
@@ -209,7 +225,7 @@ module.exports.create = (KONFIG, environment)->
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
-        root  #{KONFIG.projectRoot}/website/;
+        root #{KONFIG.projectRoot}/website/;
         # no need to send those requests to nginx access_log
         access_log off;
       }

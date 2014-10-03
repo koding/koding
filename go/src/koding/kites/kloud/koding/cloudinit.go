@@ -219,12 +219,10 @@ write_files:
       echo "Downloading files from $vm_name (this could take a while)..."
       echo
       archive="$vm_name.tgz"
-      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -s -w %{http_code} --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
-      if [[ $status -eq 412 ]]; then
-        echo "Your VM is still running on old.koding.com. Please log in and "
-        echo "turn off your VM by running the command $ sudo poweroff"
-        exit 1
-      elif [[ $status -ne 200 ]]; then
+      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -w %{http_code} --progress-bar --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
+      echo "HTTP status: $status"
+      echo
+      if [[ $status -ne 200 ]]; then
         error=$(cat $archive)
         rm $archive
         echo "An error occured: $error"
@@ -233,7 +231,7 @@ write_files:
         echo
         exit 1
       fi
-      echo "Extracting your files to directory $(pwd)/$vm_name..."
+      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
       mkdir -p Backup/$vm_name
       tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
       rm $archive
