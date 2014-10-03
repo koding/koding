@@ -357,9 +357,9 @@ app.post '/:name?/Reset', (req, res) ->
   return res.status(400).send 'Invalid token!'  if not token
   return res.status(400).send 'Invalid password!'  if not password
 
-  JPasswordRecovery.resetPassword { token, password }, (err, username) ->
+  JPasswordRecovery.resetPassword token, password, (err, username) ->
     return res.status(400).send err.message  if err?
-    res.status(200).end()
+    res.status(200).send({ username })
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
