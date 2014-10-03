@@ -95,10 +95,13 @@ module.exports = (options = {}, callback)->
 
     queue = [
       ->
+        console.time("custom partial")
         bongoModels.JCustomPartials.one selector, (err, partial)->
           customPartial = partial.data  if not err and partial
           queue.fin()
+          console.timeEnd("custom partial")
       ->
+        console.time("referral campaign")
         bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
           console.log err if err
 
@@ -110,20 +113,29 @@ module.exports = (options = {}, callback)->
               currentGroup = group
 
             queue.fin()
+            console.timeEnd("referral campaign")
       ->
+        console.time("workspace")
         bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
           console.log err  if err
           userWorkspaces = workspaces or []
           queue.fin()
+          console.timeEnd("workspace")
       ->
+        console.time("machine")
         bongoModels.JMachine.some$ client, {}, (err, machines) ->
           console.log err  if err
           userMachines = machines or []
           queue.fin()
+          console.timeEnd("machine")
     ]
 
-    dash queue, -> callback null, createHTML()
+    console.time("all")
+    dash queue, ->
+      callback null, createHTML()
+      console.timeEnd("all")
 
+  console.trace("scriptblock")
 
   socialApiCacheFn = require '../cache/socialapi'
   socialApiCacheFn options, (err, data)->
