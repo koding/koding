@@ -1,6 +1,6 @@
 Mongo              = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
-Environment        = "prod"
 Region             = "prod"
+Environment        = "production"
 Hostname           = "koding.com"
 
 [postgres]
