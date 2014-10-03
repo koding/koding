@@ -148,13 +148,14 @@ class PaymentForm extends JView
       @existingCreditCardMessage
       @securityNote
       @totalPrice
+      @yearPriceMessage
     ].forEach (view) -> view.destroy()
 
     if isUpgrade
       @successMessage.updatePartial "
         Depending on the plan upgraded to, you now have access to more computing
         and storage resources.
-        <a href='http://learn.koding.com'>Learn more</a>
+        <a href='http://learn.koding.com/upgrade'>Learn more</a>
         about how to use your new resources.
       "
       @successMessage.show()
