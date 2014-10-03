@@ -15,7 +15,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'email'
         placeholder   : 'email address'
-        testPath      : 'register-form-email'
+        attributes    :
+          testpath    : 'register-form-email'
         validate      : @getEmailValidator()
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
@@ -29,7 +30,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         name             : 'username'
         forceCase        : 'lowercase'
         placeholder      : 'username'
-        testPath         : 'register-form-username'
+        attributes       :
+          testpath       : 'register-form-username'
         focus            : => @username.icon.unsetTooltip()
         keyup            : (event) => @submitForm event  if event.which is ENTER
         validate         :
@@ -59,6 +61,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       title         : buttonTitle or 'Create account'
       type          : 'button'
       style         : 'solid green medium'
+      attributes    :
+        testpath    : 'signup-button'
       loader        : yes
       callback      : @bound 'submitForm'
 
