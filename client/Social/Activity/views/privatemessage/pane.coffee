@@ -35,6 +35,11 @@ class PrivateMessagePane extends MessagePane
 
     @kodingBot = new KodingBot delegate : this
 
+    # unfortunately until we make the listview
+    # more performant we need such hacks - SY
+    @on 'ListPopulated', ->
+      document.body.scrollTop = document.body.scrollHeight
+
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
     @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
@@ -51,6 +56,24 @@ class PrivateMessagePane extends MessagePane
       @listPreviousReplies()  if current < 20 and current < previous
       previous = current
     , 200
+
+
+  setScrollTops: ->
+
+    @lastScrollTops.body   = document.body.scrollTop or document.body.scrollHeight
+
+
+  applyScrollTops: ->
+
+    KD.utils.defer =>
+      document.body.scrollTop = @lastScrollTops.body
+
+
+  replaceFakeItemView: (message) ->
+    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
+    item = @putMessage message, index
+    @removeFakeMessage message.clientRequestId
+    @scrollDown item
 
 
   createInputWidget: ->
@@ -128,10 +151,13 @@ class PrivateMessagePane extends MessagePane
     return  if message.account._id is KD.whoami()._id
 
     item = @prependMessage message, @listController.getItemCount()
-
     isFromBot message, @bound 'setResponseMode'
+    @scrollDown item
 
-    return item
+
+  prependMessage: (message, index) ->
+
+    return @listController.addItem message, index
 
 
   putMessage: (message, index) ->
@@ -183,7 +209,6 @@ class PrivateMessagePane extends MessagePane
 
   messageAdded: (item, index) ->
 
-    @scrollDown item
     data         = item.getData()
     listView     = @listController.getView()
     headerHeight = @heads?.getHeight() or 0
@@ -235,11 +260,13 @@ class PrivateMessagePane extends MessagePane
       nextSibling.unsetClass 'consequent'
 
 
-  appendMessageDeferred: (item) ->
+  appendMessageDeferred: (item, i, total) ->
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
     @appendMessage item
+    if i is total - 1
+      KD.utils.wait 50, => @emit 'ListPopulated'
 
 
   populate: ->
@@ -299,6 +326,11 @@ class PrivateMessagePane extends MessagePane
         @newParticipantButton.toggleClass 'active'
         @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
 
+        @autoComplete.getView().once 'blur',=>
+          @autoCompleteForm.toggleClass 'active'
+          @newParticipantButton.toggleClass 'active'
+          @input.input.setFocus()
+
 
   createAddParticipantForm: ->
 
@@ -308,6 +340,9 @@ class PrivateMessagePane extends MessagePane
       fields             :
         recipient        :
           itemClass      : KDView
+      submit             : (e) ->
+        e.preventDefault()
+
 
     @autoComplete = new KDAutoCompleteController
       name                : 'userController'
@@ -351,4 +386,14 @@ class PrivateMessagePane extends MessagePane
   setFilter: ->
 
 
+  show: ->
+
+    super
+
+    KD.utils.defer @bound 'focus'
+
+
   defaultFilter: 'Most Recent'
+
+
+  focus: -> @input.focus()

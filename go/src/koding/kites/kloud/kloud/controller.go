@@ -295,7 +295,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 
 			status = machine.State
 			msg = ""
-			eventErr = err.Error()
+			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 		} else {
 			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
 				machine.Id, strings.ToUpper(r.Method), status)
@@ -337,9 +337,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 		return nil, err
 	}
 
-	k.Log.Info("[%s] ========== %s called by user: %s ==========",
-		args.MachineId, strings.ToUpper(r.Method), r.Username)
-
 	if args.MachineId == "" {
 		return nil, NewError(ErrMachineIdMissing)
 	}
@@ -350,6 +347,9 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	// method call is finished (unlocking is done inside the responsible
 	// method calls).
 	if r.Method != "info" {
+		k.Log.Info("[%s] ========== %s called by user: %s ==========",
+			args.MachineId, strings.ToUpper(r.Method), r.Username)
+
 		if err := k.Locker.Lock(args.MachineId); err != nil {
 			return nil, err
 		}

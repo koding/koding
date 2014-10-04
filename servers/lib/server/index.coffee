@@ -57,11 +57,11 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
+bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
   session = require 'express-session'
-  bodyParser = require 'body-parser'
   compression = require 'compression'
 
   app.set 'case sensitive routing', on
@@ -191,7 +191,7 @@ app.get "/-/auth/check/:key", (req, res)->
     return res.status(401).send authTemplate "Key doesn't exist" unless status
     res.status(200).send {result: 'key is added successfully'}
 
-app.post "/-/support/new", (req, res)->
+app.post "/-/support/new", bodyParser.json(), (req, res)->
 
   isLoggedIn req, res, (err, loggedIn, account)->
     return res.status(401).send authTemplate "Koding Auth Error - 1"  if err
@@ -357,9 +357,9 @@ app.post '/:name?/Reset', (req, res) ->
   return res.status(400).send 'Invalid token!'  if not token
   return res.status(400).send 'Invalid password!'  if not password
 
-  JPasswordRecovery.resetPassword { token, password }, (err, username) ->
+  JPasswordRecovery.resetPassword token, password, (err, username) ->
     return res.status(400).send err.message  if err?
-    res.status(200).end()
+    res.status(200).send({ username })
 
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'

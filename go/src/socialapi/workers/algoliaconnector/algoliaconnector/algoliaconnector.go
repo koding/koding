@@ -110,12 +110,16 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 		err.Error() != ErrAlgoliaIndexNotExist.Error() {
 		return err
 	}
-	if tags, ok := record["_tags"]; ok && len(tags.([]interface{})) == 1 {
-		if _, err = index.DeleteObject(objectId); err != nil {
-			return err
+
+	if tags, ok := record["_tags"]; ok {
+		if t, ok := tags.([]interface{}); ok && len(t) == 1 {
+			if _, err = index.DeleteObject(objectId); err != nil {
+				return err
+			}
+			return nil
 		}
-		return nil
 	}
+
 	return f.partialUpdate("messages", map[string]interface{}{
 		"objectID": objectId,
 		"_tags":    removeMessageTag(record, strconv.FormatInt(listing.ChannelId, 10)),

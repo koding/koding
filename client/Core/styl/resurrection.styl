@@ -742,6 +742,11 @@ body.account
   .kdmodal-inner
     margin              36px 51px 51px
 
+    h3
+      text-align          center
+      margin-bottom       10px
+      color               #6f6f6f
+
     .kdmodal-title
       text-align        center
       margin            0 0 30px !important
@@ -782,6 +787,12 @@ body.account
 
         &:before
           content       '$'
+
+        &:after
+          content       '@'
+          left          263px
+          color         #6F6F6F
+          abs()
 
     .payment-method-entry-form
       background        #F8F8F8
@@ -861,7 +872,7 @@ body.account
 
     .existing-cc-msg
       color             #7f7f7f
-      font-size         18px
+      font-size         16px
       line-height       24px
       text-align        center
       padding           40px
@@ -898,7 +909,7 @@ body.account
       width             100% !important
       height            50px !important
       background        #01B05A
-      margin            30px 0 0 !important
+      margin            20px 0 0 !important
       shadow            0 2px 0 0 #008E48
       color             #fff
       font-size         14px
@@ -924,10 +935,10 @@ body.account
 
     .year-price-msg
       display           block
-      font-size         14px
-      color             #7f7f7f
+      font-size         16px
+      color             #6f6f6f
       line-height       19px
-      margin            20px 0 0px
+      margin            25px 0 0px
       opacity           .99
       text-align        center
 
@@ -937,7 +948,7 @@ body.account
       color             #A7A7A7
       text-align        center
       line-height       17px
-      margin            51px
+      margin            80px 0 10px
       opacity           .99
 
       span
