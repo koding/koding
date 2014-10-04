@@ -8,6 +8,7 @@ class KodingKite_KloudKite extends KodingKite
     build     : 'build'
     event     : 'event'
     reinit    : 'reinit'
+    resize    : 'resize'
     restart   : 'restart'
     destroy   : 'destroy'
     setDomain : 'domain.set'
