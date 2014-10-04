@@ -63,7 +63,7 @@ class HelpSupportModal extends KDModalViewWithForms
         submit.setTitle "CLOSE"
 
       request.error =>
-        new KDNotificationView title: "Failed to create ticket, please try again"
+        new KDNotificationView title: "Sorry, could not process your request, please try again."
         submit.hideLoader()
         @ticketRequested = no
 

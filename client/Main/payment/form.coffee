@@ -15,7 +15,6 @@ class PaymentForm extends JView
     planTitle      : PaymentWorkflow.planTitle.HOBBYIST
   }
 
-
   constructor: (options = {}, data) ->
 
     options.cssClass = KD.utils.curry 'payment-form-wrapper', options.cssClass
@@ -37,9 +36,13 @@ class PaymentForm extends JView
       currentPlan, yearPrice
     } = @state
 
+    planIntervalPartial = if planInterval is 'month'
+    then 'Monthly'
+    else 'Yearly'
+
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
-      partial : "#{planTitle.capitalize()} Plan"
+      partial : "#{planTitle.capitalize()} Plan (#{planIntervalPartial})"
 
     pricePartial = @getPricePartial planInterval
     @price = new KDCustomHTMLView
@@ -61,7 +64,7 @@ class PaymentForm extends JView
     isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     buttonPartial = if isUpgrade
-    then 'UPGRADE YOUR PLAN FOR'
+    then 'UPGRADE YOUR PLAN'
     else 'DOWNGRADE'
 
     @submitButton = new KDButtonView
@@ -71,16 +74,9 @@ class PaymentForm extends JView
       cssClass  : 'submit-btn'
       callback  : => @emit "PaymentSubmitted", @form.getFormData()
 
-    @totalPrice = new KDCustomHTMLView
-      cssClass  : 'total-price'
-      tagName   : 'cite'
-      partial   : pricePartial
-
-    @submitButton.addSubView @totalPrice  if isUpgrade
-
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
-      partial   : "(You will be billed $#{yearPrice} for 12 months.)"
+      partial   : "(You will be billed $#{yearPrice} for 12 months)"
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
@@ -149,13 +145,14 @@ class PaymentForm extends JView
       @existingCreditCardMessage
       @securityNote
       @totalPrice
+      @yearPriceMessage
     ].forEach (view) -> view.destroy()
 
     if isUpgrade
       @successMessage.updatePartial "
         Depending on the plan upgraded to, you now have access to more computing
         and storage resources.
-        <a href='http://learn.koding.com'>Learn more</a>
+        <a href='http://learn.koding.com/upgrade'>Learn more</a>
         about how to use your new resources.
       "
       @successMessage.show()
@@ -178,14 +175,15 @@ class PaymentForm extends JView
 
   pistachio: ->
     """
+    <h3>You have selected</h3>
     <div class='summary clearfix'>
       {{> @plan}}{{> @price}}
     </div>
     {{> @form}}
     {{> @existingCreditCardMessage}}
     {{> @successMessage}}
-    {{> @submitButton}}
     {{> @yearPriceMessage}}
+    {{> @submitButton}}
     {{> @securityNote}}
     """
 

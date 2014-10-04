@@ -284,6 +284,43 @@ class ComputeController extends KDController
         (@errorHandler call, 'reinit', machine) err
 
 
+  resize: (machine, resizeTo = 10)->
+
+    ComputeController.UI.askFor 'resize', machine, @_force, =>
+
+      options =
+        machineId : machine._id
+        provider  : machine.provider
+        resize    : resizeTo
+
+      KD.remote.api.ComputeProvider.update options, (err)=>
+
+        return  if KD.showError err
+
+        @eventListener.triggerState machine,
+          status      : Machine.State.Pending
+          percentage  : 0
+
+        machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+        call = @kloud.resize { machineId: machine._id }
+
+        .then (res)=>
+
+          @_force = no
+
+          log "resize res:", res
+          @_clearTrialCounts machine
+          @eventListener.addListener 'resize', machine._id
+
+        .timeout ComputeController.timeout
+
+        .catch (err)=>
+
+          (@errorHandler call, 'resize', machine) err
+
+
+
   build: (machine)->
 
     @eventListener.triggerState machine,
@@ -358,7 +395,7 @@ class ComputeController extends KDController
 
 
 
-  followUpcomingEvents: (machine)->
+  followUpcomingEvents: (machine, followOthers = no)->
 
     StateEventMap =
 
@@ -367,6 +404,7 @@ class ComputeController extends KDController
       Starting    : "start"
       Rebooting   : "restart"
       Terminating : "destroy"
+      Pending     : "resize"
 
     stateEvent = StateEventMap[machine.status.state]
 
@@ -374,7 +412,7 @@ class ComputeController extends KDController
 
       @eventListener.addListener stateEvent, machine._id
 
-      if stateEvent in ["build", "destroy"]
+      if stateEvent in ["build", "destroy"] and followOthers
         @eventListener.addListener "reinit", machine._id
 
       return yes
@@ -384,7 +422,7 @@ class ComputeController extends KDController
 
   info: (machine)->
 
-    if @followUpcomingEvents machine
+    if @followUpcomingEvents machine, yes
       return Promise.resolve()
 
     @eventListener.triggerState machine,
@@ -473,9 +511,13 @@ class ComputeController extends KDController
 
               else if machines.length is 0
 
-                stack = @stacks.first._id
+                stack   = @stacks.first._id
+                storage = plans[plan]?.storage or 3
 
-                @create { provider : "koding", stack }, (err, machine)=>
+                @create {
+                  provider : "koding",
+                  stack, storage
+                }, (err, machine)=>
 
                   @_inprogress = no
 

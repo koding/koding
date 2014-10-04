@@ -1,3 +1,5 @@
+{dash} = require 'bongo'
+
 module.exports = (options = {}, callback)->
   encoder = require 'htmlencode'
 
@@ -9,8 +11,6 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds  = null
-  customPartial    = null
-  campaignData     = null
   socialapidata    = null
   currentGroup     = null
   userMachines     = null
@@ -25,8 +25,6 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedCampaignData  = JSON.stringify campaignData, replacer
-    encodedCustomPartial = JSON.stringify customPartial, replacer
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
@@ -46,8 +44,6 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
-    <script>KD.customPartial=#{encodedCustomPartial}</script>
-    <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userMachines=#{userMachines}</script>
     <script>KD.userWorkspaces=#{userWorkspaces}</script>
@@ -80,60 +76,39 @@ module.exports = (options = {}, callback)->
     <!-- End Google Analytics -->
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
-
-    <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
     """
 
-  kallback = ->
-    {delegate} = options.client.connection
+  selector =
+    partialType : "HOME"
 
-    if 'function' is typeof delegate?.fetchSubscriptions
-      selector = {}
-      fetchOptions = targetOptions: selector :{ tags: $nin: ["nosync"] }
+  if options.isCustomPreview
+    selector.isPreview = yes
+  else
+    selector.isActive  = yes
 
-      delegate.fetchSubscriptions selector, fetchOptions, (err, subscriptions)->
-        if subscriptions and subscriptions.length
-          usePremiumBroker = yes
-        callback null, createHTML()
-    else
-      callback null, createHTML()
-
-  generateScript = ->
-    selector =
-      partialType : "HOME"
-
-    if options.isCustomPreview
-      selector.isPreview = yes
-    else
-      selector.isActive  = yes
-
-    # add custom partials into body
-    bongoModels.JCustomPartials.one selector, (err, partial)->
-      customPartial = partial.data  if not err and partial
-
+  queue = [
+    ->
+      socialApiCacheFn = require '../cache/socialapi'
+      socialApiCacheFn options, (err, data)->
+        socialapidata = data
+        queue.fin()
+    ->
       bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
         console.log err if err
+        if group
+          currentGroup = group
 
-        # add custom partial into referral campaign
-        bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
+        queue.fin()
+    ->
+      bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+        console.log err  if err
+        userWorkspaces = workspaces or []
+        queue.fin()
+    ->
+      bongoModels.JMachine.some$ client, {}, (err, machines) ->
+        console.log err  if err
+        userMachines = machines or []
+        queue.fin()
+  ]
 
-          if not err and campaignData_ and campaignData_.data
-            campaignData = campaignData_.data
-
-          if group
-            currentGroup = group
-
-          bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-            console.log err  if err
-            userWorkspaces = workspaces or []
-
-            bongoModels.JMachine.some$ client, {}, (err, machines) ->
-              console.log err  if err
-              userMachines = machines or []
-              kallback()
-
-
-  socialApiCacheFn = require '../cache/socialapi'
-  socialApiCacheFn options, (err, data)->
-    socialapidata = data
-    return generateScript()   # we can generate html here
+  dash queue, -> callback null, createHTML()
