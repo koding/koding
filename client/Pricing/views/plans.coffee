@@ -36,11 +36,11 @@ class PricingPlansView extends KDView
     description  : 'Best for tinkering with and learning new technologies'
     cssClass     : 'free'
     planFeatures : [
-      { partial: '1 GB RAM'     , cssClass: 'ram' }
-      { partial: '1 Core'       , cssClass: 'cpu' }
-      { partial: '3 GB Storage' , cssClass: 'storage' }
-      { partial: '1 VM total'   , cssClass: 'vm-count' }
-      { partial: '0 Always on'  , cssClass: 'always-on disabled' }
+      { partial: '1 VM'           , cssClass: 'vm-count' }
+      { partial: '1 Core'         , cssClass: 'cpu' }
+      { partial: '1GB RAM'        , cssClass: 'ram' }
+      { partial: '3GB Total Disk' , cssClass: 'storage' }
+      { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Hobbyist'
@@ -51,11 +51,11 @@ class PricingPlansView extends KDView
     description  : 'Best for expanded learning or for running a small blog/website'
     cssClass     : 'hobbyist'
     planFeatures : [
-      { partial: '1 GB RAM'     , cssClass: 'ram' }
-      { partial: '1 Core'       , cssClass: 'cpu' }
-      { partial: '3 GB Storage' , cssClass: 'storage' }
-      { partial: '1 VM total'   , cssClass: 'vm-count' }
-      { partial: '1 Always on'  , cssClass: 'always-on disabled' }
+      { partial: '1 VM '          , cssClass: 'vm-count' }
+      { partial: '1 Core'         , cssClass: 'cpu' }
+      { partial: '1GB RAM'        , cssClass: 'ram' }
+      { partial: '10GB Storage'   , cssClass: 'storage' }
+      { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Developer'
@@ -66,11 +66,11 @@ class PricingPlansView extends KDView
     description  : 'Great for developers who work with multiple environments'
     cssClass     : 'developer'
     planFeatures : [
-      { partial: '1 GB RAM'      , cssClass: 'ram' }
-      { partial: '1 Core'        , cssClass: 'cpu' }
-      { partial: '15 GB Storage' , cssClass: 'storage' }
-      { partial: '3 VMs total'   , cssClass: 'vm-count' }
-      { partial: '1 Always on'   , cssClass: 'always-on' }
+      { partial: '3 VMs '          , cssClass: 'vm-count' }
+      { partial: '1 Core each'     , cssClass: 'cpu' }
+      { partial: '1GB RAM each'    , cssClass: 'ram' }
+      { partial: '25GB Total Disk' , cssClass: 'storage' }
+      { partial: '1 Always on VM'  , cssClass: 'always-on' }
     ]
   ,
     title        : 'Professional'
@@ -81,11 +81,10 @@ class PricingPlansView extends KDView
     description  : 'Great for managing and delivering client work'
     cssClass     : 'professional'
     planFeatures : [
-      { partial: '1 GB RAM'      , cssClass: 'ram' }
-      { partial: '1 Core'        , cssClass: 'cpu' }
-      { partial: '25 GB Storage' , cssClass: 'storage' }
-      { partial: '5 VMs total'   , cssClass: 'vm-count' }
-      { partial: '2 Always on'   , cssClass: 'always-on' }
+      { partial: '5 VMs '          , cssClass: 'vm-count' }
+      { partial: '1 Core each'     , cssClass: 'cpu' }
+      { partial: '1GB RAM each'    , cssClass: 'ram' }
+      { partial: '50GB Total Disk' , cssClass: 'storage' }
+      { partial: '2 Always on VMs' , cssClass: 'always-on' }
     ]
   ]
-
