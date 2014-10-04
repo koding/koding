@@ -93,7 +93,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     app = appManager.getFrontApp()
 
-    if app.getOption('name') is 'Activity'
+    if app?.getOption('name') is 'Activity'
       pane    = app.getView().tabs.getActivePane()
       channel = pane.getData()
 
