@@ -121,15 +121,15 @@ body.home
     padding               0
     max-width             100%
 
-    &:before
-      content             ''
-      width               100%
-      height              500px
-      position            absolute
-      display             block
-      z-index             1
-      rounded             50%
-      top                 -500px
+    // &:before
+    //   content             ''
+    //   width               100%
+    //   height              500px
+    //   position            absolute
+    //   display             block
+    //   z-index             1
+    //   rounded             50%
+    //   top                 -500px
 
     > section > div
       max-width             1290px
@@ -150,8 +150,8 @@ body.home
       section.introduction
         bg                color, #1AAF5E
 
-      &:before
-        shadow            0 0 500px 160px #1AAF5E
+      // &:before
+      //   shadow            0 0 500px 160px #1AAF5E
 
     &.gray
 
@@ -160,21 +160,21 @@ body.home
         &:before
           opacity         .5
 
-      &:before
-        shadow            0 0 500px 160px #7E8C8D
+      // &:before
+      //   shadow            0 0 500px 160px #7E8C8D
 
     &.blue
 
       section.introduction
         bg                color, #2E97DE
 
-      &:before
-        shadow            0 0 500px 160px #2E97DE
+      // &:before
+      //   shadow            0 0 500px 160px #2E97DE
 
     &.dark-blue
 
-      &:before
-        shadow            0 0 500px 160px #2C3E51
+      // &:before
+      //   shadow            0 0 500px 160px #2C3E51
 
       section.introduction
         bg                color, #2C3E51
@@ -188,21 +188,18 @@ body.home
           &:hover
             opacity         1
 
-      section.introduction > div:after
-        shadow            0 0 400px rgba(255, 255, 179, .5)
-
     &.orange
 
-      &:before
-        shadow            0 0 500px 160px #F59D00
+      // &:before
+      //   shadow            0 0 500px 160px #F59D00
 
       section.introduction
         bg                color, #F59D00
 
     &.red
 
-      &:before
-        shadow            0 0 500px 160px #EA4B36
+      // &:before
+      //   shadow            0 0 500px 160px #EA4B36
 
       section.introduction
         bg                color, #EA4B36
@@ -212,12 +209,13 @@ body.home
       opacity           0
       content           ''
       abs               0 0 0px 50%
-      margin-left       -369px
-      size              738px 400px
-      rounded           50%
-      shadow            0 0 400px rgb(255, 255, 179)
+      vendor            transform, translateX(-50%)
+      size              170%, 0
+      padding-bottom    50%
+      background        radial-gradient(ellipse at bottom, rgba(255,253,112,0.65) 0%,rgba(255,253,112,0) 65%);
       z-index           0
       vendor            transition, opacity 2s 2s ease
+
     section.introduction.shine > div:after
       opacity           1
 
@@ -492,75 +490,232 @@ body.home
       display             block
       r-sprite            home 'used-by-logos'
 
+// Smartphones
+
+@media only screen and (min-width : 320px) and (max-width : 568px)
+  #main-header
+    height                61px
+    line-height           61px
+    top                   0
+    left                  0
+    vendor                transform, none
+    padding               0
+    text-align            center
+    vendor                transition, top .3s ease
+    shadow                0 0px 10px rgba(0,0,0,.2)
+
+    .hamburger-menu
+      display             block
+      abs                 0px 0 0 0px
+      size                61px, 61px
+      background          none
+      border              none
+      shadow              none
+      text-align          center
+      line-height         61px
+      padding             0
+      vendor              transition, background .3s .3s ease
+
+      .icon
+        width             14px
+        height            3px
+        background        #fff
+        display           inline-block
+        position          relative
+        vertical-align    middle
+        opacity           .3
+
+        &:after
+        &:before
+          content         ''
+          display         block
+          width           100%
+          height          3px
+          background      inherit
+          position        absolute
+          left            0
+
+        &:before
+          top             -5px
+
+        &:after
+          top             5px
+
+      &.active
+        background        #232323
+        vendor            pointer-events, none
+
+
+    #koding-logo
+      display             inline-block
+      float               none
+      margin              0
+      vertical-align      middle
+
+    nav
+      display             none
+
+  .mobile-menu
+    &.active
+      padding-top         10px
+      height              130px
+
+    &.active ~ #main-header
+      top                 130px
+
+  body.home
+    .content-page.home
+      > section
+        > div
+          padding-right   20px
+          padding-left    20px
+
+      section.introduction
+        padding-top       102px
+        height            737px
+
+        > div:after
+          size            200%, 0
+          padding-bottom  115%
+
+        article
+          h1
+            font-size     18px
+            font-weight   700
+            line-height   24px
+            margin-bottom 18px
+
+          h2
+            font-size     14px
+            line-height   19px
+
+      .login-form.register
+        padding           13px 13px 7px 13px
+        position          relative
+
+        section > div
+          width           100%
+          float           none
+          padding         0
+          margin-bottom   6px
+
+          &.submit:after
+            abs           63px 0 0 0px
+            width         100%
+            padding       0
+            border        none
+
+        a.octo
+          abs             198px 0 0 0px
+          background      rgba(0,0,0,.3)
+          width           100% !important
+          height          40px !important
+          bg              image, none !important
+          margin          0
+          padding         0
+          opacity         1
+          z-index         10
+          rounded         3px
+
+          .title
+            line-height   40px
+            display       inline-block
+            visibility    initial
+            font-size     12px
+            font-weight   600
+            color         #fff
+
+          .title:before
+            content       ''
+            display       inline-block
+            r-sprite      home 'octo-home-white'
+            vendor        transform, scale(0.7)
+            vertical-align middle
+            margin-top    -2px
+            margin-right  6px
+
+      section.screenshots
+        height            178px
+        top               559px
+
+        > div
+          width           100%
+          height          auto
+
+          figure
+            opacity       0
+            height        auto
+
+            &:after
+              left        42px
+
+            &.current
+              opacity     1
+              vendor      transform, none
+              padding     0 34px
+              borderBox()
+
+            img
+              height      auto
+
+      section.used-at
+        > div:after
+          display         none
+
+        h3
+          width           100%
+          position        static
+          margin          42px 0 0
+          text-align      center
+          font-size       18px
+          font-weight     400
+          letter-spacing  normal
+
+        figure
+          display         none
+
+        nav.slideshow-nav
+          abs             -22px 0 0 0
+          width           auto
+          height          22px
+          margin          0
+          padding         0 10px 0 7px
+          vendor          transform, translateX(-50%)
+          background      rgba(0,0,0,.2)
+          rounded         10px 10px 0 0
+
+          .nav-dot
+            shadow        none
+            background    rgba(255, 255, 255, .4)
+            margin-left   3px
+            vertical-align bottom
+
+            &.active
+              background  #fff
+
+  footer.main-footer
+    .footer-block
+      width             100%
+      float             none
+      text-align        center
+      margin            0
+
+      &~.footer-block
+        margin-top      18px
+        border-top      1px solid rgba(255,255,255,.05)
+        position        relative
+        text-align      center
+
+        a
+          display       inline-block
+          margin        45px 6px 0
+
+          &:not(.social)
+            abs         0px 0 0 0px
+            opacity     .6
+            width       100%
+            text-align  center
+            margin      0
 
 
 
-//TEMP
-// @media only screen and (min-width : 320px) and (max-width : 568px)
-//   body.home
-//     section.introduction
-//       padding-bottom        102px
-
-//       article
-//         padding-top         98px
-
-//         h2
-//           font-size         26px
-
-//         p
-//           font-size         18px
-//           line-height       24px
-
-//         .kdbutton
-//           width             100%
-//           display           block
-//           float             none
-//           clear             both
-//           margin            12px 0 16px
-
-//     section.screenshots
-//       display               none
-
-//     section.features
-//       > div
-//         margin-top          82px
-
-//       .feature
-//         display             block
-//         width               auto
-//         padding             0 35px 44px 61px
-
-//         h5
-//           font-size         18px
-
-//         i
-//           vendor            transform, scale(.6)
-//           vendor            transform-origin, 0px 0px
-
-//     section.testimonials
-
-//       > div
-//         .general-title
-//           font-size           26px
-
-//         .general-subtitle
-//           font-size           18px
-//           line-height         24px
-
-//       article
-//         display               block
-//         width                 auto
-//         padding               2px 0 2px 50px
-
-//         p
-//           font-size           14px
-//           line-height         20px
-
-//         &:before
-//           vendor              transform, scale(.6)
-//           vendor              transform-origin, 0px 0px
-
-//     section.check-out
-//       h3
-//         font-size             18px
-//         line-height           24px
