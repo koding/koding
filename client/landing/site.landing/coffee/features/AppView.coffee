@@ -132,7 +132,7 @@ module.exports = class FeaturesView extends KDView
         text               : "Create multiple cursors and selections in order to make lots of similar edits at once."
         iconClass          : "ide-multiplecursor"
       'Code folding'       :
-        text               : "Easily fold away fragments of code taht you don't need to look at."
+        text               : "Easily fold away fragments of code that you don't need to look at."
         iconClass          : "ide-fold"
 
     'Terminal'             :
