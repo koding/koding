@@ -180,6 +180,13 @@ class MachineSettingsPopup extends KDModalViewWithForms
         computeController.reinit @machine
         @destroy()
 
+    @buttonContainer.addSubView @resizeButton = new KDButtonView
+      style    : 'solid compact green resize hidden'
+      title    : 'Resize VM'
+      callback : =>
+        computeController.resize @machine, 10
+        @destroy()
+
     @buttonContainer.addSubView @terminateButton = new KDButtonView
       style    : 'solid compact red'
       title    : 'Terminate VM'
@@ -192,5 +199,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
       position : top : 20
 
     computeController.fetchUserPlan (plan)=>
-      @terminateButton.hide()  if plan in ['free', 'hobbyist']
 
+      if plan in ['free', 'hobbyist']
+        @terminateButton.hide()
+
+        if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
+          @resizeButton.show()

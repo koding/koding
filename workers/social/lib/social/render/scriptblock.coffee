@@ -11,8 +11,6 @@ module.exports = (options = {}, callback)->
   {argv} = require 'optimist'
 
   prefetchedFeeds  = null
-  customPartial    = null
-  campaignData     = null
   socialapidata    = null
   currentGroup     = null
   userMachines     = null
@@ -27,8 +25,6 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
-    encodedCampaignData  = JSON.stringify campaignData, replacer
-    encodedCustomPartial = JSON.stringify customPartial, replacer
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
@@ -48,8 +44,6 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
-    <script>KD.customPartial=#{encodedCustomPartial}</script>
-    <script>KD.campaignData=#{encodedCampaignData}</script>
     <script>KD.socialApiData=#{encodedSocialApiData}</script>
     <script>KD.userMachines=#{userMachines}</script>
     <script>KD.userWorkspaces=#{userWorkspaces}</script>
@@ -84,48 +78,37 @@ module.exports = (options = {}, callback)->
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
-  generateScript = ->
-    selector =
-      partialType : "HOME"
+  selector =
+    partialType : "HOME"
 
-    if options.isCustomPreview
-      selector.isPreview = yes
-    else
-      selector.isActive  = yes
+  if options.isCustomPreview
+    selector.isPreview = yes
+  else
+    selector.isActive  = yes
 
-    queue = [
-      ->
-        bongoModels.JCustomPartials.one selector, (err, partial)->
-          customPartial = partial.data  if not err and partial
-          queue.fin()
-      ->
-        bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
-          console.log err if err
+  queue = [
+    ->
+      socialApiCacheFn = require '../cache/socialapi'
+      socialApiCacheFn options, (err, data)->
+        socialapidata = data
+        queue.fin()
+    ->
+      bongoModels.JGroup.one {slug : slug or 'koding'}, (err, group) ->
+        console.log err if err
+        if group
+          currentGroup = group
 
-          bongoModels.JReferralCampaign.one isActive: yes, (err, campaignData_)->
-            if not err and campaignData_ and campaignData_.data
-              campaignData = campaignData_.data
+        queue.fin()
+    ->
+      bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
+        console.log err  if err
+        userWorkspaces = workspaces or []
+        queue.fin()
+    ->
+      bongoModels.JMachine.some$ client, {}, (err, machines) ->
+        console.log err  if err
+        userMachines = machines or []
+        queue.fin()
+  ]
 
-            if group
-              currentGroup = group
-
-            queue.fin()
-      ->
-        bongoModels.JWorkspace.fetch client, {}, (err, workspaces) ->
-          console.log err  if err
-          userWorkspaces = workspaces or []
-          queue.fin()
-      ->
-        bongoModels.JMachine.some$ client, {}, (err, machines) ->
-          console.log err  if err
-          userMachines = machines or []
-          queue.fin()
-    ]
-
-    dash queue, -> callback null, createHTML()
-
-
-  socialApiCacheFn = require '../cache/socialapi'
-  socialApiCacheFn options, (err, data)->
-    socialapidata = data
-    return generateScript()   # we can generate html here
+  dash queue, -> callback null, createHTML()

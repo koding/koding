@@ -156,7 +156,8 @@ module.exports.create = (KONFIG, environment)->
   events {
     worker_connections  1024;
     multi_accept on;
-    use epoll;
+    # epoll is only valid for linux environments
+    use #{if environment is 'dev' then 'kqueue' else 'epoll'};
   }
 
   # start http
@@ -209,7 +210,6 @@ module.exports.create = (KONFIG, environment)->
       return 301 https://$host$request_uri;
     }
 
-
     # start server
     server {
 
@@ -255,6 +255,13 @@ module.exports.create = (KONFIG, environment)->
       #{createUserMachineLocation("userproxy")}
     # close server
     }
+
+    # redirect www to non-www
+    server {
+       server_name "~^www.(.*)$" ;
+       return 301 $scheme://$1$request_uri ;
+    }
+
   # close http
   }
   """
