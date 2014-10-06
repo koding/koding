@@ -227,9 +227,15 @@ class IDE.MachineStateModal extends IDE.ModalView
     @errorMessage = new KDCustomHTMLView
       cssClass    : 'error-message'
       partial     : """
-        <p>There was an error with your VM. Please try again.</p>
-        <p>Contact support@koding.com for further assistance.</p>
+        <p>There was an error when initializing your VM.</p>
+        <span>Please try again or <span
+        class="contact-support">contact support</span> for further
+        assistance.</span>
       """
+      click: (event) =>
+        if 'contact-support' in event.target.classList
+          KD.utils.stopDOMEvent event
+          new HelpSupportModal
 
     @container.addSubView @errorMessage
     @hasError = null
