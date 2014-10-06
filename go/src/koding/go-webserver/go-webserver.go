@@ -73,8 +73,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(">>>>>> registered")
-
 	if account.Type != "registered" {
 		fmt.Println(">>>>>>> account not registered")
 		output := loggedOut()
