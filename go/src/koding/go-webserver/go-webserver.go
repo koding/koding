@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	flagConfig    = flag.String("c", "", "Configuration profile from file")
-	flagTemplates = flag.String("t", "", "Change template directory")
-	conf          *config.Config
+	flagConfig      = flag.String("c", "", "Configuration profile from file")
+	flagTemplates   = flag.String("t", "", "Change template directory")
+	conf            *config.Config
+	kodingGroupJson []byte
 )
 
 func initialize() {
@@ -31,6 +32,13 @@ func initialize() {
 
 	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
+
+	kodingGroup, err := modelhelper.GetGroup("koding")
+	if err != nil {
+		panic(err)
+	}
+
+	kodingGroupJson, _ = json.Marshal(kodingGroup)
 }
 
 func main() {
@@ -78,22 +86,27 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	machinesJson, _ := json.Marshal(machines)
 	workspacesJson, _ := json.Marshal(workspaces)
 
-	index := buildIndex(accountJson, machinesJson, workspacesJson)
+	index := buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson)
 
 	fmt.Fprintf(w, index)
 	fmt.Println(time.Since(start))
 }
 
-func buildIndex(accountJson, machinesJson, workspacesJson []byte) string {
+func buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson []byte) string {
+	runtimeJson, err := json.Marshal(conf.Client.RuntimeOptions)
+	if err != nil {
+		fmt.Println("<<<<<", err)
+	}
+
 	indexFilePath := *flagTemplates + "index.html.mustache"
 	output := mustache.RenderFile(indexFilePath, map[string]interface{}{
-		"KD":               "{}",
+		"KD":               string(runtimeJson),
 		"isLoggedInOnLoad": true,
 		"usePremiumBroker": false,
 		"userAccount":      string(accountJson),
 		"userMachines":     string(machinesJson),
 		"userWorkspaces":   string(workspacesJson),
-		"currentGroup":     "{}",
+		"currentGroup":     string(kodingGroupJson),
 		"version":          conf.Version,
 	})
 
