@@ -17,7 +17,7 @@ func GetSession(token string) (*models.Session, error) {
 
 	err := Mongo.Run("jSessions", query)
 	if err != nil {
-		return nil, fmt.Errorf("sessionID '%s' is not validated", token)
+		return nil, fmt.Errorf("sessionID '%s' is not validated; err: %s", token, err)
 	}
 
 	return session, nil
