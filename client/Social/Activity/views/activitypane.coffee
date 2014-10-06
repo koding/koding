@@ -62,7 +62,7 @@ class ActivityPane extends MessagePane
         if @searchResults.currentPage?
           page = @searchResults.currentPage += 1
 
-          @search @currentSearch, { page }
+          @search @currentSearch, { page, dontClear: yes }
 
   getPaneData: ->
     [
@@ -177,13 +177,15 @@ class ActivityPane extends MessagePane
     for contentPane in [@mostLiked, @mostRecent, @searchResults]
       contentPane.removeMessage message
 
-  search: (text, options) ->
+  search: (text, options = {}) ->
     @searchResults.startSearch()
+
+    @searchResults.clear()  unless options.dontClear
 
     KD.singletons.search
       .searchChannel text, @getData().id, options
       .then (results) =>
-        @searchResults.setContent results
+        @searchResults.appendContent results
       .catch KD.showError
 
 
