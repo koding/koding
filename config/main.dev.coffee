@@ -183,6 +183,14 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
+    gowebserver         :
+      group             : "webserver"
+      ports             :
+         incoming       : 6500
+      supervisord       :
+        command         : "#{GOBIN}/go-webserver -c #{configName}"
+      nginx             :
+        locations       : ["~^/IDE/.*"]
     kontrol             :
       group             : "environment"
       ports             :
