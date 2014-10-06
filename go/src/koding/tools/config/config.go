@@ -38,9 +38,104 @@ type Config struct {
 	Client          struct {
 		StaticFilesBaseUrl string
 		RuntimeOptions     struct {
-			NewKontrol struct {
-				Url string
-			}
+			Kites struct {
+				DisableWebSocketByDefault bool `json:"disableWebSocketByDefault"`
+				Stack                     struct {
+					Force    bool `json:"force"`
+					NewKites bool `json:"newKites"`
+				} `json:"stack"`
+				Kontrol struct {
+					Username string `json:"username"`
+				} `json:"kontrol"`
+				Os struct {
+					Version string `json:"version"`
+				} `json:"os"`
+				Terminal struct {
+					Version string `json:"version"`
+				} `json:"terminal"`
+				Klient struct {
+					Version string `json:"version"`
+				} `json:"klient"`
+				Kloud struct {
+					Version string `json:"version"`
+				} `json:"kloud"`
+			} `json:"kites"`
+			Algolia struct {
+				AppId       string `json:"appId"`
+				ApiKey      string `json:"apiKey"`
+				IndexSuffix string `json:"indexSuffix"`
+			} `json:"algolia"`
+			LogToExternal   bool   `json:"logToExternal"`
+			SuppressLogs    bool   `json:"suppressLogs"`
+			LogToInternal   bool   `json:"logToInternal"`
+			AuthExchange    string `json:"authExchange"`
+			Environment     string `json:"environment"`
+			Version         string `json:"version"`
+			ResourceName    string `json:"resourceName"`
+			UserSitesDomain string `json:"userSitesDomain"`
+			LogResourceName string `json:"logResourceName"`
+			SocialApiUri    string `json:"socialApiUri"`
+			ApiUri          string `json:"apiUri"`
+			MainUri         string `json:"mainUri"`
+			SourceMapsUri   string `json:"sourceMapsUri"`
+			Broker          struct {
+				Uri string `json:"uri"`
+			} `json:"broker"`
+			AppsUri            string `json:"appsUri"`
+			UploadsUri         string `json:"uploadsUri"`
+			UploadsUriForGroup string `json:"uploadsUriForGroup"`
+			FileFetchTimeout   int    `json:"fileFetchTimeout"`
+			UserIdleMs         int    `json:"userIdleMs"`
+			Embedly            struct {
+				ApiKey string `json:"apiKey"`
+			} `json:"embedly"`
+			Github struct {
+				ClientId string `json:"clientId"`
+			} `json:"github"`
+			Newkontrol struct {
+				Url string `json:"url"`
+			} `json:"newkontrol"`
+			SessionCookie struct {
+				MaxAge int  `json:"maxAge"`
+				Secure bool `json:"secure"`
+			} `json:"sessionCookie"`
+			Troubleshoot struct {
+				IdleTime    int    `json:"idleTime"`
+				ExternalUrl string `json:"externalUrl"`
+			} `json:"troubleshoot"`
+			Recaptcha string `json:"recaptcha"`
+			Stripe    struct {
+				Token string `json:"token"`
+			} `json:"stripe"`
+			ExternalProfiles struct {
+				Google struct {
+					Nicename string `json:"nicename"`
+				} `json:"google"`
+				Linkedin struct {
+					Nicename string `json:"nicename"`
+				} `json:"linkedin"`
+				Twitter struct {
+					Nicename string `json:"nicename"`
+				} `json:"twitter"`
+				Odesk struct {
+					Nicename    string `json:"nicename"`
+					UrlLocation string `json:"urlLocation"`
+				} `json:"odesk"`
+				Facebook struct {
+					Nicename    string `json:"nicename"`
+					UrlLocation string `json:"urlLocation"`
+				} `json:"facebook"`
+				Github struct {
+					Nicename    string `json:"nicename"`
+					UrlLocation string `json:"urlLocation"`
+				} `json:"github"`
+			} `json:"externalProfiles"`
+			EntryPoint struct {
+				Slug string `json:"slug"`
+				Type string `json:"type"`
+			} `json:"entryPoint"`
+			Roles       []string      `json:"roles"`
+			Permissions []interface{} `json:"permissions"`
 		}
 	}
 	Mongo          string
