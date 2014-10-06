@@ -53,13 +53,16 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
+		fmt.Println(">>>>>>> no cookie")
+		output := loggedOut()
+
+		fmt.Fprintf(w, output)
+		fmt.Println(time.Since(start))
 		return
 	}
 
 	session, err := modelhelper.GetSession(cookie.Value)
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
 		return
 	}
 
@@ -67,6 +70,18 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
 		fmt.Println(">>>>>>>>", err)
+		return
+	}
+
+	fmt.Println(">>>>>> registered")
+
+	if account.Type != "registered" {
+		fmt.Println(">>>>>>> account not registered")
+		output := loggedOut()
+
+		fmt.Fprintf(w, output)
+		fmt.Println(time.Since(start))
+
 		return
 	}
 
@@ -90,6 +105,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, index)
 	fmt.Println(time.Since(start))
+}
+
+func loggedOut() string {
+	indexFilePath := *flagTemplates + "loggedout.html.mustache"
+	output := mustache.RenderFile(indexFilePath, map[string]interface{}{
+		"version": conf.Version,
+	})
+
+	return output
 }
 
 func buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson []byte) string {
