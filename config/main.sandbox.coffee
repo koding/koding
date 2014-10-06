@@ -185,7 +185,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : 6500
       supervisord       :
-        command         : "#{GOBIN}/go-webserver -c #{configName}"
+        command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
         locations       : ["~^/IDE/.*"]
     kontrol             :
