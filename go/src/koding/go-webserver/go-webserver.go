@@ -109,7 +109,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	index := buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson)
 
 	fmt.Fprintf(w, index)
-	fmt.Println(time.Since(start))
+	fmt.Println(">>>>>>>>> Request to go-webserver took", time.Since(start))
 }
 
 func loggedOut() string {
