@@ -15,7 +15,7 @@ func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
 	workspaces := []*models.Workspace{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"owner": accountId}).All(&workspaces)
+		return c.Find(bson.M{"originId": accountId}).All(&workspaces)
 	}
 
 	err := Mongo.Run(WorkspaceColl, query)
