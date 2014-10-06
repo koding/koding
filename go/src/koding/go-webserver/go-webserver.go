@@ -63,6 +63,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := modelhelper.GetSession(cookie.Value)
 	if err != nil {
+		// TODO: clean up session
+		fmt.Println(">>>>>>> no session")
+		output := loggedOut()
+
+		fmt.Fprintf(w, output)
+		fmt.Println(time.Since(start))
+
 		return
 	}
 
