@@ -1,7 +1,7 @@
 package modelhelper
 
 import (
-	"koding/db/mongodb/modelhelper"
+	"koding/db/models"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -13,19 +13,24 @@ type Bongo struct {
 }
 
 type MachineContainer struct {
-	Bongo Bongo    `json:"bongo_"`
-	Data  *Machine `json:"data"`
-	*Machine
+	Bongo Bongo           `json:"bongo_"`
+	Data  *models.Machine `json:"data"`
+	*models.Machine
 }
 
+var (
+	MachineColl            = "jMachines"
+	MachineConstructorName = "JMachine"
+)
+
 func GetMachines(username string) ([]*MachineContainer, error) {
-	machines := []*Machine{}
+	machines := []*models.Machine{}
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"credential": username}).All(&machines)
 	}
 
-	err := modelhelper.Mongo.Run("jMachines", query)
+	err := Mongo.Run(MachineColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +39,7 @@ func GetMachines(username string) ([]*MachineContainer, error) {
 
 	for _, machine := range machines {
 		bongo := Bongo{
-			ConstructorName: "JMachine",
+			ConstructorName: MachineConstructorName,
 			InstanceId:      "1", // TODO: what should go here?
 		}
 		container := &MachineContainer{bongo, machine, machine}
