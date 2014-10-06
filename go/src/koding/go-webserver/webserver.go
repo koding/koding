@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
@@ -17,6 +16,7 @@ import (
 var (
 	flagConfig    = flag.String("c", "", "Configuration profile from file")
 	flagTemplates = flag.String("t", "", "Change template directory")
+	conf          *config.Config
 )
 
 func initialize() {
@@ -29,7 +29,7 @@ func initialize() {
 		log.Fatal("Please define template folder with -t")
 	}
 
-	conf := config.MustConfig(*flagConfig)
+	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 }
 
@@ -74,17 +74,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	index := buildIndex(account, machines, workspaces)
+	accountJson, _ := json.Marshal(account)
+	machinesJson, _ := json.Marshal(machines)
+	workspacesJson, _ := json.Marshal(workspaces)
+
+	index := buildIndex(accountJson, machinesJson, workspacesJson)
 
 	fmt.Fprintf(w, index)
 	fmt.Println(time.Since(start))
 }
 
-func buildIndex(account *models.Account, machines []*modelhelper.MachineContainer, workspaces []*models.Workspace) string {
-	accountJson, _ := json.Marshal(account)
-	machinesJson, _ := json.Marshal(machines)
-	workspacesJson, _ := json.Marshal(workspaces)
-
+func buildIndex(accountJson, machinesJson, workspacesJson []byte) string {
 	indexFilePath := *flagTemplates + "index.html.mustache"
 	output := mustache.RenderFile(indexFilePath, map[string]interface{}{
 		"KD":               "{}",
@@ -94,7 +94,7 @@ func buildIndex(account *models.Account, machines []*modelhelper.MachineContaine
 		"userMachines":     string(machinesJson),
 		"userWorkspaces":   string(workspacesJson),
 		"currentGroup":     "{}",
-		"version":          1,
+		"version":          conf.Version,
 	})
 
 	return output
