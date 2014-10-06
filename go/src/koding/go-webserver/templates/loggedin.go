@@ -21,6 +21,7 @@ var LoggedInHome = `
   <body class='logged-in'>
   <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
+  <script>var KD={}</script>
   <script>var KD={"config":%s}</script>
 
   <script>KD.isLoggedInOnLoad=%v;</script>

@@ -107,6 +107,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		machines = []*modelhelper.MachineContainer{}
 	}
 
+	// TODO: this is very ugly hack to make sure there's
+	// machines when user first registers; without it the
+	// client is stuck in a very weird state.
+	if len(machines) == 0 {
+		time.Sleep(50 * time.Millisecond)
+
+		machines, err = modelhelper.GetMachines(username)
+		if err != nil {
+			fmt.Println("Error fetching machines for 2nd time", err)
+		}
+
+		if len(machines) == 0 {
+			fmt.Println("Length of jMachines is 0 after 2nd attempt")
+		}
+	}
+
 	machinesJson, err := json.Marshal(machines)
 	if err != nil {
 		fmt.Println("Error marshalling account", err)
