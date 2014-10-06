@@ -13,16 +13,19 @@ var LoggedInHome = `
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
     <link rel="shortcut icon" href="/a/images/favicon.ico" />
     <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-    <link rel="stylesheet" href="/a/css/kd.css?{{version}}" />
-    <link rel="stylesheet" href="/a/css/koding.css?{{version}}" />
+
+    <link rel="stylesheet" href="/a/css/kd.css?%s" />
+    <link rel="stylesheet" href="/a/css/koding.css?%s" />
   </head>
 
   <body class='logged-in'>
   <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
   <script>var KD={"config":%s}</script>
+
   <script>KD.isLoggedInOnLoad=%v;</script>
   <script>KD.config.usePremiumBroker=%v;</script>
+
   <script>KD.userAccount=%s;</script>
   <script>KD.userMachines=%s;</script>
   <script>KD.userWorkspaces=%s;</script>
