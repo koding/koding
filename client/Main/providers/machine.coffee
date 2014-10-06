@@ -22,7 +22,12 @@ class Machine extends KDObject
 
     { machine, stack } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
-      error 'Data should be a JMachine instance'
+
+      # TODO: Idk what's happening here, but machine here is a view object
+      # not JMachine object. This happens only when fetching vms if payload
+      # doens't contain the machines :SA
+      machine = machine.getData()
+
       # throw new Error 'Data should be a JMachine instance'
 
     delete options.machine
