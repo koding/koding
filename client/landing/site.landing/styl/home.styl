@@ -22,7 +22,7 @@ body.home
     padding               8px
     rounded               8px
     bg                    color rgba(0,0,0,.1)
-    z-index               1
+    z-index               10
     rel()
 
     &.noanim .login-input-view .placeholder-helper
@@ -122,16 +122,6 @@ body.home
     padding               0
     max-width             100%
 
-    // &:before
-    //   content             ''
-    //   width               100%
-    //   height              500px
-    //   position            absolute
-    //   display             block
-    //   z-index             1
-    //   rounded             50%
-    //   top                 -500px
-
     > section > div
       max-width             1290px
       padding               0px 45px
@@ -147,36 +137,20 @@ body.home
         vendor            transition, background-color .5s ease
 
     &.green
-
       section.introduction
         bg                color, #1AAF5E
 
-      // &:before
-      //   shadow            0 0 500px 160px #1AAF5E
-
     &.gray
-
       section.introduction
         bg                color, #7E8C8D
         &:before
           opacity         .5
 
-      // &:before
-      //   shadow            0 0 500px 160px #7E8C8D
-
     &.blue
-
       section.introduction
         bg                color, #2E97DE
 
-      // &:before
-      //   shadow            0 0 500px 160px #2E97DE
-
     &.dark-blue
-
-      // &:before
-      //   shadow            0 0 500px 160px #2C3E51
-
       section.introduction
         bg                color, #2C3E51
         div.submit:after
@@ -190,18 +164,10 @@ body.home
             opacity         1
 
     &.orange
-
-      // &:before
-      //   shadow            0 0 500px 160px #F59D00
-
       section.introduction
         bg                color, #F59D00
 
     &.red
-
-      // &:before
-      //   shadow            0 0 500px 160px #EA4B36
-
       section.introduction
         bg                color, #EA4B36
 
@@ -243,7 +209,6 @@ body.home
       z-index             2
 
     article
-      // transform-style     preserve-3d
       font-size           22px
       line-height         32px
       font-weight         400
@@ -257,7 +222,6 @@ body.home
         text-shadow       0 1px rgba(0, 0, 0, .4)
 
       h1
-        // vendor            transition, transform .1s ease
         vendor            transition, opacity .2s ease
         font-size         42px
         font-weight       bold
@@ -266,45 +230,7 @@ body.home
         letter-spacing    .02em
         opacity           1
         &.flip
-          // vendor          transform, rotateX(90deg)
           opacity         0
-
-      // cloudW = 350/2.8
-      // cloudH = 120/2.8
-      // cloudR = 100/2.8
-      // .cloud
-      //   size              (cloudW)px (cloudH)px
-      //   background        #f2f9fe
-      //   background        linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -webkit-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -moz-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -ms-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -o-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   rounded           (cloudR)px
-      //   opacity           .5
-      //   top               0
-      //   right             50%
-      //   margin-right      -280px
-      //   abs()
-
-      // .cloud:after
-      // .cloud:before
-      //   content     ''
-      //   background  #f2f9fe
-      //   z-index     -1
-      //   abs()
-
-      // .cloud:after
-      //   size        (cloudW/3.5)px (cloudH/1.2)px
-      //   top         -(cloudH/2.4)px
-      //   left        (cloudW/7)px
-      //   rounded     (cloudR)px
-
-      // .cloud:before
-      //   size        (cloudW/2)px (cloudH*1.5)px
-      //   top         -(cloudH/1.25)px
-      //   right       (cloudW/7)px
-      //   rounded     (cloudR*2)px
 
       h2
         font-family       sloganFont
@@ -328,29 +254,21 @@ body.home
       left                50%
       z-index             100
       abs()
+
       .icon
         display           block
+
       &.next
         margin-left       500px
+
         .icon
           r-sprite        home 'slideshow-next'
-        // &:active
-        //   margin-left     502px
 
-        // chrome has a rendering bug
-        // it removes the shadow behind, let's remove it until it is fixed
-        // - SY
-        // &:hover .icon
-        //   r-sprite        home 'slideshow-next-light'
       &.prev
         margin-left       -585px
+
         .icon
           r-sprite        home 'slideshow-prev'
-        // &:active
-        //   margin-left     -587px
-        // see above^^
-        // &:hover .icon
-        //   r-sprite        home 'slideshow-prev-light'
 
     > div
       height              483px
@@ -416,6 +334,7 @@ body.home
         display           block
         z-index           3
         abs()
+
         &:after
           size            5px 5px
           abs             8px 0 0 13px
@@ -462,10 +381,13 @@ body.home
         shadow            inset 0 1px 0 rgba(0, 0, 0, .5)
         display           inline-block
         margin-left       5px
+
         &:first-child
           margin-left     0
+
         &.active
           bg              color #aaa
+
         span.title
           hidden()
 
@@ -491,9 +413,83 @@ body.home
       display             block
       r-sprite            home 'used-by-logos'
 
+// Smartphones and tablets [Commons]
+@media only screen and (min-width : 320px) and (max-width : 1024px)
+  body.home
+    .content-page.home
+      section.screenshots
+        height            178px
+        top               559px
+
+        > div
+          width           100%
+          height          auto
+
+          figure
+            opacity       0
+            height        auto
+
+            &:after
+              left        42px
+
+            &.current
+              opacity     1
+              vendor      transform, none
+              padding     0 34px
+              borderBox()
+
+            img
+              height      auto
+
+      section.used-at
+        nav.slideshow-nav
+          abs             -22px 0 0 0
+          width           auto
+          height          22px
+          margin          0
+          padding         0 10px 0 7px
+          vendor          transform, translateX(-50%)
+          background      rgba(0,0,0,.2)
+          rounded         10px 10px 0 0
+
+          .nav-dot
+            shadow        none
+            background    rgba(255, 255, 255, .4)
+            margin-left   3px
+            vertical-align bottom
+
+            &.active
+              background  #fff
+
+
+  footer.main-footer
+    .footer-block
+      width             100%
+      float             none
+      text-align        center
+      margin            0
+
+      &~.footer-block
+        margin-top      18px
+        border-top      1px solid rgba(255,255,255,.05)
+        position        relative
+        text-align      center
+
+        a
+          display       inline-block
+          margin        45px 6px 0
+
+          &:not(.social)
+            abs         0px 0 0 0px
+            opacity     .6
+            width       100%
+            text-align  center
+            margin      0
+
+
 // Smartphones
 
-@media only screen and (min-width : 320px) and (max-width : 568px)
+@media only screen and (min-width : 320px) and (max-width : 767px)
   #main-header
     height                61px
     line-height           61px
@@ -635,30 +631,6 @@ body.home
             margin-top    -2px
             margin-right  6px
 
-      section.screenshots
-        height            178px
-        top               559px
-
-        > div
-          width           100%
-          height          auto
-
-          figure
-            opacity       0
-            height        auto
-
-            &:after
-              left        42px
-
-            &.current
-              opacity     1
-              vendor      transform, none
-              padding     0 34px
-              borderBox()
-
-            img
-              height      auto
-
       section.used-at
         > div:after
           display         none
@@ -675,48 +647,46 @@ body.home
         figure
           display         none
 
-        nav.slideshow-nav
-          abs             -22px 0 0 0
-          width           auto
-          height          22px
-          margin          0
-          padding         0 10px 0 7px
-          vendor          transform, translateX(-50%)
-          background      rgba(0,0,0,.2)
-          rounded         10px 10px 0 0
+// Tablets
 
-          .nav-dot
-            shadow        none
-            background    rgba(255, 255, 255, .4)
-            margin-left   3px
-            vertical-align bottom
+@media only screen and (min-width : 768px)  and (max-width : 1024px)
+  body.home
+    > section
+        > div
+          padding-right   60px
+          padding-left    60px
 
-            &.active
-              background  #fff
+    .content-page.home
+      section.introduction
+        padding-top       168px
 
-  footer.main-footer
-    .footer-block
-      width             100%
-      float             none
-      text-align        center
-      margin            0
+        article
+          h1
+            font-size     33px
+            font-weight   700
+            line-height   40px
+            margin-bottom 26px
 
-      &~.footer-block
-        margin-top      18px
-        border-top      1px solid rgba(255,255,255,.05)
-        position        relative
-        text-align      center
+          h2
+            font-size     20px
+            line-height   26px
 
-        a
-          display       inline-block
-          margin        45px 6px 0
+      section.screenshots
+        height            384px
+        top               493px
 
-          &:not(.social)
-            abs         0px 0 0 0px
-            opacity     .6
-            width       100%
-            text-align  center
-            margin      0
+        > div figure
+          width           100%
 
+          &:after
+            left          92px
 
+          &.current
+            padding       0 84px
 
+      section.used-at
+        > div:after
+          width           768px
+
+        figure
+          display         none
