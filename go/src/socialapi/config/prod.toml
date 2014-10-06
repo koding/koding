@@ -1,4 +1,4 @@
-Mongo              = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
+Mongo              = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
 Environment        = "production"
 Region             = "aws"
 Hostname           = "koding.com"
