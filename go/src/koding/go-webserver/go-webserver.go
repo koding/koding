@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/go-webserver/templates"
 	"koding/tools/config"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/hoisie/mustache"
 )
 
 var (
-	flagConfig      = flag.String("c", "", "Configuration profile from file")
-	flagTemplates   = flag.String("t", "", "Change template directory")
-	conf            *config.Config
-	kodingGroupJson []byte
+	flagConfig       = flag.String("c", "", "Configuration profile from file")
+	flagTemplates    = flag.String("t", "", "Change template directory")
+	conf             *config.Config
+	kodingGroupJson  []byte
+	isLoggedInOnLoad = true
+	usePremiumBroker = false
 )
 
 func initialize() {
@@ -38,7 +40,10 @@ func initialize() {
 		panic(err)
 	}
 
-	kodingGroupJson, _ = json.Marshal(kodingGroup)
+	kodingGroupJson, err = json.Marshal(kodingGroup)
+	if err != nil {
+		fmt.Println("Error marshalling Koding group", err)
+	}
 }
 
 func main() {
@@ -52,92 +57,99 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	cookie, err := r.Cookie("clientId")
-	if err != nil {
-		fmt.Println(">>>>>>> no cookie")
-		output := loggedOut()
-
-		fmt.Fprintf(w, output)
-		fmt.Println(time.Since(start))
+	if err != nil || cookie.Value == "" {
+		renderLoggedOutHome(w)
 		return
 	}
 
 	session, err := modelhelper.GetSession(cookie.Value)
 	if err != nil {
-		// TODO: clean up session
-		fmt.Println(">>>>>>> no session")
-		output := loggedOut()
-
-		fmt.Fprintf(w, output)
-		fmt.Println(time.Since(start))
-
+		renderLoggedOutHome(w) // TODO: clean up session
 		return
 	}
+
+	//----------------------------------------------------------
+	// Account
+	//----------------------------------------------------------
 
 	username := session.Username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
+		renderLoggedOutHome(w)
 		return
 	}
 
 	if account.Type != "registered" {
-		fmt.Println(">>>>>>> account not registered")
-		output := loggedOut()
-
-		fmt.Fprintf(w, output)
-		fmt.Println(time.Since(start))
-
+		renderLoggedOutHome(w)
 		return
 	}
+
+	accountJson, err := json.Marshal(account)
+	if err != nil {
+		fmt.Println("Error marshalling account", err)
+	}
+
+	//----------------------------------------------------------
+	// Machines
+	//----------------------------------------------------------
 
 	machines, err := modelhelper.GetMachines(username)
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
-		return
+		fmt.Println("Error fetching machines", err)
+		machines = []*modelhelper.MachineContainer{}
 	}
+
+	machinesJson, err := json.Marshal(machines)
+	if err != nil {
+		fmt.Println("Error marshalling account", err)
+	}
+
+	//----------------------------------------------------------
+	// Workspaces
+	//----------------------------------------------------------
 
 	workspaces, err := modelhelper.GetWorkspaces(account.Id)
 	if err != nil {
-		fmt.Println(">>>>>>>>", err)
-		return
+		fmt.Println("Error fetching workspaces", err)
+		workspaces = []*models.Workspace{}
 	}
 
-	accountJson, _ := json.Marshal(account)
-	machinesJson, _ := json.Marshal(machines)
-	workspacesJson, _ := json.Marshal(workspaces)
-
-	index := buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson)
-
-	fmt.Fprintf(w, index)
-	fmt.Println(">>>>>>>>> Request to go-webserver took", time.Since(start))
-}
-
-func loggedOut() string {
-	indexFilePath := *flagTemplates + "loggedout.html.mustache"
-	output := mustache.RenderFile(indexFilePath, map[string]interface{}{
-		"version": conf.Version,
-	})
-
-	return output
-}
-
-func buildIndex(accountJson, machinesJson, workspacesJson, kodingGroupJson []byte) string {
-	runtimeJson, err := json.Marshal(conf.Client.RuntimeOptions)
+	workspacesJson, err := json.Marshal(workspaces)
 	if err != nil {
-		fmt.Println("<<<<<", err)
+		fmt.Println("Error marshalling workspaces", err)
 	}
 
-	indexFilePath := *flagTemplates + "index.html.mustache"
-	output := mustache.RenderFile(indexFilePath, map[string]interface{}{
-		"KD":               string(runtimeJson),
-		"isLoggedInOnLoad": true,
-		"usePremiumBroker": false,
-		"userAccount":      string(accountJson),
-		"userMachines":     string(machinesJson),
-		"userWorkspaces":   string(workspacesJson),
-		"currentGroup":     string(kodingGroupJson),
-		"version":          conf.Version,
-	})
+	renderLoggedInHome(w,
+		accountJson, machinesJson, workspacesJson, kodingGroupJson,
+	)
 
-	return output
+	fmt.Println("Request to go-webserver took", time.Since(start))
+}
+
+func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte) {
+	runtime, err := json.Marshal(conf.Client.RuntimeOptions)
+	if err != nil {
+		fmt.Println("Error marshalling runtime options", err)
+		runtime = []byte("1")
+	}
+
+	version := conf.Version
+	html := fmt.Sprintf(templates.LoggedInHome,
+		version, version, //css
+		runtime, isLoggedInOnLoad, usePremiumBroker,
+		account, machines, workspaces, group,
+		version, version, version, //json
+	)
+
+	fmt.Fprintf(w, html)
+}
+
+func renderLoggedOutHome(w http.ResponseWriter) {
+	version := conf.Version
+	html := fmt.Sprintf(templates.LoggedOutHome,
+		version, version, //css
+		version, version, version, version, //js
+	)
+
+	fmt.Fprintf(w, html)
 }
