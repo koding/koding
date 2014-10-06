@@ -19,7 +19,7 @@ Configuration = (options={}) ->
   publicIP            = options.publicIP       or "*"
   githubuser          = options.githubuser     or "koding"
 
-  mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
+  mongo               = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
   etcd                = "10.0.0.98:4001,10.0.0.99:4001,10.0.0.100:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
