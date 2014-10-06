@@ -58,13 +58,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("clientId")
 	if err != nil || cookie.Value == "" {
+		fmt.Println("Request to go-webserver took", time.Since(start))
 		renderLoggedOutHome(w)
+
 		return
 	}
 
 	session, err := modelhelper.GetSession(cookie.Value)
 	if err != nil {
+		fmt.Println("Request to go-webserver took", time.Since(start))
 		renderLoggedOutHome(w) // TODO: clean up session
+
 		return
 	}
 
@@ -75,12 +79,16 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	username := session.Username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
+		fmt.Println("Request to go-webserver took", time.Since(start))
 		renderLoggedOutHome(w)
+
 		return
 	}
 
 	if account.Type != "registered" {
+		fmt.Println("Request to go-webserver took", time.Since(start))
 		renderLoggedOutHome(w)
+
 		return
 	}
 
