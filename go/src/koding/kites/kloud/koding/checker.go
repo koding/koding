@@ -59,7 +59,7 @@ type PlanChecker struct {
 	// running. The timer is used to stop the machines after 30 minutes
 	// inactivity.
 	InactiveMachines   map[string]*time.Timer
-	InactiveMachiensMu sync.Mutex
+	InactiveMachinesMu sync.Mutex
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
@@ -118,6 +118,7 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
+	// close it into a closure so we can use it twice
 	stopMachine := func() error {
 		// lock so it doesn't interfere with others.
 		p.Provider.Lock(p.Machine.Id)
@@ -138,22 +139,45 @@ func (p *PlanChecker) Timeout() error {
 
 	// connect and get real time data directly from the machines klient
 	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
-	if err != nil {
-		p.InactiveMachiensMu.Lock()
-		defer p.InactiveMachiensMu.Unlock()
+	if err == kite.ErrNoKitesAvailable {
+		p.InactiveMachinesMu.Lock()
+		defer p.InactiveMachinesMu.Unlock()
 
 		_, ok := p.InactiveMachines[p.Machine.QueryString]
-		if !ok {
-			p.InactiveMachines[p.Machine.QueryString] = time.AfterFunc(time.Minute*5, func() {
-				if err := stopMachine(); err != nil {
-					p.Log.Warning("[%s] could not stop ghost machine %s", p.Machine.Id, err)
-
-				}
-			})
+		if ok {
+			// no need to return an error, because it's already in the map so
+			// it will be expired with the function below
+			return nil
 		}
+
+		p.InactiveMachines[p.Machine.QueryString] = time.AfterFunc(time.Minute*5, func() {
+			if err := stopMachine(); err != nil {
+				p.Log.Warning("[%s] could not stop ghost machine %s", p.Machine.Id, err)
+			}
+
+			// we don't need it anymore
+			p.InactiveMachinesMu.Lock()
+			delete(p.InactiveMachines, p.Machine.QueryString)
+			p.InactiveMachinesMu.Unlock()
+		})
 
 		return err
 	}
+
+	// return if it's something else
+	if err != nil {
+		return err
+	}
+
+	// now the klient is connected again, stop the timer and remove it from the
+	// list of inactive machines if it's still there.
+	p.InactiveMachinesMu.Lock()
+	if timer, ok := p.InactiveMachines[p.Machine.QueryString]; ok {
+		timer.Stop()
+		p.InactiveMachines[p.Machine.QueryString] = nil // garbage collect
+		delete(p.InactiveMachines, p.Machine.QueryString)
+	}
+	p.InactiveMachinesMu.Unlock()
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
