@@ -269,15 +269,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         delete @menu
 
   createPlusContextMenu: ->
-    offset        = @holderView.plusHandle.$().offset()
-    contextMenu   = new KDContextMenu
-      delegate    : this
-      x           : offset.left - 133
-      y           : offset.top  + 30
-      arrow       :
-        placement : 'top'
-        margin    : -20
-    , @getPlusMenuItems()
+    offset      = @holderView.plusHandle.$().offset()
+    offsetLeft  = offset.left - 133
+    margin      = if offsetLeft >= -1 then -20 else 12
+    placement   = 'top'
+    options     =
+      delegate  : this
+      x         : Math.max 0, offsetLeft
+      y         : offset.top + 30
+      arrow     : { placement, margin }
 
-    contextMenu.once 'ContextMenuItemReceivedClick', ->
-      contextMenu.destroy()
+    contextMenu = new KDContextMenu options, @getPlusMenuItems()
+
+    contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
