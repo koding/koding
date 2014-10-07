@@ -27,18 +27,6 @@ class MainViewController extends KDViewController
     appManager.on 'AppIsBeingShown', (controller) =>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
 
-      # todo:
-      # remove this part once mmvp becomes mvp - SY
-      {name} = controller.getOptions()
-      switch name
-        when 'IDE'
-          mainView.activitySidebar?.deselectAllItems()
-          mainView.activitySidebar?.activityLink?.unsetClass 'selected'
-        when 'Activity'
-          mainView.activitySidebar?.activityLink?.setClass 'selected'
-          mainView.activitySidebar?.machineTree?.deselectAllNodes()
-
-
 
     display?.on 'ContentDisplayWantsToBeShown', do =>
       type = null
