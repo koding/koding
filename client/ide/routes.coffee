@@ -30,7 +30,7 @@ do ->
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
     machineUId = machine?.uid
-    fallback   = ->
+    callback   = ->
       appManager.open 'IDE', { forceNew: yes }, (app) ->
         app.mountedMachineUId = machineUId
         app.workspaceData     = workspace
@@ -38,7 +38,7 @@ do ->
         appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
         selectWorkspaceOnSidebar data
 
-    return fallback()  unless ideApps?.instances
+    return callback()  unless ideApps?.instances
 
     for instance in ideApps.instances
       isSameMachine   = instance.mountedMachineUId is machineUId
@@ -54,7 +54,7 @@ do ->
       appManager.showInstance ideInstance
       selectWorkspaceOnSidebar data
     else
-      fallback()
+      callback()
 
 
   putVMInWorkspace = (machine)->
