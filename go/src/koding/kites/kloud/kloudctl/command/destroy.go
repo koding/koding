@@ -41,5 +41,9 @@ func (d *Destroy) Action(args []string, k *kite.Client) error {
 	}
 
 	DefaultUi.Info(fmt.Sprintf("%+v", result))
+
+	if flagWatchEvents {
+		return watch(k, "destroy", *d.id, defaultPollInterval)
+	}
 	return nil
 }
