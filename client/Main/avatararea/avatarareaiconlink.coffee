@@ -21,9 +21,9 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = newCount
 
     if newCount is 0
-      @$('.count').removeClass "in"
+      @$('.count').addClass "hidden"
     else
-      @$('.count').addClass "in"
+      @$('.count').removeClass "hidden"
 
   click:(event)->
     windowController = KD.singleton "windowController"
