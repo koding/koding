@@ -153,6 +153,10 @@ class IDE.DrawingPane extends IDE.Pane
       title: 'Saving will be enabled soon.'
 
 
+  serialize: ->
+    return data: @getCanvasData()
+
+
   viewAppended: ->
     super
 

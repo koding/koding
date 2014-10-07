@@ -59,3 +59,10 @@ class IDE.TerminalPane extends IDE.Pane
   resurrect: ->
     @destroySubViews()
     @createTerminal()
+
+  serialize: ->
+    {label, ipAddress, slug, uid} = @machine
+
+    data      =
+      path    : @getOptions().path
+      machine : { label, ipAddress, slug, uid }

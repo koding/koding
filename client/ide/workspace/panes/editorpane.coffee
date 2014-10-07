@@ -41,14 +41,41 @@ class IDE.EditorPane extends IDE.Pane
       @emit 'EditorIsReady'
 
   save: ->
-    {ace} = @aceView
-    ace.emit 'ace.requests.save', ace.getContents()
+    ace.emit 'ace.requests.save', @getContent()
+
+  getAce: ->
+    return @aceView.ace
 
   getEditor: ->
-    return @aceView.ace.editor
+    return @getAce().editor
 
   getValue: ->
     return  @getEditor().getSession().getValue()
 
   goToLine: (lineNumber) ->
-    @aceView.ace.gotoLine lineNumber
+    @getAce().gotoLine lineNumber
+
+  getContent: ->
+    return @getAce().getContents()
+
+  getCursor: ->
+    return @getEditor().selection.getCursor()
+
+  getFile: ->
+    return @aceView.getData()
+
+  serialize: ->
+    file      = @getFile()
+    content   = @getContent()
+    cursor    = @getCursor()
+    {machine} = file
+
+
+    {name, path } = file
+    {label, ipAddress, slug, uid} = machine
+
+    data      =
+      file    : { name, path, content, cursor }
+      machine : { label, ipAddress, slug, uid }
+
+    return data
