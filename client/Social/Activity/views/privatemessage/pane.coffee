@@ -44,6 +44,13 @@ class PrivateMessagePane extends MessagePane
     @glance()  if focused and @active and @isPageAtBottom()
 
 
+  glance: ->
+
+    super
+
+    @newMessages?.destroy()
+    @newMessages = null
+
 
   setScrollTops: ->
 
@@ -122,7 +129,14 @@ class PrivateMessagePane extends MessagePane
     channel.on 'AddedToChannel', @bound 'addParticipant'
 
 
+  putNewMessageIndicator: ->
 
+    return # WIP
+
+    unless @newMessages
+      listView = @listController.getListView()
+      @newMessages = new KDView cssClass : 'new-messages'
+      listView.addSubView @newMessages
 
 
   # this is the realtime event handler for messages

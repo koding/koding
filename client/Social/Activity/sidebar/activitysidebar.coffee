@@ -101,6 +101,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
       if inCurrentPane and windowController.isFocused()
         return pane.glance()
+      else
+        pane.putNewMessageIndicator()
 
 
     item.setUnreadCount? unreadCount

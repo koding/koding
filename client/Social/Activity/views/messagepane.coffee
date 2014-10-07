@@ -125,6 +125,7 @@ class MessagePane extends KDTabPaneView
   handleFocus: (focused) -> @glance()  if focused and @active
 
 
+  putNewMessageIndicator: ->
 
 
   isPageAtBottom: ->
