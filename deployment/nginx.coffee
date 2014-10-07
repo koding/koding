@@ -165,7 +165,7 @@ module.exports.create = (KONFIG, environment)->
 
     # log how long requests take
     log_format timed_combined '$request $request_time $upstream_response_time $pipe';
-    access_log /var/log/nginx/access.log timed_combined;
+    #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
 
     # batch response body
     client_body_in_single_buffer on;
