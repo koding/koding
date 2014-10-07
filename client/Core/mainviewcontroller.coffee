@@ -62,7 +62,7 @@ class MainViewController extends KDViewController
       {innerHeight}             = window
 
       # return when it pulls the page on top
-      return lastPos = innerHeight  if scrollTop <= 0
+      return lastPos = innerHeight  if scrollTop < 0
 
       # return when it pulls the page at the bottom
       return  if scrollHeight - scrollTop < innerHeight
