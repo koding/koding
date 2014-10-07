@@ -87,6 +87,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
@@ -189,7 +190,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
-        locations       : ["~^/IDE/.*"]
+        locations       : ["~^/IDE/.*", "= /"]
     kontrol             :
       group             : "environment"
       ports             :

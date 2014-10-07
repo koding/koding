@@ -54,7 +54,7 @@ func initialize() {
 func main() {
 	initialize()
 
-	url := fmt.Sprintf(":%d", 6500)
+	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
 
 	http.HandleFunc("/", HomeHandler)
 	http.ListenAndServe(url, nil)

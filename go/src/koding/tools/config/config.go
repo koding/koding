@@ -248,6 +248,9 @@ type Config struct {
 	LogLevel             map[string]string
 	Redis                string
 	SubscriptionEndpoint string
+	Gowebserver          struct {
+		Port int
+	}
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
