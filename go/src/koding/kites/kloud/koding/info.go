@@ -113,7 +113,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		}
 	}
 
-	p.Log.Info("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
+	p.Log.Debug("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,
