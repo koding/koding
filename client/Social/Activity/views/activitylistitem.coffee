@@ -8,7 +8,6 @@ class ActivityListItemView extends KDListItemView
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
-    options.activitySettings or= {}
     options.attributes       or= {}
     options.attributes.testpath = "ActivityListItemView"
 
@@ -41,7 +40,7 @@ class ActivityListItemView extends KDListItemView
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass, activitySettings: {disableFollow}} = options
+    {commentViewClass} = options
 
     {socialapi} = KD.singletons
 
@@ -54,7 +53,6 @@ class ActivityListItemView extends KDListItemView
     @settingsButton = new ActivitySettingsView
       cssClass      : 'settings-menu-wrapper'
       itemView      : this
-      disableFollow : disableFollow
     , data
 
     # related to Latency Compensation:
