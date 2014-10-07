@@ -4,6 +4,7 @@ class ActivityPane extends MessagePane
     options.type        or= ''
     options.cssClass     ?= "activity-pane #{options.type}"
     options.wrapper      ?= yes
+    options.scrollView   ?= yes
     options.lastToFirst  ?= no
 
     KDTabPaneView.call this, options, data

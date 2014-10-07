@@ -1,7 +1,10 @@
 class ActivityWidgetsBar extends KDCustomHTMLView
+
   constructor: (options = {}) ->
-    options.cssClass    = 'activity-widgets-bar'
-    options.tagName     = 'aside'
+
+    options.cssClass = KD.utils.curry 'activity-widgets-bar', options.cssClass
+    options.tagName  = 'aside'
+
     super options
 
     @addSubView new ActivityGuideWidget

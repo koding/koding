@@ -2,6 +2,9 @@ class TopicMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
+    options.wrapper    ?= no
+    options.scrollView ?= no
+
     super options, data
 
     KD.singletons.socialapi
@@ -9,6 +12,7 @@ class TopicMessagePane extends MessagePane
       .on 'MessageRemoved', @bound 'removeMessage'
 
     @filterLinks = null
+
 
   addMessage: (message) ->
 

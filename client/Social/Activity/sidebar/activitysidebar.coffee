@@ -99,8 +99,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
       inCurrentPane = channel.id is data.id
 
-      if inCurrentPane and windowController.isFocused()
+      if inCurrentPane and windowController.isFocused() and pane.isPageAtBottom()
         return pane.glance()
+      else
+        pane.putNewMessageIndicator()
 
 
     item.setUnreadCount? unreadCount
@@ -395,6 +397,10 @@ class ActivitySidebar extends KDCustomHTMLView
     treeData = []
 
     for machine in machines
+
+      unless machine?.bongo_?.constructorName is 'JMachine'
+        machine = machine.getData()
+
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
