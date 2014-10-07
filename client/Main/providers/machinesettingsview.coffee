@@ -172,7 +172,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : topDomain in @machine.aliases
           cssClass     : 'tiny'
           tooltip      :
-            title      : "Use #{topDomain}"
+            title      : "Route #{topDomain} to this vm"
             placement  : 'right'
           callback     : (state) => @emit 'TopDomainStateChange', state
         domains        :
