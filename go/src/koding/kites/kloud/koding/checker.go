@@ -134,9 +134,8 @@ func (p *PlanChecker) Timeout() error {
 	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
 	if err == kite.ErrNoKitesAvailable {
 		p.Provider.InactiveMachinesMu.Lock()
-		defer p.Provider.InactiveMachinesMu.Unlock()
-
 		_, ok := p.Provider.InactiveMachines[p.Machine.QueryString]
+		p.Provider.InactiveMachinesMu.Unlock()
 		if ok {
 			// no need to return an error, because it's already in the map so
 			// it will be expired with the function below
