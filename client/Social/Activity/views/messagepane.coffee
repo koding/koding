@@ -136,10 +136,7 @@ class MessagePane extends KDTabPaneView
     scrollTop + innerHeight >= scrollHeight
 
 
-  scrollDown: (item) ->
-
-    return  unless @active
-    document.body.scrollTop = document.body.scrollHeight * 2
+  scrollDown: ->
 
 
   scrollUp: ->
