@@ -10,11 +10,6 @@ class PrivateMessagePane extends MessagePane
 
     super options, data
 
-    @listPreviousLink = new ReplyPreviousLink
-      delegate : @listController
-      click    : @bound 'listPreviousReplies'
-      linkCopy : 'Show previous replies'
-    , data
 
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
@@ -22,6 +17,7 @@ class PrivateMessagePane extends MessagePane
     # once.
     @participantMap = {}
 
+    @createPreviousLink()
     @createParticipantsView()
     @createAddParticipantForm()
 
@@ -269,6 +265,15 @@ class PrivateMessagePane extends MessagePane
       origin    : participant
 
     @participantMap[participant._id] = yes
+
+
+  createPreviousLink: ->
+
+    @listPreviousLink = new ReplyPreviousLink
+      delegate : @listController
+      click    : @bound 'listPreviousReplies'
+      linkCopy : 'Show previous replies'
+    , @getData()
 
 
   createParticipantsView : ->
