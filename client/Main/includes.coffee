@@ -239,6 +239,9 @@ module.exports = [
   "avatararea/avatarareagroupswitcherpopup.coffee",
   "avatararea/avatarareaiconlink.coffee",
 
+  # notifications
+  "notifications/notificationlistcontroller.coffee",
+
   "maincontroller/groupdata.coffee",
   "maincontroller/groupscontroller.coffee",
   "maincontroller/helpcontroller.coffee",
