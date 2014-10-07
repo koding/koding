@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
@@ -16,6 +17,7 @@ import (
 )
 
 const (
+	NotificationEventName       = "NotificationAdded"
 	ChannelUpdateEventName      = "ChannelUpdateHappened"
 	RemovedFromChannelEventName = "RemovedFromChannel"
 	AddedToChannelEventName     = "AddedToChannel"
@@ -39,7 +41,7 @@ type Controller struct {
 // NotificationEvent holds required data for notifcation processing
 type NotificationEvent struct {
 	// Holds routing key for notification dispatching
-	RoutingKey string `json:"routingKey"`
+	Event string `json:"event"`
 
 	// Content of the notification
 	Content NotificationContent `json:"contents"`
@@ -537,12 +539,6 @@ func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
 }
 
 func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return errors.New("channel connection error")
-	}
-	defer channel.Close()
-
 	activity, nc, err := notification.FetchLastActivity()
 	if err != nil {
 		return err
@@ -559,40 +555,18 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 		return nil
 	}
 
-	oldAccount, err := fetchOldAccount(notification.AccountId)
-	if err != nil {
-		f.log.Warning("an error occurred while fetching old account: %s", err)
-		return nil
-	}
-
-	// fetch user profile name from bongo as routing key
-	ne := &NotificationEvent{}
-
-	ne.Content = NotificationContent{
+	content := NotificationContent{
 		TargetId:     nc.TargetId,
 		TypeConstant: nc.TypeConstant,
 	}
-	ne.Content.ActorId, _ = models.FetchAccountOldIdByIdFromCache(activity.ActorId)
 
-	notificationMessage, err := json.Marshal(ne)
+	actor, err := models.FetchAccountFromCache(activity.ActorId)
 	if err != nil {
 		return err
 	}
+	content.ActorId = actor.OldId
 
-	routingKey := oldAccount.Profile.Nickname
-
-	err = channel.Publish(
-		"notification",
-		routingKey,
-		false,
-		false,
-		amqp.Publishing{Body: notificationMessage},
-	)
-	if err != nil {
-		return fmt.Errorf("an error occurred while notifying user: %s", err)
-	}
-
-	return nil
+	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
 }
 
 // to-do add eviction here
