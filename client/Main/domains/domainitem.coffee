@@ -5,11 +5,7 @@ class DomainItem extends KDListItemView
     options.type = 'domain'
     super options, data
 
+  partial: ->
 
-  viewAppended:->
-
-    {domain} = @getData()
-
-    @addSubView new KDCustomHTMLView
-      partial : "#{domain} <span></span>"
-
+    { domain } = @getData()
+    return "#{domain} <span></span>"

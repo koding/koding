@@ -662,6 +662,48 @@ div.nominateicon
     &.button-field
       margin              0 !important
 
+    &.domains
+
+      label.kdlabel
+
+        span
+          top             2px
+          left            2px
+          position        relative
+          display         inline-block
+          r-sprite        app 'add-12'
+          cursor          pointer
+
+        &.expanded
+          span
+            r-sprite      app 'cancel-12'
+
+
+  .domains-view
+
+    padding               2px 0
+    borderBox()
+
+    .listview-wrapper
+      margin-top          0
+      height              auto
+      padding             0 4px
+
+    .kdlistitemview-domain
+      cursor              pointer
+
+      &:hover
+        span
+          display         inline-block
+
+      span
+        position          relative
+        top               2px
+        left              2px
+        display           none
+        r-sprite          app 'delete-12'
+        cursor            pointer
+
   label.kdlabel
 
     font-size             12px

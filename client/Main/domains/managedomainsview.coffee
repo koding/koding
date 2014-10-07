@@ -6,7 +6,9 @@ class ManageDomainsView extends KDView
 
     super options, data
 
-    @addSubView new KDHitEnterInputView
+    {@machine} = @getOptions()
+
+    @addSubView @input = new KDHitEnterInputView
       type       : 'text'
       attributes : spellcheck: false
       callback   : => @emit 'AddDomain'
@@ -16,9 +18,7 @@ class ManageDomainsView extends KDView
         type            : 'domain'
         wrapper         : yes
         itemClass       : DomainItem
-    , items             : [
-      {domain: "google.com"}
-      {domain: "yahoo.com"}
-    ]
+    , items             : ({domain} for domain in @machine.aliases)
 
     @addSubView @domainList = @domainController.getView()
+    @input.hide()

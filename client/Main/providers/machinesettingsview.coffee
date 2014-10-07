@@ -159,16 +159,23 @@ class MachineSettingsPopup extends KDModalViewWithForms
         domains        :
           label        : "Domains <span></span>"
           itemClass    : ManageDomainsView
+          machine      : @machine
         advancedView   :
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView} = @moreForm.inputs
-    {label}        = advancedView.getOptions()
+    {advancedView, domains} = @moreForm.inputs
+    {label} = advancedView.getOptions()
 
     label.on 'click', =>
       label.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
+
+    {label} = domains.getOptions()
+
+    label.on 'click', ->
+      label.toggleClass 'expanded'
+      domains.input.toggleClass 'hidden'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
