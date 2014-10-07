@@ -225,9 +225,13 @@ module.exports.create = (KONFIG, environment)->
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
-        location ~* \.(map)$ {
-          return 404;
-          access_log off;
+
+        #{if environment isnt "dev" then "
+          location ~* \.(map)$ {
+            return 404;
+            access_log off;
+          }
+        " else ""
         }
 
         root #{KONFIG.projectRoot}/website/;
