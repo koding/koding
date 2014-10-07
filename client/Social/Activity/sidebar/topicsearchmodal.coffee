@@ -2,7 +2,7 @@ class TopicSearchModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass      = KD.utils.curry 'topic-search', options.cssClass
+    options.cssClass      = KD.utils.curry 'topic-search sidebar-white-modal', options.cssClass
     options.title       or= 'Browse Topics on Koding'
     options.placeholder or= 'Search all topics...'
     options.noItemFound or= 'You don\'t follow any topics yet. You can search for some topics above e.g HTML, CSS, golang.'
