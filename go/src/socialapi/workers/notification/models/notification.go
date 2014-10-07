@@ -3,10 +3,10 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	// "fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -199,16 +199,11 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 }
 
 func (n *Notification) Glance() error {
-	selector := map[string]interface{}{
-		"glanced":    false,
-		"account_id": n.AccountId,
-	}
+	// TODO bongo.B.DB.Updates() did not work here lately. I have replaced it with this raw sql.
+	// If possible change it
+	updateSql := "UPDATE " + n.TableName() + ` set "glanced"=? WHERE "glanced"=? AND "account_id"=?`
 
-	set := map[string]interface{}{
-		"glanced": true,
-	}
-
-	return bongo.B.UpdateMulti(n, selector, set)
+	return bongo.B.DB.Exec(updateSql, true, false, n.AccountId).Error
 }
 
 func getUnreadNotificationCount(notificationList []NotificationContainer) int {
