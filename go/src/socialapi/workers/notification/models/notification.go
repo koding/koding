@@ -35,56 +35,6 @@ type Notification struct {
 	SubscribeOnly bool `json:"-" sql:"-"`
 }
 
-func (n *Notification) BeforeCreate() {
-	if n.UnsubscribedAt.IsZero() && n.SubscribedAt.IsZero() {
-		n.SubscribedAt = time.Now()
-	}
-}
-
-func (n *Notification) BeforeUpdate() {
-	if n.UnsubscribedAt.IsZero() && !n.SubscribeOnly {
-		n.Glanced = false
-		n.ActivatedAt = time.Now()
-	}
-}
-
-func (n *Notification) AfterCreate() {
-	bongo.B.AfterCreate(n)
-}
-
-func (n *Notification) AfterUpdate() {
-	bongo.B.AfterUpdate(n)
-}
-
-func (n Notification) GetId() int64 {
-	return n.Id
-}
-
-func (n Notification) TableName() string {
-	return "notification.notification"
-}
-
-func NewNotification() *Notification {
-	return &Notification{}
-}
-
-func (n *Notification) One(q *bongo.Query) error {
-	return bongo.B.One(n, n, q)
-}
-
-func (n *Notification) Create() error {
-	// TODO check notification content existence
-	if err := n.FetchByContent(); err != nil {
-		if err != bongo.RecordNotFound {
-			return err
-		}
-
-		return bongo.B.Create(n)
-	}
-
-	return nil
-}
-
 func (n *Notification) Upsert() error {
 	unsubscribedAt := n.UnsubscribedAt
 
@@ -142,11 +92,6 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 	response.UnreadCount = getUnreadNotificationCount(result)
 
 	return response, nil
-}
-
-func (n *Notification) Some(data interface{}, q *bongo.Query) error {
-
-	return bongo.B.Some(n, data, q)
 }
 
 func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
