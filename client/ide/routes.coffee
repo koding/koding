@@ -74,12 +74,11 @@ do ->
   routeToLatestWorkspace = ->
     machine = KD.userMachines.first
 
-    if machine?
-      return putVMInWorkspace machine
+    return putVMInWorkspace machine if machine?
 
     KD.singletons.computeController.fetchMachines (err,  machines)->
       if err or not machines.length
-        KD.getSingleton('router').handleRoute "/Activity"
+        KD.getSingleton('router').handleRoute "/IDE/invalid-machine-label/empty"
 
       putVMInWorkspace machines.first
 
