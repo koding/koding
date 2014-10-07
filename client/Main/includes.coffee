@@ -241,6 +241,7 @@ module.exports = [
 
   # notifications
   "notifications/popupnotifications.coffee",
+  "notifications/notificationlistitem.coffee",
   "notifications/notificationlistcontroller.coffee",
 
   "maincontroller/groupdata.coffee",
