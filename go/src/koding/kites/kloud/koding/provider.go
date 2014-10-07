@@ -126,20 +126,51 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := a.Start(true)
+	infoResp, err := a.Info()
 	if err != nil {
 		return nil, err
 	}
 
-	a.Push("Initializing domain instance", 65, machinestate.Starting)
-	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		return nil, err
+	artifact := &protocol.Artifact{
+		IpAddress: m.IpAddress,
 	}
 
-	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
-		m.Id, m.Domain.Name, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-		return nil, err
+	if i, ok := m.Builder["instanceId"]; ok {
+		if instanceId, ok := i.(string); ok {
+			artifact.InstanceId = instanceId
+		}
+	}
+
+	a.Push("Starting machine", 10, machinestate.Starting)
+
+	// if the current db state is stopped but the machine is actually running,
+	// that means klient is not running. For this case we restart the machine
+	if infoResp.State == machinestate.Running && m.State == machinestate.Stopped {
+		// ip doesn't change when we do a reboot
+		a.Log.Warning("[%s] machine is running but klient is not functional. Rebooting the machine instead of starting it.",
+			m.Id)
+
+		a.Push("Restarting machine", 30, machinestate.Starting)
+		err = a.Restart(false)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		artifact, err = a.Start(true)
+		if err != nil {
+			return nil, err
+		}
+
+		a.Push("Initializing domain instance", 65, machinestate.Starting)
+		if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
+			return nil, err
+		}
+
+		a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+			m.Id, m.Domain.Name, artifact.InstanceId)
+		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
+			return nil, err
+		}
 	}
 
 	// stop the timer and remove it from the list of inactive machines so it
@@ -193,7 +224,7 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 		return err
 	}
 
-	return a.Restart()
+	return a.Restart(false)
 }
 
 func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
