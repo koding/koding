@@ -24,8 +24,7 @@ var LoggedInHome = `
   <script>var KD={}</script>
   <script>var KD={"config":%s}</script>
 
-  <script>KD.isLoggedInOnLoad=%v;</script>
-  <script>KD.config.usePremiumBroker=%v;</script>
+  <script>KD.isLoggedInOnLoad=true;</script>
 
   <script>KD.userAccount=%s;</script>
   <script>KD.userMachines=%s;</script>

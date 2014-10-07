@@ -8,6 +8,8 @@ const (
 type (
 	// Config holds all the configuration variables of socialapi
 	Config struct {
+		Gowebserver Gowebserver
+
 		// Postres holds connection credentials for postgresql
 		Postgres Postgres
 
@@ -120,5 +122,9 @@ type (
 
 	Stripe struct {
 		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
+	}
+
+	Gowebserver struct {
+		Port int
 	}
 )

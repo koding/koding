@@ -8,19 +8,19 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/go-webserver/templates"
 	"koding/tools/config"
-	"log"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/koding/logging"
 )
 
 var (
-	flagConfig       = flag.String("c", "", "Configuration profile from file")
-	flagTemplates    = flag.String("t", "", "Change template directory")
-	conf             *config.Config
-	kodingGroupJson  []byte
-	isLoggedInOnLoad = true
-	usePremiumBroker = false
+	flagConfig      = flag.String("c", "", "Configuration profile from file")
+	flagTemplates   = flag.String("t", "", "Change template directory")
+	conf            *config.Config
+	kodingGroupJson []byte
+	log             = logging.NewLogger("gowebserver")
 )
 
 func initialize() {
@@ -28,11 +28,11 @@ func initialize() {
 
 	flag.Parse()
 	if *flagConfig == "" {
-		log.Fatal("Please define config file with -c")
+		log.Critical("Please define config file with -c")
 	}
 
 	if *flagTemplates == "" {
-		log.Fatal("Please define template folder with -t")
+		log.Critical("Please define template folder with -t")
 	}
 
 	conf = config.MustConfig(*flagConfig)
@@ -40,20 +40,24 @@ func initialize() {
 
 	kodingGroup, err := modelhelper.GetGroup("koding")
 	if err != nil {
+		log.Critical("Couldn't fetching `koding` group: %v", err)
 		panic(err)
 	}
 
 	kodingGroupJson, err = json.Marshal(kodingGroup)
 	if err != nil {
-		fmt.Println("Error marshalling Koding group", err)
+		log.Critical("Couldn't marshalling `koding` group: %v", err)
+		panic(err)
 	}
 }
 
 func main() {
 	initialize()
 
+	url := fmt.Sprintf(":%d", 6500)
+
 	http.HandleFunc("/", HomeHandler)
-	http.ListenAndServe(":6500", nil)
+	http.ListenAndServe(url, nil)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
@@ -61,16 +65,30 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("clientId")
 	if err != nil || cookie.Value == "" {
-		fmt.Println("Request to go-webserver took", time.Since(start))
+		log.Info("loggedout page took: %s", time.Since(start))
 		renderLoggedOutHome(w)
 
 		return
 	}
 
-	session, err := modelhelper.GetSession(cookie.Value)
+	clientId := cookie.Value
+
+	session, err := modelhelper.GetSession(clientId)
 	if err != nil {
-		fmt.Println("Request to go-webserver took", time.Since(start))
+		log.Error("Failed to fetch session with clientId: %s", clientId)
+		log.Info("loggedout page took: %s", time.Since(start))
+
 		renderLoggedOutHome(w) // TODO: clean up session
+
+		return
+	}
+
+	username := session.Username
+	if username == "" {
+		log.Error("username is empty for session with clientId: %s", clientId)
+		log.Info("loggedout page took: %s", time.Since(start))
+
+		renderLoggedOutHome(w)
 
 		return
 	}
@@ -79,17 +97,18 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	// Account
 	//----------------------------------------------------------
 
-	username := session.Username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		fmt.Println("Request to go-webserver took", time.Since(start))
+		log.Error("Failed to fetch account with username: %s", username)
+		log.Info("loggedout page took: %s", time.Since(start))
+
 		renderLoggedOutHome(w)
 
 		return
 	}
 
 	if account.Type != "registered" {
-		fmt.Println("Request to go-webserver took", time.Since(start))
+		log.Info("loggedout page took: %s", time.Since(start))
 		renderLoggedOutHome(w)
 
 		return
@@ -97,7 +116,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	accountJson, err := json.Marshal(account)
 	if err != nil {
-		fmt.Println("Error marshalling account", err)
+		log.Error("Couldn't marshal account: %s", err)
 	}
 
 	//----------------------------------------------------------
@@ -106,13 +125,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	machines, err := modelhelper.GetMachines(username)
 	if err != nil {
-		fmt.Println("Error fetching machines", err)
+		log.Error("Couldn't fetch machines: %s", err)
 		machines = []*modelhelper.MachineContainer{}
 	}
 
 	machinesJson, err := json.Marshal(machines)
 	if err != nil {
-		fmt.Println("Error marshalling account", err)
+		log.Error("Couldn't marshal account: %s", err)
 	}
 
 	//----------------------------------------------------------
@@ -121,33 +140,33 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	workspaces, err := modelhelper.GetWorkspaces(account.Id)
 	if err != nil {
-		fmt.Println("Error fetching workspaces", err)
+		log.Error("Couldn't fetch workspaces: %s", err)
 		workspaces = []*models.Workspace{}
 	}
 
 	workspacesJson, err := json.Marshal(workspaces)
 	if err != nil {
-		fmt.Println("Error marshalling workspaces", err)
+		log.Error("Couldn't marshal workspaces: %s", err)
 	}
 
 	renderLoggedInHome(w,
 		accountJson, machinesJson, workspacesJson, kodingGroupJson,
 	)
 
-	fmt.Println("Request to go-webserver took", time.Since(start))
+	log.Info("loggedin page took: %s", time.Since(start))
 }
 
 func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte) {
 	runtime, err := json.Marshal(conf.Client.RuntimeOptions)
 	if err != nil {
-		fmt.Println("Error marshalling runtime options", err)
-		runtime = []byte("1")
+		log.Error("Couldn't marshal runtime options: %s", err)
+		runtime = []byte("{}")
 	}
 
 	version := conf.Version
 	html := fmt.Sprintf(templates.LoggedInHome,
 		version, version, //css
-		runtime, isLoggedInOnLoad, usePremiumBroker,
+		runtime,
 		account, machines, workspaces, group,
 		version, version, version, //json
 	)
