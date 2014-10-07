@@ -10,6 +10,7 @@ import (
 	"koding/tools/config"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 )
 
@@ -23,6 +24,8 @@ var (
 )
 
 func initialize() {
+	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
+
 	flag.Parse()
 	if *flagConfig == "" {
 		log.Fatal("Please define config file with -c")
