@@ -7,8 +7,6 @@ module.exports = class LoginAppsController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    KD.registerSingleton 'loginController', this
-
     options.view    = new LoginView
       testPath      : "landing-login"
     options.appInfo =

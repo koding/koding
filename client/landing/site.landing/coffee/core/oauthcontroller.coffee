@@ -82,8 +82,7 @@ module.exports = class OAuthController extends KDController
 
     KD.singletons.router.handleRoute '/Register'
 
-    KD.utils.defer ->
-      {loginController} = KD.singletons
+    KD.singletons.router.requireApp 'Login', (loginController)->
       loginView = loginController.getView()
       loginView.animateToForm "register"
 
