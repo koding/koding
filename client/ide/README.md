@@ -1,7 +1,9 @@
 IDE
 ===
  
-Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately:
+Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately or have a look around the code base.
+
+Try it live [**here**](https://koding.com/IDE).
 
 ![IDE](https://koding.com/a/site.landing/images/slideshow/ss-ide-collapsed.png)
 
@@ -16,3 +18,7 @@ Koding's new IDE (which is built on top of Ace) has been overhauled. Much more t
 * **Graphical permissions.** Don't like setting permissions on the command line, do it via a handy GUI.
 * **Multi-cursor support.** Create multiple cursors and selections in order to make lots of similar edits at once.
 * **Code folding.** Easily fold away fragments of code taht you don't need to look at.
+
+Feel free to contribute!
+
+See you on Koding!
