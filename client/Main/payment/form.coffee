@@ -144,7 +144,6 @@ class PaymentForm extends JView
       @form
       @existingCreditCardMessage
       @securityNote
-      @totalPrice
       @yearPriceMessage
     ].forEach (view) -> view.destroy()
 
