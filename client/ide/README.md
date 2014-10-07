@@ -1,13 +1,18 @@
 IDE
 ===
  
-Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can enjoy these features immediately:
+Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately:
 
-![IDE](https://koding.com/a/site.landing/images/slideshow/ss-ide.png)
+![IDE](https://koding.com/a/site.landing/images/slideshow/ss-ide-collapsed.png)
 
-1. Split pane views: Supports both horizontal and vertical splits. And you can merge them all back too.
-2. Split IDE and Terminal: Both are on the same screen now, no more switching back and forth!
-3. Shortcuts: Never take your hands off your keyboard again (at least while on Koding).
-4. Workspaces: Most of you who wrote in with feature requests wanted this. Workspaces allow you to nicely collect all project related files into a folder and work on them as a collection. They also show up nicely under each VM for easy access.4j9AeQM
-5. Drawing board: When you want to make a quick mind map of your ideas or just have some goofy fun!
-6. New file search: Search anywhere and everywhere. Get to the file or keyword you want, fast!
+* **Multiple language support.** Go, NodeJS, Ruby, Python, PHP, Java, C, C++, Javascript, Coffeescript, etc. whatever your language of choice, the IDE supports it and gives you gorgeous syntax highlighting.
+* **Shortcuts.** Use our extensive keyboard shortcuts to control everything inside the IDE.
+* **Themes.** Easily switch the default color theme and font to one from a growing list of choices.
+* **Workspaces.** Use workspaces to organize your project. Workpsaces keep everything neat and tidy.
+* **Previews.** Easily preview your work using the built-in browser. No more tab switching.
+* **Collapsable Panes.** Collapse the IDE main frame to get more screen real estate.
+* **Common editor settings.** Autocomplete, soft tabs, line numbers, word wrap, tab size, auto-indenting..are all there.
+* **Resize and Split panes.** Open several IDE tabs and resize them the way you want.
+* **Graphical permissions.** Don't like setting permissions on the command line, do it via a handy GUI.
+* **Multi-cursor support.** Create multiple cursors and selections in order to make lots of similar edits at once.
+* **Code folding.** Easily fold away fragments of code taht you don't need to look at.
