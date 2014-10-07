@@ -1845,6 +1845,10 @@ deleteRed = rgba(217, 58, 55, 0.9)
     width               100%
     padding             34px
     borderBox()
+    &:after
+      left              50% !important
+      opacity           .5 !important
+      margin            -72px 0 0 -72px !important
 
     &.inline
       top               0px
@@ -1963,14 +1967,28 @@ deleteRed = rgba(217, 58, 55, 0.9)
     bg                  color #F6F6F6
     noTextDeco()
 
+  .new-message-form:after
+  .chat-heads:after
+      content           ''
+      r-sprite          activity 'messages-loading'
+      abs               50vh 0 0 -10000px
+      margin            -72px 0 0 -89px
+      vendor            transition, opacity .2s ease-in \,\
+                                    left .1s .5s linear
+      opacity           .01
+
+  .new-message-form.inline:after
+    opacity             .01 !important
+    hidden()
+
   .chat-heads
-    top                     0
-    height                  58px
-    line-height             58px
-    width                   100%
-    max-width               566px
-    z-index                 11
-    bg                      color white
+    top                 0
+    height              58px
+    line-height         58px
+    width               100%
+    max-width           566px
+    z-index             11
+    bg                  color white
     fix()
 
     .kdbuttonwithmenu-wrapper.activity-settings-menu
@@ -2038,14 +2056,23 @@ deleteRed = rgba(217, 58, 55, 0.9)
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-      &.active
-        vendor             pointer-events, none
+  &.translucent
+
+    .chat-heads:after
+      opacity             .5
+      left                50%
+
+    .kdlistview-privatemessage
+      opacity             0.01
 
   .kdlistview-privatemessage
-    padding-bottom          100px
+    padding-bottom        100px
+    opacity               1
+    vendor                transition, opacity .177s ease-in
 
-    &:last-of-type
-      margin-top            0
+    .lazy-loader
+    .no-item-found
+      hidden()
 
   .activity-item.privatemessage
     padding           0
