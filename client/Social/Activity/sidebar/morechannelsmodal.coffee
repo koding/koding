@@ -2,7 +2,7 @@ class MoreChannelsModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass      = KD.utils.curry 'more-channels sidebar-dark-modal', options.cssClass
+    options.cssClass      = KD.utils.curry 'more-channels sidebar-white-modal', options.cssClass
     options.title       or= 'Other Channels you are following:'
     options.placeholder or= 'Search'
     options.endpoints    ?=
@@ -12,6 +12,18 @@ class MoreChannelsModal extends SidebarSearchModal
     super options, data
 
     @setSkipCount()
+
+
+  viewAppended: ->
+
+    super
+
+    @listController.getListView().on 'ItemShouldBeSelected', (item, event) =>
+
+      KD.utils.stopDOMEvent event
+
+      KD.singletons.router.handleRoute item.getOption 'route'
+      @destroy()
 
 
   setSkipCount: ->

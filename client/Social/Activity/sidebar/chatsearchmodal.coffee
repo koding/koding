@@ -2,7 +2,7 @@ class ChatSearchModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass      = KD.utils.curry 'chat-search sidebar-dark-modal', options.cssClass
+    options.cssClass      = KD.utils.curry 'chat-search sidebar-white-modal', options.cssClass
     options.title       or= 'Other Messages:'
     options.placeholder or= 'Search'
     options.noItemText  or= 'You don\'t have any other chats.'

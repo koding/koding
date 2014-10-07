@@ -70,6 +70,10 @@ noAnim()
   vendor                transition, none!important
 
 styleScrollBars()
+  if arguments[0]
+    clr = arguments[0]
+  else
+    clr = rgba(255,255,255,.15)
 
   &.has-vertical
     padding-right       0
@@ -78,7 +82,7 @@ styleScrollBars()
     bg                  color transparent
     overflow            visible
     .kdscrollthumb
-      bg                color rgba(255,255,255,.15)
+      bg                color clr
       margin            0 4px
       width             7px
       rounded           6px
