@@ -56,6 +56,7 @@ module.exports = [
   "CommonViews/linkviews/taglinkview.coffee",
   "CommonViews/linkviews/applinkview.coffee",
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
+  "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/splitview.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
