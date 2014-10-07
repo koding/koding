@@ -4,8 +4,8 @@ class MessagePane extends KDTabPaneView
 
     options.type        or= ''
     options.cssClass      = "message-pane #{options.type}"
-    options.wrapper      ?= yes
     options.lastToFirst  ?= no
+    options.scrollView   ?= yes
     options.itemClass   or= ActivityListItemView
 
     super options, data
@@ -16,7 +16,7 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, lastToFirst, wrapper, channelId} = @getOptions()
+    {itemClass, lastToFirst, wrapper, channelId, scrollView} = @getOptions()
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -26,6 +26,7 @@ class MessagePane extends KDTabPaneView
       wrapper
       itemClass
       lastToFirst
+      scrollView
     }
 
     @listController.getView().setClass 'padded'
