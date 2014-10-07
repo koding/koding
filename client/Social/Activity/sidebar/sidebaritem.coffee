@@ -21,8 +21,8 @@ class SidebarItem extends KDListItemView
     # "FOLLOWED Topics" and "HOT Topics" sections
     @lastClickedTimestamp = 0
 
-    @on 'click', =>
-      @getDelegate().emit 'ItemShouldBeSelected', this
+    @on 'click', (event) =>
+      @getDelegate().emit 'ItemShouldBeSelected', this, event
       @lastClickedTimestamp = Date.now()
 
 
