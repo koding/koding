@@ -83,7 +83,7 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 		return err
 	}
 
-	return a.Restart()
+	return a.Restart(true)
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {

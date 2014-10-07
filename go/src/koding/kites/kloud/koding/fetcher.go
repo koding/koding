@@ -27,7 +27,7 @@ type SubscriptionsResponse struct {
 func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan, planErr error) {
 	defer func() {
 		if planErr != nil {
-			p.Log.Warning("[%s] could not fetch plan. Fallback to Free plan", m.Id)
+			p.Log.Warning("[%s] could not fetch plan. Fallback to Free plan. err: %s", m.Id, planErr)
 			planResp = Free
 		}
 	}()

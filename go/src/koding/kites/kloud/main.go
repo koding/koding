@@ -176,6 +176,7 @@ func newKite(conf *Config) *kite.Kite {
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
+		InactiveMachines:  make(map[string]*time.Timer),
 	}
 
 	// be sure they they satisfy the provider interface

@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb"
 	"strconv"
@@ -110,11 +111,31 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
-	// connect and get real time data directly from the machines klient
-	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
+	// check aws to see if it's still running
+	infoResp, err := p.Provider.Info(p.Machine)
 	if err != nil {
 		return err
 	}
+
+	if infoResp.State != machinestate.Running {
+		return errors.New("machine is not running")
+	}
+
+	// connect and get real time data directly from the machines klient
+	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
+	if err == kite.ErrNoKitesAvailable {
+		p.Provider.startTimer(p.Machine)
+		return err
+	}
+
+	// return if it's something else
+	if err != nil {
+		return err
+	}
+
+	// now the klient is connected again, stop the timer and remove it from the
+	// list of inactive machines if it's still there.
+	p.Provider.stopTimer(p.Machine)
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
@@ -134,7 +155,7 @@ func (p *PlanChecker) Timeout() error {
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
 
-	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+	p.Log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// It still have plenty of time to work, do not stop it

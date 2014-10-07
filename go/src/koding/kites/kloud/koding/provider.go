@@ -2,6 +2,8 @@ package koding
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"koding/db/mongodb"
 
@@ -68,6 +70,12 @@ type Provider struct {
 	// A set of connected, ready to use klients
 	KlientPool *klient.KlientPool
 
+	// A set of machines that defines machines who's klient kites are not
+	// running. The timer is used to stop the machines after 30 minutes
+	// inactivity.
+	InactiveMachines   map[string]*time.Timer
+	InactiveMachinesMu sync.Mutex
+
 	PlanChecker func(*protocol.Machine) (Checker, error)
 	PlanFetcher func(*protocol.Machine) (Plan, error)
 }
@@ -118,21 +126,56 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := a.Start(true)
+	infoResp, err := a.Info()
 	if err != nil {
 		return nil, err
 	}
 
-	a.Push("Initializing domain instance", 65, machinestate.Starting)
-	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		return nil, err
+	artifact := &protocol.Artifact{
+		IpAddress: m.IpAddress,
 	}
 
-	a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
-		m.Id, m.Domain.Name, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-		return nil, err
+	if i, ok := m.Builder["instanceId"]; ok {
+		if instanceId, ok := i.(string); ok {
+			artifact.InstanceId = instanceId
+		}
 	}
+
+	a.Push("Starting machine", 10, machinestate.Starting)
+
+	// if the current db state is stopped but the machine is actually running,
+	// that means klient is not running. For this case we restart the machine
+	if infoResp.State == machinestate.Running && m.State == machinestate.Stopped {
+		// ip doesn't change when we do a reboot
+		a.Log.Warning("[%s] machine is running but klient is not functional. Rebooting the machine instead of starting it.",
+			m.Id)
+
+		a.Push("Restarting machine", 30, machinestate.Starting)
+		err = a.Restart(false)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		artifact, err = a.Start(true)
+		if err != nil {
+			return nil, err
+		}
+
+		a.Push("Initializing domain instance", 65, machinestate.Starting)
+		if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
+			return nil, err
+		}
+
+		a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+			m.Id, m.Domain.Name, artifact.InstanceId)
+		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
+			return nil, err
+		}
+	}
+
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
 
 	artifact.DomainName = m.Domain.Name
 
@@ -168,6 +211,10 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	return nil
 }
 
@@ -177,7 +224,7 @@ func (p *Provider) Restart(m *protocol.Machine) error {
 		return err
 	}
 
-	return a.Restart()
+	return a.Restart(false)
 }
 
 func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -238,6 +285,61 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	return nil
 
+}
+
+// stopTimer stops the inactive timeout timer for the given queryString
+func (p *Provider) stopTimer(m *protocol.Machine) {
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.InactiveMachinesMu.Lock()
+	if timer, ok := p.InactiveMachines[m.QueryString]; ok {
+		p.Log.Info("[%s] stopping inactive machine timer %s", m.Id, m.QueryString)
+		timer.Stop()
+		p.InactiveMachines[m.QueryString] = nil // garbage collect
+		delete(p.InactiveMachines, m.QueryString)
+	}
+	p.InactiveMachinesMu.Unlock()
+}
+
+// startTimer starts the inactive timeout timer for the given queryString. It
+// stops the machine after 5 minutes.
+func (p *Provider) startTimer(m *protocol.Machine) {
+	p.InactiveMachinesMu.Lock()
+	_, ok := p.InactiveMachines[m.QueryString]
+	p.InactiveMachinesMu.Unlock()
+	if ok {
+		// just return, because it's already in the map so it will be expired
+		// with the function below
+		return
+	}
+
+	p.Log.Info("[%s] klient is not running, adding machine to list of inactive machines.", m.Id)
+	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*5, func() {
+		p.Log.Info("[%s] stopping machine after five minutes klient disconnection.", m.Id)
+
+		p.Lock(m.Id)
+		defer p.Unlock(m.Id)
+
+		// mark our state as stopping so others know what we are doing
+		p.UpdateState(m.Id, machinestate.Stopping)
+
+		// Hasta la vista, baby!
+		if err := p.Stop(m); err != nil {
+			p.Log.Warning("[%s] could not stop ghost machine %s", m.Id, err)
+		}
+
+		// update to final state too
+		p.UpdateState(m.Id, machinestate.Stopped)
+
+		// we don't need it anymore
+		p.InactiveMachinesMu.Lock()
+		delete(p.InactiveMachines, m.QueryString)
+		p.InactiveMachinesMu.Unlock()
+	})
 }
