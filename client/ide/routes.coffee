@@ -57,10 +57,10 @@ do ->
       fallback()
 
 
-  routeToLatestWorkspace = ->
+  putVMInWorkspace = (machine)->
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
-    machine         = KD.userMachines.first
+
     machineLabel    = machine?.slug or machine?.label or ''
     workspaceSlug   = 'my-workspace'
 
@@ -69,6 +69,19 @@ do ->
         {machineLabel, workspaceSlug} = latestWorkspace
 
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+
+
+  routeToLatestWorkspace = ->
+    machine = KD.userMachines.first
+
+    if machine?
+      return putVMInWorkspace machine
+
+    KD.singletons.computeController.fetchMachines (err,  machines)->
+      if err or not machines.length
+        KD.getSingleton('router').handleRoute "/Activity"
+
+      putVMInWorkspace machines.first
 
 
   KD.registerRoutes 'IDE',
