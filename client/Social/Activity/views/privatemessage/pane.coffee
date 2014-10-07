@@ -21,11 +21,13 @@ class PrivateMessagePane extends MessagePane
     @createParticipantsView()
     @createAddParticipantForm()
 
+    @on 'ListPopulated', =>
+      KD.utils.defer @bound 'scrollDown'
+      KD.utils.wait 300, =>
+        @unsetClass 'translucent'
+        @input.input.setPlaceholder ''
+        @scrollDown()
 
-    # unfortunately until we make the listview
-    # more performant we need such hacks - SY
-    @on 'ListPopulated', ->
-      document.body.scrollTop = document.body.scrollHeight
 
     @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
     @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
@@ -34,26 +36,20 @@ class PrivateMessagePane extends MessagePane
     KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
 
 
-  handleScroll: do ->
 
-    previous = 0
 
-    KD.utils.throttle ->
-      current = document.body.scrollTop
-      @listPreviousReplies()  if current < 20 and current < previous
-      previous = current
-    , 200
 
 
   setScrollTops: ->
 
-    @lastScrollTops.body   = document.body.scrollTop or document.body.scrollHeight
+    {body} = document
+    @lastScrollTops.body = body.scrollTop or body.scrollHeight
 
 
   applyScrollTops: ->
 
-    KD.utils.defer =>
-      document.body.scrollTop = @lastScrollTops.body
+    {body} = document
+    body.scrollTop = @lastScrollTops.body
 
 
   replaceFakeItemView: (message) ->
@@ -230,8 +226,8 @@ class PrivateMessagePane extends MessagePane
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
     @appendMessage item
-    if i is total - 1
-      KD.utils.wait 50, => @emit 'ListPopulated'
+    @emit 'ListPopulated'  if i is total - 1
+
 
 
   populate: ->
