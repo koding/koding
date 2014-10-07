@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"koding/db/mongodb"
 	"strconv"
+	"sync"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -52,6 +54,12 @@ type PlanChecker struct {
 	Kite     *kite.Kite
 	Username string
 	Log      logging.Logger
+
+	// A set of machines that defines machines who's klient kites are not
+	// running. The timer is used to stop the machines after 30 minutes
+	// inactivity.
+	InactiveMachines   map[string]*time.Timer
+	InactiveMachiensMu sync.Mutex
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
@@ -110,9 +118,40 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
+	stopMachine := func() error {
+		// lock so it doesn't interfere with others.
+		p.Provider.Lock(p.Machine.Id)
+		defer p.Provider.Unlock(p.Machine.Id)
+
+		// mark our state as stopping so others know what we are doing
+		p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
+
+		// Hasta la vista, baby!
+		err := p.Provider.Stop(p.Machine)
+		if err != nil {
+			return err
+		}
+
+		// update to final state too
+		return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
+	}
+
 	// connect and get real time data directly from the machines klient
 	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
 	if err != nil {
+		p.InactiveMachiensMu.Lock()
+		defer p.InactiveMachiensMu.Unlock()
+
+		_, ok := p.InactiveMachines[p.Machine.QueryString]
+		if !ok {
+			p.InactiveMachines[p.Machine.QueryString] = time.AfterFunc(time.Minute*5, func() {
+				if err := stopMachine(); err != nil {
+					p.Log.Warning("[%s] could not stop ghost machine %s", p.Machine.Id, err)
+
+				}
+			})
+		}
+
 		return err
 	}
 
@@ -145,21 +184,7 @@ func (p *PlanChecker) Timeout() error {
 	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
-	// lock so it doesn't interfere with others.
-	p.Provider.Lock(p.Machine.Id)
-	defer p.Provider.Unlock(p.Machine.Id)
-
-	// mark our state as stopping so others know what we are doing
-	p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
-
-	// Hasta la vista, baby!
-	err = p.Provider.Stop(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	// update to final state too
-	return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
+	return stopMachine()
 }
 
 func (p *PlanChecker) Total() error {
