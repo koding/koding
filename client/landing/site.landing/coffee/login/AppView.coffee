@@ -155,45 +155,6 @@ module.exports = class LoginView extends JView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
-    setValue = (field, value)=>
-      @registerForm[field]?.input?.setValue value
-      @registerForm[field]?.placeholder?.setClass 'out'
-
-    mainController = KD.getSingleton "mainController"
-    mainController.on "ForeignAuthCompleted", (provider)=>
-      isUserLoggedIn = KD.isLoggedIn()
-      params = {isUserLoggedIn, provider}
-
-      @doOAuth params, (err, resp)=>
-        return KDNotificationView msg: err  if err
-
-        {account, replacementToken, isNewUser, userInfo} = resp
-        if isNewUser
-          KD.getSingleton('router').handleRoute '/Register'
-          @animateToForm "register"
-          for own field, value of userInfo
-            setValue field, value
-
-        else
-          if isUserLoggedIn
-            mainController.emit "ForeignAuthSuccess.#{provider}"
-            new KDNotificationView
-              title : "Your #{provider.capitalize()} account has been linked."
-              type  : "mini"
-
-          else
-            location.replace "/"
-
-
-  doOAuth: (params, callback)->
-    $.ajax
-      url         : '/OAuth'
-      data        : params
-      type        : 'POST'
-      xhrFields   : withCredentials : yes
-      success     : (resp)-> callback null, resp
-      error       : (err)-> callback err
-
 
   viewAppended:->
 
