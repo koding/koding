@@ -134,9 +134,6 @@ class PrivateMessagePane extends MessagePane
     @appendMessage message, index or @listController.getItemCount()
 
 
-  loadMessage: (message) -> @appendMessage message, 0
-
-
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
 
 
@@ -148,22 +145,29 @@ class PrivateMessagePane extends MessagePane
 
       return  if inProgress
 
-      inProgress = true
-
+      inProgress   = true
       {appManager} = KD.singletons
-      first         = @listController.getItemsOrdered().first
+      {first}      = @listController.getListItems()
+      {body}       = document
+
       return  unless first
 
-      from         = first.getData().createdAt
+      from = first.getData().createdAt
 
       @listPreviousLink.updatePartial 'Fetching previous messages...'
 
-      @fetch {from, limit: 10}, (err, items = []) =>
-        @listPreviousLink.updatePartial 'Pull or click here to view more'
+      @fetch {from, limit: 100}, (err, items = []) =>
 
         return KD.showError err  if err
 
-        items.forEach @lazyBound 'loadMessage'
+        items.forEach (item, i) =>
+          {scrollHeight} = body
+          @appendMessage item, 0
+          body.scrollTop += body.scrollHeight - scrollHeight
+
+        if items.length is 0
+        then @listPreviousLink.hide()
+        else @listPreviousLink.updatePartial 'Pull or click here to view more'
 
         inProgress = false
 
