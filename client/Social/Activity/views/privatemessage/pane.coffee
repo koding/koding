@@ -35,9 +35,13 @@ class PrivateMessagePane extends MessagePane
     list.on 'EditMessageReset', @input.bound 'focus'
 
     @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
+    @on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
 
 
+  handleFocus: ->
 
+    {focused} = KD.singletons.windowController
+    @glance()  if focused and @active and @isPageAtBottom()
 
 
 
