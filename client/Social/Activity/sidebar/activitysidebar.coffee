@@ -224,7 +224,7 @@ class ActivitySidebar extends KDCustomHTMLView
     # should be added into list
     @replyAdded data  unless item
 
-    @setUnreadCount item, data, count
+    @setUnreadCount item, data, unreadCount
 
 
   getItems: ->
