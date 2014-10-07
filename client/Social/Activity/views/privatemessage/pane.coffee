@@ -28,10 +28,11 @@ class PrivateMessagePane extends MessagePane
         @input.input.setPlaceholder ''
         @scrollDown()
 
+    list = @listController.getListView()
 
-    @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
-    @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
-    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+    list.on 'ItemWasAdded',     @bound 'messageAdded'
+    list.on 'ItemWasRemoved',   @bound 'messageRemoved'
+    list.on 'EditMessageReset', @input.bound 'focus'
 
     KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
 
@@ -54,7 +55,7 @@ class PrivateMessagePane extends MessagePane
 
   replaceFakeItemView: (message) ->
     index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item = @putMessage message, index
+    item  = @putMessage message, index
     @removeFakeMessage message.clientRequestId
     @scrollDown item
 
@@ -114,8 +115,13 @@ class PrivateMessagePane extends MessagePane
 
     super channel
 
+    channel.on 'AddedToChannel', @bound 'addParticipant'
 
 
+
+
+
+  # this is the realtime event handler for messages
   addMessage: (message) ->
 
     return  if message.account._id is KD.whoami()._id
