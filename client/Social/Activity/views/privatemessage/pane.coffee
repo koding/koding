@@ -249,6 +249,9 @@ class PrivateMessagePane extends MessagePane
 
   populate: ->
 
+    @setClass 'translucent'
+    @input.input.setPlaceholder 'Loading...'
+
     super =>
 
       listView = @listController.getView()
