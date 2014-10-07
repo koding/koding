@@ -3,7 +3,7 @@ IDE
  
 Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately or have a look around the code base.
 
-### The live version [**here**](https://koding.com/IDE).
+### Try the live version [**here**](https://koding.com/IDE).
 
 ![IDE](https://koding.com/a/site.landing/images/slideshow/ss-ide-collapsed.png)
 
