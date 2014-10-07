@@ -30,6 +30,7 @@ services=(
   koding/workers/guestcleanerworker
   socialapi/workers/api
   github.com/skelterjohn/rerun
+  koding/go-webserver
 )
 
 

@@ -397,6 +397,10 @@ class ActivitySidebar extends KDCustomHTMLView
     treeData = []
 
     for machine in machines
+
+      unless machine?.bongo_?.constructorName is 'JMachine'
+        machine = machine.getData()
+
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
