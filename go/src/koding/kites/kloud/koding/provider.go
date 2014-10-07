@@ -2,6 +2,8 @@ package koding
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"koding/db/mongodb"
 
@@ -67,6 +69,12 @@ type Provider struct {
 
 	// A set of connected, ready to use klients
 	KlientPool *klient.KlientPool
+
+	// A set of machines that defines machines who's klient kites are not
+	// running. The timer is used to stop the machines after 30 minutes
+	// inactivity.
+	InactiveMachines   map[string]*time.Timer
+	InactiveMachinesMu sync.Mutex
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
 	PlanFetcher func(*protocol.Machine) (Plan, error)
