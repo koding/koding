@@ -35,6 +35,8 @@ class ActivityAppView extends KDView
 
   lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
 
+  topLazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'TopLazyLoadThresholdReached'
+
 
   viewAppended: ->
 

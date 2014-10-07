@@ -98,22 +98,19 @@ body.activity
     .announcement-pane .kdtabhandlecontainer.filters
         height          auto
 
-    .message-pane > .listview-wrapper
+    .message-pane > .kdlistview
       margin-top        34px
 
-    .message-pane > .activity-input-widget + .listview-wrapper
+    .message-pane > .activity-input-widget + .kdlistview
       margin-top        0
 
-    .message-pane.privatemessage > .listview-wrapper
+    .message-pane.privatemessage > .kdlistview-privatemessage
       margin-top        0
 
       &.padded
         height            auto
         abs               0 0 0px 34px
         kalc              width (100%\-34px)
-
-        .kdscrollview
-          height          auto
 
     .channel-title
       font-size         18px
