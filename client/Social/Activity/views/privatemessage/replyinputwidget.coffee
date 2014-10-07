@@ -16,7 +16,7 @@ class ReplyInputWidget extends ActivityInputWidget
     @input.on 'Enter',  @bound 'submit'
     @input.on 'keyup', (event) =>
       @showPreview() if @preview #Updates preview if it exists
-      if event.keyCode is 38 and @input.getValue().trim() is ''
+      if event.keyCode is 38 and not event.altKey and @input.getValue().trim() is ''
         @emit 'EditModeRequested'
 
     @on 'SubmitStarted', => KD.utils.defer @bound 'focus'
