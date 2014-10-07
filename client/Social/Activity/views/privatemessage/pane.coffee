@@ -120,8 +120,11 @@ class PrivateMessagePane extends MessagePane
 
     return  if message.account._id is KD.whoami()._id
 
+    wasAtBottom = @isPageAtBottom()
     item = @prependMessage message, @listController.getItemCount()
-    @scrollDown item
+
+    @scrollDown item  if wasAtBottom
+
 
 
   prependMessage: (message, index) ->
