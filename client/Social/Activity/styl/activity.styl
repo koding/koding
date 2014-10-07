@@ -360,17 +360,17 @@ body.activity
     .user-numbers
       float           none
 
-.kdmodal.topic-search
+.kdmodal.sidebar-white-modal
   .lazy-loader
     text-align        center
     margin            22px 0
 
   .kdmodal-inner
-    margin            22px 30px
+    margin            22px 15px 22px 30px
 
   .kdmodal-title
     padding           0 0 16px !important
-    margin            0 0 19px
+    margin            0 15px 19px 0
     border-bottom     1px solid #F1F1F1 !important
 
     span.title
@@ -383,7 +383,9 @@ body.activity
     margin            0 !important
 
   .search-input
-    size              100%, 35px
+    height            35px
+    width             calc(100% \- 15px)
+    margin-right      15px
     background        #fdfdfd
     border            1px solid #D5D5D5
     rounded           3px
@@ -401,12 +403,19 @@ body.activity
       opacity         .99
 
   .search-input + cite.search-icon
-    abs               9px, 9px
+    abs               9px 24px
+
+  .listview-wrapper
+    styleScrollBars   rgba(0,0,0,.15)
+
+  .kdcustomscrollview
+    margin            20px 0
+    padding-right     15px
+
+  .kdscrollview
+    height            400px
 
   .topics-list
-    margin            26px 0 0
-    padding           0 0 20px
-    border-bottom     1px solid #F1F1F1
 
     .nothing
       font-size       12px
@@ -420,6 +429,8 @@ body.activity
       color           #575757
       line-height     25px
       display         block
+      border-bottom   1px solid #efefef
+      padding         5px 0
       noTextDeco()
 
       .participant-count
@@ -433,7 +444,7 @@ body.activity
       .count
         display       none
 
-      .topic-follow-btn
+      .kdbutton
         size          auto, 23px
         background    #61C17F
         padding       0 10px
@@ -457,7 +468,7 @@ body.activity
           border      none !important
 
   .tag-description
-    padding           15px 0 0
+    margin-right      15px
     line-height       17px
     font-size         12px
     color             #BDBDBD
@@ -569,7 +580,7 @@ body.activity
     .topics-list
       max-height      310px
 
-.kdmodal.chat-search.sidebar-dark-modal
+.kdmodal.chat-search
 
   .listview-wrapper .kdlistitemview-sidebar-item
     height            23px
@@ -578,26 +589,13 @@ body.activity
     hidden()
 
   .kdbutton.leave-channel
-    size            auto, 23px
-    background      #686868
-    padding         0 10px
-    fr()
-
-    .button-title
-      display       inline
-      visibility    visible
-      color         #fff
-      font-size     14px
-      font-weight   600
-
-    .icon
-      display       none
+    background      #686868 !important
 
     &:hover
       border        none !important
 
   .sidebar-message-text
-    width           155px
+    width           80%
     overflow        hidden
     ellipsis()
     fl()
@@ -2694,7 +2692,6 @@ dropdownBorder = 1px solid #E0E0E0
   rounded           0
   shadow            dropdownShadow
   margin-top        0
-  top               100px !important
   fix()
 
   .kdautocompletelistitem

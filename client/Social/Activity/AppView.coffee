@@ -193,10 +193,7 @@ class ActivityAppView extends KDView
 
   showMoreModal: ({modalClass, moreLink}) ->
 
-    modal      = new modalClass
-      delegate : this
-      width    : 271
-      position : @getModalArrowPosition moreLink
+    modal = new modalClass { delegate : this }
 
     modal.addSubView new KDCustomHTMLView
       cssClass : 'arrow'
