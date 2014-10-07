@@ -142,6 +142,10 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	artifact.DomainName = m.Domain.Name
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
@@ -175,6 +179,10 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
+
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
 
 	return nil
 }
@@ -246,6 +254,61 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	return nil
 
+}
+
+// stopTimer stops the inactive timeout timer for the given queryString
+func (p *Provider) stopTimer(m *protocol.Machine) {
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.InactiveMachinesMu.Lock()
+	if timer, ok := p.InactiveMachines[m.QueryString]; ok {
+		p.Log.Info("[%s] stopping inactive machine timer %s", m.Id, m.QueryString)
+		timer.Stop()
+		p.InactiveMachines[m.QueryString] = nil // garbage collect
+		delete(p.InactiveMachines, m.QueryString)
+	}
+	p.InactiveMachinesMu.Unlock()
+}
+
+// startTimer starts the inactive timeout timer for the given queryString. It
+// stops the machine after 5 minutes.
+func (p *Provider) startTimer(m *protocol.Machine) {
+	p.InactiveMachinesMu.Lock()
+	_, ok := p.InactiveMachines[m.QueryString]
+	p.InactiveMachinesMu.Unlock()
+	if ok {
+		// just return, because it's already in the map so it will be expired
+		// with the function below
+		return
+	}
+
+	p.Log.Info("[%s] klient is not running, adding machine to list of inactive machines.", m.Id)
+	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*5, func() {
+		p.Log.Info("[%s] stopping machine after five minutes klient disconnection.", m.Id)
+
+		p.Lock(m.Id)
+		defer p.Unlock(m.Id)
+
+		// mark our state as stopping so others know what we are doing
+		p.UpdateState(m.Id, machinestate.Stopping)
+
+		// Hasta la vista, baby!
+		if err := p.Stop(m); err != nil {
+			p.Log.Warning("[%s] could not stop ghost machine %s", m.Id, err)
+		}
+
+		// update to final state too
+		p.UpdateState(m.Id, machinestate.Stopped)
+
+		// we don't need it anymore
+		p.InactiveMachinesMu.Lock()
+		delete(p.InactiveMachines, m.QueryString)
+		p.InactiveMachinesMu.Unlock()
+	})
 }

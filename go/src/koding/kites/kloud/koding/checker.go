@@ -1,10 +1,10 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb"
 	"strconv"
-	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -111,50 +111,20 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
-	// capture it into a closure so we can use it twice
-	stopMachine := func() error {
-		// lock so it doesn't interfere with others.
-		p.Provider.Lock(p.Machine.Id)
-		defer p.Provider.Unlock(p.Machine.Id)
+	// check aws to see if it's still running
+	infoResp, err := p.Provider.Info(p.Machine)
+	if err != nil {
+		return err
+	}
 
-		// mark our state as stopping so others know what we are doing
-		p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
-
-		// Hasta la vista, baby!
-		err := p.Provider.Stop(p.Machine)
-		if err != nil {
-			return err
-		}
-
-		// update to final state too
-		return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
+	if infoResp.State != machinestate.Running {
+		return errors.New("machine is not running")
 	}
 
 	// connect and get real time data directly from the machines klient
 	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
 	if err == kite.ErrNoKitesAvailable {
-		p.Provider.InactiveMachinesMu.Lock()
-		_, ok := p.Provider.InactiveMachines[p.Machine.QueryString]
-		p.Provider.InactiveMachinesMu.Unlock()
-		if ok {
-			// no need to return an error, because it's already in the map so
-			// it will be expired with the function below
-			return nil
-		}
-
-		p.Log.Info("[%s] klient is not running, adding machine to list of inactive machines.", p.Machine.Id)
-		p.Provider.InactiveMachines[p.Machine.QueryString] = time.AfterFunc(time.Minute*5, func() {
-			p.Log.Info("[%s] stopping machine after five minutes klient disconnection.", p.Machine.Id)
-			if err := stopMachine(); err != nil {
-				p.Log.Warning("[%s] could not stop ghost machine %s", p.Machine.Id, err)
-			}
-
-			// we don't need it anymore
-			p.Provider.InactiveMachinesMu.Lock()
-			delete(p.Provider.InactiveMachines, p.Machine.QueryString)
-			p.Provider.InactiveMachinesMu.Unlock()
-		})
-
+		p.Provider.startTimer(p.Machine)
 		return err
 	}
 
@@ -165,13 +135,7 @@ func (p *PlanChecker) Timeout() error {
 
 	// now the klient is connected again, stop the timer and remove it from the
 	// list of inactive machines if it's still there.
-	p.Provider.InactiveMachinesMu.Lock()
-	if timer, ok := p.Provider.InactiveMachines[p.Machine.QueryString]; ok {
-		timer.Stop()
-		p.Provider.InactiveMachines[p.Machine.QueryString] = nil // garbage collect
-		delete(p.Provider.InactiveMachines, p.Machine.QueryString)
-	}
-	p.Provider.InactiveMachinesMu.Unlock()
+	p.Provider.stopTimer(p.Machine)
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
@@ -191,7 +155,7 @@ func (p *PlanChecker) Timeout() error {
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
 
-	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+	p.Log.Info("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
 	// It still have plenty of time to work, do not stop it
@@ -202,7 +166,21 @@ func (p *PlanChecker) Timeout() error {
 	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
 
-	return stopMachine()
+	// lock so it doesn't interfere with others.
+	p.Provider.Lock(p.Machine.Id)
+	defer p.Provider.Unlock(p.Machine.Id)
+
+	// mark our state as stopping so others know what we are doing
+	p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
+
+	// Hasta la vista, baby!
+	err = p.Provider.Stop(p.Machine)
+	if err != nil {
+		return err
+	}
+
+	// update to final state too
+	return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
 }
 
 func (p *PlanChecker) Total() error {
