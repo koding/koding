@@ -78,7 +78,7 @@ do ->
 
     KD.singletons.computeController.fetchMachines (err,  machines)->
       if err or not machines.length
-        KD.getSingleton('router').handleRoute "/IDE/invalid-machine-label/empty"
+        KD.getSingleton('router').handleRoute "/IDE/invalid-machine-slug/any-workspace-name"
 
       putVMInWorkspace machines.first
 
