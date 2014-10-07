@@ -360,7 +360,7 @@ body.activity
     .user-numbers
       float           none
 
-.kdmodal.topic-search
+.kdmodal.sidebar-white-modal
   .lazy-loader
     text-align        center
     margin            22px 0
@@ -429,6 +429,8 @@ body.activity
       color           #575757
       line-height     25px
       display         block
+      border-bottom   1px solid #efefef
+      padding         5px 0
       noTextDeco()
 
       .participant-count
@@ -442,7 +444,7 @@ body.activity
       .count
         display       none
 
-      .topic-follow-btn
+      .kdbutton
         size          auto, 23px
         background    #61C17F
         padding       0 10px
@@ -466,9 +468,7 @@ body.activity
           border      none !important
 
   .tag-description
-    border-top        1px solid #F1F1F1
     margin-right      15px
-    padding           15px 0 0
     line-height       17px
     font-size         12px
     color             #BDBDBD
@@ -580,7 +580,7 @@ body.activity
     .topics-list
       max-height      310px
 
-.kdmodal.chat-search.sidebar-dark-modal
+.kdmodal.chat-search
 
   .listview-wrapper .kdlistitemview-sidebar-item
     height            23px
@@ -589,26 +589,13 @@ body.activity
     hidden()
 
   .kdbutton.leave-channel
-    size            auto, 23px
-    background      #686868
-    padding         0 10px
-    fr()
-
-    .button-title
-      display       inline
-      visibility    visible
-      color         #fff
-      font-size     14px
-      font-weight   600
-
-    .icon
-      display       none
+    background      #686868 !important
 
     &:hover
       border        none !important
 
   .sidebar-message-text
-    width           155px
+    width           80%
     overflow        hidden
     ellipsis()
     fl()
