@@ -1,14 +1,6 @@
 class PrivateMessagePane extends MessagePane
 
-  TEST_MODE        = on
-  INTERACTIVE_MODE = off
-  lastQuestion     = null
-  isFromBot        = (message, callback) ->
-    {_id} = message.account
-    KD.remote.cacheable 'JAccount', _id, (err, {profile})->
-      {nickname} = profile
-      callback nickname in ['kodingbot', 'kbot']
-
+  TEST_MODE = on
 
   constructor: (options = {}, data) ->
 
@@ -33,7 +25,6 @@ class PrivateMessagePane extends MessagePane
     @createParticipantsView()
     @createAddParticipantForm()
 
-    @kodingBot = new KodingBot delegate : this
 
     # unfortunately until we make the listview
     # more performant we need such hacks - SY
@@ -110,7 +101,6 @@ class PrivateMessagePane extends MessagePane
     return  unless value
 
     @applyTestPatterns value  if TEST_MODE
-    @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     super value, clientRequestId
     @input.empty()
@@ -126,24 +116,12 @@ class PrivateMessagePane extends MessagePane
       PrivateMessageLoadTest.analyze this
 
 
-  applyInteractiveResponse: (value) ->
-
-    if lastQuestion
-      message = lastQuestion.getData()
-      @kodingBot.process message, value
-
-
-    @setResponseMode off
-
-
   bindChannelEvents: (channel) ->
 
     return  unless channel
 
     super channel
 
-    channel
-      .on 'AddedToChannel', @bound 'addParticipant'
 
 
   addMessage: (message) ->
@@ -151,7 +129,6 @@ class PrivateMessagePane extends MessagePane
     return  if message.account._id is KD.whoami()._id
 
     item = @prependMessage message, @listController.getItemCount()
-    isFromBot message, @bound 'setResponseMode'
     @scrollDown item
 
 
@@ -163,14 +140,6 @@ class PrivateMessagePane extends MessagePane
   putMessage: (message, index) ->
 
     @appendMessage message, index or @listController.getItemCount()
-
-
-  setResponseMode: (mode) ->
-
-    if mode is on
-      lastQuestion = @listController.getListItems().last
-
-    INTERACTIVE_MODE = mode
 
 
   loadMessage: (message) -> @appendMessage message, 0
