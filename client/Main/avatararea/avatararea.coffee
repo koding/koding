@@ -30,23 +30,41 @@ class AvatarArea extends KDCustomHTMLView
         testpath : 'AvatarAreaIconLink'
       delegate   : @groupSwitcherPopup
 
+    @notificationsPopup = new PopupNotifications
+      cssClass : "notification-lister"
+
+    @notificationsIcon = new AvatarAreaIconLink
+      cssClass   : 'notifications acc-dropdown-icon'
+      attributes :
+        title    : 'Notifications'
+      delegate   : @notificationsPopup
+
     @once 'viewAppended', =>
       mainView = KD.getSingleton 'mainView'
       mainView.addSubView @groupSwitcherPopup
+      mainView.addSubView @notificationsPopup
       @groupSwitcherPopup.listControllerPending.on 'PendingGroupsCountDidChange', (count)=>
         if count > 0
         then @groupSwitcherPopup.invitesHeader.show()
         else @groupSwitcherPopup.invitesHeader.hide()
         @groupsSwitcherIcon.updateCount count
 
+      @attachListeners()
+
     KD.getSingleton('mainController').on 'accountChanged', =>
       @groupSwitcherPopup.listController.removeAllItems()
+
 
       # Commenting out these lines because of
       # removal of the groups links from avatar popup. ~Umut
       # @groupSwitcherPopup.populateGroups()
       # @groupSwitcherPopup.populatePendingGroups()
 
+  attachListeners:->
+
+    @notificationsPopup.on 'NotificationCountDidChange', (count)=>
+      @utils.killWait @notificationsPopup.loaderTimeout
+      @notificationsIcon.updateCount count
 
   pistachio: ->
 
@@ -56,5 +74,6 @@ class AvatarArea extends KDCustomHTMLView
     {{> @avatar}}
     <a class='profile' href='/#{profile.nickname}' title='Your profile'>#{profile.firstName}</a>
     {{> @groupsSwitcherIcon}}
+    {{> @notificationsIcon}}
     """
 
