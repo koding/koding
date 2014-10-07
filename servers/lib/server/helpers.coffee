@@ -124,20 +124,15 @@ serveHome = (req, res, next) ->
 
 
 isLoggedIn = (req, res, callback)->
-  {JName} = koding.models
   findUsernameFromSession req, res, (err, isLoggedIn, username)->
     return callback null, no, {}  unless username
-    JName.fetchModels username, (err, result)->
-      return callback null, no, {}  unless result?
 
-      { models } = result
+    {JAccount} = koding.models
+    JAccount.one {"profile.nickname" : username}, (err, account)->
+      if err or not account or account.type is 'unregistered'
+        return callback err, no, account
+      return callback null, yes, account
 
-      return callback null, no, {}  if err or not models?.first
-      user = models.last
-      user.fetchAccount "koding", (err, account)->
-        if err or not account or account.type is 'unregistered'
-          return callback err, no, account
-        return callback null, yes, account
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   {JSession}                       = koding.models
