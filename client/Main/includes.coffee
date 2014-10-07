@@ -240,6 +240,7 @@ module.exports = [
   "avatararea/avatarareaiconlink.coffee",
 
   # notifications
+  "notifications/popupnotifications.coffee",
   "notifications/notificationlistcontroller.coffee",
 
   "maincontroller/groupdata.coffee",
