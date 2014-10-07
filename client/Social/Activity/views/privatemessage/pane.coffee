@@ -34,7 +34,7 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
-    KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
+    @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
 
 
 
