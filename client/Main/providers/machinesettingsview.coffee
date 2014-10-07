@@ -157,7 +157,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           cssClass     : "tiny"
           callback     : (state) => @emit 'AlwaysOnStateChange', state
         domains        :
-          label        : "Domains <span></span>"
+          label        : "Domains <span class='domain-toggle'></span>"
           itemClass    : ManageDomainsView
           machine      : @machine
         advancedView   :
@@ -171,11 +171,23 @@ class MachineSettingsPopup extends KDModalViewWithForms
       label.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
+    {input} = domains
     {label} = domains.getOptions()
 
-    label.on 'click', ->
+    label.on 'click', (event)->
+      return  unless $(event.target).hasClass 'domain-toggle'
+
       label.toggleClass 'expanded'
-      domains.input.toggleClass 'hidden'
+      input.toggleClass 'hidden'
+
+      windowController.addLayer input
+      input.setFocus()
+
+      input.once "ReceivedClickElsewhere", (event)->
+        return  if $(event.target).hasClass 'domain-toggle'
+        label.unsetClass 'expanded'
+        input.hide()
+
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'

@@ -8,10 +8,11 @@ class ManageDomainsView extends KDView
 
     {@machine} = @getOptions()
 
-    @addSubView @input = new KDHitEnterInputView
-      type       : 'text'
-      attributes : spellcheck: false
-      callback   : => @emit 'AddDomain'
+    @addSubView @input  = new KDHitEnterInputView
+      type              : 'text'
+      attributes        : spellcheck: false
+      callback          : => @emit 'AddDomain'
+
 
     @domainController   = new KDListViewController
       viewOptions       :

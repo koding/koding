@@ -588,13 +588,29 @@ div.nominateicon
           padding         0 0 9px 2px
 
     &.domains
+
+      label.kdlabel
+
+        span
+          top             2px
+          left            2px
+          position        relative
+          display         inline-block
+          r-sprite        app 'add-12'
+          cursor          pointer
+
+        &.expanded
+          span
+            r-sprite      app 'cancel-12'
+
       .input-wrapper
         width             100%
 
         input
-          padding           0 0 0 2px
+          padding           0 0 0 6px
           width             100%
-          top               -3px
+          top               -1px
+
 
     &.specs
       label.kdlabel
@@ -661,22 +677,6 @@ div.nominateicon
 
     &.button-field
       margin              0 !important
-
-    &.domains
-
-      label.kdlabel
-
-        span
-          top             2px
-          left            2px
-          position        relative
-          display         inline-block
-          r-sprite        app 'add-12'
-          cursor          pointer
-
-        &.expanded
-          span
-            r-sprite      app 'cancel-12'
 
 
   .domains-view
