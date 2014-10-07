@@ -1,28 +1,15 @@
 class PrivateMessagePane extends MessagePane
 
-  TEST_MODE        = on
-  INTERACTIVE_MODE = off
-  lastQuestion     = null
-  isFromBot        = (message, callback) ->
-    {_id} = message.account
-    KD.remote.cacheable 'JAccount', _id, (err, {profile})->
-      {nickname} = profile
-      callback nickname in ['kodingbot', 'kbot']
-
+  TEST_MODE = on
 
   constructor: (options = {}, data) ->
 
-    options.wrapper      ?= yes
     options.lastToFirst   = yes
+    options.scrollView    = no
     options.itemClass   or= PrivateMessageListItemView
 
     super options, data
 
-    @listPreviousLink = new ReplyPreviousLink
-      delegate : @listController
-      click    : @bound 'listPreviousReplies'
-      linkCopy : 'Show previous replies'
-    , data
 
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
@@ -30,48 +17,56 @@ class PrivateMessagePane extends MessagePane
     # once.
     @participantMap = {}
 
+    @createPreviousLink()
     @createParticipantsView()
     @createAddParticipantForm()
 
-    @kodingBot = new KodingBot delegate : this
+    @on 'ListPopulated', =>
+      KD.utils.defer @bound 'scrollDown'
+      KD.utils.wait 300, =>
+        @unsetClass 'translucent'
+        @input.input.setPlaceholder ''
+        @scrollDown()
 
-    # unfortunately until we make the listview
-    # more performant we need such hacks - SY
-    @on 'ListPopulated', ->
-      document.body.scrollTop = document.body.scrollHeight
+    list = @listController.getListView()
 
-    @listController.getListView().on 'ItemWasAdded', @bound 'messageAdded'
-    @listController.getListView().on 'ItemWasRemoved', @bound 'messageRemoved'
-    @listController.getListView().on 'EditMessageReset', @input.bound 'focus'
+    list.on 'ItemWasAdded',     @bound 'messageAdded'
+    list.on 'ItemWasRemoved',   @bound 'messageRemoved'
+    list.on 'EditMessageReset', @input.bound 'focus'
 
-    KD.singleton('windowController').on 'ScrollHappened', @bound 'handleScroll'
+    @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
+    @on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
 
 
-  handleScroll: do ->
+  handleFocus: ->
 
-    previous = 0
+    {focused} = KD.singletons.windowController
+    @glance()  if focused and @active and @isPageAtBottom()
 
-    KD.utils.throttle ->
-      current = document.body.scrollTop
-      @listPreviousReplies()  if current < 20 and current < previous
-      previous = current
-    , 200
+
+  glance: ->
+
+    super
+
+    @newMessages?.destroy()
+    @newMessages = null
 
 
   setScrollTops: ->
 
-    @lastScrollTops.body   = document.body.scrollTop or document.body.scrollHeight
+    {body} = document
+    @lastScrollTops.body = body.scrollTop or body.scrollHeight
 
 
   applyScrollTops: ->
 
-    KD.utils.defer =>
-      document.body.scrollTop = @lastScrollTops.body
+    {body} = document
+    body.scrollTop = @lastScrollTops.body
 
 
   replaceFakeItemView: (message) ->
     index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item = @putMessage message, index
+    item  = @putMessage message, index
     @removeFakeMessage message.clientRequestId
     @scrollDown item
 
@@ -110,7 +105,6 @@ class PrivateMessagePane extends MessagePane
     return  unless value
 
     @applyTestPatterns value  if TEST_MODE
-    @applyInteractiveResponse value  if INTERACTIVE_MODE
 
     super value, clientRequestId
     @input.empty()
@@ -126,33 +120,35 @@ class PrivateMessagePane extends MessagePane
       PrivateMessageLoadTest.analyze this
 
 
-  applyInteractiveResponse: (value) ->
-
-    if lastQuestion
-      message = lastQuestion.getData()
-      @kodingBot.process message, value
-
-
-    @setResponseMode off
-
-
   bindChannelEvents: (channel) ->
 
     return  unless channel
 
     super channel
 
-    channel
-      .on 'AddedToChannel', @bound 'addParticipant'
+    channel.on 'AddedToChannel', @bound 'addParticipant'
 
 
+  putNewMessageIndicator: ->
+
+    return # WIP
+
+    unless @newMessages
+      listView = @listController.getListView()
+      @newMessages = new KDView cssClass : 'new-messages'
+      listView.addSubView @newMessages
+
+
+  # this is the realtime event handler for messages
   addMessage: (message) ->
 
     return  if message.account._id is KD.whoami()._id
 
+    wasAtBottom = @isPageAtBottom()
     item = @prependMessage message, @listController.getItemCount()
-    isFromBot message, @bound 'setResponseMode'
-    @scrollDown item
+
+    @scrollDown item  if wasAtBottom
+
 
 
   prependMessage: (message, index) ->
@@ -163,17 +159,6 @@ class PrivateMessagePane extends MessagePane
   putMessage: (message, index) ->
 
     @appendMessage message, index or @listController.getItemCount()
-
-
-  setResponseMode: (mode) ->
-
-    if mode is on
-      lastQuestion = @listController.getListItems().last
-
-    INTERACTIVE_MODE = mode
-
-
-  loadMessage: (message) -> @appendMessage message, 0
 
 
   hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
@@ -187,22 +172,29 @@ class PrivateMessagePane extends MessagePane
 
       return  if inProgress
 
-      inProgress = true
-
+      inProgress   = true
       {appManager} = KD.singletons
-      first         = @listController.getItemsOrdered().first
+      {first}      = @listController.getListItems()
+      {body}       = document
+
       return  unless first
 
-      from         = first.getData().createdAt
+      from = first.getData().createdAt
 
       @listPreviousLink.updatePartial 'Fetching previous messages...'
 
-      @fetch {from, limit: 10}, (err, items = []) =>
-        @listPreviousLink.updatePartial 'Pull or click here to view more'
+      @fetch {from, limit: 100}, (err, items = []) =>
 
         return KD.showError err  if err
 
-        items.forEach @lazyBound 'loadMessage'
+        items.forEach (item, i) =>
+          {scrollHeight} = body
+          @appendMessage item, 0
+          body.scrollTop += body.scrollHeight - scrollHeight
+
+        if items.length is 0
+        then @listPreviousLink.hide()
+        else @listPreviousLink.updatePartial 'Pull or click here to view more'
 
         inProgress = false
 
@@ -265,11 +257,14 @@ class PrivateMessagePane extends MessagePane
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
     @appendMessage item
-    if i is total - 1
-      KD.utils.wait 50, => @emit 'ListPopulated'
+    @emit 'ListPopulated'  if i is total - 1
+
 
 
   populate: ->
+
+    @setClass 'translucent'
+    @input.input.setPlaceholder 'Loading...'
 
     super =>
 
@@ -300,6 +295,15 @@ class PrivateMessagePane extends MessagePane
       origin    : participant
 
     @participantMap[participant._id] = yes
+
+
+  createPreviousLink: ->
+
+    @listPreviousLink = new ReplyPreviousLink
+      delegate : @listController
+      click    : @bound 'listPreviousReplies'
+      linkCopy : 'Show previous replies'
+    , @getData()
 
 
   createParticipantsView : ->

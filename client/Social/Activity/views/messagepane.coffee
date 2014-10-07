@@ -4,8 +4,8 @@ class MessagePane extends KDTabPaneView
 
     options.type        or= ''
     options.cssClass      = "message-pane #{options.type}"
-    options.wrapper      ?= yes
     options.lastToFirst  ?= no
+    options.scrollView   ?= yes
     options.itemClass   or= ActivityListItemView
 
     super options, data
@@ -16,7 +16,7 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, lastToFirst, wrapper, channelId} = @getOptions()
+    {itemClass, lastToFirst, wrapper, channelId, scrollView} = @getOptions()
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -26,6 +26,7 @@ class MessagePane extends KDTabPaneView
       wrapper
       itemClass
       lastToFirst
+      scrollView
     }
 
     @listController.getView().setClass 'padded'
@@ -124,31 +125,28 @@ class MessagePane extends KDTabPaneView
   handleFocus: (focused) -> @glance()  if focused and @active
 
 
+  putNewMessageIndicator: ->
+
+
+  isPageAtBottom: ->
+
+    {innerHeight}             = window
+    {scrollHeight, scrollTop} = document.body
+
+    scrollTop + innerHeight >= scrollHeight
+
+
   scrollDown: (item) ->
 
     return  unless @active
-
-    {typeConstant} = @getData()
-
-    if item.getDelegate().addSubView
-      listView = item.getDelegate()
-    else
-      listView = item.getDelegate().getListView()
-
-    unless @separator
-      @separator = new KDView cssClass : 'new-messages'
-      listView.addSubView @separator
-
-    return  unless item is listView.items.last
-
-    KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
+    document.body.scrollTop = document.body.scrollHeight * 2
 
 
   scrollUp: ->
 
     return  unless @active
 
-    window.scrollTo 0, 0
+    document.body.scrollTop = 0
 
 
   setScrollTops: ->
@@ -344,27 +342,36 @@ class MessagePane extends KDTabPaneView
       then KD.utils.defer -> callback null, [data]
       else appManager.tell 'Activity', 'fetch', options, callback
 
-  lazyLoad: ->
+  lazyLoad: do ->
 
-    @listController.showLazyLoader()
+    loading = no
 
-    {appManager} = KD.singletons
-    last         = @listController.getItemsOrdered().last
+    ->
 
-    return @listController.hideLazyLoader()  unless last
+      return  if loading
 
-    if @currentFilter is 'Most Liked'
-      from = null
-      skip = @listController.getItemsOrdered().length
-    else
-      from = last.getData().createdAt
+      @listController.showLazyLoader()
 
-    @fetch {from, skip}, (err, items=[])=>
-      @listController.hideLazyLoader()
+      {appManager} = KD.singletons
+      last         = @listController.getItemsOrdered().last
 
-      return KD.showError err  if err
+      return @listController.hideLazyLoader()  unless last
 
-      items.forEach @lazyBound 'loadMessage'
+      loading = yes
+
+      if @currentFilter is 'Most Liked'
+        from = null
+        skip = @listController.getItemsOrdered().length
+      else
+        from = last.getData().createdAt
+
+      @fetch {from, skip}, (err, items=[])=>
+        loading = no
+        @listController.hideLazyLoader()
+
+        return KD.showError err  if err
+
+        items.forEach @lazyBound 'loadMessage'
 
 
   refresh: ->

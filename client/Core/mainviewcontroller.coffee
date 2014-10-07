@@ -27,18 +27,6 @@ class MainViewController extends KDViewController
     appManager.on 'AppIsBeingShown', (controller) =>
       @setBodyClass KD.utils.slugify controller.getOption 'name'
 
-      # todo:
-      # remove this part once mmvp becomes mvp - SY
-      {name} = controller.getOptions()
-      switch name
-        when 'IDE'
-          mainView.activitySidebar?.deselectAllItems()
-          mainView.activitySidebar?.activityLink?.unsetClass 'selected'
-        when 'Activity'
-          mainView.activitySidebar?.activityLink?.setClass 'selected'
-          mainView.activitySidebar?.machineTree?.deselectAllNodes()
-
-
 
     display?.on 'ContentDisplayWantsToBeShown', do =>
       type = null
@@ -66,28 +54,34 @@ class MainViewController extends KDViewController
   handleScroll: do ->
 
     threshold     = 50
-    lastScroll    = 0
-    currentHeight = 0
+    lastPos       = 0
 
-    KD.utils.throttle (event) ->
+    (event) ->
 
-      el = document.body
-      {scrollHeight, scrollTop} = el
+      {scrollHeight, scrollTop} = document.body
+      {innerHeight}             = window
 
-      return  if scrollHeight <= window.innerHeight or scrollTop <= 0
+      # return when it pulls the page on top
+      return lastPos = innerHeight  if scrollTop < 0
 
-      current = scrollTop + window.innerHeight
-      if current > scrollHeight - threshold
-        return if lastScroll > 0
-        appManager    = KD.singleton 'appManager'
-        appManager.getFrontApp()?.emit "LazyLoadThresholdReached"
-        lastScroll    = current
-        currentHeight = scrollHeight
-      else if current < lastScroll then lastScroll = 0
+      # return when it pulls the page at the bottom
+      return  if scrollHeight - scrollTop < innerHeight
 
-      if scrollHeight isnt currentHeight then lastScroll = 0
+      currentPos = scrollTop + innerHeight
+      direction  = if currentPos > lastPos then 'down' else 'up'
 
-    , 200
+      appManager = KD.singleton 'appManager'
+      frontApp   = appManager.getFrontApp() or this
+
+      switch direction
+        when 'up'
+          if scrollTop < threshold
+            frontApp?.emit 'TopLazyLoadThresholdReached'
+        when 'down'
+          if currentPos > scrollHeight - threshold
+            frontApp?.emit 'LazyLoadThresholdReached'
+
+      lastPos = currentPos
 
 
   setBodyClass: do ->
