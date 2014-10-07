@@ -654,3 +654,11 @@ class IDEAppController extends AppController
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title
     new KDNotificationView { title, cssClass, type, duration }
+
+
+  serialize: ->
+    panes = []
+
+    @forEachSubViewInIDEViews_ (pane) ->
+      panes.push pane.serialize()
+
