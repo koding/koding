@@ -82,13 +82,6 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 			continue
 		}
 
-		ja := p.Clone()
-
-		ja.AccountId = participantId
-		if err = ja.AddJoinActivity(c, p.AccountId); err != nil {
-			return nil, err
-		}
-
 		if participantId != p.AccountId {
 			continue
 		}

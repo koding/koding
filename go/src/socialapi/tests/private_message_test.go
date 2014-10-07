@@ -276,43 +276,21 @@ func TestPrivateMesssage(t *testing.T) {
 			history, err := rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 4)
+			So(len(history.MessageList), ShouldEqual, 1)
 
-			So(history.MessageList[0].Message, ShouldNotBeNil)
-			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
-			So(history.MessageList[0].Message.Body, ShouldEqual, pmr.Body)
-
-			So(history.MessageList[1].Message, ShouldNotBeNil)
-			So(history.MessageList[1].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
-			So(history.MessageList[1].Message.Payload, ShouldNotBeNil)
-			addedBy, ok := history.MessageList[1].Message.Payload["addedBy"]
-			So(ok, ShouldBeTrue)
-			So(*addedBy, ShouldEqual, account.OldId)
-
-			So(history.MessageList[2].Message, ShouldNotBeNil)
-			So(history.MessageList[2].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
-			So(history.MessageList[2].Message.Payload, ShouldNotBeNil)
-			addedBy, ok = history.MessageList[2].Message.Payload["addedBy"]
-			So(ok, ShouldBeTrue)
-			So(*addedBy, ShouldEqual, account.OldId)
-
-			So(history.MessageList[3].Message, ShouldNotBeNil)
-			So(history.MessageList[3].Message.Payload, ShouldBeNil)
-			So(history.MessageList[3].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
-
-			// add another participant
+			// add participant
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
 			So(err, ShouldBeNil)
 
 			history, err = rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 5)
+			So(len(history.MessageList), ShouldEqual, 2)
 
 			So(history.MessageList[0].Message, ShouldNotBeNil)
 			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
 			So(history.MessageList[0].Message.Payload, ShouldNotBeNil)
-			addedBy, ok = history.MessageList[0].Message.Payload["addedBy"]
+			addedBy, ok := history.MessageList[0].Message.Payload["addedBy"]
 			So(ok, ShouldBeTrue)
 			So(*addedBy, ShouldEqual, account.OldId)
 
