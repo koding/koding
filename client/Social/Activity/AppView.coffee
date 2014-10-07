@@ -22,7 +22,7 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
-    @widgetsBar = new ActivityWidgetsBar
+    @widgetsBar = new ActivityWidgetsBar cssClass : 'hidden'
 
     @tabs = new KDTabView
       tagName             : 'main'
