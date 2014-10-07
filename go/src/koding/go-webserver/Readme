@@ -1,0 +1,5 @@
+This webserver serves logged in and logged out index.html pages for Koding.com. Along with html markup, js & css scripts, index.html also contains some prepopulated data such as user account data, group data etc. This was moved from Node webserver for performance reasons.
+
+The html markup is stored under `templates` directory. Instead of a template engine, it's stored as strings for performance reasons. Templates add 100-200ms overhead which is too much.
+
+If you want to make changes to this server, please be wary of adding additional overhead: SA.

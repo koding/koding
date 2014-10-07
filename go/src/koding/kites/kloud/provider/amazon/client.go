@@ -213,8 +213,11 @@ func (a *AmazonClient) Stop(withPush bool) error {
 	return ws.Wait()
 }
 
-func (a *AmazonClient) Restart() error {
-	a.Push("Restarting machine", 10, machinestate.Rebooting)
+func (a *AmazonClient) Restart(withPush bool) error {
+	if withPush {
+		a.Push("Restarting machine", 10, machinestate.Rebooting)
+	}
+
 	_, err := a.Client.RebootInstances(a.Id())
 	if err != nil {
 		return err
@@ -226,9 +229,11 @@ func (a *AmazonClient) Restart() error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Rebooting)
+		if withPush {
+			a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
+				a.Builder.InstanceName, instance.State.Name),
+				currentPercentage, machinestate.Rebooting)
+		}
 
 		return statusToState(instance.State.Name), nil
 	}

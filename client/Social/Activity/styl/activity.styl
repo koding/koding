@@ -98,22 +98,19 @@ body.activity
     .announcement-pane .kdtabhandlecontainer.filters
         height          auto
 
-    .message-pane > .listview-wrapper
+    .message-pane > .kdlistview
       margin-top        34px
 
-    .message-pane > .activity-input-widget + .listview-wrapper
+    .message-pane > .activity-input-widget + .kdlistview
       margin-top        0
 
-    .message-pane.privatemessage > .listview-wrapper
+    .message-pane.privatemessage > .kdlistview-privatemessage
       margin-top        0
 
       &.padded
         height            auto
         abs               0 0 0px 34px
         kalc              width (100%\-34px)
-
-        .kdscrollview
-          height          auto
 
     .channel-title
       font-size         18px
@@ -1848,6 +1845,10 @@ deleteRed = rgba(217, 58, 55, 0.9)
     width               100%
     padding             34px
     borderBox()
+    &:after
+      left              50% !important
+      opacity           .5 !important
+      margin            -72px 0 0 -72px !important
 
     &.inline
       top               0px
@@ -1966,14 +1967,28 @@ deleteRed = rgba(217, 58, 55, 0.9)
     bg                  color #F6F6F6
     noTextDeco()
 
+  .new-message-form:after
+  .chat-heads:after
+      content           ''
+      r-sprite          activity 'messages-loading'
+      abs               50vh 0 0 -10000px
+      margin            -72px 0 0 -89px
+      vendor            transition, opacity .2s ease-in \,\
+                                    left .1s .5s linear
+      opacity           .01
+
+  .new-message-form.inline:after
+    opacity             .01 !important
+    hidden()
+
   .chat-heads
-    top                     0
-    height                  58px
-    line-height             58px
-    width                   100%
-    max-width               566px
-    z-index                 11
-    bg                      color white
+    top                 0
+    height              58px
+    line-height         58px
+    width               100%
+    max-width           566px
+    z-index             11
+    bg                  color white
     fix()
 
     .kdbuttonwithmenu-wrapper.activity-settings-menu
@@ -2041,14 +2056,23 @@ deleteRed = rgba(217, 58, 55, 0.9)
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-      &.active
-        vendor             pointer-events, none
+  &.translucent
+
+    .chat-heads:after
+      opacity             .5
+      left                50%
+
+    .kdlistview-privatemessage
+      opacity             0.01
 
   .kdlistview-privatemessage
-    padding-bottom          100px
+    padding-bottom        100px
+    opacity               1
+    vendor                transition, opacity .177s ease-in
 
-    &:last-of-type
-      margin-top            0
+    .lazy-loader
+    .no-item-found
+      hidden()
 
   .activity-item.privatemessage
     padding           0
@@ -2073,9 +2097,8 @@ deleteRed = rgba(217, 58, 55, 0.9)
         hidden()
 
       .edit-widget-wrapper
-        margin-left       -12px
-        margin-right      30px
-        padding           6px 6px
+        margin            5px 0 0 -12px
+        padding           6px
         rounded           3px
         &:after
           content
@@ -2086,7 +2109,8 @@ deleteRed = rgba(217, 58, 55, 0.9)
           .input-view.hitenterview
             min-height        34px
             padding           6px
-            border-color  #dfcc97
+            border-color      #dfcc97
+            margin-bottom     0
 
 
     &.edited
@@ -2225,7 +2249,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
           r-sprite        activity heart-dim
 
       > article
-        margin-top          5px
+        margin-top          7px
         padding-top         0
         margin-bottom       0
 
@@ -2345,6 +2369,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
     rounded             0
     z-index             1
     cursor              text
+    font-size           0
     borderBox()
     fix()
 

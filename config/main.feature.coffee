@@ -87,6 +87,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no}
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
@@ -180,6 +181,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
+    gowebserver         : command : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
     kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
     kloud               : command : "#{GOBIN}/kloud   -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
 
