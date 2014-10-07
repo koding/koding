@@ -19,7 +19,7 @@ Koding's new IDE has been overhauled. Much more to come but in the meanwhile, yo
 * **Resize and Split panes.** Open several IDE tabs and resize them the way you want.
 * **Graphical permissions.** Don't like setting permissions on the command line, do it via a handy GUI.
 * **Multi-cursor support.** Create multiple cursors and selections in order to make lots of similar edits at once.
-* **Code folding.** Easily fold away fragments of code taht you don't need to look at.
+* **Code folding.** Easily fold away fragments of code that you don't need to look at.
 
 We appreciate any contribution to this repo so feel free to contribute!
 
