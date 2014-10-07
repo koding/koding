@@ -1,7 +1,7 @@
 IDE
 ===
  
-Koding's new IDE (which is built on top of Ace) has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately or have a look around the code base.
+Koding's new IDE has been overhauled. Much more to come but in the meanwhile, you can play with these features immediately or have a look around the code base.
 
 ### Try the live version [**here**](https://koding.com/IDE).
 
