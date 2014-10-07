@@ -145,7 +145,7 @@ class MessagePane extends KDTabPaneView
 
     return  unless @active
 
-    window.scrollTo 0, 0
+    document.body.scrollTop = 0
 
 
   setScrollTops: ->
