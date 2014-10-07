@@ -121,6 +121,15 @@ class MachineSettingsPopup extends KDModalViewWithForms
             computeController.once 'MachineDataUpdated', ->
               router.clear newRoute
 
+    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
+    @on 'TopDomainStateChange', (state)=>
+      {domains} = @moreForm.inputs
+      if state
+        domains.addDomain topDomain
+      else
+        domains.removeDomain topDomain
+
 
   viewAppended:->
 
@@ -146,6 +155,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       KD.utils.defer -> nickEdit.setFocus()
 
+    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @addSubView @moreForm = new KDFormViewWithFields
       cssClass         : 'more-form hidden'
@@ -154,8 +164,17 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Keep VM always on"
           itemClass    : KodingSwitch
           defaultValue : @machine.alwaysOn
-          cssClass     : "tiny"
+          cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        topDomain      :
+          label        : "Top level domain"
+          itemClass    : KodingSwitch
+          defaultValue : topDomain in @machine.aliases
+          cssClass     : 'tiny'
+          tooltip      :
+            title      : "Use #{topDomain}"
+            placement  : 'right'
+          callback     : (state) => @emit 'TopDomainStateChange', state
         domains        :
           label        : "Domains <span class='domain-toggle'></span>"
           itemClass    : ManageDomainsView
@@ -171,23 +190,15 @@ class MachineSettingsPopup extends KDModalViewWithForms
       label.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
-    {input} = domains
     {label} = domains.getOptions()
 
     label.on 'click', (event)->
       return  unless $(event.target).hasClass 'domain-toggle'
-
       label.toggleClass 'expanded'
-      input.toggleClass 'hidden'
+      domains.toggleInput()
 
-      windowController.addLayer input
-      input.setFocus()
-
-      input.once "ReceivedClickElsewhere", (event)->
-        return  if $(event.target).hasClass 'domain-toggle'
-        label.unsetClass 'expanded'
-        input.hide()
-
+    domains.on 'DomainInputCancelled', ->
+      label.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'

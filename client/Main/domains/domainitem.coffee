@@ -8,4 +8,16 @@ class DomainItem extends KDListItemView
   partial: ->
 
     { domain } = @getData()
-    return "#{domain} <span></span>"
+    domainLink = "<a href='http://#{domain}' target='_blank'>#{domain}</a>"
+    topDomain  = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
+    if domain is topDomain
+      return domainLink
+    else
+      return "#{domainLink} <span></span>"
+
+  click: (event)->
+
+    if $(event.target).is 'span'
+      @getDelegate().emit 'DeleteDomainRequested', this
+

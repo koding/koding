@@ -606,11 +606,6 @@ div.nominateicon
       .input-wrapper
         width             100%
 
-        input
-          padding           0 0 0 6px
-          width             100%
-          top               -1px
-
 
     &.specs
       label.kdlabel
@@ -684,13 +679,40 @@ div.nominateicon
     padding               2px 0
     borderBox()
 
+    .input-view
+      border-radius       4px
+      background          white
+      height              22px
+
+      input
+        padding           0
+        margin-right      0
+        top               -2px
+        text-align        right
+        background        none
+        border            none
+        color             black
+        width             auto
+        float             left
+        box-shadow        none
+
+      .domain-suffix
+        color             #999
+        width             auto
+        display           inline-block
+        float             left
+        overflow          hidden
+        text-overflow     ellipsis
+        box-shadow        none
+
     .listview-wrapper
       margin-top          0
       height              auto
       padding             0 4px
 
     .kdlistitemview-domain
-      cursor              pointer
+      a
+        text-decoration   none !important
 
       &:hover
         span
