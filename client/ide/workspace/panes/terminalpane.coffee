@@ -66,3 +66,4 @@ class IDE.TerminalPane extends IDE.Pane
     data      =
       path    : @getOptions().path
       machine : { label, ipAddress, slug, uid }
+      session : @remote.session
