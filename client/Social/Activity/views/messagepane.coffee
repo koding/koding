@@ -125,24 +125,15 @@ class MessagePane extends KDTabPaneView
   handleFocus: (focused) -> @glance()  if focused and @active
 
 
+
+
+
+
+
   scrollDown: (item) ->
 
     return  unless @active
-
-    {typeConstant} = @getData()
-
-    if item.getDelegate().addSubView
-      listView = item.getDelegate()
-    else
-      listView = item.getDelegate().getListView()
-
-    unless @separator
-      @separator = new KDView cssClass : 'new-messages'
-      listView.addSubView @separator
-
-    return  unless item is listView.items.last
-
-    KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
+    document.body.scrollTop = document.body.scrollHeight * 2
 
 
   scrollUp: ->
