@@ -237,18 +237,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 	buildArtifact.MachineId = m.Id
 
-	// cleanup build if something goes wrong here
-	defer func() {
-		if err != nil {
-			p.Log.Warning("[%s] Cleaning up instance. Terminating instance: %s",
-				m.Id, buildArtifact.InstanceId)
-
-			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
-				p.Log.Warning("[%s] Cleaning up instance failed: %v", m.Id, err)
-			}
-		}
-	}()
-
 	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
@@ -261,7 +249,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			if err := p.DNS.DeleteDomain(m.Domain.Name, buildArtifact.IpAddress); err != nil {
 				p.Log.Warning("[%s] Cleaning up domain failed: %v", m.Id, err)
 			}
-
 		}
 	}()
 
