@@ -46,7 +46,6 @@ users:
     lock-password: true
     sudo: ALL=(ALL) NOPASSWD:ALL
 
-
 {{ user_keys .UserSSHKeys }}
 
 write_files:
