@@ -13,6 +13,7 @@ import (
 	"koding/tools/config"
 	"koding/tools/logger"
 	"time"
+
 	"labix.org/v2/mgo/bson"
 )
 
@@ -149,4 +150,12 @@ var ToBeTruncatedNames = []string{
 	"jOldUsers",
 	"jPasswordRecoveries",
 	"jVerificationTokens",
+
+	"jBadges",
+	"jComments",
+	"jNewStatusUpdates",
+	"jNotificationMailTokens",
+	"jPasswordRecoveries",
+	"jPrivateMessages",
+	"jTags",
 }
