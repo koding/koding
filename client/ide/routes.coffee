@@ -30,7 +30,7 @@ do ->
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
     machineUId = machine?.uid
-    fallback   = ->
+    callback   = ->
       appManager.open 'IDE', { forceNew: yes }, (app) ->
         app.mountedMachineUId = machineUId
         app.workspaceData     = workspace
@@ -38,7 +38,7 @@ do ->
         appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
         selectWorkspaceOnSidebar data
 
-    return fallback()  unless ideApps?.instances
+    return callback()  unless ideApps?.instances
 
     for instance in ideApps.instances
       isSameMachine   = instance.mountedMachineUId is machineUId
@@ -54,13 +54,13 @@ do ->
       appManager.showInstance ideInstance
       selectWorkspaceOnSidebar data
     else
-      fallback()
+      callback()
 
 
-  routeToLatestWorkspace = ->
+  putVMInWorkspace = (machine)->
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
-    machine         = KD.userMachines.first
+
     machineLabel    = machine?.slug or machine?.label or ''
     workspaceSlug   = 'my-workspace'
 
@@ -69,6 +69,18 @@ do ->
         {machineLabel, workspaceSlug} = latestWorkspace
 
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+
+
+  routeToLatestWorkspace = ->
+    machine = KD.userMachines.first
+
+    return putVMInWorkspace machine  if machine
+
+    KD.singletons.computeController.fetchMachines (err,  machines)->
+      if err or not machines.length
+        KD.getSingleton('router').handleRoute "/IDE/koding-vm-0/my-workspace"
+
+      putVMInWorkspace machines.first
 
 
   KD.registerRoutes 'IDE',
