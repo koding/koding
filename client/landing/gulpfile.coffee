@@ -1,8 +1,8 @@
 fs      = require 'fs'
 gulp    = require 'gulp'
-argv    = require('minimist') process.argv
-nodemon = require 'gulp-nodemon'
 shell   = require 'gulp-shell'
+prompt  = require 'gulp-prompt'
+nodemon = require 'gulp-nodemon'
 req     = (module) -> require "./gulptasks/#{module}"
 
 # CONSTANTS
@@ -36,15 +36,63 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 gulp.task 'build-all-sites', req 'task.build.all'
 
 
+# DEFAULT
+
+gulp.task 'default', ->
+
+  console.log '\n'
+
   folders  = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
-  sites    = folders.filter (folder) -> folder.search(/^site\./) is 0
-  commands = ("gulp --gulpfile ./#{site}/gulpfile.coffee build --site=#{site}" for site in sites)
+  sites    = folders
+    .filter (folder) -> folder.search(/^site\./) is 0
+    .map (folder) -> folder.replace 'site.', ''
+
+  firstOptions = ['Create a new site', 'Build an existing site']
 
   gulp.src ''
-    .pipe shell commands
+    .pipe prompt.prompt [
+      type    : 'list'
+      name    : 'createOrBuild'
+      message : 'Would you like to create a new site or build an existing one?'
+      choices : firstOptions
+    ,
+      when    : (answer) -> answer.createOrBuild is firstOptions[0]
+      type    : 'input'
+      name    : 'newSite'
+      message : 'Type a name for the new site:'
+    ,
+      when    : (answer) -> answer.createOrBuild is firstOptions[1]
+      type    : 'list'
+      name    : 'siteName'
+      message : 'Which site would you like to build?'
+      choices : sites
+    ,
+      when    : (answer) -> answer.siteName
+      type    : 'confirm'
+      name    : 'watch'
+      message : 'Would you like to watch for changes?'
+    ,
+      when    : (answer)-> answer.watch
+      type    : 'confirm'
+      name    : 'serve'
+      message : 'Would you like to run the server?'
+    ], (res) ->
 
+      console.log '\n'
 
-gulp.task 'default', ['build', 'serve'], ->
+      {siteName, watch, serve, newSite} = res
+
+      return req('task.site') newSite  if newSite
+
+      if serve
+        server = require SERVER_FILE
+        server siteName
+
+      gulp.src ''
+        .pipe shell [
+          "gulp #{unless watch then 'build ' else ''}--gulpfile ./site.#{siteName}/gulpfile.coffee"
+        ]
+
 
 
 # ERROR HANDLING
