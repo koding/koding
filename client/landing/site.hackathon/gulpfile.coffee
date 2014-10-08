@@ -1,6 +1,9 @@
+site    = require('./package.json').name
 gulp    = require 'gulp'
 argv    = require('minimist') process.argv
 req     = (module) -> require "./../gulptasks/#{module}"
+
+GLOBAL.SITE_NAME = site
 
 # CONSTANTS
 
