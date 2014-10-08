@@ -34,7 +34,7 @@ class AvatarArea extends KDCustomHTMLView
       cssClass : "notification-lister"
 
     @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications acc-dropdown-icon'
+      cssClass   : 'notifications acc-notification-icon'
       attributes :
         title    : 'Notifications'
       delegate   : @notificationsPopup

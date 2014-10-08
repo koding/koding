@@ -626,35 +626,35 @@ sidebarSelectedBg = #262626
   size              258px 59px
   fix()
 
-  // TODO just a temporary update for development. remove this later
-  .groups
-    right           22px !important
-
   > div
     display         inline-block
     width           auto
     vertical-align  top
 
-  .acc-dropdown-icon
-    size            auto 59px
+  .acc-icon
+    size            40px 59px
     display         block
     abs             0px 0px 0 0
 
-    .icon
-      display         block
-      padding-bottom  1px
-      r-sprite        app 'account-arrow'
-      margin          26px 23px 26px 11px
+  .acc-icon .icon
+    display         block
+    padding-bottom  1px
+    margin          27px auto 23px
 
-    &.main-nav
-      right           44px
-      .icon
-        margin        26px 11px 26px 23px
+  .acc-notification-icon .icon
+    r-sprite        app 'account-notifications'
+    margin          23px 17px 23px 7px
+
+  .acc-dropdown-icon
+    right           40px
+
+  .acc-dropdown-icon .icon
+    r-sprite        app 'account-arrow'
 
   .avatar-area
-    bg                 color, #1A1A1A
-    padding            10px 12px
-    size               100% 100%
+    bg                color, #1A1A1A
+    padding           10px 12px
+    size              100% 100%
     borderBox()
     rel()
 
@@ -663,16 +663,15 @@ sidebarSelectedBg = #262626
       fl()
 
     a.profile
-      font-size     14px
-      line-height   18px
-      font-weight   400
-      margin        11px 0
-      white-space   nowrap
-      width         100px
-      display       block
-      color         white
-      overflow      hidden
-      text-overflow ellipsis
+      font-size       14px
+      line-height     38px
+      font-weight     400
+      white-space     nowrap
+      width           100px
+      display         block
+      color           white
+      overflow        hidden
+      text-overflow   ellipsis
       noTextDeco()
 
     h3
