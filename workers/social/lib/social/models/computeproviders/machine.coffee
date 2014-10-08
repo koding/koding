@@ -66,9 +66,6 @@ module.exports = class JMachine extends Module
       domain            :
         type            : String
 
-      aliases           :
-        type            : Array
-
       provider          :
         type            : String
         required        : yes
@@ -158,8 +155,6 @@ module.exports = class JMachine extends Module
       data.domain = "#{data.uid}.#{username}.#{userSitesDomain}"
     else
       data.domain = "#{data.uid}.#{username}"
-
-    data.aliases  = [data.domain]
 
     data.provisioners  ?= [ ]
 
