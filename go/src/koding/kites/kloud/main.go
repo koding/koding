@@ -255,44 +255,29 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
 
-	// let's use the wrapper function "ControlFunc" which is doing a lot of
+	// let's use the wrapper function "PreparMachine" which is doing a lot of
 	// things on behalf of us, like document locking, getting the machine
 	// document, and so on..
-	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
-		m, err := kld.PrepareMachine(r)
-		if err != nil {
-			return nil, err
+	type domainFunc func(*kite.Request, *kloudprotocol.Machine) (interface{}, error)
+
+	domainHandler := func(fn domainFunc) kite.HandlerFunc {
+		return func(r *kite.Request) (interface{}, error) {
+			m, err := kld.PrepareMachine(r)
+			if err != nil {
+				return nil, err
+			}
+
+			// PreparMachine is lockign for us, so unlock after we are done
+			defer kld.Locker.Unlock(m.Id)
+
+			return fn(r, m)
 		}
+	}
 
-		return kodingProvider.DomainSet(r, m)
-	})
-
-	k.HandleFunc("domain.unset", func(r *kite.Request) (interface{}, error) {
-		m, err := kld.PrepareMachine(r)
-		if err != nil {
-			return nil, err
-		}
-
-		return kodingProvider.DomainUnset(r, m)
-	})
-
-	k.HandleFunc("domain.add", func(r *kite.Request) (interface{}, error) {
-		m, err := kld.PrepareMachine(r)
-		if err != nil {
-			return nil, err
-		}
-
-		return kodingProvider.DomainAdd(r, m)
-	})
-
-	k.HandleFunc("domain.remove", func(r *kite.Request) (interface{}, error) {
-		m, err := kld.PrepareMachine(r)
-		if err != nil {
-			return nil, err
-		}
-
-		return kodingProvider.DomainRemove(r, m)
-	})
+	k.HandleFunc("domain.set", domainHandler(kodingProvider.DomainSet))
+	k.HandleFunc("domain.unset", domainHandler(kodingProvider.DomainUnset))
+	k.HandleFunc("domain.add", domainHandler(kodingProvider.DomainAdd))
+	k.HandleFunc("domain.remove", domainHandler(kodingProvider.DomainRemove))
 
 	return k
 }

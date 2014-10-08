@@ -29,8 +29,6 @@ func (p *Provider) DomainUnset(r *kite.Request, m *protocol.Machine) (resp inter
 }
 
 func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	defer p.Unlock(m.Id) // reset assignee after we are done
-
 	args := &domainArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
