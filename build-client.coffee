@@ -124,7 +124,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec 'cd client/landing && gulp build --site=site.landing', (err, stdout, stderr)->
+        exec 'cd client/landing/site.landing/ && gulp build', (err, stdout, stderr)->
           if err
           then console.error err
           else console.log """
