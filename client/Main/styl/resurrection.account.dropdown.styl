@@ -8,13 +8,12 @@ resurrection.account.dropdown.styl
 */
 }
 .avatararea-popup
-  size                    232px, auto
-  bottom                  59px
-  left                    26px
-  bg                      color, #1A1A1A
+  size                    258px, auto
+  bottom                  60px
+  left                    0
+  bg                      color, #1D1D1D
   z-index                 100
   display                 none
-  shadow                  0 2px 13px rgba(0, 0, 0, 0.5)
   borderBox()
   fix()
 
@@ -24,10 +23,11 @@ resurrection.account.dropdown.styl
   .content
     padding               13px
     width                 auto
+    color                 #A0A0A0
 
     > a
       size                auto, 31px
-      line-height         31px
+      line-height         30px
       rounded             3px
       display             block
       color               #fff
@@ -43,6 +43,33 @@ resurrection.account.dropdown.styl
       &.support
         border-bottom     1px solid #424242
 
+
+.notification-lister .kdlistitemview
+  display         block
+  height          35px
+  font-size       12px
+  cursor          pointer
+  line-height     12px
+
+  &:hover
+    bg            color, #1A1A1A
+
+  .avatar-wrapper
+    margin-right  13px
+
+  .link-group
+    display       inline-block
+
+  a.profile
+    color         #1aaf5d
+    font-weight   400
+    noTextDeco()
+
+  time
+    color         #6A6A6A
+    font-size     10px
+    font-weight   600
+    opacity       .99
 
 .go-back-survey
   a

@@ -23,9 +23,11 @@ class NotificationListItemView extends KDListItemView
     mention  : "mentioned you in"
 
   constructor:(options = {}, data)->
-    options.tagName        or= "li"
+
+    options.tagName        or= "a"
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
+    options.cssClass         = KD.utils.curry 'clearfix', options.cssClass
 
     super options, data
 
@@ -37,7 +39,7 @@ class NotificationListItemView extends KDListItemView
     #     itemClass : GroupLinkView
     #     group     : [@snapshot.anchor.data]
     # else
-    @interactedGroups = new KDCustomHTMLView
+    # @interactedGroups = new KDCustomHTMLView
 
     @activityPlot = new KDCustomHTMLView tagName: "span"
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
@@ -70,6 +72,7 @@ class NotificationListItemView extends KDListItemView
           origin   : @actors[0]
         resolve()
 
+
   viewAppended: ->
     promises = []
     promises.push @fetchActors()
@@ -84,15 +87,15 @@ class NotificationListItemView extends KDListItemView
 
   pistachio: ->
     """
-      <div class='avatar-wrapper fl'>
-        {{> @avatar}}
-      </div>
-      <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{> @activityPlot}} {{> @interactedGroups}}</p>
-        <footer>
-          {{> @timeAgoView}}
-        </footer>
-      </div>
+    <div class='avatar-wrapper fl'>
+      {{> @avatar}}
+    </div>
+    <div class='right-overflow'>
+      {{> @participants}}
+      {{  @getActionPhrase #(dummy)}}
+      {{> @activityPlot}}
+      {{> @timeAgoView}}
+    </div>
     """
 
 
