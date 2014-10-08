@@ -1,11 +1,11 @@
 package koding
 
 import (
-	"errors"
 	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
 	"time"
 
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -13,7 +13,7 @@ import (
 type DomainDocument struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
 	MachineId  bson.ObjectId `bson:"machineId"`
-	DomainName string        `bson:"domainName"`
+	DomainName string        `bson:"domain"`
 	CreatedAt  time.Time     `bson:"createdAt"`
 }
 
@@ -28,15 +28,38 @@ func NewDomainStorage(db *mongodb.MongoDB) *Domains {
 }
 
 func (d *Domains) Add(domain *protocol.Domain) error {
-	return errors.New("not implemented yet.")
+	doc := &DomainDocument{
+		Id:         bson.NewObjectId(),
+		MachineId:  bson.ObjectIdHex(domain.MachineId),
+		DomainName: domain.Name,
+		CreatedAt:  time.Now(),
+	}
+
+	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+		_, err := c.Upsert(bson.M{"domain": domain.Name}, doc)
+		return err
+	})
 }
 
-func (d *Domains) Delete(id string) error {
-	return errors.New("not implemented yet.")
+func (d *Domains) Delete(name string) error {
+	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"domain": name})
+	})
 }
 
-func (d *Domains) Get(id string) (*protocol.Domain, error) {
-	return nil, errors.New("not implemented yet.")
+func (d *Domains) Get(name string) (*protocol.Domain, error) {
+	doc := &DomainDocument{}
+	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"domain": name}).One(&doc)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &protocol.Domain{
+		MachineId: doc.MachineId.Hex(),
+		Name:      doc.DomainName,
+	}, nil
 }
 
 // UpdateDomain sets the ip to the given domain. If there is no record a new
