@@ -30,11 +30,10 @@ type pushValues struct {
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
-	Kite         *kite.Kite
-	Session      *mongodb.MongoDB
-	AssigneeName string
-	Log          logging.Logger
-	Push         func(string, int, machinestate.State)
+	Kite    *kite.Kite
+	Session *mongodb.MongoDB
+	Log     logging.Logger
+	Push    func(string, int, machinestate.State)
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
