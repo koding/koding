@@ -33,9 +33,12 @@ class AvatarAreaIconLink extends KDCustomHTMLView
       popup.hide()
       windowController.removeLayer popup
     else
+      @setClass 'active'
       popup.show()
       windowController.addLayer popup
-      popup.once "ReceivedClickElsewhere", => popup.hide()
+      popup.once "ReceivedClickElsewhere", =>
+        @unsetClass 'active'
+        popup.hide()
 
 
   pistachio: ->

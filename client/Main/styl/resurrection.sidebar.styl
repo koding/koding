@@ -632,27 +632,47 @@ sidebarSelectedBg = #262626
     vertical-align  top
 
   .acc-icon
-    size            40px 59px
+    size            50px 60px
     display         block
-    abs             0px 0px 0 0
+    abs             -1px 0px 0 0
+
+  .acc-icon.active
+    bg              color, #1D1D1D
+    border-left     1px solid #323232
 
   .acc-icon .icon
     display         block
     padding-bottom  1px
     margin          27px auto 23px
 
-  .acc-notification-icon .icon
-    r-sprite        app 'account-notifications'
-    margin          23px 17px 23px 7px
+  .acc-notification-icon
+    .icon
+      r-sprite        app 'account-notifications'
+      margin          23px auto
+    .count
+      position        absolute
+      width           14px
+      height          14px
+      font-size       8px
+      line-height     14px
+      background      #E75A5A
+      border-radius   7px
+      text-align      center
+      top             16px
+      left            25px
+    .count cite
+      color           #fff
 
   .acc-dropdown-icon
-    right           40px
+    right           50px
+    &.active
+      border-right  1px solid #323232
 
   .acc-dropdown-icon .icon
     r-sprite        app 'account-arrow'
 
   .avatar-area
-    bg                color, #1A1A1A
+    bg                color, #262626
     padding           10px 12px
     size              100% 100%
     borderBox()
