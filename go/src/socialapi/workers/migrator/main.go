@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/runner"
@@ -9,8 +8,7 @@ import (
 )
 
 var (
-	Name         = "Migrator"
-	flagSchedule = flag.Bool("s", false, "Schedule worker")
+	Name = "Migrator"
 )
 
 func main() {
@@ -26,16 +24,6 @@ func main() {
 	handler, err := controller.New(r.Log)
 	if err != nil {
 		panic(err)
-	}
-
-	if *flagSchedule {
-		r.ShutdownHandler = handler.Shutdown
-		if err := handler.Schedule(); err != nil {
-			panic(err)
-		}
-		r.Wait()
-
-		return
 	}
 
 	handler.Start()

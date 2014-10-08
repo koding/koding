@@ -82,6 +82,7 @@ func main() {
 		}
 	}()
 
+	r.Listen()
 	r.Wait()
 }
 
