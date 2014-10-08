@@ -1,12 +1,14 @@
 package stripe
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymentmodels"
-	"strconv"
 	"time"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/stripe/stripe-go"
 	stripeCustomer "github.com/stripe/stripe-go/customer"
@@ -24,6 +26,9 @@ func init() {
 	// init stripe client
 	InitializeClientKey(config.MustGet().Stripe.SecretToken)
 
+	// init mongo connection
+	modelhelper.Initialize(r.Conf.Mongo)
+
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
@@ -40,7 +45,7 @@ var (
 )
 
 func generateFakeUserInfo() (string, string, string) {
-	token, accId := createToken(), strconv.Itoa(rand.Int())
+	token, accId := createToken(), bson.NewObjectId().Hex()
 	email := accId + "@koding.com"
 
 	return token, accId, email
