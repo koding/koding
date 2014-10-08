@@ -3,8 +3,10 @@ package koding
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/protocol"
 	"strings"
 
+	"github.com/dchest/validator"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/route53"
 )
@@ -13,7 +15,7 @@ var ErrNoRecord = errors.New("no records available")
 
 type DNS struct {
 	Route53    *route53.Route53
-	HostedZone string
+	hostedZone string
 	ZoneId     string
 	Log        logging.Logger
 }
@@ -43,14 +45,14 @@ func NewDNSClient(hostedZone string) *DNS {
 
 	return &DNS{
 		Route53:    dns,
-		HostedZone: hostedZone,
+		hostedZone: hostedZone,
 		ZoneId:     zoneId,
 		Log:        logging.NewLogger("kloud-dns"),
 	}
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
-func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
+func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Renaming domain",
 		Changes: []route53.Change{
@@ -85,7 +87,7 @@ func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
 }
 
 // Update changes the domains ip from oldIP to newIP in a single transaction
-func (d *DNS) Update(domain string, oldIP, newIP string) error {
+func (d *DNS) Update(domain, oldIP, newIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Updating a domain",
 		Changes: []route53.Change{
@@ -120,8 +122,8 @@ func (d *DNS) Update(domain string, oldIP, newIP string) error {
 }
 
 // DeleteDomain deletes a domain record for the given domain with the given ip
-// addresses.
-func (d *DNS) DeleteDomain(domain string, ips ...string) error {
+// address.
+func (d *DNS) Delete(domain string, oldIp string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",
 		Changes: []route53.Change{
@@ -131,13 +133,13 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: ips, // needs old ip
+					Records: []string{oldIp}, // needs old ip
 				},
 			},
 		},
 	}
 
-	d.Log.Info("deleting domain name: %s which was associated to following ips: %v", domain, ips)
+	d.Log.Info("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		return err
@@ -147,8 +149,8 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 }
 
 // CreateDomain creates a new domain record for the given domain with the given
-// ip addresses.
-func (d *DNS) CreateDomain(domain string, ips ...string) error {
+// ip address.
+func (d *DNS) Create(domain string, newIp string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Creating domain",
 		Changes: []route53.Change{
@@ -158,13 +160,13 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: ips,
+					Records: []string{newIp},
 				},
 			},
 		},
 	}
 
-	d.Log.Info("creating domain name: %s to be associated with following ips: %v", domain, ips)
+	d.Log.Info("creating domain name: %s to be associated with following ip: %v", domain, newIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		return err
@@ -174,7 +176,7 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 }
 
 // Domain retrieves the record set for the given domain name
-func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
+func (d *DNS) Get(domain string) (*protocol.Record, error) {
 	lopts := &route53.ListOpts{
 		Name: domain,
 	}
@@ -183,19 +185,49 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {
-		return route53.ResourceRecordSet{}, err
+		return nil, err
 	}
 
 	if len(resp.Records) == 0 {
-		return route53.ResourceRecordSet{}, ErrNoRecord
+		return nil, ErrNoRecord
 	}
 
 	for _, r := range resp.Records {
 		if strings.Contains(r.Name, domain) {
-			return r, nil
+			return &protocol.Record{
+				Name: r.Name,
+				IP:   r.Records[0],
+				TTL:  r.TTL,
+			}, nil
 		}
-
 	}
 
-	return route53.ResourceRecordSet{}, ErrNoRecord
+	return nil, ErrNoRecord
+}
+
+func (d *DNS) HostedZone() string {
+	return d.hostedZone
+}
+
+func (d *DNS) Validate(domain, username string) error {
+	hostedZone := d.hostedZone
+
+	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
+	if f == domain {
+		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
+	}
+
+	if !strings.Contains(domain, username) {
+		return fmt.Errorf("Domain doesn't contain username '%s'", username)
+	}
+
+	if !strings.Contains(domain, hostedZone) {
+		return fmt.Errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
+	}
+
+	if !validator.IsValidDomain(domain) {
+		return fmt.Errorf("Domain is invalid (2) '%s'", domain)
+	}
+
+	return nil
 }

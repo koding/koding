@@ -2,141 +2,55 @@ package koding
 
 import (
 	"errors"
-	"fmt"
-	"koding/kites/kloud/kloud"
+	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
-	"strings"
 	"time"
 
 	"labix.org/v2/mgo/bson"
-
-	"github.com/dchest/validator"
-	"github.com/koding/kite"
 )
 
-type domainArgs struct {
-	DomainName string
+// DomainDocument defines a single MongoDB document in the jDomains collection
+type DomainDocument struct {
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	MachineId  bson.ObjectId `bson:"machineId"`
+	DomainName string        `bson:"domainName"`
+	CreatedAt  time.Time     `bson:"createdAt"`
 }
 
-func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	args := &domainArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	if args.DomainName == "" {
-		return nil, errors.New("domain name argument is empty")
-	}
-
-	if m.IpAddress == "" {
-		return nil, errors.New("ip address is not defined")
-	}
-
-	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
-		return nil, err
-	}
-
-	// nil error means the record exist
-	if _, err := p.DNS.Domain(args.DomainName); err == nil {
-		return nil, errors.New("domain record does exists")
-	}
-
-	// now assign the machine ip to the given domain name
-	if err := p.DNS.CreateDomain(args.DomainName, m.IpAddress); err != nil {
-		return nil, err
-	}
-
-	domainDocument := &DomainDocument{
-		Id:         bson.NewObjectId(),
-		MachineId:  bson.ObjectIdHex(m.Id),
-		DomainName: args.DomainName,
-		CreatedAt:  time.Now().UTC(),
-	}
-
-	fmt.Printf("domainDocument %+v\n", domainDocument)
-
-	if err := p.DomainStorage.Add(domainDocument); err != nil {
-		return nil, err
-	}
-
-	return true, nil
+type Domains struct {
+	DB *mongodb.MongoDB
 }
 
-func (p *Provider) DomainRemove(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	args := &domainArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
+func NewDomainStorage(db *mongodb.MongoDB) *Domains {
+	return &Domains{
+		DB: db,
 	}
-
-	if args.DomainName == "" {
-		return nil, errors.New("domain name argument is empty")
-	}
-
-	if m.IpAddress == "" {
-		return nil, errors.New("ip address is not defined")
-	}
-
-	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
-		return nil, err
-	}
-
-	if err := p.DNS.DeleteDomain(args.DomainName, m.IpAddress); err != nil {
-		return nil, err
-	}
-
-	if err := p.DomainStorage.Delete(args.DomainName); err != nil {
-		return nil, err
-	}
-
-	return true, nil
 }
 
-func (p *Provider) DomainUnset(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	return nil, err
+func (d *Domains) Add(domain *protocol.Domain) error {
+	return errors.New("not implemented yet.")
 }
 
-func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	args := &domainArgs{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
+func (d *Domains) Delete(id string) error {
+	return errors.New("not implemented yet.")
+}
 
-	if args.DomainName == "" {
-		return nil, fmt.Errorf("domain name argument is empty")
-	}
-
-	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
-		return nil, err
-	}
-
-	if err := p.DNS.CreateDomain(args.DomainName, m.IpAddress); err != nil {
-		return nil, err
-	}
-
-	if err := p.Update(m.Id, &kloud.StorageData{
-		Type: "domain",
-		Data: map[string]interface{}{
-			"domainName": args.DomainName,
-		},
-	}); err != nil {
-		return nil, err
-	}
-
-	return true, nil
+func (d *Domains) Get(id string) (*protocol.Domain, error) {
+	return nil, errors.New("not implemented yet.")
 }
 
 // UpdateDomain sets the ip to the given domain. If there is no record a new
 // record will be created otherwise existing record is updated. This is just a
 // helper method that uses our DNS struct.
 func (p *Provider) UpdateDomain(ip, domain, username string) error {
-	if err := validateDomain(domain, username, p.DNS.HostedZone); err != nil {
+	if err := p.DNS.Validate(domain, username); err != nil {
 		return err
 	}
 
 	// Check if the record exist, if yes update the ip instead of creating a new one.
-	record, err := p.DNS.Domain(domain)
+	record, err := p.DNS.Get(domain)
 	if err == ErrNoRecord {
-		if err := p.DNS.CreateDomain(domain, ip); err != nil {
+		if err := p.DNS.Create(domain, ip); err != nil {
 			return err
 		}
 	} else if err != nil {
@@ -147,30 +61,9 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 	// Means the record exist, update it
 	if err == nil {
 		p.Log.Warning("Domain '%s' already exists (that shouldn't happen). Going to update to new IP", domain)
-		if err := p.DNS.Update(domain, record.Records[0], ip); err != nil {
+		if err := p.DNS.Update(domain, record.IP, ip); err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func validateDomain(domain, username, hostedZone string) error {
-	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
-	if f == domain {
-		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
-	}
-
-	if !strings.Contains(domain, username) {
-		return fmt.Errorf("Domain doesn't contain username '%s'", username)
-	}
-
-	if !strings.Contains(domain, hostedZone) {
-		return fmt.Errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
-	}
-
-	if !validator.IsValidDomain(domain) {
-		return fmt.Errorf("Domain is invalid (2) '%s'", domain)
 	}
 
 	return nil

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
@@ -162,13 +161,15 @@ func newKite(conf *Config) *kite.Kite {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
+	dnsInstance := koding.NewDNSClient(conf.HostedZone)
+
 	kodingProvider := &koding.Provider{
 		Kite:              k,
 		Log:               newLogger("koding", conf.DebugMode),
 		AssigneeName:      id,
 		Session:           db,
 		EC2:               koding.NewEC2Client(),
-		DNS:               koding.NewDNSClient(conf.HostedZone),
+		DNS:               dnsInstance,
 		Bucket:            koding.NewBucket("koding-klient", klientFolder),
 		Test:              conf.TestMode,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
@@ -179,10 +180,9 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
-		DomainStorage:     koding.NewDomainStorage(db),
 	}
 
-	// be sure they they satisfy the provider interface
+	// be sure it satisfies the provider interface
 	var _ kloudprotocol.Provider = kodingProvider
 
 	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
@@ -211,6 +211,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
+	kld.DomainStorage = koding.NewDomainStorage(db)
+	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
@@ -247,6 +249,7 @@ func newKite(conf *Config) *kite.Kite {
 		return nil, nil
 	})
 
+	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
@@ -257,40 +260,11 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
 
-	// let's use the wrapper function "PrepareMachine" which is doing a lot of
-	// things on behalf of us, like document locking, getting the machine
-	// document, and so on..
-	type domainFunc func(*kite.Request, *kloudprotocol.Machine) (interface{}, error)
-
-	domainHandler := func(fn domainFunc) kite.HandlerFunc {
-		return func(r *kite.Request) (resp interface{}, err error) {
-			m, err := kld.PrepareMachine(r)
-			if err != nil {
-				return nil, err
-			}
-
-			// fake eventer to avoid panics if someone tries to use the eventer
-			m.Eventer = &eventer.Events{}
-
-			// PreparMachine is locking for us, so unlock after we are done
-			defer kld.Locker.Unlock(m.Id)
-
-			//  change it that we don't leak information
-			defer func() {
-				if err != nil {
-					kodingProvider.Log.Error("Could not call '%s'. err: %s", r.Method, err)
-					err = fmt.Errorf("Could not call '%s'. Please contact support", r.Method)
-				}
-			}()
-
-			return fn(r, m)
-		}
-	}
-
-	k.HandleFunc("domain.set", domainHandler(kodingProvider.DomainSet))
-	k.HandleFunc("domain.unset", domainHandler(kodingProvider.DomainUnset))
-	k.HandleFunc("domain.add", domainHandler(kodingProvider.DomainAdd))
-	k.HandleFunc("domain.remove", domainHandler(kodingProvider.DomainRemove))
+	// Domain records handling methods
+	k.HandleFunc("domain.set", kld.DomainSet)
+	k.HandleFunc("domain.unset", kld.DomainUnset)
+	k.HandleFunc("domain.add", kld.DomainAdd)
+	k.HandleFunc("domain.remove", kld.DomainRemove)
 
 	return k
 }

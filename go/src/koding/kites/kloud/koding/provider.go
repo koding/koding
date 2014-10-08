@@ -36,10 +36,6 @@ type Provider struct {
 	Log          logging.Logger
 	Push         func(string, int, machinestate.State)
 
-	// DomainStorage is an interface for CRUD operations on jDomains
-	// collection
-	DomainStorage DomainStorage
-
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
 	Test bool
@@ -181,12 +177,12 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
 
-	if err := validateDomain(m.Domain.Name, m.Username, p.DNS.HostedZone); err != nil {
+	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
-	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 
@@ -239,7 +235,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
-	if err := validateDomain(m.Domain.Name, m.Username, p.DNS.HostedZone); err != nil {
+	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
 
@@ -249,7 +245,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
-	_, err = p.DNS.Domain(m.Domain.Name)
+	_, err = p.DNS.Get(m.Domain.Name)
 	if err == ErrNoRecord {
 		return nil
 	}
@@ -260,7 +256,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	}
 
 	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
-	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 
