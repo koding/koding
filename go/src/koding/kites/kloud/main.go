@@ -30,7 +30,6 @@ type Config struct {
 	Port        int
 	Region      string
 	Environment string
-	Id          string
 
 	// Connect to Koding mongodb
 	MongoURL string `required:"true"`
@@ -137,11 +136,6 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	id := uniqueId(k.Config.Port)
-	if conf.Id != "" {
-		id = conf.Id
-	}
-
 	if conf.AMITag != "" {
 		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
 		koding.DefaultCustomAMITag = conf.AMITag
@@ -166,7 +160,6 @@ func newKite(conf *Config) *kite.Kite {
 	kodingProvider := &koding.Provider{
 		Kite:              k,
 		Log:               newLogger("koding", conf.DebugMode),
-		AssigneeName:      id,
 		Session:           db,
 		EC2:               koding.NewEC2Client(),
 		DNS:               dnsInstance,
@@ -267,17 +260,6 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("domain.remove", kld.DomainRemove)
 
 	return k
-}
-
-func uniqueId(port int) string {
-	// TODO: add a unique identifier, for letting multiple version of the same
-	// worker work on the same hostname.
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err) // we should not let it start
-	}
-
-	return fmt.Sprintf("%s-%s-%d", kloud.NAME, hostname, port)
 }
 
 func newLogger(name string, debug bool) logging.Logger {

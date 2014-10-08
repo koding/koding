@@ -507,7 +507,6 @@ func newKloud() *kloud.Kloud {
 		EC2:               koding.NewEC2Client(),
 		DNS:               koding.NewDNSClient("dev.koding.io"), // TODO: Use test.koding.io
 		Bucket:            koding.NewBucket("koding-klient", "development/latest"),
-		AssigneeName:      "kloud-test",
 
 		KeyName:     keys.DeployKeyName,
 		PublicKey:   keys.DeployPublicKey,
