@@ -65,9 +65,16 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
 				m.Id, resultState)
 			resultState = machinestate.Stopped
+
+			// start shutdown timer, because klient is not running, don't let
+			// it be running forever
+			p.startTimer(m)
 		} else {
 			// now assume it's running
 			resultState = machinestate.Running
+
+			// stop any if any timer is available
+			p.stopTimer(m)
 
 			// ping the klient again just to see if it can respond to us
 			if err := klientRef.Ping(); err != nil {
@@ -113,7 +120,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		}
 	}
 
-	p.Log.Info("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
+	p.Log.Debug("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,

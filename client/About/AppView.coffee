@@ -35,8 +35,8 @@ class AboutAppView extends JView
     </section>
     <section class='stats'>
       <div class='inner-container clearfix'>
-        <div class='stat-item vms'><span>20,000,000+</span> VMs spun up</div>
-        <div class='stat-item code'><span>500,000,000+</span>files full of code</div>
+        <div class='stat-item vms'><span>18 Million+</span> VMs spun up</div>
+        <div class='stat-item code'><span>1 Billion+</span>lines of code</div>
         <div class='stat-item developers'><span>500,000+</span>developers</div>
       </div>
     </section>
