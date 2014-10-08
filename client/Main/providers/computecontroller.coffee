@@ -10,8 +10,6 @@ class ComputeController extends KDController
 
     { mainController, kontrol, router } = KD.singletons
 
-    @on "MachineDataUpdated", -> router.handleRoute('/IDE')
-
     do @reset
 
     mainController.ready =>

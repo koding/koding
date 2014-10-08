@@ -52,6 +52,12 @@ class PrivateMessagePane extends MessagePane
     @newMessages = null
 
 
+  scrollDown: (item) ->
+
+    return  unless @active
+    document.body.scrollTop = document.body.scrollHeight * 2
+
+
   setScrollTops: ->
 
     {body} = document

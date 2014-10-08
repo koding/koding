@@ -56,6 +56,8 @@ func main() {
 
 	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
 
+	log.Info("Starting gowebserver on %v", url)
+
 	http.HandleFunc("/", HomeHandler)
 	http.ListenAndServe(url, nil)
 }
