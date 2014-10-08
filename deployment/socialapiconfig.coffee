@@ -5,6 +5,9 @@ module.exports.create = (KONFIG)->
 
   tomlConfig = toml.dump KONFIG.socialapi
 
-  fs.writeFileSync "./go/src/socialapi/config/#{KONFIG.configName}.toml", tomlConfig
+  fileName = "./go/src/socialapi/config/#{KONFIG.configName}.toml"
+  fs.writeFileSync fileName, tomlConfig
+
+  console.log "socialapi config is written successfully to #{fileName} from KONFIG.socialapi\n"
 
   return tomlConfig
