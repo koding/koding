@@ -45,6 +45,10 @@ type Provider struct {
 	Log          logging.Logger
 	Push         func(string, int, machinestate.State)
 
+	// DomainStorage is an interface for CRUD operations on jDomains
+	// collection
+	DomainStorage DomainStorage
+
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
 	Test bool

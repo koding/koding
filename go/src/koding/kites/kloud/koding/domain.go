@@ -12,6 +12,10 @@ import (
 	"github.com/koding/kite"
 )
 
+type domainArgs struct {
+	DomainName string
+}
+
 func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
 	return nil, err
 }
@@ -27,15 +31,15 @@ func (p *Provider) DomainUnset(r *kite.Request, m *protocol.Machine) (resp inter
 func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
 	defer p.Unlock(m.Id) // reset assignee after we are done
 
-	args := &domainSet{}
+	args := &domainArgs{}
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
 
 	m.Eventer = &eventer.Events{}
 
-	if args.NewDomain == "" {
-		return nil, fmt.Errorf("newDomain argument is empty")
+	if args.DomainName == "" {
+		return nil, fmt.Errorf("domain name argument is empty")
 	}
 
 	defer func() {
@@ -55,18 +59,18 @@ func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interfa
 		}
 	}
 
-	if err := validateDomain(args.NewDomain, r.Username, p.HostedZone); err != nil {
+	if err := validateDomain(args.DomainName, r.Username, p.HostedZone); err != nil {
 		return nil, err
 	}
 
-	if err := p.DNS.Rename(m.Domain.Name, args.NewDomain, m.IpAddress); err != nil {
+	if err := p.DNS.CreateDomain(args.DomainName, m.IpAddress); err != nil {
 		return nil, err
 	}
 
 	if err := p.Update(m.Id, &kloud.StorageData{
 		Type: "domain",
 		Data: map[string]interface{}{
-			"domainName": args.NewDomain,
+			"domainName": args.DomainName,
 		},
 	}); err != nil {
 		return nil, err

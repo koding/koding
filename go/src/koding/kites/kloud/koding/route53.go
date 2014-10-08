@@ -18,6 +18,45 @@ type DNS struct {
 	Log     logging.Logger
 }
 
+func (p *Provider) InitDNS(accessKey, secretKey string) error {
+	p.Log.Info("DNS middleware is not initialized. Initializing...")
+	dns := route53.New(
+		aws.Auth{
+			AccessKey: accessKey,
+			SecretKey: secretKey,
+		},
+		aws.Regions[DefaultRegion],
+	)
+
+	p.Log.Info("Searching for hosted zone: %s", p.HostedZone)
+	hostedZones, err := dns.ListHostedZones("", 100)
+	if err != nil {
+		return err
+	}
+
+	var zoneId string
+	for _, h := range hostedZones.HostedZones {
+		// the "." point is here because hosteded zones are listed as
+		// "dev.koding.io." , "koding.io." and so on
+		if h.Name == p.HostedZone+"." {
+			zoneId = route53.CleanZoneID(h.ID)
+			break
+		}
+	}
+
+	if zoneId == "" {
+		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", p.HostedZone)
+	}
+
+	p.DNS = &DNS{
+		Route53: dns,
+		ZoneId:  zoneId,
+		Log:     p.Log,
+	}
+
+	return nil
+}
+
 // Rename changes the domain from oldDomain to newDomain in a single transaction
 func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
@@ -88,6 +127,8 @@ func (d *DNS) Update(domain string, oldIP, newIP string) error {
 	return nil
 }
 
+// DeleteDomain deletes a domain record for the given domain with the given ip
+// addresses.
 func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",
@@ -113,6 +154,8 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 	return nil
 }
 
+// CreateDomain creates a new domain record for the given domain with the given
+// ip addresses.
 func (d *DNS) CreateDomain(domain string, ips ...string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Creating domain",
@@ -163,47 +206,4 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 	}
 
 	return route53.ResourceRecordSet{}, ErrNoRecord
-}
-
-func (p *Provider) InitDNS(accessKey, secretKey string) error {
-	p.Log.Info("DNS middleware is not initialized. Initializing...")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-		},
-		aws.Regions[DefaultRegion],
-	)
-
-	p.Log.Info("Searching for hosted zone: %s", p.HostedZone)
-	hostedZones, err := dns.ListHostedZones("", 100)
-	if err != nil {
-		return err
-	}
-
-	var zoneId string
-	for _, h := range hostedZones.HostedZones {
-		// the "." point is here because hosteded zones are listed as
-		// "dev.koding.io." , "koding.io." and so on
-		if h.Name == p.HostedZone+"." {
-			zoneId = route53.CleanZoneID(h.ID)
-			break
-		}
-	}
-
-	if zoneId == "" {
-		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", p.HostedZone)
-	}
-
-	p.DNS = &DNS{
-		Route53: dns,
-		ZoneId:  zoneId,
-		Log:     p.Log,
-	}
-
-	return nil
-}
-
-type domainSet struct {
-	NewDomain string
 }
