@@ -1,55 +1,60 @@
-Mongo              = "10.0.0.248:27017/koding"
-Environment        = "sandbox"
-Region             = "aws"
-Hostname           = "sandbox.koding.com"
+proxyUrl = "http://localhost:7000"
+configFilePath = "/opt/koding/go/src/socialapi/config/sandbox.toml"
+mongo = "10.0.0.248:27017/koding"
+environment = "sandbox"
+region = "aws"
+hostname = "sandbox.koding.com"
+eventExchangeName = "BrokerMessageBus"
+disableCaching = false
+debug = true
 
 [postgres]
-Host=     "10.0.0.248"
-Port=     5432
-Username= "socialapplication"
-Password= "socialapplication"
-DBName=   "social"
+host = "10.0.0.248"
+port = 5432
+username = "socialapplication"
+password = "socialapplication"
+dbname = "social"
 
 [mq]
-Host     = "10.0.0.248"
-Port     = 5672
-Login    = "guest"
-Password = "guest"
-Vhost    = "/"
+host = "10.0.0.248"
+port = 5672
+apiAddress = "10.0.0.248"
+apiPort = "15672"
+login = "guest"
+componentUser = "guest"
+password = "guest"
+heartbeat = 0
+vhost = "/"
 
 [redis]
-URL = "10.0.0.248:6379"
-DB  = 0
+url = "10.0.0.248:6379"
 
 [email]
-Host            = "sandbox.koding.com"
-Protocol        = "http:"
-DefaultFromMail = "hello@koding.com"
-DefaultFromName = "Koding"
-Username        = "koding"
-Password        = "DEQl7_Dr"
+host = "sandbox.koding.com"
+protocol = "https:"
+defaultFromMail = "hello@koding.com"
+defaultFromName = "koding"
+username = "koding"
+password = "DEQl7_Dr"
 
 [sitemap]
-RedisDB = 1
+redisDB = 0
 
 [algolia]
-AppId          = "DYVV81J2S1"
-ApiKey         = "303eb858050b1067bcd704d6cbfb977c"
-ApiSecretKey   = "041427512bcdcd0c7bd4899ec8175f46"
-IndexSuffix    = ".sandbox"
+appId = "DYVV81J2S1"
+apiKey = "303eb858050b1067bcd704d6cbfb977c"
+indexSuffix = ".sandbox"
+apiSecretKey = "041427512bcdcd0c7bd4899ec8175f46"
 
 [mixpanel]
-Enabled       = false
-Token         = "113c2731b47a5151f4be44ddd5af0e7a"
+token = "a57181e216d9f713e19d5ce6d6fb6cb3"
+enabled = false
 
 [limits]
-MessageBodyMinLen    = 1
-PostThrottleDuration = "15s"
-PostThrottleCount    = 3
-
-EventExchangeName ="BrokerMessageBus"
-DisableCaching    = false
-Debug             = false
+messageBodyMinLen = 1
+postThrottleDuration = "15s"
+postThrottleCount = 3
 
 [stripe]
-SecretToken = "sk_test_jsCJYUkS8hcnwtUygBZipjq6"
+secretToken = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"
+
