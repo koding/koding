@@ -108,7 +108,7 @@ module.exports = class FeaturesView extends KDView
 
     'IDE'                  :
       'Workspaces'         :
-        text               : "Use workspaces to organize your project. Workpsaces keeps everything neat and tidy."
+        text               : "Use workspaces to organize your project. Workpsaces keep everything neat and tidy."
         iconClass          : "ide-workspaces"
       'Previews'           :
         text               : "Easily preview your work using the built-in browser. No more tab switching."
@@ -128,7 +128,7 @@ module.exports = class FeaturesView extends KDView
       'Graphical permissions' :
         text               : "Don't like setting permissions on the command line, do it via a handy GUI."
         iconClass          : "ide-permissions"
-      'multi-cursor support' :
+      'Multi-cursor support' :
         text               : "Create multiple cursors and selections in order to make lots of similar edits at once."
         iconClass          : "ide-multiplecursor"
       'Code folding'       :
