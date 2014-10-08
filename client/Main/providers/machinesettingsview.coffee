@@ -121,15 +121,6 @@ class MachineSettingsPopup extends KDModalViewWithForms
             computeController.once 'MachineDataUpdated', ->
               router.clear newRoute
 
-    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
-
-    @on 'TopDomainStateChange', (state)=>
-      {domains} = @moreForm.inputs
-      if state
-        domains.addDomain topDomain
-      else
-        domains.removeDomain topDomain
-
 
   viewAppended:->
 
@@ -166,15 +157,6 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
-        topDomain      :
-          label        : "Top level domain"
-          itemClass    : KodingSwitch
-          defaultValue : topDomain in @machine.aliases
-          cssClass     : 'tiny'
-          tooltip      :
-            title      : "Route #{topDomain} to this vm"
-            placement  : 'right'
-          callback     : (state) => @emit 'TopDomainStateChange', state
         domains        :
           label        : "Domains <span class='domain-toggle'></span>"
           itemClass    : ManageDomainsView

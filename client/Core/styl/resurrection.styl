@@ -687,7 +687,6 @@ div.nominateicon
       input
         padding           0
         margin-right      0
-        top               -2px
         text-align        right
         background        none
         border            none
@@ -714,17 +713,23 @@ div.nominateicon
       a
         text-decoration   none !important
 
-      &:hover
-        span
-          display         inline-block
+      .koding-on-off
+        right             2px
+        vendor            transform, scale(.7)
+        display           inline-block
+        abs()
 
-      span
-        position          relative
-        top               2px
-        left              2px
+      &:hover
+        span.remove-domain
+          display         block
+
+      span.remove-domain
+        top               4px
+        right             36px
         display           none
         r-sprite          app 'delete-12'
         cursor            pointer
+        abs()
 
   label.kdlabel
 

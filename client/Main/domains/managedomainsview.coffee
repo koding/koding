@@ -23,13 +23,15 @@ class ManageDomainsView extends KDView
       partial           : domainSuffix
       cssClass          : 'domain-suffix'
 
+    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
     @domainController   = new KDListViewController
       viewOptions       :
         type            : 'domain'
         wrapper         : yes
         itemClass       : DomainItem
         dataPath        : 'domain'
-    , items             : ({domain} for domain in @machine.aliases)
+    , items             : [{domain: topDomain}]
 
     @addSubView @domainController.getView()
     @inputView.hide()

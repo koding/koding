@@ -5,19 +5,22 @@ class DomainItem extends KDListItemView
     options.type = 'domain'
     super options, data
 
-  partial: ->
+  viewAppended: ->
 
     { domain } = @getData()
     domainLink = "<a href='http://#{domain}' target='_blank'>#{domain}</a>"
-    topDomain  = "#{KD.nick()}.#{KD.config.userSitesDomain}"
 
-    if domain is topDomain
-      return domainLink
-    else
-      return "#{domainLink} <span></span>"
+    @addSubView new CustomLinkView
+      title  : domain
+      href   : "http://#{domain}"
+      target : '_blank'
 
-  click: (event)->
+    @addSubView new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'remove-domain'
+      click    : =>
+        @getDelegate().emit 'DeleteDomainRequested', this
 
-    if $(event.target).is 'span'
-      @getDelegate().emit 'DeleteDomainRequested', this
-
+    @addSubView new KodingSwitch
+      cssClass : 'tiny'
+      defaultValue : yes
