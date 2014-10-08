@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
 
@@ -261,14 +262,25 @@ func newKite(conf *Config) *kite.Kite {
 	type domainFunc func(*kite.Request, *kloudprotocol.Machine) (interface{}, error)
 
 	domainHandler := func(fn domainFunc) kite.HandlerFunc {
-		return func(r *kite.Request) (interface{}, error) {
+		return func(r *kite.Request) (resp interface{}, err error) {
 			m, err := kld.PrepareMachine(r)
 			if err != nil {
 				return nil, err
 			}
 
-			// PreparMachine is lockign for us, so unlock after we are done
+			// fake eventer to avoid panics if someone tries to use the eventer
+			m.Eventer = &eventer.Events{}
+
+			// PreparMachine is locking for us, so unlock after we are done
 			defer kld.Locker.Unlock(m.Id)
+
+			//  change it that we don't leak information
+			defer func() {
+				if err != nil {
+					kodingProvider.Log.Error("Could not call '%s'. err: %s", r.Method, err)
+					err = fmt.Errorf("Could not call '%s'. Please contact support", r.Method)
+				}
+			}()
 
 			return fn(r, m)
 		}
