@@ -194,4 +194,15 @@ var ToBeDeletedNames = []string{
 	"JMailNotification",
 	"JEmailNotification",
 	"JEmailConfirmation",
+
+	"JBadge",
+	"JComment",
+	"JNewStatusUpdate",
+	"JNotificationMailToken",
+	"JPasswordRecovery",
+	"JPrivateMessage",
+	"JTag",
 }
+
+// "counters",
+// "jNames",
