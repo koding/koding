@@ -42,26 +42,32 @@ class ActivityPane extends MessagePane
     typeConstant  : @getData().typeConstant
 
   createMostLikedView: (options, data) ->
-    new ActivityContentPane options, data
+    pane = new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = null
         skip = @mostLiked.getLoadedCount()
 
+        pane.listController.showLazyLoader()
+
         @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
   createMostRecentView: (options, data) ->
-    new ActivityContentPane options, data
+    pane = new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
         from = @mostRecent.getContentFrom()
         skip = null
 
+        pane.listController.showLazyLoader()
+
         @fetch { from, skip }, @createContentAppender 'mostRecent'
 
   createSearchResultsView: (options, data) ->
-    new ActivitySearchResultsPane options, data
+    pane = new ActivitySearchResultsPane options, data
       .on "NeedsMoreContent", =>
         if @searchResults.currentPage?
           page = @searchResults.currentPage += 1
+
+          pane.listController.showLazyLoader()
 
           @search @currentSearch, { page, dontClear: yes }
 
