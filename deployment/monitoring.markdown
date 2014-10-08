@@ -258,3 +258,30 @@ prod.koding.com_ElastiCache_prod0_FreeableMemory_Avg_1G_For_1x15Min
 // Threshold:
 prod.koding.com_ElastiCache_prod0_CurrConnections_Avg_1000_For_1x15Min
 ```
+
+
+RabbitMQ
+
+```
+Send an alert when RMQ have more than  30K messages for the last 5mins
+
+prod.koding.com_RabbitMQ_MessageCount_Avg_30K_For_1x5Min
+```
+
+```
+Send an alert when RMQ have more than 1K unacknowledged messages for the last 5mins
+
+prod.koding.com_RabbitMQ_UnacknowledgedMessageCount_Avg_1K_For_1x5Min
+```
+
+```
+Send an alert when RMQ have more than 1K sockets opened for the last 5mins
+
+prod.koding.com_RabbitMQ_SocketCount_Avg_1K_For_1x5Min
+```
+
+```
+Send an alert when RMQ have more than 1K FD opened for the last 5mins
+
+prod.koding.com_RabbitMQ_FileDescriptorCount_Avg_1K_For_1x5Min
+```
