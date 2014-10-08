@@ -437,12 +437,26 @@ Configuration = (options={}) ->
       }
 
       function checkrunfile () {
+
+        checkpackagejsonfile
+
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
             echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
 
             echo -e "\n\nPlease do ./run again\n"
+            exit 1;
+        fi
+      }
+
+      function checkpackagejsonfile () {
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/package.json" ]; then
+            echo your run file is older than your package json. doing npm i.
+            sleep 1
+            npm i
+
+            echo -e "\n\nPlease do ./configure and  ./run again\n"
             exit 1;
         fi
       }
