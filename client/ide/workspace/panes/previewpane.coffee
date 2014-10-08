@@ -21,4 +21,6 @@ class IDE.PreviewPane extends IDE.Pane
       @emit 'LocationChanged', newLocation
 
   serialize: ->
-    return path: @getOptions().url
+    {url, paneType} = @getOptions()
+
+    return { url, paneType }

@@ -65,17 +65,19 @@ class IDE.EditorPane extends IDE.Pane
     return @aceView.getData()
 
   serialize: ->
-    file      = @getFile()
-    content   = @getContent()
-    cursor    = @getCursor()
-    {machine} = file
+    file       = @getFile()
+    content    = @getContent()
+    cursor     = @getCursor()
+    {paneType} = @getOptions()
+    {machine}  = file
 
 
     {name, path } = file
     {label, ipAddress, slug, uid} = machine
 
-    data      =
-      file    : { name, path, content, cursor }
-      machine : { label, ipAddress, slug, uid }
+    data       =
+      paneType : paneType
+      file     : { name, path, content, cursor }
+      machine  : { label, ipAddress, slug, uid }
 
     return data

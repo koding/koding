@@ -62,8 +62,10 @@ class IDE.TerminalPane extends IDE.Pane
 
   serialize: ->
     {label, ipAddress, slug, uid} = @machine
+    {path, paneType} = @getOptions()
 
-    data      =
-      path    : @getOptions().path
-      machine : { label, ipAddress, slug, uid }
-      session : @remote.session
+    data       =
+      path     : path
+      machine  : { label, ipAddress, slug, uid }
+      session  : @remote.session
+      paneType : paneType

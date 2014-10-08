@@ -154,7 +154,10 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   serialize: ->
-    return data: @getCanvasData()
+    return {
+      data    : @getCanvasData()
+      paneType: @getOptions().type
+    }
 
 
   viewAppended: ->
