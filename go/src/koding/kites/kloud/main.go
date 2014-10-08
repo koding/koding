@@ -177,6 +177,7 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
+		DomainStorage:     koding.NewDomainStorage(db),
 	}
 
 	// be sure they they satisfy the provider interface
