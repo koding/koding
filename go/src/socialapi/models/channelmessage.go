@@ -488,13 +488,13 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 		return c, nil
 	}
 
-	a := NewAccount()
 	addedBy, err := strconv.ParseInt(*addedByData, 10, 64)
 	if err != nil {
 		return c, err
 	}
 
-	if err := a.ById(addedBy); err != nil {
+	a, err := FetchAccountFromCache(addedBy)
+	if err != nil {
 		return c, err
 	}
 
