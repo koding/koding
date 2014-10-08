@@ -33,7 +33,8 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 
 # BUILD
 
-gulp.task 'build', ->
+gulp.task 'build-all-sites', req 'task.build.all'
+
 
   folders  = (folder for folder in fs.readdirSync('./') when fs.statSync(folder).isDirectory())
   sites    = folders.filter (folder) -> folder.search(/^site\./) is 0
