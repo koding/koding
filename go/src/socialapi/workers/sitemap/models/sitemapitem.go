@@ -52,21 +52,21 @@ func (s *SitemapItem) Populate(value string) error {
 	return nil
 }
 
-func (s *SitemapItem) Definition(rootURL string) *ItemDefinition {
+func (s *SitemapItem) Definition(protocol, rootURL string) *ItemDefinition {
 	d := &ItemDefinition{}
-	d.Location = s.composeLocation(rootURL)
+	d.Location = s.composeLocation(protocol, rootURL)
 
 	return d
 }
 
-func (s *SitemapItem) composeLocation(rootURL string) string {
+func (s *SitemapItem) composeLocation(protocol, rootURL string) string {
 	switch s.TypeConstant {
 	case TYPE_ACCOUNT:
-		return fmt.Sprintf("%s/%s", rootURL, s.Slug)
+		return fmt.Sprintf("%s//%s/%s", protocol, rootURL, s.Slug)
 	case TYPE_CHANNEL_MESSAGE:
-		return fmt.Sprintf("%s/%s/%s", rootURL, "Activity", s.Slug)
+		return fmt.Sprintf("%s//%s/%s/%s", protocol, rootURL, "Activity", s.Slug)
 	case TYPE_CHANNEL:
-		return fmt.Sprintf("%s/%s/%s", rootURL, "Activity", s.Slug)
+		return fmt.Sprintf("%s//%s/%s/%s", protocol, rootURL, "Activity", s.Slug)
 	}
 
 	return ""
