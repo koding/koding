@@ -74,7 +74,7 @@ do ->
   routeToLatestWorkspace = ->
     machine = KD.userMachines.first
 
-    return putVMInWorkspace machine if machine?
+    return putVMInWorkspace machine  if machine
 
     KD.singletons.computeController.fetchMachines (err,  machines)->
       if err or not machines.length
