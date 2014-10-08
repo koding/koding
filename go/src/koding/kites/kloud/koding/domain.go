@@ -28,12 +28,8 @@ func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interfa
 		return nil, errors.New("domain name argument is empty")
 	}
 
-	if p.DNS == nil {
-		// just call it initialize DNS struct
-		_, err := p.NewClient(m)
-		if err != nil {
-			return nil, err
-		}
+	if m.IpAddress == "" {
+		return nil, errors.New("ip address is not defined")
 	}
 
 	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
@@ -43,10 +39,6 @@ func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interfa
 	// nil error means the record exist
 	if _, err := p.DNS.Domain(args.DomainName); err == nil {
 		return nil, errors.New("domain record does exists")
-	}
-
-	if m.IpAddress == "" {
-		return nil, errors.New("ip address is not defined")
 	}
 
 	// now assign the machine ip to the given domain name
@@ -80,7 +72,23 @@ func (p *Provider) DomainRemove(r *kite.Request, m *protocol.Machine) (resp inte
 		return nil, errors.New("domain name argument is empty")
 	}
 
-	return nil, err
+	if m.IpAddress == "" {
+		return nil, errors.New("ip address is not defined")
+	}
+
+	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
+		return nil, err
+	}
+
+	if err := p.DNS.DeleteDomain(args.DomainName, m.IpAddress); err != nil {
+		return nil, err
+	}
+
+	if err := p.DomainStorage.Delete(args.DomainName); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func (p *Provider) DomainUnset(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
@@ -95,14 +103,6 @@ func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interfa
 
 	if args.DomainName == "" {
 		return nil, fmt.Errorf("domain name argument is empty")
-	}
-
-	if p.DNS == nil {
-		// just call it initialize DNS struct
-		_, err := p.NewClient(m)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
