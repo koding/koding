@@ -257,7 +257,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
 
-	// let's use the wrapper function "PreparMachine" which is doing a lot of
+	// let's use the wrapper function "PrepareMachine" which is doing a lot of
 	// things on behalf of us, like document locking, getting the machine
 	// document, and so on..
 	type domainFunc func(*kite.Request, *kloudprotocol.Machine) (interface{}, error)

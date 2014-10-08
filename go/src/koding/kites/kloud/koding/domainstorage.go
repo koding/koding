@@ -20,11 +20,11 @@ type DomainStorage interface {
 	// Add adds a new DomainDocument
 	Add(*DomainDocument) error
 
-	// Delete deletes the DomainDocument with the given id
-	Delete(id string) error
+	// Delete deletes the DomainDocument with the given domain name
+	Delete(name string) error
 
-	// Get returns the DomainDocument with the given id
-	Get(id string) (*DomainDocument, error)
+	// Get returns the DomainDocument with the given domain name
+	Get(name string) (*DomainDocument, error)
 }
 
 type Domains struct {
