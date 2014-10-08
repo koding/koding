@@ -136,13 +136,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	artifact := &protocol.Artifact{
-		IpAddress: m.IpAddress,
-	}
-
-	if i, ok := m.Builder["instanceId"]; ok {
-		if instanceId, ok := i.(string); ok {
-			artifact.InstanceId = instanceId
-		}
+		IpAddress:  m.IpAddress,
+		InstanceId: a.Builder.InstanceId,
 	}
 
 	a.Push("Starting machine", 10, machinestate.Starting)
