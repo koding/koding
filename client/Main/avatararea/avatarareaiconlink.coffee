@@ -1,40 +1,49 @@
 class AvatarAreaIconLink extends KDCustomHTMLView
 
-  constructor:(options,data)->
-    options = $.extend
-      tagName     : "a"
-      partial     : """
-        <span class='count'>
-          <cite></cite>
-        </span>
-        <span class='icon'></span>
-      """
-      attributes  :
-        href      : "#"
-    , options
+  JView.mixin @prototype
+
+  constructor: (options = {}, data) ->
+
+    options.tagName  = 'a'
+    options.cssClass = KD.utils.curry 'acc-icon', options.cssClass
 
     super options,data
+
     @count = 0
 
-  updateCount:(newCount = 0)->
+
+  updateCount: (newCount = 0) ->
+
     @$('.count cite').text newCount
     @count = newCount
 
     if newCount is 0
-      @$('.count').addClass "hidden"
-    else
-      @$('.count').removeClass "hidden"
+    then @$('.count').addClass "hidden"
+    else @$('.count').removeClass "hidden"
 
-  click:(event)->
-    windowController = KD.singleton "windowController"
+
+  click: (event) ->
+
     KD.utils.stopDOMEvent event
 
-    groupSwitcherPopup = @getDelegate()
-    if groupSwitcherPopup.hasClass "active"
-      groupSwitcherPopup.hide()
-      windowController.removeLayer groupSwitcherPopup
+    { windowController } = KD.singletons
+    popup                = @getDelegate()
+
+    if popup.hasClass "active"
+      popup.hide()
+      windowController.removeLayer popup
     else
-      groupSwitcherPopup.show()
-      windowController.addLayer groupSwitcherPopup
-      groupSwitcherPopup.once "ReceivedClickElsewhere", =>
-        groupSwitcherPopup.hide()
+      popup.show()
+      windowController.addLayer popup
+      popup.once "ReceivedClickElsewhere", => popup.hide()
+
+
+  pistachio: ->
+    """
+    <span class='count'>
+      <cite></cite>
+    </span>
+    <span class='icon'></span>
+    """
+
+
