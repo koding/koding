@@ -54,7 +54,6 @@ class AvatarArea extends KDCustomHTMLView
     KD.getSingleton('mainController').on 'accountChanged', =>
       @groupSwitcherPopup.listController.removeAllItems()
 
-
       # Commenting out these lines because of
       # removal of the groups links from avatar popup. ~Umut
       # @groupSwitcherPopup.populateGroups()

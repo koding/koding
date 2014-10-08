@@ -1,11 +1,15 @@
 class PopupNotifications extends AvatarPopup
 
-  constructor:->
+  constructor: (options = {}, data) ->
+
+    options.cssClass = KD.utils.curry 'popup-notifications', options.cssClass
+
+    super options, data
+
     @notLoggedInMessage = 'Login required to see notifications'
 
-    super
 
-  viewAppended:->
+  viewAppended: ->
     super
 
     @_popupList = new PopupList
@@ -28,7 +32,7 @@ class PopupNotifications extends AvatarPopup
     KD.getSingleton('mainController').on "AccountChanged", =>
       @attachListeners()
 
-  hide:->
+  hide: ->
     super
 
     if KD.isLoggedIn()
@@ -45,7 +49,7 @@ class PopupNotifications extends AvatarPopup
 
     @updateItems()
 
-  updateItems:->
+  updateItems: ->
     return unless @listController
 
     @listController.removeAllItems()
@@ -56,7 +60,7 @@ class PopupNotifications extends AvatarPopup
         return warn "Notifications cannot be received", err  if err
         @listController.instantiateListItems notifications
 
-  attachListeners:->
+  attachListeners: ->
     {notificationController} = KD.singletons
     notificationController.off 'NotificationHasArrived'
     notificationController.on 'NotificationHasArrived', ({event})=>
