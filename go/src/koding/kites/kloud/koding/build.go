@@ -14,6 +14,7 @@ import (
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
 
+	"code.google.com/p/go.crypto/ssh"
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/ec2"
@@ -195,7 +196,17 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// check if the user has some keys
 	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
 		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
-			cloudInitConfig.UserSSHKeys = keys
+			for _, key := range keys {
+				// validate the public keys
+				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+				if err != nil {
+					errLog(`User (%s) has an invalid public SSH key.
+							Not adding it to the authorized keys.
+							Key: %s. Err: %v`, m.Username, key, err)
+					continue
+				}
+				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
+			}
 		}
 	}
 
