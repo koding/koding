@@ -257,7 +257,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		if err != nil {
 			p.Log.Warning("[%s] Cleaning up domain record. Deleting domain record: %s",
 				m.Id, m.Domain.Name)
-			if err := p.DNS.DeleteDomain(m.Domain.Name, buildArtifact.IpAddress); err != nil {
+			if err := p.DNS.Delete(m.Domain.Name, buildArtifact.IpAddress); err != nil {
 				p.Log.Warning("[%s] Cleaning up domain failed: %v", m.Id, err)
 			}
 		}

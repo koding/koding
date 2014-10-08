@@ -24,3 +24,14 @@ type StorageData struct {
 	Type string
 	Data map[string]interface{}
 }
+
+type DomainStorage interface {
+	// Add adds a new DomainDocument
+	Add(*protocol.Domain) error
+
+	// Delete deletes the DomainDocument with the given domain name
+	Delete(name string) error
+
+	// Get returns the DomainDocument with the given domain name
+	Get(name string) (*protocol.Domain, error)
+}

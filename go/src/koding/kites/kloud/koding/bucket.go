@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/s3"
 )
 
@@ -45,12 +44,7 @@ func (b *Bucket) URL(path string) string {
 }
 
 func NewBucket(name, folder string) *Bucket {
-	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
-	}
-
-	s := s3.New(auth, aws.USEast)
+	s := s3.New(DefaultKodingAuth, DefaultAWSRegion)
 
 	return &Bucket{
 		Bucket: s.Bucket(name),
