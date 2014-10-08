@@ -3,10 +3,12 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/protocol"
 	"strings"
+	"time"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/dchest/validator"
 	"github.com/koding/kite"
@@ -17,7 +19,53 @@ type domainArgs struct {
 }
 
 func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
-	return nil, err
+	args := &domainArgs{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	if args.DomainName == "" {
+		return nil, errors.New("domain name argument is empty")
+	}
+
+	if p.DNS == nil {
+		// just call it initialize DNS struct
+		_, err := p.NewClient(m)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := validateDomain(args.DomainName, r.Username, p.HostedZone); err != nil {
+		return nil, err
+	}
+
+	// nil error means the record exist
+	if _, err := p.DNS.Domain(args.DomainName); err == nil {
+		return nil, errors.New("domain record does exists.")
+	}
+
+	if m.IpAddress == "" {
+		return nil, errors.New("ip address is not defined")
+	}
+
+	// now assign the machine ip to the given domain name
+	if err := p.DNS.CreateDomain(args.DomainName, m.IpAddress); err != nil {
+		return nil, err
+	}
+
+	domainDocument := &DomainDocument{
+		Id:         bson.NewObjectId(),
+		MachineId:  bson.ObjectIdHex(m.Id),
+		DomainName: args.DomainName,
+		CreatedAt:  time.Now().UTC(),
+	}
+
+	if err := p.DomainStorage.Add(domainDocument); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 func (p *Provider) DomainRemove(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
@@ -34,20 +82,9 @@ func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interfa
 		return nil, err
 	}
 
-	m.Eventer = &eventer.Events{}
-
 	if args.DomainName == "" {
 		return nil, fmt.Errorf("domain name argument is empty")
 	}
-
-	defer func() {
-		if err != nil {
-			p.Log.Error("Could not update domain. err: %s", err)
-
-			//  change it that we don't leak information
-			err = errors.New("Could not set domain. Please contact support")
-		}
-	}()
 
 	if p.DNS == nil {
 		// just call it initialize DNS struct
