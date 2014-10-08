@@ -5,9 +5,10 @@ class ComputeController extends KDController
   @timeout = 30000
 
   constructor:->
+
     super
 
-    { mainController, kontrol } = KD.singletons
+    { mainController, kontrol, router } = KD.singletons
 
     do @reset
 
