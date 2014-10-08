@@ -31,4 +31,8 @@ var (
 			err.Error(), "pq: invalid input value for enum payment.plan",
 		)
 	}
+
+	ErrNothingToInvoiceFn = func(err error) bool {
+		return err.Error() == "Nothing to invoice for customer"
+	}
 )

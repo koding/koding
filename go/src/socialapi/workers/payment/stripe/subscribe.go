@@ -118,7 +118,14 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 
 	_, err = stripeInvoice.New(invoiceParams)
 	if err != nil {
-		return err
+		stripeErr := handleStripeError(err)
+
+		// customer probably has a coupon and therefore doesn't need to pay
+		if paymenterrors.ErrNothingToInvoiceFn(stripeErr) {
+			return nil
+		}
+
+		return stripeErr
 	}
 
 	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
