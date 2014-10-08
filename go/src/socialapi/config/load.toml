@@ -1,55 +1,60 @@
-Mongo              = "10.0.0.239:27017/koding"
-Environment        = "prod"
-Region             = "prod"
-Hostname           = "prod.koding.com"
+proxyUrl = "http://localhost:7000"
+configFilePath = "/opt/koding/go/src/socialapi/config/load.toml"
+mongo = "10.0.0.239:27017/koding"
+environment = "production"
+region = "aws"
+hostname = "load.koding.com"
+eventExchangeName = "BrokerMessageBus"
+disableCaching = false
+debug = false
 
 [postgres]
-Host=     "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
-Port=     5432
-Username= "socialapplication"
-Password= "socialapplication"
-DBName=   "social"
+host = "prod-load.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+port = 5432
+username = "socialapplication"
+password = "socialapplication"
+dbname = "social"
 
 [mq]
-Host     = "brown-jaguar.rmq.cloudamqp.com"
-Port     = 5672
-Login    = "cadvyqxd"
-Password = "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"
-Vhost    = "cadvyqxd"
+host = "brown-jaguar.rmq.cloudamqp.com"
+port = 5672
+apiAddress = "brown-jaguar.rmq.cloudamqp.com"
+apiPort = "15672"
+login = "cadvyqxd"
+componentUser = "cadvyqxd"
+password = "yf29g7sn61dqSFqL7NlNbzC1NcXe9hIS"
+heartbeat = 0
+vhost = "cadvyqxd"
 
 [redis]
-URL = "prod-test.1ia3pb.0001.use1.cache.amazonaws.com:6379"
-DB  = 0
+url = "prod-test.1ia3pb.0001.use1.cache.amazonaws.com:6379"
 
 [email]
-Host            = "prod.koding.com"
-Protocol        = "http:"
-DefaultFromMail = "hello@koding.com"
-DefaultFromName = "Koding"
-Username        = "koding"
-Password        = "DEQl7_Dr"
+host = "load.koding.com"
+protocol = "https:"
+defaultFromMail = "hello@koding.com"
+defaultFromName = "koding"
+username = "koding"
+password = "DEQl7_Dr"
 
 [sitemap]
-RedisDB = 0
+redisDB = 0
 
 [algolia]
-AppId          = "DYVV81J2S1"
-ApiKey         = "303eb858050b1067bcd704d6cbfb977c"
-ApiSecretKey   = "041427512bcdcd0c7bd4899ec8175f46"
-IndexSuffix    = ".load"
+appId = "DYVV81J2S1"
+apiKey = "303eb858050b1067bcd704d6cbfb977c"
+indexSuffix = ".load"
+apiSecretKey = "041427512bcdcd0c7bd4899ec8175f46"
 
 [mixpanel]
-Enabled       = false
-Token         = "113c2731b47a5151f4be44ddd5af0e7a"
+token = "3d7775525241b3350e6d89bd40031862"
+enabled = true
 
 [limits]
-MessageBodyMinLen    = 1
-PostThrottleDuration = "10s"
-PostThrottleCount    = 100
-
-EventExchangeName ="BrokerMessageBus"
-DisableCaching    = false
-Debug             = false
+messageBodyMinLen = 1
+postThrottleDuration = "15s"
+postThrottleCount = 30
 
 [stripe]
-SecretToken = "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh"
+secretToken = "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh"
+
