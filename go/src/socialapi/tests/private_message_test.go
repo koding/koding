@@ -305,6 +305,34 @@ func TestPrivateMesssage(t *testing.T) {
 
 		})
 
+		Convey("user should not be able to edit join messages", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			pmr := models.PrivateMessageRequest{}
+			pmr.AccountId = account.Id
+			pmr.Body = "test private message participants again"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"chris"}
+
+			cc, err := rest.SendPrivateMessage(pmr)
+			So(err, ShouldBeNil)
+			So(cc, ShouldNotBeNil)
+
+			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
+			So(err, ShouldBeNil)
+
+			history, err := rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
+			joinMessage := history.MessageList[0].Message
+			So(joinMessage, ShouldNotBeNil)
+
+			_, err = rest.UpdatePost(joinMessage)
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("targetted account should be able to list private message channel of himself", nil)
 
 	})
