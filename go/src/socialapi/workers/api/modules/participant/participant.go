@@ -54,8 +54,19 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 
 	for i := range participants {
 		participant := models.NewChannelParticipant()
-		participant.AccountId = participants[i].AccountId
 		participant.ChannelId = query.Id
+
+		// prevent duplicate participant addition
+		isParticipant, err := participant.IsParticipant(participants[i].AccountId)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
+		if isParticipant {
+			continue
+		}
+
+		participant.AccountId = participants[i].AccountId
 
 		if err := participant.Create(); err != nil {
 			return response.NewBadRequest(err)

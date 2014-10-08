@@ -294,6 +294,15 @@ func TestPrivateMesssage(t *testing.T) {
 			So(ok, ShouldBeTrue)
 			So(*addedBy, ShouldEqual, account.OldId)
 
+			// try to add same participant
+			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
+			So(err, ShouldBeNil)
+
+			history, err = rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
 		})
 
 		Convey("targetted account should be able to list private message channel of himself", nil)
