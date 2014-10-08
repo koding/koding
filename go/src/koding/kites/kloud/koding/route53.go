@@ -6,55 +6,47 @@ import (
 	"strings"
 
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
 )
 
 var ErrNoRecord = errors.New("no records available")
 
 type DNS struct {
-	Route53 *route53.Route53
-	ZoneId  string
-	Log     logging.Logger
+	Route53    *route53.Route53
+	HostedZone string
+	ZoneId     string
+	Log        logging.Logger
 }
 
-func (p *Provider) InitDNS(accessKey, secretKey string) error {
-	p.Log.Info("DNS middleware is not initialized. Initializing...")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-		},
-		aws.Regions[DefaultRegion],
-	)
+// NewDNSClient initializes a new DNS instance with default Koding credentials
+func NewDNSClient(hostedZone string) *DNS {
+	dns := route53.New(DefaultKodingAuth, DefaultAWSRegion)
 
-	p.Log.Info("Searching for hosted zone: %s", p.HostedZone)
 	hostedZones, err := dns.ListHostedZones("", 100)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	var zoneId string
 	for _, h := range hostedZones.HostedZones {
 		// the "." point is here because hosteded zones are listed as
 		// "dev.koding.io." , "koding.io." and so on
-		if h.Name == p.HostedZone+"." {
+		if h.Name == hostedZone+"." {
 			zoneId = route53.CleanZoneID(h.ID)
 			break
 		}
 	}
 
 	if zoneId == "" {
-		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", p.HostedZone)
+		panic(fmt.Sprintf("Hosted zone with the name '%s' doesn't exist", hostedZone))
 	}
 
-	p.DNS = &DNS{
-		Route53: dns,
-		ZoneId:  zoneId,
-		Log:     p.Log,
+	return &DNS{
+		Route53:    dns,
+		HostedZone: hostedZone,
+		ZoneId:     zoneId,
+		Log:        logging.NewLogger("kloud-dns"),
 	}
-
-	return nil
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction

@@ -36,13 +36,13 @@ func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interfa
 		}
 	}
 
-	if err := validateDomain(args.DomainName, r.Username, p.HostedZone); err != nil {
+	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
 		return nil, err
 	}
 
 	// nil error means the record exist
 	if _, err := p.DNS.Domain(args.DomainName); err == nil {
-		return nil, errors.New("domain record does exists.")
+		return nil, errors.New("domain record does exists")
 	}
 
 	if m.IpAddress == "" {
@@ -61,6 +61,8 @@ func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interfa
 		CreatedAt:  time.Now().UTC(),
 	}
 
+	fmt.Printf("domainDocument %+v\n", domainDocument)
+
 	if err := p.DomainStorage.Add(domainDocument); err != nil {
 		return nil, err
 	}
@@ -69,6 +71,15 @@ func (p *Provider) DomainAdd(r *kite.Request, m *protocol.Machine) (resp interfa
 }
 
 func (p *Provider) DomainRemove(r *kite.Request, m *protocol.Machine) (resp interface{}, err error) {
+	args := &domainArgs{}
+	if err := r.Args.One().Unmarshal(args); err != nil {
+		return nil, err
+	}
+
+	if args.DomainName == "" {
+		return nil, errors.New("domain name argument is empty")
+	}
+
 	return nil, err
 }
 
@@ -94,7 +105,7 @@ func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interfa
 		}
 	}
 
-	if err := validateDomain(args.DomainName, r.Username, p.HostedZone); err != nil {
+	if err := validateDomain(args.DomainName, r.Username, p.DNS.HostedZone); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +129,7 @@ func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (resp interfa
 // record will be created otherwise existing record is updated. This is just a
 // helper method that uses our DNS struct.
 func (p *Provider) UpdateDomain(ip, domain, username string) error {
-	if err := validateDomain(domain, username, p.HostedZone); err != nil {
+	if err := validateDomain(domain, username, p.DNS.HostedZone); err != nil {
 		return err
 	}
 
