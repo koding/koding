@@ -248,6 +248,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 	buildArtifact.MachineId = m.Id
 
+	// cleanup build if something goes wrong here
+	defer func() {
+		if err != nil {
+			p.Log.Warning("Cleaning up instance '%s'. Terminating instance: %s. Error was: %s",
+				instanceName, buildArtifact.InstanceId, err)
+
+			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
+				p.Log.Warning("Cleaning up instance '%s' failed: %v", instanceName, err)
+			}
+		}
+	}()
+
 	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
