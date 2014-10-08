@@ -41,5 +41,9 @@ func (r *Restart) Action(args []string, k *kite.Client) error {
 	}
 
 	DefaultUi.Info(fmt.Sprintf("%+v", result))
+
+	if flagWatchEvents {
+		return watch(k, "restart", *r.id, defaultPollInterval)
+	}
 	return nil
 }
