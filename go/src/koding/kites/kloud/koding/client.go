@@ -30,7 +30,7 @@ func NewEC2Client() *ec2.EC2 {
 	// include it here to because the library is not exporting it.
 	var retryingTransport = &aws.ResilientTransport{
 		Deadline: func() time.Time {
-			return time.Now().Add(5 * time.Second)
+			return time.Now().Add(30 * time.Second)
 		},
 		DialTimeout: 30 * time.Second, // this is 10 seconds in original
 		MaxTries:    3,
