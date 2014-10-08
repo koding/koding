@@ -266,6 +266,33 @@ func newKite(conf *Config) *kite.Kite {
 		return kodingProvider.DomainSet(r, m)
 	})
 
+	k.HandleFunc("domain.unset", func(r *kite.Request) (interface{}, error) {
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainUnset(r, m)
+	})
+
+	k.HandleFunc("domain.add", func(r *kite.Request) (interface{}, error) {
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainAdd(r, m)
+	})
+
+	k.HandleFunc("domain.remove", func(r *kite.Request) (interface{}, error) {
+		m, err := kld.PrepareMachine(r)
+		if err != nil {
+			return nil, err
+		}
+
+		return kodingProvider.DomainRemove(r, m)
+	})
+
 	return k
 }
 
