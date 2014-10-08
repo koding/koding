@@ -19,6 +19,9 @@ func main() {
 	}
 	defer r.Close()
 
+	conf := *r.Conf
+	conf.Redis.DB = r.Conf.Sitemap.RedisDB
+
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
