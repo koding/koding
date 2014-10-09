@@ -238,6 +238,10 @@ class PrivateMessagePane extends MessagePane
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
 
+    shouldReturn = @checkForDates item, index
+
+    return  if shouldReturn
+
     if prevSibling
       if hasSameOwner item, prevSibling
       then item.setClass 'consequent'
@@ -247,6 +251,39 @@ class PrivateMessagePane extends MessagePane
       if hasSameOwner item, nextSibling
       then nextSibling.setClass 'consequent'
       else nextSibling.unsetClass 'consequent'
+
+
+  checkForDates: (item, index) ->
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index+1]
+
+    currentDate = new Date item.getData().createdAt
+
+    if prevSibling
+      otherDate = new Date prevSibling.getData().createdAt
+
+    if nextSibling
+      otherDate = new Date nextSibling.getData().createdAt
+
+
+    if otherDate and currentDate.getDate() isnt otherDate.getDate()
+
+      exactDate = new Date if prevSibling then currentDate.getTime() else otherDate.getTime()
+      exactDate.setHours 0, 0, 0, 0
+
+      time = new KDCustomHTMLView
+        tagName    : 'time'
+        partial    : dateFormat exactDate, 'dddd, mmmm dS, yyyy'
+        attributes :
+          datetime : exactDate.toUTCString()
+
+      if prevSibling
+      then prevSibling.parent.addSubView time
+      else if nextSibling
+      then nextSibling.parent.addSubView time, null, yes
+
+    return Math.abs(currentDate - otherDate) > 3e5
 
 
   messageRemoved: (item, index) ->

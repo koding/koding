@@ -13,7 +13,7 @@ class PrivateMessageListItemView extends ActivityListItemView
     {createdAt, deletedAt, updatedAt} = data
 
     @likeView = new ReplyLikeView {}, data
-    @timeView = new CommentTimeView {}, createdAt
+    @timeView = new CommentTimeView timeFormat : 'h:MM TT', createdAt
 
     @decorate()
 
@@ -48,7 +48,7 @@ class PrivateMessageListItemView extends ActivityListItemView
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta clearfix'>
-        {{> @author}} {{> @timeView }} {{> @timeAgoView}} {{> @likeView}}
+        {{> @author}} {{> @timeView }} {{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{KD.utils.formatContent #(body)}}
