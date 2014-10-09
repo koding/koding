@@ -147,7 +147,7 @@ class NotificationListItemView extends KDListItemView
           duration : 1000
 
     switch @getData().type
-      when "comment", "like"
+      when "comment", "like", "mention"
         KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
       when "follow"
         KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"
