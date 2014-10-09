@@ -76,7 +76,7 @@ deleteMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for deleting message"}
   url =  "/message/#{data.id}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 likeMessage = (data, callback)->
   unless data.id
@@ -341,7 +341,7 @@ unmarkAsTroll = (data, callback)->
     return callback {message: "Request is not valid"}
 
   url = "/trollmode/#{data.accountId}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 getSiteMap = (data, callback)->
   url = data.name
@@ -359,40 +359,69 @@ checkOwnership = (data, callback) ->
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
-      body   : data
       method : 'POST'
-    , wrapCallback callback
 
-deleteReq = (url, callback)->
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    reqOptions.body = data
+
+    request reqOptions, wrapCallback callback
+
+deleteReq = (url, data, callback)->
+  [data, callback] = [callback, null] unless callback
+
   getNextApiURL (err, apiurl)->
     return callback err if err
 
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
       method : 'DELETE'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 getXml = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 get = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
-      qs     : data
       json   : true
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    # finally set query string
+    reqOptions.qs = data
+
+    request reqOptions, wrapCallback callback
+
+setCookieIfRequired = (reqOptions, data)->
+  # inject clientId cookie if exists
+  if data?.sessionToken
+    j = request.jar()
+    cookie = request.cookie "clientId=#{data.sessionToken}"
+    j.setCookie cookie, reqOptions.url
+    reqOptions.jar = j
+
+    delete data.sessionToken
+
+  return {reqOptions, data}
 
 module.exports = {
   unmarkAsTroll
