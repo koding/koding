@@ -1,15 +1,33 @@
 utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
+faker   = require 'faker'
 
 
 module.exports =
 
   activityPost: (browser) ->
 
-    helpers.beginTest(browser)
+    helpers.postActivity(browser)
 
-    browser.click '[testpath=public-feed-link]'
+    browser.end()
+
+
+  activityComment: (browser) ->
+
+    helpers.postComment(browser)
+
+    browser.end()
+
+
+  activityLike: (browser) ->
 
     helpers.postActivity(browser)
+    selector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child [testpath=activity-like-link]'
+
+    browser
+      .waitForElementVisible selector, 10000
+      .click                 selector
+
+    browser.waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
 
     browser.end()
