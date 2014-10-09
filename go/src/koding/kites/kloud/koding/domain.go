@@ -13,6 +13,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+const (
+	domainCollection = "jDomainAliases"
+)
+
 // DomainDocument defines a single MongoDB document in the jDomains collection
 type DomainDocument struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
@@ -53,7 +57,7 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 		ModifiedAt: time.Now().UTC(),
 	}
 
-	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"domain": domain.Name}, doc)
 		return err
 	})
@@ -64,11 +68,10 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 	}
 
 	return nil
-
 }
 
 func (d *Domains) Delete(name string) error {
-	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"domain": name})
 	})
 
@@ -82,7 +85,7 @@ func (d *Domains) Delete(name string) error {
 
 func (d *Domains) Get(name string) (*protocol.Domain, error) {
 	doc := &DomainDocument{}
-	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"domain": name}).One(&doc)
 	})
 	if err != nil {
@@ -96,7 +99,7 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 }
 
 func (d *Domains) UpdateMachine(name, machineId string) error {
-	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Update(bson.M{"domain": name},
 			bson.M{"$set": bson.M{
 				"machineId":  machineId,
