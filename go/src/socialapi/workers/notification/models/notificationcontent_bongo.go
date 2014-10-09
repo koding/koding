@@ -46,3 +46,7 @@ func (n *NotificationContent) One(q *bongo.Query) error {
 func (n *NotificationContent) ById(id int64) error {
 	return bongo.B.ById(n, id)
 }
+
+func (n *NotificationContent) Some(data interface{}, q *bongo.Query) error {
+	return bongo.B.Some(n, data, q)
+}
