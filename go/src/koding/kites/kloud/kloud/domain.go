@@ -92,6 +92,11 @@ func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 	unsetFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+		// be sure the domain does exist in storage before we delete the domain
+		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
+			return nil, fmt.Errorf("domain does not exists in DB")
+		}
+
 		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
 			return nil, err
 		}
@@ -110,6 +115,11 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+		// be sure the domain does exist in storage before we create the domain
+		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
+			return nil, fmt.Errorf("domain does not exists in DB")
+		}
+
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
 			return nil, err
 		}
