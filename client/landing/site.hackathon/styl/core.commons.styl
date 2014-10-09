@@ -21,8 +21,8 @@ body
   height            100%
 
 body
-  font-family       openSansFamily
   font-weight       400
+  font-family       FocoFamily
 
   &.noscroll
     overflow        hidden
@@ -34,11 +34,6 @@ body
 
   > .invisible
     display         none
-
-input
-textarea
-button
-  font-family       openSansFamily
 
 .kdview
   overflow          visible
@@ -107,7 +102,6 @@ button
     a
       font-size         14px
       margin-left       12px
-      font-family       openSansFamily
       color             white
       padding-bottom    1px
       noTextDeco()
@@ -171,18 +165,6 @@ button
   a
     color               inherit
 
-.kdmodal.redeem-modal
-
-  .formline
-    overflow              visible
-    padding               15px 0 0
-    .input-wrapper
-      overflow            visible
-      margin-right        8px
-      fr()
-    label
-      margin              0
-
 
 
 validationRed = rgba(217, 58, 55, 1)
@@ -224,17 +206,6 @@ validationRed = rgba(217, 58, 55, 1)
 
     &.direction-left:after
       right                 9px
-
-
-.avatarview
-  background-image          url( imagePath + 'defaultavatar/avatar.svg')
-  background-size           100% 100%
-  background-repeat         no-repeat
-  overflow                  hidden
-  display                   block
-  vertical-align            top
-  img
-    rounded                 3px
 
 .content-page
   margin                    0 auto
@@ -590,66 +561,3 @@ a.custom-link-view.border-only-green
 
 .kdoverlay
   fix()
-
-
-
-
-@css {
-/*
-resurrection.commons.styl
-FOOTER VIEW
-*/
-}
-
-
-footer.main-footer
-  padding               56px 0
-  font-family           openSansFamily
-  font-weight           400
-  background            #F0F0F0
-  border-top            1px solid #E8E8E8
-
-  .inner-container
-    max-width           1290px
-    padding             0px 45px
-    margin              0 auto
-    display             block
-    position            relative
-    borderBox()
-
-  .footer-block
-    width               50%
-    font-size           0
-    borderBox()
-    fl()
-    &:last-child
-      text-align        right
-
-    a
-      vertical-align     middle
-      font-size          14px
-      line-height        22px
-      color              #747474
-      display            inline
-      margin-right       12px
-      noTextDeco()
-
-  a.social
-    display             inline-block
-    margin-right        8px
-    &.tw
-      r-sprite          home 'social-tw'
-    &.fb
-      r-sprite          home 'social-fb'
-
-
-
-@media only screen and (min-width : 320px) and (max-width : 568px)
-  footer.main-footer
-    .footer-block
-      width             100%
-      float             none
-
-      &~.footer-block
-        margin-top      18px
-        border-top      1px solid rgba(255,255,255,.05)

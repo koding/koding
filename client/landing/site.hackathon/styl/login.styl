@@ -566,3 +566,75 @@ body.login.koding
 
   .kdscrollview.kdtabview
     overflow            hidden
+
+.kdmodal.extra-info
+  bg                    color, #f7f7f7
+
+  .kdview
+    overflow            visible !important
+
+  .kdmodal-inner
+    bg                  color, #f7f7f7
+    margin              0 53px 35px
+
+  .kdmodal-content
+    margin              0 !important
+    overflow            visible
+
+  .formline
+    width               100%
+    text-align          center
+    position            relative
+
+    &.username
+      .kdinput
+        padding-right   88px
+
+      .suffix
+        line-height     44px
+        color           #b6b6b6
+        abs             22px 14px 0 0
+        z-index         10
+
+    &.email
+      margin-top        59px
+      margin-bottom     14px
+      font-size         14px
+      color             #4e4e4e
+
+    &.photo
+      abs               -40px 0 0 50%
+      vendor            transform, translateX(-50%)
+      border            3px solid #f7f7f7
+      rounded           8px
+      size              80px, 80px
+
+      img
+        rounded         5px
+
+    .kdlabel
+      float             none
+      margin            13px 0 0
+      padding           0
+      text-align        left
+      font-size         12px
+      text-transform    uppercase
+      color             #a1a1a1
+
+    .kdinput
+      background        #fff
+      border            1px solid #e8e8e8
+
+  .button-field
+    position            static
+    height              auto !important
+    margin-top          21px !important
+
+    .kdbutton
+      width             100%
+
+  .description
+    text-align          center
+    color               #c6c6c6
+    font-size           12px
+    margin              30px 0 0

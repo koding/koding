@@ -2,6 +2,10 @@ fs          = require 'fs'
 bodyParser  = require 'body-parser'
 STATIC_PATH = "#{__dirname}/../static/"
 PORT        = 5000
+crypto      = require 'crypto'
+request     = require 'request'
+
+{exec}      = require 'child_process'
 
 module.exports = (siteName)->
 
@@ -17,6 +21,31 @@ module.exports = (siteName)->
   urlencodedParser = bodyParser.urlencoded({ extended: false })
 
   app.use bodyParser.urlencoded({ extended: false })
+
+  app.post '/FetchGravatarInfo', (req, res) ->
+    {email} = req.body
+    console.log "Gravatar info request for: #{email}"
+
+    _hash    = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest("hex")).toString()
+    _url     = "https://www.gravatar.com/#{_hash}.json"
+    _request =
+      url     : _url
+      headers :
+        'User-Agent': 'request'
+
+    request _request, (err, response, body) ->
+      if body isnt "User not found"
+        gravatar = JSON.parse body
+        console.log gravatar
+        res.status(200).send(gravatar)
+
+      else
+        res.status(400).send(body)
+
+
+    # data = '{"entry":[{"id":"5390782","hash":"02e68fe6ba0d08c7ea5b63320beedc46","requestHash":"dyasar","profileUrl":"http:\/\/gravatar.com\/dyasar","preferredUsername":"dyasar","thumbnailUrl":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","photos":[{"value":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","type":"thumbnail"}],"name":{"givenName":"Devrim","familyName":"Yasar","formatted":"Devrim Yasar"},"displayName":"Devrim","urls":[]}]}'
+
+    # res.status(400).send(JSON.parse data)
 
 
   app.post '/Login', (req, res) ->
