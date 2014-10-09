@@ -36,8 +36,8 @@ class ManageDomainsView extends KDView
     @addSubView @domainController.getView()
     @inputView.hide()
 
-
-
+    @domainController.getListView()
+      .on 'DeleteDomainRequested', @bound 'removeDomain'
 
     @addSubView @loader = new KDLoaderView
       cssClass      : 'in-progress'
@@ -47,6 +47,10 @@ class ManageDomainsView extends KDView
       loaderOptions :
         color       : '#FFFFFF'
       showLoader    : yes
+
+    @addSubView @warning = new KDCustomHTMLView
+      cssClass      : 'warning hidden'
+      click         : -> @hide()
 
     @listDomains()
 
@@ -94,6 +98,31 @@ class ManageDomainsView extends KDView
         @input.makeEnabled()
         @loader.hide()
 
+
+  removeDomain:(domainItem)->
+
+    {computeController} = KD.singletons
+
+    {domain}  = domainItem.getData()
+    machineId = @machine._id
+
+    @loader.show()
+    @warning.hide()
+
+    computeController.kloud
+      .removeDomain {domainName: domain, machineId}
+
+      .then =>
+        @domainController.removeItem domainItem
+        computeController.domains = []
+
+      .catch (err)=>
+        warn "Failed to remove domain:", err
+        @warning.setTooltip title: err.message
+        @warning.show()
+
+      .finally =>
+        @loader.hide()
 
   toggleInput:->
 
