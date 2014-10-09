@@ -20,6 +20,8 @@ class ActivityListController extends KDListViewController
     viewOptions.type              = options.type
     viewOptions.comments         ?= yes
     viewOptions.dataPath          = 'id'
+    viewOptions.attributes        =
+      testpath                    : 'activity-list'
 
     options.noItemFoundWidget    ?= new KDCustomHTMLView
       cssClass : 'no-item-found hidden'
