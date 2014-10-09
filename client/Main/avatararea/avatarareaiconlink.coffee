@@ -43,7 +43,7 @@ class AvatarAreaIconLink extends KDCustomHTMLView
 
   pistachio: ->
     """
-    <span class='count'>
+    <span class='count hidden'>
       <cite></cite>
     </span>
     <span class='icon'></span>
