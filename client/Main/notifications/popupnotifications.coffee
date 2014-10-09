@@ -32,8 +32,8 @@ class PopupNotifications extends AvatarPopup
     super
 
     if KD.isLoggedIn()
-      {SocialNotification} = KD.remote.api
-      SocialNotification.glance (err) =>
+      {notifications} = KD.singletons.socialapi
+      notifications.glance {}, (err) =>
         return warn err.error, err.description  if err
 
         @listController.emit 'NotificationCountDidChange', 0

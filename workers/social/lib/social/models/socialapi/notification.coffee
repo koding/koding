@@ -17,7 +17,7 @@ module.exports = class SocialNotification extends Base
         fetch         :
           (signature Function)
         glance        :
-          (signature Function)
+          (signature Object, Function)
     permissions :
       'list notifications': ['member', 'moderator']
     schema             :
@@ -44,7 +44,7 @@ module.exports = class SocialNotification extends Base
         callback null, {notifications, unreadCount}
 
   @glance = permit 'list notifications',
-    success: (client, callback) ->
+    success: (client, options, callback) ->
       doRequest 'glanceNotifications', client, {}, callback
 
   @joinGroup = (data, callback) ->

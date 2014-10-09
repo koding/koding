@@ -379,3 +379,33 @@ func TestAccountFetchChannel(t *testing.T) {
 
 	})
 }
+
+func TestAccountsByNick(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching account ids by nicknames", t, func() {
+		Convey("it should not fetch any accounts when nicknames are empty", func() {
+			nicknames := make([]string, 0)
+
+			accounts, err := FetchAccountsByNicks(nicknames)
+			So(err, ShouldBeNil)
+			So(len(accounts), ShouldEqual, 0)
+		})
+
+		Convey("it should fetch accounts by nicknames", func() {
+			acc1 := createAccountWithTest()
+			acc2 := createAccountWithTest()
+			nicknames := make([]string, 0)
+			nicknames = append(nicknames, acc1.Nick, acc2.Nick)
+			accounts, err := FetchAccountsByNicks(nicknames)
+			So(err, ShouldBeNil)
+			So(accounts, ShouldNotBeNil)
+			So(len(accounts), ShouldEqual, 2)
+		})
+	})
+
+}
