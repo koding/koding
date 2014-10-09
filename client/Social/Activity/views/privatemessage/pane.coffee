@@ -152,15 +152,22 @@ class PrivateMessagePane extends MessagePane
     return  if message.account._id is KD.whoami()._id
 
     wasAtBottom = @isPageAtBottom()
-    item = @prependMessage message, @listController.getItemCount()
+    item = @appendMessage message
 
     @scrollDown item  if wasAtBottom
 
 
+  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-  prependMessage: (message, index) ->
+  prependMessage: (message) -> @listController.addItem message, 0
 
-    return @listController.addItem message, index
+
+  appendMessageDeferred: (item, i, total) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @appendMessage item
+    @emit 'ListPopulated'  if i is total - 1
 
 
   putMessage: (message, index) ->
@@ -196,7 +203,7 @@ class PrivateMessagePane extends MessagePane
 
         items.forEach (item, i) =>
           {scrollHeight} = body
-          @appendMessage item, 0
+          @prependMessage item
           body.scrollTop += body.scrollHeight - scrollHeight
 
         if items.length is 0
@@ -257,15 +264,6 @@ class PrivateMessagePane extends MessagePane
       else nextSibling.unsetClass 'consequent'
     else if nextSibling
       nextSibling.unsetClass 'consequent'
-
-
-  appendMessageDeferred: (item, i, total) ->
-    # Super method defers adding list items to minimize page load
-    # congestion. This function is overrides super function to render
-    # all conversation messages to be displayed at the same time
-    @appendMessage item
-    @emit 'ListPopulated'  if i is total - 1
-
 
 
   populate: ->
