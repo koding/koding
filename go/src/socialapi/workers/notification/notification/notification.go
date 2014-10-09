@@ -6,6 +6,7 @@ import (
 	"socialapi/workers/notification/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -40,7 +41,41 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 		rmqConn: rmqConn.Conn(),
 	}
 
+	nwc.hidePMNotifications()
+
 	return nwc, nil
+}
+
+// this is temporary method used for hiding private message notifications
+// previously created. Once it is run in all servers, it will be deleted
+func (n *Controller) hidePMNotifications() {
+	n.log.Debug("hiding pm notifications")
+	var ids []int64
+	nc := models.NewNotificationContent()
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"type_constant": models.NotificationContent_TYPE_PM,
+		},
+		Pluck: "id",
+	}
+
+	if err := nc.Some(&ids, query); err != nil {
+		n.log.Error("Could not hide pm notifications: %s", err)
+		return
+	}
+
+	if len(ids) == 0 {
+		return
+	}
+
+	ntf := models.NewNotification()
+
+	updateSql := "UPDATE " + ntf.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
+
+	err := bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
+	if err != nil {
+		n.log.Error("Could not hide pm notifications: %s", err)
+	}
 }
 
 // CreateReplyNotification notifies main thread owner.
