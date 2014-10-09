@@ -3,29 +3,56 @@ package koding
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/protocol"
 	"strings"
 
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/protocol"
-
 	"github.com/dchest/validator"
-	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
 )
 
 var ErrNoRecord = errors.New("no records available")
 
 type DNS struct {
-	Route53 *route53.Route53
-	ZoneId  string
-	Log     logging.Logger
+	Route53    *route53.Route53
+	hostedZone string
+	ZoneId     string
+	Log        logging.Logger
+}
+
+// NewDNSClient initializes a new DNS instance with default Koding credentials
+func NewDNSClient(hostedZone string) *DNS {
+	dns := route53.New(DefaultKodingAuth, DefaultAWSRegion)
+
+	hostedZones, err := dns.ListHostedZones("", 100)
+	if err != nil {
+		panic(err)
+	}
+
+	var zoneId string
+	for _, h := range hostedZones.HostedZones {
+		// the "." point is here because hosteded zones are listed as
+		// "dev.koding.io." , "koding.io." and so on
+		if h.Name == hostedZone+"." {
+			zoneId = route53.CleanZoneID(h.ID)
+			break
+		}
+	}
+
+	if zoneId == "" {
+		panic(fmt.Sprintf("Hosted zone with the name '%s' doesn't exist", hostedZone))
+	}
+
+	return &DNS{
+		Route53:    dns,
+		hostedZone: hostedZone,
+		ZoneId:     zoneId,
+		Log:        logging.NewLogger("kloud-dns"),
+	}
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
-func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
+func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Renaming domain",
 		Changes: []route53.Change{
@@ -60,7 +87,7 @@ func (d *DNS) Rename(oldDomain, newDomain string, currentIP string) error {
 }
 
 // Update changes the domains ip from oldIP to newIP in a single transaction
-func (d *DNS) Update(domain string, oldIP, newIP string) error {
+func (d *DNS) Update(domain, oldIP, newIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Updating a domain",
 		Changes: []route53.Change{
@@ -94,7 +121,9 @@ func (d *DNS) Update(domain string, oldIP, newIP string) error {
 	return nil
 }
 
-func (d *DNS) DeleteDomain(domain string, ips ...string) error {
+// DeleteDomain deletes a domain record for the given domain with the given ip
+// address.
+func (d *DNS) Delete(domain string, oldIp string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",
 		Changes: []route53.Change{
@@ -104,13 +133,13 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: ips, // needs old ip
+					Records: []string{oldIp}, // needs old ip
 				},
 			},
 		},
 	}
 
-	d.Log.Info("deleting domain name: %s which was associated to following ips: %v", domain, ips)
+	d.Log.Info("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		return err
@@ -119,7 +148,9 @@ func (d *DNS) DeleteDomain(domain string, ips ...string) error {
 	return nil
 }
 
-func (d *DNS) CreateDomain(domain string, ips ...string) error {
+// CreateDomain creates a new domain record for the given domain with the given
+// ip address.
+func (d *DNS) Create(domain string, newIp string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Creating domain",
 		Changes: []route53.Change{
@@ -129,13 +160,13 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     300,
-					Records: ips,
+					Records: []string{newIp},
 				},
 			},
 		},
 	}
 
-	d.Log.Info("creating domain name: %s to be associated with following ips: %v", domain, ips)
+	d.Log.Info("creating domain name: %s to be associated with following ip: %v", domain, newIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		return err
@@ -145,7 +176,7 @@ func (d *DNS) CreateDomain(domain string, ips ...string) error {
 }
 
 // Domain retrieves the record set for the given domain name
-func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
+func (d *DNS) Get(domain string) (*protocol.Record, error) {
 	lopts := &route53.ListOpts{
 		Name: domain,
 	}
@@ -154,148 +185,33 @@ func (d *DNS) Domain(domain string) (route53.ResourceRecordSet, error) {
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {
-		return route53.ResourceRecordSet{}, err
+		return nil, err
 	}
 
 	if len(resp.Records) == 0 {
-		return route53.ResourceRecordSet{}, ErrNoRecord
+		return nil, ErrNoRecord
 	}
 
 	for _, r := range resp.Records {
 		if strings.Contains(r.Name, domain) {
-			return r, nil
+			return &protocol.Record{
+				Name: r.Name,
+				IP:   r.Records[0],
+				TTL:  r.TTL,
+			}, nil
 		}
-
 	}
 
-	return route53.ResourceRecordSet{}, ErrNoRecord
+	return nil, ErrNoRecord
 }
 
-func (p *Provider) InitDNS(accessKey, secretKey string) error {
-	p.Log.Info("DNS middleware is not initialized. Initializing...")
-	dns := route53.New(
-		aws.Auth{
-			AccessKey: accessKey,
-			SecretKey: secretKey,
-		},
-		aws.Regions[DefaultRegion],
-	)
-
-	p.Log.Info("Searching for hosted zone: %s", p.HostedZone)
-	hostedZones, err := dns.ListHostedZones("", 100)
-	if err != nil {
-		return err
-	}
-
-	var zoneId string
-	for _, h := range hostedZones.HostedZones {
-		// the "." point is here because hosteded zones are listed as
-		// "dev.koding.io." , "koding.io." and so on
-		if h.Name == p.HostedZone+"." {
-			zoneId = route53.CleanZoneID(h.ID)
-			break
-		}
-	}
-
-	if zoneId == "" {
-		return fmt.Errorf("Hosted zone with the name '%s' doesn't exist", p.HostedZone)
-	}
-
-	p.DNS = &DNS{
-		Route53: dns,
-		ZoneId:  zoneId,
-		Log:     p.Log,
-	}
-
-	return nil
+func (d *DNS) HostedZone() string {
+	return d.hostedZone
 }
 
-type domainSet struct {
-	NewDomain string
-}
+func (d *DNS) Validate(domain, username string) error {
+	hostedZone := d.hostedZone
 
-func (p *Provider) DomainSet(r *kite.Request, m *protocol.Machine) (response interface{}, err error) {
-	defer p.Unlock(m.Id) // reset assignee after we are done
-
-	args := &domainSet{}
-	if err := r.Args.One().Unmarshal(args); err != nil {
-		return nil, err
-	}
-
-	m.Eventer = &eventer.Events{}
-
-	if args.NewDomain == "" {
-		return nil, fmt.Errorf("newDomain argument is empty")
-	}
-
-	defer func() {
-		if err != nil {
-			p.Log.Error("Could not update domain. err: %s", err)
-
-			//  change it that we don't leak information
-			err = errors.New("Could not set domain. Please contact support")
-		}
-	}()
-
-	if p.DNS == nil {
-		// just call it initialize DNS struct
-		_, err := p.NewClient(m)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err := validateDomain(args.NewDomain, r.Username, p.HostedZone); err != nil {
-		return nil, err
-	}
-
-	if err := p.DNS.Rename(m.Domain.Name, args.NewDomain, m.IpAddress); err != nil {
-		return nil, err
-	}
-
-	if err := p.Update(m.Id, &kloud.StorageData{
-		Type: "domain",
-		Data: map[string]interface{}{
-			"domainName": args.NewDomain,
-		},
-	}); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-// UpdateDomain sets the ip to the given domain. If there is no record a new
-// record will be created otherwise existing record is updated. This is just a
-// helper method that uses our DNS struct.
-func (p *Provider) UpdateDomain(ip, domain, username string) error {
-	if err := validateDomain(domain, username, p.HostedZone); err != nil {
-		return err
-	}
-
-	// Check if the record exist, if yes update the ip instead of creating a new one.
-	record, err := p.DNS.Domain(domain)
-	if err == ErrNoRecord {
-		if err := p.DNS.CreateDomain(domain, ip); err != nil {
-			return err
-		}
-	} else if err != nil {
-		// If it's something else just return it
-		return err
-	}
-
-	// Means the record exist, update it
-	if err == nil {
-		p.Log.Warning("Domain '%s' already exists (that shouldn't happen). Going to update to new IP", domain)
-		if err := p.DNS.Update(domain, record.Records[0], ip); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func validateDomain(domain, username, hostedZone string) error {
 	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
 	if f == domain {
 		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
