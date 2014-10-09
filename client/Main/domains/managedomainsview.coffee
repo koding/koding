@@ -17,7 +17,7 @@ class ManageDomainsView extends KDView
       type              : 'text'
       attributes        :
         spellcheck      : no
-      callback          : => @emit 'AddDomain'
+      callback          : @bound 'addDomain'
 
     @inputView.addSubView new KDView
       partial           : @domainSuffix
@@ -36,18 +36,43 @@ class ManageDomainsView extends KDView
     @addSubView @domainController.getView()
     @inputView.hide()
 
-    @on 'AddDomain', =>
-
-      @addDomain "#{@input.getValue()}#{domainSuffix}"
-      @input.setValue ""
-
-      @inputView.hide()
-      @emit "DomainInputCancelled"
 
 
-    domainList = @domainController.getListView()
-    domainList.on 'DeleteDomainRequested', (item)=>
-      @domainController.removeItem item
+
+
+
+  addDomain:->
+
+    {computeController} = KD.singletons
+
+    domain = "#{Encoder.XSSEncode @input.getValue().trim()}#{@domainSuffix}"
+    machineId = @machine._id
+
+    @loader.show()
+    @warning.hide()
+    @input.makeDisabled()
+
+    computeController.kloud
+
+      .addDomain {domainName: domain, machineId}
+
+      .then =>
+        @domainController.addItem { domain, machineId }
+        computeController.domains = []
+
+        @input.setValue ""
+        @inputView.hide()
+        @emit "DomainInputCancelled"
+
+      .catch (err)=>
+        warn "Failed to create domain:", err
+        @warning.setTooltip title: err.message
+        @warning.show()
+        @input.setFocus()
+
+      .finally =>
+        @input.makeEnabled()
+        @loader.hide()
 
 
   toggleInput:->
