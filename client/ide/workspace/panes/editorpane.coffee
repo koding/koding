@@ -60,8 +60,14 @@ class IDE.EditorPane extends IDE.Pane
   getContent: ->
     return @getAce().getContents()
 
+  setContent: (content) ->
+    @getAce().editor.setValue content, -1
+
   getCursor: ->
     return @getEditor().selection.getCursor()
+
+  setCursor: (positions) ->
+    @getEditor().selection.moveCursorTo positions.row, positions.column
 
   getFile: ->
     return @aceView.getData()
