@@ -30,26 +30,6 @@ type NotificationActivity struct {
 	Obsolete bool `json:"obsolete" sql:"NOT NULL"`
 }
 
-func (a *NotificationActivity) BeforeCreate() {
-	a.CreatedAt = time.Now()
-}
-
-func (a *NotificationActivity) BeforeUpdate() {
-	a.Obsolete = true
-}
-
-func (a *NotificationActivity) GetId() int64 {
-	return a.Id
-}
-
-func NewNotificationActivity() *NotificationActivity {
-	return &NotificationActivity{}
-}
-
-func (a NotificationActivity) TableName() string {
-	return "notification.notification_activity"
-}
-
 // Create method creates a new activity with obsolete field set as false
 // If there already exists one activity with same ActorId and
 // NotificationContentId pair, old one is set as obsolete, and
@@ -113,15 +93,6 @@ func (a *NotificationActivity) FetchMapByContentIds(ids []int64) (map[int64][]No
 	return aMap, nil
 }
 
-func (a *NotificationActivity) One(q *bongo.Query) error {
-	return bongo.B.One(a, a, q)
-}
-
-func (a *NotificationActivity) Some(data interface{}, q *bongo.Query) error {
-
-	return bongo.B.Some(a, data, q)
-}
-
 func (a *NotificationActivity) LastActivity() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
@@ -150,8 +121,4 @@ func (a *NotificationActivity) FetchContent() (*NotificationContent, error) {
 	}
 
 	return nc, nil
-}
-
-func (a *NotificationActivity) ById(id int64) error {
-	return bongo.B.ById(a, id)
 }
