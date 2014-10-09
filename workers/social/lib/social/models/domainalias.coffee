@@ -1,8 +1,8 @@
-{ argv }  = require 'optimist'
-KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
-jraphical = require 'jraphical'
+{ Module } = require 'jraphical'
+{ argv }   = require 'optimist'
+KONFIG     = require('koding-config-manager').load("main.#{argv.c}")
 
-module.exports = class JDomainAlias extends jraphical.Module
+module.exports = class JDomainAlias extends Module
 
   KodingError  = require '../error'
 
@@ -25,8 +25,10 @@ module.exports = class JDomainAlias extends jraphical.Module
       static          :
         one           :
           (signature Object, Function)
-        some          :
+        some          : [
+          (signature Object, Function)
           (signature Object, Object, Function)
+        ]
 
     sharedEvents      :
       static          : []
@@ -34,20 +36,22 @@ module.exports = class JDomainAlias extends jraphical.Module
 
     indexes           :
       domain          : 'unique'
-      machine         : 'sparse'
+      machineId       : 'sparse'
+      originId        : 'sparse'
 
     schema            :
 
-      domain          :
-        type          : String
-        required      : yes
-        set           : (value)-> value.toLowerCase()
+      domain          : String
 
       machineId       : ObjectId
       originId        : ObjectId
 
-      meta            : require "bongo/bundles/meta"
-
+      createdAt       :
+        type          : Date
+        default       : -> new Date
+      modifiedAt      :
+        type          : Date
+        set           : -> new Date
 
 
   @one$ = permit 'list domains',
@@ -63,12 +67,15 @@ module.exports = class JDomainAlias extends jraphical.Module
   @some$ = permit 'list domains',
     success : (client, selector, options, callback)->
 
-      { delegate }      = client.connection
-      selector         ?= {}
-      selector.originId = delegate.getId()
-      options          ?= {}
-      options.limit     = Math.min 10, (options.limit ? 10)
+      [callback, options] = [options, callback]  unless callback
+
+      { delegate } = client.connection
+
+      selector ?= {}
+      selector.originId = delegate._id
+
+      options      ?= {}
+      options.limit = 20
 
       JDomainAlias.some selector, options, (err, domains)->
         callback err, domains
-
