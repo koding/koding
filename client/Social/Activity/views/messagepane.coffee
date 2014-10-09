@@ -16,7 +16,10 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, lastToFirst, wrapper, channelId, scrollView} = @getOptions()
+    { itemClass, lastToFirst, wrapper, channelId
+      scrollView, noItemFoundWidget, startWithLazyLoader
+    } = @getOptions()
+
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -27,6 +30,8 @@ class MessagePane extends KDTabPaneView
       itemClass
       lastToFirst
       scrollView
+      noItemFoundWidget
+      startWithLazyLoader
     }
 
     @listController.getView().setClass 'padded'
