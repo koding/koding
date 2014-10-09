@@ -4,6 +4,16 @@ register = require '../register/register.js'
 
 module.exports =
 
+  beginTest: (browser) ->
+    url  = @getUrl()
+    user = utils.getUser()
+
+    browser.url(url)
+    browser.maximizeWindow()
+
+    @doLogin(browser, user)
+
+
   doLogin: (browser, user) ->
 
     browser
