@@ -7,20 +7,26 @@ class DomainItem extends KDListItemView
 
   viewAppended: ->
 
-    { domain } = @getData()
+    { domain, machineId } = @getData()
+    currentMachineId      = @getOption 'machineId'
+
     domainLink = "<a href='http://#{domain}' target='_blank'>#{domain}</a>"
+    topDomain  = "#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @addSubView new CustomLinkView
-      title  : domain
-      href   : "http://#{domain}"
-      target : '_blank'
+      title    : domain
+      href     : "http://#{domain}"
+      target   : '_blank'
 
-    @addSubView new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'remove-domain'
-      click    : =>
-        @getDelegate().emit 'DeleteDomainRequested', this
+    unless domain is topDomain
+      @addSubView new KDCustomHTMLView
+        tagName  : 'span'
+        cssClass : 'remove-domain'
+        click    : =>
+          @getDelegate().emit 'DeleteDomainRequested', this
 
-    @addSubView new KodingSwitch
-      cssClass : 'tiny'
-      defaultValue : yes
+    @addSubView @stateToggle = new KodingSwitch
+      cssClass     : 'tiny'
+      defaultValue : machineId is currentMachineId
+      callback     : (state) =>
+        @getDelegate().emit 'DomainStateChanged', this, state
