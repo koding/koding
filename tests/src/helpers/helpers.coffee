@@ -1,5 +1,6 @@
 utils    = require '../utils/utils.js'
 register = require '../register/register.js'
+faker    = require 'faker'
 
 
 module.exports =
@@ -43,6 +44,21 @@ module.exports =
       .click                  '[testpath=logout-link]'
       .pause                  3000
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
+
+
+  postActivity: (browser) ->
+
+    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', post
+      .click                  '[testpath=post-activity-button]'
+      .pause                  3000
+
+    browser.assert.containsText('[testpath=ActivityListItemView]:first-child', post)
 
 
   doRegister: (browser, user) ->
