@@ -1,14 +1,25 @@
 utils    = require '../utils/utils.js'
 register = require '../register/register.js'
+faker    = require 'faker'
 
 
 module.exports =
+
+  beginTest: (browser) ->
+    url  = @getUrl()
+    user = utils.getUser()
+
+    browser.url(url)
+    browser.maximizeWindow()
+
+    @doLogin(browser, user)
+
 
   doLogin: (browser, user) ->
 
     browser
       .waitForElementVisible  '[testpath=main-header]', 5000
-      .click                  '[testpath=login-link]'
+      .click                  '#main-header [testpath=login-link]'
       .waitForElementVisible  '[testpath=login-container]', 5000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
@@ -33,6 +44,21 @@ module.exports =
       .click                  '[testpath=logout-link]'
       .pause                  3000
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
+
+
+  postActivity: (browser) ->
+
+    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', post
+      .click                  '[testpath=post-activity-button]'
+      .pause                  3000
+
+    browser.assert.containsText('[testpath=ActivityListItemView]:first-child', post)
 
 
   doRegister: (browser, user) ->
