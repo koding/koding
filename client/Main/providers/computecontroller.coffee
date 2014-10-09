@@ -448,6 +448,42 @@ class ComputeController extends KDController
 
       (@errorHandler call, 'info', machine) err
 
+  # Domain management
+  #
+
+  fetchDomains: do (queue=[])->
+
+    (callback = noop)-> KD.singletons.mainController.ready =>
+
+      @domains ?= []
+
+      if @domains.length > 0
+        callback null, @domains
+        info "Domains returned from cache."
+        return
+
+      return  if (queue.push callback) > 1
+
+      topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
+      KD.remote.api.JDomainAlias.some {}, (err, domains)=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
+
+        # Move topDomain to index 0
+        _domains = []
+        for jdomain in domains
+          if jdomain.domain is topDomain
+          then _domains.splice 0, 0, jdomain
+          else _domains.push jdomain
+
+        @domains = _domains
+        cb null, @domains  for cb in queue
+        queue = []
+
 
   # Utils beyond this point
   #
