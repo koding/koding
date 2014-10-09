@@ -181,16 +181,24 @@ class ManageDomainsView extends KDView
 
     {computeController} = KD.singletons
 
+    machineName = ""
+    for machine in computeController.machines
+      if machine._id is machineId
+        machineName = " (<b>#{machine.getName()}</b>)"
+        break
+
     modal = new KDModalView
-      title         : "Re-assign domain ?"
+      cssClass      : 'domain-assign-modal'
+      title         : "Reassign domain ?"
       content       :
         """
         <div class='modalformline'>
           <p>
-            This domain (<strong>#{domain}</strong>) already assigned
-            to another machine, if you continue it will be re-assigned
-            to this machine. Do you want to continue?
+            The domain: <b>#{domain}</b> is already assigned to one
+            of your other VM#{machineName}. If you continue, it will be
+            reassigned to this VM and disabled on the other one.
           </p>
+          <p>Continue?</p>
         </div>
         """
       overlay       : yes
@@ -199,7 +207,7 @@ class ManageDomainsView extends KDView
         callback no
       buttons       :
         OK          :
-          title     : "Yes, re-assign"
+          title     : "Yes"
           style     : 'modal-clean-red'
           loader    :
             color   : 'darkred'
