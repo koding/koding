@@ -24,14 +24,6 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, fmt.Errorf("domain name argument is empty")
 	}
 
-	//  change it that we don't leak information
-	defer func() {
-		if err != nil {
-			k.Log.Error("Could not call '%s'. err: %s", r.Method, err)
-			err = fmt.Errorf("Could not call '%s'. Please contact support", r.Method)
-		}
-	}()
-
 	m, err := k.PrepareMachine(r)
 	if err != nil {
 		return nil, err
