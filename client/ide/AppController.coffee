@@ -469,11 +469,19 @@ class IDEAppController extends AppController
   registerIDEView: (ideView) ->
     @ideViews.push ideView
 
-    ideView.on 'PaneRemoved', =>
+    ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
+      delete @generatedPanes[pane.view.hash]
 
       @statusBar.showInformation()  if ideViewLength is 0
+
+    ideView.tabView.on 'PaneAdded', (pane) =>
+      @registerPane pane
+
+  registerPane: (pane) ->
+    @generatedPanes or= {}
+    @generatedPanes[pane.view.hash] = yes
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     if typeof callback is 'string'
@@ -662,3 +670,45 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) ->
       panes.push pane.serialize()
 
+    firebase = new Firebase 'https://ace-tryout.firebaseio.com/'
+    firebase.child('ali').set data: JSON.stringify panes
+
+
+  updateContent: (data) ->
+    @forEachSubViewInIDEViews_ 'editor', (pane) ->
+      if pane.hash is data.hash
+        pane.setContent data.file.content
+
+        KD.utils.wait 266, -> pane.setCursor data.file.cursor
+
+
+  deserialize: ->
+    firebase = new Firebase 'https://ace-tryout.firebaseio.com'
+
+    firebase.child('ali').child('data').on 'value', (data) =>
+      snapshot = JSON.parse data.val()
+
+      for pane in snapshot
+        if @generatedPanes[pane.hash]
+          if pane.paneType is 'editor'
+            @updateContent pane
+          else
+            continue
+
+        switch pane.paneType
+
+          when 'editor'
+            file = FSHelper.createFileInstance pane.file.path
+            file.paneHash = pane.hash
+            @openFile file, pane.file.content
+
+          when 'terminal'
+            @createNewTerminal()
+
+          when 'drawing'
+            @createNewDrawing()
+
+          when 'browser'
+            @createNewBrowser()
+
+        @generatedPanes[pane.hash] = yes
