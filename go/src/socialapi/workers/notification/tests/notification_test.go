@@ -421,17 +421,17 @@ func TestNotificationCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
-			Convey("I should be able to receive notification", func() {
+			Convey("I should be able to receive notification for my own post", func() {
 				nl, err := rest.GetNotificationList(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
-				Convey("And Notification list should contain three notifications", func() {
+				Convey("And Notification list should contain three notifications (like, 2 * reply)", func() {
 					So(len(nl.Notifications), ShouldEqual, 3)
 					So(nl.UnreadCount, ShouldEqual, 3)
 					Convey("Notifier count should be 1", func() {
 						So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 					})
-					Convey("Notification should contain first user as Latest Actors", func() {
+					Convey("Like notification should contain first user as actor", func() {
 						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
 						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 					})
@@ -444,19 +444,19 @@ func TestNotificationCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
-			Convey("I should be able to receive notification", func() {
+			Convey("I should be able to receive notification (latest like notification should be updated)", func() {
 				nl, err := rest.GetNotificationList(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
-				Convey("And Notification list should contain three notifications", func() {
+				Convey("And Notification list should contain three notifications (like, 2 * reply)", func() {
 					So(len(nl.Notifications), ShouldEqual, 3)
 					So(nl.UnreadCount, ShouldEqual, 3)
 				})
 				Convey("Notifier count should still be 1", func() {
 					So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 				})
-				Convey("Notification should contain first user as Latest Actors", func() {
+				Convey("Notification should contain first user as actor", func() {
 					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
 					So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 				})
@@ -471,17 +471,17 @@ func TestNotificationCreation(t *testing.T) {
 
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
-			Convey("i Should be able to receive notification", func() {
+			Convey("I should be able to receive like notification", func() {
 				nl, err := rest.GetNotificationList(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
-				Convey("And Notification list should contain three notifications", func() {
+				Convey("And Notification list should contain three notifications (like, 2 * reply)", func() {
 					So(len(nl.Notifications), ShouldEqual, 3)
 					Convey("Notifier count should be 4", func() {
 						So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
 					})
-					Convey("Notification should contain forth, third and second users consecutively as Latest Actors", func() {
+					Convey("Notification should contain forth, third and second users consecutively as actors", func() {
 						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
 						So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
 						So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
@@ -489,7 +489,7 @@ func TestNotificationCreation(t *testing.T) {
 					})
 				})
 			})
-			Convey("I should not be able to notified by my own like activities", func() {
+			Convey("I should not be notified when I liked my own post", func() {
 				_, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, ownerAccount.Id)
 				So(err, ShouldBeNil)
 				time.Sleep(SLEEP_TIME * time.Second)
@@ -503,6 +503,32 @@ func TestNotificationCreation(t *testing.T) {
 				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
 			})
+			// test behavior when first user relikes the post
+			Convey("First user should be able to relike it", func() {
+				err := rest.DeleteInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				_, err = rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+			Convey("I should be able to receive like notification", func() {
+				nl, err := rest.GetNotificationList(ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+
+				Convey("And Notification list should contain three notifications (like, 2 * reply)", func() {
+					So(len(nl.Notifications), ShouldEqual, 3)
+					Convey("Notifier count should be 4", func() {
+						So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
+					})
+					Convey("Notification should contain first, forth, and third users consecutively as actors", func() {
+						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
+						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+						So(nl.Notifications[0].LatestActors[1], ShouldEqual, forthUser.Id)
+						So(nl.Notifications[0].LatestActors[2], ShouldEqual, thirdUser.Id)
+					})
+				})
+			})
 		})
 
 		Convey("As a message owner I should be able to glance notifications", func() {
@@ -511,7 +537,7 @@ func TestNotificationCreation(t *testing.T) {
 			So(res, ShouldNotBeNil)
 		})
 
-		Convey("Unread notification count should be 0", func() {
+		Convey("Unread notification count should be 0 after glance", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
