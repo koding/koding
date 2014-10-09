@@ -215,11 +215,11 @@ class MessagePane extends KDTabPaneView
     return  unless channel
 
     channel
-      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageAdded',   @bound 'realtimeMessageArrived'
       .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message

@@ -145,8 +145,7 @@ class PrivateMessagePane extends MessagePane
       listView.addSubView @newMessages
 
 
-  # this is the realtime event handler for messages
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if message.account._id is KD.whoami()._id
 
