@@ -414,6 +414,9 @@ Configuration = (options={}) ->
 
       SERVICES="mongo redis postgres rabbitmq etcd"
 
+      NGINX_CONF="#{projectRoot}/.dev.nginx.conf"
+      NGINX_PID="#{projectRoot}/.dev.nginx.pid"
+
       #{envvars()}
 
       trap ctrl_c INT
@@ -425,18 +428,21 @@ Configuration = (options={}) ->
 
       function kill_all () {
         #{killlist()}
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
+        nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
 
+      function nginxstop () {
+        if [ -a $NGINX_PID ]; then
+          echo "stopping nginx"
+          nginx -c $NGINX_CONF -g "pid $NGINX_PID;" -s quit
+        fi
+      }
 
       function nginxrun () {
-
+        nginxstop
         echo "starting nginx"
-        touch #{projectRoot}/.dev.nginx.pid
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;'
-
+        nginx -c $NGINX_CONF -g "pid $NGINX_PID;"
       }
 
       function checkrunfile () {
