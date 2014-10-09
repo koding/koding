@@ -38,6 +38,7 @@ class ManageDomainsView extends KDView
 
     @domainController.getListView()
       .on 'DeleteDomainRequested', @bound 'removeDomain'
+      .on 'DomainStateChanged',    @bound 'changeDomainState'
 
     @addSubView @loader = new KDLoaderView
       cssClass      : 'in-progress'
@@ -123,6 +124,98 @@ class ManageDomainsView extends KDView
 
       .finally =>
         @loader.hide()
+
+
+  changeDomainState:(domainItem, state)->
+
+    {computeController} = KD.singletons
+    {stateToggle}       = domainItem
+    {domain}            = domainItem.getData()
+
+    machineId = @machine._id
+    action    = if state then 'setDomain' else 'unsetDomain'
+
+    @loader.show()
+    @warning.hide()
+
+    stateToggle.makeDisabled()
+
+    @askForPermission domainItem, state, (approved)=>
+
+      if approved
+        computeController.kloud[action] {domainName: domain, machineId}
+          .then ->
+            computeController.domains = []
+            domainItem.data.machineId = null  unless state
+
+          .catch (err)=>
+            warn "Failed to change domain state:", err
+            @warning.setTooltip title: err.message
+            @warning.show()
+
+            @revertToggle domainItem, state
+
+          .finally =>
+            @loader.hide()
+            stateToggle.makeEnabled()
+
+      else
+        @revertToggle domainItem, state
+        @loader.hide()
+        stateToggle.makeEnabled()
+
+
+  revertToggle:(domainItem, state)->
+
+    {stateToggle} = domainItem
+    if state
+    then stateToggle.setOff no
+    else stateToggle.setOn  no
+
+
+  askForPermission:(domainItem, state, callback)->
+
+    {domain, machineId} = domainItem.getData()
+
+    if not state or not machineId? then return callback yes
+
+    {computeController} = KD.singletons
+
+    modal = new KDModalView
+      title         : "Re-assign domain ?"
+      content       :
+        """
+        <div class='modalformline'>
+          <p>
+            This domain (<strong>#{domain}</strong>) already assigned
+            to another machine, if you continue it will be re-assigned
+            to this machine. Do you want to continue?
+          </p>
+        </div>
+        """
+      overlay       : yes
+      cancel        : ->
+        modal.destroy()
+        callback no
+      buttons       :
+        OK          :
+          title     : "Yes, re-assign"
+          style     : 'modal-clean-red'
+          loader    :
+            color   : 'darkred'
+          callback  : ->
+            computeController.kloud
+              .unsetDomain {domainName: domain, machineId}
+              .then -> callback yes
+              .catch (err)->
+                warn err
+                callback no
+              .finally -> modal.destroy()
+        cancel      :
+          title     : "Cancel"
+          style     : 'modal-cancel'
+          callback  : -> modal.cancel()
+
 
   toggleInput:->
 
