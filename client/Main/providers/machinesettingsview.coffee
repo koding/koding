@@ -19,9 +19,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
       arrowTop          : no
       tabs              : forms: Settings: fields:
         accessUri       :
-          label         : "Access URI"
+          label         : "Assigned URL"
           itemClass     : CustomLinkView
-          title         : accessUri
+          title         : data.domain
           href          : accessUri
           target        : '_blank'
           tooltip       :
