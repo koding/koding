@@ -1832,7 +1832,9 @@ span.collapsedtext
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
 
-deleteRed = rgba(217, 58, 55, 0.9)
+deleteRed  = rgba(217, 58, 55, 0.9)
+timeColor  = #d2d2d2
+timeColor2 = #5F9E5E
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            100vh
   padding               58px 34px 0 34px
@@ -2095,8 +2097,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
       display           inline-block
       width             auto
       overflow          visible
-      color             #d2d2d2
+      color             timeColor
       font-size         10px
+      // hidden()
 
     &.editing
       background        #fdf6e3
@@ -2143,7 +2146,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
 
     .comment-time
       cursor            pointer
-      hidden()
+      font-size         11px
+      font-weight       300
+      margin-top        0
 
       &:hover
         text-decoration underline
@@ -2174,9 +2179,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
         display         inline-block
         margin          4px 0 0 0
         height          16px
-        width           62px
+        width           90px
         top             2px
-        left            -62px
+        left            -90px
         text-align      right
         abs()
 
@@ -2184,9 +2189,6 @@ deleteRed = rgba(217, 58, 55, 0.9)
           hidden()
 
         .action-link.like-link
-          display         inline-block
-          padding         5px
-          vertical-align  middle
 
           &:after
             content       ''
@@ -2237,7 +2239,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         .action-link.like-link
           display         inline-block
           padding         5px
-          vertical-align  middle
+          vertical-align  text-bottom
 
           &:after
             content       ''
