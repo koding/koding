@@ -6,12 +6,7 @@ module.exports =
 
   logOut: (browser) ->
 
-    url  = helpers.getUrl()
-    user = utils.getUser()
-
-    browser.url(url)
-
-    helpers.doLogin(browser, user)
+    helpers.beginTest(browser)
 
     helpers.doLogout(browser)
 
