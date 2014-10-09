@@ -23,4 +23,4 @@ class IDE.PreviewPane extends IDE.Pane
   serialize: ->
     {url, paneType} = @getOptions()
 
-    return { url, paneType }
+    return { url, paneType, @hash }

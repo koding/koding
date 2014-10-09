@@ -69,3 +69,4 @@ class IDE.TerminalPane extends IDE.Pane
       machine  : { label, ipAddress, slug, uid }
       session  : @remote.session
       paneType : paneType
+      hash     : @hash

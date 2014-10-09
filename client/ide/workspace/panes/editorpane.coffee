@@ -14,6 +14,8 @@ class IDE.EditorPane extends IDE.Pane
     @createEditor()
 
     {file} = @getOptions()
+    @hash  = file.paneHash
+
     file.once 'fs.delete.finished', =>
       KD.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
@@ -76,8 +78,9 @@ class IDE.EditorPane extends IDE.Pane
     {label, ipAddress, slug, uid} = machine
 
     data       =
-      paneType : paneType
       file     : { name, path, content, cursor }
       machine  : { label, ipAddress, slug, uid }
+      paneType : paneType
+      hash     : @hash
 
     return data
