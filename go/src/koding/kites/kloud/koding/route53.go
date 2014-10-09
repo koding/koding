@@ -212,17 +212,21 @@ func (d *DNS) HostedZone() string {
 func (d *DNS) Validate(domain, username string) error {
 	hostedZone := d.hostedZone
 
-	f := strings.TrimSuffix(domain, "."+username+"."+hostedZone)
-	if f == domain {
-		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
-	}
-
-	if !strings.Contains(domain, username) {
-		return fmt.Errorf("Domain doesn't contain username '%s'", username)
+	if domain == hostedZone {
+		return fmt.Errorf("Domain can't be the same as top-level domain", hostedZone)
 	}
 
 	if !strings.Contains(domain, hostedZone) {
 		return fmt.Errorf("Domain doesn't contain hostedzone '%s'", hostedZone)
+	}
+
+	rest := strings.TrimSuffix(domain, "."+hostedZone)
+	if rest == domain {
+		return fmt.Errorf("Domain is invalid (1) '%s'", domain)
+	}
+
+	if split := strings.Split(rest, "."); split[len(split)-1] != username {
+		return fmt.Errorf("Domain doesn't contain username '%s'", username)
 	}
 
 	if !validator.IsValidDomain(domain) {
