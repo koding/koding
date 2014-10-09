@@ -69,6 +69,15 @@ func watch(k *kite.Client, eventType string, eventId string, interval time.Durat
 			events[0].Event.Percentage,
 		))
 
+		if events[0].Event.Error != "" {
+			DefaultUi.Error(events[0].Event.Error)
+			break
+		}
+
+		if events[0].Event.Percentage == 100 {
+			break
+		}
+
 		time.Sleep(interval)
 		continue // still pending
 	}
