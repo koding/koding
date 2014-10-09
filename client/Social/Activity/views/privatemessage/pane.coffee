@@ -280,6 +280,9 @@ class PrivateMessagePane extends MessagePane
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>
+
+      data.reverse()
+
       channel = @getData()
       channel.replies = data
       @listPreviousLink.updateView data
