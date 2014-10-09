@@ -123,7 +123,7 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 
-			Convey("First user should not be able to receive any notification", func() {
+			Convey("First user should not receive any notification for her own activity", func() {
 				nl, err := rest.GetNotificationList(firstUser.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
@@ -140,7 +140,7 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 			})
 
-			Convey("First user still should not be able to receive any notification", func() {
+			Convey("First user still should not receive any notification for her own activity", func() {
 				nl, err := rest.GetNotificationList(firstUser.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
@@ -154,12 +154,12 @@ func TestNotificationCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
-				Convey("And Notification list should contain one notification", func() {
+				Convey("And Notification list should contain one notification for two replies", func() {
 					So(len(nl.Notifications), ShouldEqual, 1)
 					Convey("Notifier count should be 1", func() {
 						So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 					})
-					Convey("Notification should contain first user as Latest Actors", func() {
+					Convey("Notification should contain first user as actor", func() {
 						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
 						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 					})
@@ -179,7 +179,7 @@ func TestNotificationCreation(t *testing.T) {
 			time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 		})
 
-		Convey("I should be able to receive notification", func() {
+		Convey("I should be able to receive a new notification for the same message", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -199,7 +199,7 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		Convey("First user should be able to receive notification", func() {
+		Convey("First user should be able to receive notification as the previous commenter", func() {
 			nl, err := rest.GetNotificationList(firstUser.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -224,7 +224,7 @@ func TestNotificationCreation(t *testing.T) {
 			time.Sleep(SLEEP_TIME * time.Second)
 		})
 
-		Convey("I should be able to receive notification", func() {
+		Convey("I should be able to receive notification as the message owner", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -239,7 +239,7 @@ func TestNotificationCreation(t *testing.T) {
 			})
 		})
 
-		Convey("First user should be able to receive notification", func() {
+		Convey("First user should be able to receive notification as the previous commenter", func() {
 			nl, err := rest.GetNotificationList(firstUser.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -259,7 +259,7 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		Convey("Second user should be able to receive notification", func() {
+		Convey("Second user should be able to receive notification as the previous commenter", func() {
 			nl, err := rest.GetNotificationList(secondUser.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -286,11 +286,11 @@ func TestNotificationCreation(t *testing.T) {
 			time.Sleep(SLEEP_TIME * time.Second)
 		})
 
-		Convey("I should be able to receive notification", func() {
+		Convey("I should be able to receive notification as the message owner", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
-			Convey("Notification should contain forth, third and second user consecutively", func() {
+			Convey("Notification should contain forth, third and second user consecutively, first user should not be included", func() {
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
 				So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
 				So(nl.Notifications[0].LatestActors[2], ShouldEqual, secondUser.Id)
@@ -309,11 +309,11 @@ func TestNotificationCreation(t *testing.T) {
 			time.Sleep(SLEEP_TIME * time.Second)
 		})
 
-		Convey("I should be able to receive notification", func() {
+		Convey("I should be able to receive notification as the message owner", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
-			Convey("Notification should contain first, forth, and third user consecutively", func() {
+			Convey("Notification should contain first, forth, and third user consecutively (first user is relisted)", func() {
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 				So(nl.Notifications[0].LatestActors[1], ShouldEqual, forthUser.Id)
 				So(nl.Notifications[0].LatestActors[2], ShouldEqual, thirdUser.Id)
@@ -325,14 +325,14 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		Convey("First user should be able to reply it again", func() {
+		Convey("First user should be able to reply it again (owner of consecutive comments)", func() {
 			replyMessage, err := rest.AddReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
 			So(err, ShouldBeNil)
 			So(replyMessage, ShouldNotBeNil)
 			time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
 		})
 
-		Convey("I should be able to receive notification", func() {
+		Convey("I should be able to receive notification as the message owner", func() {
 			nl, err := rest.GetNotificationList(ownerAccount.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -348,7 +348,7 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		Convey("Forth user should be able to receive notification", func() {
+		Convey("Forth user should be able to receive notification as the previous commenter", func() {
 			nl, err := rest.GetNotificationList(forthUser.Id)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
@@ -356,7 +356,7 @@ func TestNotificationCreation(t *testing.T) {
 				So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 			})
 
-			Convey("Notification should contain first user", func() {
+			Convey("Notification should contain only first user since she is the last commenter", func() {
 				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 			})
 
@@ -370,7 +370,7 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
 
-			Convey("I should not receive notification", func() {
+			Convey("I should not receive notification for my own message", func() {
 				nl, err := rest.GetNotificationList(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
@@ -386,18 +386,18 @@ func TestNotificationCreation(t *testing.T) {
 				time.Sleep(SLEEP_TIME * time.Second)
 			})
 
-			Convey("I should be able to receive notification", func() {
+			Convey("I should be able to receive comment notification", func() {
 				nl, err := rest.GetNotificationList(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
-				Convey("And Notification list should contain two notifications", func() {
+				Convey("And Notification list should contain two notifications for my two posts", func() {
 					So(nl.UnreadCount, ShouldEqual, 2)
 					So(len(nl.Notifications), ShouldEqual, 2)
 					Convey("Notifier count should be 1", func() {
 						So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 					})
-					Convey("Notification should contain first user as Latest Actors", func() {
+					Convey("Notification should contain first user as actor", func() {
 						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
 						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
 					})
