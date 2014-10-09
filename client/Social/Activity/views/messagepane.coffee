@@ -16,7 +16,10 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, lastToFirst, wrapper, channelId, scrollView} = @getOptions()
+    { itemClass, lastToFirst, wrapper, channelId
+      scrollView, noItemFoundWidget, startWithLazyLoader
+    } = @getOptions()
+
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -27,6 +30,8 @@ class MessagePane extends KDTabPaneView
       itemClass
       lastToFirst
       scrollView
+      noItemFoundWidget
+      startWithLazyLoader
     }
 
     @listController.getView().setClass 'padded'
@@ -215,11 +220,11 @@ class MessagePane extends KDTabPaneView
     return  unless channel
 
     channel
-      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageAdded',   @bound 'realtimeMessageArrived'
       .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
