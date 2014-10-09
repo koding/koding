@@ -8,7 +8,7 @@ class NotificationListItemView extends KDListItemView
     follow  : "started following you."
     join    : "your group"
     leave   : "your group"
-    mention : "in a post."
+    mention : "status."
 
   actionPhraseMap =
     comment  : "commented on"
@@ -20,7 +20,7 @@ class NotificationListItemView extends KDListItemView
     member   : "joined"
     join     : "joined"
     leave    : "left"
-    mention  : "mentioned you"
+    mention  : "mentioned you in"
 
   constructor:(options = {}, data)->
     options.tagName        or= "li"
@@ -114,7 +114,7 @@ class NotificationListItemView extends KDListItemView
       data = @getData()
       adjective = ""
       switch data.type
-        when "comment", "like"
+        when "comment", "like", "mention"
           KD.remote.api.SocialMessage.fetch {id: data.targetId}, (err, message)=>
             return reject err  if err or not message
             KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
