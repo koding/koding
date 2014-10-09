@@ -37,4 +37,6 @@ var (
 	ErrSlugIsNotSet         = errors.New("slug is not set")
 
 	ErrChannelOrMessageIdIsNotSet = errors.New("channelId/messageId is not set")
+
+	ErrNotLoggedIn = errors.New("not logged in")
 )
