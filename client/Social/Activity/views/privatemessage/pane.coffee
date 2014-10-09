@@ -4,9 +4,11 @@ class PrivateMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
-    options.lastToFirst   = yes
-    options.scrollView    = no
-    options.itemClass   or= PrivateMessageListItemView
+    options.lastToFirst         = no
+    options.scrollView          = no
+    options.noItemFoundWidget   = no
+    options.startWithLazyLoader = no
+    options.itemClass         or= PrivateMessageListItemView
 
     super options, data
 
@@ -145,21 +147,27 @@ class PrivateMessagePane extends MessagePane
       listView.addSubView @newMessages
 
 
-  # this is the realtime event handler for messages
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if message.account._id is KD.whoami()._id
 
     wasAtBottom = @isPageAtBottom()
-    item = @prependMessage message, @listController.getItemCount()
+    item = @appendMessage message
 
     @scrollDown item  if wasAtBottom
 
 
+  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-  prependMessage: (message, index) ->
+  prependMessage: (message) -> @listController.addItem message, 0
 
-    return @listController.addItem message, index
+
+  appendMessageDeferred: (item, i, total) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @appendMessage item
+    @emit 'ListPopulated'  if i is total - 1
 
 
   putMessage: (message, index) ->
@@ -195,7 +203,7 @@ class PrivateMessagePane extends MessagePane
 
         items.forEach (item, i) =>
           {scrollHeight} = body
-          @appendMessage item, 0
+          @prependMessage item
           body.scrollTop += body.scrollHeight - scrollHeight
 
         if items.length is 0
@@ -230,6 +238,10 @@ class PrivateMessagePane extends MessagePane
     prevSibling = @listController.getListItems()[index-1]
     nextSibling = @listController.getListItems()[index+1]
 
+    shouldReturn = @checkForDates item, index
+
+    return  if shouldReturn
+
     if prevSibling
       if hasSameOwner item, prevSibling
       then item.setClass 'consequent'
@@ -239,6 +251,39 @@ class PrivateMessagePane extends MessagePane
       if hasSameOwner item, nextSibling
       then nextSibling.setClass 'consequent'
       else nextSibling.unsetClass 'consequent'
+
+
+  checkForDates: (item, index) ->
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index+1]
+
+    currentDate = new Date item.getData().createdAt
+
+    if prevSibling
+      otherDate = new Date prevSibling.getData().createdAt
+
+    if nextSibling
+      otherDate = new Date nextSibling.getData().createdAt
+
+
+    if otherDate and currentDate.getDate() isnt otherDate.getDate()
+
+      exactDate = new Date if prevSibling then currentDate.getTime() else otherDate.getTime()
+      exactDate.setHours 0, 0, 0, 0
+
+      time = new KDCustomHTMLView
+        tagName    : 'time'
+        partial    : dateFormat exactDate, 'dddd, mmmm dS, yyyy'
+        attributes :
+          datetime : exactDate.toUTCString()
+
+      if prevSibling
+      then prevSibling.parent.addSubView time
+      else if nextSibling
+      then nextSibling.parent.addSubView time, null, yes
+
+    return Math.abs(currentDate - otherDate) > 3e5
 
 
   messageRemoved: (item, index) ->
@@ -258,15 +303,6 @@ class PrivateMessagePane extends MessagePane
       nextSibling.unsetClass 'consequent'
 
 
-  appendMessageDeferred: (item, i, total) ->
-    # Super method defers adding list items to minimize page load
-    # congestion. This function is overrides super function to render
-    # all conversation messages to be displayed at the same time
-    @appendMessage item
-    @emit 'ListPopulated'  if i is total - 1
-
-
-
   populate: ->
 
     @setClass 'translucent'
@@ -281,6 +317,9 @@ class PrivateMessagePane extends MessagePane
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>
+
+      data.reverse()
+
       channel = @getData()
       channel.replies = data
       @listPreviousLink.updateView data
