@@ -76,9 +76,8 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
-		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
-			return nil, err
-		}
+		// do not return on error because it might be already delete via unset
+		k.Domainer.Delete(args.DomainName, m.IpAddress)
 
 		if err := k.DomainStorage.Delete(args.DomainName); err != nil {
 			return nil, err
