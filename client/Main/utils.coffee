@@ -721,6 +721,7 @@ utils.extend utils,
   formatContent: (body = '') ->
 
     fns = [
+      KD.utils.transformTagTokens
       KD.utils.transformTags
       KD.utils.formatBlockquotes
       KD.utils.applyMarkdown
@@ -730,6 +731,17 @@ utils.extend utils,
     body = KD.utils.expandUsernames body, 'code'
 
     return body
+
+
+  transformTagTokens: (text = '') ->
+
+    tokenPattern = /\|#:JTag:.*?:(.*?)\|/g
+
+    return text  unless tokenPattern.test text
+
+    text.replace tokenPattern, (match, name) ->
+
+      return "##{name.replace ' ', ''}"
 
 
   transformTags: (text = '') ->
