@@ -198,7 +198,9 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 	}
 
 	for _, r := range resp.Records {
-		if strings.Contains(r.Name, domain) {
+		// the "." point is here because records are listed as
+		// "arslan.koding.io." , "test.arslan.dev.koding.io." and so on
+		if strings.TrimSuffix(r.Name, ".") == domain {
 			return &protocol.Record{
 				Name: r.Name,
 				IP:   r.Records[0],
