@@ -2,7 +2,6 @@ package notification
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/notification/models"
 	"time"
@@ -197,13 +196,13 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		return mentionedUserIds, nil
 	}
 
-	mentionedUserIds, err := fetchParticipantIds(usernames)
+	mentionedUsers, err := socialapimodels.FetchAccountsByNicks(usernames)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, mentionedUser := range mentionedUserIds {
-		if mentionedUser == reply.AccountId {
+	for _, mentionedUser := range mentionedUsers {
+		if mentionedUser.Id == reply.AccountId {
 			continue
 		}
 		mn := models.NewMentionNotification()
@@ -214,7 +213,7 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 			return nil, err
 		}
 
-		n.instantNotify(nc.Id, mentionedUser)
+		n.instantNotify(nc.Id, mentionedUser.Id)
 	}
 
 	return mentionedUserIds, nil
@@ -293,29 +292,6 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 	}
 
 	return nil
-}
-
-// copy/paste
-func fetchParticipantIds(participantNames []string) ([]int64, error) {
-	participantIds := make([]int64, len(participantNames))
-	for i, participantName := range participantNames {
-		account, err := modelhelper.GetAccount(participantName)
-		if err != nil {
-			return nil, err
-		}
-		a := socialapimodels.NewAccount()
-		a.Id = account.SocialApiId
-		a.OldId = account.Id.Hex()
-		// fetch or create social api id
-		if a.Id == 0 {
-			if err := a.FetchOrCreate(); err != nil {
-				return nil, err
-			}
-		}
-		participantIds[i] = a.Id
-	}
-
-	return participantIds, nil
 }
 
 func filterRepliers(repliers, mentionedUsers []int64) []int64 {
