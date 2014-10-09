@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/request"
+	"strconv"
 	"time"
 
 	ve "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -165,6 +166,12 @@ func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelM
 func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageContainer, error) {
 	cmc := NewChannelMessageContainer()
 	if err := cmc.Fetch(c.Id, query); err != nil {
+		return nil, err
+	}
+
+	var err error
+	cmc.Message, err = cmc.Message.PopulateAddedBy()
+	if err != nil {
 		return nil, err
 	}
 
@@ -470,4 +477,29 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	}
 
 	return messages, nil
+}
+
+func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
+	newCm := NewChannelMessage()
+	*newCm = *c
+
+	addedByData, ok := c.Payload["addedBy"]
+	if !ok {
+		return c, nil
+	}
+
+	addedBy, err := strconv.ParseInt(*addedByData, 10, 64)
+	if err != nil {
+		return c, err
+	}
+
+	a, err := FetchAccountFromCache(addedBy)
+	if err != nil {
+		return c, err
+	}
+
+	*addedByData = a.Nick
+	newCm.Payload["addedBy"] = addedByData
+
+	return newCm, nil
 }
