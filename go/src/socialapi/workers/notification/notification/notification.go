@@ -73,7 +73,8 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
-	// if it is not notifier's own message then add owner to subscribers
+	// if it is not notifier's own message then add replier to subscribers
+	// for further reply notifications
 	if cm.AccountId != rn.NotifierId {
 		n.subscribe(nc.Id, cm.AccountId, subscribedAt)
 	}
@@ -83,7 +84,7 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
-	mentionedUsers, err := n.CreateMentionNotification(reply)
+	mentionedUsers, err := n.CreateMentionNotification(reply, cm.Id)
 	if err != nil {
 		return err
 	}
@@ -141,7 +142,7 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	switch cm.TypeConstant {
 	case socialapimodels.ChannelMessage_TYPE_POST:
-		_, err := n.CreateMentionNotification(cm)
+		_, err := n.CreateMentionNotification(cm, cm.Id)
 		return err
 	case socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
 		return n.privateMessageNotification(cm)
@@ -187,7 +188,7 @@ func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessa
 }
 
 // CreateMentionNotification creates mention notifications for the related channel messages
-func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
+func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage, targetId int64) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
 
@@ -202,11 +203,13 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 	}
 
 	for _, mentionedUser := range mentionedUsers {
+		// if user mentions herself ignore it
 		if mentionedUser.Id == reply.AccountId {
 			continue
 		}
 		mn := models.NewMentionNotification()
-		mn.TargetId = reply.Id
+		mn.TargetId = targetId
+		mn.MessageId = reply.Id
 		mn.NotifierId = reply.AccountId
 		nc, err := models.CreateNotificationContent(mn)
 		if err != nil {
@@ -214,6 +217,8 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		}
 
 		n.instantNotify(nc.Id, mentionedUser.Id)
+
+		mentionedUserIds = append(mentionedUserIds, mentionedUser.Id)
 	}
 
 	return mentionedUserIds, nil
