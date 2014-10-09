@@ -66,6 +66,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		domain := &protocol.Domain{
+			Username:  m.Username,
 			MachineId: m.Id,
 			Name:      args.DomainName,
 		}
@@ -102,6 +103,12 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, err
 		}
 
+		// remove the machineID for the given domain. The document is still
+		// there, but it'sn associated anymore with this domain.
+		if err := k.DomainStorage.UpdateMachine(args.DomainName, ""); err != nil {
+			return nil, err
+		}
+
 		return true, nil
 	}
 
@@ -111,6 +118,11 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+			return nil, err
+		}
+
+		// addign the machineID for the given domain.
+		if err := k.DomainStorage.UpdateMachine(args.DomainName, m.Id); err != nil {
 			return nil, err
 		}
 
