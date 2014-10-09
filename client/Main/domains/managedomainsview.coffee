@@ -8,7 +8,7 @@ class ManageDomainsView extends KDView
 
     {@machine} = @getOptions()
 
-    domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
+    @domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @addSubView @inputView = new KDView
       cssClass          : 'input-view'
@@ -20,7 +20,7 @@ class ManageDomainsView extends KDView
       callback          : => @emit 'AddDomain'
 
     @inputView.addSubView new KDView
-      partial           : domainSuffix
+      partial           : @domainSuffix
       cssClass          : 'domain-suffix'
 
     topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
@@ -30,8 +30,8 @@ class ManageDomainsView extends KDView
         type            : 'domain'
         wrapper         : yes
         itemClass       : DomainItem
-        dataPath        : 'domain'
-    , items             : [{domain: topDomain}]
+        itemOptions     :
+          machineId     : @machine._id
 
     @addSubView @domainController.getView()
     @inputView.hide()
@@ -64,11 +64,3 @@ class ManageDomainsView extends KDView
       return  if $(event.target).hasClass 'domain-toggle'
       @emit "DomainInputCancelled"
       @inputView.hide()
-
-  addDomain:(domain)->
-
-    @domainController.addItem {domain}
-
-  removeDomain:(domain)->
-
-    @domainController.removeItem null, {domain}
