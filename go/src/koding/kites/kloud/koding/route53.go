@@ -80,7 +80,8 @@ func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 	d.Log.Info("updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
-		return err
+		d.Log.Error(err.Error())
+		return errors.New("could not rename domain")
 	}
 
 	return nil
@@ -115,7 +116,8 @@ func (d *DNS) Update(domain, oldIP, newIP string) error {
 	d.Log.Info("updating domain %s IP from %v to %v", domain, oldIP, newIP)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
-		return err
+		d.Log.Error(err.Error())
+		return errors.New("could not update domain")
 	}
 
 	return nil
@@ -142,7 +144,8 @@ func (d *DNS) Delete(domain string, oldIp string) error {
 	d.Log.Info("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
-		return err
+		d.Log.Error(err.Error())
+		return errors.New("could not delete domain")
 	}
 
 	return nil
@@ -169,7 +172,8 @@ func (d *DNS) Create(domain string, newIp string) error {
 	d.Log.Info("creating domain name: %s to be associated with following ip: %v", domain, newIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
-		return err
+		d.Log.Error(err.Error())
+		return errors.New("could not create domain")
 	}
 
 	return nil
@@ -185,7 +189,8 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {
-		return nil, err
+		d.Log.Error(err.Error())
+		return nil, errors.New("could not fetch domain")
 	}
 
 	if len(resp.Records) == 0 {

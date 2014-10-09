@@ -1,10 +1,13 @@
 package koding
 
 import (
+	"errors"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
 	"time"
+
+	"github.com/koding/logging"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -21,12 +24,14 @@ type DomainDocument struct {
 }
 
 type Domains struct {
-	DB *mongodb.MongoDB
+	DB  *mongodb.MongoDB
+	Log logging.Logger
 }
 
 func NewDomainStorage(db *mongodb.MongoDB) *Domains {
 	return &Domains{
-		DB: db,
+		DB:  db,
+		Log: logging.NewLogger("kloud-domain"),
 	}
 }
 
@@ -35,7 +40,8 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 	if err := d.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": domain.Username}).One(&account)
 	}); err != nil {
-		return err
+		d.Log.Error("Could not fetch account %v: err: %v", domain.Username, err)
+		return errors.New("could not fetch account from DB")
 	}
 
 	doc := &DomainDocument{
@@ -49,14 +55,23 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 
 	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"domain": domain.Name}, doc)
-		return err
+		d.Log.Error("Could not add %v: err: %v", doc, err)
+		return errors.New("could not add account from DB")
 	})
 }
 
 func (d *Domains) Delete(name string) error {
-	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"domain": name})
 	})
+
+	if err != nil {
+		d.Log.Error("Could not delete %v: err: %v", name, err)
+		return errors.New("could not delete domain from DB")
+	}
+
+	return nil
+
 }
 
 func (d *Domains) Get(name string) (*protocol.Domain, error) {
@@ -75,13 +90,20 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 }
 
 func (d *Domains) UpdateMachine(name, machineId string) error {
-	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"domain": name},
 			bson.M{"$set": bson.M{
 				"machineId":  machineId,
 				"modifiedAt": time.Now().UTC(),
 			}})
 	})
+
+	if err != nil {
+		d.Log.Error("Could not update %v: err: %v", name, err)
+		return errors.New("could not update domain from DB")
+	}
+
+	return nil
 }
 
 // UpdateDomain sets the ip to the given domain. If there is no record a new
