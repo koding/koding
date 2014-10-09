@@ -38,8 +38,8 @@ func (a *NotificationActivity) Create() error {
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
 		"actor_id":                a.ActorId,
-		"message_id":              a.MessageId,
-		"obsolete":                false,
+		// "message_id":              a.MessageId,
+		"obsolete": false,
 	}
 
 	q := bongo.NewQS(s)
