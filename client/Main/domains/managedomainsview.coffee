@@ -39,6 +39,26 @@ class ManageDomainsView extends KDView
 
 
 
+    @addSubView @loader = new KDLoaderView
+      cssClass      : 'in-progress'
+      size          :
+        width       : 14
+        height      : 14
+      loaderOptions :
+        color       : '#FFFFFF'
+      showLoader    : yes
+
+    @listDomains()
+
+
+  listDomains: (reset = no)->
+
+    {computeController} = KD.singletons
+    computeController.domains = []  if reset
+    computeController.fetchDomains (err, domains = [])=>
+      warn err  if err?
+      @domainController.replaceAllItems domains
+      @loader.hide()
 
 
   addDomain:->
