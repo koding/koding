@@ -4,8 +4,10 @@
 package main
 
 import (
+	"fmt"
 	socialapimodels "socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/notification/models"
 	"testing"
 	"time"
 
@@ -569,6 +571,38 @@ func TestNotificationCreation(t *testing.T) {
 
 				Convey("Second notification should be glanced", func() {
 					So(nl.Notifications[1].Glanced, ShouldEqual, true)
+				})
+			})
+
+		})
+
+		Convey("I should be able to receive notifications when a user mentions me in her post", func() {
+			var cm *socialapimodels.ChannelMessage
+			Convey("First user should be able to mention me in her post", func() {
+				body := fmt.Sprintf("@%s hello", ownerAccount.OldId)
+				var err error
+				cm, err = rest.CreatePostWithBody(testGroupChannel.Id, firstUser.Id, body)
+				So(err, ShouldBeNil)
+				So(cm, ShouldNotBeNil)
+
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+
+			Convey("I should be able to receive mention notification", func() {
+				nl, err := rest.GetNotificationList(ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+
+				Convey("And Notification list should contain four notifications (mention, like, 2 * reply)", func() {
+					So(len(nl.Notifications), ShouldEqual, 4)
+					So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_MENTION)
+					Convey("Notifier count should be 1", func() {
+						So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
+					})
+					Convey("Notification should contain first user as actors", func() {
+						So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+						So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
+					})
 				})
 			})
 
