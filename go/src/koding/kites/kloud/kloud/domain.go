@@ -48,7 +48,8 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 
 func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
-		if _, err := k.Domainer.Get(args.DomainName); err != nil {
+		// a non nil means the domain exists
+		if _, err := k.Domainer.Get(args.DomainName); err == nil {
 			return nil, fmt.Errorf("domain record does exists")
 		}
 
