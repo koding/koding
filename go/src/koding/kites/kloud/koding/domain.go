@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
 	"time"
@@ -12,6 +13,7 @@ import (
 // DomainDocument defines a single MongoDB document in the jDomains collection
 type DomainDocument struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
+	OriginId   bson.ObjectId `bson:"originId"`
 	MachineId  bson.ObjectId `bson:"machineId"`
 	DomainName string        `bson:"domain"`
 	CreatedAt  time.Time     `bson:"createdAt"`
@@ -28,8 +30,16 @@ func NewDomainStorage(db *mongodb.MongoDB) *Domains {
 }
 
 func (d *Domains) Add(domain *protocol.Domain) error {
+	var account *models.Account
+	if err := d.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": domain.Username}).One(&account)
+	}); err != nil {
+		return err
+	}
+
 	doc := &DomainDocument{
 		Id:         bson.NewObjectId(),
+		OriginId:   account.Id,
 		MachineId:  bson.ObjectIdHex(domain.MachineId),
 		DomainName: domain.Name,
 		CreatedAt:  time.Now(),

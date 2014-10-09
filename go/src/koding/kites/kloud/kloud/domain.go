@@ -66,6 +66,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		domain := &protocol.Domain{
+			Username:  m.Username,
 			MachineId: m.Id,
 			Name:      args.DomainName,
 		}

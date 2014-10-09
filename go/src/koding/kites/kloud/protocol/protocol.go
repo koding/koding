@@ -71,10 +71,8 @@ type Record struct {
 
 // Domain represents a machines domain necessary information
 type Domain struct {
-	// OriginId defines a unique ID that represents an ownership. There might
-	// be several domains each with the same OriginId, which means they all
-	// belong to a user.
-	OriginId string
+	// Username defines a the owner of the machine
+	Username string
 
 	// MachineId defines the ID of the respective machine. Each domain is bound
 	// to a single machine.
