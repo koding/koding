@@ -17,6 +17,7 @@ type DomainDocument struct {
 	MachineId  bson.ObjectId `bson:"machineId"`
 	DomainName string        `bson:"domain"`
 	CreatedAt  time.Time     `bson:"createdAt"`
+	ModifiedAt time.Time     `bson:"modifiedAt"`
 }
 
 type Domains struct {
@@ -42,7 +43,8 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 		OriginId:   account.Id,
 		MachineId:  bson.ObjectIdHex(domain.MachineId),
 		DomainName: domain.Name,
-		CreatedAt:  time.Now(),
+		CreatedAt:  time.Now().UTC(),
+		ModifiedAt: time.Now().UTC(),
 	}
 
 	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
@@ -75,7 +77,10 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 func (d *Domains) UpdateMachine(name, machineId string) error {
 	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
 		return c.Update(bson.M{"domain": name},
-			bson.M{"$set": bson.M{"machineId": machineId}})
+			bson.M{"$set": bson.M{
+				"machineId":  machineId,
+				"modifiedAt": time.Now().UTC(),
+			}})
 	})
 }
 
