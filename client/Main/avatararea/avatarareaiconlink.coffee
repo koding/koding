@@ -21,24 +21,40 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     then @$('.count').addClass "hidden"
     else @$('.count').removeClass "hidden"
 
+  click: do ->
 
-  click: (event) ->
+    clickedInside = no
 
-    KD.utils.stopDOMEvent event
+    return (event) ->
 
-    { windowController } = KD.singletons
-    popup                = @getDelegate()
+      KD.utils.stopDOMEvent event
 
-    if popup.hasClass "active"
-      popup.hide()
-      windowController.removeLayer popup
-    else
-      @setClass 'active'
-      popup.show()
-      windowController.addLayer popup
-      popup.once "ReceivedClickElsewhere", =>
-        @unsetClass 'active'
+      return clickedInside = no  if clickedInside
+
+      { windowController } = KD.singletons
+      popup                = @getDelegate()
+
+      if popup.hasClass "active"
         popup.hide()
+        windowController.removeLayer popup
+      else
+        @setClass 'active'
+        popup.show()
+        windowController.addLayer popup
+        popup.once "ReceivedClickElsewhere", (event) =>
+          clickedInside = @isInside event.target
+          @unsetClass 'active'
+          popup.hide()
+
+
+  isInside: (target) ->
+
+    itself = @$()[0]
+    count  = @$('.count')[0]
+    cite   = @$('cite')[0]
+    icon   = @$('.icon')[0]
+
+    target in [itself, count, cite, icon]
 
 
   pistachio: ->
@@ -48,5 +64,6 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     </span>
     <span class='icon'></span>
     """
+
 
 

@@ -635,6 +635,7 @@ sidebarSelectedBg = #262626
     size            50px 60px
     display         block
     abs             -1px 0px 0 0
+    borderBox()
 
   .acc-icon.active
     bg              color, #1D1D1D
@@ -646,6 +647,8 @@ sidebarSelectedBg = #262626
     margin          27px auto 23px
 
   .acc-notification-icon
+    &.active
+      border-right    1px solid #1d1d1d
     .icon
       r-sprite        app 'account-notifications'
       margin          23px auto
