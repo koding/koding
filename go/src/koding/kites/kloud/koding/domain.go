@@ -53,11 +53,18 @@ func (d *Domains) Add(domain *protocol.Domain) error {
 		ModifiedAt: time.Now().UTC(),
 	}
 
-	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+	err := d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
 		_, err := c.Upsert(bson.M{"domain": domain.Name}, doc)
+		return err
+	})
+
+	if err != nil {
 		d.Log.Error("Could not add %v: err: %v", doc, err)
 		return errors.New("could not add account from DB")
-	})
+	}
+
+	return nil
+
 }
 
 func (d *Domains) Delete(name string) error {
@@ -71,7 +78,6 @@ func (d *Domains) Delete(name string) error {
 	}
 
 	return nil
-
 }
 
 func (d *Domains) Get(name string) (*protocol.Domain, error) {
