@@ -46,22 +46,8 @@ module.exports =
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
 
-  postActivity: (browser) ->
-
-    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
-
-    browser
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', post
-      .click                  '[testpath=post-activity-button]'
-      .pause                  3000
-
-    browser.assert.containsText('[testpath=ActivityListItemView]:first-child', post)
-
-
   doRegister: (browser, user) ->
+
     user    = utils.getUser(yes) unless user
     url     = @getUrl()
 
@@ -78,6 +64,39 @@ module.exports =
     @doLogout browser
 
     @doLogin browser, user
+
+
+  postActivity: (browser) ->
+
+    @beginTest(browser)
+
+    browser.click '[testpath=public-feed-link]'
+
+    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', post
+      .click                  '[testpath=post-activity-button]'
+      .pause                  3000
+
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+
+
+  postComment: (browser) ->
+
+    @postActivity(browser)
+
+    comment = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
+      .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
+      .pause        3000
+
+    browser.assert.containsText  '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
 
   getUrl: ->
