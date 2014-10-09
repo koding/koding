@@ -5,11 +5,6 @@ module.exports =
 
   login: (browser) ->
 
-    user = utils.getUser()
-    url  = helpers.getUrl()
-
-    browser.url(url)
-
-    helpers.doLogin(browser, user)
+    helpers.beginTest(browser)
 
     browser.end()

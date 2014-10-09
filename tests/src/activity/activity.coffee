@@ -4,10 +4,12 @@ helpers = require '../helpers/helpers.js'
 
 module.exports =
 
-  logOut: (browser) ->
+  activityPost: (browser) ->
 
     helpers.beginTest(browser)
 
-    helpers.doLogout(browser)
+    browser.click '[testpath=public-feed-link]'
+
+    helpers.postActivity(browser)
 
     browser.end()
