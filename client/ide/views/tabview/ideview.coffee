@@ -207,7 +207,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   handlePaneRemoved: (pane) ->
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
-    @emit 'PaneRemoved'
+    @emit 'PaneRemoved', pane
 
   getDummyFilePath: ->
     return 'localfile:/Untitled.txt'
