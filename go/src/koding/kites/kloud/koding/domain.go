@@ -62,6 +62,13 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 	}, nil
 }
 
+func (d *Domains) UpdateMachine(name, machineId string) error {
+	return d.DB.Run("jDomainAlias", func(c *mgo.Collection) error {
+		return c.Update(bson.M{"domain": name},
+			bson.M{"$set": bson.M{"machineId": machineId}})
+	})
+}
+
 // UpdateDomain sets the ip to the given domain. If there is no record a new
 // record will be created otherwise existing record is updated. This is just a
 // helper method that uses our DNS struct.

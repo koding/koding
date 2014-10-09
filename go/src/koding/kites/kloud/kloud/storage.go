@@ -26,12 +26,16 @@ type StorageData struct {
 }
 
 type DomainStorage interface {
-	// Add adds a new DomainDocument
+	// Add adds a new domain
 	Add(*protocol.Domain) error
 
 	// Delete deletes the DomainDocument with the given domain name
 	Delete(name string) error
 
-	// Get returns the DomainDocument with the given domain name
+	// UpdateMachine updates the machine relationship for the given domain name
+	// with the given new machine id. Machine ID can be empty
+	UpdateMachine(name, machine string) error
+
+	// Get returns the domain information with the given domain name
 	Get(name string) (*protocol.Domain, error)
 }
