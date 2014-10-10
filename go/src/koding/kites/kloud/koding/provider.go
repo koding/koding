@@ -148,6 +148,22 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 			return nil, err
 		}
+
+		// also get all domain aliases that belongs to this machine and unset
+		domains, err := p.userDomains(m.Id)
+		if err != nil {
+			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		}
+
+		for _, domain := range domains {
+			if err := p.DNS.Create(domain.DomainName, artifact.IpAddress); err != nil {
+				p.Log.Error("[%s] couldn't create domain: %s", m.Id, err.Error())
+			}
+
+			if err := p.DomainStorage.UpdateMachine(domain.DomainName, m.Id); err != nil {
+				p.Log.Error("[%s] couldn't set machine domain: %s", m.Id, err.Error())
+			}
+		}
 	}
 
 	// stop the timer and remove it from the list of inactive machines so it
