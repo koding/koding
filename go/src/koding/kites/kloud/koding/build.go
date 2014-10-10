@@ -278,7 +278,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Push("Updating domain aliases", normalize(72), machinestate.Building)
 	domains, err := p.userDomains(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		p.Log.Error("[%s] fetching domains for setting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
