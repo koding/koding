@@ -251,7 +251,7 @@ runcmd:
   - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
 
   # Install & Configure klient
-  - [wget, "{{.LatestKlientURL}}", -O, /tmp/latest-klient.deb]
+  - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
   - [chown, -R, '{{.Username}}:{{.Username}}', /opt/kite/klient]
   - service klient stop
