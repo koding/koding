@@ -2,10 +2,8 @@ package realtime
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	mongomodels "koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	notificationmodels "socialapi/workers/notification/models"
@@ -567,41 +565,6 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 	content.ActorId = actor.OldId
 
 	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
-}
-
-// to-do add eviction here
-func fetchOldAccountFromCache(accountId int64) (*mongomodels.Account, error) {
-	if account, ok := mongoAccounts[accountId]; ok {
-		return account, nil
-	}
-
-	account, err := fetchOldAccount(accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	mongoAccounts[accountId] = account
-	return account, nil
-}
-
-// fetchOldAccount fetches mongo account of a given new account id.
-// this function must be used under another file for further use
-func fetchOldAccount(accountId int64) (*mongomodels.Account, error) {
-	newAccount := models.NewAccount()
-	if err := newAccount.ById(accountId); err != nil {
-		return nil, err
-	}
-
-	account, err := modelhelper.GetAccountById(newAccount.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return nil, errors.New("old account not found")
-		}
-
-		return nil, err
-	}
-
-	return account, nil
 }
 
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
