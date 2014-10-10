@@ -193,6 +193,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
         locations       : ["~^/IDE/.*", "= /"]
+        auth            : true
     kontrol             :
       group             : "environment"
       ports             :
