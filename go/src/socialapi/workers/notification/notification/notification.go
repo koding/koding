@@ -178,8 +178,6 @@ func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	case socialapimodels.ChannelMessage_TYPE_POST:
 		_, err := n.CreateMentionNotification(cm, cm.Id)
 		return err
-	case socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		return n.privateMessageNotification(cm)
 	default:
 		return nil
 	}
