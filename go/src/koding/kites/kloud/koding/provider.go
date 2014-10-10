@@ -269,34 +269,38 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
-	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
-		return err
-	}
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
 
 	// increase one tick but still don't let it reach the final value
 	lastVal := float64(v.Finish) * (9.0 / 10.0)
 
-	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
+	a.Push("Checking domains", int(lastVal), machinestate.Terminating)
 	_, err = p.DNS.Get(m.Domain.Name)
-	if err == ErrNoRecord {
-		return nil
+	if err == nil {
+		a.Push("Deleting domain", v.Finish, machinestate.Terminating)
+		if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
+			p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
+		}
 	}
 
-	// If it's something else just return it
+	domains, err := p.userDomains(m.Id)
 	if err != nil {
-		return err
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
-	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
-	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		return err
-	}
+	for _, domain := range domains {
+		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		}
 
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
+		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
+			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
+		}
+	}
 
 	return nil
 
