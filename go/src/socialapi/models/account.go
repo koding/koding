@@ -151,7 +151,7 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 	return c, nil
 }
 
-// todo add test
+// Tests are done.
 func (a *Account) ByNick(nick string) error {
 	if nick == "" {
 		return ErrNickIsNotSet
