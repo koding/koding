@@ -489,3 +489,5 @@ class SocialApiController extends KDController
     fetch                : notificationRequesterFn
       fnName             : 'fetch'
 
+    glance               : notificationRequesterFn
+      fnName             : 'glance'
