@@ -75,7 +75,7 @@ class PrivateMessagePane extends MessagePane
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
-    @appendMessage item
+    @prependMessage item
     @emit 'ListPopulated'  if i is total - 1
 
 
@@ -207,8 +207,6 @@ class PrivateMessagePane extends MessagePane
   fetch: (options = {}, callback) ->
 
     super options, (err, data) =>
-
-      data.reverse()
 
       channel = @getData()
       channel.replies = data
