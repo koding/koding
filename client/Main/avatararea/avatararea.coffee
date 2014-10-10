@@ -31,7 +31,7 @@ class AvatarArea extends KDCustomHTMLView
       delegate   : @groupSwitcherPopup
 
     @notificationsPopup = new PopupNotifications
-      cssClass : "notification-lister"
+      cssClass : "notification-list"
 
     @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications acc-notification-icon'
@@ -64,6 +64,7 @@ class AvatarArea extends KDCustomHTMLView
     @notificationsPopup.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
+
 
   pistachio: ->
 
