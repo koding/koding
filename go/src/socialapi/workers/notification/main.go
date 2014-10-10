@@ -41,6 +41,7 @@ func main() {
 	r.Register(models.MessageReply{}).OnCreate().Handle((*notification.Controller).CreateReplyNotification)
 	r.Register(models.Interaction{}).OnCreate().Handle((*notification.Controller).CreateInteractionNotification)
 	r.Register(models.ChannelMessage{}).OnCreate().Handle((*notification.Controller).HandleMessage)
+	r.Register(models.ChannelMessage{}).OnDelete().Handle((*notification.Controller).DeleteNotification)
 	r.Listen()
 	r.Wait()
 }

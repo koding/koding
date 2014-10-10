@@ -178,6 +178,16 @@ func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	}
 }
 
+func (n *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) error {
+	nc := models.NewNotificationContent()
+	contentIds, err := nc.FetchIdsByTargetId(cm.Id)
+	if err != nil {
+		return err
+	}
+
+	return models.NewNotification().HideByContentIds(contentIds)
+}
+
 func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessage) error {
 	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
 		return nil
