@@ -38,7 +38,7 @@ class ManageDomainsView extends KDView
 
     @domainController.getListView()
       .on 'DeleteDomainRequested', @bound 'removeDomain'
-      .on 'DomainStateChanged',    @bound 'changeDomainState'
+      .on 'DomainStateChanged',    @bound 'changeDomainStateRequested'
 
     @addSubView @loader = new KDLoaderView
       cssClass      : 'in-progress'
@@ -126,41 +126,44 @@ class ManageDomainsView extends KDView
         @loader.hide()
 
 
-  changeDomainState:(domainItem, state)->
+  changeDomainStateRequested:(domainItem, state)->
 
-    {computeController} = KD.singletons
-    {stateToggle}       = domainItem
-    {domain}            = domainItem.getData()
-
-    machineId = @machine._id
-    action    = if state then 'setDomain' else 'unsetDomain'
+    {stateToggle} = domainItem
+    stateToggle.makeDisabled()
 
     @loader.show()
     @warning.hide()
 
-    stateToggle.makeDisabled()
-
     @askForPermission domainItem, state, (approved)=>
-
       if approved
-        computeController.kloud[action] {domainName: domain, machineId}
-          .then ->
-            computeController.domains = []
-            domainItem.data.machineId = null  unless state
-
-          .catch (err)=>
-            warn "Failed to change domain state:", err
-            @warning.setTooltip title: err.message
-            @warning.show()
-
-            @revertToggle domainItem, state
-
-          .finally =>
-            @loader.hide()
-            stateToggle.makeEnabled()
-
+        @changeDomainState domainItem, state
       else
         @revertToggle domainItem, state
+        @loader.hide()
+        stateToggle.makeEnabled()
+
+
+  changeDomainState: (domainItem, state)->
+
+    {computeController} = KD.singletons
+    {stateToggle}       = domainItem
+    {domain}            = domainItem.getData()
+    machineId           = @machine._id
+    action              = if state then 'setDomain' else 'unsetDomain'
+
+    computeController.kloud[action] {domainName: domain, machineId}
+      .then ->
+        computeController.domains = []
+        domainItem.data.machineId = null  unless state
+
+      .catch (err)=>
+        warn "Failed to change domain state:", err
+        @warning.setTooltip title: err.message
+        @warning.show()
+
+        @revertToggle domainItem, state
+
+      .finally =>
         @loader.hide()
         stateToggle.makeEnabled()
 
