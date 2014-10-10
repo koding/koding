@@ -32,6 +32,7 @@ nodePath   = require 'path'
 http       = require "https"
 helmet     = require 'helmet'
 request    = require 'request'
+bodyParser = require 'body-parser'
 
 {JSession} = koding.models
 app        = express()
@@ -57,7 +58,6 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
-bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -523,6 +523,43 @@ isInAppRoute = (name)->
 # Handles all internal pages
 # /USER || /SECTION || /GROUP[/SECTION] || /APP
 #
+app.get '/WFGH', (req, res, next)->
+
+  {JGroup} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return next()  if err
+
+    JGroup.render.loggedOut.kodingHome {
+      campaign : 'hackathon'
+      loggedIn
+      account
+    }, (err, html)->
+      res.status(200).send html
+
+app.post '/FetchGravatarInfo', (req, res) ->
+  crypto  = require 'crypto'
+  {email} = req.body
+
+  console.log "Gravatar info request for: #{email}"
+
+  _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest("hex")).toString()
+  _url      = "https://www.gravatar.com/#{_hash}.json"
+  _request  =
+    url     : _url
+    headers : 'User-Agent': 'request'
+
+  request _request, (err, response, body) ->
+
+    if body isnt 'User not found'
+      gravatar = JSON.parse body
+      return res.status(200).send gravatar
+
+    res.status(400).send body
+
+
+
 app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
