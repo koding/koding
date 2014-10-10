@@ -3,7 +3,6 @@
 #   KD.singletons.oauthController.authCompleted null, "github"
 module.exports = class OAuthController extends KDController
   openPopup: (provider)->
-    KD.mixpanel "Authenticate with oauth, click", {provider}
 
     KD.singleton('appManager').require 'Login', =>
 

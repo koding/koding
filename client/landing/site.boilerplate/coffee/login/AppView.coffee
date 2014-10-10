@@ -64,8 +64,7 @@ module.exports = class LoginView extends JView
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
       href        : '/Login'
-      click       : ->
-        KD.mixpanel 'Login button form in /Login, click'
+
 
     @goToRecoverLink = new CustomLinkView
       cssClass    : 'forgot-link'
@@ -82,7 +81,7 @@ module.exports = class LoginView extends JView
       cssClass    : "form-header"
       click       : (event)->
         return  unless $(event.target).is 'a.register'
-        KD.mixpanel 'Register button form in /Login, click'
+
 
     if KD.utils.oauthEnabled() is yes
       @github          = new KDCustomHTMLView
@@ -90,7 +89,6 @@ module.exports = class LoginView extends JView
         cssClass    : "github-login"
         partial     : "Sign in using <strong>GitHub</strong>"
         click       : ->
-          KD.mixpanel "Github auth button in /Login, click"
           KD.singletons.oauthController.openPopup "github"
     else
       @github = new KDCustomHTMLView
@@ -110,33 +108,33 @@ module.exports = class LoginView extends JView
       cssClass : "login-form"
       testPath : "login-form"
       callback : (formData)=>
-        KD.mixpanel "Login submit, click"
+
         @doLogin formData
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
       testPath : "register-form"
       callback : (formData) =>
-        KD.mixpanel "Register submit, click"
+
         @showPasswordModal formData, @registerForm
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        KD.mixpanel "Redeem submit, click"
+
         @doRedeem formData
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        KD.mixpanel "Recover password submit, click"
+
         @doRecover formData
 
     @resendForm = new ResendEmailConfirmationLinkInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @resendEmailConfirmationToken formData
-        KD.mixpanel "Resend email button, click"
+
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
@@ -165,7 +163,7 @@ module.exports = class LoginView extends JView
       (KD.getSingleton 'mainController').handleOauthAuth params, (err, resp)=>
         if err
           showError err
-          KD.mixpanel "Authenticate with oauth, fail", {provider}
+
         else
           {account, replacementToken, isNewUser, userInfo} = resp
           if isNewUser
@@ -174,18 +172,18 @@ module.exports = class LoginView extends JView
             for own field, value of userInfo
               setValue field, value
 
-            KD.mixpanel "Github auth register, success"
+
           else
             if isUserLoggedIn
               mainController.emit "ForeignAuthSuccess.#{provider}"
-              KD.mixpanel "Authenticate with oauth, success", {provider}
+
               new KDNotificationView
                 title : "Your #{provider.capitalize()} account has been linked."
                 type  : "mini"
 
             else
               @afterLoginCallback err, {account, replacementToken}
-              KD.mixpanel "Github auth login, success"
+
 
 
   viewAppended:->
@@ -273,7 +271,7 @@ module.exports = class LoginView extends JView
           content   : "We've sent you a password recovery code."
           duration  : 4500
 
-        KD.mixpanel "Recover password, success"
+
 
   resendEmailConfirmationToken:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -311,7 +309,7 @@ module.exports = class LoginView extends JView
           password            :
             callback          : (passwordForm) =>
 
-              KD.mixpanel 'Register submit, click'
+
 
               formData.password        = passwordForm.password
               formData.passwordConfirm = passwordForm.passwordConfirm
@@ -416,10 +414,7 @@ module.exports = class LoginView extends JView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : ->
-        # KD.mixpanel.alias username
-        KD.mixpanel 'Signup, success'
         document.cookie = 'newRegister=true'
-
         return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) ->
@@ -516,7 +511,7 @@ module.exports = class LoginView extends JView
       #     duration  : 2000
       #   @loginForm.reset()
 
-      #   KD.mixpanel "Login, success"
+      #
       #   if redirectTo
       #     window.location.reload()
       #   else
@@ -532,7 +527,7 @@ module.exports = class LoginView extends JView
         KD.notify_ 'Success!'
         KD.getSingleton('mainController').accountChanged KD.whoami()
 
-        KD.mixpanel "Redeem, success"
+
 
   hide: (callback) ->
 
