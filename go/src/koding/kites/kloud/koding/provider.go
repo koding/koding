@@ -157,12 +157,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		}
 
 		for _, domain := range domains {
-			if err := p.DNS.Create(domain.DomainName, artifact.IpAddress); err != nil {
-				p.Log.Error("[%s] couldn't create domain: %s", m.Id, err.Error())
-			}
-
-			if err := p.DomainStorage.UpdateMachine(domain.DomainName, m.Id); err != nil {
-				p.Log.Error("[%s] couldn't set machine domain: %s", m.Id, err.Error())
+			if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+				p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 			}
 		}
 	}
@@ -213,10 +209,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	for _, domain := range domains {
 		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
-		}
-
-		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
-			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
 		}
 	}
 

@@ -182,12 +182,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	}
 
 	for _, domain := range domains {
-		if err := p.DNS.Create(domain.DomainName, artifact.IpAddress); err != nil {
-			p.Log.Error("[%s] couldn't create domain: %s", m.Id, err.Error())
-		}
-
-		if err := p.DomainStorage.UpdateMachine(domain.DomainName, m.Id); err != nil {
-			p.Log.Error("[%s] couldn't set machine domain: %s", m.Id, err.Error())
+		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 		}
 	}
 
