@@ -10,7 +10,6 @@ import (
 	"socialapi/workers/common/response"
 )
 
-// todo add testing
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 
 	// do not allow to non-logged-in users
