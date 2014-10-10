@@ -47,27 +47,6 @@ module.exports = class SocialNotification extends Base
     success: (client, options, callback) ->
       doRequest 'glanceNotifications', client, {}, callback
 
-  @joinGroup = (data, callback) ->
-    interactGroup.call this, data, "join", callback
-
-  @leaveGroup = (data, callback) ->
-    interactGroup.call this, data, "leave", callback
-
-  interactGroup = (data, type, callback=->) ->
-    {account} = data
-    return callback new KodingError "Group name must be set"  unless data.name
-
-    account.createSocialApiId (err, actorId) ->
-      return callback err  if err
-      delete data.account
-      data.actorId = actorId
-      data.typeConstant = type
-      {createGroupNotification} = require './requests'
-      createGroupNotification data, (err, response) ->
-        return callback err  if err
-        return callback {message: "socialapi response error"}  unless response.status
-        callback()
-
   decorateNotifications = (notifications) ->
     notifications = [].concat(notifications)
     revivedNotifications = []
