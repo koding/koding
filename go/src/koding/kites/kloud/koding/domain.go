@@ -2,6 +2,7 @@ package koding
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
@@ -99,12 +100,23 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 }
 
 func (d *Domains) UpdateMachine(name, machineId string) error {
+	updateData := bson.M{
+		"machineId":  "",
+		"modifiedAt": time.Now().UTC(),
+	}
+
+	if machineId != "" {
+		if !bson.IsObjectIdHex(machineId) {
+			return fmt.Errorf("'%s' is not a valid object Id")
+		}
+
+		updateData["machineId"] = bson.ObjectIdHex(machineId)
+	}
+
 	err := d.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Update(bson.M{"domain": name},
-			bson.M{"$set": bson.M{
-				"machineId":  machineId,
-				"modifiedAt": time.Now().UTC(),
-			}})
+			bson.M{"$set": updateData},
+		)
 	})
 
 	if err != nil {
