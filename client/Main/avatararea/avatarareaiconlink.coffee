@@ -11,6 +11,10 @@ class AvatarAreaIconLink extends KDCustomHTMLView
 
     @count = 0
 
+    @getDelegate().on 'AvatarPopupShouldBeHidden', =>
+
+      @unsetClass 'active'
+
 
   updateCount: (newCount = 0) ->
 
