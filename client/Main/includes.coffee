@@ -178,7 +178,10 @@ module.exports = [
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
-  "guideslinksview.coffee"
+  "domains/managedomainsview.coffee",
+  "domains/domainitem.coffee",
+
+  "guideslinksview.coffee",
   "workspacesettingspopup.coffee",
 
   # LOCATION
