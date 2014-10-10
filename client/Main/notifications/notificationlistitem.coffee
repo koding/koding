@@ -146,6 +146,9 @@ class NotificationListItemView extends KDListItemView
           title : "This post has been deleted!"
           duration : 1000
 
+    popupList = @getDelegate()
+    popupList.emit 'AvatarPopupShouldBeHidden'
+
     switch @getData().type
       when "comment", "like", "mention"
         KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
@@ -154,15 +157,3 @@ class NotificationListItemView extends KDListItemView
       when "join", "leave"
         return
         # do nothing
-
-  # click:(event)->
-    # popupList = @getDelegate()
-    # popupList.emit 'AvatarPopupShouldBeHidden'
-
-    # If we need to use implement click to mark as read for notifications
-    # Just un-comment following 3 line. A friend from past.
-    # {_id} = @getData()
-    # KD.whoami().glanceActivities _id, (err)=>
-    #   if err then log "Error: ", err
-
-    # super event
