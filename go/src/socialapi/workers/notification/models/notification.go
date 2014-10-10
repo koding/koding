@@ -3,10 +3,10 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	// "fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"time"
+
 	"github.com/koding/bongo"
 )
 
@@ -33,56 +33,6 @@ type Notification struct {
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 
 	SubscribeOnly bool `json:"-" sql:"-"`
-}
-
-func (n *Notification) BeforeCreate() {
-	if n.UnsubscribedAt.IsZero() && n.SubscribedAt.IsZero() {
-		n.SubscribedAt = time.Now()
-	}
-}
-
-func (n *Notification) BeforeUpdate() {
-	if n.UnsubscribedAt.IsZero() && !n.SubscribeOnly {
-		n.Glanced = false
-		n.ActivatedAt = time.Now()
-	}
-}
-
-func (n *Notification) AfterCreate() {
-	bongo.B.AfterCreate(n)
-}
-
-func (n *Notification) AfterUpdate() {
-	bongo.B.AfterUpdate(n)
-}
-
-func (n Notification) GetId() int64 {
-	return n.Id
-}
-
-func (n Notification) TableName() string {
-	return "notification.notification"
-}
-
-func NewNotification() *Notification {
-	return &Notification{}
-}
-
-func (n *Notification) One(q *bongo.Query) error {
-	return bongo.B.One(n, n, q)
-}
-
-func (n *Notification) Create() error {
-	// TODO check notification content existence
-	if err := n.FetchByContent(); err != nil {
-		if err != bongo.RecordNotFound {
-			return err
-		}
-
-		return bongo.B.Create(n)
-	}
-
-	return nil
 }
 
 func (n *Notification) Upsert() error {
@@ -142,11 +92,6 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 	response.UnreadCount = getUnreadNotificationCount(result)
 
 	return response, nil
-}
-
-func (n *Notification) Some(data interface{}, q *bongo.Query) error {
-
-	return bongo.B.Some(n, data, q)
 }
 
 func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
@@ -254,16 +199,11 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 }
 
 func (n *Notification) Glance() error {
-	selector := map[string]interface{}{
-		"glanced":    false,
-		"account_id": n.AccountId,
-	}
+	// TODO bongo.B.DB.Updates() did not work here lately. I have replaced it with this raw sql.
+	// If possible change it
+	updateSql := "UPDATE " + n.TableName() + ` set "glanced"=? WHERE "glanced"=? AND "account_id"=?`
 
-	set := map[string]interface{}{
-		"glanced": true,
-	}
-
-	return bongo.B.UpdateMulti(n, selector, set)
+	return bongo.B.DB.Exec(updateSql, true, false, n.AccountId).Error
 }
 
 func getUnreadNotificationCount(notificationList []NotificationContainer) int {
