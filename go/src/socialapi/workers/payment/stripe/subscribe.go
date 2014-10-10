@@ -120,12 +120,11 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 	if err != nil {
 		stripeErr := handleStripeError(err)
 
-		// customer probably has a coupon and therefore doesn't need to pay
-		if paymenterrors.ErrNothingToInvoiceFn(stripeErr) {
-			return nil
+		// customer probably has a coupon or credit in account and therefore
+		// doesn't need to pay
+		if !paymenterrors.ErrNothingToInvoiceFn(stripeErr) {
+			return stripeErr
 		}
-
-		return stripeErr
 	}
 
 	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
