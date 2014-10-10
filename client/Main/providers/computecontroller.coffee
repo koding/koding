@@ -477,8 +477,8 @@ class ComputeController extends KDController
         _domains = []
         for jdomain in domains
           if jdomain.domain is topDomain
-          then _domains.splice 0, 0, jdomain
-          else _domains.push jdomain
+          then _domains.unshift jdomain
+          else _domains.push    jdomain
 
         @domains = _domains
         cb null, @domains  for cb in queue

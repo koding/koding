@@ -10,7 +10,6 @@ class DomainItem extends KDListItemView
     { domain, machineId } = @getData()
     currentMachineId      = @getOption 'machineId'
 
-    domainLink = "<a href='http://#{domain}' target='_blank'>#{domain}</a>"
     topDomain  = "#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @addSubView new CustomLinkView
