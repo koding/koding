@@ -144,3 +144,26 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 
 	return nil
 }
+
+// userDomains returns a list of all domains that are bound to the given
+// machineId
+func (p *Provider) userDomains(machineId string) ([]DomainDocument, error) {
+	domains := make([]DomainDocument, 0)
+
+	query := func(c *mgo.Collection) error {
+		domain := DomainDocument{}
+
+		iter := c.Find(bson.M{"machineId": bson.ObjectIdHex(machineId)}).Batch(20).Iter()
+		for iter.Next(&domain) {
+			domains = append(domains, domain)
+		}
+
+		return iter.Close()
+	}
+
+	if err := p.Session.Run(domainCollection, query); err != nil {
+		return nil, err
+	}
+
+	return domains, nil
+}

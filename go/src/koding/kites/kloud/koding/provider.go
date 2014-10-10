@@ -30,10 +30,13 @@ type pushValues struct {
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
-	Kite    *kite.Kite
-	Session *mongodb.MongoDB
-	Log     logging.Logger
-	Push    func(string, int, machinestate.State)
+	Kite *kite.Kite
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
+
+	// DB reference
+	Session       *mongodb.MongoDB
+	DomainStorage *Domains
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
@@ -175,7 +178,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	}
 
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
-
 	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
@@ -183,6 +185,22 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
+	}
+
+	// also get all domain aliases that belongs to this machine and unset
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		}
+
+		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
+			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
+		}
 	}
 
 	// stop the timer and remove it from the list of inactive machines so it
