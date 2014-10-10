@@ -166,10 +166,10 @@ class MachineSettingsPopup extends KDModalViewWithForms
           itemClass    : KDCustomHTMLView
 
     {advancedView, domains} = @moreForm.inputs
-    {label} = advancedView.getOptions()
+    advancedLabel = advancedView.getOption 'label'
 
-    label.on 'click', =>
-      label.toggleClass 'expanded'
+    advancedLabel.on 'click', =>
+      advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
     {label} = domains.getOptions()
