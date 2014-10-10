@@ -702,6 +702,13 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
 
+      function updateusers () {
+
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/user-updater
+
+      }
+
       function cleanchatnotifications () {
         cd #{GOBIN}
         ./notification -c #{socialapi.configFilePath} -h
@@ -787,6 +794,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "importusers" ]; then
         importusers
+
+      elif [ "$1" == "updateusers" ]; then
+        updateusers
 
       elif [ "$1" == "cleanchatnotifications" ]; then
         cleanchatnotifications
