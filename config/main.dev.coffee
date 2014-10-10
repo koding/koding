@@ -389,6 +389,7 @@ Configuration = (options={}) ->
         make configure
         # make install
         cd #{projectRoot}
+        cleanchatnotifications
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
@@ -701,7 +702,6 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
 
-
       function updateusers () {
 
         cd #{projectRoot}
@@ -709,6 +709,10 @@ Configuration = (options={}) ->
 
       }
 
+      function cleanchatnotifications () {
+        cd #{GOBIN}
+        ./notification -c #{socialapi.configFilePath} -h
+      }
 
       function sandbox_buildservices () {
         SANDBOX_SERVICES=54.165.122.100
@@ -793,6 +797,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "updateusers" ]; then
         updateusers
+
+      elif [ "$1" == "cleanchatnotifications" ]; then
+        cleanchatnotifications
 
       elif [ "$1" == "worker" ]; then
 

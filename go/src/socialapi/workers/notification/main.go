@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
@@ -10,13 +11,19 @@ import (
 )
 
 var (
-	Name = "Notification"
+	Name        = "Notification"
+	flagHidePMs = flag.Bool("h", false, "Hide all pms")
 )
 
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
 		fmt.Println(err)
+		return
+	}
+
+	if *flagHidePMs {
+		notification.HidePMNotifications()
 		return
 	}
 
