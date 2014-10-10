@@ -67,12 +67,7 @@ func HidePMNotifications() {
 		return
 	}
 
-	ntf := models.NewNotification()
-
-	updateSql := "UPDATE " + ntf.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
-
-	err := bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
-	if err != nil {
+	if err := models.NewNotification().HideByContentIds(ids); err != nil {
 		fmt.Printf("Could not hide pm notifications: %s \n", err)
 	}
 }
