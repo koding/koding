@@ -41,15 +41,14 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 		rmqConn: rmqConn.Conn(),
 	}
 
-	nwc.hidePMNotifications()
-
 	return nwc, nil
 }
 
 // this is temporary method used for hiding private message notifications
 // previously created. Once it is run in all servers, it will be deleted
-func (n *Controller) hidePMNotifications() {
-	n.log.Debug("hiding pm notifications")
+func HidePMNotifications() {
+	// n.log.Debug("hiding pm notifications")
+	fmt.Println("hiding pm notifications")
 	var ids []int64
 	nc := models.NewNotificationContent()
 	query := &bongo.Query{
@@ -60,7 +59,7 @@ func (n *Controller) hidePMNotifications() {
 	}
 
 	if err := nc.Some(&ids, query); err != nil {
-		n.log.Error("Could not hide pm notifications: %s", err)
+		fmt.Printf("Could not hide pm notifications: %s \n", err)
 		return
 	}
 
@@ -74,7 +73,7 @@ func (n *Controller) hidePMNotifications() {
 
 	err := bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
 	if err != nil {
-		n.log.Error("Could not hide pm notifications: %s", err)
+		fmt.Printf("Could not hide pm notifications: %s \n", err)
 	}
 }
 
