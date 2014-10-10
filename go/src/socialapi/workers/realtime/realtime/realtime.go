@@ -6,6 +6,7 @@ import (
 	mongomodels "koding/db/models"
 	"socialapi/models"
 	"socialapi/request"
+	notificationmodels "socialapi/workers/notification/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -14,6 +15,7 @@ import (
 )
 
 const (
+	NotificationEventName       = "NotificationAdded"
 	ChannelUpdateEventName      = "ChannelUpdateHappened"
 	RemovedFromChannelEventName = "RemovedFromChannel"
 	AddedToChannelEventName     = "AddedToChannel"
@@ -32,6 +34,26 @@ type Controller struct {
 
 	// connection to RMQ
 	rmqConn *amqp.Connection
+}
+
+// NotificationEvent holds required data for notifcation processing
+type NotificationEvent struct {
+	// Holds routing key for notification dispatching
+	Event string `json:"event"`
+
+	// Content of the notification
+	Content NotificationContent `json:"contents"`
+}
+
+// NotificationContent holds required data for notification events
+type NotificationContent struct {
+	// TypeConstant holds the type of a notification
+	// But in some cases, this property can hold the status of the
+	// notification, like "delivered" and "read"
+	TypeConstant string `json:"type"`
+
+	TargetId int64  `json:"targetId,string"`
+	ActorId  string `json:"actorId"`
 }
 
 type ParticipantContent struct {
@@ -512,6 +534,37 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 
 func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
 	return f.publishToChannel(c.Id, "ChannelDeleted", &models.ChannelContainer{Channel: c})
+}
+
+func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
+	activity, nc, err := notification.FetchLastActivity()
+	if err != nil {
+		return err
+	}
+
+	// do not notify actor for her own action
+	if activity.ActorId == notification.AccountId {
+		return nil
+	}
+
+	// do not notify user when notification is not yet activated,
+	// or it is already glanced (subscription case)
+	if notification.ActivatedAt.IsZero() || notification.Glanced {
+		return nil
+	}
+
+	content := NotificationContent{
+		TargetId:     nc.TargetId,
+		TypeConstant: nc.TypeConstant,
+	}
+
+	actor, err := models.FetchAccountFromCache(activity.ActorId)
+	if err != nil {
+		return err
+	}
+	content.ActorId = actor.OldId
+
+	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
 }
 
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {

@@ -285,3 +285,22 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 
 	return oldIds, nil
 }
+
+func FetchAccountsByNicks(nicks []string) ([]Account, error) {
+	var accounts []Account
+
+	if len(nicks) == 0 {
+		return accounts, nil
+	}
+
+	a := NewAccount()
+	res := bongo.B.DB.
+		Table(a.TableName()).
+		Where("nick in (?)", nicks).Find(&accounts)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}

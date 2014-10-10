@@ -587,6 +587,34 @@ div.nominateicon
           font-size       14px
           padding         0 0 9px 2px
 
+    &.domains
+
+      label.kdlabel
+
+        a
+          text-decoration none
+
+        span
+          top             2px
+          left            2px
+          position        relative
+          display         inline-block
+          cursor          pointer
+
+        span.domain-help
+          r-sprite        app 'what-12'
+
+        span.domain-toggle
+          r-sprite        app 'add-12'
+
+        &.expanded
+          span.domain-toggle
+            r-sprite      app 'cancel-12'
+
+      .input-wrapper
+        width             100%
+        overflow          visible
+
 
     &.specs
       label.kdlabel
@@ -653,6 +681,78 @@ div.nominateicon
 
     &.button-field
       margin              0 !important
+
+
+  .domains-view
+
+    padding               2px 0
+    borderBox()
+
+    .in-progress
+      top                 -16px
+      right               2px
+      display             block
+      width               auto
+      height              auto
+      abs()
+
+    .warning
+      top                 -14px
+      right               4px
+      r-sprite            environments, 'warning'
+      abs()
+
+    .input-view
+      border-radius       4px
+      background          white
+      height              22px
+
+      input
+        padding           0
+        margin-right      0
+        text-align        right
+        background        none
+        border            none
+        color             black
+        width             auto
+        height            21px
+        shadow            none
+        fl()
+
+      .domain-suffix
+        color             #999
+        width             auto
+        display           inline-block
+        float             left
+        box-shadow        none
+        ellipsis()
+
+    .listview-wrapper
+      margin-top          4px
+      height              auto
+      padding             0 4px
+
+    .kdlistitemview-domain
+      a
+        text-decoration   none !important
+
+      .koding-on-off
+        right             2px
+        vendor            transform, scale(.7)
+        display           inline-block
+        abs()
+
+      &:hover
+        span.remove-domain
+          display         block
+
+      span.remove-domain
+        top               4px
+        right             36px
+        display           none
+        r-sprite          app 'delete-12'
+        cursor            pointer
+        abs()
 
   label.kdlabel
 
@@ -1153,3 +1253,8 @@ body.account
         r-sprite          'app', 'welcome-btn-chevron'
         margin            21px 24px 0 0
         fr()
+
+
+.kdmodal.domain-assign-modal
+  b
+    font-weight           bold

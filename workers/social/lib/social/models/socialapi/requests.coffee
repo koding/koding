@@ -155,6 +155,20 @@ glancePinnedPost = (data, callback)->
   url = "/activity/pin/glance"
   post url, data, callback
 
+glanceNotifications = (data, callback)->
+  if not data.accountId
+    return callback { message: "Request is not valid"}
+
+  url = "/notification/glance"
+  post url, data, callback
+
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "/notification/#{data.accountId}"
+  get url, data, callback
+
 listParticipants = (data, callback)->
   return callback { message: "Request is not valid" } unless data.channelId
   url = "/channel/#{data.channelId}/participants"
@@ -403,6 +417,8 @@ module.exports = {
   channelById
   channelByName
   glancePinnedPost
+  glanceNotifications
+  listNotifications
   updateLastSeenTime
   fetchProfileFeed
   searchTopics

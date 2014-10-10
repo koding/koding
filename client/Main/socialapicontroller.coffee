@@ -231,6 +231,10 @@ class SocialApiController extends KDController
     options.apiType = "channel"
     return requester options
 
+  notificationRequesterFn = (options)->
+    options.apiType = "notification"
+    return requester options
+
   requester = (req) ->
     (options, callback)->
       {fnName, validate, mapperFn, defaults, apiType} = req
@@ -247,10 +251,13 @@ class SocialApiController extends KDController
       _.defaults options, defaults  if defaults
 
       api = {}
-      if apiType is "channel"
-        api = KD.remote.api.SocialChannel
-      else
-        api = KD.remote.api.SocialMessage
+      switch apiType
+        when "channel"
+          api = KD.remote.api.SocialChannel
+        when "notification"
+          api = KD.remote.api.SocialNotification
+        else
+          api = KD.remote.api.SocialMessage
 
       api[fnName] options, (err, result)->
         return callback err if err
@@ -477,3 +484,10 @@ class SocialApiController extends KDController
       validateOptionsWith: ["channelId"]
 
     revive               : mapChannel
+
+  notifications          :
+    fetch                : notificationRequesterFn
+      fnName             : 'fetch'
+
+    glance               : notificationRequesterFn
+      fnName             : 'glance'
