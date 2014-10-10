@@ -12,14 +12,14 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func GetHistory(channelId int64, q *request.Query) (*models.HistoryResponse, error) {
+func GetHistory(channelId int64, q *request.Query, token string) (*models.HistoryResponse, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
 	}
 
 	url := fmt.Sprintf("/channel/%d/history?%s", channelId, v.Encode())
-	res, err := sendRequest("GET", url, nil)
+	res, err := sendRequestWithAuth("GET", url, nil, token)
 	if err != nil {
 		return nil, err
 	}

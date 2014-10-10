@@ -320,6 +320,13 @@ class SocialApiController extends KDController
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
 
+  serialize = (obj) ->
+    str = []
+    for own p of obj
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+
+    return str.join "&"
+
   message:
     byId                 : messageRequesterFn
       fnName             : 'byId'
@@ -416,10 +423,27 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : channelRequesterFn
-      fnName             : 'fetchActivities'
-      validateOptionsWith: ['id']
-      mapperFn           : mapActivities
+    fetchActivities      : (options, callback)->
+      err = {message: "An error occured"}
+
+      xhr = new XMLHttpRequest
+      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      xhr.open 'GET', endPoint
+      xhr.onreadystatechange = =>
+        # 0     - connection failed
+        # >=400 - http errors
+        return if xhr.status is 0 or xhr.status >= 400
+          return callback err
+
+        return if xhr.readyState isnt 4
+
+        if xhr.status not in [200, 304]
+          return callback err
+
+        response = JSON.parse xhr.responseText
+        return callback null, mapActivities response
+
+      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'

@@ -8,6 +8,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
+	"socialapi/workers/common/response"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/common/tests"
 	"strconv"
@@ -54,15 +55,11 @@ func TestMarkedAsTroll(t *testing.T) {
 	Convey("given a controller", t, func() {
 
 		// cretae admin user
-		adminUser := models.NewAccount()
-		adminUser.OldId = bson.NewObjectId().Hex()
-		adminUser, err = rest.CreateAccount(adminUser)
+		adminUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(adminUser, err)
 
 		// create troll user
-		trollUser := models.NewAccount()
-		trollUser.OldId = bson.NewObjectId().Hex()
-		trollUser, err := rest.CreateAccount(trollUser)
+		trollUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(trollUser, err)
 		trollUser.IsTroll = true
 
@@ -71,9 +68,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		So(res, ShouldBeNil)
 
 		// create normal user
-		normalUser := models.NewAccount()
-		normalUser.OldId = bson.NewObjectId().Hex()
-		normalUser, err = rest.CreateAccount(normalUser)
+		normalUser, err := models.CreateAccountInBothDbs()
 		tests.ResultedWithNoErrorCheck(normalUser, err)
 
 		// create groupName
@@ -469,6 +464,10 @@ func TestMarkedAsTroll(t *testing.T) {
 				}
 			}
 
+			ses, err := models.FetchOrCreateSession("sinan")
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			// make sure we found sinan in participant list
 			So(sinan, ShouldBeGreaterThan, 0)
 
@@ -477,6 +476,7 @@ func TestMarkedAsTroll(t *testing.T) {
 				&request.Query{
 					AccountId: sinan,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -507,15 +507,21 @@ func TestMarkedAsTroll(t *testing.T) {
 			// make sure we found sinan in participant list
 			So(sinan, ShouldBeGreaterThan, 0)
 
+			ses, err := models.FetchOrCreateSession("sinan")
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			history, err := rest.GetHistory(
 				privatemessageChannelId,
 				&request.Query{
-					AccountId:  sinan,
-					ShowExempt: true,
+					AccountId: sinan,
 				},
+				ses.ClientId,
 			)
-			So(err, ShouldBeNil)
-			So(history, ShouldNotBeNil)
+
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, response.ErrContentNotFound.Error())
+			So(history, ShouldBeNil)
 		})
 
 		// channel_participant
@@ -577,11 +583,16 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(privatemessageChannelId, trollUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
+			ses, err := models.FetchOrCreateSession(normalUser.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			history, err := rest.GetHistory(
 				privatemessageChannelId,
 				&request.Query{
 					AccountId: normalUser.Id,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldBeNil)
@@ -601,12 +612,17 @@ func TestMarkedAsTroll(t *testing.T) {
 			post, err := rest.CreatePost(privatemessageChannelId, normalUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
 
+			ses, err := models.FetchOrCreateSession(trollUser.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			history, err := rest.GetHistory(
 				privatemessageChannelId,
 				&request.Query{
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
 				},
+				ses.ClientId,
 			)
 
 			So(err, ShouldBeNil)
