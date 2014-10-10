@@ -58,6 +58,7 @@ class PopupNotifications extends AvatarPopup
 
   attachListeners:->
     {notificationController} = KD.singletons
+    notificationController.off 'NotificationHasArrived'
     notificationController.on 'NotificationHasArrived', ({event})=>
     #   # No need the following
     #   # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
