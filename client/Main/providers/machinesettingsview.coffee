@@ -158,7 +158,13 @@ class MachineSettingsPopup extends KDModalViewWithForms
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
         domains        :
-          label        : "Domains <span class='domain-toggle'></span>"
+          label        : "
+            Domains
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='domain-help'></span>
+            </a>
+            <span class='domain-toggle'></span>
+          "
           itemClass    : ManageDomainsView
           machine      : @machine
         advancedView   :

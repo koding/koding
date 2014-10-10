@@ -591,16 +591,24 @@ div.nominateicon
 
       label.kdlabel
 
+        a
+          text-decoration none
+
         span
           top             2px
           left            2px
           position        relative
           display         inline-block
-          r-sprite        app 'add-12'
           cursor          pointer
 
+        span.domain-help
+          r-sprite        app 'what-12'
+
+        span.domain-toggle
+          r-sprite        app 'add-12'
+
         &.expanded
-          span
+          span.domain-toggle
             r-sprite      app 'cancel-12'
 
       .input-wrapper
