@@ -123,10 +123,10 @@ func TestAccountByNick(t *testing.T) {
 			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
-			fa := &NewAccount()
+			fa := NewAccount()
 
 			// fetch the account by nick of account
-			fa.ByNick(acc.Nick)
+			err := fa.ByNick(acc.Nick)
 			// error should be nil
 			// means that fetching is done successfully
 			So(err, ShouldBeNil)
@@ -139,7 +139,7 @@ func TestAccountByNick(t *testing.T) {
 		Convey("it should have error if record is not found", func() {
 
 			// init account
-			fa := &NewAccount()
+			fa := NewAccount()
 			err := fa.ByNick("")
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
