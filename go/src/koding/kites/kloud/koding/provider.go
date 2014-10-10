@@ -30,10 +30,13 @@ type pushValues struct {
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
-	Kite    *kite.Kite
-	Session *mongodb.MongoDB
-	Log     logging.Logger
-	Push    func(string, int, machinestate.State)
+	Kite *kite.Kite
+	Log  logging.Logger
+	Push func(string, int, machinestate.State)
+
+	// DB reference
+	Session       *mongodb.MongoDB
+	DomainStorage *Domains
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
@@ -145,6 +148,19 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 			return nil, err
 		}
+
+		// also get all domain aliases that belongs to this machine and unset
+		a.Push("Updating domain aliases", 80, machinestate.Starting)
+		domains, err := p.userDomains(m.Id)
+		if err != nil {
+			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		}
+
+		for _, domain := range domains {
+			if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+				p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
+			}
+		}
 	}
 
 	// stop the timer and remove it from the list of inactive machines so it
@@ -175,7 +191,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	}
 
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
-
 	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
@@ -183,6 +198,18 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
+	}
+
+	// also get all domain aliases that belongs to this machine and unset
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		}
 	}
 
 	// stop the timer and remove it from the list of inactive machines so it
@@ -211,7 +238,26 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	artifact, err := p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	if err != nil {
+		return nil, err
+	}
+
+	// also get all domain aliases that belongs to this machine and udpate them
+	// according to the new IP
+	a.Push("Updating domain aliases", 95, machinestate.Building)
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
+		}
+	}
+
+	return artifact, nil
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
@@ -220,7 +266,26 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	return p.destroy(a, m, &pushValues{Start: 10, Finish: 90})
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 90}); err != nil {
+		return err
+	}
+
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		}
+
+		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
+			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
+		}
+	}
+
+	return nil
 }
 
 func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
@@ -234,37 +299,27 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
-	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
-		return err
-	}
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
 
 	// increase one tick but still don't let it reach the final value
 	lastVal := float64(v.Finish) * (9.0 / 10.0)
 
-	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
+	a.Push("Checking domains", int(lastVal), machinestate.Terminating)
 	_, err = p.DNS.Get(m.Domain.Name)
 	if err == ErrNoRecord {
 		return nil
 	}
 
-	// If it's something else just return it
-	if err != nil {
-		return err
-	}
-
 	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		return err
+		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
 	}
 
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
-
 	return nil
-
 }
 
 // stopTimer stops the inactive timeout timer for the given queryString
