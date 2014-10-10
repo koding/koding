@@ -15,7 +15,7 @@ module.exports = class SocialNotification extends Base
     sharedMethods     :
       static          :
         fetch         :
-          (signature Function)
+          (signature Object, Function)
         glance        :
           (signature Object, Function)
     permissions :
@@ -36,8 +36,8 @@ module.exports = class SocialNotification extends Base
   JAccount = require '../account'
 
   @fetch = permit 'list notifications',
-    success: (client, callback) ->
-      doRequest 'listNotifications', client, {}, (err, response) ->
+    success: (client, options, callback) ->
+      doRequest 'listNotifications', client, options, (err, response) ->
         return callback err if err?
         {notificationList : notifications, unreadCount} = response
         notifications = decorateNotifications notifications

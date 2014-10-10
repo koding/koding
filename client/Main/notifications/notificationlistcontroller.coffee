@@ -21,8 +21,9 @@ class NotificationListController extends KDListViewController
     @forwardEvent @getListView(), 'AvatarPopupShouldBeHidden'
 
   fetchNotificationTeasers:(callback)->
-    KD.remote.api.SocialNotification.fetch (err, notifications) =>
-      return KD.showError err  if err
+    {fetch} = KD.singletons.socialapi.notifications
+    fetch {}, (err, notifications) =>
+      return KD.showError err if err?
       return KD.showError 'Notifications could not be fetched'  unless notifications
       @emit 'NotificationCountDidChange', notifications.unreadCount
       callback null, notifications.notifications
