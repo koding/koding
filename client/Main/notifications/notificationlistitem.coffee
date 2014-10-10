@@ -67,8 +67,8 @@ class NotificationListItemView extends KDListItemView
         @participants = new options.linkGroupClass {group:actors}
         @avatar       = new options.avatarClass
           size     :
-            width  : 40
-            height : 40
+            width  : 24
+            height : 24
           origin   : @actors[0]
         resolve()
 
@@ -150,7 +150,7 @@ class NotificationListItemView extends KDListItemView
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        router.handleRoute "/Activity/Post/#{post.message.slug}", { state: post }
+        router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -168,3 +168,5 @@ class NotificationListItemView extends KDListItemView
       when "join", "leave"
         return
         # do nothing
+
+
