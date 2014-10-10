@@ -71,7 +71,7 @@ class PrivateMessagePane extends MessagePane
   prependMessage: (message) -> @listController.addItem message, 0
 
 
-  appendMessageDeferred: (item, i, total) ->
+  addMessageDeferred: (item, i, total) ->
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
