@@ -150,6 +150,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		}
 
 		// also get all domain aliases that belongs to this machine and unset
+		a.Push("Updating domain aliases", 80, machinestate.Starting)
 		domains, err := p.userDomains(m.Id)
 		if err != nil {
 			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
