@@ -102,7 +102,7 @@ module.exports = class ComputeProvider extends Base
           # not created vm ~ GG
           return callback err  if err
 
-          provider.postCreate {
+          provider.postCreate client, {
             postCreateOptions, machine, meta, stack: stack._id
           }, (err)->
 

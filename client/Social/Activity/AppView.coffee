@@ -130,7 +130,7 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
       else
-        if name is 'announcement-koding'
+        if name is 'announcement-changelog'
         then AnnouncementPane
         else ActivityPane
 

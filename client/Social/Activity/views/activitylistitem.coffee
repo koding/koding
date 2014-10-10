@@ -10,6 +10,7 @@ class ActivityListItemView extends KDListItemView
     options.commentSettings  or= {}
     options.attributes       or= {}
     options.attributes.testpath = "ActivityListItemView"
+    options.editWidgetClass  or= ActivityEditWidget
 
     super options, data
 
@@ -115,7 +116,8 @@ class ActivityListItemView extends KDListItemView
   showEditWidget : ->
 
     unless @editWidget
-      @editWidget = new ActivityEditWidget null, @getData()
+      { editWidgetClass } = @getOptions()
+      @editWidget = new editWidgetClass { delegate:this }, @getData()
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidget.input.on 'blur', @bound 'resetEditing'
