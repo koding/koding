@@ -12,7 +12,6 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       title    : 'Sign up with GitHub'
       alt      : 'Sign up with GitHub'
       click    : ->
-        KD.mixpanel "Github auth button in /Home, click"
         KD.singletons.oauthController.openPopup "github"
 
     @email.setOption 'stickyTooltip', yes
