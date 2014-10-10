@@ -4,7 +4,7 @@ module.exports = class HomeAppController extends KDViewController
 
   KD.registerAppClass this,
     name  : 'Home'
-    route : '/Home'
+    route : '/WFGH'
 
 
   constructor: (options = {}, data) ->

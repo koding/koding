@@ -10,7 +10,7 @@ do ->
 
       {router} = KD.singletons
 
-      router.openSection 'Home'
+      router.clear()
 
 
   KD.registerRoutes 'Core',
