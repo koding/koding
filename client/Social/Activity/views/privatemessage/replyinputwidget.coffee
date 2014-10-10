@@ -52,13 +52,13 @@ class ReplyInputWidget extends ActivityInputWidget
     else KD.utils.wait 8000, @bound 'unlockSubmit'
 
 
-  embedLink: (url, callback = noop) ->
+  populatePayload: (url, callback = noop) ->
 
     options = { maxWidth: 475 }
 
     @embedBox.fetchEmbed url, options, (data = {}) =>
 
-      payload = @populatePayload data
+      payload = @applyPayload data
 
       callback null, payload
 
@@ -67,7 +67,7 @@ class ReplyInputWidget extends ActivityInputWidget
   # copied from EmbedBoxWidget, and changed it
   # to populate the payload directly
   # without needing to preview. ~U
-  populatePayload: (data) ->
+  applyPayload: (data) ->
 
     return  unless data?
 
@@ -100,7 +100,7 @@ class ReplyInputWidget extends ActivityInputWidget
     urls = _.uniq (text.match @utils.botchedUrlRegExp) || []
 
     if urls.length > 0 and not options.payload
-      @embedLink urls.first, (err, payload) =>
+      @populatePayload urls.first, (err, payload) =>
         options.payload = payload
         @sendPrivateMessage options, callback
     else
