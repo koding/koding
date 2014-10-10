@@ -110,6 +110,49 @@ func TestAccountFetchAccountById(t *testing.T) {
 	})
 }
 
+func TestAccountByNick(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching an account by nick", t, func() {
+		Convey("it should not have error while fething", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			fa := NewAccount()
+
+			// fetch the account by nick of account
+			err := fa.ByNick(acc.Nick)
+			// error should be nil
+			// means that fetching is done successfully
+			So(err, ShouldBeNil)
+			// account in the db should be equal to fetched account
+			So(fa.Id, ShouldEqual, acc.Id)
+			So(fa.OldId, ShouldEqual, acc.OldId)
+			So(fa.Nick, ShouldEqual, acc.Nick)
+		})
+
+		Convey("it should have error if nick is not set", func() {
+			fa := NewAccount()
+			err := fa.ByNick("")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrNickIsNotSet)
+		})
+
+		Convey("it should have error if record is not found", func() {
+			fa := NewAccount()
+			err := fa.ByNick("foobarzaa")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+	})
+}
+
 func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {

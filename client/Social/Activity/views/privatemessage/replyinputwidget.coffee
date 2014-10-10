@@ -96,15 +96,15 @@ class ReplyInputWidget extends ActivityInputWidget
 
     options.channelId = channelId
 
-    text = @input.getValue()
-    urls = _.uniq (text.match @utils.botchedUrlRegExp) || []
+    # text = @input.getValue()
+    # urls = _.uniq (text.match @utils.botchedUrlRegExp) || []
 
-    if urls.length > 0 and not options.payload
-      @populatePayload urls.first, (err, payload) =>
-        options.payload = payload
-        @sendPrivateMessage options, callback
-    else
-      @sendPrivateMessage options, callback
+    # if urls.length > 0 and not options.payload
+    #   @populatePayload urls.first, (err, payload) =>
+    #     options.payload = payload
+    #     @sendPrivateMessage options, callback
+    # else
+    @sendPrivateMessage options, callback
 
 
   sendPrivateMessage: (options, callback) ->

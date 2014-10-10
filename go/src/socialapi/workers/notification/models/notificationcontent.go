@@ -101,6 +101,19 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
+func (n *NotificationContent) FetchIdsByTargetId(targetId int64) ([]int64, error) {
+	var ids []int64
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"target_id": targetId,
+		},
+		Pluck: "id",
+	}
+
+	return ids, n.Some(&ids, query)
+}
+
 // CreateNotificationType creates an instance of notifiable subclasses
 func CreateNotificationContentType(notificationType string) (Notifiable, error) {
 	switch notificationType {
