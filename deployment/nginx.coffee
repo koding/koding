@@ -259,6 +259,20 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
+      location = / {
+        if ($args ~ "_escaped_fragment_") {
+          proxy_pass http://webserver;
+        }
+
+        proxy_pass            http://gowebserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+        auth_basic            "Restricted";
+        auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;
+      }
+
       #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
