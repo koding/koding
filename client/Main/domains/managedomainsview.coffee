@@ -73,6 +73,12 @@ class ManageDomainsView extends KDView
     domain = "#{Encoder.XSSEncode @input.getValue().trim()}#{@domainSuffix}"
     machineId = @machine._id
 
+    if @domainController.getItemCount() >= 5
+      @warning.setTooltip
+        title: "It's not allowed to create more than 5 domains."
+      @warning.show()
+      return
+
     @loader.show()
     @warning.hide()
     @input.makeDisabled()
@@ -242,3 +248,4 @@ class ManageDomainsView extends KDView
       return  if $(event.target).hasClass 'domain-toggle'
       @emit "DomainInputCancelled"
       @inputView.hide()
+      @warning.hide()
