@@ -39,6 +39,9 @@ class ReplyInputWidget extends ActivityInputWidget
   empty: -> @input.empty()
 
 
+  getPayload: ->
+
+
   reset: (unlock = yes) ->
 
     @input.empty()
