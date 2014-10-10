@@ -238,7 +238,26 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	artifact, err := p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	if err != nil {
+		return nil, err
+	}
+
+	// also get all domain aliases that belongs to this machine and udpate them
+	// according to the new IP
+	a.Push("Updating domain aliases", 95, machinestate.Building)
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
+		}
+	}
+
+	return artifact, nil
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
@@ -247,7 +266,26 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	return p.destroy(a, m, &pushValues{Start: 10, Finish: 90})
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 90}); err != nil {
+		return err
+	}
+
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		}
+
+		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
+			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
+		}
+	}
+
+	return nil
 }
 
 func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
@@ -272,30 +310,16 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	// return lazily
 	a.Push("Checking domains", int(lastVal), machinestate.Terminating)
 	_, err = p.DNS.Get(m.Domain.Name)
-	if err == nil {
-		a.Push("Deleting domain", v.Finish, machinestate.Terminating)
-		if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-			p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
-		}
+	if err == ErrNoRecord {
+		return nil
 	}
 
-	domains, err := p.userDomains(m.Id)
-	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
-	}
-
-	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
-			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
-		}
-
-		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
-			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
-		}
+	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
+		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
 	}
 
 	return nil
-
 }
 
 // stopTimer stops the inactive timeout timer for the given queryString
