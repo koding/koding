@@ -26,13 +26,15 @@ module.exports = (account, req, res) ->
       then plan = 'free'
       else plan = subscription.planTitle
 
-      message += """
-
+      message = """
         ----------------------------------------
         Username   : #{user.username}
         User Agent : #{req.headers['user-agent']}
         User Plan  : #{plan}
-      """
+        ----------------------------------------
+
+
+      """ + message
 
       request
         url           : "#{baseUrl}/conversations.json"
