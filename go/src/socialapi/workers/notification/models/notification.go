@@ -241,3 +241,9 @@ func (n *Notification) FetchLastActivity() (*NotificationActivity, *Notification
 
 	return a, nc, nil
 }
+
+func (n *Notification) HideByContentIds(ids []int64) error {
+	updateSql := "UPDATE " + n.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
+
+	return bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
+}

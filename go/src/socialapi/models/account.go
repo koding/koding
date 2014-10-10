@@ -152,6 +152,19 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 }
 
 // Tests are done.
+func (a *Account) ByNick(nick string) error {
+	if nick == "" {
+		return ErrNickIsNotSet
+	}
+
+	selector := map[string]interface{}{
+		"nick": nick,
+	}
+
+	return a.One(bongo.NewQS(selector))
+}
+
+// Tests are done.
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
 		return ErrAccountIdIsNotSet

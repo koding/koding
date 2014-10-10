@@ -90,7 +90,7 @@ class NotificationListItemView extends KDListItemView
     <div class='avatar-wrapper fl'>
       {{> @avatar}}
     </div>
-    <div class='right-overflow'>
+    <div class='right-overflow fl'>
       {{> @participants}}
       {{  @getActionPhrase #(dummy)}}
       {{> @activityPlot}}

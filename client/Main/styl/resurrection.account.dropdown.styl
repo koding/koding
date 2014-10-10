@@ -44,9 +44,19 @@ resurrection.account.dropdown.styl
         border-bottom     1px solid #424242
 
 
+.notification-list
+  .no-item-found
+    font-size     12px
+    text-align    center
+    padding       10px
+    borderBox()
+
+  .lazy-loader
+    display       none
+
 .notification-list .kdlistitemview
   display         block
-  height          35px
+  min-height      35px
   font-size       12px
   cursor          pointer
   line-height     12px
@@ -54,8 +64,12 @@ resurrection.account.dropdown.styl
   &:hover
     bg            color, #1A1A1A
 
+  .right-overflow
+    width         198px
+    line-height   1.2em
+
   .avatar-wrapper
-    margin-right  13px
+    margin-right  10px
 
   .link-group
     display       inline-block

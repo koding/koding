@@ -1,10 +1,5 @@
 package config
 
-const (
-	// Special env name for vagrant
-	VagrantEnvName = "vagrant"
-)
-
 type (
 	// Config holds all the configuration variables of socialapi
 	Config struct {
