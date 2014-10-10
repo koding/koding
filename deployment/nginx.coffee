@@ -241,15 +241,6 @@ module.exports.create = (KONFIG, environment)->
 
       #{createStubLocation(environment)}
 
-      # temporary exception for kloud to reach webserver without auth
-      location /-/subscriptions {
-        proxy_pass            http://webserver;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
       # special case for ELB here, for now
       location /-/healthCheck {
         proxy_pass            http://webserver;
@@ -257,6 +248,20 @@ module.exports.create = (KONFIG, environment)->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+      }
+
+      location = / {
+        if ($args ~ \"_escaped_fragment_\") {
+          proxy_pass http://webserver;
+        }
+
+        proxy_pass            http://gowebserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+
+        #{if environment not in ["prod", "dev"] then basicAuth else ""}
       }
 
       #{createLocations(KONFIG)}

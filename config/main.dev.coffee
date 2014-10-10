@@ -198,7 +198,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
-        locations       : ["~^/IDE/.*", "= /"]
+        locations       : ["~^/IDE/.*"]
     kontrol             :
       group             : "environment"
       ports             :
