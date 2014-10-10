@@ -291,6 +291,86 @@ module.exports = class LoginView extends JView
           duration  : 4500
 
 
+  showExtraInformation : (formData, form) ->
+    {mainView} = KD.singletons
+
+    mainView.setClass 'blur'
+
+    {gravatar, email, password}     = formData
+
+    if gravatar is '"User not found"'
+      gravatar              =
+        dummy               : yes
+        photos              : [
+          (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
+        ]
+        preferredUsername   : ''
+
+    else
+      gravatar                      = (JSON.parse gravatar)['entry'][0]
+
+    {preferredUsername, photos}     = gravatar
+    givenName                       = gravatar.name?.givenName
+    familyName                      = gravatar.name?.familyName
+
+    fields                  = {}
+
+    fields['photo']         =
+      itemClass             : KDCustomHTMLView
+      tagName               : 'img'
+      attributes            :
+        src                 : photos[0].value
+
+    fields['email']         =
+      itemClass             : KDCustomHTMLView
+      partial               : email
+
+    fields['username']      =
+      name                  : 'username'
+      defaultValue          : preferredUsername
+      label                 : 'Username'
+      nextElement           :
+        suffix              :
+          itemClass         : KDCustomHTMLView
+          cssClass          : 'suffix'
+          partial           : '.koding.io'
+
+    if givenName
+      fields['firstName']   =
+        defaultValue        : givenName
+        label               : 'First Name'
+
+    if familyName
+      fields['lastName']    =
+        defaultValue        : familyName
+        label               : 'Last Name'
+
+
+    modal = new KDModalViewWithForms
+      cssClass                        : 'extra-info password'
+      width                           : 360
+      height                          : 'auto'
+      overlay                         : yes
+      tabs                            :
+        forms                         :
+          extraInformation            :
+            fields                    : fields
+            buttons                   :
+              continue                :
+                title                 : "LET'S GO"
+                style                 : "solid green medium"
+                type                  : "submit"
+
+    unless gravatar.dummy
+      modal.addSubView new KDCustomHTMLView
+        partial  : 'Profile info fetched from Gravatar.'
+        cssClass : 'description'
+
+    modal.once 'KDObjectWillBeDestroyed', ->
+      mainView.unsetClass 'blur'
+      form.button.hideLoader()
+
+
   showPasswordModal: (formData, form) ->
 
     if no in [form.email.input.valid, form.username.input.valid]

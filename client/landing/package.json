@@ -36,6 +36,7 @@
     "gulp.spritesmith": "^1.2.0",
     "kdf": "^0.1.7",
     "minimist": "^1.1.0",
+    "request": "^2.45.0",
     "vinyl-source-stream": "^1.0.0"
   }
 }

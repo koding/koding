@@ -11,6 +11,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   constructor:(options={},data)->
     super options, data
 
+
+    @email?.destroy()
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
@@ -21,36 +23,21 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         focus         : => @email.icon.unsetTooltip()
         keyup         : (event) => @submitForm event  if event.which is ENTER
 
-
-
-    @username?.destroy()
-    @username = new LoginInputViewWithLoader
-      inputOptions       :
-        name             : "username"
-        forceCase        : "lowercase"
-        placeholder      : "username"
-        testPath         : "register-form-username"
-        focus            : => @username.icon.unsetTooltip()
-        keyup            : (event) => @submitForm event  if event.which is ENTER
-        validate         :
-          container      : this
-          rules          :
-            required     : yes
-            rangeLength  : [4, 25]
-            regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
-            # usernameCheck: (input, event)=> @usernameCheck input, event
-            # finalCheck   : (input, event)=> @usernameCheck input, event, 0
-          messages       :
-            required     : 'Please enter a username.'
-            regExp       : 'For username only lowercase letters and numbers are allowed!'
-            rangeLength  : 'Username should be between 4 and 25 characters!'
-          events         :
-            required     : 'blur'
-            rangeLength  : 'blur'
-            regExp       : 'keyup'
-            # usernameCheck: 'keyup'
-            # finalCheck   : 'blur'
-        decorateValidation: no
+    @password?.destroy()
+    @password = new LoginInputView
+      inputOptions    :
+        name          : "password"
+        type          : "password"
+        testPath      : "recover-password"
+        placeholder   : "Password"
+        validate      :
+          container   : this
+          rules       :
+            required  : yes
+            minLength : 8
+          messages    :
+            required  : "Please enter a password."
+            minLength : "Passwords should be at least 8 characters."
 
     {buttonTitle} = @getOptions()
 
@@ -147,12 +134,12 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     # async results that's why we maintain those
     # results manually in EMAIL_VALID and USERNAME_VALID
     # at least for now - SY
-    if EMAIL_VALID and USERNAME_VALID and @username.input.valid and @email.input.valid
+    if EMAIL_VALID and USERNAME_VALID and @password.input.valid and @email.input.valid
       @submit event
       return yes
     else
       @button.hideLoader()
-      @username.input.validate()
+      @password.input.validate()
       @email.input.validate()
       return no
 
@@ -161,7 +148,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     """
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>
-      <div class='username'>{{> @username}}</div>
+      <div class='password'>{{> @password}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:

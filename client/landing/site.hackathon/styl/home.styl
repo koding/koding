@@ -7,489 +7,272 @@ home.styl
 */
 }
 
-body.home
+body, input, textarea, select, button
+  text-rendering          optimizeLegibility
   -webkit-font-smoothing  antialiased
+  vendor                  font-kerning, normal
 
-  #kdmaincontainer.blur
-    vendor                filter, blur(5px)
+strong
+  font-weight             bold
 
-  #main-panel-wrapper
-    background            #f0f0f0
+#main-panel-wrapper
+  background              none
 
-  .login-form.register
-    margin                0 auto 50px auto
-    max-width             600px
-    padding               8px
-    rounded               8px
-    bg                    color rgba(0,0,0,.1)
-    rel()
+body.home
+  font-family             FocoFamily
+  background              #f0f0f0
 
-    &.noanim .login-input-view .placeholder-helper
-      vendor              transition, none!important
-      position            absolute
+  section.introduction
+    size                  100%, auto
+    background            #000
+    padding               149px 45px 198px
+    text-align            center
+    shadow                0 1px 0 rgb(255,255,255) \, 0 0 27px rgba(0,0,0,.3)
+    position              relative
+    borderBox()
 
+    > *
+      position            relative
+      z-index             20
 
-    section
+    h2
+      font-family         HelveticaFamily
+      font-weight         bold
+      font-size           138px
+      color               #fff
+      text-shadow         1px 1px 1px rgba(0,0,0,.28)
+      margin-bottom       46px
 
-      > div
-        width             calc(50% - 64px)
-        padding-right     10px
-        rel()
-        borderBox()
+      span
+        font-size         41px
+        font-weight       300
+        display           block
 
-        &:before
-          content         ''
-          z-index         10
-          abs             12px 0 0 18px
+        &.bottom
+          font-size       52px
 
-        &.email:before
-          r-sprite        home 'input-email'
+    h3
+      font-weight         light
+      font-size           26px
+      line-height         32px
+      color               #fff
+      text-shadow         1px 1px 1px rgba(0,0,0,.28)
 
-        &.username:before
-          r-sprite        home 'input-username'
+    .video-wrapper
+      abs                 0px 0 0 0px
+      width               100%
+      height              100%
+      z-index             10
+      // opacity             .9
+      overflow            hidden
 
-        &:last-child
-          padding-right   0
-          width           128px
+    .form-wrapper
+      margin              49px -45px 0 -45px
+      padding             26px
+      background          rgba(0,0,0,.2)
+      rounded             4px
+      borderBox()
 
-        .kdbutton.solid.medium
-          bg                color #F6E556
-          width             100%
-          rounded           4px
-          padding           0
-          span.button-title
-            text-transform  uppercase
-            color           #39473E
-            font-size       12px
-            font-weight     700
-            opacity         .99
+      section
+        width             504px
+        margin            0 auto
+
+        .kdview
+          margin          0
 
         .login-input-view
-          rounded         4px
-          bg              color white
-          margin-bottom   0
-          input
-            rounded       4px
-            margin        0
-            font-size     14px
-            font-weight   400
-            font-family   openSansFamily
-            text-align    left
-            padding       8px 14px 8px 43px
-          .placeholder-helper
-            text-align    left
-            top           4px
-            padding       0 15px 0 44px
-            borderBox()
-            &.out
-              top         -33px
-              color       white
-              &.puff
-                opacity   1
+          background      #fff
+          rounded         3px
 
+        .placeholder-helper
+          top             15px
+          font-size       12px
+          color           #989898
 
+          &.out
+            font-size     12px
+            top           -18px
+            color         #fff
 
-  //Introduction section
+        > div
+          width           200px
+          margin          0 4px 0 0
+          padding         0
 
-  .content-page.home
-    padding               0
-    max-width             100%
+        .submit
+          width           96px
+          margin          0
+
+      .input-wrapper
+        margin            0
+        padding           0
+
+      .kdinput
+        width             100%
+        rounded           0
+        text-align        center
+        border            none
+        background        transparent
+        margin            0
+        padding           11px 14px
+        font-size         12px
+
+      .kdbutton
+        padding           0
+        text-align        center
+        width             100%
+        line-height       44px
+        height            44px
+        background        #ffec18
+        color             #313131
+        font-size         14px
+
+        .button-title
+          color           inherit
+
+  section.content
+    background            #fff
+    rounded               8px
+    max-width             1200px
+    margin                -109px auto 0
+    border                1px solid #dfdfdf
+    padding               72px 0 0
+    position              relative
+    z-index               30
+    borderBox()
 
     &:before
       content             ''
-      width               100%
-      height              500px
-      position            absolute
-      display             block
-      z-index             1
-      rounded             50%
-      top                 -500px
+      r-sprite            'home', 'patlangoc'
+      abs                 -226px 0 0 65px
 
-    > section > div
-      max-width             1290px
-      padding               0px 45px
-      margin                0 auto
-      display               block
-      position              relative
-      borderBox()
+    .counters
+      font-weight         bold
+      font-style          italic
+      color               #fff
+      font-size           16px
+      white-space         nowrap
+      abs                 -64px 0 0 50%
+      vendor              transform, translateX(-50%)
+      background          rgba(255,255,255,.2)
+      rounded             19px
+      height              38px
+      line-height         38px
+      padding             0 26px
 
-    &.anim
-      &:before
-        vendor            transition, box-shadow .5s ease
-      section.introduction
-        vendor            transition, background-color .5s ease
+      i
+        r-sprite          'home', 'love'
+        display           inline-block
+        vertical-align    middle
+        margin            -2px 12px 0
 
-    &.green
-
-      section.introduction
-        bg                color, #1AAF5E
-
-      &:before
-        shadow            0 0 500px 160px #1AAF5E
-
-    &.gray
-
-      section.introduction
-        bg                color, #7E8C8D
-        &:before
-          opacity         .5
-
-      &:before
-        shadow            0 0 500px 160px #7E8C8D
-
-    &.blue
-
-      section.introduction
-        bg                color, #2E97DE
-
-      &:before
-        shadow            0 0 500px 160px #2E97DE
-
-    &.dark-blue
-
-      &:before
-        shadow            0 0 500px 160px #2C3E51
-
-      section.introduction
-        bg                color, #2C3E51
-        &:before
-          opacity         .3
-
-      section.introduction > div:after
-        shadow            0 0 400px rgba(255, 255, 179, .5)
-
-    &.orange
-
-      &:before
-        shadow            0 0 500px 160px #F59D00
-
-      section.introduction
-        bg                color, #F59D00
-
-    &.red
-
-      &:before
-        shadow            0 0 500px 160px #EA4B36
-
-      section.introduction
-        bg                color, #EA4B36
-
-    // shining effect behind the screenshots
-    section.introduction > div:after
-      content           ''
-      abs               0 0 0px 50%
-      margin-left       -369px
-      size              738px 400px
-      rounded           50%
-      shadow            0 0 400px rgba(255, 255, 179, 1)
-      z-index           0
-
-
-
-  section.introduction
-    height                877px
-    padding               134px 0 0
-    text-align            center
-    bg                    color, #FFFFFF
-    position              relative
-    overflow              hidden
-    borderBox()
-
-    &:before
-      content             ""
-      display             block
-      size                100% 100%
-      bg                  image, url(imagePath + "home-pat.png")
-      abs                 0px
-
-    > div
-      size                100% 100%
-      z-index             2
+      .buttons
+        display           inline-block
 
     article
-      font-size           22px
-      line-height         32px
-      font-weight         400
-      padding             0
-      width               100%
-      borderBox()
-      fl()
+      padding             43px 359px 43px 112px
+      font-size           16px
+      color               #4a4a4a
 
-      h1, h2
-        color             white
-        text-shadow       0 1px rgba(0, 0, 0, .4)
+      a
+        color             #1563BC
+        borderize(#1563BC)
 
-      h1
-        font-size         42px
+      h4
         font-weight       bold
-        font-family       tagLineFont
-        margin            0 0 32px
-        letter-spacing    .02em
+        font-size         26px
 
-      // cloudW = 350/2.8
-      // cloudH = 120/2.8
-      // cloudR = 100/2.8
-      // .cloud
-      //   size              (cloudW)px (cloudH)px
-      //   background        #f2f9fe
-      //   background        linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -webkit-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -moz-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -ms-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   background        -o-linear-gradient(top, #f2f9fe 5%, #d6f0fd 100%)
-      //   rounded           (cloudR)px
-      //   opacity           .5
-      //   top               0
-      //   right             50%
-      //   margin-right      -280px
-      //   abs()
+      p
+        padding           32px 0 0
+        line-height       21px
+        borderBox()
 
-      // .cloud:after
-      // .cloud:before
-      //   content     ''
-      //   background  #f2f9fe
-      //   z-index     -1
-      //   abs()
+        &.note
+          font-style      italic
 
-      // .cloud:after
-      //   size        (cloudW/3.5)px (cloudH/1.2)px
-      //   top         -(cloudH/2.4)px
-      //   left        (cloudW/7)px
-      //   rounded     (cloudR)px
+      ul
+        padding           28px 0 0
 
-      // .cloud:before
-      //   size        (cloudW/2)px (cloudH*1.5)px
-      //   top         -(cloudH/1.25)px
-      //   right       (cloudW/7)px
-      //   rounded     (cloudR*2)px
+        ul
+          padding         18px 0 18px 32px
 
-      h2
-        font-family       sloganFont
-        margin            0 auto 34px auto
-        max-width         800px
-        font-weight       400
+        li
+          line-height     32px
 
+      ol
+        padding           28px 0 0
+        counter-reset     list
 
-  // screenshots Section
+        li
+          line-height     32px
+          counter-increment list
 
-  section.screenshots
-    abs                   400px 0 0
-    size                  100% 477px
-    overflow              hidden
-    z-index               2
-    borderBox()
+          &:before
+            content      counter(list) "."
+            font-weight  bold
+            margin-right 12px
 
-    a.custom-link-view.ss-button
-      top                 199px
-      display             block
-      left                50%
-      z-index             100
-      abs()
-      .icon
-        display           block
-      &.next
-        margin-left       500px
-        .icon
-          r-sprite        home 'slideshow-next'
-        // &:active
-        //   margin-left     502px
+      &.judges
+        background        #f8f8f8
+        border            1px solid #fff
+        padding-right     112px
+        vendor            transform, skewY(-2deg)
 
-        // chrome has a rendering bug
-        // it removes the shadow behind, let's remove it until it is fixed
-        // - SY
-        // &:hover .icon
-        //   r-sprite        home 'slideshow-next-light'
-      &.prev
-        margin-left       -585px
-        .icon
-          r-sprite        home 'slideshow-prev'
-        // &:active
-        //   margin-left     -587px
-        // see above^^
-        // &:hover .icon
-        //   r-sprite        home 'slideshow-prev-light'
+        h4
+          margin-bottom   32px
 
-    > div
-      height              483px
-      max-height          575px
-      width               838px
-      margin              0 auto
-      rel()
+        .judge
+          width           20%
+          margin-bottom   32px
+          fl()
 
+        figure
+          padding-bottom  110%
+          bg              position, center center
+          bg              size, cover
+          bg              repeat, no-repeat
 
-    figure
-      display             block
-      top                 0px
-      size                738px 100%
-      display             none
-      contentBox()
-      abs()
+        .info
+          text-align      center
+          padding         21px 0 0
+          font-weight     bold
+          line-height     18px
+
+          span
+            display       block
+            font-weight   normal
+            font-size     11px
+
+    aside.partners
+      width               162px
+      abs                 0px 0px 0 0
+      padding             42px 42px 0
+      border-left         1px solid #f2f2f2
+
       &:after
         content           ''
-        size              6px 6px
-        rounded           3px
-        bg                color rgba(255, 255, 255, .3)
-        abs               10px 0 0 15px
-        shadow            9px 0 0 rgba(255, 255, 255, .3),\
-                          18px 0 0 rgba(255, 255, 255, .3)
-      &:before
-        rounded           6px 6px 0 0
-        content           ''
         display           block
-        bg                color rgba(0, 0, 0, .1)
-        size              100% 25px
+        abs               0 0 0px -1px
+        height            120px
+        width             1px
+        background-image  -webkit-linear-gradient(#f2f2f2, rgba(255,255,255,0))
+        background-image  -moz-linear-gradient(#f2f2f2, rgba(255,255,255,0))
+        background-image  linear-gradient(#f2f2f2, rgba(255,255,255,1))
 
       img
-        shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
-        height            450px
-        opacity           .7
-        bg                color #3A3E41
-        margin-top        2px
+        margin            0 0 30px
 
-      &.current
-        display           block
-        z-index           4
-        left              50px
+  footer
+    text-align            center
+    line-height           217px
+    font-size             14px
+    color                 #909090
 
-        img
-          opacity         1
+    a
+      color               inherit
+      margin-left         3px
+      noTextDeco()
 
-      &.prev
-        left              0
-
-      &.next
-        right             0
-
-      &.prev
-      &.next
-        display           block
-        z-index           3
-        margin-top        123px
-        height            360px
-        &:after
-          size              5px 5px
-          abs               8px 0 0 13px
-          shadow            7px 0 0 rgba(255, 255, 255, .3),\
-                            14px 0 0 rgba(255, 255, 255, .3)
-        &:before
-          rounded           4px 4px 0 0
-          size              100% 20px
-
-
-
-  // Features Section
-
-  section.used-at
-    margin                0 auto
-    height                224px
-    bg                    color #F0F0F0
-
-    > div
-      &:after
-        content           ''
-        top               77px
-        size              838px 1px
-        background        #f0f0f0
-        background        -moz-linear-gradient(left,  #f0f0f0 0%, #d8d8d8 20%, #d8d8d8 80%, #f0f0f0 100%)
-        background        -webkit-gradient(linear, left top, right top, color-stop(0%,#f0f0f0), color-stop(20%,#d8d8d8), color-stop(80%,#d8d8d8), color-stop(100%,#f0f0f0))
-        background        -webkit-linear-gradient(left,  #f0f0f0 0%,#d8d8d8 20%,#d8d8d8 80%,#f0f0f0 100%)
-        background        linear-gradient(to right,  #f0f0f0 0%,#d8d8d8 20%,#d8d8d8 80%,#f0f0f0 100%)
-        z-index           0
-        abs               0 0 0 50%
-        margin-left       -419px
-
-    h3
-      margin-top          66px
-      font-family         sloganFont
-      font-size           22px
-      font-weight         300
-      letter-spacing      4px
-      display             inline-block
-      bg                  color #F0F0F0
-      color               #8A8A8A
-      z-index             1
-      width               390px
-      text-align          center
-      left                50%
-      margin-left         -195px
-      opacity             .99
-      rel()
-
-    figure
-      margin              28px auto
-      display             block
-      r-sprite            home 'used-by-logos'
-
-
-
-
-//TEMP
-// @media only screen and (min-width : 320px) and (max-width : 568px)
-//   body.home
-//     section.introduction
-//       padding-bottom        102px
-
-//       article
-//         padding-top         98px
-
-//         h2
-//           font-size         26px
-
-//         p
-//           font-size         18px
-//           line-height       24px
-
-//         .kdbutton
-//           width             100%
-//           display           block
-//           float             none
-//           clear             both
-//           margin            12px 0 16px
-
-//     section.screenshots
-//       display               none
-
-//     section.features
-//       > div
-//         margin-top          82px
-
-//       .feature
-//         display             block
-//         width               auto
-//         padding             0 35px 44px 61px
-
-//         h5
-//           font-size         18px
-
-//         i
-//           vendor            transform, scale(.6)
-//           vendor            transform-origin, 0px 0px
-
-//     section.testimonials
-
-//       > div
-//         .general-title
-//           font-size           26px
-
-//         .general-subtitle
-//           font-size           18px
-//           line-height         24px
-
-//       article
-//         display               block
-//         width                 auto
-//         padding               2px 0 2px 50px
-
-//         p
-//           font-size           14px
-//           line-height         20px
-
-//         &:before
-//           vendor              transform, scale(.6)
-//           vendor              transform-origin, 0px 0px
-
-//     section.check-out
-//       h3
-//         font-size             18px
-//         line-height           24px
+      &:hover
+        borderize(#909090)
