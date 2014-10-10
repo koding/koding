@@ -308,14 +308,14 @@ class MessagePane extends KDTabPaneView
 
       @listController.hideLazyLoader()
       items.forEach (item, i) =>
-        @appendMessageDeferred item, i, items.length
+        @addMessageDeferred item, i, items.length
 
       KD.utils.defer @bound 'focus'
 
       callback()
 
 
-  appendMessageDeferred: (item, i, total) ->
+  addMessageDeferred: (item, i, total) ->
 
     KD.utils.defer =>
       @appendMessage item
