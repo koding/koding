@@ -22,6 +22,7 @@ class PopupNotifications extends AvatarPopup
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
 
     @forwardEvent @listController, 'NotificationCountDidChange'
+    @forwardEvent @listController, 'AvatarPopupShouldBeHidden'
 
     @avatarPopupContent.addSubView @listController.getView()
 
@@ -33,6 +34,7 @@ class PopupNotifications extends AvatarPopup
       @attachListeners()
 
   hide: ->
+
     super
 
     if KD.isLoggedIn()
@@ -42,7 +44,6 @@ class PopupNotifications extends AvatarPopup
 
         @listController.emit 'NotificationCountDidChange', 0
 
-    super
 
   accountChanged:(account)->
     super
@@ -71,3 +72,4 @@ class PopupNotifications extends AvatarPopup
           return warn "Notifications cannot be received", err  if err
           @listController.removeAllItems()
           @listController.instantiateListItems notifications
+
