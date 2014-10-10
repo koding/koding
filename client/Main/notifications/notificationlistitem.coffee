@@ -54,23 +54,20 @@ class NotificationListItemView extends KDListItemView
     @actors = []
     options = @getOptions()
     {latestActors} = @getData()
-    promises = latestActors.map (actorId) =>
-      new Promise (resolve, reject) =>
-        KD.remote.api.JAccount.one _id: actorId, (err, actor) =>
-          return reject err  if err
-          @actors.push actor
-          resolve()
+    constructorName = 'JAccount'
+    origins = latestActors.map (id) -> {id, constructorName}
 
-    Promise.all(promises).then =>
-      @participants = new options.linkGroupClass {group:@actors}
-      @avatar       = new options.avatarClass
-        size     :
-          width  : 40
-          height : 40
-        origin   : @actors[0]
-
-    .catch (err) ->
-      warn err.description
+    new Promise (resolve, reject) =>
+      KD.remote.cacheable origins, (err, actors) =>
+        return reject err if err?
+        @actors = actors
+        @participants = new options.linkGroupClass {group:actors}
+        @avatar       = new options.avatarClass
+          size     :
+            width  : 40
+            height : 40
+          origin   : @actors[0]
+        resolve()
 
   viewAppended: ->
     promises = []
@@ -118,7 +115,8 @@ class NotificationListItemView extends KDListItemView
           {message} = KD.singletons.socialapi
           message.byId {id: data.targetId}, (err, message)=>
             return reject err  if err or not message
-            KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
+
+            KD.remote.cacheable 'JAccount', message.account._id, (err, origin)=>
               return reject err  if err or not origin
 
               adjective = if message.account._id is KD.whoami()?.getId() then "your"
