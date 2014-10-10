@@ -1,16 +1,16 @@
 do ->
 
-  appManager = -> KD.singletons.appManager
-
   activityPane = (callback) ->
-    appManager().open 'Activity', (app) ->
+    {appManager} = KD.singletons
+    appManager.open 'Activity', (app) ->
       view = app.getView()
       view.open 'topic', 'public'
       callback view.tabs.getPaneByName 'topic-public'
 
   handleChannel = (type, slug, callback) ->
     callback    ?= (app) -> app.getView().open type, slug
-    appManager().open 'Activity', callback
+    {appManager} = KD.singletons
+    appManager.open 'Activity', callback
 
   KD.registerRoutes 'Activity',
 
@@ -69,5 +69,5 @@ do ->
       if query.tagged?
         KD.getSingleton('router').handleRoute "/Activity/Topic/#{query.tagged}"
       else
-        {router, appManager} = KD.singletons
+        {router} = KD.singletons
         router.handleRoute '/Activity/Public'
