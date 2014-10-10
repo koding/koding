@@ -261,7 +261,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
 
-        #{if environment is "sandbox" then basicAuth else ""}
+        #{if environment not in ["prod", "dev"] then basicAuth else ""}
       }
 
       #{createLocations(KONFIG)}
