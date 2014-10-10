@@ -721,7 +721,9 @@ utils.extend utils,
   formatContent: (body = '') ->
 
     fns = [
+      KD.utils.transformTagTokens
       KD.utils.transformTags
+      KD.utils.formatQuotes
       KD.utils.formatBlockquotes
       KD.utils.applyMarkdown
     ]
@@ -730,6 +732,17 @@ utils.extend utils,
     body = KD.utils.expandUsernames body, 'code'
 
     return body
+
+
+  transformTagTokens: (text = '') ->
+
+    tokenPattern = /\|#:JTag:.*?:(.*?)\|/g
+
+    return text  unless tokenPattern.test text
+
+    text.replace tokenPattern, (match, name) ->
+
+      return "##{name.replace ' ', ''}"
 
 
   transformTags: (text = '') ->
@@ -777,6 +790,21 @@ utils.extend utils,
     return ranges
 
 
+  formatQuotes: (text = '') ->
+
+    text = Encoder.htmlDecode text
+
+    return text  unless (/^>/gm).test text
+
+    val = ''
+
+    for line in text.split '\n'
+      line += '\n'  if line[0] is '>'
+      val  += "#{line}\n"
+
+    return val
+
+
   formatBlockquotes: (text = '') ->
 
     parts = text.split '```'
@@ -819,5 +847,3 @@ utils.extend utils,
     # Shift back
     value = value.toString().split("e")
     +(value[0] + "e" + ((if value[1] then (+value[1] + exp) else exp)))
-
-
