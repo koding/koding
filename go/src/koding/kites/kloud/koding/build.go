@@ -275,6 +275,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		}
 	}()
 
+	a.Push("Updating domain aliases", normalize(72), machinestate.Building)
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(buildArtifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
+		}
+	}
+
 	tags := []ec2.Tag{
 		{Key: "Name", Value: buildArtifact.InstanceName},
 		{Key: "koding-user", Value: m.Username},
