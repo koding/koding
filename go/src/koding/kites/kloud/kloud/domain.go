@@ -24,14 +24,6 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, fmt.Errorf("domain name argument is empty")
 	}
 
-	//  change it that we don't leak information
-	defer func() {
-		if err != nil {
-			k.Log.Error("Could not call '%s'. err: %s", r.Method, err)
-			err = fmt.Errorf("Could not call '%s'. Please contact support", r.Method)
-		}
-	}()
-
 	m, err := k.PrepareMachine(r)
 	if err != nil {
 		return nil, err
@@ -56,7 +48,8 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 
 func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
-		if _, err := k.Domainer.Get(args.DomainName); err != nil {
+		// a non nil means the domain exists
+		if _, err := k.Domainer.Get(args.DomainName); err == nil {
 			return nil, fmt.Errorf("domain record does exists")
 		}
 
@@ -66,6 +59,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		domain := &protocol.Domain{
+			Username:  m.Username,
 			MachineId: m.Id,
 			Name:      args.DomainName,
 		}
@@ -82,9 +76,8 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
-		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
-			return nil, err
-		}
+		// do not return on error because it might be already delete via unset
+		k.Domainer.Delete(args.DomainName, m.IpAddress)
 
 		if err := k.DomainStorage.Delete(args.DomainName); err != nil {
 			return nil, err
@@ -98,7 +91,18 @@ func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 	unsetFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+		// be sure the domain does exist in storage before we delete the domain
+		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
+			return nil, fmt.Errorf("domain does not exists in DB")
+		}
+
 		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
+			return nil, err
+		}
+
+		// remove the machineID for the given domain. The document is still
+		// there, but it'sn associated anymore with this domain.
+		if err := k.DomainStorage.UpdateMachine(args.DomainName, ""); err != nil {
 			return nil, err
 		}
 
@@ -110,7 +114,17 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+		// be sure the domain does exist in storage before we create the domain
+		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
+			return nil, fmt.Errorf("domain does not exists in DB")
+		}
+
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+			return nil, err
+		}
+
+		// addign the machineID for the given domain.
+		if err := k.DomainStorage.UpdateMachine(args.DomainName, m.Id); err != nil {
 			return nil, err
 		}
 
