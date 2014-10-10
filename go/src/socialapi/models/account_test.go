@@ -136,14 +136,18 @@ func TestAccountByNick(t *testing.T) {
 			So(fa.Nick, ShouldEqual, acc.Nick)
 		})
 
-		Convey("it should have error if record is not found", func() {
-
-			// init account
+		Convey("it should have error if nick is not set", func() {
 			fa := NewAccount()
 			err := fa.ByNick("")
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, bongo.RecordNotFound)
+			So(err, ShouldEqual, ErrNickIsNotSet)
+		})
 
+		Convey("it should have error if record is not found", func() {
+			fa := NewAccount()
+			err := fa.ByNick("foobarzaa")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 
 	})
