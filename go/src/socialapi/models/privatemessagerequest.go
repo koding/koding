@@ -9,8 +9,9 @@ import (
 )
 
 type PrivateMessageRequest struct {
-	Body            string `json:"body"`
-	GroupName       string `json:"groupName"`
+	Body            string      `json:"body"`
+	Payload         gorm.Hstore `json:"payload,omitempty"`
+	GroupName       string      `json:"groupName"`
 	Recipients      []string
 	AccountId       int64  `json:"accountId,string"`
 	ChannelId       int64  `json:"channelId,string"`
@@ -284,6 +285,7 @@ func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) 
 	cm.TypeConstant = ca.GetType()
 	cm.AccountId = p.AccountId
 	cm.InitialChannelId = channelId
+	cm.Payload = p.Payload
 
 	switch ca.(type) {
 	case ChatJoin:

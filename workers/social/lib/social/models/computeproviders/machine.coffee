@@ -41,8 +41,6 @@ module.exports = class JMachine extends Module
           (signature Function)
         setProvisioner  :
           (signature String, Function)
-        setDomain       :
-          (signature String, Function)
         setLabel        :
           (signature String, Function)
 
@@ -152,8 +150,12 @@ module.exports = class JMachine extends Module
       state        : "NotInitialized"
       modifiedAt   : data.createdAt
 
-    { userSitesDomain } = KONFIG
-    data.domain         = "#{data.uid}.#{username}.#{userSitesDomain}"
+    if provider is "koding"
+      { userSitesDomain } = KONFIG
+      data.domain = "#{data.uid}.#{username}.#{userSitesDomain}"
+    else
+      data.domain = "#{data.uid}.#{username}"
+
     data.provisioners  ?= [ ]
 
     {label} = data

@@ -131,6 +131,15 @@ module.exports = class Koding extends ProviderInterface
           }
 
 
+  @postCreate = (client, options, callback)->
+
+    { r: { account } } = client
+    { machine } = options
+
+    JDomainAlias = require '../domainalias'
+    JDomainAlias.ensureTopDomainExistence account, machine._id, callback
+
+
   @update = (client, options, callback)->
 
     { machineId, alwaysOn, resize } = options

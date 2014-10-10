@@ -156,11 +156,13 @@ func newKite(conf *Config) *kite.Kite {
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
 	dnsInstance := koding.NewDNSClient(conf.HostedZone)
+	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
 		Kite:              k,
 		Log:               newLogger("koding", conf.DebugMode),
 		Session:           db,
+		DomainStorage:     domainStorage,
 		EC2:               koding.NewEC2Client(),
 		DNS:               dnsInstance,
 		Bucket:            koding.NewBucket("koding-klient", klientFolder),
@@ -204,7 +206,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
-	kld.DomainStorage = koding.NewDomainStorage(db)
+	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
