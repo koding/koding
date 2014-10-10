@@ -174,6 +174,7 @@ Configuration = (options={}) ->
       odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint        : {slug:"koding"       , type:"group"}
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
