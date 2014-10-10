@@ -1,7 +1,5 @@
 class PrivateMessagePane extends MessagePane
 
-  TEST_MODE = off
-
   constructor: (options = {}, data) ->
 
     options.lastToFirst         = no
@@ -224,7 +222,6 @@ class PrivateMessagePane extends MessagePane
 
     (event) ->
 
-      return
       return  if inProgress
 
       inProgress   = true
@@ -389,8 +386,6 @@ class PrivateMessagePane extends MessagePane
 
     return  unless value
 
-    @applyTestPatterns value  if TEST_MODE
-
     super value, clientRequestId
     @input.empty()
 
@@ -431,8 +426,6 @@ class PrivateMessagePane extends MessagePane
 
   glance: ->
 
-    return
-
     super
 
     @newMessagesMark?.destroy()
@@ -448,20 +441,6 @@ class PrivateMessagePane extends MessagePane
 
   defaultFilter: 'Most Recent'
   setFilter: ->
-
-
-  #
-  # TEST STUFF
-  #
-
-  applyTestPatterns: (value) ->
-
-    if value.match /^\/unleashtheloremipsum/
-      [_, interval, batchCount] = value.split " "
-      [interval, batchCount] = helper.parse interval, batchCount
-      PrivateMessageLoadTest.run this, interval, batchCount
-    else if value.match /^\/analyzetheloremipsum/
-      PrivateMessageLoadTest.analyze this
 
 
   #
