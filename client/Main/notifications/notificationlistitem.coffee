@@ -23,9 +23,11 @@ class NotificationListItemView extends KDListItemView
     mention  : "mentioned you in"
 
   constructor:(options = {}, data)->
-    options.tagName        or= "li"
+
+    options.tagName        or= "a"
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
+    options.cssClass         = KD.utils.curry 'clearfix', options.cssClass
 
     super options, data
 
@@ -37,7 +39,7 @@ class NotificationListItemView extends KDListItemView
     #     itemClass : GroupLinkView
     #     group     : [@snapshot.anchor.data]
     # else
-    @interactedGroups = new KDCustomHTMLView
+    # @interactedGroups = new KDCustomHTMLView
 
     @activityPlot = new KDCustomHTMLView tagName: "span"
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
@@ -45,10 +47,11 @@ class NotificationListItemView extends KDListItemView
 
     @initializeReadState()
 
-  initializeReadState:->
+  initializeReadState: ->
     if @getData().glanced
     then @unsetClass 'unread'
     else @setClass 'unread'
+
 
   fetchActors: ->
     @actors = []
@@ -64,10 +67,11 @@ class NotificationListItemView extends KDListItemView
         @participants = new options.linkGroupClass {group:actors}
         @avatar       = new options.avatarClass
           size     :
-            width  : 40
-            height : 40
+            width  : 24
+            height : 24
           origin   : @actors[0]
         resolve()
+
 
   viewAppended: ->
     promises = []
@@ -80,34 +84,37 @@ class NotificationListItemView extends KDListItemView
     .catch (err) ->
       warn err.description
 
-  pistachio:->
+
+  pistachio: ->
     """
-      <div class='avatar-wrapper fl'>
-        {{> @avatar}}
-      </div>
-      <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{> @activityPlot}} {{> @interactedGroups}}</p>
-        <footer>
-          {{> @timeAgoView}}
-        </footer>
-      </div>
+    <div class='avatar-wrapper fl'>
+      {{> @avatar}}
+    </div>
+    <div class='right-overflow'>
+      {{> @participants}}
+      {{  @getActionPhrase #(dummy)}}
+      {{> @activityPlot}}
+      {{> @timeAgoView}}
+    </div>
     """
 
 
-  getLatestTimeStamp:->
+  getLatestTimeStamp: ->
     return @getData().updatedAt
 
 
-  getActionPhrase:->
+  getActionPhrase: ->
     {type} = @getData()
     actionPhraseMap[type]
 
 
-  getActivityName:->
+  getActivityName: ->
     return activityNameMap[@getData().type]
 
-  getActivityPlot:->
-    new Promise (resolve, reject)=>
+
+  getActivityPlot: ->
+
+    new Promise (resolve, reject) =>
       data = @getData()
       adjective = ""
       switch data.type
@@ -132,14 +139,18 @@ class NotificationListItemView extends KDListItemView
           resolve()
 
 
+  click: (event) ->
 
-  click:->
+    KD.utils.stopDOMEvent event
+
+    { router } = KD.singletons
+
     showPost = (err, post)->
       return warn err if err
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        KD.getSingleton('router').handleRoute "/Activity/Post/#{post.slug}", state:post
+        router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -153,7 +164,9 @@ class NotificationListItemView extends KDListItemView
         {message} = KD.singletons.socialapi
         message.byId {id: @getData().targetId}, showPost
       when "follow"
-        KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"
+        router.handleRoute "/#{@actors[0].profile.nickname}"
       when "join", "leave"
         return
         # do nothing
+
+

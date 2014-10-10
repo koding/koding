@@ -31,10 +31,10 @@ class AvatarArea extends KDCustomHTMLView
       delegate   : @groupSwitcherPopup
 
     @notificationsPopup = new PopupNotifications
-      cssClass : "notification-lister"
+      cssClass : "notification-list"
 
     @notificationsIcon = new AvatarAreaIconLink
-      cssClass   : 'notifications acc-dropdown-icon'
+      cssClass   : 'notifications acc-notification-icon'
       attributes :
         title    : 'Notifications'
       delegate   : @notificationsPopup
@@ -54,7 +54,6 @@ class AvatarArea extends KDCustomHTMLView
     KD.getSingleton('mainController').on 'accountChanged', =>
       @groupSwitcherPopup.listController.removeAllItems()
 
-
       # Commenting out these lines because of
       # removal of the groups links from avatar popup. ~Umut
       # @groupSwitcherPopup.populateGroups()
@@ -65,6 +64,7 @@ class AvatarArea extends KDCustomHTMLView
     @notificationsPopup.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
+
 
   pistachio: ->
 

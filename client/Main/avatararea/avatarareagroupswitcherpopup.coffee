@@ -294,6 +294,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     super
     @groupSubMenuWrapper.unsetClass 'active'
 
+    @emit 'AvatarPopupShouldBeHidden'
+
 class PopupGroupListItem extends KDListItemView
 
   JView.mixin @prototype
