@@ -722,6 +722,7 @@ utils.extend utils,
 
     fns = [
       KD.utils.transformTags
+      KD.utils.formatQuotes
       KD.utils.formatBlockquotes
       KD.utils.applyMarkdown
     ]
@@ -777,6 +778,21 @@ utils.extend utils,
     return ranges
 
 
+  formatQuotes: (text = '') ->
+
+    text = Encoder.htmlDecode text
+
+    return text  unless (/^>/gm).test text
+
+    val = ''
+
+    for line in text.split '\n'
+      line += '\n'  if line[0] is '>'
+      val  += "#{line}\n"
+
+    return val
+
+
   formatBlockquotes: (text = '') ->
 
     parts = text.split '```'
@@ -819,5 +835,3 @@ utils.extend utils,
     # Shift back
     value = value.toString().split("e")
     +(value[0] + "e" + ((if value[1] then (+value[1] + exp) else exp)))
-
-
