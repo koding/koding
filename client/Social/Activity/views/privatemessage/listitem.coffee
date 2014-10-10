@@ -3,6 +3,7 @@ class PrivateMessageListItemView extends ActivityListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass           = KD.utils.curry 'privatemessage ', options.cssClass
+    options.editWidgetClass  or= ReplyInputEditWidget
     options.commentViewClass or= ReplyView
     options.commentSettings    = {}
     {commentSettings}          = options
