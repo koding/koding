@@ -28,6 +28,7 @@ var (
 	secondMessage    *socialapimodels.ChannelMessage
 	thirdMessage     *socialapimodels.ChannelMessage
 	forthMessage     *socialapimodels.ChannelMessage
+	fifthMessage     *socialapimodels.ChannelMessage
 )
 
 const SLEEP_TIME = 1
@@ -79,6 +80,10 @@ func prepareTestData() {
 
 	if forthMessage == nil {
 		forthMessage = createOwnerMessage("notification subscriber message 2")
+	}
+
+	if fifthMessage == nil {
+		fifthMessage = createOwnerMessage("notification subscriber message 2")
 	}
 }
 
@@ -606,6 +611,42 @@ func TestNotificationCreation(t *testing.T) {
 				})
 			})
 
+		})
+
+		Convey("I should not be able to receive notifications of a deleted message", func() {
+			Convey("First user should be able to reply my fifth message", func() {
+				replyMessage, err := rest.AddReply(fifthMessage.Id, firstUser.Id, testGroupChannel.Id)
+				So(err, ShouldBeNil)
+				So(replyMessage, ShouldNotBeNil)
+				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+			})
+
+			Convey("Second user should be able to like it", func() {
+				_, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, fifthMessage.Id, secondUser.Id)
+				So(err, ShouldBeNil)
+				time.Sleep(SLEEP_TIME * time.Second)
+			})
+
+			Convey("And Notification list should contain six notifications (like, reply, mention, like, 2 * reply)", func() {
+				nl, err := rest.GetNotificationList(ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(len(nl.Notifications), ShouldEqual, 6)
+
+			})
+
+			Convey("I should be able to delete fifth message", func() {
+				err := rest.DeletePost(fifthMessage.Id, ownerAccount.Id, testGroupChannel.GroupName)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("Like and comment notifications should be deleted from my notification list", func() {
+				err := rest.DeletePost(fifthMessage.Id, ownerAccount.Id, testGroupChannel.GroupName)
+				nl, err := rest.GetNotificationList(ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(len(nl.Notifications), ShouldEqual, 4)
+			})
 		})
 
 		// Convey("As a subscriber first and third user should be able to subscribe to my message", func() {

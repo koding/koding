@@ -67,12 +67,7 @@ func HidePMNotifications() {
 		return
 	}
 
-	ntf := models.NewNotification()
-
-	updateSql := "UPDATE " + ntf.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
-
-	err := bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
-	if err != nil {
+	if err := models.NewNotification().HideByContentIds(ids); err != nil {
 		fmt.Printf("Could not hide pm notifications: %s \n", err)
 	}
 }
@@ -181,6 +176,16 @@ func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	default:
 		return nil
 	}
+}
+
+func (n *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) error {
+	nc := models.NewNotificationContent()
+	contentIds, err := nc.FetchIdsByTargetId(cm.Id)
+	if err != nil {
+		return err
+	}
+
+	return models.NewNotification().HideByContentIds(contentIds)
 }
 
 func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessage) error {
