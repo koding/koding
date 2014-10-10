@@ -30,7 +30,6 @@ type Config struct {
 	Port        int
 	Region      string
 	Environment string
-	Id          string
 
 	// Connect to Koding mongodb
 	MongoURL string `required:"true"`
@@ -137,11 +136,6 @@ func newKite(conf *Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	id := uniqueId(k.Config.Port)
-	if conf.Id != "" {
-		id = conf.Id
-	}
-
 	if conf.AMITag != "" {
 		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
 		koding.DefaultCustomAMITag = conf.AMITag
@@ -161,17 +155,19 @@ func newKite(conf *Config) *kite.Kite {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
+	dnsInstance := koding.NewDNSClient(conf.HostedZone)
+
 	kodingProvider := &koding.Provider{
 		Kite:              k,
 		Log:               newLogger("koding", conf.DebugMode),
-		AssigneeName:      id,
 		Session:           db,
+		EC2:               koding.NewEC2Client(),
+		DNS:               dnsInstance,
+		Bucket:            koding.NewBucket("koding-klient", klientFolder),
 		Test:              conf.TestMode,
-		HostedZone:        conf.HostedZone,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
 		KontrolPublicKey:  kontrolPublicKey,
-		Bucket:            koding.NewBucket("koding-klient", klientFolder),
 		KeyName:           keys.DeployKeyName,
 		PublicKey:         keys.DeployPublicKey,
 		PrivateKey:        keys.DeployPrivateKey,
@@ -179,7 +175,7 @@ func newKite(conf *Config) *kite.Kite {
 		InactiveMachines:  make(map[string]*time.Timer),
 	}
 
-	// be sure they they satisfy the provider interface
+	// be sure it satisfies the provider interface
 	var _ kloudprotocol.Provider = kodingProvider
 
 	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
@@ -208,6 +204,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
+	kld.DomainStorage = koding.NewDomainStorage(db)
+	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger("kloud", conf.DebugMode)
 
@@ -244,6 +242,7 @@ func newKite(conf *Config) *kite.Kite {
 		return nil, nil
 	})
 
+	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("stop", kld.Stop)
@@ -254,30 +253,13 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
 
-	// let's use the wrapper function "ControlFunc" which is doing a lot of
-	// things on behalf of us, like document locking, getting the machine
-	// document, and so on..
-	k.HandleFunc("domain.set", func(r *kite.Request) (interface{}, error) {
-		m, err := kld.PrepareMachine(r)
-		if err != nil {
-			return nil, err
-		}
-
-		return kodingProvider.DomainSet(r, m)
-	})
+	// Domain records handling methods
+	k.HandleFunc("domain.set", kld.DomainSet)
+	k.HandleFunc("domain.unset", kld.DomainUnset)
+	k.HandleFunc("domain.add", kld.DomainAdd)
+	k.HandleFunc("domain.remove", kld.DomainRemove)
 
 	return k
-}
-
-func uniqueId(port int) string {
-	// TODO: add a unique identifier, for letting multiple version of the same
-	// worker work on the same hostname.
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err) // we should not let it start
-	}
-
-	return fmt.Sprintf("%s-%s-%d", kloud.NAME, hostname, port)
 }
 
 func newLogger(name string, debug bool) logging.Logger {

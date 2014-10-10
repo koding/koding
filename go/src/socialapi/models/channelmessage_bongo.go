@@ -61,6 +61,12 @@ func (c *ChannelMessage) Update() error {
 	if err := cm.ById(c.GetId()); err != nil {
 		return err
 	}
+
+	if cm.TypeConstant == ChannelMessage_TYPE_JOIN ||
+		cm.TypeConstant == ChannelMessage_TYPE_LEAVE {
+		return ErrChannelMessageUpdatedNotAllowed
+	}
+
 	cm.Body = c.Body
 	return bongo.B.Update(cm)
 

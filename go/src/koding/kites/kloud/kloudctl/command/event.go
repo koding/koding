@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/koding/kite"
-	"koding/kites/kloud/kloud"
 	"github.com/mitchellh/cli"
+	"koding/kites/kloud/kloud"
 )
+
+const defaultPollInterval = 4 * time.Second
 
 type Event struct {
 	event    *string
@@ -20,7 +22,7 @@ func NewEvent() cli.CommandFactory {
 		f := NewFlag("event", "Track an event")
 		f.action = &Event{
 			event:    f.String("id", "", "Event id to be tracked."),
-			interval: f.Duration("interval", time.Second*4, "Polling interval, by default 4 seconds"),
+			interval: f.Duration("interval", defaultPollInterval, "Polling interval, by default 4 seconds"),
 		}
 		return f, nil
 	}
@@ -36,15 +38,21 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 	eventType := splitted[0]
 	id := splitted[1]
 
-	eArgs := kloud.EventArgs([]kloud.EventArg{
+	return watch(k, eventType, id, *e.interval)
+
+}
+
+// watch watches the events of the specified event type.
+func watch(k *kite.Client, eventType string, eventId string, interval time.Duration) error {
+	eventArgs := kloud.EventArgs([]kloud.EventArg{
 		kloud.EventArg{
 			Type:    eventType,
-			EventId: id,
+			EventId: eventId,
 		},
 	})
 
 	for {
-		resp, err := k.Tell("event", eArgs)
+		resp, err := k.Tell("event", eventArgs)
 		if err != nil {
 			return err
 		}
@@ -61,7 +69,16 @@ func (e *Event) Action(args []string, k *kite.Client) error {
 			events[0].Event.Percentage,
 		))
 
-		time.Sleep(*e.interval)
+		if events[0].Event.Error != "" {
+			DefaultUi.Error(events[0].Event.Error)
+			break
+		}
+
+		if events[0].Event.Percentage == 100 {
+			break
+		}
+
+		time.Sleep(interval)
 		continue // still pending
 	}
 

@@ -1,13 +1,6 @@
 package amazon
 
 import (
-	"errors"
-	"fmt"
-	"net"
-	"net/http"
-	"time"
-
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
 )
@@ -66,12 +59,9 @@ type Amazon struct {
 	}
 }
 
-func New(credential, builder map[string]interface{}) (*Amazon, error) {
-	a := &Amazon{}
-
-	// Credentials
-	if err := mapstructure.Decode(credential, &a.Creds); err != nil {
-		return nil, err
+func New(builder map[string]interface{}, client *ec2.EC2) (*Amazon, error) {
+	a := &Amazon{
+		Client: client,
 	}
 
 	// Builder data
@@ -79,77 +69,10 @@ func New(credential, builder map[string]interface{}) (*Amazon, error) {
 		return nil, err
 	}
 
-	if a.Creds.AccessKey == "" {
-		return nil, errors.New("credentials accessKey is empty")
-	}
-
-	if a.Creds.SecretKey == "" {
-		return nil, errors.New("credentials secretKey is empty")
-	}
-
-	if a.Builder.Region == "" {
-		return nil, errors.New("region is required")
-	}
-
-	awsRegion, ok := aws.Regions[a.Builder.Region]
-	if !ok {
-		return nil, fmt.Errorf("region is not an AWS region: %s", a.Builder.Region)
-	}
-
-	// include it here to because the library is not exporting it.
-	var retryingTransport = &aws.ResilientTransport{
-		Deadline: func() time.Time {
-			return time.Now().Add(5 * time.Second)
-		},
-		DialTimeout: 30 * time.Second, // this is 10 seconds in original
-		MaxTries:    3,
-		ShouldRetry: awsRetry,
-		Wait:        aws.ExpBackoff,
-	}
-
-	a.Client = ec2.NewWithClient(
-		aws.Auth{
-			AccessKey: a.Creds.AccessKey,
-			SecretKey: a.Creds.SecretKey,
-		},
-		awsRegion,
-		aws.NewClient(retryingTransport),
-	)
-
 	return a, nil
 }
 
 // Id returns the instances unique Id
 func (a *Amazon) Id() string {
 	return a.Builder.InstanceId
-}
-
-// Decide if we should retry a request.  In general, the criteria for retrying
-// a request is described here
-// http://docs.aws.amazon.com/general/latest/gr/api-retries.html
-//
-// arslan: this is a slightly modified version that also includes timeouts,
-// original file: https://github.com/mitchellh/goamz/blob/master/aws/client.go
-func awsRetry(req *http.Request, res *http.Response, err error) bool {
-	retry := false
-
-	// Retry if there's a temporary network error or a timeout.
-	if neterr, ok := err.(net.Error); ok {
-		if neterr.Temporary() {
-			retry = true
-		}
-
-		if neterr.Timeout() {
-			retry = true
-		}
-	}
-
-	// Retry if we get a 5xx series error.
-	if res != nil {
-		if res.StatusCode >= 500 && res.StatusCode < 600 {
-			retry = true
-		}
-	}
-
-	return retry
 }

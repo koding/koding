@@ -9,6 +9,7 @@ Configuration = (options={}) ->
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
@@ -27,7 +28,7 @@ Configuration = (options={}) ->
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -54,11 +55,12 @@ Configuration = (options={}) ->
     environment       : environment
     region            : region
     hostname          : hostname
+    protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "30" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
@@ -69,10 +71,12 @@ Configuration = (options={}) ->
   logQueueName        = socialQueueName+'log'
 
   KONFIG              =
+    configName                     : configName
     environment                    : environment
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
@@ -173,6 +177,9 @@ Configuration = (options={}) ->
       odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint        : {slug:'koding'       , type:'group'}
+
+
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
@@ -410,6 +417,9 @@ Configuration = (options={}) ->
 
       SERVICES="mongo redis postgres rabbitmq etcd"
 
+      NGINX_CONF="#{projectRoot}/.dev.nginx.conf"
+      NGINX_PID="#{projectRoot}/.dev.nginx.pid"
+
       #{envvars()}
 
       trap ctrl_c INT
@@ -421,27 +431,44 @@ Configuration = (options={}) ->
 
       function kill_all () {
         #{killlist()}
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
+        nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
 
+      function nginxstop () {
+        if [ -a $NGINX_PID ]; then
+          echo "stopping nginx"
+          nginx -c $NGINX_CONF -g "pid $NGINX_PID;" -s quit
+        fi
+      }
 
       function nginxrun () {
-
+        nginxstop
         echo "starting nginx"
-        touch #{projectRoot}/.dev.nginx.pid
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;' -s quit
-        nginx -c #{projectRoot}/.dev.nginx.conf -g 'pid #{projectRoot}/.dev.nginx.pid;'
-
+        nginx -c $NGINX_CONF -g "pid $NGINX_PID;"
       }
 
       function checkrunfile () {
+
+        checkpackagejsonfile
+
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
             echo your run file is older than your config file. doing ./configure.
             sleep 1
             ./configure
 
             echo -e "\n\nPlease do ./run again\n"
+            exit 1;
+        fi
+      }
+
+      function checkpackagejsonfile () {
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/package.json" ]; then
+            echo your run file is older than your package json. doing npm i.
+            sleep 1
+            npm i
+
+            echo -e "\n\nPlease do ./configure and  ./run again\n"
             exit 1;
         fi
       }

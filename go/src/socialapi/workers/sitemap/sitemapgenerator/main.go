@@ -31,5 +31,7 @@ func main() {
 	}
 
 	r.ShutdownHandler = controller.Shutdown
+
+	r.Listen()
 	r.Wait()
 }

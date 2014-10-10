@@ -29,6 +29,9 @@ type (
 		// Hostname is the web end point the app
 		Hostname string `env:"key=KONFIG_SOCIALAPI_HOSTNAME                           required"`
 
+		// Protocol holds used protocol information
+		Protocol string `env:"key=KONFIG_SOCIALAPI_PROTOCOL                           required"`
+
 		// Email holds the required configuration data for email related workers
 		Email Email
 

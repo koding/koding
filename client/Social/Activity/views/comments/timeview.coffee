@@ -2,14 +2,15 @@ class CommentTimeView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.tagName  = 'time'
-    options.cssClass = KD.utils.curry 'comment-time', options.cssClass
+    options.tagName     = 'time'
+    options.timeFormat ?= 'h:MM'
+    options.cssClass    = KD.utils.curry 'comment-time', options.cssClass
 
     super options, data
 
   viewAppended: ->
     data = @getData()
-    time = CommentTimeView.getTime data
+    time = @getTime data
 
     @setPartial time
 
@@ -26,5 +27,5 @@ class CommentTimeView extends KDView
     dateString     = relativeDates[dateDifference] or dateFormat givenDate, "dddd, mmmm d"
     dateString     = "#{dateString} at #{dateFormat givenDate, 'isoTime'}"
 
-  @getTime: (date) -> dateFormat date, "h:MM"
+  getTime: (date) -> dateFormat date, @getOption 'timeFormat'
 

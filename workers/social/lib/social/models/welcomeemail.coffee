@@ -2,7 +2,7 @@
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class WelcomeEmail
-  from    = KONFIG.email.defaultFromAddress
+  from    = KONFIG.email.defaultFromMail
   subject = "Welcome to Koding!"
   content = """
     Hi there!

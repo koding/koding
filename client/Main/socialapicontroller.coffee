@@ -75,7 +75,7 @@ class SocialApiController extends KDController
         actorsPreview : []
         isInteracted  : no
 
-    if payload
+    if payload?.link_url
       m.link       =
         link_url   : payload.link_url
         link_embed :

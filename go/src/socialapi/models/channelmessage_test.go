@@ -309,6 +309,29 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(icm.CreatedAt, ShouldNotEqual, timeNow)
 		})
+
+		Convey("Join/Leave message can not be updated", func() {
+			// message is created in db
+			cm := createMessageWithTest()
+			cm.TypeConstant = ChannelMessage_TYPE_JOIN
+
+			So(cm.Create(), ShouldBeNil)
+			So(cm.CreatedAt, ShouldNotBeEmpty)
+
+			cm.Body = "join me"
+			err := cm.Update()
+			So(err, ShouldEqual, ErrChannelMessageUpdatedNotAllowed)
+
+			cm = createMessageWithTest()
+			cm.TypeConstant = ChannelMessage_TYPE_LEAVE
+
+			So(cm.Create(), ShouldBeNil)
+			So(cm.CreatedAt, ShouldNotBeEmpty)
+
+			cm.Body = "leave me"
+			err = cm.Update()
+			So(err, ShouldEqual, ErrChannelMessageUpdatedNotAllowed)
+		})
 	})
 }
 

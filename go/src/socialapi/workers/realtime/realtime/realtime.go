@@ -327,6 +327,11 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		return err
 	}
 
+	cm, err = cm.PopulateAddedBy()
+	if err != nil {
+		return err
+	}
+
 	cue := &channelUpdatedEvent{
 		Controller:           f,
 		Channel:              c,

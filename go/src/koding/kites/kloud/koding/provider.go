@@ -16,16 +16,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-)
-
-var (
-	DefaultRegion = "us-east-1"
-
-	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	kodingCredential = map[string]interface{}{
-		"access_key": "AKIAIKAVWAYVSMCW4Z5A",
-		"secret_key": "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",
-	}
+	"github.com/mitchellh/goamz/ec2"
 )
 
 const (
@@ -39,20 +30,18 @@ type pushValues struct {
 // Provider implements the kloud packages Storage, Builder and Controller
 // interface
 type Provider struct {
-	Kite         *kite.Kite
-	Session      *mongodb.MongoDB
-	AssigneeName string
-	Log          logging.Logger
-	Push         func(string, int, machinestate.State)
+	Kite    *kite.Kite
+	Session *mongodb.MongoDB
+	Log     logging.Logger
+	Push    func(string, int, machinestate.State)
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
 	Test bool
 
-	// DNS is used to create/update domain recors
-	DNS        *DNS
-	HostedZone string
-
+	// AWS related references and settings
+	EC2    *ec2.EC2
+	DNS    *DNS
 	Bucket *Bucket
 
 	KontrolURL        string
@@ -96,9 +85,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	m.Builder["region"] = DefaultRegion
-
-	a.Amazon, err = amazonClient.New(kodingCredential, m.Builder)
+	a.Amazon, err = amazonClient.New(m.Builder, p.EC2)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
@@ -109,14 +96,6 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	// needed to create the keypair if it doesn't exist
 	a.Builder.PublicKey = p.PublicKey
 	a.Builder.PrivateKey = p.PrivateKey
-
-	// lazy init
-	if p.DNS == nil {
-		if err := p.InitDNS(a.Creds.AccessKey, a.Creds.SecretKey); err != nil {
-			return nil, err
-		}
-	}
-
 	return a, nil
 }
 
@@ -132,13 +111,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	}
 
 	artifact := &protocol.Artifact{
-		IpAddress: m.IpAddress,
-	}
-
-	if i, ok := m.Builder["instanceId"]; ok {
-		if instanceId, ok := i.(string); ok {
-			artifact.InstanceId = instanceId
-		}
+		IpAddress:  m.IpAddress,
+		InstanceId: a.Builder.InstanceId,
 	}
 
 	a.Push("Starting machine", 10, machinestate.Starting)
@@ -202,12 +176,12 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 
 	a.Push("Initializing domain instance", 65, machinestate.Stopping)
 
-	if err := validateDomain(m.Domain.Name, m.Username, p.HostedZone); err != nil {
+	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
-	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 
@@ -260,7 +234,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 		return err
 	}
 
-	if err := validateDomain(m.Domain.Name, m.Username, p.HostedZone); err != nil {
+	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
 		return err
 	}
 
@@ -270,7 +244,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	a.Push("Checking domain", int(lastVal), machinestate.Terminating)
 	// Check if the record exist, it can be deleted via stop, therefore just
 	// return lazily
-	_, err = p.DNS.Domain(m.Domain.Name)
+	_, err = p.DNS.Get(m.Domain.Name)
 	if err == ErrNoRecord {
 		return nil
 	}
@@ -281,7 +255,7 @@ func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushV
 	}
 
 	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
-	if err := p.DNS.DeleteDomain(m.Domain.Name, m.IpAddress); err != nil {
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
 		return err
 	}
 

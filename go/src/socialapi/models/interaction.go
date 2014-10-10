@@ -41,17 +41,6 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
-func (i *Interaction) CreateRaw() error {
-	insertSql := "INSERT INTO " +
-		i.TableName() +
-		` ("message_id","account_id","type_constant","created_at") VALUES ($1,$2,$3,$4) ` +
-		"RETURNING ID"
-
-	return bongo.B.DB.CommonDB().
-		QueryRow(insertSql, i.MessageId, i.AccountId, i.TypeConstant, i.CreatedAt).
-		Scan(&i.Id)
-}
-
 // Tests are done.
 func (i *Interaction) MarkIfExempt() error {
 	isExempt, err := i.isExempt()
