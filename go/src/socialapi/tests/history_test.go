@@ -80,7 +80,6 @@ func TestChannelHistory(t *testing.T) {
 								"",
 							)
 							So(err, ShouldNotBeNil)
-							So(err.Error(), ShouldContainSubstring, models.ErrNotLoggedIn.Error())
 							So(history, ShouldBeNil)
 						})
 
@@ -99,7 +98,6 @@ func TestChannelHistory(t *testing.T) {
 							)
 
 							So(err, ShouldNotBeNil)
-							So(err.Error(), ShouldContainSubstring, models.ErrNotLoggedIn.Error())
 							So(history, ShouldBeNil)
 						})
 
