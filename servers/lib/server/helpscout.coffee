@@ -27,7 +27,6 @@ module.exports = (account, req, res) ->
       else plan = subscription.planTitle
 
       message = """
-        ----------------------------------------
         Username   : #{user.username}
         User Agent : #{req.headers['user-agent']}
         User Plan  : #{plan}
