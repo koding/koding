@@ -1,12 +1,12 @@
 class PrivateMessagePane extends MessagePane
 
-  TEST_MODE = on
-
   constructor: (options = {}, data) ->
 
-    options.lastToFirst   = yes
-    options.scrollView    = no
-    options.itemClass   or= PrivateMessageListItemView
+    options.lastToFirst         = no
+    options.scrollView          = no
+    options.noItemFoundWidget   = no
+    options.startWithLazyLoader = no
+    options.itemClass         or= PrivateMessageListItemView
 
     super options, data
 
@@ -38,93 +38,9 @@ class PrivateMessagePane extends MessagePane
     @on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
 
 
-  handleFocus: ->
-
-    {focused} = KD.singletons.windowController
-    @glance()  if focused and @active and @isPageAtBottom()
-
-
-  glance: ->
-
-    super
-
-    @newMessages?.destroy()
-    @newMessages = null
-
-
-  scrollDown: (item) ->
-
-    return  unless @active
-    document.body.scrollTop = document.body.scrollHeight * 2
-
-
-  setScrollTops: ->
-
-    {body} = document
-    @lastScrollTops.body = body.scrollTop or body.scrollHeight
-
-
-  applyScrollTops: ->
-
-    {body} = document
-    body.scrollTop = @lastScrollTops.body
-
-
-  replaceFakeItemView: (message) ->
-    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item  = @putMessage message, index
-    @removeFakeMessage message.clientRequestId
-    @scrollDown item
-
-
-  createInputWidget: ->
-
-    channel = @getData()
-
-    @input = new ReplyInputWidget {channel}
-
-    @input.on 'EditModeRequested', @bound 'editLastMessage'
-
-
-  editLastMessage: ->
-
-    items = @listController.getItemsOrdered().slice(0).reverse()
-    return item.showEditWidget() for item in items when KD.isMyPost item.getData()
-
-
-  # override this so that it won't
-  # have to scroll to the top when
-  # a new item is added to list
-  # scrollUp: -> return
-
-
-  parse = (args...) -> args.map (item) -> parseInt item
-
-
-  # as soon as the enter key down,
-  # we create a fake itemview and put
-  # it to dom. once the response from server
-  # comes back, it will replace the fake one
-  # with the real one.
-  handleEnter: (value, clientRequestId) ->
-
-    return  unless value
-
-    @applyTestPatterns value  if TEST_MODE
-
-    super value, clientRequestId
-    @input.empty()
-
-
-  applyTestPatterns: (value) ->
-
-    if value.match /^\/unleashtheloremipsum/
-      [_, interval, batchCount] = value.split " "
-      [interval, batchCount] = parse interval, batchCount
-      PrivateMessageLoadTest.run this, interval, batchCount
-    else if value.match /^\/analyzetheloremipsum/
-      PrivateMessageLoadTest.analyze this
-
+  #
+  # DATA EVENTS
+  #
 
   bindChannelEvents: (channel) ->
 
@@ -135,31 +51,32 @@ class PrivateMessagePane extends MessagePane
     channel.on 'AddedToChannel', @bound 'addParticipant'
 
 
-  putNewMessageIndicator: ->
-
-    return # WIP
-
-    unless @newMessages
-      listView = @listController.getListView()
-      @newMessages = new KDView cssClass : 'new-messages'
-      listView.addSubView @newMessages
-
-
-  # this is the realtime event handler for messages
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if message.account._id is KD.whoami()._id
 
     wasAtBottom = @isPageAtBottom()
-    item = @prependMessage message, @listController.getItemCount()
+    item = @appendMessage message
 
     @scrollDown item  if wasAtBottom
 
 
+  #
+  # ADDING MESSAGES
+  #
 
-  prependMessage: (message, index) ->
+  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
 
-    return @listController.addItem message, index
+
+  prependMessage: (message) -> @listController.addItem message, 0
+
+
+  addMessageDeferred: (item, i, total) ->
+    # Super method defers adding list items to minimize page load
+    # congestion. This function is overrides super function to render
+    # all conversation messages to be displayed at the same time
+    @prependMessage item
+    @emit 'ListPopulated'  if i is total - 1
 
 
   putMessage: (message, index) ->
@@ -167,7 +84,134 @@ class PrivateMessagePane extends MessagePane
     @appendMessage message, index or @listController.getItemCount()
 
 
-  hasSameOwner = (a, b) -> a.getData().account._id is b.getData().account._id
+  replaceFakeItemView: (message) ->
+    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
+    item  = @putMessage message, index
+    @removeFakeMessage message.clientRequestId
+    @scrollDown item
+
+
+  #
+  # DECORATORS
+  #
+
+  getSiblings: (index) ->
+
+    prevSibling = @listController.getListItems()[index-1]
+    nextSibling = @listController.getListItems()[index+1]
+
+    return [prevSibling, nextSibling]
+
+
+  messageAdded: (item, index) ->
+
+    data         = item.getData()
+    listView     = @listController.getView()
+    headerHeight = @heads?.getHeight() or 0
+
+    {applyConsequency, hasSameOwner} = helper
+
+    if window.innerHeight - headerHeight < listView.getHeight()
+      listView.unsetClass 'padded'
+
+    # TODO: This is a temporary fix,
+    # we need to revisit this part.
+    # messageAdded & messageRemoved has a race
+    # condition problem. ~Umut
+    if data.clientRequestId and not data.isFake
+      fakeItem = @fakeMessageMap[data.clientRequestId]
+      applyConsequency fakeItem.hasClass('consequent'), item
+
+      return
+
+    @applyDayMark item, index
+    @putNewMessageMark()
+
+    return  if @doesBreakConsequency item, index
+
+    [prev, next] = @getSiblings index
+
+    applyConsequency hasSameOwner(item, prev), item  if prev
+    applyConsequency hasSameOwner(item, next), next  if next
+
+
+  messageRemoved: (item, index) ->
+
+    return  if item.getData().isFake
+
+    [prev, next]                     = @getSiblings index
+    {applyConsequency, hasSameOwner} = helper
+
+    if next and prev
+      applyConsequency hasSameOwner(prev, next), next
+    else if next
+      next.unsetClass 'consequent'
+
+
+  extractDates: (item, index) ->
+
+    [prev, next] = @getSiblings index
+
+    currentDate = new Date item.getData().createdAt
+    otherDate   = new Date prev.getData().createdAt  if prev
+    otherDate   = new Date next.getData().createdAt  if next
+
+    return [currentDate, otherDate]
+
+
+  putNewMessageMark: (item, index) ->
+
+
+  applyDayMark: (item, index) ->
+
+    [currentDate, otherDate] = @extractDates item, index
+
+    if otherDate and currentDate.getDate() isnt otherDate.getDate()
+
+      [prev, next] = @getSiblings index
+
+      exactDate = new Date if prev then currentDate.getTime() else otherDate.getTime()
+      dayMark   = helper.createDayMark exactDate
+
+      if prev
+      then prev.parent.addSubView dayMark
+      else if next
+      then next.parent.addSubView dayMark, null, yes
+
+    return dayMark
+
+
+  # i know, i invented a word - SY
+  doesBreakConsequency: (item, index) ->
+
+    [currentDate, otherDate] = @extractDates item, index
+
+    return Math.abs(currentDate - otherDate) > 3e5
+
+
+  #
+  # LIST CREATION
+  #
+
+  populate: ->
+
+    @setClass 'translucent'
+    @input.input.setPlaceholder 'Loading...'
+
+    super =>
+
+      listView = @listController.getView()
+      @listPreviousReplies()  if listView.getHeight() <= window.innerHeight
+
+
+  fetch: (options = {}, callback) ->
+
+    super options, (err, data) =>
+
+      channel = @getData()
+      channel.replies = data
+      @listPreviousLink.updateView data
+      callback err, data
 
 
   listPreviousReplies: do ->
@@ -195,7 +239,7 @@ class PrivateMessagePane extends MessagePane
 
         items.forEach (item, i) =>
           {scrollHeight} = body
-          @appendMessage item, 0
+          @prependMessage item
           body.scrollTop += body.scrollHeight - scrollHeight
 
         if items.length is 0
@@ -205,86 +249,17 @@ class PrivateMessagePane extends MessagePane
         inProgress = false
 
 
-  messageAdded: (item, index) ->
+  #
+  # SUBVIEWS
+  #
 
-    data         = item.getData()
-    listView     = @listController.getView()
-    headerHeight = @heads?.getHeight() or 0
+  createInputWidget: ->
 
-    if window.innerHeight - headerHeight < listView.getHeight()
-      listView.unsetClass 'padded'
+    channel = @getData()
 
-    # TODO: This is a temporary fix,
-    # we need to revisit this part.
-    # messageAdded & messageRemoved has a race
-    # condition problem. ~Umut
-    if data.clientRequestId and not data.isFake
-      fakeItem = @fakeMessageMap[data.clientRequestId]
+    @input = new ReplyInputWidget {channel}
 
-      if fakeItem.hasClass 'consequent'
-      then item.setClass 'consequent'
-      else item.unsetClass 'consequent'
-
-      return
-
-    prevSibling = @listController.getListItems()[index-1]
-    nextSibling = @listController.getListItems()[index+1]
-
-    if prevSibling
-      if hasSameOwner item, prevSibling
-      then item.setClass 'consequent'
-      else item.unsetClass 'consequent'
-
-    if nextSibling
-      if hasSameOwner item, nextSibling
-      then nextSibling.setClass 'consequent'
-      else nextSibling.unsetClass 'consequent'
-
-
-  messageRemoved: (item, index) ->
-
-    return  if item.getData().isFake
-
-    {data} = item
-
-    prevSibling = @listController.getListItems()[index-1]
-    nextSibling = @listController.getListItems()[index]
-
-    if nextSibling and prevSibling
-      if hasSameOwner prevSibling, nextSibling
-      then nextSibling.setClass 'consequent'
-      else nextSibling.unsetClass 'consequent'
-    else if nextSibling
-      nextSibling.unsetClass 'consequent'
-
-
-  appendMessageDeferred: (item, i, total) ->
-    # Super method defers adding list items to minimize page load
-    # congestion. This function is overrides super function to render
-    # all conversation messages to be displayed at the same time
-    @appendMessage item
-    @emit 'ListPopulated'  if i is total - 1
-
-
-
-  populate: ->
-
-    @setClass 'translucent'
-    @input.input.setPlaceholder 'Loading...'
-
-    super =>
-
-      listView = @listController.getView()
-      @listPreviousReplies()  if listView.getHeight() <= window.innerHeight
-
-
-  fetch: (options = {}, callback) ->
-
-    super options, (err, data) =>
-      channel = @getData()
-      channel.replies = data
-      @listPreviousLink.updateView data
-      callback err, data
+    @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
   addParticipant: (participant) ->
@@ -380,9 +355,6 @@ class PrivateMessagePane extends MessagePane
           return
 
 
-  fetchAccounts: PrivateMessageForm::fetchAccounts
-
-
   viewAppended: ->
 
     @addSubView @participantsView
@@ -393,7 +365,51 @@ class PrivateMessagePane extends MessagePane
     @populate()
 
 
-  setFilter: ->
+  #
+  # UI EVENTS/DIRECTIVES
+  #
+
+  editLastMessage: ->
+
+    items = @listController.getItemsOrdered().slice(0).reverse()
+    return item.showEditWidget() for item in items when KD.isMyPost item.getData()
+
+
+  # as soon as the enter key down,
+  # we create a fake itemview and put
+  # it to dom. once the response from server
+  # comes back, it will replace the fake one
+  # with the real one.
+  handleEnter: (value, clientRequestId) ->
+
+    return  unless value
+
+    super value, clientRequestId
+    @input.empty()
+
+
+  handleFocus: ->
+
+    {focused} = KD.singletons.windowController
+    @glance()  if focused and @active and @isPageAtBottom()
+
+
+  scrollDown: (item) ->
+
+    return  unless @active
+    document.body.scrollTop = document.body.scrollHeight * 2
+
+
+  setScrollTops: ->
+
+    {body} = document
+    @lastScrollTops.body = body.scrollTop or body.scrollHeight
+
+
+  applyScrollTops: ->
+
+    {body} = document
+    body.scrollTop = @lastScrollTops.body
 
 
   show: ->
@@ -403,7 +419,54 @@ class PrivateMessagePane extends MessagePane
     KD.utils.defer @bound 'focus'
 
 
-  defaultFilter: 'Most Recent'
-
-
   focus: -> @input.focus()
+
+
+  glance: ->
+
+    super
+
+    @newMessagesMark?.destroy()
+    @newMessagesMark = null
+
+
+  fetchAccounts: PrivateMessageForm::fetchAccounts
+
+
+  #
+  # SUPER OVERRIDES
+  #
+
+  defaultFilter: 'Most Recent'
+  setFilter: ->
+
+
+  #
+  # HELPERS
+  #
+
+  helper =
+
+    hasSameOwner : (a, b) -> a.getData().account._id is b.getData().account._id
+
+    applyConsequency : (condition, item) ->
+
+      if condition
+      then item.setClass 'consequent'
+      else item.unsetClass 'consequent'
+
+    createDayMark : (date) ->
+
+      date.setHours 0, 0, 0, 0
+
+      return new KDCustomHTMLView
+        tagName    : 'time'
+        partial    : dateFormat date, 'dddd, mmmm dS, yyyy'
+        attributes :
+          datetime : date.toUTCString()
+
+    parse : (args...) -> args.map (item) -> parseInt item
+
+
+
+

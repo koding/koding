@@ -211,7 +211,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
-      attributes : href : '/Logout'
+      attributes :
+        href     : '/Logout'
+        testpath : 'logout-link'
       partial    : 'Logout'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -291,6 +293,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   hide:->
     super
     @groupSubMenuWrapper.unsetClass 'active'
+
+    @emit 'AvatarPopupShouldBeHidden'
 
 class PopupGroupListItem extends KDListItemView
 

@@ -138,7 +138,7 @@ body.activity
 .content-page.activity
 .member.content-display
   .lazy-loader
-    bottom              20px
+    bottom              25px
     left                50%
     abs()
 
@@ -1431,6 +1431,7 @@ span.collapsedtext
           margin            0
           padding           0
           width             100%
+          min-height        153px
 
       .preview-text
         padding             17px
@@ -1832,7 +1833,9 @@ span.collapsedtext
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
 
-deleteRed = rgba(217, 58, 55, 0.9)
+deleteRed  = rgba(217, 58, 55, 0.9)
+timeColor  = #d2d2d2
+timeColor2 = #5F9E5E
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            100vh
   padding               58px 34px 0 34px
@@ -2070,9 +2073,16 @@ deleteRed = rgba(217, 58, 55, 0.9)
     opacity               1
     vendor                transition, opacity .177s ease-in
 
-    .lazy-loader
-    .no-item-found
-      hidden()
+
+    > section > time
+
+      color               timeColor2
+      display             block
+      margin              8px 0 0 0
+      line-height         30px
+      font-size           11px
+      z-index             1
+      text-transform      uppercase
 
   .activity-item.privatemessage
     padding           0
@@ -2088,8 +2098,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
       display           inline-block
       width             auto
       overflow          visible
-      color             #d2d2d2
+      color             timeColor
       font-size         10px
+      // hidden()
 
     &.editing
       background        #fdf6e3
@@ -2113,6 +2124,11 @@ deleteRed = rgba(217, 58, 55, 0.9)
             margin-bottom     0
 
 
+    .link-embed-box
+      padding           10px 1px 10px 0
+      display           none
+
+
     &.edited
       .meta time:after
         display         none
@@ -2129,20 +2145,23 @@ deleteRed = rgba(217, 58, 55, 0.9)
         visibility    visible !important
 
     .activity-content-wrapper
-      padding           0 0 0 56px
+      margin            0 0 0 56px
+      max-width         475px
+      padding           0
 
       .meta
         margin          8px 0 4px 0px
 
     .comment-time
       cursor            pointer
-      hidden()
+      font-size         11px
+      font-weight       300
+      margin-top        0
 
       &:hover
         text-decoration underline
 
     &.consequent
-      padding-left      56px
 
       .activity-content-wrapper
         padding         0
@@ -2167,9 +2186,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
         display         inline-block
         margin          4px 0 0 0
         height          16px
-        width           62px
+        width           90px
         top             2px
-        left            -62px
+        left            -90px
         text-align      right
         abs()
 
@@ -2177,9 +2196,6 @@ deleteRed = rgba(217, 58, 55, 0.9)
           hidden()
 
         .action-link.like-link
-          display         inline-block
-          padding         5px
-          vertical-align  middle
 
           &:after
             content       ''
@@ -2208,7 +2224,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         visible()
 
     .author-avatar
-      abs                   10px 0 0 0px
+      abs                   10px 0 0 -56px
       border                none
 
     .list-previous-link
@@ -2230,7 +2246,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         .action-link.like-link
           display         inline-block
           padding         5px
-          vertical-align  middle
+          vertical-align  text-bottom
 
           &:after
             content       ''
@@ -2367,7 +2383,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
     border              2px solid #eaeaea
     bg                  color white
     rounded             0
-    z-index             1
+    z-index             100
     cursor              text
     font-size           0
     borderBox()

@@ -25,7 +25,8 @@ var (
 	ErrChannelParticipantIsNotSet             = errors.New("channel participant is not set")
 	ErrCannotAddNewParticipantToPinnedChannel = errors.New("you can not add any participants to pinned activity channel")
 
-	ErrChannelMessageIdIsNotSet = errors.New("channel message id is not set")
+	ErrChannelMessageIdIsNotSet        = errors.New("channel message id is not set")
+	ErrChannelMessageUpdatedNotAllowed = errors.New("join/leave message update is not allowed")
 
 	ErrNameIsNotSet       = errors.New("name is not set")
 	ErrGroupNameIsNotSet  = errors.New("group name is not set")
@@ -37,4 +38,6 @@ var (
 	ErrSlugIsNotSet         = errors.New("slug is not set")
 
 	ErrChannelOrMessageIdIsNotSet = errors.New("channelId/messageId is not set")
+
+	ErrNotLoggedIn = errors.New("not logged in")
 )

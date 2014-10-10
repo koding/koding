@@ -23,7 +23,7 @@ type AmazonClient struct {
 	InfoLog func(string, ...interface{})
 }
 
-func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.Artifact, error) {
+func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
 	infoLog := func(format string, args ...interface{}) {
 		a.Log.Info(format, args...)
 	}
@@ -70,6 +70,18 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.
 	// create only one instance. If it creates something else we catch it here
 	// by panicing
 	instance := resp.Instances[0]
+
+	// cleanup build if something goes wrong here
+	defer func() {
+		if errResp != nil {
+			a.Log.Warning("Cleaning up instance '%s'. Terminating instance: %s. Error was: %s",
+				instanceName, instance.InstanceId, errResp)
+
+			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
+				a.Log.Warning("Cleaning up instance '%s' failed: %v", instanceName, err)
+			}
+		}
+	}()
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
 		instance, err = a.Instance(instance.InstanceId)

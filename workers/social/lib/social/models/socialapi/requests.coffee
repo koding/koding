@@ -76,7 +76,7 @@ deleteMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for deleting message"}
   url =  "/message/#{data.id}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 likeMessage = (data, callback)->
   unless data.id
@@ -154,6 +154,20 @@ glancePinnedPost = (data, callback)->
 
   url = "/activity/pin/glance"
   post url, data, callback
+
+glanceNotifications = (data, callback)->
+  if not data.accountId
+    return callback { message: "Request is not valid"}
+
+  url = "/notification/glance"
+  post url, data, callback
+
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "/notification/#{data.accountId}"
+  get url, data, callback
 
 listParticipants = (data, callback)->
   return callback { message: "Request is not valid" } unless data.channelId
@@ -341,7 +355,7 @@ unmarkAsTroll = (data, callback)->
     return callback {message: "Request is not valid"}
 
   url = "/trollmode/#{data.accountId}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 getSiteMap = (data, callback)->
   url = data.name
@@ -359,40 +373,69 @@ checkOwnership = (data, callback) ->
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
-      body   : data
       method : 'POST'
-    , wrapCallback callback
 
-deleteReq = (url, callback)->
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    reqOptions.body = data
+
+    request reqOptions, wrapCallback callback
+
+deleteReq = (url, data, callback)->
+  [data, callback] = [callback, null] unless callback
+
   getNextApiURL (err, apiurl)->
     return callback err if err
 
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
       method : 'DELETE'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 getXml = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 get = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
-      qs     : data
       json   : true
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    # finally set query string
+    reqOptions.qs = data
+
+    request reqOptions, wrapCallback callback
+
+setCookieIfRequired = (reqOptions, data)->
+  # inject clientId cookie if exists
+  if data?.sessionToken
+    j = request.jar()
+    cookie = request.cookie "clientId=#{data.sessionToken}"
+    j.setCookie cookie, reqOptions.url
+    reqOptions.jar = j
+
+    delete data.sessionToken
+
+  return {reqOptions, data}
 
 module.exports = {
   unmarkAsTroll
@@ -403,6 +446,8 @@ module.exports = {
   channelById
   channelByName
   glancePinnedPost
+  glanceNotifications
+  listNotifications
   updateLastSeenTime
   fetchProfileFeed
   searchTopics

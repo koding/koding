@@ -3,6 +3,7 @@ class PrivateMessageListItemView extends ActivityListItemView
   constructor: (options = {}, data) ->
 
     options.cssClass           = KD.utils.curry 'privatemessage ', options.cssClass
+    options.editWidgetClass  or= ReplyInputEditWidget
     options.commentViewClass or= ReplyView
     options.commentSettings    = {}
     {commentSettings}          = options
@@ -10,15 +11,33 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
+    {typeConstant, payload, body} = data
+
+    {addedBy} = payload if payload
+
+    if typeConstant in ['join', 'leave']
+      data.body = "has #{@prepareActivity()} the chat"
+
+    data.body = "#{data.body} from an invitation by @#{addedBy}" if addedBy
+
     {createdAt, deletedAt, updatedAt} = data
 
     @likeView = new ReplyLikeView {}, data
-    @timeView = new CommentTimeView {}, createdAt
+    @timeView = new CommentTimeView timeFormat : 'h:MM TT', createdAt
 
     @decorate()
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
 
+  prepareActivity: ->
+    {typeConstant} = @getData()
+    switch typeConstant
+      when 'join'
+        return 'joined'
+      when 'leave'
+        return 'left'
+
+    return ''
 
   decorate: ->
 
@@ -48,7 +67,7 @@ class PrivateMessageListItemView extends ActivityListItemView
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta clearfix'>
-        {{> @author}} {{> @timeView }} {{> @timeAgoView}} {{> @likeView}}
+        {{> @author}} {{> @timeView }} {{> @likeView}}
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{KD.utils.formatContent #(body)}}

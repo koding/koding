@@ -4,6 +4,7 @@ type MentionNotification struct {
 	TargetId   int64
 	ListerId   int64
 	NotifierId int64
+	MessageId  int64
 }
 
 func (m *MentionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
@@ -53,5 +54,5 @@ func (n *MentionNotification) GetActivity() string {
 }
 
 func (n *MentionNotification) GetMessageId() int64 {
-	return n.TargetId
+	return n.MessageId
 }

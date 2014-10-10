@@ -5,7 +5,7 @@ class TopNavigation extends KDCustomHTMLView
     { title : 'BUSINESS',  href : '/Business',  appName : 'Business'}
     { title : 'ABOUT',     href : '/About',     appName : 'About'}
     { title : 'PRICING',   href : '/Pricing',   appName : 'Pricing'}
-    { title : 'SIGN IN',   href : '/Login',     appName : 'Login'}
+    { title : 'SIGN IN',   href : '/Login',     appName : 'Login', attributes: testpath: 'login-link'}
   ]
 
   constructor: (options = {}, data) ->
