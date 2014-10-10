@@ -701,6 +701,15 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
 
+
+      function updateusers () {
+
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/user-updater
+
+      }
+
+
       function sandbox_buildservices () {
         SANDBOX_SERVICES=54.165.122.100
         SANDBOX_WEB_1=54.165.177.88
@@ -781,6 +790,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "importusers" ]; then
         importusers
+
+      elif [ "$1" == "updateusers" ]; then
+        updateusers
 
       elif [ "$1" == "worker" ]; then
 
