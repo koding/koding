@@ -51,7 +51,7 @@ module.exports = class JDomainAlias extends Module
         default       : -> new Date
       modifiedAt      :
         type          : Date
-        set           : -> new Date
+        default       : -> new Date
 
 
   @one$ = permit 'list domains',
@@ -79,3 +79,32 @@ module.exports = class JDomainAlias extends Module
 
       JDomainAlias.some selector, options, (err, domains)->
         callback err, domains
+
+  @ensureTopDomainExistence = (account, machineId, callback)->
+
+    {nickname} = account.profile
+    topDomain  = "#{nickname}.#{KONFIG.userSitesDomain}"
+
+    JDomainAlias.one
+      originId : account._id
+      domain   : topDomain
+    , (err, domain)->
+      return callback err  if err?
+
+      if domain?
+
+        # If we decide to update existing top domain to route
+        # new machine, we can use following
+        # domain.update $set : { machineId }, (err)-> callback err
+
+        callback null
+
+      else
+
+        domain = new JDomainAlias {
+          machineId
+          domain   : topDomain
+          originId : account._id
+        }
+
+        domain.save (err)-> callback err
