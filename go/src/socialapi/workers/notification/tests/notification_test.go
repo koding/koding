@@ -608,114 +608,114 @@ func TestNotificationCreation(t *testing.T) {
 
 		})
 
-		Convey("As a subscriber first and third user should be able to subscribe to my message", func() {
+		// Convey("As a subscriber first and third user should be able to subscribe to my message", func() {
 
-			Convey("First user should be able to subscribe to my message", func() {
-				response, err := rest.SubscribeMessage(firstUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("Second user should be able to reply my message", func() {
-				replyMessage, err := rest.AddReply(thirdMessage.Id, secondUser.Id, testGroupChannel.Id)
-				So(err, ShouldBeNil)
-				So(replyMessage, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
-			Convey("First user should be able to receive notification", func() {
-				nl, err := rest.GetNotificationList(firstUser.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
+		// 	Convey("First user should be able to subscribe to my message", func() {
+		// 		response, err := rest.SubscribeMessage(firstUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("Second user should be able to reply my message", func() {
+		// 		replyMessage, err := rest.AddReply(thirdMessage.Id, secondUser.Id, testGroupChannel.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(replyMessage, ShouldNotBeNil)
+		// 		time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// 	})
+		// 	Convey("First user should be able to receive notification", func() {
+		// 		nl, err := rest.GetNotificationList(firstUser.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(nl, ShouldNotBeNil)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TargetId, ShouldEqual, thirdMessage.Id)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			})
-			SkipConvey("I should be able to unsubscribe from my message", func() {
-				time.Sleep(SLEEP_TIME * time.Second)
-				response, err := rest.UnsubscribeMessage(ownerAccount.Id, thirdMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("Third user should be able to subscribe to my message", func() {
-				response, err := rest.SubscribeMessage(thirdUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("First user should be able to unsubscribe from my message", func() {
-				time.Sleep(SLEEP_TIME * time.Second)
-				response, err := rest.UnsubscribeMessage(firstUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("Third user should be able to subscribe to my message", func() {
-				_, err := rest.SubscribeMessage(thirdUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldNotBeNil)
-			})
-			Convey("Forth user should be able to reply my message", func() {
-				replyMessage, err := rest.AddReply(thirdMessage.Id, forthUser.Id, testGroupChannel.Id)
-				So(err, ShouldBeNil)
-				So(replyMessage, ShouldNotBeNil)
+		// 		So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 		So(nl.Notifications[0].TargetId, ShouldEqual, thirdMessage.Id)
+		// 		So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+		// 		So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+		// 	})
+		// 	SkipConvey("I should be able to unsubscribe from my message", func() {
+		// 		time.Sleep(SLEEP_TIME * time.Second)
+		// 		response, err := rest.UnsubscribeMessage(ownerAccount.Id, thirdMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("Third user should be able to subscribe to my message", func() {
+		// 		response, err := rest.SubscribeMessage(thirdUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("First user should be able to unsubscribe from my message", func() {
+		// 		time.Sleep(SLEEP_TIME * time.Second)
+		// 		response, err := rest.UnsubscribeMessage(firstUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("Third user should be able to subscribe to my message", func() {
+		// 		_, err := rest.SubscribeMessage(thirdUser.Id, thirdMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldNotBeNil)
+		// 	})
+		// 	Convey("Forth user should be able to reply my message", func() {
+		// 		replyMessage, err := rest.AddReply(thirdMessage.Id, forthUser.Id, testGroupChannel.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(replyMessage, ShouldNotBeNil)
 
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
-			Convey("First user should not be able to receive latest notification", func() {
-				nl, err := rest.GetNotificationList(firstUser.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
+		// 		time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// 	})
+		// 	Convey("First user should not be able to receive latest notification", func() {
+		// 		nl, err := rest.GetNotificationList(firstUser.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(nl, ShouldNotBeNil)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-			})
-			Convey("Third user should be able to receive notification", func() {
-				nl, err := rest.GetNotificationList(thirdUser.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
+		// 		So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 		So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+		// 		So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+		// 	})
+		// 	Convey("Third user should be able to receive notification", func() {
+		// 		nl, err := rest.GetNotificationList(thirdUser.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(nl, ShouldNotBeNil)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TargetId, ShouldEqual, thirdMessage.Id)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				Convey("Notification actor count should be 1", func() {
-					So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
-				})
-			})
-		})
+		// 		So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 		So(nl.Notifications[0].TargetId, ShouldEqual, thirdMessage.Id)
+		// 		So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+		// 		Convey("Notification actor count should be 1", func() {
+		// 			So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
+		// 		})
+		// 	})
+		// })
 
-		Convey("As a message owner I should be able to unsubscribe from notifications of my own message", func() {
+		// Convey("As a message owner I should be able to unsubscribe from notifications of my own message", func() {
 
-			SkipConvey("I should be able to unsubscribe from my message notifications", func() {
-				response, err := rest.UnsubscribeMessage(ownerAccount.Id, forthMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("First user should be able to reply my message", func() {
-				replyMessage, err := rest.AddReply(forthMessage.Id, firstUser.Id, testGroupChannel.Id)
-				So(err, ShouldBeNil)
-				So(replyMessage, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
-			Convey("I should not be able to receive notification", func() {
-				nl, err := rest.GetNotificationList(firstUser.Id)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
+		// 	SkipConvey("I should be able to unsubscribe from my message notifications", func() {
+		// 		response, err := rest.UnsubscribeMessage(ownerAccount.Id, forthMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("First user should be able to reply my message", func() {
+		// 		replyMessage, err := rest.AddReply(forthMessage.Id, firstUser.Id, testGroupChannel.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(replyMessage, ShouldNotBeNil)
+		// 		time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// 	})
+		// 	Convey("I should not be able to receive notification", func() {
+		// 		nl, err := rest.GetNotificationList(firstUser.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(nl, ShouldNotBeNil)
 
-				So(len(nl.Notifications), ShouldBeGreaterThan, 0)
-				So(nl.Notifications[0].TargetId, ShouldNotEqual, forthMessage.Id)
-			})
-			SkipConvey("I should be able to subscribe to my message notifications", func() {
-				response, err := rest.SubscribeMessage(ownerAccount.Id, forthMessage.Id, testGroupChannel.GroupName)
-				So(err, ShouldBeNil)
-				So(response, ShouldNotBeNil)
-			})
-			Convey("Second user should be able to reply my message", func() {
-				replyMessage, err := rest.AddReply(forthMessage.Id, secondUser.Id, testGroupChannel.Id)
-				So(err, ShouldBeNil)
-				So(replyMessage, ShouldNotBeNil)
-				time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-			})
+		// 		So(len(nl.Notifications), ShouldBeGreaterThan, 0)
+		// 		So(nl.Notifications[0].TargetId, ShouldNotEqual, forthMessage.Id)
+		// 	})
+		// 	SkipConvey("I should be able to subscribe to my message notifications", func() {
+		// 		response, err := rest.SubscribeMessage(ownerAccount.Id, forthMessage.Id, testGroupChannel.GroupName)
+		// 		So(err, ShouldBeNil)
+		// 		So(response, ShouldNotBeNil)
+		// 	})
+		// 	Convey("Second user should be able to reply my message", func() {
+		// 		replyMessage, err := rest.AddReply(forthMessage.Id, secondUser.Id, testGroupChannel.Id)
+		// 		So(err, ShouldBeNil)
+		// 		So(replyMessage, ShouldNotBeNil)
+		// 		time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
+		// 	})
 
-		})
+		// })
 	})
 
 }
