@@ -21,30 +21,23 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     then @$('.count').addClass "hidden"
     else @$('.count').removeClass "hidden"
 
-  click: do ->
+  click: (event) ->
 
-    clickedInside = no
+    KD.utils.stopDOMEvent event
 
-    return (event) ->
+    return clickedInside = no  if clickedInside
 
-      KD.utils.stopDOMEvent event
+    popup = @getDelegate()
 
-      return clickedInside = no  if clickedInside
-
-      { windowController } = KD.singletons
-      popup                = @getDelegate()
-
-      if popup.hasClass "active"
+    if popup.hasClass "active"
+      popup.hide()
+    else
+      @setClass 'active'
+      popup.show()
+      popup.once "ReceivedClickElsewhere", (event) =>
+        clickedInside = @isInside event.target
+        @unsetClass 'active'
         popup.hide()
-        windowController.removeLayer popup
-      else
-        @setClass 'active'
-        popup.show()
-        windowController.addLayer popup
-        popup.once "ReceivedClickElsewhere", (event) =>
-          clickedInside = @isInside event.target
-          @unsetClass 'active'
-          popup.hide()
 
 
   isInside: (target) ->
