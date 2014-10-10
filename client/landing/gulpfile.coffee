@@ -69,6 +69,11 @@ gulp.task 'default', ->
     ,
       when    : (answer) -> answer.siteName
       type    : 'confirm'
+      name    : 'uglify'
+      message : 'Would you like to uglify javascript?'
+    ,
+      when    : (answer) -> answer.siteName
+      type    : 'confirm'
       name    : 'watch'
       message : 'Would you like to watch for changes?'
     ,
@@ -80,7 +85,7 @@ gulp.task 'default', ->
 
       console.log '\n'
 
-      {siteName, watch, serve, newSite} = res
+      {siteName, watch, serve, newSite, uglify} = res
 
       return req('task.site') newSite  if newSite
 
@@ -90,7 +95,7 @@ gulp.task 'default', ->
 
       gulp.src ''
         .pipe shell [
-          "gulp #{unless watch then 'build ' else ''}--gulpfile ./site.#{siteName}/gulpfile.coffee"
+          "gulp #{unless watch then 'build ' else ''}--gulpfile ./site.#{siteName}/gulpfile.coffee  #{if uglify then '--uglify' else ''}"
         ]
 
 

@@ -6,8 +6,9 @@ source         = require 'vinyl-source-stream'
 pistachio      = require 'gulp-kd-pistachio-compiler'
 livereload     = require 'gulp-livereload'
 argv           = require('minimist') process.argv
+uglify         = require 'gulp-uglify'
 devMode        = argv.devMode?
-
+useUglify      = argv.uglify?
 gulpBrowserify = require './helper.browserify'
 
 {
@@ -22,6 +23,7 @@ module.exports = ->
     .pipe source 'main.js'
     .pipe gulpBuffer()
     .pipe pistachio()
+    .pipe gulpif useUglify, uglify()
     .pipe gulpStream()
     .pipe gulpif devMode, livereload()
     .pipe gulp.dest "#{BUILD_PATH}/js"
