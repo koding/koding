@@ -115,12 +115,13 @@ class NotificationListItemView extends KDListItemView
       adjective = ""
       switch data.type
         when "comment", "like", "mention"
-          KD.remote.api.SocialMessage.fetch {id: data.targetId}, (err, message)=>
+          {message} = KD.singletons.socialapi
+          message.byId {id: data.targetId}, (err, message)=>
             return reject err  if err or not message
             KD.remote.api.JAccount.one _id: message.accountOldId, (err, origin)=>
               return reject err  if err or not origin
 
-              adjective = if message.accountOldId is KD.whoami()?.getId() then "your"
+              adjective = if message.account._id is KD.whoami()?.getId() then "your"
               else if @actors.length == 1 and @actors[0].getId() is origin.getId() then "their own"
               else
                 originatorName = KD.utils.getFullnameFromAccount origin
@@ -136,11 +137,11 @@ class NotificationListItemView extends KDListItemView
 
   click:->
     showPost = (err, post)->
+      return warn err if err
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        KD.getSingleton('router').handleRoute "/Activity/Post/#{post.message.slug}", state:post
-
+        KD.getSingleton('router').handleRoute "/Activity/Post/#{post.slug}", state:post
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -151,7 +152,8 @@ class NotificationListItemView extends KDListItemView
 
     switch @getData().type
       when "comment", "like", "mention"
-        KD.remote.api.SocialMessage.fetch id: @getData().targetId, showPost
+        {message} = KD.singletons.socialapi
+        message.byId {id: @getData().targetId}, showPost
       when "follow"
         KD.getSingleton('router').handleRoute "/#{@actors[0].profile.nickname}"
       when "join", "leave"
