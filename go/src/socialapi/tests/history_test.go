@@ -66,6 +66,43 @@ func TestChannelHistory(t *testing.T) {
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
 						})
+						Convey("We should be not able to fetch the history if the clientId is not set", func() {
+
+							ses, err := models.FetchOrCreateSession(account.Nick)
+							So(err, ShouldBeNil)
+							So(ses, ShouldNotBeNil)
+
+							history, err := rest.GetHistory(
+								channel.Id,
+								&request.Query{
+									AccountId: channelParticipant.AccountId,
+								},
+								"",
+							)
+							So(err, ShouldNotBeNil)
+							So(err.Error(), ShouldContainSubstring, models.ErrNotLoggedIn.Error())
+							So(history, ShouldBeNil)
+						})
+
+						Convey("We should be not able to fetch the history if the clientId doesnt exist", func() {
+
+							ses, err := models.FetchOrCreateSession(account.Nick)
+							So(err, ShouldBeNil)
+							So(ses, ShouldNotBeNil)
+
+							history, err := rest.GetHistory(
+								channel.Id,
+								&request.Query{
+									AccountId: channelParticipant.AccountId,
+								},
+								"foobarzaa",
+							)
+
+							So(err, ShouldNotBeNil)
+							So(err.Error(), ShouldContainSubstring, models.ErrNotLoggedIn.Error())
+							So(history, ShouldBeNil)
+						})
+
 						Convey("We should be able to get channel message count", func() {
 							count, err := rest.CountHistory(channel.Id)
 							So(err, ShouldBeNil)
