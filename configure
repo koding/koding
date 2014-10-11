@@ -30,24 +30,9 @@ options = o =
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
 
-
-if argv.hostname
-  options.hostname       = argv.hostname
-  rest()
-else if os.type() is "Darwin"
-  options.hostname = "lvh.me"
-  rest()
-else
-  log "lemme find your IP"
-  request "http://echoip.net",(err,res,body)->
-      ip = body
-      options.hostname = ip
-      log "my ip is #{ip}"
-      rest()
-    
-  
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
+  
   
   
   
@@ -84,3 +69,16 @@ rest = ->
   
   createRunFile KONFIG
   
+if argv.hostname
+  options.hostname       = argv.hostname
+  rest()
+else if os.type() is "Darwin"
+  options.hostname = "lvh.me"
+  rest()
+else
+  log "lemme find your IP"
+  request "http://echoip.net",(err,res,body)->
+      ip = body
+      options.hostname = ip
+      log "my ip is #{ip}"
+      rest()
