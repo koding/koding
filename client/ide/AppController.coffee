@@ -127,6 +127,9 @@ class IDEAppController extends AppController
       if app instanceof IDEAppController
         KD.singletons.windowController.notifyWindowResizeListeners()
 
+
+    @firebase = new Firebase 'https://ace-tryout.firebaseio.com'
+
   bindRouteHandler: ->
     {router, mainView} = KD.singletons
 
@@ -473,6 +476,7 @@ class IDEAppController extends AppController
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
       delete @generatedPanes[pane.view.hash]
+      @serialize()
 
       @statusBar.showInformation()  if ideViewLength is 0
 
@@ -483,8 +487,14 @@ class IDEAppController extends AppController
       @logChange change
 
   registerPane: (pane) ->
+    {view} = pane
+    unless view?.hash?
+      return warn 'view.hash not found, returning'
+
     @generatedPanes or= {}
-    @generatedPanes[pane.view.hash] = yes
+    @generatedPanes[view.hash] = yes
+    @serialize()
+
     view.on 'ChangeHappened', (change) =>
       @logChange change
 
@@ -674,10 +684,9 @@ class IDEAppController extends AppController
     panes = []
 
     @forEachSubViewInIDEViews_ (pane) ->
-      panes.push pane.serialize()
+      panes.push pane.hash
 
-    firebase = new Firebase 'https://ace-tryout.firebaseio.com/'
-    firebase.child('ali').set data: JSON.stringify panes
+    @firebase.child(KD.nick()).child('panels').set panes
 
 
   updateContent: (data) ->
@@ -689,9 +698,7 @@ class IDEAppController extends AppController
 
 
   deserialize: ->
-    firebase = new Firebase 'https://ace-tryout.firebaseio.com'
-
-    firebase.child('ali').child('data').on 'value', (data) =>
+    @firebase.child('ali').child('data').on 'value', (data) =>
       snapshot = JSON.parse data.val()
 
       for pane in snapshot
@@ -731,3 +738,31 @@ class IDEAppController extends AppController
     @firebase.child(KD.nick()).child('changes').push change
 
 
+  startListening: (username) ->
+    @firebase.child(username).child('changes').on 'child_added', (snapshot) =>
+      change = snapshot.val()
+      return if change.origin is KD.nick()
+
+      if change.type is 'NewPaneCreated'
+        {context} = change
+        if context.paneType is 'editor'
+          {path, content} = context.file
+          return if path.indexOf('localfile:/') > -1
+
+          file = FSHelper.createFileInstance path
+          file.paneHash = context.paneHash
+          @openFile file, content
+
+      else if change.type is 'CursorActivity'
+        @forEachSubViewInIDEViews_ 'editor', (view) ->
+          {paneHash, cursor} = change.context
+
+          if view.hash is paneHash
+            view.setCursor cursor
+
+      else if change.type is 'ContentChange'
+        @forEachSubViewInIDEViews_ 'editor', (view) ->
+          {paneHash, content} = change.context
+
+          if view.hash is paneHash
+            view.setContent content
