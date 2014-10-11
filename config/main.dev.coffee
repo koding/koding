@@ -5,7 +5,7 @@ os                    = require 'os'
 
 Configuration = (options={}) ->
 
-  boot2dockerbox      = "192.168.59.103"
+  boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
@@ -532,9 +532,11 @@ Configuration = (options={}) ->
 
         check_service_dependencies
 
-        if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
-          exit 1
+        if [[ `uname` == 'Darwin' ]]; then
+          if [ -z "$DOCKER_HOST" ]; then
+            echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
+            exit 1
+          fi
         fi
 
         mongo #{mongo} --eval "db.stats()"  # do a simple harmless command of some sort
@@ -556,7 +558,6 @@ Configuration = (options={}) ->
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
         command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
         command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-        command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
         command -v mongorestore  >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
         command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
         command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
@@ -564,8 +565,14 @@ Configuration = (options={}) ->
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
 
-        brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
+        if [[ `uname` == 'Darwin' ]]; then
+          brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
+          command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        elif [[ `uname` == 'Linux' ]]; then
+          command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
 
+
+        fi
         check_gulp_version
       }
 
@@ -588,7 +595,9 @@ Configuration = (options={}) ->
 
       function build_services () {
 
-        boot2docker up
+        if [[ `uname` == 'Darwin' ]]; then
+          boot2docker up
+        fi
 
         echo "Stopping services: $SERVICES"
         docker stop $SERVICES
@@ -639,7 +648,9 @@ Configuration = (options={}) ->
 
       function services () {
 
-        boot2docker up
+        if [[ `uname` == 'Darwin' ]]; then
+          boot2docker up
+        fi
         EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
         if [ $? -eq 1 ]; then
           echo ""
