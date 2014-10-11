@@ -187,6 +187,10 @@ testapi:
 	@`which go` test -c workers/payment/stripe/*.go
 	@./stripe.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./stripe.test
+	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
+	@`which go` test -c workers/common/handler/*.go
+	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./handler.test
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
 	@`which go` test -c tests/*.go

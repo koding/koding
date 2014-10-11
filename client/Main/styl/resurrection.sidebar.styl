@@ -69,7 +69,7 @@ sidebarSelectedBg = #262626
 
     &.below
       rounded         3px 3px 0 0
-      abs             0 0 0 10px
+      abs             0 0 0px 10px
       &:after
         border-top-color white
         abs           8px 0 0 8px
@@ -631,26 +631,56 @@ sidebarSelectedBg = #262626
     width           auto
     vertical-align  top
 
-  .acc-dropdown-icon
-    size            auto 59px
+  .acc-icon
+    size            50px 60px
     display         block
-    abs             0px 0px 0 0
+    abs             -1px 0px 0 0
+    borderBox()
 
+  .acc-icon.active
+    bg              color, #1D1D1D
+    border-left     1px solid #323232
+
+    .count
+      left          24px
+
+  .acc-icon .icon
+    display         block
+    padding-bottom  1px
+    margin          27px auto 23px
+
+  .acc-notification-icon
+    &.active
+      border-right    1px solid #1d1d1d
     .icon
-      display         block
-      padding-bottom  1px
-      r-sprite        app 'account-arrow'
-      margin          26px 23px 26px 11px
+      r-sprite        app 'account-notifications'
+      margin          23px auto
+    .count
+      position        absolute
+      width           14px
+      height          14px
+      font-size       8px
+      line-height     14px
+      background      #E75A5A
+      border-radius   7px
+      text-align      center
+      top             16px
+      left            25px
+    .count cite
+      color           #fff
 
-    &.main-nav
-      right           44px
-      .icon
-        margin        26px 11px 26px 23px
+  .acc-dropdown-icon
+    right           50px
+    &.active
+      border-right  1px solid #323232
+
+  .acc-dropdown-icon .icon
+    r-sprite        app 'account-arrow'
 
   .avatar-area
-    bg                 color, #1A1A1A
-    padding            10px 12px
-    size               100% 100%
+    bg                color, #262626
+    padding           10px 12px
+    size              100% 100%
     borderBox()
     rel()
 
@@ -659,16 +689,15 @@ sidebarSelectedBg = #262626
       fl()
 
     a.profile
-      font-size     14px
-      line-height   18px
-      font-weight   400
-      margin        11px 0
-      white-space   nowrap
-      width         100px
-      display       block
-      color         white
-      overflow      hidden
-      text-overflow ellipsis
+      font-size       14px
+      line-height     38px
+      font-weight     400
+      white-space     nowrap
+      width           100px
+      display         block
+      color           white
+      overflow        hidden
+      text-overflow   ellipsis
       noTextDeco()
 
     h3

@@ -35,6 +35,54 @@ type Provider interface {
 	Info(*Machine) (*InfoArtifact, error)
 }
 
+// Domainer is responsible of managing DNS records
+type Domainer interface {
+	// Create creates a new domain record with the given name to the new IP
+	Create(name, newIP string) error
+
+	// Delete deletes the given domain name which was associated to the old IP
+	Delete(name, oldIP string) error
+
+	// Update updates the given domain name which was associated to the old IP
+	// with the new IP
+	Update(name, oldIP, newIP string) error
+
+	// Rename renames the given old domain name with the new domain name for
+	// the given IP
+	Rename(oldName, newName, currentIp string) error
+
+	// Get returns a domain record for the given domain name
+	Get(name string) (*Record, error)
+
+	// HostedZone returns the top level domain on which the domains are going
+	// to be handled. Such as dev.koding.io or koding.io
+	HostedZone() string
+
+	// Validate validates if the given domain name is valid
+	Validate(domainName, username string) error
+}
+
+// Record represents a single record for a given domain
+type Record struct {
+	Name string
+	IP   string
+	TTL  int
+}
+
+// Domain represents a machines domain necessary information
+type Domain struct {
+	// Username defines a the owner of the machine
+	Username string
+
+	// MachineId defines the ID of the respective machine. Each domain is bound
+	// to a single machine.
+	MachineId string
+
+	// Name is the domain name, such as "arslan.koding.io" or
+	// "fatih.arslan.koding.io"
+	Name string
+}
+
 // Machine is used as a data source for the appropriate interfaces
 // provided by the Kloud package. A context is gathered by the Storage
 // interface.
@@ -74,11 +122,6 @@ type Machine struct {
 
 	// State defines the machines current state
 	State machinestate.State
-}
-
-// Domain represents a machines domain necessary information
-type Domain struct {
-	Name string
 }
 
 // Artifact should be returned from a Build method. It contains data

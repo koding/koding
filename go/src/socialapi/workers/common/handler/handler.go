@@ -28,6 +28,36 @@ type Request struct {
 	Metrics        *kmetrics.Metrics
 }
 
+// todo add prooper logging
+func getAccount(r *http.Request) *models.Account {
+	cookie, err := r.Cookie("clientId")
+	if err != nil {
+		return nil
+	}
+
+	// if cookie doenst exists return nil
+	if cookie.Value == "" {
+		return nil
+	}
+
+	session, err := models.Cache.Session.ById(cookie.Value)
+	if err != nil {
+		return nil
+	}
+
+	// if session doesnt have username, return nil
+	if session.Username == "" {
+		return nil
+	}
+
+	acc, err := models.Cache.Account.ByNick(session.Username)
+	if err != nil {
+		return nil
+	}
+
+	return acc
+}
+
 func Wrapper(r Request) http.Handler {
 	handler := r.Handler
 	logName := r.Name
@@ -45,7 +75,15 @@ func Wrapper(r Request) http.Handler {
 		func(r *http.Request) (http.Header, error) {
 			// this is an example
 			// set group name to context
-			tigertonic.Context(r).(*models.Context).GroupName = "koding"
+			//
+			context := &models.Context{
+				GroupName: "koding",
+				Client: &models.Client{
+					Account: getAccount(r),
+				},
+			}
+
+			*(tigertonic.Context(r).(*models.Context)) = *context
 			return nil, nil
 		},
 		hHandler,

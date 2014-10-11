@@ -3,6 +3,7 @@ package emailnotifier
 import (
 	// "github.com/kr/pretty"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -29,7 +30,7 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 		acc1, err := rest.CreateAccountWithDailyDigest()
 		So(err, ShouldBeNil)
 
-		acc2, err := rest.CreateAccountInBothDbs()
+		acc2, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
 
 		channel, err := rest.CreateChannel(acc1.Id)

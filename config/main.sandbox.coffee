@@ -9,6 +9,7 @@ Configuration = (options={}) ->
 
   publicPort     = options.publicPort          = "80"
   hostname       = options.hostname            = "sandbox.koding.com#{if publicPort is "80" then "" else ":"+publicPort}"
+  protocol       = options.protocol            or "https:"
   publicHostname = options.publicHostname      = "https://#{options.hostname}"
   region         = options.region              = "aws"
   configName     = options.configName          = "sandbox"
@@ -27,7 +28,7 @@ Configuration = (options={}) ->
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password }
+  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite" , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
@@ -52,11 +53,12 @@ Configuration = (options={}) ->
     environment       : environment
     region            : region
     hostname          : hostname
+    protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : yes
@@ -67,10 +69,12 @@ Configuration = (options={}) ->
   logQueueName        = socialQueueName+'log'
 
   KONFIG              =
+    configName                     : configName
     environment                    : environment
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
@@ -86,6 +90,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
@@ -170,6 +175,7 @@ Configuration = (options={}) ->
       odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint        : {slug:'koding'       , type:'group'}
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
@@ -180,6 +186,15 @@ Configuration = (options={}) ->
 
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
   KONFIG.workers =
+    gowebserver         :
+      group             : "webserver"
+      ports             :
+         incoming       : 6500
+      supervisord       :
+        command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
+      nginx             :
+        locations       : ["~^/IDE/.*"]
+        auth            : true
     kontrol             :
       group             : "environment"
       ports             :

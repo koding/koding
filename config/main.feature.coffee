@@ -10,6 +10,7 @@ Configuration = (options={}) ->
   publicPort          = options.publicPort     = "80"
   hostname            = options.hostname       or "prod-v1_2_4-anna#{if publicPort is "80" then "" else ":"+publicPort}"
   publicHostname      = options.publicHostname or "https://koding.me"
+  protocol            = options.protocol       or "https:"
   region              = options.region         or "aws"
   configName          = options.configName     or "feature"
   environment         = options.environment    or "feature"
@@ -27,7 +28,7 @@ Configuration = (options={}) ->
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "http://#{hostname}"                     , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password }
+  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"    , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "http:"                              , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
@@ -54,11 +55,12 @@ Configuration = (options={}) ->
     environment       : environment
     region            : region
     hostname          : hostname
+    protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
@@ -69,10 +71,12 @@ Configuration = (options={}) ->
   logQueueName        = socialQueueName+'log'
 
   KONFIG              =
+    configName                     : configName
     environment                    : environment
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
@@ -87,6 +91,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no}
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
     mq                             : mq
@@ -169,6 +174,7 @@ Configuration = (options={}) ->
       odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint        : {slug:"koding"       , type:"group"}
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
@@ -180,6 +186,7 @@ Configuration = (options={}) ->
   # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
 
   KONFIG.workers =
+    gowebserver         : command : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
     kontrol             : command : "#{GOBIN}/kontrol -region #{region} -environment #{environment} -mongourl #{mongo} -port #{kontrol.port}      -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -machines #{etcd}"
     kloud               : command : "#{GOBIN}/kloud   -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -mongourl #{mongo} -port #{KONFIG.kloud.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -kontrolurl #{kontrol.url} -registerurl #{KONFIG.kloud.registerUrl}"
 

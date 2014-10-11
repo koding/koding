@@ -5,9 +5,10 @@ class ComputeController extends KDController
   @timeout = 30000
 
   constructor:->
+
     super
 
-    { mainController, kontrol } = KD.singletons
+    { mainController, kontrol, router } = KD.singletons
 
     do @reset
 
@@ -446,6 +447,42 @@ class ComputeController extends KDController
     .catch (err)=>
 
       (@errorHandler call, 'info', machine) err
+
+  # Domain management
+  #
+
+  fetchDomains: do (queue=[])->
+
+    (callback = noop)-> KD.singletons.mainController.ready =>
+
+      @domains ?= []
+
+      if @domains.length > 0
+        callback null, @domains
+        info "Domains returned from cache."
+        return
+
+      return  if (queue.push callback) > 1
+
+      topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
+      KD.remote.api.JDomainAlias.some {}, (err, domains)=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
+
+        # Move topDomain to index 0
+        _domains = []
+        for jdomain in domains
+          if jdomain.domain is topDomain
+          then _domains.unshift jdomain
+          else _domains.push    jdomain
+
+        @domains = _domains
+        cb null, @domains  for cb in queue
+        queue = []
 
 
   # Utils beyond this point

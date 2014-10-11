@@ -98,22 +98,19 @@ body.activity
     .announcement-pane .kdtabhandlecontainer.filters
         height          auto
 
-    .message-pane > .listview-wrapper
+    .message-pane > .kdlistview
       margin-top        34px
 
-    .message-pane > .activity-input-widget + .listview-wrapper
+    .message-pane > .activity-input-widget + .kdlistview
       margin-top        0
 
-    .message-pane.privatemessage > .listview-wrapper
+    .message-pane.privatemessage > .kdlistview-privatemessage
       margin-top        0
 
       &.padded
         height            auto
         abs               0 0 0px 34px
         kalc              width (100%\-34px)
-
-        .kdscrollview
-          height          auto
 
     .channel-title
       font-size         18px
@@ -141,7 +138,7 @@ body.activity
 .content-page.activity
 .member.content-display
   .lazy-loader
-    bottom              20px
+    bottom              25px
     left                50%
     abs()
 
@@ -360,17 +357,17 @@ body.activity
     .user-numbers
       float           none
 
-.kdmodal.topic-search
+.kdmodal.sidebar-white-modal
   .lazy-loader
     text-align        center
     margin            22px 0
 
   .kdmodal-inner
-    margin            22px 30px
+    margin            22px 15px 22px 30px
 
   .kdmodal-title
     padding           0 0 16px !important
-    margin            0 0 19px
+    margin            0 15px 19px 0
     border-bottom     1px solid #F1F1F1 !important
 
     span.title
@@ -383,7 +380,9 @@ body.activity
     margin            0 !important
 
   .search-input
-    size              100%, 35px
+    height            35px
+    width             calc(100% \- 15px)
+    margin-right      15px
     background        #fdfdfd
     border            1px solid #D5D5D5
     rounded           3px
@@ -401,12 +400,19 @@ body.activity
       opacity         .99
 
   .search-input + cite.search-icon
-    abs               9px, 9px
+    abs               9px 24px
+
+  .listview-wrapper
+    styleScrollBars   rgba(0,0,0,.15)
+
+  .kdcustomscrollview
+    margin            20px 0
+    padding-right     15px
+
+  .kdscrollview
+    height            400px
 
   .topics-list
-    margin            26px 0 0
-    padding           0 0 20px
-    border-bottom     1px solid #F1F1F1
 
     .nothing
       font-size       12px
@@ -420,6 +426,8 @@ body.activity
       color           #575757
       line-height     25px
       display         block
+      border-bottom   1px solid #efefef
+      padding         5px 0
       noTextDeco()
 
       .participant-count
@@ -433,7 +441,7 @@ body.activity
       .count
         display       none
 
-      .topic-follow-btn
+      .kdbutton
         size          auto, 23px
         background    #61C17F
         padding       0 10px
@@ -457,7 +465,7 @@ body.activity
           border      none !important
 
   .tag-description
-    padding           15px 0 0
+    margin-right      15px
     line-height       17px
     font-size         12px
     color             #BDBDBD
@@ -569,7 +577,7 @@ body.activity
     .topics-list
       max-height      310px
 
-.kdmodal.chat-search.sidebar-dark-modal
+.kdmodal.chat-search
 
   .listview-wrapper .kdlistitemview-sidebar-item
     height            23px
@@ -578,26 +586,13 @@ body.activity
     hidden()
 
   .kdbutton.leave-channel
-    size            auto, 23px
-    background      #686868
-    padding         0 10px
-    fr()
-
-    .button-title
-      display       inline
-      visibility    visible
-      color         #fff
-      font-size     14px
-      font-weight   600
-
-    .icon
-      display       none
+    background      #686868 !important
 
     &:hover
       border        none !important
 
   .sidebar-message-text
-    width           155px
+    width           80%
     overflow        hidden
     ellipsis()
     fl()
@@ -1436,6 +1431,7 @@ span.collapsedtext
           margin            0
           padding           0
           width             100%
+          min-height        153px
 
       .preview-text
         padding             17px
@@ -1837,7 +1833,9 @@ span.collapsedtext
     &.share-linkedin
       r-sprite              activity, "linkedin-21"
 
-deleteRed = rgba(217, 58, 55, 0.9)
+deleteRed  = rgba(217, 58, 55, 0.9)
+timeColor  = #d2d2d2
+timeColor2 = #5F9E5E
 .content-page.activity > main .kdtabpaneview.privatemessage
   min-height            100vh
   padding               58px 34px 0 34px
@@ -1850,6 +1848,10 @@ deleteRed = rgba(217, 58, 55, 0.9)
     width               100%
     padding             34px
     borderBox()
+    &:after
+      left              50% !important
+      opacity           .5 !important
+      margin            -72px 0 0 -72px !important
 
     &.inline
       top               0px
@@ -1968,14 +1970,28 @@ deleteRed = rgba(217, 58, 55, 0.9)
     bg                  color #F6F6F6
     noTextDeco()
 
+  .new-message-form:after
+  .chat-heads:after
+      content           ''
+      r-sprite          activity 'messages-loading'
+      abs               50vh 0 0 -10000px
+      margin            -72px 0 0 -89px
+      vendor            transition, opacity .2s ease-in \,\
+                                    left .1s .5s linear
+      opacity           .01
+
+  .new-message-form.inline:after
+    opacity             .01 !important
+    hidden()
+
   .chat-heads
-    top                     0
-    height                  58px
-    line-height             58px
-    width                   100%
-    max-width               566px
-    z-index                 11
-    bg                      color white
+    top                 0
+    height              58px
+    line-height         58px
+    width               100%
+    max-width           566px
+    z-index             11
+    bg                  color white
     fix()
 
     .kdbuttonwithmenu-wrapper.activity-settings-menu
@@ -2043,14 +2059,30 @@ deleteRed = rgba(217, 58, 55, 0.9)
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-      &.active
-        vendor             pointer-events, none
+  &.translucent
+
+    .chat-heads:after
+      opacity             .5
+      left                50%
+
+    .kdlistview-privatemessage
+      opacity             0.01
 
   .kdlistview-privatemessage
-    padding-bottom          100px
+    padding-bottom        100px
+    opacity               1
+    vendor                transition, opacity .177s ease-in
 
-    &:last-of-type
-      margin-top            0
+
+    > section > time
+
+      color               timeColor2
+      display             block
+      margin              8px 0 0 0
+      line-height         30px
+      font-size           11px
+      z-index             1
+      text-transform      uppercase
 
   .activity-item.privatemessage
     padding           0
@@ -2066,8 +2098,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
       display           inline-block
       width             auto
       overflow          visible
-      color             #d2d2d2
+      color             timeColor
       font-size         10px
+      // hidden()
 
     &.editing
       background        #fdf6e3
@@ -2075,9 +2108,8 @@ deleteRed = rgba(217, 58, 55, 0.9)
         hidden()
 
       .edit-widget-wrapper
-        margin-left       -12px
-        margin-right      30px
-        padding           6px 6px
+        margin            5px 0 0 -12px
+        padding           6px
         rounded           3px
         &:after
           content
@@ -2088,7 +2120,13 @@ deleteRed = rgba(217, 58, 55, 0.9)
           .input-view.hitenterview
             min-height        34px
             padding           6px
-            border-color  #dfcc97
+            border-color      #dfcc97
+            margin-bottom     0
+
+
+    .link-embed-box
+      padding           10px 1px 10px 0
+      display           none
 
 
     &.edited
@@ -2107,20 +2145,23 @@ deleteRed = rgba(217, 58, 55, 0.9)
         visibility    visible !important
 
     .activity-content-wrapper
-      padding           0 0 0 56px
+      margin            0 0 0 56px
+      max-width         475px
+      padding           0
 
       .meta
         margin          8px 0 4px 0px
 
     .comment-time
       cursor            pointer
-      hidden()
+      font-size         11px
+      font-weight       300
+      margin-top        0
 
       &:hover
         text-decoration underline
 
     &.consequent
-      padding-left      56px
 
       .activity-content-wrapper
         padding         0
@@ -2145,9 +2186,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
         display         inline-block
         margin          4px 0 0 0
         height          16px
-        width           62px
+        width           90px
         top             2px
-        left            -62px
+        left            -90px
         text-align      right
         abs()
 
@@ -2155,9 +2196,6 @@ deleteRed = rgba(217, 58, 55, 0.9)
           hidden()
 
         .action-link.like-link
-          display         inline-block
-          padding         5px
-          vertical-align  middle
 
           &:after
             content       ''
@@ -2186,7 +2224,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         visible()
 
     .author-avatar
-      abs                   10px 0 0 0px
+      abs                   10px 0 0 -56px
       border                none
 
     .list-previous-link
@@ -2208,7 +2246,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
         .action-link.like-link
           display         inline-block
           padding         5px
-          vertical-align  middle
+          vertical-align  text-bottom
 
           &:after
             content       ''
@@ -2227,7 +2265,7 @@ deleteRed = rgba(217, 58, 55, 0.9)
           r-sprite        activity heart-dim
 
       > article
-        margin-top          5px
+        margin-top          7px
         padding-top         0
         margin-bottom       0
 
@@ -2345,8 +2383,9 @@ deleteRed = rgba(217, 58, 55, 0.9)
     border              2px solid #eaeaea
     bg                  color white
     rounded             0
-    z-index             1
+    z-index             100
     cursor              text
+    font-size           0
     borderBox()
     fix()
 
@@ -2694,7 +2733,6 @@ dropdownBorder = 1px solid #E0E0E0
   rounded           0
   shadow            dropdownShadow
   margin-top        0
-  top               100px !important
   fix()
 
   .kdautocompletelistitem

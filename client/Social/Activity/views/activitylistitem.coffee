@@ -8,9 +8,9 @@ class ActivityListItemView extends KDListItemView
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
-    options.activitySettings or= {}
     options.attributes       or= {}
     options.attributes.testpath = "ActivityListItemView"
+    options.editWidgetClass  or= ActivityEditWidget
 
     super options, data
 
@@ -41,7 +41,7 @@ class ActivityListItemView extends KDListItemView
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass, activitySettings: {disableFollow}} = options
+    {commentViewClass} = options
 
     {socialapi} = KD.singletons
 
@@ -54,7 +54,6 @@ class ActivityListItemView extends KDListItemView
     @settingsButton = new ActivitySettingsView
       cssClass      : 'settings-menu-wrapper'
       itemView      : this
-      disableFollow : disableFollow
     , data
 
     # related to Latency Compensation:
@@ -117,7 +116,8 @@ class ActivityListItemView extends KDListItemView
   showEditWidget : ->
 
     unless @editWidget
-      @editWidget = new ActivityEditWidget null, @getData()
+      { editWidgetClass } = @getOptions()
+      @editWidget = new editWidgetClass { delegate:this }, @getData()
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidget.input.on 'blur', @bound 'resetEditing'

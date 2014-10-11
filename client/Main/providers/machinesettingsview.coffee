@@ -19,9 +19,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
       arrowTop          : no
       tabs              : forms: Settings: fields:
         accessUri       :
-          label         : "Access URI"
+          label         : "Assigned URL"
           itemClass     : CustomLinkView
-          title         : accessUri
+          title         : data.domain
           href          : accessUri
           target        : '_blank'
           tooltip       :
@@ -101,25 +101,25 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       @machine.setLabel label, (err, newSlug)=>
 
-        if not KD.showError err
+        return if KD.showError err
 
-          nickname.updatePartial "#{label}<cite></cite>"
+        nickname.updatePartial "#{label}<cite></cite>"
 
-          nickEdit.hide()
-          nickname.show()
+        nickEdit.hide()
+        nickname.show()
 
-          frontApp = appManager.getFrontApp()
+        frontApp = appManager.getFrontApp()
 
-          if frontApp.options.name is "IDE" and frontApp.workspaceData?
+        if frontApp.options.name is "IDE" and frontApp.workspaceData?
 
-            return  unless @machine.slug is frontApp.workspaceData.machineLabel
+          return  unless @machine.slug is frontApp.workspaceData.machineLabel
 
-            newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
-            frontApp.workspaceData.machineLabel = newSlug
+          newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
+          frontApp.workspaceData.machineLabel = newSlug
 
-            KD.utils.defer ->
-              computeController.once 'MachineDataUpdated', ->
-                router.clear newRoute
+          KD.utils.defer ->
+            computeController.once 'MachineDataUpdated', ->
+              router.clear newRoute
 
 
   viewAppended:->
@@ -146,6 +146,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       KD.utils.defer -> nickEdit.setFocus()
 
+    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
 
     @addSubView @moreForm = new KDFormViewWithFields
       cssClass         : 'more-form hidden'
@@ -154,18 +155,38 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Keep VM always on"
           itemClass    : KodingSwitch
           defaultValue : @machine.alwaysOn
-          cssClass     : "tiny"
+          cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        domains        :
+          label        : "
+            Domains
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='domain-help'></span>
+            </a>
+            <span class='domain-toggle'></span>
+          "
+          itemClass    : ManageDomainsView
+          machine      : @machine
         advancedView   :
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView} = @moreForm.inputs
-    {label}        = advancedView.getOptions()
+    {advancedView, domains} = @moreForm.inputs
+    advancedLabel = advancedView.getOption 'label'
 
-    label.on 'click', =>
-      label.toggleClass 'expanded'
+    advancedLabel.on 'click', =>
+      advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
+
+    {label} = domains.getOptions()
+
+    label.on 'click', (event)->
+      return  unless $(event.target).hasClass 'domain-toggle'
+      label.toggleClass 'expanded'
+      domains.toggleInput()
+
+    domains.on 'DomainInputCancelled', ->
+      label.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'

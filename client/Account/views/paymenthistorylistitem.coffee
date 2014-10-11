@@ -18,7 +18,6 @@ class PaymentHistoryListItem extends KDListItemView
       <div class='billing-info'>
         <span class='amount'>#{data.amount / 100}</span>
         <span class='invoice-date'>#{dateFormat(data.periodEnd, 'mmm dd, yyyy')}</span>
-        <span class='card-number'>**** #{data.paymentMethod?.last4}</span>
       </div>
     """
 

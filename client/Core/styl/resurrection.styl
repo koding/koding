@@ -587,6 +587,34 @@ div.nominateicon
           font-size       14px
           padding         0 0 9px 2px
 
+    &.domains
+
+      label.kdlabel
+
+        a
+          text-decoration none
+
+        span
+          top             2px
+          left            2px
+          position        relative
+          display         inline-block
+          cursor          pointer
+
+        span.domain-help
+          r-sprite        app 'what-12'
+
+        span.domain-toggle
+          r-sprite        app 'add-12'
+
+        &.expanded
+          span.domain-toggle
+            r-sprite      app 'cancel-12'
+
+      .input-wrapper
+        width             100%
+        overflow          visible
+
 
     &.specs
       label.kdlabel
@@ -653,6 +681,78 @@ div.nominateicon
 
     &.button-field
       margin              0 !important
+
+
+  .domains-view
+
+    padding               2px 0
+    borderBox()
+
+    .in-progress
+      top                 -16px
+      right               2px
+      display             block
+      width               auto
+      height              auto
+      abs()
+
+    .warning
+      top                 -14px
+      right               4px
+      r-sprite            environments, 'warning'
+      abs()
+
+    .input-view
+      border-radius       4px
+      background          white
+      height              22px
+
+      input
+        padding           0
+        margin-right      0
+        text-align        right
+        background        none
+        border            none
+        color             black
+        width             auto
+        height            21px
+        shadow            none
+        fl()
+
+      .domain-suffix
+        color             #999
+        width             auto
+        display           inline-block
+        float             left
+        box-shadow        none
+        ellipsis()
+
+    .listview-wrapper
+      margin-top          4px
+      height              auto
+      padding             0 4px
+
+    .kdlistitemview-domain
+      a
+        text-decoration   none !important
+
+      .koding-on-off
+        right             2px
+        vendor            transform, scale(.7)
+        display           inline-block
+        abs()
+
+      &:hover
+        span.remove-domain
+          display         block
+
+      span.remove-domain
+        top               4px
+        right             36px
+        display           none
+        r-sprite          app 'delete-12'
+        cursor            pointer
+        abs()
 
   label.kdlabel
 
@@ -742,6 +842,11 @@ body.account
   .kdmodal-inner
     margin              36px 51px 51px
 
+    h3
+      text-align          center
+      margin-bottom       10px
+      color               #6f6f6f
+
     .kdmodal-title
       text-align        center
       margin            0 0 30px !important
@@ -782,6 +887,12 @@ body.account
 
         &:before
           content       '$'
+
+        &:after
+          content       '@'
+          left          263px
+          color         #6F6F6F
+          abs()
 
     .payment-method-entry-form
       background        #F8F8F8
@@ -861,7 +972,7 @@ body.account
 
     .existing-cc-msg
       color             #7f7f7f
-      font-size         18px
+      font-size         16px
       line-height       24px
       text-align        center
       padding           40px
@@ -924,10 +1035,10 @@ body.account
 
     .year-price-msg
       display           block
-      font-size         14px
-      color             #7f7f7f
+      font-size         16px
+      color             #6f6f6f
       line-height       19px
-      margin            20px 0 0px
+      margin            25px 0 0px
       opacity           .99
       text-align        center
 
@@ -937,7 +1048,7 @@ body.account
       color             #A7A7A7
       text-align        center
       line-height       17px
-      margin            51px
+      margin            80px 0 10px
       opacity           .99
 
       span
@@ -1142,3 +1253,8 @@ body.account
         r-sprite          'app', 'welcome-btn-chevron'
         margin            21px 24px 0 0
         fr()
+
+
+.kdmodal.domain-assign-modal
+  b
+    font-weight           bold

@@ -4,8 +4,8 @@ class MessagePane extends KDTabPaneView
 
     options.type        or= ''
     options.cssClass      = "message-pane #{options.type}"
-    options.wrapper      ?= yes
     options.lastToFirst  ?= no
+    options.scrollView   ?= yes
     options.itemClass   or= ActivityListItemView
 
     super options, data
@@ -16,7 +16,10 @@ class MessagePane extends KDTabPaneView
       self          : 0
       body          : 0
 
-    {itemClass, lastToFirst, wrapper, channelId} = @getOptions()
+    { itemClass, lastToFirst, wrapper, channelId
+      scrollView, noItemFoundWidget, startWithLazyLoader
+    } = @getOptions()
+
     {typeConstant} = @getData()
 
     @listController = new ActivityListController {
@@ -26,6 +29,9 @@ class MessagePane extends KDTabPaneView
       wrapper
       itemClass
       lastToFirst
+      scrollView
+      noItemFoundWidget
+      startWithLazyLoader
     }
 
     @listController.getView().setClass 'padded'
@@ -124,31 +130,25 @@ class MessagePane extends KDTabPaneView
   handleFocus: (focused) -> @glance()  if focused and @active
 
 
-  scrollDown: (item) ->
+  putNewMessageIndicator: ->
 
-    return  unless @active
 
-    {typeConstant} = @getData()
+  isPageAtBottom: ->
 
-    if item.getDelegate().addSubView
-      listView = item.getDelegate()
-    else
-      listView = item.getDelegate().getListView()
+    {innerHeight}             = window
+    {scrollHeight, scrollTop} = document.body
 
-    unless @separator
-      @separator = new KDView cssClass : 'new-messages'
-      listView.addSubView @separator
+    scrollTop + innerHeight >= scrollHeight
 
-    return  unless item is listView.items.last
 
-    KD.utils.defer -> window.scrollTo 0, document.body.scrollHeight
+  scrollDown: ->
 
 
   scrollUp: ->
 
     return  unless @active
 
-    window.scrollTo 0, 0
+    document.body.scrollTop = 0
 
 
   setScrollTops: ->
@@ -220,11 +220,11 @@ class MessagePane extends KDTabPaneView
     return  unless channel
 
     channel
-      .on 'MessageAdded',   @bound 'addMessage'
+      .on 'MessageAdded',   @bound 'realtimeMessageArrived'
       .on 'MessageRemoved', @bound 'removeMessage'
 
 
-  addMessage: (message) ->
+  realtimeMessageArrived: (message) ->
 
     return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
@@ -308,14 +308,14 @@ class MessagePane extends KDTabPaneView
 
       @listController.hideLazyLoader()
       items.forEach (item, i) =>
-        @appendMessageDeferred item, i, items.length
+        @addMessageDeferred item, i, items.length
 
       KD.utils.defer @bound 'focus'
 
       callback()
 
 
-  appendMessageDeferred: (item, i, total) ->
+  addMessageDeferred: (item, i, total) ->
 
     KD.utils.defer =>
       @appendMessage item
@@ -344,27 +344,36 @@ class MessagePane extends KDTabPaneView
       then KD.utils.defer -> callback null, [data]
       else appManager.tell 'Activity', 'fetch', options, callback
 
-  lazyLoad: ->
+  lazyLoad: do ->
 
-    @listController.showLazyLoader()
+    loading = no
 
-    {appManager} = KD.singletons
-    last         = @listController.getItemsOrdered().last
+    ->
 
-    return @listController.hideLazyLoader()  unless last
+      return  if loading
 
-    if @currentFilter is 'Most Liked'
-      from = null
-      skip = @listController.getItemsOrdered().length
-    else
-      from = last.getData().createdAt
+      @listController.showLazyLoader()
 
-    @fetch {from, skip}, (err, items=[])=>
-      @listController.hideLazyLoader()
+      {appManager} = KD.singletons
+      last         = @listController.getItemsOrdered().last
 
-      return KD.showError err  if err
+      return @listController.hideLazyLoader()  unless last
 
-      items.forEach @lazyBound 'loadMessage'
+      loading = yes
+
+      if @currentFilter is 'Most Liked'
+        from = null
+        skip = @listController.getItemsOrdered().length
+      else
+        from = last.getData().createdAt
+
+      @fetch {from, skip}, (err, items=[])=>
+        loading = no
+        @listController.hideLazyLoader()
+
+        return KD.showError err  if err
+
+        items.forEach @lazyBound 'loadMessage'
 
 
   refresh: ->

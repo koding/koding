@@ -10,6 +10,10 @@ class LeaveChannelButton extends KDButtonView
     @setCallback @bound 'delete'
 
 
-  delete: ->
+  delete: (event) ->
+
+    KD.utils.stopDOMEvent event
 
     PrivateMessageDeleteModal.create @getData()
+
+

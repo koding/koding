@@ -192,8 +192,9 @@ func (c *Controller) updateFile(container *models.ItemContainer) error {
 func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemContainer {
 	container := models.NewItemContainer()
 	hostname := config.MustGet().Hostname
+	protocol := config.MustGet().Protocol
 	for _, v := range items {
-		item := v.Definition(hostname)
+		item := v.Definition(protocol, hostname)
 		switch v.Status {
 		case models.STATUS_ADD:
 			container.Add = append(container.Add, item)

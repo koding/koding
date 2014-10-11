@@ -1,10 +1,6 @@
 package amazon
 
 import (
-	"errors"
-	"fmt"
-
-	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 	"github.com/mitchellh/mapstructure"
 )
@@ -63,43 +59,15 @@ type Amazon struct {
 	}
 }
 
-func New(credential, builder map[string]interface{}) (*Amazon, error) {
-	a := &Amazon{}
-
-	// Credentials
-	if err := mapstructure.Decode(credential, &a.Creds); err != nil {
-		return nil, err
+func New(builder map[string]interface{}, client *ec2.EC2) (*Amazon, error) {
+	a := &Amazon{
+		Client: client,
 	}
 
 	// Builder data
 	if err := mapstructure.Decode(builder, &a.Builder); err != nil {
 		return nil, err
 	}
-
-	if a.Creds.AccessKey == "" {
-		return nil, errors.New("credentials accessKey is empty")
-	}
-
-	if a.Creds.SecretKey == "" {
-		return nil, errors.New("credentials secretKey is empty")
-	}
-
-	if a.Builder.Region == "" {
-		return nil, errors.New("region is required")
-	}
-
-	awsRegion, ok := aws.Regions[a.Builder.Region]
-	if !ok {
-		return nil, fmt.Errorf("region is not an AWS region: %s", a.Builder.Region)
-	}
-
-	a.Client = ec2.New(
-		aws.Auth{
-			AccessKey: a.Creds.AccessKey,
-			SecretKey: a.Creds.SecretKey,
-		},
-		awsRegion,
-	)
 
 	return a, nil
 }

@@ -16,7 +16,7 @@ class SubscriptionView extends JView
     @changeSubscriptionButton = new KDButtonView
       style    : 'solid medium gray'
       cssClass : 'change-subscription-btn'
-      title    : 'Update'
+      title    : 'Upgrade'
       callback : @lazyBound 'emit', 'ChangeSubscriptionRequested', data
 
 

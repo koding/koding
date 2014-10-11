@@ -165,7 +165,7 @@ module.exports.create = (KONFIG, environment)->
 
     # log how long requests take
     log_format timed_combined '$request $request_time $upstream_response_time $pipe';
-    access_log /var/log/nginx/access.log timed_combined;
+    #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
 
     # batch response body
     client_body_in_single_buffer on;
@@ -225,21 +225,21 @@ module.exports.create = (KONFIG, environment)->
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
+
+        #{if environment isnt "dev" then "
+          location ~* \.(map)$ {
+            return 404;
+            access_log off;
+          }
+        " else ""
+        }
+
         root #{KONFIG.projectRoot}/website/;
         # no need to send those requests to nginx access_log
         access_log off;
       }
 
       #{createStubLocation(environment)}
-
-      # temporary exception for kloud to reach webserver without auth
-      location /-/subscriptions {
-        proxy_pass            http://webserver;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
 
       # special case for ELB here, for now
       location /-/healthCheck {
@@ -248,6 +248,28 @@ module.exports.create = (KONFIG, environment)->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+      }
+
+      location ~ /api/social/channel/(.*)/history {
+        proxy_pass            http://socialapi/channel/$1/history$is_args$args;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
+      location = / {
+        if ($args ~ \"_escaped_fragment_\") {
+          proxy_pass http://webserver;
+        }
+
+        proxy_pass            http://gowebserver;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+
+        #{if environment is "sandbox" then basicAuth else ""}
       }
 
       #{createLocations(KONFIG)}

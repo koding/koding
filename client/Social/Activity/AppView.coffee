@@ -9,7 +9,6 @@ class ActivityAppView extends KDView
   constructor:(options = {}, data)->
 
     options.cssClass   = 'content-page activity clearfix'
-    # options.cssClass   = KD.utils.curry 'group', options.cssClass  unless isKoding()
     options.domId      = 'content-page-activity'
 
     super options, data
@@ -22,9 +21,8 @@ class ActivityAppView extends KDView
     {entryPoint}  = KD.config
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
-    # @groupHeader = new FeedCoverPhotoView
 
-    @widgetsBar = new ActivityWidgetsBar
+    @widgetsBar = new ActivityWidgetsBar cssClass : 'hidden'
 
     @tabs = new KDTabView
       tagName             : 'main'
@@ -34,11 +32,10 @@ class ActivityAppView extends KDView
 
     @appStorage.setValue 'liveUpdates', off
 
-    # windowController.on 'ScrollHappened', @bound 'scroll'  unless isKoding()
-
-
 
   lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
+
+  topLazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'TopLazyLoadThresholdReached'
 
 
   viewAppended: ->
@@ -133,7 +130,7 @@ class ActivityAppView extends KDView
       when 'privatemessage' then PrivateMessagePane
       when 'post'           then SingleActivityPane
       else
-        if name is 'announcement-koding'
+        if name is 'announcement-changelog'
         then AnnouncementPane
         else ActivityPane
 
@@ -193,10 +190,7 @@ class ActivityAppView extends KDView
 
   showMoreModal: ({modalClass, moreLink}) ->
 
-    modal      = new modalClass
-      delegate : this
-      width    : 271
-      position : @getModalArrowPosition moreLink
+    modal = new modalClass { delegate : this }
 
     modal.addSubView new KDCustomHTMLView
       cssClass : 'arrow'

@@ -3,15 +3,19 @@ class KodingKite_KloudKite extends KodingKite
   @constructors['kloud'] = this
 
   @createApiMapping
-    stop      : 'stop'
-    start     : 'start'
-    build     : 'build'
-    event     : 'event'
-    reinit    : 'reinit'
-    resize    : 'resize'
-    restart   : 'restart'
-    destroy   : 'destroy'
-    setDomain : 'domain.set'
+    stop         : 'stop'
+    start        : 'start'
+    build        : 'build'
+    event        : 'event'
+    reinit       : 'reinit'
+    resize       : 'resize'
+    restart      : 'restart'
+    destroy      : 'destroy'
+    setDomain    : 'domain.set'
+    addDomain    : 'domain.add'
+    unsetDomain  : 'domain.unset'
+    removeDomain : 'domain.remove'
+
 
   constructor: (options) ->
     super options
