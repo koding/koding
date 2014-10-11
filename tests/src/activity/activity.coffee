@@ -32,3 +32,23 @@ module.exports =
     browser.waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
 
     browser.end()
+
+
+  editPost: (browser) ->
+
+    helpers.postActivity(browser)
+
+    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+
+    browser
+      .waitForElementVisible      selector + ' .settings-menu-wrapper', 10000
+      .click                      selector + ' .settings-menu-wrapper'
+      .click                      '.kdcontextmenu .edit-post'
+      .clearValue                 selector + ' .edit-widget [testpath=ActivityInputView]'
+      .setValue                   selector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
+      .pause                      3000
+      .waitForElementVisible      selector + post, 10000 # Assertion
+      .end()
+
+
