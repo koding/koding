@@ -231,6 +231,10 @@ class SocialApiController extends KDController
     options.apiType = "channel"
     return requester options
 
+  notificationRequesterFn = (options)->
+    options.apiType = "notification"
+    return requester options
+
   requester = (req) ->
     (options, callback)->
       {fnName, validate, mapperFn, defaults, apiType} = req
@@ -247,10 +251,13 @@ class SocialApiController extends KDController
       _.defaults options, defaults  if defaults
 
       api = {}
-      if apiType is "channel"
-        api = KD.remote.api.SocialChannel
-      else
-        api = KD.remote.api.SocialMessage
+      switch apiType
+        when "channel"
+          api = KD.remote.api.SocialChannel
+        when "notification"
+          api = KD.remote.api.SocialNotification
+        else
+          api = KD.remote.api.SocialMessage
 
       api[fnName] options, (err, result)->
         return callback err if err
@@ -312,6 +319,13 @@ class SocialApiController extends KDController
       {event: "AddedToChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]
+
+  serialize = (obj) ->
+    str = []
+    for own p of obj
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+
+    return str.join "&"
 
   message:
     byId                 : messageRequesterFn
@@ -409,10 +423,27 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : channelRequesterFn
-      fnName             : 'fetchActivities'
-      validateOptionsWith: ['id']
-      mapperFn           : mapActivities
+    fetchActivities      : (options, callback)->
+      err = {message: "An error occured"}
+
+      xhr = new XMLHttpRequest
+      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      xhr.open 'GET', endPoint
+      xhr.onreadystatechange = =>
+        # 0     - connection failed
+        # >=400 - http errors
+        return if xhr.status is 0 or xhr.status >= 400
+          return callback err
+
+        return if xhr.readyState isnt 4
+
+        if xhr.status not in [200, 304]
+          return callback err
+
+        response = JSON.parse xhr.responseText
+        return callback null, mapActivities response
+
+      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'
@@ -477,3 +508,10 @@ class SocialApiController extends KDController
       validateOptionsWith: ["channelId"]
 
     revive               : mapChannel
+
+  notifications          :
+    fetch                : notificationRequesterFn
+      fnName             : 'fetch'
+
+    glance               : notificationRequesterFn
+      fnName             : 'glance'

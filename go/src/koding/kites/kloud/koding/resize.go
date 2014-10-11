@@ -32,8 +32,9 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	//		6b. Delete old volume (not needed anymore)
 	// 7. Attach new volume to current stopped instance
 	// 8. Start the stopped instance with the new larger volume
-	// 9. Update Domain record with the new IP (stopping/starting changes the IP)
-	// 10. Check if Klient is running
+	// 9. Update Default Domain record with the new IP (stopping/starting changes the IP)
+	// 11 Update Domain aliases with the new IP (stopping/starting changes the IP)
+	// 12. Check if Klient is running
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
 
@@ -171,6 +172,19 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// update Domain record with the new IP
 	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
+	}
+
+	a.Push("Updating domain aliases", 87, machinestate.Pending)
+	// also get all domain aliases that belongs to this machine and unset
+	domains, err := p.userDomains(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
+		}
 	}
 
 	infoLog("updating user domain tag %s of instance %s", m.Domain.Name, artifact.InstanceId)

@@ -28,7 +28,7 @@ Configuration = (options={}) ->
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -198,7 +198,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
-        locations       : ["~^/IDE/.*", "= /"]
+        locations       : ["~^/IDE/.*"]
     kontrol             :
       group             : "environment"
       ports             :
@@ -389,6 +389,7 @@ Configuration = (options={}) ->
         make configure
         # make install
         cd #{projectRoot}
+        cleanchatnotifications
 
         echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
         mkdir $HOME/.kite &>/dev/null
@@ -701,6 +702,18 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
       }
 
+      function updateusers () {
+
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/user-updater
+
+      }
+
+      function cleanchatnotifications () {
+        cd #{GOBIN}
+        ./notification -c #{socialapi.configFilePath} -h
+      }
+
       function sandbox_buildservices () {
         SANDBOX_SERVICES=54.165.122.100
         SANDBOX_WEB_1=54.165.177.88
@@ -782,6 +795,12 @@ Configuration = (options={}) ->
       elif [ "$1" == "importusers" ]; then
         importusers
 
+      elif [ "$1" == "updateusers" ]; then
+        updateusers
+
+      elif [ "$1" == "cleanchatnotifications" ]; then
+        cleanchatnotifications
+
       elif [ "$1" == "worker" ]; then
 
         if [ "$2" == "" ]; then
@@ -795,9 +814,6 @@ Configuration = (options={}) ->
       elif [ "$#" == "0" ]; then
 
         checkrunfile
-        if ! ./pg-update #{postgres.host} #{postgres.port}; then
-          exit 1
-        fi
         run
 
       else

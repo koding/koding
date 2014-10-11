@@ -4,10 +4,10 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
-	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
+	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 
@@ -33,9 +33,15 @@ func CreatePrivateMessageUser(nickname string) {
 }
 
 func TestPrivateMesssage(t *testing.T) {
-	mm := config.MustRead(*flagConfFile).Mongo
-	modelhelper.Initialize(mm)
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
 	defer modelhelper.Close()
+
 	CreatePrivateMessageUser("devrim")
 	CreatePrivateMessageUser("sinan")
 	CreatePrivateMessageUser("chris")
@@ -273,7 +279,18 @@ func TestPrivateMesssage(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
 
-			history, err := rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(len(history.MessageList), ShouldEqual, 1)
@@ -282,7 +299,14 @@ func TestPrivateMesssage(t *testing.T) {
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
 			So(err, ShouldBeNil)
 
-			history, err = rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			history, err = rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(len(history.MessageList), ShouldEqual, 2)
@@ -298,7 +322,14 @@ func TestPrivateMesssage(t *testing.T) {
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
 			So(err, ShouldBeNil)
 
-			history, err = rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			history, err = rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(len(history.MessageList), ShouldEqual, 2)
@@ -321,7 +352,18 @@ func TestPrivateMesssage(t *testing.T) {
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
 			So(err, ShouldBeNil)
 
-			history, err := rest.GetHistory(cc.Channel.Id, &request.Query{AccountId: account.Id})
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
 			So(len(history.MessageList), ShouldEqual, 2)

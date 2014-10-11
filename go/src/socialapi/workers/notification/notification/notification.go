@@ -2,11 +2,11 @@ package notification
 
 import (
 	"fmt"
-	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/notification/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -44,6 +44,34 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	return nwc, nil
 }
 
+// this is temporary method used for hiding private message notifications
+// previously created. Once it is run in all servers, it will be deleted
+func HidePMNotifications() {
+	// n.log.Debug("hiding pm notifications")
+	fmt.Println("hiding pm notifications")
+	var ids []int64
+	nc := models.NewNotificationContent()
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"type_constant": models.NotificationContent_TYPE_PM,
+		},
+		Pluck: "id",
+	}
+
+	if err := nc.Some(&ids, query); err != nil {
+		fmt.Printf("Could not hide pm notifications: %s \n", err)
+		return
+	}
+
+	if len(ids) == 0 {
+		return
+	}
+
+	if err := models.NewNotification().HideByContentIds(ids); err != nil {
+		fmt.Printf("Could not hide pm notifications: %s \n", err)
+	}
+}
+
 // CreateReplyNotification notifies main thread owner.
 func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) error {
 	// fetch replier
@@ -74,7 +102,8 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
-	// if it is not notifier's own message then add owner to subscribers
+	// if it is not notifier's own message then add replier to subscribers
+	// for further reply notifications
 	if cm.AccountId != rn.NotifierId {
 		n.subscribe(nc.Id, cm.AccountId, subscribedAt)
 	}
@@ -84,7 +113,7 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
-	mentionedUsers, err := n.CreateMentionNotification(reply)
+	mentionedUsers, err := n.CreateMentionNotification(reply, cm.Id)
 	if err != nil {
 		return err
 	}
@@ -142,13 +171,21 @@ func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) 
 func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	switch cm.TypeConstant {
 	case socialapimodels.ChannelMessage_TYPE_POST:
-		_, err := n.CreateMentionNotification(cm)
+		_, err := n.CreateMentionNotification(cm, cm.Id)
 		return err
-	case socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:
-		return n.privateMessageNotification(cm)
 	default:
 		return nil
 	}
+}
+
+func (n *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) error {
+	nc := models.NewNotificationContent()
+	contentIds, err := nc.FetchIdsByTargetId(cm.Id)
+	if err != nil {
+		return err
+	}
+
+	return models.NewNotification().HideByContentIds(contentIds)
 }
 
 func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessage) error {
@@ -188,7 +225,7 @@ func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessa
 }
 
 // CreateMentionNotification creates mention notifications for the related channel messages
-func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage) ([]int64, error) {
+func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMessage, targetId int64) ([]int64, error) {
 	mentionedUserIds := make([]int64, 0)
 	usernames := reply.GetMentionedUsernames()
 
@@ -197,24 +234,28 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		return mentionedUserIds, nil
 	}
 
-	mentionedUserIds, err := fetchParticipantIds(usernames)
+	mentionedUsers, err := socialapimodels.FetchAccountsByNicks(usernames)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, mentionedUser := range mentionedUserIds {
-		if mentionedUser == reply.AccountId {
+	for _, mentionedUser := range mentionedUsers {
+		// if user mentions herself ignore it
+		if mentionedUser.Id == reply.AccountId {
 			continue
 		}
 		mn := models.NewMentionNotification()
-		mn.TargetId = reply.Id
+		mn.TargetId = targetId
+		mn.MessageId = reply.Id
 		mn.NotifierId = reply.AccountId
 		nc, err := models.CreateNotificationContent(mn)
 		if err != nil {
 			return nil, err
 		}
 
-		n.instantNotify(nc.Id, mentionedUser)
+		n.instantNotify(nc.Id, mentionedUser.Id)
+
+		mentionedUserIds = append(mentionedUserIds, mentionedUser.Id)
 	}
 
 	return mentionedUserIds, nil
@@ -293,29 +334,6 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 	}
 
 	return nil
-}
-
-// copy/paste
-func fetchParticipantIds(participantNames []string) ([]int64, error) {
-	participantIds := make([]int64, len(participantNames))
-	for i, participantName := range participantNames {
-		account, err := modelhelper.GetAccount(participantName)
-		if err != nil {
-			return nil, err
-		}
-		a := socialapimodels.NewAccount()
-		a.Id = account.SocialApiId
-		a.OldId = account.Id.Hex()
-		// fetch or create social api id
-		if a.Id == 0 {
-			if err := a.FetchOrCreate(); err != nil {
-				return nil, err
-			}
-		}
-		participantIds[i] = a.Id
-	}
-
-	return participantIds, nil
 }
 
 func filterRepliers(repliers, mentionedUsers []int64) []int64 {
