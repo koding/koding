@@ -5,21 +5,22 @@ faker   = require 'faker'
 
 module.exports =
 
-  activityPost: (browser) ->
+
+  postActivity: (browser) ->
 
     helpers.postActivity(browser)
 
     browser.end()
 
 
-  activityComment: (browser) ->
+  postComment: (browser) ->
 
     helpers.postComment(browser)
 
     browser.end()
 
 
-  activityLike: (browser) ->
+  likeActivity: (browser) ->
 
     helpers.postActivity(browser)
     selector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child [testpath=activity-like-link]'
