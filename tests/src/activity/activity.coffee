@@ -72,3 +72,16 @@ module.exports =
       .end()
 
 
+  likeComment: (browser) ->
+
+    helpers.postComment(browser)
+
+    comment         =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    commentSelector = selector + ' .comment-container .kdlistitemview-comment:first-child'
+
+    browser
+      .waitForElementVisible    commentSelector, 3000
+      .click                    commentSelector + ' [testpath=activity-like-link]'
+      .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
+      .end()
