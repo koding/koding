@@ -146,6 +146,7 @@ module.exports.create = (KONFIG, environment)->
 
   config = """
   worker_processes #{if environment is "dev" then 5 else 16};
+  worker_rlimit_nofile 100000;
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
@@ -171,6 +172,7 @@ module.exports.create = (KONFIG, environment)->
     client_body_in_single_buffer on;
     client_header_buffer_size 4k;
     client_max_body_size 10m;
+    send_timeout 10;
 
     sendfile on;
 
@@ -237,6 +239,7 @@ module.exports.create = (KONFIG, environment)->
         root #{KONFIG.projectRoot}/website/;
         # no need to send those requests to nginx access_log
         access_log off;
+        expires 30d;
       }
 
       #{createStubLocation(environment)}
