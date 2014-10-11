@@ -22,22 +22,30 @@ koding.once 'dbClientReady', ->
   JAccount     = rekuire 'account.coffee'
   JDomainAlias = rekuire 'domainalias.coffee'
 
-  index  = 0
-  dindex = 0
+  gskip  = 0
 
   JAccount.count {type:'registered'}, (err, total)->
     return console.warn err  if err?
+    limit = 100
 
-    JAccount.each {type:'registered'}, {}, (err, account)->
-      return console.warn err  if err?
-      return  unless account?
+    fetcher = (skip)->
+      dindex = 0
+      index  = skip
+      JAccount.each {type:'registered'}, {}, {skip, limit}, (err, account)->
+        return console.warn err  if err?
+        return  unless account?
 
-      index++
-      console.log "Working on #{index}. user"  if index % 10 is 0
-      JDomainAlias.ensureTopDomainExistence account, null, (err)->
-        console.warn err  if err?
-        dindex++
-        if dindex is total
-          console.log "#{index} users updated."
-          console.log "Have a nice day!"
-          process.exit 0
+        index++
+        console.log "Working on #{index}. user"  if index % 10 is 0
+        JDomainAlias.ensureTopDomainExistence account, null, (err)->
+          console.warn err  if err?
+          dindex++
+          if dindex is limit
+            console.log "#{index} users updated."
+            console.log "Moving to next batch."
+            fetcher skip + limit
+          else if skip >= total
+            console.log "ALL DONE"
+            process.exit 0
+
+    fetcher gskip
