@@ -7,14 +7,16 @@ class IDE.EditorPane extends IDE.Pane
     options.cssClass = KD.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'editor'
 
+    {file} = options
+    @file  = file
+
     super options, data
+
+    @hash  = file.paneHash  if file.paneHash
 
     @on 'SaveRequested', @bound 'save'
 
     @createEditor()
-
-    {file} = @getOptions()
-    @hash  = file.paneHash
 
     file.once 'fs.delete.finished', =>
       KD.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
@@ -40,6 +42,7 @@ class IDE.EditorPane extends IDE.Pane
     ace.once 'ace.ready', =>
       @getEditor().setValue content, 1
       ace.setReadOnly yes  if @getOptions().readOnly
+      @bindChangeListeners()
       @emit 'EditorIsReady'
 
   save: ->
@@ -71,6 +74,35 @@ class IDE.EditorPane extends IDE.Pane
 
   getFile: ->
     return @aceView.getData()
+
+  bindChangeListeners: ->
+    ace           = @getAce()
+    change        =
+      origin      : KD.nick()
+      context     :
+        paneHash  : @hash
+        paneType  : @getOptions().paneType
+        file      :
+          path    : @file.path
+          machine :
+            uid   : @file.machine.uid
+
+    ace.on 'ace.change.cursor', (cursor) =>
+      change.type = 'CursorActivity'
+      change.context.cursor = cursor
+
+      @emit 'ChangeHappened', change
+
+    ace.on 'FileContentChanged', =>
+      change.type = 'ContentChange'
+      change.context.content = @getContent()
+
+      @emit 'ChangeHappened', change
+
+    ace.on 'FileContentSynced', =>
+      change.type = 'FileSave'
+
+      @emit 'ChangeHappened', change
 
   serialize: ->
     file       = @getFile()

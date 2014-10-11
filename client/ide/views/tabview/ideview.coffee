@@ -71,7 +71,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
     editorPane.once 'EditorIsReady', ->
-      {ace}      = editorPane.aceView
+      ace        = editorPane.getAce()
       appManager = KD.getSingleton 'appManager'
 
       ace.on 'ace.change.cursor', (cursor) ->
@@ -86,6 +86,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       callback editorPane
 
     @createPane_ editorPane, paneOptions, file
+
+    change        =
+      context     :
+        file      :
+          content : content
+          path    : file.path
+          machine :
+            uid   : file.machine.uid
+
+    @emitChange editorPane, change
 
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
@@ -107,10 +117,31 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
-      terminalPane.webtermView.on 'click', @bound 'click'
+      terminalPane.webtermView.on 'click', =>
+        @click()
+
+    change        =
+      context     :
+        machine   :
+          uid     : machine.uid
+
+    @emitChange terminalPane, change
+
+
+  emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
+    change.context.paneType = pane.options?.paneType or null
+    change.context.paneHash = pane.hash or null
+
+    change.type   = type
+    change.origin = KD.nick()
+
+    @emit 'ChangeHappened', change
+
 
   createDrawingBoard: ->
-    @createPane_ new IDE.DrawingPane, { name: 'Drawing' }
+    drawingPane = new IDE.DrawingPane
+    @createPane_ drawingPane, { name: 'Drawing' }
+    @emitChange  drawingPane, context: {}
 
   createPreview: (url) ->
     previewPane = new IDE.PreviewPane { url }
@@ -118,6 +149,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     previewPane.on 'LocationChanged', (newLocation) =>
       @updateStatusBar 'preview', newLocation
+
+    @emitChange previewPane, context: { url }
 
   showView: (view) ->
     @createPane_ view, { name: 'Search Result' }
@@ -162,7 +195,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     pane = @getActivePaneView()
     return unless pane
 
-    KD.utils.defer ->
+    KD.utils.defer =>
       {paneType} = pane.getOptions()
       appManager = KD.getSingleton 'appManager'
 
@@ -174,6 +207,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         appManager.tell 'IDE', 'showFindAndReplaceViewIfNecessary'
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
+
+      @emitChange pane, context: {}, 'TabChanged'
 
   goToLine: ->
     @getActivePaneView().aceView.ace.showGotoLine()
@@ -207,6 +242,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   handlePaneRemoved: (pane) ->
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
+    @emitChange pane.view, context: {}, 'TabRemoved'
     @emit 'PaneRemoved', pane
 
   getDummyFilePath: ->
@@ -230,7 +266,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
           @tabView.removePane pane
 
   getPlusMenuItems: ->
-    items =
+    ideApp = KD.getSingleton('appManager').getFrontApp()
+    items  =
       'New File'          : callback : => @createEditor()
       'New Terminal'      : callback : => @createTerminal()
       'New Browser'       : callback : => @createPreview()
@@ -238,17 +275,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         callback          : => @createDrawingBoard()
         separator         : yes
       'Split Vertically':
-        callback          : ->
-          KD.getSingleton('appManager').getFrontApp().splitVertically()
+        callback          : -> ideApp.splitVertically()
       'Split Horizontally':
-        callback          : ->
-          KD.getSingleton('appManager').getFrontApp().splitHorizontally()
+        callback          : -> ideApp.splitHorizontally()
 
     if @parent instanceof KDSplitViewPanel
       items['Undo Split'] =
         separator         : yes
-        callback          : ->
-          KD.getSingleton('appManager').getFrontApp().mergeSplitView()
+        callback          : -> ideApp.mergeSplitView()
     else
       items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
         type              : 'separator'
