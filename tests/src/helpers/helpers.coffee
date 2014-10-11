@@ -66,9 +66,10 @@ module.exports =
     @doLogin browser, user
 
 
-  postActivity: (browser) ->
+  postActivity: (browser, shouldBeginTest = yes) ->
 
-    @beginTest(browser)
+    if shouldBeginTest
+      @beginTest(browser)
 
     browser.click '[testpath=public-feed-link]'
 
