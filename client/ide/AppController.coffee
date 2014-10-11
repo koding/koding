@@ -479,9 +479,15 @@ class IDEAppController extends AppController
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
 
+    ideView.on 'ChangeHappened', (change) =>
+      @logChange change
+
   registerPane: (pane) ->
     @generatedPanes or= {}
     @generatedPanes[pane.view.hash] = yes
+    view.on 'ChangeHappened', (change) =>
+      @logChange change
+
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     if typeof callback is 'string'
@@ -712,3 +718,16 @@ class IDEAppController extends AppController
             @createNewBrowser()
 
         @generatedPanes[pane.hash] = yes
+
+
+  logChange: (change = {}) ->
+    {context, origin, type} = change
+
+    unless context and origin and type
+      throw new Error 'Missing argument, see IDEAppController::logChange'
+
+    log change
+
+    @firebase.child(KD.nick()).child('changes').push change
+
+
