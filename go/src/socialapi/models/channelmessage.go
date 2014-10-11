@@ -134,6 +134,23 @@ func bodyLenCheck(body string) error {
 	return nil
 }
 
+// todo create a new message while updating the channel_message and delete other
+// cases, since deletion is a soft delete, old instances will still be there
+
+// CreateRaw creates a new channel message without effected by auto generated createdAt
+// and updatedAt values
+func (c *ChannelMessage) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("body","slug","type_constant","account_id","initial_channel_id",` +
+		`"created_at","updated_at","deleted_at","payload") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
+}
+
 // UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
 // timestamps
 func (c *ChannelMessage) UpdateBodyRaw() error {

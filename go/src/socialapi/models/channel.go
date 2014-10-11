@@ -152,6 +152,19 @@ func (c *Channel) Create() error {
 	return bongo.B.Create(c)
 }
 
+func (c *Channel) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.TableName() +
+		` ("name","creator_id","group_name","purpose","type_constant",` +
+		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Name, c.CreatorId,
+		c.GroupName, c.Purpose, c.TypeConstant, c.PrivacyConstant,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt).Scan(&c.Id)
+}
+
 // AddParticipant adds a user(participant) to the channel
 // if account is already in the channel,
 // it won't add again user to channel as participant
