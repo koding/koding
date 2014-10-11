@@ -99,6 +99,7 @@
     "xml2js": "0.2.6"
   },
   "devDependencies": {
+    "gulp-coffee": "^2.2.0",
     "which": "^1.0.5"
   },
   "optionalDependencies": {},
