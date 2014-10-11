@@ -1,6 +1,7 @@
 utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 faker   = require 'faker'
+assert  = require 'assert'
 
 
 module.exports =
@@ -49,6 +50,25 @@ module.exports =
       .setValue                   selector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
       .pause                      3000
       .waitForElementVisible      selector + post, 10000 # Assertion
+      .end()
+
+
+  deletePost: (browser) ->
+
+    helpers.postActivity(browser)
+    helpers.postActivity(browser, no)
+
+    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+
+    browser
+      .waitForElementVisible        selector + ' .settings-menu-wrapper', 10000
+      .click                        selector + ' .settings-menu-wrapper'
+      .click                        '.kdcontextmenu .delete-post'
+      .click                        '.kdmodal-inner .modal-clean-red'
+      .pause                        3000, ->
+        text = browser.getText selector
+        assert.notEqual text, post # Assertion
       .end()
 
 
