@@ -1,4 +1,3 @@
-
 traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
@@ -6,7 +5,7 @@ os                    = require 'os'
 
 Configuration = (options={}) ->
 
-  boot2dockerbox      = "192.168.59.103"
+  boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
   hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
@@ -26,7 +25,7 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                      }
+  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , protocol:           'http:'                                 , defaultFromAddress: 'hello@koding.com'          , defaultFromName: 'koding'                             , username: "#{sendgrid.username}"      , password:      "#{sendgrid.password}"                   , forcedRecipient: undefined }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
@@ -59,10 +58,10 @@ Configuration = (options={}) ->
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "30" }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
-    debug             : yes
+    debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
 
   userSitesDomain     = "dev.koding.io"
@@ -119,8 +118,8 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
-    statsd                         : {use           : false                                          , ip            : "#{customDomain.host}"                       , port: 8125}
-    graphite                       : {use           : false                                          , host          : "#{customDomain.host}"                       , port: 2003}
+    statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
+    graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
     logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
     aws                            : {key           : "AKIAJSUVKX6PD254UGAA"                         , secret        : "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"}
@@ -199,7 +198,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{publicHostname}/-/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -533,9 +532,11 @@ Configuration = (options={}) ->
 
         check_service_dependencies
 
-        if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
-          exit 1
+        if [[ `uname` == 'Darwin' ]]; then
+          if [ -z "$DOCKER_HOST" ]; then
+            echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
+            exit 1
+          fi
         fi
 
         mongo #{mongo} --eval "db.stats()"  # do a simple harmless command of some sort
@@ -557,7 +558,6 @@ Configuration = (options={}) ->
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
         command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
         command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-        command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
         command -v mongorestore  >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
         command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
         command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
@@ -565,8 +565,14 @@ Configuration = (options={}) ->
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
 
-        brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
+        if [[ `uname` == 'Darwin' ]]; then
+          brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
+          command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        elif [[ `uname` == 'Linux' ]]; then
+          command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
 
+
+        fi
         check_gulp_version
       }
 
@@ -589,7 +595,9 @@ Configuration = (options={}) ->
 
       function build_services () {
 
-        boot2docker up
+        if [[ `uname` == 'Darwin' ]]; then
+          boot2docker up
+        fi
 
         echo "Stopping services: $SERVICES"
         docker stop $SERVICES
@@ -640,7 +648,9 @@ Configuration = (options={}) ->
 
       function services () {
 
-        boot2docker up
+        if [[ `uname` == 'Darwin' ]]; then
+          boot2docker up
+        fi
         EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
         if [ $? -eq 1 ]; then
           echo ""
@@ -760,9 +770,16 @@ Configuration = (options={}) ->
       elif [ "$#" == "0" ]; then
 
         checkrunfile
-        if ! ./pg-update #{postgres.host} #{postgres.port}; then
-          exit 1
-        fi
+        
+        # @senthil
+        # move this line to appropriate check function. do not write it inline like this.
+        # fix this for linux as well.
+        
+        #if ! ./pg-update #{postgres.host} #{postgres.port}; then
+        #  exit 1
+        #fi
+        
+        
         run
 
       else
