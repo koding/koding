@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 
@@ -16,6 +17,13 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 		Desc:  accId,
 		Email: email,
 		Token: token,
+	}
+
+	account, err := modelhelper.GetAccountById(accId)
+	if err == nil {
+		params.Meta = map[string]string{
+			"username": account.Profile.Nickname,
+		}
 	}
 
 	externalCustomer, err := stripeCustomer.New(params)
