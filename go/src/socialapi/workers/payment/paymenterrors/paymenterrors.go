@@ -22,7 +22,7 @@ var (
 	// ErrPlanNotFoundFn returns true if argument has part of pg error
 	// messages matches. We do partial match since pg error message also
 	// returns the dynamic enum value.
-	ErrPlanNotFoundFn = func(err error) bool {
+	IsPlanNotFoundErr = func(err error) bool {
 		if err == nil {
 			return false
 		}
@@ -30,5 +30,9 @@ var (
 		return strings.Contains(
 			err.Error(), "pq: invalid input value for enum payment.plan",
 		)
+	}
+
+	IsNothingToInvoiceErr = func(err error) bool {
+		return err.Error() == "Nothing to invoice for customer"
 	}
 )
