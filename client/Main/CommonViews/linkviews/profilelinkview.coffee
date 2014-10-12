@@ -34,7 +34,6 @@ class ProfileLinkView extends LinkView
     @updateHref()
 
 
-
   updateHref: ->
     nickname = @getData().profile?.nickname
     @setAttribute "href", "/#{nickname}"  if nickname
