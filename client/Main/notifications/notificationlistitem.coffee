@@ -31,6 +31,7 @@ class NotificationListItemView extends KDListItemView
 
     super options, data
 
+    @updateHref()
 
     @participants = new KDCustomHTMLView
     @avatar       = new KDCustomHTMLView
@@ -50,6 +51,25 @@ class NotificationListItemView extends KDListItemView
       @template.update()
     .catch (err) ->
       warn err.description
+
+
+  updateHref: ->
+
+    { socialapi } = KD.singletons
+
+    href = '#'
+
+    { groupifyLink } = KD.utils
+
+    switch @getData().type
+      when 'comment', 'like', 'mention'
+        socialapi.message.byId { id: @getData().targetId }, (err, post) =>
+          return warn err  if err
+          @setAttribute 'href', groupifyLink "/Activity/Post/#{post.slug}"
+      when 'follow'
+        @setAttribute 'href', groupifyLink "/#{@actors.first.profile.nickname}"
+      when 'join', 'leave'
+        @setAttribute 'href', '#'
 
 
   click: (event) ->
