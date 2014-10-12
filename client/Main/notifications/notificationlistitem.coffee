@@ -22,7 +22,7 @@ class NotificationListItemView extends KDListItemView
     leave    : "left"
     mention  : "mentioned you in"
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.tagName        or= "a"
     options.linkGroupClass or= LinkGroup
@@ -31,46 +31,13 @@ class NotificationListItemView extends KDListItemView
 
     super options, data
 
+
     @participants = new KDCustomHTMLView
-    @avatar = new KDCustomHTMLView
-
-    # if @snapshot.anchor.constructorName is "JGroup"
-    #   @interactedGroups = new options.linkGroupClass
-    #     itemClass : GroupLinkView
-    #     group     : [@snapshot.anchor.data]
-    # else
-    # @interactedGroups = new KDCustomHTMLView
-
+    @avatar       = new KDCustomHTMLView
     @activityPlot = new KDCustomHTMLView tagName: "span"
     @timeAgoView  = new KDTimeAgoView null, @getLatestTimeStamp @getData().dummy
 
-
     @initializeReadState()
-
-  initializeReadState: ->
-    if @getData().glanced
-    then @unsetClass 'unread'
-    else @setClass 'unread'
-
-
-  fetchActors: ->
-    @actors = []
-    options = @getOptions()
-    {latestActors} = @getData()
-    constructorName = 'JAccount'
-    origins = latestActors.map (id) -> {id, constructorName}
-
-    new Promise (resolve, reject) =>
-      KD.remote.cacheable origins, (err, actors) =>
-        return reject err if err?
-        @actors = actors
-        @participants = new options.linkGroupClass {group:actors}
-        @avatar       = new options.avatarClass
-          size     :
-            width  : 24
-            height : 24
-          origin   : @actors[0]
-        resolve()
 
 
   viewAppended: ->
@@ -85,72 +52,16 @@ class NotificationListItemView extends KDListItemView
       warn err.description
 
 
-  pistachio: ->
-    """
-    <div class='avatar-wrapper fl'>
-      {{> @avatar}}
-    </div>
-    <div class='right-overflow fl'>
-      {{> @participants}}
-      {{  @getActionPhrase #(dummy)}}
-      {{> @activityPlot}}
-      {{> @timeAgoView}}
-    </div>
-    """
-
-
-  getLatestTimeStamp: ->
-    return @getData().updatedAt
-
-
-  getActionPhrase: ->
-    {type} = @getData()
-    actionPhraseMap[type]
-
-
-  getActivityName: ->
-    return activityNameMap[@getData().type]
-
-
-  getActivityPlot: ->
-
-    new Promise (resolve, reject) =>
-      data = @getData()
-      adjective = ""
-      switch data.type
-        when "comment", "like", "mention"
-          {message} = KD.singletons.socialapi
-          message.byId {id: data.targetId}, (err, message)=>
-            return reject err  if err or not message
-
-            KD.remote.cacheable 'JAccount', message.account._id, (err, origin)=>
-              return reject err  if err or not origin
-
-              adjective = if message.account._id is KD.whoami()?.getId() then "your"
-              else if @actors.length == 1 and @actors[0].getId() is origin.getId() then "their own"
-              else
-                originatorName = KD.utils.getFullnameFromAccount origin
-                "#{originatorName}'s"
-
-              @activityPlot.updatePartial "#{adjective} #{@getActivityName()}"
-              resolve()
-        else
-          @activityPlot.updatePartial "#{@getActivityName()}"
-          resolve()
-
-
   click: (event) ->
 
     KD.utils.stopDOMEvent event
-
-    { router } = KD.singletons
 
     showPost = (err, post)->
       return warn err if err
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
+        KD.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -163,10 +74,87 @@ class NotificationListItemView extends KDListItemView
       when "comment", "like", "mention"
         {message} = KD.singletons.socialapi
         message.byId {id: @getData().targetId}, showPost
-      when "follow"
-        router.handleRoute "/#{@actors[0].profile.nickname}"
-      when "join", "leave"
-        return
-        # do nothing
+      when "follow"        then router.handleRoute "/#{@actors[0].profile.nickname}"
+      when "join", "leave" then return
+
+
+  initializeReadState: ->
+
+    if @getData().glanced
+    then @unsetClass 'unread'
+    else @setClass 'unread'
+
+
+  fetchActors: ->
+
+    @actors         = []
+    options         = @getOptions()
+    {latestActors}  = @getData()
+    constructorName = 'JAccount'
+    origins         = latestActors.map (id) -> {id, constructorName}
+
+    new Promise (resolve, reject) =>
+      KD.remote.cacheable origins, (err, actors) =>
+        return reject err if err?
+        @actors = actors
+        @participants = new options.linkGroupClass {group: actors}
+        @avatar       = new options.avatarClass
+          size     :
+            width  : 24
+            height : 24
+          origin   : @actors[0]
+        resolve()
+
+
+  getLatestTimeStamp: -> @getData().updatedAt
+
+
+  getActionPhrase: -> actionPhraseMap[@getData().type]
+
+
+  getActivityName: -> activityNameMap[@getData().type]
+
+
+  getActivityPlot: ->
+
+    new Promise (resolve, reject) =>
+      data = @getData()
+      adjective = ""
+      if data.type in ['comment', 'like', 'mention']
+        {message} = KD.singletons.socialapi
+        message.byId {id: data.targetId}, (err, message) =>
+
+          return reject err  if err or not message
+
+          KD.remote.cacheable 'JAccount', message.account._id, (err, origin) =>
+            return reject err  if err or not origin
+
+            isMine     = message.account._id is KD.whoami().getId()
+            isTheirOwn = @actors.length is 1 and @actors[0].getId() is origin.getId()
+
+            adjective = if isMine then "your"
+            else if isTheirOwn then "their own"
+            else "#{KD.utils.getFullnameFromAccount origin}'s"
+
+            @activityPlot.updatePartial "#{adjective} #{@getActivityName()}"
+            resolve()
+      else
+        @activityPlot.updatePartial "#{@getActivityName()}"
+        resolve()
+
+
+
+  pistachio: ->
+    """
+    <div class='avatar-wrapper fl'>
+      {{> @avatar}}
+    </div>
+    <div class='right-overflow fl'>
+      {{> @participants}}
+      {{  @getActionPhrase #(dummy)}}
+      {{> @activityPlot}}
+      {{> @timeAgoView}}
+    </div>
+    """
 
 
