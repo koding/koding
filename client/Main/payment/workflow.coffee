@@ -59,7 +59,7 @@ class PaymentWorkflow extends KDController
 
     @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished', @bound 'finish'
-    @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
+    @modal.on 'PaymentSubmitted',        @bound 'handlePaymentSubmit'
 
 
   startDowngradeFlow: ->
@@ -81,8 +81,10 @@ class PaymentWorkflow extends KDController
     {
       cardNumber, cardCVC, cardMonth,
       cardYear, planTitle, planInterval,
-      currentPlan
+      currentPlan, cardName
     } = formData
+
+    console.log {cardName}
 
     # Just because stripe validates both 2 digit
     # and 4 digit year, and different types of month
@@ -98,7 +100,8 @@ class PaymentWorkflow extends KDController
         cvc       : cardCVC
         exp_month : cardMonth
         exp_year  : cardYear
-      } , (status, response) =>
+        name      : cardName
+      }, (status, response) =>
 
         if response.error
           @modal.emit 'StripeRequestValidationFailed', response.error
