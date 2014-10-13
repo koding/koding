@@ -45,6 +45,7 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
   resetDecoration:->
     @username.resetDecoration()
     @password.resetDecoration()
+    @button.hideLoader()
 
   pistachio:->
     """
