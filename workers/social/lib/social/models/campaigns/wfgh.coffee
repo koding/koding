@@ -31,7 +31,9 @@ module.exports = class JWFGH extends Model
 
   @apply = (account, callback) ->
 
-    username = account.profile.nickname
+    username = account?.profile?.nickname
+
+    return callback message : 'No username received!'  unless username
 
     JWFGH.one {username}, (err, data)->
 
