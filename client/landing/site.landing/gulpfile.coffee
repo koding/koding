@@ -49,20 +49,27 @@ gulp.task 'build-kd', req 'task.build-kd'
 
 # WATCHERS
 
-watchersArray = [ 'watch-styles', 'watch-coffee', 'watch-index' ]
+watchersTasks = [ 'watch-styles', 'watch-coffee' ]
 
-gulp.task 'watch-styles', -> watchLogger 'cyan', gulp.watch STYLES_PATH, ['styles-only']
+getWatcherTask = (tasks, exporterTask) ->
+  tasks.push exporterTask  if argv.exportDir
+  return tasks
 
-gulp.task 'watch-coffee', -> watchLogger 'cyan', gulp.watch COFFEE_PATH, ['coffee']
+gulp.task 'watch-styles', ['styles'], -> watchLogger 'cyan', gulp.watch STYLES_PATH, (getWatcherTask ['styles-only'], 'export-only-styles')
 
-gulp.task 'watch-index', -> watchLogger 'yellow', gulp.watch INDEX_PATH, ['index']
+gulp.task 'watch-coffee', ['coffee'], -> watchLogger 'cyan', gulp.watch COFFEE_PATH, (getWatcherTask ['coffee'], 'export-only-coffee')
 
-gulp.task 'watchers', watchersArray
+gulp.task 'watchers', watchersTasks
 
+buildTasks = ['build-kd', 'libs', 'sprites', 'styles', 'coffee']
 
 # EXPORT
 
-gulp.task 'export', req 'task.export'
+gulp.task 'export-only', req 'task.export'
+gulp.task 'export-only-coffee', ['coffee'], req 'task.export'
+gulp.task 'export-only-styles', ['styles-only'], req 'task.export'
+
+gulp.task 'export', buildTasks, req 'task.export'
 
 
 # CLEANUP
@@ -72,8 +79,15 @@ gulp.task 'clean', req 'task.clean'
 
 # COMBINED TASKS
 
-gulp.task 'build', ['build-kd', 'sprites', 'styles', 'coffee', 'index']
+log 'green', buildTasks
 
-gulp.task 'watch', ['build'].concat watchersArray
+gulp.task 'libs', req 'task.libs'
 
-gulp.task 'default', ['watch']
+gulp.task 'build', buildTasks
+
+gulp.task 'watch', ['build'].concat watchersTasks
+
+defaultTasks = ['watch']
+defaultTasks.push 'export'  if argv.exportDir
+
+gulp.task 'default', defaultTasks
