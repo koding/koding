@@ -521,9 +521,7 @@ isInAppRoute = (name)->
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
 
-app.get '/WFGH', (req, res, next)->
 
-  {JGroup} = koding.models
 
   isLoggedIn req, res, (err, loggedIn, account)->
 
@@ -556,6 +554,22 @@ app.post '/Gravatar', (req, res) ->
       return res.status(200).send gravatar
 
     res.status(400).send body
+
+
+app.get '/WFGH/:section?', (req, res, next)->
+
+  {JGroup} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return next()  if err
+    JGroup.render.loggedOut.kodingHome {
+      campaign    : 'hackathon'
+      bongoModels : koding.models
+      loggedIn
+      account
+    }, (err, html)->
+      res.status(200).send html
 
 
 
