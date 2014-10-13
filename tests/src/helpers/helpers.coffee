@@ -71,7 +71,7 @@ module.exports =
     if shouldBeginTest
       @beginTest(browser)
 
-    browser.click '[testpath=public-feed-link]'
+    browser.click '[testpath="public-feed-link/Activity/Topic/public"]'
 
     post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
 
