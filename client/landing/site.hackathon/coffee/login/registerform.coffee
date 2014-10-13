@@ -1,6 +1,5 @@
 LoginViewInlineForm      = require './loginviewinlineform'
 LoginInputView           = require './logininputview'
-LoginInputViewWithLoader = require './logininputwithloader'
 
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
@@ -9,11 +8,11 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   ENTER          = 13
 
   constructor:(options={},data)->
+
     super options, data
 
-
     @email?.destroy()
-    @email = new LoginInputViewWithLoader
+    @email = new LoginInputView
       inputOptions    :
         name          : "email"
         placeholder   : "email address"
@@ -158,6 +157,3 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     </section>
     {{> @invitationCode}}
     """
-      # <div>{{> @fullName}}</div>
-    #   <div>{{> @password}}</div>
-    #   <div>{{> @passwordConfirm}}</div>

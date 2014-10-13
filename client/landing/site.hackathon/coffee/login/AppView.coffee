@@ -6,7 +6,6 @@ RedeemInlineForm                      = require './redeemform'
 RecoverInlineForm                     = require './recoverform'
 ResetInlineForm                       = require './resetform'
 ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
-FinishRegistrationForm                = require './finishregistrationform'
 LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
@@ -100,18 +99,10 @@ module.exports = class LoginView extends JView
 
     @github.setPartial "<span class='button-arrow'></span>"
 
-    # @loginOptions = new LoginOptions
-    #   cssClass : "login-options-holder log"
-
-    # @registerOptions = new RegisterOptions
-    #   cssClass : "login-options-holder reg"
-
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       testPath : "login-form"
-      callback : (formData)=>
-
-        @doLogin formData
+      callback : @bound 'doLogin'
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
@@ -122,31 +113,20 @@ module.exports = class LoginView extends JView
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
-      callback : (formData)=>
-
-        @doRedeem formData
+      callback : @bound 'doRedeem'
 
     @recoverForm = new RecoverInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-
-        @doRecover formData
+      cssClass : 'login-form'
+      callback : @bound 'doRecover'
 
     @resendForm = new ResendEmailConfirmationLinkInlineForm
       cssClass : "login-form"
-      callback : (formData)=>
-        @resendEmailConfirmationToken formData
+      callback : @bound 'resendEmailConfirmationToken'
 
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
-      callback : (formData)=>
-        @doReset formData
-
-    @finishRegistrationForm = new FinishRegistrationForm
-      cssClass  : "login-form foobar"
-      callback  : (formData) =>
-        @doFinishRegistration formData
+      callback : @bound 'doReset'
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -222,9 +202,6 @@ module.exports = class LoginView extends JView
       </div>
       <div class="login-form-holder rf">
         {{> @registerForm}}
-      </div>
-      <div class="login-form-holder frf">
-        {{> @finishRegistrationForm}}
       </div>
       <div class="login-form-holder rdf">
         {{> @redeemForm}}
@@ -677,8 +654,6 @@ module.exports = class LoginView extends JView
     switch name
       when "register"
         @registerForm.email.input.setFocus()
-      when "finishRegistration"
-        @finishRegistrationForm.username.input.setFocus()
       when "redeem"
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
