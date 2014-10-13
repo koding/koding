@@ -252,7 +252,7 @@ app.post "/:name?/Validate", (req, res) ->
   { fields } = req.body
 
   unless fields?
-    res.status(400).send "Bad request"
+    res.status(400).send 'Bad request'
     return
 
   validations = Object.keys fields
@@ -275,6 +275,7 @@ app.post "/:name?/Validate/Username/:username?", (req, res) ->
   return res.status(400).send 'Bad request'  unless username?
 
   JUser.usernameAvailable username, (err, response) =>
+
     return res.status(400).send 'Bad request'  if err
 
     {kodingUser, forbidden} = response
@@ -520,9 +521,6 @@ isInAppRoute = (name)->
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
 
-# Handles all internal pages
-# /USER || /SECTION || /GROUP[/SECTION] || /APP
-#
 app.get '/WFGH', (req, res, next)->
 
   {JGroup} = koding.models
