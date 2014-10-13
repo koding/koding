@@ -145,22 +145,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	device := image.BlockDevices[0]
+
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
-	if a.Builder.StorageSize != 0 {
-		for _, device := range image.BlockDevices {
-			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-				DeviceName:          device.DeviceName,
-				VirtualName:         device.VirtualName,
-				SnapshotId:          device.SnapshotId,
-				VolumeType:          device.VolumeType,
-				VolumeSize:          int64(a.Builder.StorageSize),
-				DeleteOnTermination: true,
-				Encrypted:           false,
-			}
-
-			break
-		}
+	a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
+		DeviceName:          device.DeviceName,
+		VirtualName:         device.VirtualName,
+		SnapshotId:          device.SnapshotId,
+		VolumeType:          "standard", // Use magnetic storage because it is cheaper
+		VolumeSize:          int64(a.Builder.StorageSize),
+		DeleteOnTermination: true,
+		Encrypted:           false,
 	}
 
 	kiteId, err := uuid.NewV4()
@@ -276,13 +272,13 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}()
 
 	a.Push("Updating domain aliases", normalize(72), machinestate.Building)
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
 		p.Log.Error("[%s] fetching domains for setting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.UpdateDomain(buildArtifact.IpAddress, domain.DomainName, m.Username); err != nil {
+		if err := p.UpdateDomain(buildArtifact.IpAddress, domain.Name, m.Username); err != nil {
 			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
 		}
 	}
