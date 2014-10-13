@@ -28,6 +28,6 @@ module.exports = (siteName) ->
 
   log 'green', "Copying from #{rootPath} to #{sitePath}"
 
-  gulp.src "#{__dirname}/../static/a/site.boilerplate/js/pistachio.js"
+  gulp.src ''
     .pipe shell commands
     .pipe gulp.dest "#{__dirname}/../static/a/site.#{siteName}/js/"
