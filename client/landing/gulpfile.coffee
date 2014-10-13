@@ -70,6 +70,7 @@ gulp.task 'default', ->
       when    : (answer) -> answer.siteName
       type    : 'confirm'
       name    : 'uglify'
+      default : no
       message : 'Would you like to uglify javascript?'
     ,
       when    : (answer) -> answer.siteName
