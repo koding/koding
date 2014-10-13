@@ -65,7 +65,7 @@ rest = ->
     log "5) do './run buildservices' to create backend service containers after installing docker."
     log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
 
-
+    (require "./deployment/socialapiconfig.coffee").create KONFIG
 
   createRunFile KONFIG
   
