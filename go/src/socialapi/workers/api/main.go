@@ -82,7 +82,10 @@ func main() {
 		}
 	}()
 
-	go setDefaults(r.Log)
+	// set default values for dev env
+	if r.Conf.Environment == "dev" {
+		go setDefaults(r.Log)
+	}
 
 	r.Listen()
 	r.Wait()
