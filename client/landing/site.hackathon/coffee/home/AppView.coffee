@@ -35,20 +35,76 @@ module.exports = class HomeView extends KDView
   createJoinForm : ->
     {router} = KD.singletons
 
-    @signUpForm = new HomeRegisterForm
-      cssClass    : 'login-form register no-anim'
-      buttonTitle : 'SIGN UP'
-      callback    : (formData) =>
-        router.requireApp 'Login', (controller) =>
-          if @signUpForm.gravatarInfoFetched
+
+    if KD.isLoggedIn()
+    then @createApplyWidget()
+    else
+
+      @signUpForm = new HomeRegisterForm
+        cssClass    : 'login-form register no-anim'
+        buttonTitle : 'SIGN UP'
+        callback    : (formData) =>
+          router.requireApp 'Login', (controller) =>
             controller.getView().showExtraInformation formData, @signUpForm
 
-          else
-            @signUpForm.once 'gravatarInfoFetched', (data) =>
-              formData.gravatar = data
-              controller.getView().showExtraInformation formData, @signUpForm
+      @addSubView @signUpForm, '.form-wrapper'
 
-    @addSubView @signUpForm, '.form-wrapper'
+
+  createApplyWidget: ->
+
+    {firstName, lastName, nickname, hash} = KD.whoami().profile
+    {isApplicant, isApproved, isWinner} = KD.campaignStats
+
+    @addSubView (section = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'logged-in'
+    ), '.form-wrapper'
+
+    size     = 80
+    fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
+    section.addSubView avatarBg = new KDCustomHTMLView
+      cssClass   : 'avatar-background'
+
+    avatarBg.addSubView avatar = new KDCustomHTMLView
+      tagName    : 'img'
+      cssClass   : 'avatar'
+      attributes :
+        src      : "//gravatar.com/avatar/#{hash}?size=#{size}&d=#{fallback}&r=g"
+
+    section.addSubView label = new KDLabelView
+      title : "Hey, #{firstName or nickname}!"
+
+    label.addSubView notYou = new CustomLinkView
+      title : '(not you?)'
+      href  : '/Logout'
+      click : (event) ->
+        KD.utils.stopDOMEvent event
+        document.cookie = 'clientId=null'
+        location.replace '/WFGH'
+
+    return if isApplicant
+
+    section.addSubView button = new KDButtonView
+      cssClass : 'apply-button solid green medium'
+      title    : 'APPLY NOW'
+      loader   : yes
+      callback : =>
+        $.ajax
+          url         : '/WFGH/Apply'
+          type        : 'POST'
+          xhrFields   : withCredentials : yes
+          success     : (stats) =>
+            button.hideLoader()
+            KD.campaignStats = stats
+            section.destroy()
+            @updateGreeting()
+            @updateStats()
+            @createApplyWidget()
+          error       : (xhr) ->
+            {responseText} = xhr
+            button.hideLoader()
+            new KDNotificationView title : responseText
 
 
   createJudges : ->
@@ -71,12 +127,40 @@ module.exports = class HomeView extends KDView
 
 
   viewAppended : ->
+
     super
+
+    @updateGreeting()
 
     video = document.getElementById 'bgVideo'
     video.addEventListener 'loadedmetadata', ->
       this.currentTime = 8;
     , false
+
+  updateStats: -> @$('div.counters').html @getStats()
+
+  getStats: ->
+
+    { cap, prize, totalApplicants, approvedApplicants } = KD.campaignStats
+
+    return "PRIZE: $#{prize.toLocaleString()} - TOTAL SLOTS: #{cap.toLocaleString()} - APPLICATIONS: #{totalApplicants.toLocaleString()} - APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
+
+
+  updateGreeting: ->
+
+    { isApplicant, isApproved, isWinner } = KD.campaignStats
+
+    if isApplicant and not isApproved
+      greeting = 'We received your application, check back later to see if you\'re approved!'
+
+    if isApplicant and isApproved
+      greeting = 'CONGRATULATIONS! you are in!'
+
+    if isApplicant and isWinner
+      greeting = 'WOHOOOO! You are the WINNER!'
+
+    @$('.introduction > h3').first().html greeting  if greeting
+
 
   partial: ->
 
@@ -87,8 +171,7 @@ module.exports = class HomeView extends KDView
         <span class='bottom'>GLOBAL HACKATHON</span>
         #WFGH
       </h2>
-      <h3>But how can we get developers from all over the world to participate? <br>
-      Announcing the world's first global virtual hackathon.</h3>
+      <h3>But how can we get developers from all over the world to participate?<br>Announcing the world's first global virtual hackathon.</h3>
       <div class="form-wrapper clearfix"></div>
       <div class="video-wrapper">
         <video id="bgVideo" autoplay loop muted>
@@ -97,9 +180,7 @@ module.exports = class HomeView extends KDView
       </div>
     </section>
     <section class="content">
-      <div class="counters">
-        PRIZE: $10,000 - TOTAL SLOTS: 5,000 - APPLICATIONS: 54,345 - APPROVED APPLICANTS: 2345
-      </div>
+      <div class="counters">#{@getStats()}</div>
       <article>
         <h4>Team Size</h4>
 

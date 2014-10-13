@@ -29,6 +29,7 @@ body.home
     text-align            center
     shadow                0 1px 0 rgb(255,255,255) \, 0 0 27px rgba(0,0,0,.3)
     position              relative
+    overflow              hidden
     borderBox()
 
     > *
@@ -69,15 +70,46 @@ body.home
       margin-left         -960px
 
     .form-wrapper
-      margin              49px -45px 0 -45px
+      margin              69px -45px 0 -45px
       padding             26px
       background          rgba(0,0,0,.2)
       rounded             4px
       borderBox()
 
+      .avatar-background
+        abs               -50px 0 0 50%
+        bg                color rgba(0,0,0,.2)
+        // bg                color red
+        size              80px 30px
+        margin            0 0 0 -50px
+        padding           10px
+        rounded           10px 10px 0 0
+        z-index           0
+
+      .avatar
+        rounded           8px
+        size              80px 80px
+        z-index           1
+
+
       section
         width             504px
         margin            0 auto
+
+        &.logged-in
+          margin-top      20px
+
+        .kdlabel
+          color           white
+          width           100%
+          text-align      center
+          margin-right    0
+          a
+            color         #aaa
+            font-size     .8em
+          a:before
+            content       ''
+            display       block
 
         .kdview
           margin          0
@@ -111,13 +143,14 @@ body.home
 
       .kdinput
         width             100%
-        rounded           0
+        rounded           3px
         text-align        center
-        border            none
+        border            1px solid transparent
         background        transparent
         margin            0
-        padding           11px 14px
+        padding           10px 14px
         font-size         12px
+
 
       .kdbutton
         padding           0
