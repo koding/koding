@@ -131,9 +131,6 @@ app.use (req, res, next) ->
 app.get "/-/google-api",(req, res)->
   ggl = require("googleapis")
   gsc = KONFIG.googleapiServiceAccount
-  console.log gsc
-
-
   eml = gsc.serviceAccountEmail
   key = gsc.serviceAccountKeyFile
   scp = ['https://www.googleapis.com/auth/drive']
