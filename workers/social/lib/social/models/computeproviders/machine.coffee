@@ -276,7 +276,17 @@ module.exports = class JMachine extends Module
 
   reviveUsers: permit 'populate users',
 
-    success: (client, callback)->
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, callback)->
+
+      { r: { user } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
       JUser = require '../user'
 
