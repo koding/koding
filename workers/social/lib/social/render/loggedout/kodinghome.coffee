@@ -58,7 +58,7 @@ module.exports = (options, callback)->
     when 'hackathon'
       bongoModels.JWFGH.getStats account, (err, stats) ->
 
-        return console.log err  if err
+        console.log err  if err
 
         campaignStats = JSON.stringify stats
         callback null, prepareHTML()
