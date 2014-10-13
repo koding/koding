@@ -128,6 +128,18 @@ app.use (req, res, next) ->
     next()
 
 
+app.get "/-/google-api",(req, res)->
+  ggl = require("googleapis")
+  gsc = KONFIG.googleapiServiceAccount
+  eml = gsc.serviceAccountEmail
+  key = gsc.serviceAccountKeyFile
+  scp = ['https://www.googleapis.com/auth/drive']
+  jwt = new ggl.auth.JWT(eml, key, null, scp).authorize (err,authToken)->
+
+    return res.status(401).send err if err
+    res.status(200).send authToken
+
+
 app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
   {kiteToken, user, groupId} = req.params
   {JAccount, JKite, JGroup}  = koding.models
