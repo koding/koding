@@ -1,7 +1,7 @@
 fs          = require 'fs'
-bodyParser  = require 'body-parser'
 STATIC_PATH = "#{__dirname}/../static/"
 PORT        = 5000
+bodyParser  = require 'body-parser'
 crypto      = require 'crypto'
 request     = require 'request'
 
@@ -16,9 +16,6 @@ module.exports = (siteName)->
   log     = (color, message) -> gutil.log gutil.colors[color] message
 
   app.use '/', express.static STATIC_PATH
-
-
-  urlencodedParser = bodyParser.urlencoded({ extended: false })
 
   app.use bodyParser.urlencoded({ extended: false })
 
