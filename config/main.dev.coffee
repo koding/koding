@@ -477,7 +477,7 @@ Configuration = (options={}) ->
             exit 1;
         fi
 
-        OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9 | wc -l | awk \'{printf "%s", $1}\')
+        OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
         if [  $OLD_COOKIE -ne 0 ]; then
             echo "You have tough-cookie@0.9 installed on your system, please remove node_modules directory and do npm i again";
             exit 1;
