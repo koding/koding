@@ -27,8 +27,15 @@ class Ace extends KDView
           if contents
             @setContents contents
             @lastSavedContents = contents
+
           @editor.on 'change', =>
-            if @isCurrentContentChanged() then @emit 'FileContentChanged' else @emit 'FileContentSynced'
+            if @isCurrentContentChanged()
+            then @emit 'FileContentChanged'
+            else @emit 'FileContentSynced'
+
+          @forwardEvent @editor, 'focus'
+          @forwardEvent @editor, 'blur'
+
           @editor.gotoLine 0
           @focus()
           @show()

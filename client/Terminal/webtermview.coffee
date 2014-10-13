@@ -287,6 +287,8 @@ class WebTermView extends KDView
     @focused = state
     @terminal.setFocused state
 
+    @emit 'FocusSet', state
+
   click: ->
     @setKeyView()
     @restoreRange()
