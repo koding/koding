@@ -176,13 +176,13 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	a.Push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
 			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 		}
 	}
