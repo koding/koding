@@ -431,10 +431,13 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-        # do not change the order, nginx comes first.
+        
         nginxstop
-        #{killlist()}
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        
+        # do not change the order.
+        # killist comes last - it kills itself thus nothing can run after.
+        #{killlist()}
       }
 
       function nginxstop () {
