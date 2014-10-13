@@ -82,6 +82,8 @@ func main() {
 		}
 	}()
 
+	go setDefaults(r.Log)
+
 	r.Listen()
 	r.Wait()
 }
