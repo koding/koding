@@ -30,12 +30,12 @@ options = o =
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
 
-
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
-
-
-
+  
+  
+  
+  
   log "Configuring with options:"
   log "-------------------------"
   log o
@@ -68,9 +68,7 @@ rest = ->
 
 
   createRunFile KONFIG
-
-
-
+  
 if argv.hostname
   options.hostname       = argv.hostname
   rest()
