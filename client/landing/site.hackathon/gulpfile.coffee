@@ -42,11 +42,6 @@ gulp.task 'sprites@2x', ['sprites@1x'], (req 'task.sprites').bind this, 2
 gulp.task 'coffee', req 'task.coffee'
 
 
-# BUILD index.html FILES
-
-gulp.task 'index', req 'task.index'
-
-
 # BUILD FRAMEWORK FROM NODE MODULE
 
 gulp.task 'build-kd', req 'task.build-kd'
