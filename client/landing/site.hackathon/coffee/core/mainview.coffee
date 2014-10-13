@@ -40,7 +40,7 @@ module.exports = class MainView extends KDView
       partial   : '<cite></cite>'
       click     : (event) =>
         KD.utils.stopDOMEvent event
-        KD.singletons.router.handleRoute '/'
+        KD.singletons.router.clear()
 
 
   createPanelWrapper:->
@@ -67,8 +67,6 @@ module.exports = class MainView extends KDView
 
     @mainTabView.on 'PaneDidShow', (pane) => @emit 'MainTabPaneShown', pane
 
-
-    @mainTabView.on "AllPanesClosed", ->
-      KD.getSingleton('router').handleRoute "/Activity"
+    @mainTabView.on "AllPanesClosed", -> KD.singletons.router.clear()
 
     @panelWrapper.addSubView @mainTabView

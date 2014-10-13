@@ -7,6 +7,11 @@ module.exports = class TopNavigation extends KDCustomHTMLView
     { title : 'Features',          href : '/Features',               name : 'features'}
     { title : 'SIGN IN',           href : '/Login',                  name : 'login'}
   ]
+  if KD.userAccount.type isnt 'registered'
+    menu.push
+      title : 'SIGN IN'
+      href  : '/WFGH/Login'
+      name  : 'login'
 
   constructor: (options = {}, data) ->
 

@@ -2,6 +2,7 @@ do ->
 
   handler = (callback)-> (options) ->
     cb = (app) -> callback app, options
+    return KD.singletons.router.clear()  if KD.isLoggedIn()
     KD.singletons.router.openSection 'Login', null, null, cb
 
   # handleResetRoute = ({params:{token}}) ->
@@ -81,22 +82,22 @@ do ->
   #          return handleFailureOfRestriction()
 
   #        do handler()
+  redirect = (route) -> (options) -> KD.singletons.router.handleRoute "/WFGH#{route}"
 
   KD.registerRoutes 'Login',
-    '/Login/:token?'    : handler (app, options)->
+    '/WFGH/Login'    : handler (app, options)->
       app.getView().animateToForm 'login'
       app.handleQuery options
-    '/Register'         : handler (app, options)->
+    '/WFGH/Register' : handler (app, options)->
       app.getView().animateToForm 'register'
       app.handleQuery options
-    '/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
-    '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
-    '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
-    # '/:name?/Register/:token'  : handleFinishRegistration
-    # '/:name?/Reset/:token'     : handleResetRoute
-    # '/:name?/Confirm/:token'   : handleResetRoute
-    # '/:name?/Verify/:token?'   : handleVerifyRoute
-    # '/:name?/Redeem/:token'    : handleRedeemRoute
-    #'/:name?/Login/:token?'    : handleRestriction (app)->
-        #handler (app)-> app.getView().animateToForm 'login'
+    '/WFGH/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
+    '/WFGH/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
+    '/WFGH/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
+    '/WFGH/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+    '/Login'                 : redirect '/Login'
+    '/Register'              : redirect '/Register'
+    '/Redeem'                : redirect '/Redeem'
+    '/Reset'                 : redirect '/Reset'
+    '/ResendToken'           : redirect '/ResendToken'
+    '/Recover'               : redirect '/Recover'
