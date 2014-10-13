@@ -62,11 +62,11 @@ func setPublicChannel(log logging.Logger, group *kodingmodels.Group) {
 
 	socialApiId := strconv.FormatInt(c.Id, 10)
 	if group.SocialApiChannelId == socialApiId {
-		log.Error("mongo and postgres socialApiAnnouncementChannel ids are same")
+		log.Error("mongo and postgres socialApiChannelId ids are same")
 		return
 	}
 
-	log.Debug("mongo and postgres socialApiAnnouncementChannel ids are different, fixing it")
+	log.Debug("mongo and postgres socialApiChannelId ids are different, fixing it")
 	if err := updateGroupPartially(group.Id, "socialApiChannelId", socialApiId); err != nil {
 		log.Error("err while udpating socialApiChannelId: %s", err.Error())
 		return
