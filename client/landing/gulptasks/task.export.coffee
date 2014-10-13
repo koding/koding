@@ -2,8 +2,8 @@ gulp  = require 'gulp'
 shell = require 'gulp-shell'
 argv  = require('minimist') process.argv
 
-{log} = require './helper.logger'
-
+{ log }        = require './helper.logger'
+{ BUILD_PATH } = require './helper.constants'
 
 module.exports = ->
 
@@ -14,9 +14,10 @@ module.exports = ->
     log 'yellow', "nothing exported."
     return
 
-  cmd = "cp -Rf #{__dirname}/#{BUILD_PATH} #{exportDir}"
-
-  log 'green', "Exporting to: #{exportDir}"
+  cmds = [
+    "rsync -av #{BUILD_PATH}/ #{exportDir}"
+    "\necho 'Landing page export finished!'"
+  ]
 
   gulp.src ''
-    .pipe shell [cmd]
+    .pipe shell cmds
