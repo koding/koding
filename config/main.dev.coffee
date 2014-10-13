@@ -431,10 +431,10 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-        
+
         nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-        
+
         # do not change the order.
         # killist comes last - it kills itself thus nothing can run after.
         #{killlist()}
@@ -474,6 +474,12 @@ Configuration = (options={}) ->
             npm i
 
             echo -e "\n\nPlease do ./configure and  ./run again\n"
+            exit 1;
+        fi
+
+        OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9 | wc -l | awk \'{printf "%s", $1}\')
+        if [  $OLD_COOKIE -ne 0 ]; then
+            echo "You have tough-cookie@0.9 installed on your system, please remove node_modules directory and do npm i again";
             exit 1;
         fi
       }
