@@ -97,14 +97,13 @@ class ActivitySidebar extends KDCustomHTMLView
       pane    = app.getView().tabs.getActivePane()
       channel = pane.getData()
 
-      return  unless channel
-
       inCurrentPane = channel.id is data.id
 
       if inCurrentPane and windowController.isFocused() and pane.isPageAtBottom()
         return pane.glance()
       else
         pane.putNewMessageIndicator()
+
 
     item.setUnreadCount? unreadCount
 

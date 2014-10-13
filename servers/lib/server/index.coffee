@@ -32,6 +32,7 @@ nodePath   = require 'path'
 http       = require "https"
 helmet     = require 'helmet'
 request    = require 'request'
+bodyParser = require 'body-parser'
 
 {JSession} = koding.models
 app        = express()
@@ -57,7 +58,6 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
-bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -252,7 +252,7 @@ app.post "/:name?/Validate", (req, res) ->
   { fields } = req.body
 
   unless fields?
-    res.status(400).send "Bad request"
+    res.status(400).send 'Bad request'
     return
 
   validations = Object.keys fields
@@ -275,28 +275,47 @@ app.post "/:name?/Validate/Username/:username?", (req, res) ->
   return res.status(400).send 'Bad request'  unless username?
 
   JUser.usernameAvailable username, (err, response) =>
+
     return res.status(400).send 'Bad request'  if err
 
     {kodingUser, forbidden} = response
 
     if not kodingUser and not forbidden
       res.status(200).send response
-    else if kodingUser
+    else
       res.status(400).send response
 
 app.post "/:name?/Validate/Email/:email?", (req, res) ->
 
-  { JUser } = koding.models
-  { email } = req.params
+  { JUser }    = koding.models
+  { email }    = req.params
+  { password } = req.body
 
   return res.status(400).send 'Bad request'  unless email?
 
-  JUser.emailAvailable email, (err, response) =>
-    return res.status(400).send 'Bad request'  if err
+  { password, redirect } = req.body
 
-    return if response
-    then res.status(200).send response
-    else res.status(400).send 'Email is taken!'
+  clientId =  getClientId req, res
+
+  if clientId
+
+    JUser.login clientId, { username : email, password }, (err, info) ->
+
+      {isValid : isEmail} = JUser.validateAt 'email', email, yes
+
+      if err and isEmail
+        JUser.emailAvailable email, (err_, response) =>
+          return res.status(400).send 'Bad request'  if err_
+
+          return if response
+          then res.status(200).send response
+          else res.status(400).send 'Email is taken!'
+
+        return
+
+      res.cookie 'clientId', info.replacementToken
+      return res.status(200).send 'User is logged in!'
+
 
 
 app.get "/Verify/:token", (req, res) ->
@@ -342,14 +361,8 @@ app.post "/:name?/Login", (req, res) ->
 
   JUser.login clientId, { username, password }, (err, info) ->
     return res.status(403).send err.message  if err?
-    # implementing a temporary opt-out for new koding:
-    storageOptions =
-      appId   : 'NewKoding'
-      version : '2.0'
-    info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.status(500).send 'Internal error'  if err?
-      res.cookie 'clientId', info.replacementToken
-      res.status(200).end()
+    res.cookie 'clientId', info.replacementToken
+    res.status(200).end()
 
 app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models
@@ -520,9 +533,62 @@ isInAppRoute = (name)->
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
 
-# Handles all internal pages
-# /USER || /SECTION || /GROUP[/SECTION] || /APP
-#
+
+app.post '/WFGH/Apply', (req, res, next)->
+
+  {JWFGH} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return res.status(400).send 'not ok' unless loggedIn
+
+    JWFGH.apply account, (err, stats)->
+      return res.status(400).send err.message or 'not ok'  if err
+      res.status(200).send stats
+
+
+app.post '/Gravatar', (req, res) ->
+  crypto  = require 'crypto'
+  {email} = req.body
+
+  console.log "Gravatar info request for: #{email}"
+
+  _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex')).toString()
+  _url      = "https://www.gravatar.com/#{_hash}.json"
+  _request  =
+    url     : _url
+    headers : 'User-Agent': 'request'
+
+  request _request, (err, response, body) ->
+
+    if body isnt 'User not found'
+      try
+        gravatar = JSON.parse body
+      catch
+        return res.status(400).send 'User not found'
+
+      return res.status(200).send gravatar
+
+    res.status(400).send body
+
+
+app.get '/WFGH/:section?', (req, res, next)->
+
+  {JGroup} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return next()  if err
+    JGroup.render.loggedOut.kodingHome {
+      campaign    : 'hackathon'
+      bongoModels : koding.models
+      loggedIn
+      account
+    }, (err, html)->
+      res.status(200).send html
+
+
+
 app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
