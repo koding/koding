@@ -562,7 +562,11 @@ app.post '/Gravatar', (req, res) ->
   request _request, (err, response, body) ->
 
     if body isnt 'User not found'
-      gravatar = JSON.parse body
+      try
+        gravatar = JSON.parse body
+      catch
+        return res.status(400).send 'User not found'
+
       return res.status(200).send gravatar
 
     res.status(400).send body
