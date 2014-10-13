@@ -111,7 +111,7 @@ func setSetChangeLogChannel(log logging.Logger, group *kodingmodels.Group) {
 
 	socialApiAnnouncementChannelId := strconv.FormatInt(c.Id, 10)
 	if group.SocialApiAnnouncementChannelId == socialApiAnnouncementChannelId {
-		log.Error("mongo and postgres socialApiAnnouncementChannel ids are same")
+		log.Info("mongo and postgres socialApiAnnouncementChannel ids are same")
 		return
 	}
 
