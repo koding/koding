@@ -145,22 +145,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	device := image.BlockDevices[0]
+
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
-	if a.Builder.StorageSize != 0 {
-		for _, device := range image.BlockDevices {
-			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-				DeviceName:          device.DeviceName,
-				VirtualName:         device.VirtualName,
-				SnapshotId:          device.SnapshotId,
-				VolumeType:          device.VolumeType,
-				VolumeSize:          int64(a.Builder.StorageSize),
-				DeleteOnTermination: true,
-				Encrypted:           false,
-			}
-
-			break
-		}
+	a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
+		DeviceName:          device.DeviceName,
+		VirtualName:         device.VirtualName,
+		SnapshotId:          device.SnapshotId,
+		VolumeType:          "standard", // Use magnetic storage because it is cheaper
+		VolumeSize:          int64(a.Builder.StorageSize),
+		DeleteOnTermination: true,
+		Encrypted:           false,
 	}
 
 	kiteId, err := uuid.NewV4()

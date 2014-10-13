@@ -1,9 +1,9 @@
 package amazon
 
 import (
+	"github.com/mitchellh/goamz/ec2"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 func (a *AmazonClient) DeleteSnapshot(snapshotId string) error {
@@ -50,12 +50,12 @@ func (a *AmazonClient) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, err
 
 // CreateVolume creates a new volume from the given snapshot id and size. It
 // waits until it's ready.
-func (a *AmazonClient) CreateVolume(snapshotId, availZone string, size int) (*ec2.Volume, error) {
+func (a *AmazonClient) CreateVolume(snapshotId, availZone, volumeType string, size int) (*ec2.Volume, error) {
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
 		Size:       int64(size),
 		SnapshotId: snapshotId,
-		VolumeType: "gp2", // SSD, make this changable later
+		VolumeType: volumeType,
 	}
 
 	volResp, err := a.Client.CreateVolume(volOptions)
