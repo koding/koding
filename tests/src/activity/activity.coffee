@@ -49,8 +49,10 @@ module.exports =
       .clearValue                 selector + ' .edit-widget [testpath=ActivityInputView]'
       .setValue                   selector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
       .pause                      3000
-      .waitForElementVisible      selector + post, 10000 # Assertion
-      .end()
+
+    browser.assert.containsText selector, post # Assertion
+
+    browser.end()
 
 
   deletePost: (browser) ->
