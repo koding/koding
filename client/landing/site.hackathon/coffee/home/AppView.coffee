@@ -197,10 +197,10 @@ module.exports = class HomeView extends KDView
       </aside>
     </section>
     <footer>
-      © 2014 Koding, Inc.
-      <a href="#">Terms</a>
-      <a href="#">Privacy</a>
-      <a href="#">Security</a>
-      <a href="#">Contact</a>
+      <a href="/">Copyright © #{(new Date).getFullYear()} Koding, Inc</a>
+      <a href="/Pricing" target="_blank">Pricing</a>
+      <a href="http://koding.com/Activity" target="_blank">Community</a>
+      <a href="/About" target="_blank">About</a>
+      <a href="/tos.html" target="_blank">Legal</a>
     </footer>
     """
