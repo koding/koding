@@ -22,7 +22,19 @@ JUDGES           =
     imgUrl       : 'http://placepic.me/profiles/200-200-5-random'
     title        : 'Ceo & Co-founder'
 
+
 module.exports = class HomeView extends KDView
+
+  getStats = ->
+
+    KD.campaignStats ?=
+      cap                : 50000
+      prize              : 10000
+      totalApplicants    : 34512
+      approvedApplicants : 12521
+      isApplicant        : no
+      isApproved         : no
+      isWinner           : no
 
   constructor: (options = {}, data)->
     super options, data
@@ -53,7 +65,7 @@ module.exports = class HomeView extends KDView
   createApplyWidget: ->
 
     {firstName, lastName, nickname, hash} = KD.whoami().profile
-    {isApplicant, isApproved, isWinner} = KD.campaignStats
+    {isApplicant, isApproved, isWinner} = getStats()
 
     @addSubView (section = new KDCustomHTMLView
       tagName  : 'section'
@@ -141,14 +153,14 @@ module.exports = class HomeView extends KDView
 
   getStats: ->
 
-    { cap, prize, totalApplicants, approvedApplicants } = KD.campaignStats
+    { cap, prize, totalApplicants, approvedApplicants } = getStats()
 
     return "PRIZE: $#{prize.toLocaleString()} - TOTAL SLOTS: #{cap.toLocaleString()} - APPLICATIONS: #{totalApplicants.toLocaleString()} - APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
 
 
   updateGreeting: ->
 
-    { isApplicant, isApproved, isWinner } = KD.campaignStats
+    { isApplicant, isApproved, isWinner } = getStats()
 
     if isApplicant and not isApproved
       greeting = 'We received your application, check back later to see if you\'re approved!'

@@ -12,6 +12,7 @@ KD.extend
     if (new Date createdAt) > KD.newKodingLaunchDate
       Cookies.set 'koding082014', 'koding082014'
 
+  userAccount  : {}
   config       : {}
   apiUri       : null
   appsUri      : null
