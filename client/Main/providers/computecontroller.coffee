@@ -73,7 +73,7 @@ class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      @fetchStacks (err, stacks)=>
+      KD.remote.api.JMachine.some {}, (err, _machines = [])=>
 
         if err?
           cb err  for cb in queue
@@ -81,13 +81,13 @@ class ComputeController extends KDController
           return
 
         machines = []
-        stacks.forEach (stack)->
-          stack.machines.forEach (machine)->
-            machines.push machine
+        for machine in _machines
+          machines.push new Machine { machine }
 
         @machines = machines
-        @stateChecker.machines = machines
-        @stateChecker.start()
+
+        KD.userMachines = machines
+        @emit "MachineDataUpdated"
 
         cb null, machines  for cb in queue
         queue = []
