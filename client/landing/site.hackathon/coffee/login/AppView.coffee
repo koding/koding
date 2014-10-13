@@ -503,11 +503,11 @@ module.exports = class LoginView extends JView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : -> location.replace "/#{redirectTo}#{query}"
-      error       : (xhr) =>
-        {responseText} = xhr
-        new KDNotificationView title : responseText
-        @loginForm.button.hideLoader()
-
+      error       : ({responseText}) =>
+        showError message : responseText
+        @loginForm.resetDecoration()
+        @$('.flex-wrapper').removeClass 'shake'
+        KD.utils.defer => @$('.flex-wrapper').addClass 'animate shake'
 
 
   runExternal = (token)->
