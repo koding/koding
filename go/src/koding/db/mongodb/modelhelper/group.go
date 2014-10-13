@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"errors"
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
@@ -25,6 +26,23 @@ func GetGroup(slugName string) (*models.Group, error) {
 	}
 
 	return group, Mongo.Run("jGroups", query)
+}
+
+func GetGroupOwner(group *models.Group) (*models.Account, error) {
+	if !group.Id.Valid() {
+		return nil, errors.New("group id is not valid")
+	}
+
+	rel, err := GetRelationship(Selector{
+		"sourceId": group.Id,
+		"as":       "owner",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return GetAccountById(rel.TargetId.Hex())
 }
 
 func CheckGroupExistence(groupname string) (bool, error) {
