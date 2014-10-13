@@ -36,7 +36,7 @@ type Provider struct {
 
 	// DB reference
 	Session       *mongodb.MongoDB
-	DomainStorage *Domains
+	DomainStorage protocol.DomainStorage
 
 	// A flag saying if user permissions should be ignored
 	// store negation so default value is aligned with most common use case
@@ -151,13 +151,13 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 		// also get all domain aliases that belongs to this machine and unset
 		a.Push("Updating domain aliases", 80, machinestate.Starting)
-		domains, err := p.userDomains(m.Id)
+		domains, err := p.DomainStorage.GetByMachine(m.Id)
 		if err != nil {
 			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 		}
 
 		for _, domain := range domains {
-			if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+			if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
 				p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 			}
 		}
@@ -201,13 +201,13 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
 		}
 	}
@@ -246,13 +246,13 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	// also get all domain aliases that belongs to this machine and udpate them
 	// according to the new IP
 	a.Push("Updating domain aliases", 95, machinestate.Building)
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
 			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
 		}
 	}
@@ -270,17 +270,17 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.DomainName, m.IpAddress); err != nil {
+		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
 		}
 
-		if err := p.DomainStorage.UpdateMachine(domain.DomainName, ""); err != nil {
+		if err := p.DomainStorage.UpdateMachine(domain.Name, ""); err != nil {
 			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
 		}
 	}

@@ -483,6 +483,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 func newKloud() *kloud.Kloud {
 	testChecker := &TestChecker{}
 	testStorage := &TestStorage{}
+	testDomainStorage := &TestDomainStorage{}
 	testLocker := &TestLocker{}
 	testLocker.IdLock = idlock.New()
 
@@ -494,6 +495,7 @@ func newKloud() *kloud.Kloud {
 	kld.Log = newLogger("kloud", false)
 	kld.Locker = testLocker
 	kld.Storage = testStorage
+	kld.DomainStorage = testDomainStorage
 	kld.Debug = true
 
 	provider = &koding.Provider{
@@ -504,6 +506,7 @@ func newKloud() *kloud.Kloud {
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
+		DomainStorage:     &TestDomainStorage{},
 		EC2:               koding.NewEC2Client(),
 		DNS:               koding.NewDNSClient("dev.koding.io"), // TODO: Use test.koding.io
 		Bucket:            koding.NewBucket("koding-klient", "development/latest"),
