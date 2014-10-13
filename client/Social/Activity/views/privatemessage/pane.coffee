@@ -1,5 +1,7 @@
 class PrivateMessagePane extends MessagePane
 
+  CONSEQUENCY_DELAY = 3e5
+
   constructor: (options = {}, data) ->
 
     options.lastToFirst         = no
@@ -184,9 +186,15 @@ class PrivateMessagePane extends MessagePane
   # i know, i invented a word - SY
   doesBreakConsequency: (item, index) ->
 
+    [prev, next] = @getSiblings index
+    otherItem    = prev or next
+    hasSame      = otherItem and helper.hasSameOwner item, otherItem
+
     [currentDate, otherDate] = @extractDates item, index
 
-    return Math.abs(currentDate - otherDate) > 3e5
+    return no  unless otherDate
+
+    return Math.abs(currentDate - otherDate) > CONSEQUENCY_DELAY and hasSame
 
 
   #
