@@ -69,17 +69,6 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 	)
 }
 
-func (c *ChannelMessageList) CreateRaw() error {
-	insertSql := "INSERT INTO " +
-		c.TableName() +
-		` ("channel_id","message_id","added_at","revised_at") VALUES ($1,$2,$3,$4) ` +
-		"RETURNING ID"
-
-	return bongo.B.DB.CommonDB().
-		QueryRow(insertSql, c.ChannelId, c.MessageId, c.AddedAt, c.RevisedAt).
-		Scan(&c.Id)
-}
-
 func (c *ChannelMessageList) List(q *request.Query, populateUnreadCount bool) (*HistoryResponse, error) {
 	messageList, err := c.getMessages(q)
 	if err != nil {
