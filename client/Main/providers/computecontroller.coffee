@@ -57,26 +57,8 @@ class ComputeController extends KDController
           queue = []
           return
 
-        if stacks.length > 0
-
-          machines = []
-          stacks.forEach (stack)->
-            stack.machines.forEach (machine, index)->
-              machine = new Machine { machine, stack }
-              stack.machines[index] = machine
-              machines.push machine
-
-          @machines = machines
-          @stacks   = stacks
-
-          KD.userMachines = machines
-          @emit "MachineDataUpdated"
-
-          cb null, stacks  for cb in queue
-
-        else
-          cb null, []  for cb in queue
-
+        @stacks = stacks
+        cb null, stacks  for cb in queue
         queue = []
 
 
