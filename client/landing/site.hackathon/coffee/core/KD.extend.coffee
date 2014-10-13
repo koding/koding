@@ -12,7 +12,6 @@ KD.extend
     if (new Date createdAt) > KD.newKodingLaunchDate
       Cookies.set 'koding082014', 'koding082014'
 
-  userAccount  : {}
   config       : {}
   apiUri       : null
   appsUri      : null
@@ -24,7 +23,7 @@ KD.extend
   navItemIndex : {}
   mixpanel     : -> warn 'MIXPANEL DEPRECATED!!! fixen sie @senthil'  if KD.config.environment isnt 'production'
 
-  whoami:-> KD.userAccount
+  whoami:-> KD.userAccount or {}
 
   isLoggedIn:-> KD.whoami()?.type is 'registered'
 
