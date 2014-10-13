@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+"http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <title>Google Drive Realtime quickstart</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=9">
+
+  <!-- Load the Realtime libraries. -->
+  <script type="text/javascript"
+          src="https://apis.google.com/js/api.js"></script>
+
+  <!-- Load the utility library.
+  <script type="text/javascript"
+          src="realtime-client-utils.js"></script>
+  -->
+   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+   <script type="text/javascript"   src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.7.1/coffee-script.min.js"></script>
+   <script type="text/coffeescript" src="realtime.coffee"></script>
+   <script type="text/coffeescript" src="realtime-client-utils.coffee"></script>
+   <script type="text/coffeescript"> startRealtime() </script>
+
+
+</head>
+
+<body>
+
+  <h1>Drive Realtime API :: quickstart</h1>
+
+  <button id="authorizeButton" disabled>You must authorize</button>
+
+  <p>These text areas are on the same page. You can also <a target="_blank" href="#">open them on separate users'
+  browsers</a> and they will remain synchronized.</p>
+
+  <!-- Text areas that will be used as our collaborative controls. -->
+  <textarea id="editor1" rows="15" cols="50" disabled="true"></textarea>
+  <textarea id="editor2" rows="15" cols="50" disabled="true"></textarea>
+  <br />
+
+  <!-- Undo and redo buttons. -->
+  <button id="undoButton" disabled>Undo</button>
+  <button id="redoButton" disabled>Redo</button>
+
+
+</body>
+</html>
