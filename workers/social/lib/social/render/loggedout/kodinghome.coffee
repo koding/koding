@@ -2,8 +2,11 @@ module.exports = (options, callback)->
 
   getTitle = require './../title'
 
-  {campaign} = options
+  {campaign, account, bongoModels} = options
   campaign or= 'landing'
+
+  userAccount   = JSON.stringify account
+  campaignStats = null
 
   prepareHTML = ->
     """
@@ -29,6 +32,8 @@ module.exports = (options, callback)->
       <script src="/a/site.#{campaign}/js/pistachio.js?#{KONFIG.version}"></script>
       <script src="/a/site.#{campaign}/js/kd.libs.js?#{KONFIG.version}"></script>
       <script src="/a/site.#{campaign}/js/kd.js?#{KONFIG.version}"></script>
+      <script>KD.userAccount=#{userAccount}</script>
+      <script>KD.campaignStats=#{campaignStats}</script>
       <script src="/a/site.#{campaign}/js/main.js?#{KONFIG.version}"></script>
 
       <!-- SEGMENT.IO -->
@@ -49,6 +54,16 @@ module.exports = (options, callback)->
     </html>
     """
 
-  callback null, prepareHTML()
+  switch campaign
+    when 'hackathon'
+      bongoModels.JWFGH.getStats account, (err, stats) ->
+
+        return console.log err  if err
+
+        campaignStats = JSON.stringify stats
+        callback null, prepareHTML()
+    else
+      callback null, prepareHTML()
+
 
 
