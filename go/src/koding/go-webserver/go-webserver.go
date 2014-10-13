@@ -125,7 +125,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	// Machines
 	//----------------------------------------------------------
 
-	machines, err := modelhelper.GetMachines(username)
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		log.Error("Couldn't get user of %s: %s", username, err)
+		log.Info("loggedout page took: %s", time.Since(start))
+
+		renderLoggedOutHome(w)
+	}
+
+	machines, err := modelhelper.GetMachines(user.ObjectId)
 	if err != nil {
 		log.Error("Couldn't fetch machines: %s", err)
 		machines = []*modelhelper.MachineContainer{}
