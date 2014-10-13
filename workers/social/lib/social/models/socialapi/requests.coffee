@@ -430,9 +430,6 @@ setCookieIfRequired = (reqOptions, data)->
   if data?.sessionToken
     j = request.jar()
     cookie = request.cookie "clientId=#{data.sessionToken}"
-
-    console.log ">>>>> setCookieIfRequired", j.setCookie
-
     j.setCookie cookie, reqOptions.url, {}, ->
     reqOptions.jar = j
 
