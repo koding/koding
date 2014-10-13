@@ -431,8 +431,9 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-        #{killlist()}
+        # do not change the order, nginx comes first.
         nginxstop
+        #{killlist()}
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
       }
 
