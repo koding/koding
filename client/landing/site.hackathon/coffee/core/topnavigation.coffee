@@ -2,11 +2,8 @@ CustomLinkView = require './customlinkview'
 
 module.exports = class TopNavigation extends KDCustomHTMLView
 
-  menu = [
-    { title : 'Koding University', href : 'http://learn.koding.com', name : 'about'}
-    { title : 'Features',          href : '/Features',               name : 'features'}
-    { title : 'SIGN IN',           href : '/Login',                  name : 'login'}
-  ]
+  menu = []
+
   if KD.userAccount.type isnt 'registered'
     menu.push
       title : 'SIGN IN'
