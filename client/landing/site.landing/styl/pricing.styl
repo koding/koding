@@ -357,3 +357,154 @@ body.pricing
         rounded         3px
         vendor          transition, background .2s ease
 
+        .icon
+          r-sprite      'pricing', 'item-chevron'
+
+// Smartphones and tablets [Commons]
+@media only screen and (min-width : 320px) and (max-width : 1024px)
+  body.pricing
+    .content-page.pricing
+      background              #fff
+
+      .pricing-heading
+        font-size             18px
+        font-weight           700
+        padding-left          25px
+        padding-right         25px
+
+      p.pricing-description
+        font-size             14px
+        line-height           20px
+        font-weight           400
+        padding-left          25px
+        padding-right         25px
+
+      .interval-toggle
+        margin-bottom         40px
+
+      .pricing-footer
+        font-size             13px
+        color                 #494949
+        line-height           22px
+        padding               35px 25px
+        font-weight           400
+        margin                0
+
+        .footer-msg
+          display             none
+
+        .learn-more
+          margin-top          27px
+
+        h4
+          display             inline-block
+          color               #949494
+          font-weight         200
+          margin              0 4px 0 0
+
+        ul
+          display             inline
+
+          &:before
+            display           none
+
+          &:after
+            display           none
+
+        li
+          display             inline
+          width               auto
+          margin              0
+          padding             0
+          float               none
+
+          &:before
+            display           none
+
+          &:after
+            content           ', '
+
+          &:last-of-type:after
+            content           ''
+
+      section.plans
+        padding               0
+
+        .single-plan
+          width               100%
+          float               none
+          padding             0 16px 0 20px
+          background          transparent
+          rounded             0
+          border              none
+          border-top          1px solid #ededed
+          position            relative
+          height              108px
+
+          &:last-of-type
+            border-bottom     1px solid #ededed
+
+          .plan-title
+            display           none
+
+          .kdbutton.plan-buy-button
+            abs               0px 0 0 0px
+            margin            0
+            padding           0
+            size              100%, 100%
+            border            none
+            background        transparent
+            z-index           100
+
+            .button-title
+              display         none
+
+            &:active
+              background      rgba(0,0,0,.05)
+
+            .icon
+              display         block !important
+              visibility      visible
+              opacity         1
+              margin          0 25px 0 0
+              fr()
+
+
+          .plan-summary
+            display           none
+
+          .plan-features
+            font-size         10px !important
+            font-weight       400 !important
+            line-height       14px
+            margin            30px 0 0 80px
+            width             auto
+
+            .vm-count
+              font-size       inherit
+              font-weight     inherit
+              padding         0
+
+            .cpu:after
+              line-height     inherit
+
+            dd
+              display         inline
+
+              & ~ dd:before
+                content       ', '
+
+
+          .plan-price
+            width             auto
+            abs               0px 0 0 20px
+            fl()
+
+            cite
+              font-weight     200
+              font-size       32px
+              line-height     24px
+              margin-top      26px
+
+          &.free .plan-price cite
+            margin-top        38px
