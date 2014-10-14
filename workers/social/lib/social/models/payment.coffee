@@ -1,6 +1,3 @@
-{argv}   = require 'optimist'
-KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
-
 Bongo = require "bongo"
 {secure, signature, Base} = Bongo
 
@@ -47,7 +44,9 @@ module.exports = class Payment extends Base
           callback err, response
 
           data.status = if err then "$failed" else "$success"
-          logTransaction client, data, (err)->
+
+          SiftScience = require "./siftscience"
+          SiftScience.transaction client, data, (err)->
             log "logging to SiftScience failed", err  if err
 
 
@@ -91,34 +90,8 @@ module.exports = class Payment extends Base
 
 
   @logOrder = secure (client, raw, callback)->
-    requiredParams = [
-      "planTitle", "planAmount", "binNumber", "lastFour", "cardName"
-    ]
-
-    validateParams requiredParams, raw, (err)->
-      return callback err  if err
-
-      {planTitle, planAmount, binNumber, lastFour, cardName} = raw
-
-      data = {
-        "$type"               : "$create_order"
-        "$currency_code"      : "USD"
-        "$amount"             : planAmount*1000000
-        "$payment_methods"    : [
-          "$payment_type"     : "$credit_card"
-          "$payment_gateway"  : "$stripe"
-          "$card_bin"         : binNumber
-          "$card_last4"       : lastFour
-        ]
-        "$billing_address"    :
-          "$name"             : cardName
-        "$items"              : [
-          "$item_id"          : planTitle
-          "$price"            : planAmount*1000000
-        ]
-      }
-
-      logToSiftScience client, "create_order", data, callback
+    SiftScience = require "./siftscience"
+    SiftScience.create_order client, raw, (err)->
 
 
   validateParams = (requiredParams, data, callback)->
@@ -189,46 +162,3 @@ module.exports = class Payment extends Base
   fetchReferrerSpace = (client, callback)->
     JReferral = require "./referral/index"
     JReferral.fetchEarnedSpace client, callback
-
-
-  fetchUserInfo = (client, callback)->
-    {sessionToken, connection : {delegate}} = client
-    delegate.fetchUser (err, user)->
-      return callback err  if err
-
-      {username, email} = user
-
-      callback null, {username, email, sessionToken}
-
-  logTransaction = (client, raw, callback)->
-    {planTitle, planAmount, binNumber, lastFour, cardName, status} = raw
-
-    return callback null  if planTitle is "free"
-
-    data = {
-      "$type"               : "$transaction"
-      "$transaction_status" : "$success"
-      "$currency_code"      : "USD"
-      "$amount"             : planAmount*1000000
-      "$payment_method"     :
-        "$payment_type"     : "$credit_card"
-        "$payment_gateway"  : "$stripe"
-        "$card_bin"         : binNumber
-        "$card_last4"       : lastFour
-      "$billing_address"    :
-        "$name"             : cardName
-    }
-
-    logToSiftScience client, "transaction", data, callback
-
-  logToSiftScience = (client, event, data, callback)->
-    siftScience = require('yield-siftscience') KONFIG.siftScience
-
-    fetchUserInfo client, (err, {username, email, sessionToken})->
-      return callback err   if err
-
-      data["$user_id"]    = username
-      data["$user_email"] = email
-      data["$session_id"] = sessionToken
-
-      siftScience.event[event] data, callback
