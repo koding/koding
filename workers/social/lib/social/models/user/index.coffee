@@ -824,7 +824,7 @@ Team Koding
       ->
         SiftScience = require "../siftscience"
         SiftScience.create_account client, referrer, ->
-          console.log arguments...
+
         queue.next()
       ->
         callback error, {account, recoveryToken, newToken}

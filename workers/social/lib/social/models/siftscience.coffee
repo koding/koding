@@ -71,6 +71,7 @@ module.exports = class SiftScience
       data["$session_id"] = sessionToken
 
       siftScience.event[event] data, (err, response)->
+        console.error "Request to SiftScience failed", err, response.body  if err
         callback err, response.body
 
 
