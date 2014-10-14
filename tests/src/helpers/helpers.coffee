@@ -85,6 +85,7 @@ module.exports =
 
     browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
+    return post
 
   postComment: (browser) ->
 
@@ -98,6 +99,8 @@ module.exports =
       .pause        6000 # required
 
     browser.assert.containsText  '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
+
+    return comment
 
 
   getUrl: ->
