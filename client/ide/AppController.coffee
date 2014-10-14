@@ -129,6 +129,9 @@ class IDEAppController extends AppController
 
 
     @firebase = new Firebase 'https://ace-tryout.firebaseio.com'
+    
+    KD.utils.wait 4000, ->
+      $('.kdoverlay, .ide-modal').remove()
 
   bindRouteHandler: ->
     {router, mainView} = KD.singletons
@@ -266,6 +269,7 @@ class IDEAppController extends AppController
 
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
+          @ideViews.first.createCollaborationPane()
 
         else
           @createNewTerminal machine

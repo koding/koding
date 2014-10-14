@@ -67,4 +67,8 @@ module.exports = [
   # 3rd party
   "../../website/a/js/sketchpad.js"
   "../Teamwork/CollaborativeWorkspace/libs/firebase/firebase.js"
+  "../../website/a/js/gapi.js"
+
+  # realtime
+  "RealTimeManager.coffee"
 ]
