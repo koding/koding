@@ -3,6 +3,7 @@ package koding
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
@@ -244,6 +245,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// build now our instance!!
 	buildArtifact, err := a.Build(instanceName, normalize(45), normalize(60))
 	if err != nil {
+		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
+			fmt.Println("DO FALLBACK STUFF")
+		}
+
 		return nil, err
 	}
 	buildArtifact.MachineId = m.Id

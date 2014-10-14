@@ -78,12 +78,5 @@ func awsRetry(req *http.Request, res *http.Response, err error) bool {
 		}
 	}
 
-	// Retry if we get a 5xx series error.
-	if res != nil {
-		if res.StatusCode >= 500 && res.StatusCode < 600 {
-			retry = true
-		}
-	}
-
 	return retry
 }
