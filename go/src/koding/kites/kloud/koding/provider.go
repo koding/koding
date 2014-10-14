@@ -11,12 +11,12 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 const (
@@ -43,9 +43,9 @@ type Provider struct {
 	Test bool
 
 	// AWS related references and settings
-	EC2    *ec2.EC2
-	DNS    *DNS
-	Bucket *Bucket
+	EC2Clients *multiec2.Clients
+	DNS        *DNS
+	Bucket     *Bucket
 
 	KontrolURL        string
 	KontrolPrivateKey string
@@ -88,7 +88,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	a.Amazon, err = amazonClient.New(m.Builder, p.EC2)
+	a.Amazon, err = amazonClient.New(m.Builder, p.EC2Clients.Region("us-east-1"))
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}

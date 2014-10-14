@@ -1,32 +1,22 @@
-package koding
+package multiec2
 
 import (
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 )
 
-var (
-	// Currently all our VM's are created here
-	DefaultAWSRegion = aws.USEast
+type Clients struct {
+	regions map[string]*ec2.EC2
+	sync.Mutex
+}
 
-	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	DefaultKloudAccessKey = "AKIAIKAVWAYVSMCW4Z5A"
-	DefaultKloudSecretKey = "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"
-
-	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	DefaultKodingAuth = aws.Auth{
-		AccessKey: DefaultKloudAccessKey,
-		SecretKey: DefaultKloudSecretKey,
-	}
-)
-
-// newKodingEC2Client is returning a new default ec2 instance with a Koding
-// credentials and custom client
-func NewEC2Client() *ec2.EC2 {
+// Clients is returning a new clients reference
+func New(auth aws.Auth) *Clients {
 	// include it here to because the library is not exporting it.
 	var retryingTransport = &aws.ResilientTransport{
 		Deadline: func() time.Time {
@@ -38,12 +28,34 @@ func NewEC2Client() *ec2.EC2 {
 		Wait:        aws.ExpBackoff,
 	}
 
-	return ec2.NewWithClient(
-		DefaultKodingAuth,
-		DefaultAWSRegion,
-		aws.NewClient(retryingTransport),
-	)
+	clients := &Clients{
+		regions: make(map[string]*ec2.EC2),
+	}
 
+	for _, region := range aws.Regions {
+		clients.regions[region.Name] = ec2.NewWithClient(
+			auth, region, aws.NewClient(retryingTransport),
+		)
+	}
+
+	return clients
+}
+
+// HasRegion checks whether the given region exists or not
+func (c *Clients) HasRegion(region string) bool {
+	c.Lock()
+	_, ok := c.regions[region]
+	c.Unlock()
+	return ok
+}
+
+// Region returns an *ec2.EC2 reference that is used to make API calls to this
+// particular region.
+func (c *Clients) Region(region string) *ec2.EC2 {
+	c.Lock()
+	client := c.regions[region]
+	c.Unlock()
+	return client
 }
 
 // Decide if we should retry a request.  In general, the criteria for retrying
