@@ -144,3 +144,8 @@ class RealTimeManager extends KDObject
 
     list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (v) =>
       @emit 'ListValuesSet', list, v
+
+
+  fetchFileByTitle: (title) ->
+    gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
+      @emit 'FileQueryFinished', file
