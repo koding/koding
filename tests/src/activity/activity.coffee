@@ -131,3 +131,23 @@ module.exports =
       .end()
 
 
+  cancelCommentDeletion: (browser) ->
+
+    comment         = helpers.postComment(browser)
+
+    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    commentSelector = selector + ' .comment-container button.comment-menu'
+
+    browser
+      .waitForElementPresent    commentSelector, 5000
+      .click                    commentSelector
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 5000
+      .click                    '.kdcontextmenu .delete-comment'
+      .click                    '.kdmodal-inner .modal-cancel'
+      .waitForElementNotPresent '.kdoverlay', 5000
+
+    browser
+      .assert.containsText selector + ' .comment-container', comment # Assertion
+      .end()
+
+
