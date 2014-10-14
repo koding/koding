@@ -41,14 +41,28 @@ class PaymentModal extends PaymentBaseModal
     @form.forwardEvent this, 'PaymentProviderLoaded'
 
     @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
+    @on 'FailedAttemptLimitReached',     @bound 'handleLimitReached'
     @on 'PaymentFailed',                 @bound 'handleError'
     @on 'PaymentSucceeded',              @bound 'handleSuccess'
 
 
-
   handleStripeFail: (error) ->
+
     @form.submitButton.hideLoader()
     @form.showValidationErrorsOnInputs error
+
+
+  handleLimitReached: ->
+
+    @setTitle 'Too many failed attempts'
+    @setSubtitle ''
+    @setClass 'has-problem'
+
+    @form.submitButton.hideLoader()
+    @form.showMaximumAttemptFailed()
+
+    @once 'KDModalViewDestroyed', =>
+      @emit 'PaymentWorkflowFinishedWithError', @state
 
 
   handleError: (error) ->
