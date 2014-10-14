@@ -118,4 +118,11 @@ do ->
   app.post '/xhr', koding.expressify()
   app.get '/xhr',(req,res)->
     res.send "Socialworker is OK"
+
+  app.get '/version',(req,res)->
+    res.send "Socialworker is running with version: #{KONFIG.version}"
+
+  app.get '/healthCheck',(req,res)->
+    res.send "Socialworker is OK"
+
   app.listen argv.p
