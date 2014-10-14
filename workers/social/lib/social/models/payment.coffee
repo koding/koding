@@ -37,13 +37,15 @@ module.exports = class Payment extends Base
       canChangePlan client, data.planTitle, (err)->
         return callback err  if err
 
-        logTransaction client, data, (err)->
-          log "logging to SiftScience failed: ", err  if err
+        data.accountId = getAccountId client
+        url = "/payments/subscribe"
 
-          data.accountId = getAccountId client
-          url = "/payments/subscribe"
+        post url, data, (err)->
+          data.status = if err then "$failed" else "$success"
 
-          post url, data, callback
+          logTransaction client, data, (err)->
+            log "logging to SiftScience failed: ", err  if err
+
 
   @subscriptions$ = secure (client, data, callback)->
     Payment.subscriptions client, data, callback
@@ -156,7 +158,7 @@ module.exports = class Payment extends Base
 
   logTransaction = (client, raw, callback)->
     {sessionToken, connection : {delegate}} = client
-    {planTitle, planAmount, binNumber, lastFour, cardName} = raw
+    {planTitle, planAmount, binNumber, lastFour, cardName, status} = raw
 
     return callback null  if planTitle is "free"
 
