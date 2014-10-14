@@ -25,7 +25,7 @@ module.exports = class SiftScience
     @send client, "transaction", data, callback
 
 
-  @create_order : (client, raw, callback)->
+  @createOrder : (client, raw, callback)->
     {planTitle, planAmount, binNumber, lastFour, cardName} = raw
 
     return callback null  if planTitle is "free"
@@ -51,7 +51,7 @@ module.exports = class SiftScience
     @send client, "create_order", data, callback
 
 
-  @create_account: (client, referrer, callback)->
+  @createAccount: (client, referrer, callback)->
     data = {
       "$type"             : "$create_account"
       "$referrer_user_id" : referrer

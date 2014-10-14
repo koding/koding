@@ -823,7 +823,7 @@ Team Koding
         queue.next()
       ->
         SiftScience = require "../siftscience"
-        SiftScience.create_account client, referrer, ->
+        SiftScience.createAccount client, referrer, ->
 
         queue.next()
       ->
