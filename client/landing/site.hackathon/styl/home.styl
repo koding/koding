@@ -228,7 +228,8 @@ body.home
           padding         18px 0 18px 32px
 
         li
-          line-height     32px
+          line-height     22px
+          margin-bottom   5px
 
       ol
         padding           28px 0 0
@@ -307,3 +308,72 @@ body.home
 
       &:hover
         borderize(#909090)
+
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px)
+  body.home
+    section.introduction
+      padding             119px 25px 288px
+
+      h2
+        font-size         58px
+        margin-bottom     16px
+
+        span
+          font-size       19px
+
+        span.bottom
+          font-size       22px
+
+      h3
+        font-size         17px
+        line-height       22px
+
+      .form-wrapper
+        margin            29px -25px 0 -25px
+
+        section
+          width           100%
+
+          > div
+            width         100%
+            margin-bottom 20px
+
+          .submit
+            width         100%
+            margin-bottom 0
+
+    section.content
+      padding             32px 0 0
+
+      .counters
+        padding           18px
+        height            auto
+        line-height       20px
+        top               -146px
+
+        span
+          display         block
+          height          0
+          font-size       0
+          line-height     0
+
+      article
+        padding           24px
+
+        h4
+          font-size       21px
+
+        p
+          padding         16px 0 0
+
+      article.judges
+        padding-right     25px
+
+        .judge
+          width           100%
+
+      aside.partners
+        position          static
+        width             100%
+        borderBox()

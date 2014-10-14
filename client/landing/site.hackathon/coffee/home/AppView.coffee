@@ -155,7 +155,7 @@ module.exports = class HomeView extends KDView
 
     { cap, prize, totalApplicants, approvedApplicants } = getStats()
 
-    return "PRIZE: $#{prize.toLocaleString()} - TOTAL SLOTS: #{cap.toLocaleString()} - APPLICATIONS: #{totalApplicants.toLocaleString()} - APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
+    return "PRIZE: $#{prize.toLocaleString()} <span>-</span> TOTAL SLOTS: #{cap.toLocaleString()} <span>-</span> APPLICATIONS: #{totalApplicants.toLocaleString()} <span>-</span> APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
 
 
   updateGreeting: ->
@@ -226,14 +226,12 @@ module.exports = class HomeView extends KDView
       </article>
       <article>
         <h4> How do I qualify? </h4>
-        <p>
         <ul>
         <li>You are a developer, you have good looking Github/Stackoverflow profile page.</li>
         <li>You're a designer, you have a good looking dribbble or behance profile.</li>
         <li>Linkedin work experience is also acceptable. </li>
         <li>If you are not a developer or a designer, you should apply and let a developer and designer vouch for you.</li>
         </ul>
-        </p>
       </article>
       <article>
         <h4>Yes, you can code alone, if that's your style.</h4>
