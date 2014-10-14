@@ -23,7 +23,7 @@ module.exports = (siteName) ->
     </script>
   </head>
   <body class='home'>
-    <script src="/a/site.#{siteName}/js/pistachio.js"></script>
+    <script src="/a/site.#{siteName}/js/libs.js"></script>
     <script src="/a/site.#{siteName}/js/kd.libs.js"></script>
     <script src="/a/site.#{siteName}/js/kd.js"></script>
     <script>KD.siteName="#{siteName}";</script>

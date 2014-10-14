@@ -1,9 +1,10 @@
 gulp   = require 'gulp'
-rimraf = require 'gulp-rimraf'
+concat = require 'gulp-concat'
 
-{ BUILD_PATH } = require './helper.constants'
+{ BUILD_PATH, LIBS_PATH } = require './helper.constants'
 
 module.exports = ->
 
-  gulp.src "#{__dirname}/../static/a/site.boilerplate/js/pistachio.js"
+  gulp.src LIBS_PATH
+    .pipe concat 'libs.js'
     .pipe gulp.dest "#{BUILD_PATH}/js"
