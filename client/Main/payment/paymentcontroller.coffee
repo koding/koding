@@ -5,8 +5,6 @@ class PaymentController extends KDController
   subscribe: (token, planTitle, planInterval, options, callback)->
     {planAmount, binNumber, lastFour, cardName} = options
 
-    planAmount = 1000000
-
     params = {
       token,
       planTitle, planInterval, planAmount,

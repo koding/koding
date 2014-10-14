@@ -171,7 +171,7 @@ module.exports = class Payment extends Base
         "$user_id"            : username
         "$user_email"         : email
         "$session_id"         : sessionToken
-        "$amount"             : planAmount
+        "$amount"             : planAmount*1000000
         "$payment_method"     :
           "$payment_type"     : "$credit_card"
           "$payment_gateway"  : "$stripe"
