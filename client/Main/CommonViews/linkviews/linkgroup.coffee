@@ -92,3 +92,4 @@ class LinkGroup extends KDCustomHTMLView
   render:->
 
     @createParticipantSubviews()
+
