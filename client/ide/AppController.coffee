@@ -237,7 +237,13 @@ class IDEAppController extends AppController
   mountMachine: (machineData) ->
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
-    rootPath     = @workspaceData?.rootPath or null
+    {credential} = machineData.jMachine
+
+    if credential is KD.nick()
+      rootPath   = @workspaceData?.rootPath or null
+    else
+      rootPath   = "/home/#{credential}"
+
     filesPane.emit 'MachineMountRequested', machineData, rootPath
 
   unmountMachine: (machineData) ->
