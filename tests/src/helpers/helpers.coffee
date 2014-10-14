@@ -81,7 +81,7 @@ module.exports =
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
       .click                  '[testpath=post-activity-button]'
-      .pause                  5000 # required
+      .pause                  6000 # required
 
     browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
@@ -95,7 +95,7 @@ module.exports =
     browser
       .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
       .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
-      .pause        5000 # required
+      .pause        6000 # required
 
     browser.assert.containsText  '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
