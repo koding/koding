@@ -181,4 +181,13 @@ class StripeFormView extends KDFormViewWithFields
         KD.showError error.message
 
 
+  cleanFormExceptName: ->
+
+    [
+      @inputs.cardNumber
+      @inputs.cardCVC
+      @inputs.cardMonth
+      @inputs.cardYear
+    ].forEach (input) -> input.setValue ""
+
 
