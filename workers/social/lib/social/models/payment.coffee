@@ -91,7 +91,7 @@ module.exports = class Payment extends Base
 
   @logOrder = secure (client, raw, callback)->
     SiftScience = require "./siftscience"
-    SiftScience.create_order client, raw, (err)->
+    SiftScience.create_order client, raw, callback
 
 
   validateParams = (requiredParams, data, callback)->

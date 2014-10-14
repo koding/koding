@@ -101,6 +101,11 @@ class PaymentWorkflow extends KDController
     binNumber = cardNumber.slice 0, 6
     lastFour  = cardNumber.slice -4
 
+    KD.utils.defer ->
+      KD.singletons.paymentController.logOrder {
+        planTitle, planAmount, binNumber, lastFour, cardNumber
+      }, noop
+
     if currentPlan is PaymentWorkflow.planTitle.FREE
 
       Stripe.card.createToken {

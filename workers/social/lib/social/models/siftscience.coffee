@@ -28,6 +28,8 @@ module.exports = class SiftScience
   @create_order : (client, raw, callback)->
     {planTitle, planAmount, binNumber, lastFour, cardName} = raw
 
+    return callback null  if planTitle is "free"
+
     data = {
       "$type"               : "$create_order"
       "$currency_code"      : "USD"
@@ -59,7 +61,8 @@ module.exports = class SiftScience
       data["$user_email"] = email
       data["$session_id"] = sessionToken
 
-      siftScience.event[event] data, callback
+      siftScience.event[event] data, (err, response)->
+        callback err, response.body
 
 
   @fetchUserInfo = (client, callback)->
