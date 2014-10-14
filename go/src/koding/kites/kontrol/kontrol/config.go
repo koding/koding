@@ -28,6 +28,9 @@ type Config struct {
 	// SSL Support
 	TLSCertFile string
 	TLSKeyFile  string
+
+	// Artifacts endpoint port
+	ArtifactPort int
 }
 
 func FindPath(path string) string {
