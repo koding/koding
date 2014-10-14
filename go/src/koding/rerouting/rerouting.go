@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"koding/artifact"
 	"koding/rerouting/router"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -9,7 +10,8 @@ import (
 )
 
 var (
-	log         = logger.New("rerouting")
+	Name        = "rerouting"
+	log         = logger.New(Name)
 	conf        *config.Config
 	flagProfile = flag.String("c", "", "Configuration profile from file")
 	flagDebug   = flag.Bool("d", false, "Debug mode")
@@ -43,6 +45,8 @@ func main() {
 	}
 
 	defaultPublishingExchange = "broker"
+
+	go artifact.StartDefaultServer(Name, conf.Rerouting.Port)
 
 	startRouting()
 }
