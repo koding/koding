@@ -39,6 +39,8 @@ module.exports = class JMachine extends Module
       instance          :
         reviveUsers     :
           (signature Function)
+        shareWith     :
+          (signature Object, Function)
         setProvisioner  :
           (signature String, Function)
         setLabel        :
@@ -274,7 +276,17 @@ module.exports = class JMachine extends Module
 
   reviveUsers: permit 'populate users',
 
-    success: (client, callback)->
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, callback)->
+
+      { r: { user } } = client
+
+      unless isOwner user, this
+        return callback new KodingError 'Access denied'
 
       JUser = require '../user'
 
@@ -357,3 +369,86 @@ module.exports = class JMachine extends Module
           @update $set: { slug, label }, (err)-> kallback err, slug
       else
         @update $set: { label }, (err)-> kallback err, slug
+
+
+  addUser: (user, owner, callback)->
+
+    userId = user.getId()
+    users  = []
+
+    for u in @users
+      users.push u  unless userId.equals u.id
+
+    users.push { id: userId, owner }
+
+    @update $set: { users }, callback
+
+
+  removeUser: (user, callback)->
+
+    userId = user.getId()
+    users  = []
+
+    for u in @users
+      users.push u  unless userId.equals u.id
+
+    @update $set: { users }, callback
+
+
+  shareWith: (options, callback)->
+
+    { target, user, owner } = options
+    user  ?= yes
+    owner ?= no
+
+    unless target?
+      return callback new KodingError "Target required."
+
+    JUser = require '../user'
+    JName = require '../name'
+
+    JName.fetchModels target, (err, result)=>
+
+      if err or not result?
+        return callback new KodingError "Target not found."
+
+      [ target ] = result.models
+
+      if target instanceof JUser
+
+        if user
+        then @addUser target, owner, callback
+        else @removeUser target, callback
+
+      else
+        callback new KodingError "Target does not support machines."
+
+
+  # .share can be used like this:
+  #
+  # JMachineInstance.shareWith { user: yes, owner: no, target: "gokmen"}, cb
+  #                                                user slug -> ^^^^^^
+
+  shareWith$: permit 'populate users',
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+
+    , (client, options, callback)->
+
+      { r: { user } } = client
+
+      unless isOwner user, this
+        return callback new KodingError "Access denied"
+
+      { target } = options
+
+      # Owners cannot unassign them from a machine
+      # Only another owner can unassign any other owner
+      if user.username is target
+        return callback \
+          new KodingError "It's not allowed to change owner's state!"
+
+      JMachine::shareWith.call this, options, callback
