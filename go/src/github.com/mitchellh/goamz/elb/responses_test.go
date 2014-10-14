@@ -7,6 +7,26 @@ var ErrorDump = `
 </Error></Errors><RequestID>0503f4e9-bbd6-483c-b54f-c4ae9f3b30f4</RequestID></Response>
 `
 
+// http://goo.gl/OkMdtJ
+var AddTagsExample = `
+<AddTagsResponse xmlns="http://elasticloadbalancing.amazonaws.com/doc/2012-06-01/">
+  <AddTagsResult/>
+  <ResponseMetadata>
+    <RequestId>360e81f7-1100-11e4-b6ed-0f30EXAMPLE</RequestId>
+  </ResponseMetadata>
+</AddTagsResponse>
+`
+
+// http://goo.gl/nT2E89
+var RemoveTagsExample = `
+<RemoveTagsResponse xmlns="http://elasticloadbalancing.amazonaws.com/doc/2012-06-01/">
+  <RemoveTagsResult/>
+  <ResponseMetadata>
+    <RequestId>83c88b9d-12b7-11e3-8b82-87b12EXAMPLE</RequestId>
+  </ResponseMetadata>
+</RemoveTagsResponse>
+`
+
 // http://goo.gl/gQRD2H
 var CreateLoadBalancerExample = `
 <CreateLoadBalancerResponse xmlns="http://elasticloadbalancing.amazonaws.com/doc/2012-06-01/">
