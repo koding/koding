@@ -50,9 +50,9 @@ module.exports =
       .setValue                   selector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
       .pause                      3000
 
-    browser.assert.containsText selector, post # Assertion
-
-    browser.end()
+    browser
+      .assert.containsText selector, post # Assertion
+      .end()
 
 
   deletePost: (browser) ->
