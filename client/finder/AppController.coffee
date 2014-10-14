@@ -21,7 +21,7 @@ class FinderController extends KDController
     finderView  = @controller.getView()
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
-    # finderView.addSubView @getUploader()
+    finderView.addSubView @getUploader()
 
     return @controller
 
