@@ -22,9 +22,12 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         canChangePlan     :
           (signature Object, Function)
+        logOrder          :
+          (signature Object, Function)
 
 
   { get, post } = require "./socialapi/requests"
+
 
   @subscribe = secure (client, data, callback)->
     requiredParams = [
@@ -85,6 +88,37 @@ module.exports = class Payment extends Base
 
     validateParams requiredParams, data, (err)->
       canChangePlan client, data.planTitle, callback
+
+
+  @logOrder = secure (client, raw, callback)->
+    requiredParams = [
+      "planTitle", "planAmount", "binNumber", "lastFour", "cardName"
+    ]
+
+    validateParams requiredParams, raw, (err)->
+      return callback err  if err
+
+      {planTitle, planAmount, binNumber, lastFour, cardName} = raw
+
+      data = {
+        "$type"               : "$create_order"
+        "$currency_code"      : "USD"
+        "$amount"             : planAmount*1000000
+        "$payment_methods"    : [
+          "$payment_type"     : "$credit_card"
+          "$payment_gateway"  : "$stripe"
+          "$card_bin"         : binNumber
+          "$card_last4"       : lastFour
+        ]
+        "$billing_address"    :
+          "$name"             : cardName
+        "$items"              : [
+          "$item_id"          : planTitle
+          "$price"            : planAmount*1000000
+        ]
+      }
+
+      logToSiftScience client, "create_order", data, callback
 
 
   validateParams = (requiredParams, data, callback)->
@@ -157,36 +191,44 @@ module.exports = class Payment extends Base
     JReferral.fetchEarnedSpace client, callback
 
 
-  logTransaction = (client, raw, callback)->
+  fetchUserInfo = (client, callback)->
     {sessionToken, connection : {delegate}} = client
-    {planTitle, planAmount, binNumber, lastFour, cardName, status} = raw
-
-    return callback null  if planTitle is "free"
-
     delegate.fetchUser (err, user)->
       return callback err  if err
 
       {username, email} = user
 
-      data = {
-        "$type"               : "$transaction"
-        "$transaction_status" : "$success"
-        "$currency_code"      : "USD"
-        "$user_id"            : username
-        "$user_email"         : email
-        "$session_id"         : sessionToken
-        "$amount"             : planAmount*1000000
-        "$payment_method"     :
-          "$payment_type"     : "$credit_card"
-          "$payment_gateway"  : "$stripe"
-          "$card_bin"         : binNumber
-          "$card_last4"       : lastFour
-        "$billing_address"    :
-          "$name"             : cardName
-      }
+      callback null, {username, email, sessionToken}
 
-      logToSiftScience "transaction", data, callback
+  logTransaction = (client, raw, callback)->
+    {planTitle, planAmount, binNumber, lastFour, cardName, status} = raw
 
-  logToSiftScience = (event, params, callback)->
+    return callback null  if planTitle is "free"
+
+    data = {
+      "$type"               : "$transaction"
+      "$transaction_status" : "$success"
+      "$currency_code"      : "USD"
+      "$amount"             : planAmount*1000000
+      "$payment_method"     :
+        "$payment_type"     : "$credit_card"
+        "$payment_gateway"  : "$stripe"
+        "$card_bin"         : binNumber
+        "$card_last4"       : lastFour
+      "$billing_address"    :
+        "$name"             : cardName
+    }
+
+    logToSiftScience client, "transaction", data, callback
+
+  logToSiftScience = (client, event, data, callback)->
     siftScience = require('yield-siftscience') KONFIG.siftScience
-    siftScience.event[event] params, callback
+
+    fetchUserInfo client, (err, {username, email, sessionToken})->
+      return callback err   if err
+
+      data["$user_id"]    = username
+      data["$user_email"] = email
+      data["$session_id"] = sessionToken
+
+      siftScience.event[event] data, callback
