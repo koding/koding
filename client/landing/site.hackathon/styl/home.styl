@@ -311,3 +311,30 @@ body.home
 
       &:hover
         borderize(#909090)
+
+
+.social-buttons
+  display         block
+  list-style      none
+  padding         0
+  margin          0
+  abs             0px 125px 0 0
+  z-index         16
+  opacity         0.01
+  vendor          transition, opacity .3s ease
+  &.loaded
+    opacity       1
+
+
+  > li
+    display       block
+    margin        0 13px 0 0
+    padding       0
+    float         left
+
+    .vhidden
+      hidden()
+
+  .socialite
+    display block
+    position relative
