@@ -51,9 +51,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     @email.input.on    'focus', @bound 'handleFocus'
     @password.input.on 'focus', @bound 'handleFocus'
-    @email.input.on    'blur',  =>
-      log 'why not you yavsak'
-      @fetchGravatarInfo @email.input.getValue()
+    @email.input.on    'blur',  => @fetchGravatarInfo @email.input.getValue()
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @email.icon.unsetTooltip()
