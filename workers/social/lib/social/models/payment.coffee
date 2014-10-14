@@ -34,10 +34,13 @@ module.exports = class Payment extends Base
       canChangePlan client, data.planTitle, (err)->
         return callback err  if err
 
-        data.accountId = getAccountId client
-        url = "/payments/subscribe"
+        logTransaction client, data, (err)->
+          log "logging to SiftScience failed: ", err  if err
 
-        post url, data, callback
+          data.accountId = getAccountId client
+          url = "/payments/subscribe"
+
+          post url, data, callback
 
   @subscriptions$ = secure (client, data, callback)->
     Payment.subscriptions client, data, callback
@@ -87,6 +90,9 @@ module.exports = class Payment extends Base
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
+
+  getUserName = (client)->
+    return client.connection.delegate.profile.nickname
 
   prettifyFeature = (name)->
     switch name
@@ -143,3 +149,40 @@ module.exports = class Payment extends Base
   fetchReferrerSpace = (client, callback)->
     JReferral = require "./referral/index"
     JReferral.fetchEarnedSpace client, callback
+
+
+  logTransaction = (client, raw, callback)->
+    {sessionToken} = client
+    {delegate}     = client.connection
+
+    {planTitle, planAmount, binNumber, lastFour, cardName} = raw
+
+    return callback null  if planTitle is "free"
+
+    delegate.fetchUser (err, user)->
+      return callback err  if err
+
+      {username, email} = user
+
+      data = {
+        "$type"               : "$transaction"
+        "$transaction_status" : "$success"
+        "$currency_code"      : "USD"
+        "$user_id"            : username
+        "$user_email"         : email
+        "$session_id"         : sessionToken
+        "$amount"             : planAmount
+        "$payment_method"     :
+          "$payment_type"     : "$credit_card"
+          "$payment_gateway"  : "$stripe"
+          "$card_bin"         : binNumber
+          "$card_last4"       : lastFour
+        "$billing_address"    :
+          "$name"             : cardName
+      }
+
+      logToSiftScience "transaction", data, callback
+
+  logToSiftScience = (event, params, callback)->
+    siftScience = require('yield-siftscience')('a41deacd57929378')
+    siftScience.event[event] params, callback

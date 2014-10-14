@@ -80,7 +80,7 @@ class PaymentWorkflow extends KDController
 
     {
       cardNumber, cardCVC, cardMonth,
-      cardYear, planTitle, planInterval,
+      cardYear, planTitle, planInterval, planAmount
       currentPlan, cardName
     } = formData
 
@@ -92,6 +92,9 @@ class PaymentWorkflow extends KDController
     # Stripe will take care of the rest. ~U
     cardYear  = null  if cardYear.length isnt 4
     cardMonth = null  if cardMonth.length isnt 2
+
+    binNumber = cardNumber.slice(0, 6)
+    lastFour  = cardNumber.slice(-4)
 
     if currentPlan is PaymentWorkflow.planTitle.FREE
 
@@ -109,14 +112,18 @@ class PaymentWorkflow extends KDController
           return
 
         token = response.id
-        @subscribeToPlan planTitle, planInterval, token
+        @subscribeToPlan planTitle, planInterval, token, {
+          binNumber, lastFour, planAmount, cardName
+        }
     else
-      @subscribeToPlan planTitle, planInterval, 'a'
+      @subscribeToPlan planTitle, planInterval, 'a', {
+        binNumber, lastFour, planAmount, cardName
+      }
 
     @state.currentPlan = planTitle
 
 
-  subscribeToPlan: (planTitle, planInterval, token = 'a') ->
+  subscribeToPlan: (planTitle, planInterval, token, options) ->
     { paymentController } = KD.singletons
 
     me = KD.whoami()
@@ -124,9 +131,9 @@ class PaymentWorkflow extends KDController
 
       return KD.showError err  if err
 
-      obj = { email }
+      options.email = email
 
-      paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+      paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
         @modal.form.submitButton.hideLoader()
 
         if err

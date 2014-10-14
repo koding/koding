@@ -3,10 +3,18 @@ class PaymentController extends KDController
   DEFAULT_PROVIDER = "stripe"
 
   subscribe: (token, planTitle, planInterval, options, callback)->
-    params          = {token, planTitle, planInterval}
+    {planAmount, binNumber, lastFour, cardName} = options
 
-    params.email    = options.email     if options.email
-    params.provider = options.provider  or DEFAULT_PROVIDER
+    planAmount = 1000000
+
+    params = {
+      token,
+      planTitle, planInterval, planAmount,
+      binNumber, lastFour, cardName
+    }
+
+    params.email      = options.email     if options.email
+    params.provider   = options.provider  or DEFAULT_PROVIDER
 
     @api().subscribe params, (err, result)=>
       @emit "UserPlanUpdated"  unless err?
