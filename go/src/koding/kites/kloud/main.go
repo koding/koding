@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
@@ -22,6 +23,8 @@ import (
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
+
+var Name = "kloud"
 
 // Config defines the configuration that Kloud needs to operate.
 type Config struct {
@@ -70,6 +73,9 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
+
+	// Artifacts endpoint port
+	ArtifactPort int
 }
 
 func main() {
@@ -119,6 +125,10 @@ func main() {
 			k.Log.Fatal(err.Error())
 		}
 	}
+
+	// TODO use kite's http server instead of creating another one here
+	// this is used for application lifecycle management
+	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
 
 	k.Run()
 }
@@ -209,7 +219,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
-	kld.Log = newLogger("kloud", conf.DebugMode)
+	kld.Log = newLogger(Name, conf.DebugMode)
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
