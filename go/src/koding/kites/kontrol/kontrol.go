@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"koding/artifact"
 	"koding/kites/kontrol/kontrol"
 
 	"github.com/koding/multiconfig"
 )
+
+var Name = "kontrol"
 
 func main() {
 	m := multiconfig.New()
@@ -21,5 +24,10 @@ func main() {
 	fmt.Printf("Kontrol loaded with following variables: %+v\n", conf)
 
 	k := kontrol.New(conf)
+
+	// TODO use kite's http server instead of creating another one here
+	// this is used for application lifecycle management
+	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
+
 	k.Run()
 }
