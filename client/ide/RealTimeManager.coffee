@@ -93,7 +93,7 @@ class RealTimeManager extends KDObject
     unless doc instanceof gapi.drive.realtime.Document
       return throw new Error 'doc must be instanceof gapi.drive.realtime.Document'
 
-    method =
+    methods  =
       string : 'createString'
       map    : 'createMap'
       list   : 'createList'
