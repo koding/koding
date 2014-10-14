@@ -4,6 +4,7 @@ import (
 	// _ "expvar"
 
 	"fmt"
+	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
@@ -56,13 +57,10 @@ func main() {
 
 	mux = handlers.Inject(mux, r.Metrics)
 
+	mux = injectDefaultHandlers(mux)
 	// init payment handlers, this done here instead of in `init()`
 	// like others so we can've access to `metrics`
 	mux = paymentapi.InitHandlers(mux, r.Metrics)
-
-	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from socialapi")
-	})
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
@@ -119,4 +117,15 @@ func listener(server *tigertonic.Server) {
 	if err := server.ListenAndServe(); nil != err {
 		panic(err)
 	}
+}
+
+func injectDefaultHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
+	mux.HandleFunc("GET", "/version", artifact.VersionHandler())
+	mux.HandleFunc("GET", "/healthCheck", artifact.HealthCheckHandler(Name))
+
+	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello from socialapi")
+	})
+
+	return mux
 }
