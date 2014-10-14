@@ -1,3 +1,6 @@
+{argv}   = require 'optimist'
+KONFIG   = require('koding-config-manager').load("main.#{argv.c}")
+
 Bongo = require "bongo"
 {secure, signature, Base} = Bongo
 
@@ -152,9 +155,7 @@ module.exports = class Payment extends Base
 
 
   logTransaction = (client, raw, callback)->
-    {sessionToken} = client
-    {delegate}     = client.connection
-
+    {sessionToken, connection : {delegate}} = client
     {planTitle, planAmount, binNumber, lastFour, cardName} = raw
 
     return callback null  if planTitle is "free"
@@ -184,5 +185,5 @@ module.exports = class Payment extends Base
       logToSiftScience "transaction", data, callback
 
   logToSiftScience = (event, params, callback)->
-    siftScience = require('yield-siftscience')('a41deacd57929378')
+    siftScience = require('yield-siftscience') KONFIG.siftScience
     siftScience.event[event] params, callback

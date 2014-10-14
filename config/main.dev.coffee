@@ -135,6 +135,7 @@ Configuration = (options={}) ->
     mixpanel                       : mixpanel.token
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    siftScience                    : 'a41deacd57929378'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -178,6 +179,7 @@ Configuration = (options={}) ->
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
+    siftScience       : 'f270274999'
 
 
 
@@ -196,7 +198,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : 6500
       supervisord       :
-        command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
+        command         : "#{GOBIN}/rerun koding/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
         locations       : ["~^/IDE/.*"]
     kontrol             :
