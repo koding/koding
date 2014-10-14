@@ -111,3 +111,23 @@ module.exports =
       .end()
 
 
+  deleteComment: (browser) ->
+
+    helpers.postComment(browser)
+
+    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    commentSelector = selector + ' .comment-container button.comment-menu'
+    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .waitForElementPresent    commentSelector, 3000
+      .click                    commentSelector
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 5000
+      .click                    '.kdcontextmenu .delete-comment'
+      .click                    '.kdmodal-inner .modal-clean-red'
+      .pause                    3000, ->
+        text = browser.getText selector + ' .comment-container'
+        assert.notEqual text, post # Assertion
+      .end()
+
+
