@@ -127,12 +127,6 @@ class IDEAppController extends AppController
       if app instanceof IDEAppController
         KD.singletons.windowController.notifyWindowResizeListeners()
 
-
-    @firebase = new Firebase 'https://ace-tryout.firebaseio.com'
-    
-    KD.utils.wait 4000, ->
-      $('.kdoverlay, .ide-modal').remove()
-
   bindRouteHandler: ->
     {router, mainView} = KD.singletons
 
@@ -487,8 +481,8 @@ class IDEAppController extends AppController
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
 
-    ideView.on 'ChangeHappened', (change) =>
-      @logChange change
+    # ideView.on 'ChangeHappened', (change) =>
+    #   @logChange change
 
   registerPane: (pane) ->
     {view} = pane
@@ -690,8 +684,6 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) ->
       panes.push pane.hash
 
-    @firebase.child(KD.nick()).child('panels').set panes
-
 
   updateContent: (data) ->
     @forEachSubViewInIDEViews_ 'editor', (pane) ->
@@ -702,33 +694,32 @@ class IDEAppController extends AppController
 
 
   deserialize: ->
-    @firebase.child('ali').child('data').on 'value', (data) =>
-      snapshot = JSON.parse data.val()
+    snapshot = JSON.parse data.val()
 
-      for pane in snapshot
-        if @generatedPanes[pane.hash]
-          if pane.paneType is 'editor'
-            @updateContent pane
-          else
-            continue
+    for pane in snapshot
+      if @generatedPanes[pane.hash]
+        if pane.paneType is 'editor'
+          @updateContent pane
+        else
+          continue
 
-        switch pane.paneType
+      switch pane.paneType
 
-          when 'editor'
-            file = FSHelper.createFileInstance pane.file.path
-            file.paneHash = pane.hash
-            @openFile file, pane.file.content
+        when 'editor'
+          file = FSHelper.createFileInstance pane.file.path
+          file.paneHash = pane.hash
+          @openFile file, pane.file.content
 
-          when 'terminal'
-            @createNewTerminal()
+        when 'terminal'
+          @createNewTerminal()
 
-          when 'drawing'
-            @createNewDrawing()
+        when 'drawing'
+          @createNewDrawing()
 
-          when 'browser'
-            @createNewBrowser()
+        when 'browser'
+          @createNewBrowser()
 
-        @generatedPanes[pane.hash] = yes
+      @generatedPanes[pane.hash] = yes
 
 
   logChange: (change = {}) ->
@@ -739,34 +730,31 @@ class IDEAppController extends AppController
 
     log change
 
-    @firebase.child(KD.nick()).child('changes').push change
-
 
   startListening: (username) ->
-    @firebase.child(username).child('changes').on 'child_added', (snapshot) =>
-      change = snapshot.val()
-      return if change.origin is KD.nick()
+    change = snapshot.val()
+    return if change.origin is KD.nick()
 
-      if change.type is 'NewPaneCreated'
-        {context} = change
-        if context.paneType is 'editor'
-          {path, content} = context.file
-          return if path.indexOf('localfile:/') > -1
+    if change.type is 'NewPaneCreated'
+      {context} = change
+      if context.paneType is 'editor'
+        {path, content} = context.file
+        return if path.indexOf('localfile:/') > -1
 
-          file = FSHelper.createFileInstance path
-          file.paneHash = context.paneHash
-          @openFile file, content
+        file = FSHelper.createFileInstance path
+        file.paneHash = context.paneHash
+        @openFile file, content
 
-      else if change.type is 'CursorActivity'
-        @forEachSubViewInIDEViews_ 'editor', (view) ->
-          {paneHash, cursor} = change.context
+    else if change.type is 'CursorActivity'
+      @forEachSubViewInIDEViews_ 'editor', (view) ->
+        {paneHash, cursor} = change.context
 
-          if view.hash is paneHash
-            view.setCursor cursor
+        if view.hash is paneHash
+          view.setCursor cursor
 
-      else if change.type is 'ContentChange'
-        @forEachSubViewInIDEViews_ 'editor', (view) ->
-          {paneHash, content} = change.context
+    else if change.type is 'ContentChange'
+      @forEachSubViewInIDEViews_ 'editor', (view) ->
+        {paneHash, content} = change.context
 
-          if view.hash is paneHash
-            view.setContent content
+        if view.hash is paneHash
+          view.setContent content
