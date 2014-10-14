@@ -127,7 +127,7 @@ type xmlErrors struct {
 var timeNow = time.Now
 
 func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
-	params["Version"] = "2014-05-01"
+	params["Version"] = "2014-06-15"
 	params["Timestamp"] = timeNow().In(time.UTC).Format(time.RFC3339)
 	endpoint, err := url.Parse(ec2.Region.EC2Endpoint)
 	if err != nil {
@@ -153,6 +153,7 @@ func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
 		log.Printf("response:\n")
 		log.Printf("%v\n}\n", string(dump))
 	}
+
 	if r.StatusCode != 200 {
 		return buildError(r)
 	}
@@ -434,6 +435,78 @@ func clientToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+// ----------------------------------------------------------------------------
+// Instance events and status functions and types.
+
+// The DescribeInstanceStatus type encapsulates options for the respective request in EC2.
+//
+// See http://goo.gl/DFySJY for more details.
+type EventsSet struct {
+	Code        string `xml:"code"`
+	Description string `xml:"description"`
+	NotBefore   string `xml:"notBefore"`
+	NotAfter    string `xml:"notAfter"`
+}
+
+type StatusDetails struct {
+	Name          string `xml:"name"`
+	Status        string `xml:"status"`
+	ImpairedSince string `xml:"impairedSince"`
+}
+
+type Status struct {
+	Status  string          `xml:"status"`
+	Details []StatusDetails `xml:"details>item"`
+}
+
+type InstanceStatusSet struct {
+	InstanceId       string        `xml:"instanceId"`
+	AvailabilityZone string        `xml:"availabilityZone"`
+	InstanceState    InstanceState `xml:"instanceState"`
+	SystemStatus     Status        `xml:"systemStatus"`
+	InstanceStatus   Status        `xml:"instanceStatus"`
+	Events           []EventsSet   `xml:"eventsSet>item"`
+}
+
+type DescribeInstanceStatusResp struct {
+	RequestId      string              `xml:"requestId"`
+	InstanceStatus []InstanceStatusSet `xml:"instanceStatusSet>item"`
+}
+
+type DescribeInstanceStatus struct {
+	InstanceIds         []string
+	IncludeAllInstances bool
+	MaxResults          int64
+	NextToken           string
+}
+
+func (ec2 *EC2) DescribeInstanceStatus(options *DescribeInstanceStatus, filter *Filter) (resp *DescribeInstanceStatusResp, err error) {
+	params := makeParams("DescribeInstanceStatus")
+	if options.IncludeAllInstances {
+		params["IncludeAllInstances"] = "true"
+	}
+	if len(options.InstanceIds) > 0 {
+		addParamsList(params, "InstanceIds", options.InstanceIds)
+	}
+	if options.MaxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
+	}
+	if options.NextToken != "" {
+		params["NextToken"] = options.NextToken
+	}
+	if filter != nil {
+		filter.addParams(params)
+	}
+
+	resp = &DescribeInstanceStatusResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return
 }
 
 // ----------------------------------------------------------------------------
@@ -1910,6 +1983,28 @@ func (ec2 *EC2) CreateTags(resourceIds []string, tags []Tag) (resp *SimpleResp, 
 	if err != nil {
 		return nil, err
 	}
+	return resp, nil
+}
+
+// DeleteTags deletes tags.
+func (ec2 *EC2) DeleteTags(resourceIds []string, tags []Tag) (resp *SimpleResp, err error) {
+	params := makeParams("DeleteTags")
+	addParamsList(params, "ResourceId", resourceIds)
+
+	for j, tag := range tags {
+		params["Tag."+strconv.Itoa(j+1)+".Key"] = tag.Key
+
+		if tag.Value != "" {
+			params["Tag."+strconv.Itoa(j+1)+".Value"] = tag.Value
+		}
+	}
+
+	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+
 	return resp, nil
 }
 
