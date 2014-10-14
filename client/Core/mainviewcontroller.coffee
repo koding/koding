@@ -58,16 +58,16 @@ class MainViewController extends KDViewController
 
     (event) ->
 
-      {scrollHeight, scrollTop} = document.body
-      {innerHeight}             = window
+      {scrollHeight} = document.body
+      {scrollY, innerHeight} = window
 
       # return when it pulls the page on top
-      return lastPos = innerHeight  if scrollTop < 0
+      return lastPos = innerHeight  if scrollY < 0
 
       # return when it pulls the page at the bottom
-      return  if scrollHeight - scrollTop < innerHeight
+      return  if scrollHeight - scrollY < innerHeight
 
-      currentPos = scrollTop + innerHeight
+      currentPos = scrollY + innerHeight
       direction  = if currentPos > lastPos then 'down' else 'up'
 
       appManager = KD.singleton 'appManager'
@@ -75,7 +75,7 @@ class MainViewController extends KDViewController
 
       switch direction
         when 'up'
-          if scrollTop < threshold
+          if scrollY < threshold
             frontApp?.emit 'TopLazyLoadThresholdReached'
         when 'down'
           if currentPos > scrollHeight - threshold
