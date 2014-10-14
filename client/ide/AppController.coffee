@@ -315,6 +315,8 @@ class IDEAppController extends AppController
                 @machineStateModal.once 'MachineTurnOnStarted', =>
                   KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
+          @prepareCollaboration()
+
           actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
           computeController.on "public-#{machineId}", (event) =>
 
@@ -764,3 +766,51 @@ class IDEAppController extends AppController
 
         if view.hash is paneHash
           view.setContent content
+
+
+  prepareCollaboration: ->
+    machine         = @mountedMachine
+    {workspaceData} = this
+    @rtm = rtm      = new RealTimeManager
+
+    @rtm.auth()
+
+    @rtm.on 'ClientAuthenticated', =>
+
+      title = "#{KD.nick()}.#{machine.slug}.#{workspaceData.slug}"
+
+      rtm.fetchFileByTitle title
+
+      rtm.on 'FileQueryFinished', (file) =>
+        # TODO: Be sure we are working on correct file.
+        # TODO: Move file existence logic into API wrapper.
+        {result} = file
+        return if result.selfLink.indexOf(title) is -1
+
+
+        if result.items.length > 0
+          @loadCollaborationFile file
+          log '.............file found', file
+        else
+          rtm.createFile title
+          rtm.on 'FileCreated', (file) =>
+            console.clear()
+            log '.............file created', file
+            @loadCollaborationFile file
+
+
+  loadCollaborationFile: (file) ->
+    @rtm.getFile file.result.items.first.id
+
+    @rtm.on 'FileLoaded', (doc) =>
+      @rtm.create 'string', doc, 'ACET', 'OSMAN'
+      @rtm.create 'list',   doc, 'LIST', [ 1, 2, 3, 4 ]
+      @rtm.create 'map',    doc, 'MAP',  { a: 1, b: 2 }
+
+      string = @rtm.getFromModel doc, 'ACET'
+      list   = @rtm.getFromModel doc, 'LIST'
+      map    = @rtm.getFromModel doc, 'MAP'
+
+      log '............', string.getText()
+      log '////////////', map.items(), map.values()
+      log '++++++++++++', list.asArray()
