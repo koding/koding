@@ -87,3 +87,27 @@ module.exports =
       .click                    commentSelector + ' [testpath=activity-like-link]'
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
       .end()
+
+
+  editComment: (browser) ->
+
+    helpers.postComment(browser)
+
+    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    commentSelector = selector + ' .comment-container button.comment-menu'
+    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+
+    browser
+      .waitForElementPresent    commentSelector, 3000
+      .click                    commentSelector
+      .waitForElementVisible    '.kdcontextmenu .edit-comment', 5000
+      .click                    '.kdcontextmenu .edit-comment'
+      .clearValue               selector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
+      .setValue                 selector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
+      .pause                    3000
+
+    browser
+      .assert.containsText selector + ' .comment-container', post # Assertion
+      .end()
+
+
