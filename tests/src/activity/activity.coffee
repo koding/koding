@@ -151,3 +151,15 @@ module.exports =
       .end()
 
 
+  # searchActivity: (browser) ->
+
+  #   post         = helpers.postActivity(browser)
+
+  #   selector        = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+
+  #   browser
+  #     .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
+  #     .pause                    5000
+  #     .assert.containsText      selector , post # Assertion
+  #     .end()
+
