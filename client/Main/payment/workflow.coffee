@@ -103,7 +103,7 @@ class PaymentWorkflow extends KDController
 
     KD.utils.defer ->
       KD.singletons.paymentController.logOrder {
-        planTitle, planAmount, binNumber, lastFour, cardNumber
+        planTitle, planAmount, binNumber, lastFour, cardName
       }, noop
 
     if currentPlan is PaymentWorkflow.planTitle.FREE

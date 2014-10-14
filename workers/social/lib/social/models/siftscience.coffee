@@ -74,4 +74,7 @@ module.exports = class SiftScience
 
       callback null, {username, email, sessionToken}
 
-  parsePrice = (price)-> parseFloat(price)*1000000
+
+  parsePrice = (price)->
+    price = price.slice 1  if price[0] is "$"
+    return parseFloat(price)*1000000
