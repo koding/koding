@@ -53,4 +53,9 @@ The Fingerprint should be: d1:2a:50:1a:bc:29:f4:0f:df:04:70:27:3d:79:eb:66 , be 
 account and do a "Copy AMI" and copy the "Base-Koding-3gb" to the desired
 region. After copying be sure you "shared" the AMI with the `koding-vms`
 account. So you should give "permission" to the koding-vms by adding the
-koding-vms account id to the permission list of that particulat AMI
+koding-vms account id to the permission list of that particulat AMI. The
+current koding-vms account id is "614068383889"
+
+8. Create a new "Koding" ami from that particular new AMI in that region with
+Packer and label it as "koding-stable".
+
