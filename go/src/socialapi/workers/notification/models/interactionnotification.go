@@ -6,6 +6,7 @@ type InteractionNotification struct {
 	ListerId     int64
 	NotifierId   int64
 	OwnerId      int64
+	MessageId    int64
 }
 
 func (n *InteractionNotification) GetNotifiedUsers(notificationContentId int64) ([]int64, error) {
@@ -56,5 +57,5 @@ func (n *InteractionNotification) GetActivity() string {
 }
 
 func (n *InteractionNotification) GetMessageId() int64 {
-	return n.TargetId
+	return n.MessageId
 }

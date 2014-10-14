@@ -43,7 +43,7 @@
     "express-session": "^1.8.2",
     "faker": "^1.1.0",
     "formidable": "1.0.12",
-    "google-spreadsheet": "^0.2.8",
+    "googleapis": "^1.0.16",
     "gulp": "^3.8.7",
     "hat": "0.0.3",
     "helmet": "~0.2.4",
@@ -88,7 +88,7 @@
     "stylus": "0.37.0",
     "timethat": "0.0.2",
     "toml-js": "0.0.8",
-    "tough-cookie": "^0.12.1",
+    "tough-cookie": "0.12.1",
     "traverse": "^0.6.6",
     "ua-parser-js": "0.6.2",
     "uglify-js": "^2.4.13",
@@ -99,6 +99,7 @@
     "xml2js": "0.2.6"
   },
   "devDependencies": {
+    "crypto": "0.0.3",
     "which": "^1.0.5"
   },
   "optionalDependencies": {},

@@ -145,7 +145,9 @@ module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
 
   config = """
-  worker_processes #{if environment is "dev" then 5 else 16};
+  worker_processes #{if environment is "dev" then 1 else 16};
+  master_process #{if environment is "dev" then "off" else "on"};
+
 
   #error_log  logs/error.log;
   #error_log  logs/error.log  notice;
