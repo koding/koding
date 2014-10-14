@@ -77,9 +77,7 @@ func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	instanceName := m.Builder["instanceName"].(string)
-
-	return a.Build(instanceName, 10, 90)
+	return a.Build(true, 10, 90)
 }
 
 func (p *Provider) Cancel(m *protocol.Machine) error {

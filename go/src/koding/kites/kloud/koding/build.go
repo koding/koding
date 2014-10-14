@@ -3,7 +3,6 @@ package koding
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
@@ -69,22 +68,12 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
-	instanceName := m.Builder["instanceName"].(string)
-
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
 	errLog := p.GetCustomLogger(m.Id, "error")
 
 	a.InfoLog = infoLog
-
-	// this can happen when an Info method is called on a terminated instance.
-	// This updates the DB records with the name that EC2 gives us, which is a
-	// "terminated-instance"
-	if instanceName == "terminated-instance" {
-		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
-	}
 
 	a.Push("Checking network requirements", normalize(20), machinestate.Building)
 
@@ -243,27 +232,52 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Builder.KeyPair = p.KeyName
 
 	// build now our instance!!
-	buildArtifact, err := a.Build(instanceName, normalize(45), normalize(60))
+	var buildArtifact *protocol.Artifact
+	buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
 	if err != nil {
 		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
-			fmt.Println("DO FALLBACK STUFF")
-		}
+			// use a difference instance type
+			fallbackInstance := T2Small.String()
+			a.Builder.InstanceType = fallbackInstance
 
-		return nil, err
+			p.Log.Warning("[%s] InsufficientInstanceCapacity: Building again with using instance: %s instead of %s",
+				m.Id, fallbackInstance, DefaultInstanceType)
+
+			buildArtifact, err = a.Build(true, normalize(60), normalize(70))
+			if err != nil {
+				// return this time
+				return nil, err
+			}
+		} else {
+			// if something else return it back
+			return nil, err
+		}
 	}
-	buildArtifact.MachineId = m.Id
 
 	// cleanup build if something goes wrong here
 	defer func() {
 		if err != nil {
-			p.Log.Warning("Cleaning up instance '%s'. Terminating instance: %s. Error was: %s",
-				instanceName, buildArtifact.InstanceId, err)
+			p.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
+				buildArtifact.InstanceId, err)
 
 			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
-				p.Log.Warning("Cleaning up instance '%s' failed: %v", instanceName, err)
+				p.Log.Warning("Cleaning up instance '%s' failed: %v", buildArtifact.InstanceId, err)
 			}
 		}
 	}()
+
+	buildArtifact.MachineId = m.Id
+
+	// this can happen when an Info method is called on a terminated instance.
+	// This updates the DB records with the name that EC2 gives us, which is a
+	// "terminated-instance"
+	instanceName := m.Builder["instanceName"].(string)
+	if instanceName == "terminated-instance" {
+		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
+	}
+
+	buildArtifact.InstanceName = instanceName
 
 	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {

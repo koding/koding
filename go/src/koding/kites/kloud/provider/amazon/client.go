@@ -23,7 +23,7 @@ type AmazonClient struct {
 	InfoLog func(string, ...interface{})
 }
 
-func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
+func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
 	infoLog := func(format string, args ...interface{}) {
 		a.Log.Info(format, args...)
 	}
@@ -61,6 +61,11 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactRe
 
 	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
+
+	return a.Build(true, start, finish)
+}
+
+func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
 	resp, err := a.CreateInstance()
 	if err != nil {
 		return nil, err
@@ -74,11 +79,11 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactRe
 	// cleanup build if something goes wrong here
 	defer func() {
 		if errResp != nil {
-			a.Log.Warning("Cleaning up instance '%s'. Terminating instance: %s. Error was: %s",
-				instanceName, instance.InstanceId, errResp)
+			a.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
+				instance.InstanceId, err)
 
 			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
-				a.Log.Warning("Cleaning up instance '%s' failed: %v", instanceName, err)
+				a.Log.Warning("Cleaning up instance '%s' failed: %v", instance.InstanceId, err)
 			}
 		}
 	}()
@@ -89,9 +94,12 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactRe
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
-			instanceName, instance.State.Name),
-			currentPercentage, machinestate.Building)
+		if withPush {
+			a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
+				instance.InstanceId, instance.State.Name),
+				currentPercentage, machinestate.Building)
+		}
+
 		return statusToState(instance.State.Name), nil
 	}
 
@@ -106,11 +114,8 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (artifactRe
 	}
 
 	return &protocol.Artifact{
-		IpAddress:     instance.PublicIpAddress,
-		InstanceName:  instanceName,
-		InstanceId:    instance.InstanceId,
-		SSHPrivateKey: a.Builder.PrivateKey,
-		SSHUsername:   "", // deploy with root
+		IpAddress:  instance.PublicIpAddress,
+		InstanceId: instance.InstanceId,
 	}, nil
 }
 
