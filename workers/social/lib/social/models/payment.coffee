@@ -40,11 +40,12 @@ module.exports = class Payment extends Base
         data.accountId = getAccountId client
         url = "/payments/subscribe"
 
-        post url, data, (err)->
-          data.status = if err then "$failed" else "$success"
+        post url, data, (err, response)->
+          callback err, response
 
+          data.status = if err then "$failed" else "$success"
           logTransaction client, data, (err)->
-            log "logging to SiftScience failed: ", err  if err
+            log "logging to SiftScience failed", err  if err
 
 
   @subscriptions$ = secure (client, data, callback)->
