@@ -1,3 +1,7 @@
+TYPEKITIDS =
+  hackathon : 'ndd8msy'
+  landing   : 'rbd0tum'
+
 module.exports = (options, callback)->
 
   getTitle = require './../title'
@@ -29,7 +33,7 @@ module.exports = (options, callback)->
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      <script src="/a/site.#{campaign}/js/pistachio.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{campaign}/js/libs.js?#{KONFIG.version}"></script>
       <script src="/a/site.#{campaign}/js/kd.libs.js?#{KONFIG.version}"></script>
       <script src="/a/site.#{campaign}/js/kd.js?#{KONFIG.version}"></script>
       <script>KD.userAccount=#{userAccount}</script>
@@ -53,7 +57,7 @@ module.exports = (options, callback)->
       <script>
         (function(d) {
           var config = {
-            kitId: 'rbd0tum',
+            kitId: '#{TYPEKITIDS[campaign]}',
             scriptTimeout: 3000
           },
           h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
