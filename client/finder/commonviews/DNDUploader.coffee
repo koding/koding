@@ -6,13 +6,8 @@ class DNDUploader extends KDView
     options.bind          = "dragenter dragover dragleave dragend drop"
     options.hoverDetect  ?= yes
     options.uploadToVM   ?= yes
-    options.defaultPath or= "/home/#{KD.nick()}/Uploads"
 
     super options, data
-
-    @reset()
-
-    @setPath options.path  if options.path
 
     if options.hoverDetect
       @on "dragenter", => @setClass   "hover"
@@ -29,11 +24,15 @@ class DNDUploader extends KDView
 
       fsFile.save "", => @emit 'uploadComplete', { filePath, parentPath }
 
-  viewAppended: ->
-    super
+    KD.singletons.mainController.ready @bound 'reset'
+
 
   reset: ->
+
     {uploadToVM, defaultPath, title} = @getOptions()
+
+    defaultPath or= "/home/#{KD.nick()}/Uploads"
+
     @setPath()
     @updatePartial """
       <div class="file-drop">
