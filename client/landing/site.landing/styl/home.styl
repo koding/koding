@@ -284,6 +284,7 @@ body.home
       opacity             0
       height              360px
       vendor              transform, translateX(0px) translateY(123px)
+      background          none !important
       contentBox()
 
       &:after
@@ -521,7 +522,7 @@ body.home
       .icon
         width             14px
         height            3px
-        background        #fff
+        background        #000
         display           inline-block
         position          relative
         vertical-align    middle
@@ -566,6 +567,9 @@ body.home
       top                 130px
 
   body.home
+    #main-header .hamburger-menu .icon
+      background          #fff
+
     .content-page.home
       > section
         > div
