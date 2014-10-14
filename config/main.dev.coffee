@@ -198,7 +198,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : 6500
       supervisord       :
-        command         : "#{GOBIN}/fresh -r koding/go-webserver -a \"-c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/\""
+        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/\""
       nginx             :
         locations       : ["~^/IDE/.*"]
     kontrol             :
@@ -236,7 +236,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -r koding/broker -a \"-c #{configName}\""
+        command         : "#{GOBIN}/fresh -w koding/broker -r koding/broker -a \"-c #{configName}\""
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -244,7 +244,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/fresh -r koding/rerouting -a \"-c #{configName}\""
+        command         : "#{GOBIN}/fresh -w koding/rerouting -r koding/rerouting -a \"-c #{configName}\""
 
     authworker          :
       group             : "webserver"
