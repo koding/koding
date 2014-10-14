@@ -821,7 +821,11 @@ Team Koding
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
-
+      ->
+        SiftScience = require "../siftscience"
+        SiftScience.create_account client, referrer, ->
+          console.log arguments...
+        queue.next()
       ->
         callback error, {account, recoveryToken, newToken}
         queue.next()

@@ -51,6 +51,15 @@ module.exports = class SiftScience
     @send client, "create_order", data, callback
 
 
+  @create_account: (client, referrer, callback)->
+    data = {
+      "$type"             : "$create_account"
+      "$referrer_user_id" : referrer
+    }
+
+    @send client, "create_account", data, callback
+
+
   @send = (client, event, data, callback)->
     siftScience = require('yield-siftscience') KONFIG.siftScience
 
