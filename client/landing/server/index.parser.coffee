@@ -12,6 +12,7 @@ module.exports = (siteName) ->
     <title>Koding</title>
     <link rel="stylesheet" type="text/css" href="/a/site.#{siteName}/css/kd.css">
     <link rel="stylesheet" type="text/css" href="/a/site.#{siteName}/css/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=false">
     <script>
       (function(d) {
         var config = {

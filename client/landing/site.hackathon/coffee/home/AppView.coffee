@@ -155,7 +155,7 @@ module.exports = class HomeView extends KDView
 
     { cap, prize, totalApplicants, approvedApplicants } = getStats()
 
-    return "PRIZE: $#{prize.toLocaleString()} - TOTAL SLOTS: #{cap.toLocaleString()} - APPLICATIONS: #{totalApplicants.toLocaleString()} - APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
+    return "PRIZE: $#{prize.toLocaleString()} <span>-</span> TOTAL SLOTS: #{cap.toLocaleString()} <span>-</span> APPLICATIONS: #{totalApplicants.toLocaleString()} <span>-</span> APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
 
 
   updateGreeting: ->
@@ -183,7 +183,7 @@ module.exports = class HomeView extends KDView
         <span class='bottom'>GLOBAL HACKATHON</span>
         #WFGH
       </h2>
-      <h3>But how can we get developers from all over the world to participate?<br>Announcing the world's first global virtual hackathon.</h3>
+      <h3>Announcing the world's first global virtual hackathon IN THE BROWSER.<br> Join today to save your spot and win $10,000 in cash.</h3>
       <div class="form-wrapper clearfix"></div>
       <div class="video-wrapper">
         <video id="bgVideo" autoplay loop muted>
@@ -194,20 +194,66 @@ module.exports = class HomeView extends KDView
     <section class="content">
       <div class="counters">#{@getStats()}</div>
       <article>
-        <h4>Team Size</h4>
+        <h4>Calling Developers of the World - All countries, All ages alike. Let's CODE!</h4>
 
-        <p>Teams can be anywhere from one to four members. All members have to
-        be contributing members, i.e.: they should either be a developer on
-        the team or a designer.</p>
+        <p>Software is shaping our world. Yet developers are still far apart, and
+        lacking a level playing field. Our browsers are now so strong to do everything
+        but bringing us together to write code.
+        </p>
 
-        <p>If you are looking for team members, post on the #kode-a-thon channel
+        <p>This event wants to connect developers worldwide and help them code together.</p>
+
+
+        <p>If you are looking for team members, post on the #wfgh channel
         on Koding and then jump into private chats to discuss your ideas and start
         recruiting! Your post should clearly articulate what type of skill set you are
         looking for any what type of skill set you have. e.g.: I am a php developer
         looking for a backend database team member.</p>
       </article>
       <article>
-        <h4>The “Creation” process</h4>
+        <h4>How does it work? </h4>
+
+        <p> Sign up above, then we will send you a short questionnaire and help you get ready.
+        Nothing else is needed.</p>
+
+      </article>
+      <article>
+        <h4>How do I get accepted? </h4>
+        <p>Our judges decide who gets in. And they can select anyone they like.
+        We can accomodate only select number of applications to keep it sane, so we will limit total applications to 5,000.
+        First come first served. Apply today, and you will receive a note from us if you're accepted as soon as a judge approves.
+        </p>
+      </article>
+      <article>
+        <h4> How do I qualify? </h4>
+        <ul>
+        <li>You are a developer, you have good looking Github/Stackoverflow profile page.</li>
+        <li>You're a designer, you have a good looking dribbble or behance profile.</li>
+        <li>Linkedin work experience is also acceptable. </li>
+        <li>If you are not a developer or a designer, you should apply and let a developer and designer vouch for you.</li>
+        </ul>
+      </article>
+      <article>
+        <h4>Yes, you can code alone, if that's your style.</h4>
+
+        <p>However, we will favor groups, in the end, the point is to code together, most importantly
+        with people that from other countries. In your application form tell us about your skills,
+        and what kind of people you want to pair up with, we will select some developers and send you
+        their github links, if you like them - we will organize a chat room for you to get ready.
+         </p>
+      </article>
+      <article>
+        <h4>Already have a group?</h4>
+
+        <p>Awesome. Now it's time to pick an awesome project.</p>
+      </article>
+      <article>
+        <h4>Ideas?</h4>
+
+        <p> We will provide a list of ideas that are endorsed by our sponsors.
+        If you pick one of those ideas or something similar, with the approval of the sponsors
+        you will get to win their rewards. For example, if you choose to hack on Firebase API,
+        and you win the competition, you receive the winner prize plus Firebase special prizes.</p>
 
         <p>Our goal is to ensure that all teams have a level playing field
         therefore it is imperative that all code, design, assets, etc must be
@@ -234,14 +280,14 @@ module.exports = class HomeView extends KDView
 
         <ul>
           <li><strong>Now</strong> - Registration open</li>
-          <li><strong>Nov 20th</strong> - Notification sent to teams/individuals who were accepted into the hackathon</li>
-          <li><strong>Nov 25th</strong> - <strong>Day 1</strong>
+          <li><strong>Nov 20th</strong> - Applications are closed. Last notifications are sent to teams/individuals who were accepted into the hackathon</li>
+          <li><strong>Nov 26th</strong> - <strong>Day 1</strong>
             <ul>
-              <li>0900 PDT  Announcement of topics on #kode-a-thon</li>
+              <li>0900 PDT  Announcement of topics on #WFGH</li>
               <li>0901 PDT  Let the hacking begin!</li>
             </ul>
           </li>
-          <li><strong>Nov 26th</strong> - <strong>Day 2</strong>
+          <li><strong>Nov 27th</strong> - <strong>Day 2</strong>
             <ul>
               <li>0000 – 2200 PDT Hacking continues</li>
               <li>2200 – 2230 PDT Teams submit their projects</li>
@@ -251,33 +297,18 @@ module.exports = class HomeView extends KDView
         </ul>
       </article>
       <article>
-        <h4>Ownership</h4>
+        <h4>Prizes</h4>
 
         <ol>
-          <li>$100,000 investment from the LAUNCH Fund (split amongst 1 to 5 teams), or 10% cash</li>
-          <li>The top prize winners will also be offered to @jason’s AngelList Syndicate – currently valued at ~ $1M</li>
-          <li>Jason Calacanis will join the board of the company for the first year.</li>
-          <li>Guaranteed spot on stage at the LAUNCH Festival 2015</li>
-          <li>$25,000 Investment Grand Prize by Barracuda (1 winner)</li>
-          <li>$10,000 in Heroku Credit (expires in 1 year, 1 winner)</li>
+          <li>$10,000 cash prize from Koding, split amongst 1 to 3 teams (100%, 70%-30%, 50%-30%-20%)</li>
+          <li>The top prize winners will be offered to have interviews with investors</li>
+          <li>Sponsors will offer prizes to the winner and/or to the teams that they selected.</li>
+          <li>$10,000 Amazon AWS Credit</li>
           <li>$2,000/month in free Rackspace cloud for 12 months.</li>
-          <li>Draper University will offer a full scholarship to the DU Entrepreneurial Online Program to EACH team member of the top two winning teams.</li>
+          <li>$1,000/month in free Digital Ocean for 12 months.</li>
         </ol>
       </article>
-      <article>
-        <h4>Expedia</h4>
 
-        <ul>
-          <li>$10,000 of Expedia travel credit to book hotels and flights on Expedia.com split into five prizes as follows:</li>
-            <ul>
-              <li>$5,000 for 1st,</li>
-              <li>$2,000 for 2nd and</li>
-              <li>$1,000 each for 3rd, 4th and 5th.</li>
-            </ul>
-          </li>
-          <li>Learn more at our 7:30PM Friday workshop. <a href="#">Get your Expedia API key now!</a></li>
-        </ul>
-      </article>
       <article class="judges clearfix">
         <h4>Judges</h4>
       </article>
