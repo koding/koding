@@ -135,10 +135,10 @@ class MessagePane extends KDTabPaneView
 
   isPageAtBottom: ->
 
-    {innerHeight}             = window
-    {scrollHeight, scrollTop} = document.body
+    {innerHeight, scrollY} = window
+    {scrollHeight} = document.body
 
-    scrollTop + innerHeight >= scrollHeight
+    scrollY + innerHeight >= scrollHeight
 
 
   scrollDown: ->
@@ -148,15 +148,14 @@ class MessagePane extends KDTabPaneView
 
     return  unless @active
 
-    document.body.scrollTop = 0
+    window.scrollTo 0, 0
 
 
   setScrollTops: ->
 
     super
 
-    @lastScrollTops.window = window.scrollTop or 0
-    @lastScrollTops.body   = document.body.scrollTop
+    @lastScrollTops.window = window.scrollY
 
 
   applyScrollTops: ->
@@ -165,7 +164,6 @@ class MessagePane extends KDTabPaneView
 
     KD.utils.defer =>
       window.scrollTo 0, @lastScrollTops.window
-      document.body.scrollTop = @lastScrollTops.body
 
 
   createChannelTitle: ->
@@ -377,8 +375,7 @@ class MessagePane extends KDTabPaneView
 
   refresh: ->
 
-    document.body.scrollTop            = 0
-    document.documentElement.scrollTop = 0
+    window.scrollTo 0, 0
 
     @listController.removeAllItems()
     @listController.showLazyLoader()

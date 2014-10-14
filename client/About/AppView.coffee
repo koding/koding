@@ -4,7 +4,7 @@ class AboutAppView extends JView
 
     super
 
-    @once 'viewAppended', -> document.body.scrollTop = 0
+    @once 'viewAppended', -> window.scrollTo 0, 0
 
     @footer = new FooterView
 
