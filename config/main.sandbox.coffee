@@ -185,17 +185,21 @@ Configuration = (options={}) ->
   GOBIN = "#{projectRoot}/go/bin"
 
 
-  # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
+
   KONFIG.workers =
     gowebserver         :
       group             : "webserver"
       ports             :
-         incoming       : 6500
+         incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
       nginx             :
         locations       : ["~^/IDE/.*"]
-        auth            : true
+        auth            : yes
+      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
     kontrol             :
       group             : "environment"
       ports             :
