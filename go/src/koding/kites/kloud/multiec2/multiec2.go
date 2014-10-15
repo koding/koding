@@ -1,6 +1,8 @@
 package multiec2
 
 import (
+	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -11,12 +13,18 @@ import (
 )
 
 type Clients struct {
+	// regions is a set of ec2 clients that is bound to a one single region
 	regions map[string]*ec2.EC2
+
+	// zones is a list of zones for each given region
+	zones map[string][]string
+
+	// protects regions and zones
 	sync.Mutex
 }
 
-// Clients is returning a new clients reference
-func New(auth aws.Auth) *Clients {
+// Clients is returning a new multi clients refernce for the given regions.
+func New(auth aws.Auth, regions []string) *Clients {
 	// include it here to because the library is not exporting it.
 	var retryingTransport = &aws.ResilientTransport{
 		Deadline: func() time.Time {
@@ -30,12 +38,31 @@ func New(auth aws.Auth) *Clients {
 
 	clients := &Clients{
 		regions: make(map[string]*ec2.EC2),
+		zones:   make(map[string][]string),
 	}
 
-	for _, region := range aws.Regions {
-		clients.regions[region.Name] = ec2.NewWithClient(
-			auth, region, aws.NewClient(retryingTransport),
-		)
+	for _, r := range regions {
+		region, ok := aws.Regions[r]
+		if !ok {
+			log.Printf("multiec2: couldn't find region: '%s'", r)
+			continue
+		}
+
+		client := ec2.NewWithClient(auth, region, aws.NewClient(retryingTransport))
+		clients.regions[region.Name] = client
+
+		resp, err := client.DescribeAvailabilityZones(ec2.NewFilter())
+		if err != nil {
+			panic(err)
+		}
+
+		zones := make([]string, len(resp.Zones))
+		for i, zone := range resp.Zones {
+			zones[i] = zone.AvailabilityZone.Name
+		}
+
+		clients.regions[region.Name] = client
+		clients.zones[region.Name] = zones
 	}
 
 	return clients

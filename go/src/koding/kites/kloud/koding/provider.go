@@ -143,7 +143,6 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			return nil, err
 		}
 	} else {
-
 		artifact, err = a.Start(true)
 		if err != nil {
 			if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {

@@ -514,7 +514,7 @@ func newKloud() *kloud.Kloud {
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
 		DomainStorage:     &TestDomainStorage{},
-		EC2Clients:        multiec2.New(auth),
+		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
 		DNS:               koding.NewDNSClient("dev.koding.io", auth), // TODO: Use test.koding.io
 		Bucket:            koding.NewBucket("koding-klient", "development/latest", auth),
 

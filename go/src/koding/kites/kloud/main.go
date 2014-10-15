@@ -171,7 +171,7 @@ func newKite(conf *Config) *kite.Kite {
 		Log:               newLogger("koding", conf.DebugMode),
 		Session:           db,
 		DomainStorage:     domainStorage,
-		EC2Clients:        multiec2.New(auth),
+		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
 		DNS:               dnsInstance,
 		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
 		Test:              conf.TestMode,
