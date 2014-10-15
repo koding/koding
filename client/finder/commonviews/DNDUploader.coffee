@@ -174,6 +174,9 @@ class DNDUploader extends KDView
   saveFile: (fsFile, data) ->
     @emit "uploadStart", fsFile
     fsFile.saveBinary data, (err, res, progress)=>
+
+      log "Upload result:", err, res, progress
+
       progress or= res
       return if err
       if res.finished
