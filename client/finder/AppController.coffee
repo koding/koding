@@ -11,59 +11,69 @@ class FinderController extends KDController
     super options, data
 
   create: (options = {}) ->
+
     options.useStorage        ?= yes
     options.addOrphansToRoot  ?= no
     options.addAppTitle       ?= yes
     options.bindMachineEvents ?= yes
     options.delegate          ?= this
 
-    @controller = new NFinderController options
-    finderView  = @controller.getView()
+    controller = new NFinderController options
+    finderView = controller.getView()
 
     finderView.addSubView @getAppTitleView()  if options.addAppTitle
-    finderView.addSubView @getUploader()
+    finderView.addSubView @createUploader controller
 
-    return @controller
+    return controller
+
 
   getAppTitleView: ->
-    return new KDCustomHTMLView
+
+    new KDCustomHTMLView
       cssClass : "app-header"
       partial  : "Ace Editor"
 
-  getUploader: ->
-    @uploaderPlaceholder = new KDView
-      domId       : "finder-dnduploader"
-      cssClass    : "hidden"
 
-    @uploaderPlaceholder.addSubView @uploader = new DNDUploader
+  createUploader: (controller)->
+
+    uploaderPlaceholder = new KDView
+      domId       : 'finder-dnduploader'
+      cssClass    : 'hidden'
+
+    uploaderPlaceholder.addSubView uploader = new DNDUploader
       hoverDetect : no
-      delegate    : this
+      delegate    : controller
 
-    {treeController} = @controller
-    treeController.on 'dragEnter', @bound "onDrag"
-    treeController.on 'dragOver' , @bound "onDrag"
+    onDrag = ->
 
-    @uploader
-      .on "dragleave", =>
-        @uploaderPlaceholder.hide()
+      unless controller.treeController.internalDragging
+        uploaderPlaceholder.show()
+        uploader.unsetClass 'hover'
 
-      .on "drop", =>
-        @uploaderPlaceholder.hide()
+    {treeController} = controller
+    treeController.on 'dragEnter', onDrag
+    treeController.on 'dragOver' , onDrag
+
+    finderView = controller.getView()
+    finderView.on 'dragenter', onDrag
+    finderView.on 'dragover' , onDrag
+
+    uploader
+      .on 'dragleave', ->
+        uploaderPlaceholder.hide()
+
+      .on 'drop', ->
+        uploaderPlaceholder.hide()
 
       .on 'uploadProgress', ({ file, percent }) ->
         filePath = "[#{file.machine.uid}]#{file.path}"
         treeController.nodes[filePath]?.showProgressView percent
 
-      .on "uploadComplete", ({ parentPath }) =>
-        @controller.expandFolders FSHelper.getPathHierarchy parentPath
+      .on 'uploadComplete', ({ parentPath }) ->
+        controller.expandFolders parentPath
 
-      .on "cancel", =>
-        @uploader.setPath()
-        @uploaderPlaceholder.hide()
+      .on 'cancel', ->
+        uploader.setPath()
+        uploaderPlaceholder.hide()
 
-    return @uploaderPlaceholder
-
-  onDrag: ->
-    return  if @controller.treeController.internalDragging
-    @uploaderPlaceholder.show()
-    @uploader.unsetClass "hover"
+    return uploaderPlaceholder
