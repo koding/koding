@@ -121,6 +121,15 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Starting machine", 10, machinestate.Starting)
 
+	// check if the user uses a t2.small and revert back to t2.micro
+	if infoResp.InstanceType == T2Small.String() {
+		a.Log.Warning("[%s] instance is using t2.small. Changing back to t2.micro.", m.Id)
+		opts := &ec2.ModifyInstance{InstanceType: T2Micro.String()}
+		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
+			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
+		}
+	}
+
 	// if the current db state is stopped but the machine is actually running,
 	// that means klient is not running. For this case we restart the machine
 	if infoResp.State == machinestate.Running && m.State == machinestate.Stopped {
@@ -134,6 +143,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			return nil, err
 		}
 	} else {
+
 		artifact, err = a.Start(true)
 		if err != nil {
 			if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
