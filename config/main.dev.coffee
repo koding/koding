@@ -480,6 +480,15 @@ Configuration = (options={}) ->
             echo -e "\n\nPlease do ./run again\n"
             exit 1;
         fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/configure" ]; then
+            echo your run file is older than your configure file. doing ./configure.
+            sleep 1
+            ./configure
+
+            echo -e "\n\nPlease do ./run again\n"
+            exit 1;
+        fi
       }
 
       function checkpackagejsonfile () {
