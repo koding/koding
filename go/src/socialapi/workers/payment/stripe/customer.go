@@ -34,6 +34,10 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 		}
 	}
 
+	if err != nil {
+		Log.Error("Fetching account: %s failed. %s", accId, err)
+	}
+
 	externalCustomer, err := stripeCustomer.New(params)
 	if err != nil {
 		return nil, handleStripeError(err)
