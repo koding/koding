@@ -153,7 +153,6 @@ func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
 		log.Printf("response:\n")
 		log.Printf("%v\n}\n", string(dump))
 	}
-
 	if r.StatusCode != 200 {
 		return buildError(r)
 	}
@@ -1017,6 +1016,47 @@ func (ec2 *EC2) Volumes(volIds []string, filter *Filter) (resp *VolumesResp, err
 }
 
 // ----------------------------------------------------------------------------
+// Availability zone management functions and types.
+// See http://goo.gl/ylxT4R for more details.
+
+// DescribeAvailabilityZonesResp represents a response to a DescribeAvailabilityZones
+// request in EC2.
+type DescribeAvailabilityZonesResp struct {
+	RequestId string                 `xml:"requestId"`
+	Zones     []AvailabilityZoneInfo `xml:"availabilityZoneInfo>item"`
+}
+
+// AvailabilityZoneInfo encapsulates details for an availability zone in EC2.
+type AvailabilityZoneInfo struct {
+	AvailabilityZone
+	State      string   `xml:"zoneState"`
+	MessageSet []string `xml:"messageSet>item"`
+}
+
+// AvailabilityZone represents an EC2 availability zone.
+type AvailabilityZone struct {
+	Name   string `xml:"zoneName"`
+	Region string `xml:"regionName"`
+}
+
+// DescribeAvailabilityZones returns details about availability zones in EC2.
+// The filter parameter is optional, and if provided will limit the
+// availability zones returned to those matching the given filtering
+// rules.
+//
+// See http://goo.gl/ylxT4R for more details.
+func (ec2 *EC2) DescribeAvailabilityZones(filter *Filter) (resp *DescribeAvailabilityZonesResp, err error) {
+	params := makeParams("DescribeAvailabilityZones")
+	filter.addParams(params)
+	resp = &DescribeAvailabilityZonesResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+// ----------------------------------------------------------------------------
 // ElasticIp management (for VPC)
 
 // The AllocateAddress request parameters
@@ -1828,6 +1868,7 @@ type SecurityGroup struct {
 	Name        string `xml:"groupName"`
 	Description string `xml:"groupDescription"`
 	VpcId       string `xml:"vpcId"`
+	Tags        []Tag  `xml:"tagSet>item"`
 }
 
 // SecurityGroupNames is a convenience function that

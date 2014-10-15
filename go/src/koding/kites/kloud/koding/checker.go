@@ -164,7 +164,7 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
+		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, plan)
 
 	// lock so it doesn't interfere with others.
 	p.Provider.Lock(p.Machine.Id)

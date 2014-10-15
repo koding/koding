@@ -21,9 +21,11 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/multiec2"
 	kloudprotocol "koding/kites/kloud/protocol"
 	"koding/kites/kloud/sshutil"
 
+	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -498,6 +500,11 @@ func newKloud() *kloud.Kloud {
 	kld.DomainStorage = testDomainStorage
 	kld.Debug = true
 
+	auth := aws.Auth{
+		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
+		SecretKey: "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",
+	}
+
 	provider = &koding.Provider{
 		Kite: kloudKite,
 		Log:  newLogger("koding", false),
@@ -507,9 +514,9 @@ func newKloud() *kloud.Kloud {
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
 		DomainStorage:     &TestDomainStorage{},
-		EC2:               koding.NewEC2Client(),
-		DNS:               koding.NewDNSClient("dev.koding.io"), // TODO: Use test.koding.io
-		Bucket:            koding.NewBucket("koding-klient", "development/latest"),
+		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
+		DNS:               koding.NewDNSClient("dev.koding.io", auth), // TODO: Use test.koding.io
+		Bucket:            koding.NewBucket("koding-klient", "development/latest", auth),
 
 		KeyName:     keys.DeployKeyName,
 		PublicKey:   keys.DeployPublicKey,

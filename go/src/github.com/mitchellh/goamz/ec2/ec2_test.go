@@ -1294,3 +1294,65 @@ func (s *S) TestResetImageAttribute(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
 }
+
+func (s *S) TestDescribeAvailabilityZonesExample1(c *C) {
+	testServer.Response(200, nil, DescribeAvailabilityZonesExample1)
+
+	resp, err := s.ec2.DescribeAvailabilityZones(nil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeAvailabilityZones"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.Zones, HasLen, 4)
+
+	z0 := resp.Zones[0]
+	c.Assert(z0.Name, Equals, "us-east-1a")
+	c.Assert(z0.Region, Equals, "us-east-1")
+	c.Assert(z0.State, Equals, "available")
+	c.Assert(z0.MessageSet, HasLen, 0)
+
+	z1 := resp.Zones[1]
+	c.Assert(z1.Name, Equals, "us-east-1b")
+	c.Assert(z1.Region, Equals, "us-east-1")
+	c.Assert(z1.State, Equals, "available")
+	c.Assert(z1.MessageSet, HasLen, 0)
+
+	z2 := resp.Zones[2]
+	c.Assert(z2.Name, Equals, "us-east-1c")
+	c.Assert(z2.Region, Equals, "us-east-1")
+	c.Assert(z2.State, Equals, "available")
+	c.Assert(z2.MessageSet, HasLen, 0)
+
+	z3 := resp.Zones[3]
+	c.Assert(z3.Name, Equals, "us-east-1d")
+	c.Assert(z3.Region, Equals, "us-east-1")
+	c.Assert(z3.State, Equals, "available")
+	c.Assert(z3.MessageSet, HasLen, 0)
+}
+
+func (s *S) TestDescribeAvailabilityZonesExample2(c *C) {
+	testServer.Response(200, nil, DescribeAvailabilityZonesExample2)
+
+	resp, err := s.ec2.DescribeAvailabilityZones(nil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeAvailabilityZones"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.Zones, HasLen, 2)
+
+	z0 := resp.Zones[0]
+	c.Assert(z0.Name, Equals, "us-east-1a")
+	c.Assert(z0.Region, Equals, "us-east-1")
+	c.Assert(z0.State, Equals, "impaired")
+	c.Assert(z0.MessageSet, HasLen, 0)
+
+	z1 := resp.Zones[1]
+	c.Assert(z1.Name, Equals, "us-east-1b")
+	c.Assert(z1.Region, Equals, "us-east-1")
+	c.Assert(z1.State, Equals, "unavailable")
+	c.Assert(z1.MessageSet, DeepEquals, []string{"us-east-1b is currently down for maintenance."})
+}

@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
 
@@ -43,9 +45,9 @@ type Provider struct {
 	Test bool
 
 	// AWS related references and settings
-	EC2    *ec2.EC2
-	DNS    *DNS
-	Bucket *Bucket
+	EC2Clients *multiec2.Clients
+	DNS        *DNS
+	Bucket     *Bucket
 
 	KontrolURL        string
 	KontrolPrivateKey string
@@ -88,7 +90,12 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	a.Amazon, err = amazonClient.New(m.Builder, p.EC2)
+	client, err := p.EC2Clients.Region("us-east-1")
+	if err != nil {
+		return nil, err
+	}
+
+	a.Amazon, err = amazonClient.New(m.Builder, client)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
@@ -120,6 +127,21 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Starting machine", 10, machinestate.Starting)
 
+	// check if the user doesn't have t2.micro and revert back to t2.micro.
+	// This is lazy auto healing of instances that were created because there
+	// were no capacity for t2.micro
+	if infoResp.InstanceType != T2Micro.String() {
+		a.Log.Warning("[%s] instance is using t2.small. Changing back to t2.micro.", m.Id)
+		opts := &ec2.ModifyInstance{InstanceType: T2Micro.String()}
+		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
+			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
+		}
+
+		// wait for eventually consistency so Restart or Start below get the
+		// correct answer
+		time.Sleep(time.Second * 2)
+	}
+
 	// if the current db state is stopped but the machine is actually running,
 	// that means klient is not running. For this case we restart the machine
 	if infoResp.State == machinestate.Running && m.State == machinestate.Stopped {
@@ -133,8 +155,63 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			return nil, err
 		}
 	} else {
-		artifact, err = a.Start(true)
-		if err != nil {
+		startFunc := func() error {
+			artifact, err = a.Start(true)
+			if err == nil {
+				return nil
+			}
+
+			if ec2Error, ok := err.(*ec2.Error); ok {
+				isFallback := false
+
+				// check wether the incoming error code is one of the fallback
+				// errors
+				for _, fbErr := range FallbackErrors {
+					if ec2Error.Code == fbErr {
+						isFallback = true
+						break
+					}
+				}
+
+				// return for non fallback errors, because we can't do much
+				// here and probably it's need a more tailored solution
+				if !isFallback {
+					return err
+				}
+
+				p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+			}
+
+			for _, instanceType := range FallbackList {
+				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
+					m.Id, instanceType, DefaultInstanceType)
+
+				// now change the instance type before we start so we can
+				// avoid the instance capacity problem
+				opts := &ec2.ModifyInstance{InstanceType: instanceType}
+				if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
+					return err
+				}
+
+				// just give a little time so it can be catched because EC2 is
+				// eventuall consistent. Otherwise start might fail even if we
+				// do the ModifyInstance call
+				time.Sleep(time.Second * 2)
+
+				artifact, err = a.Start(true)
+				if err == nil {
+					return nil
+				}
+
+				p.Log.Warning("[%s] Fallback: couldn't start instance with type: '%s'. err: %s ",
+					m.Id, instanceType, err)
+			}
+
+			return errors.New("no other instances are available")
+		}
+
+		// go go go!
+		if err := startFunc(); err != nil {
 			return nil, err
 		}
 

@@ -12,6 +12,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
+	"koding/kites/kloud/multiec2"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -22,6 +23,7 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
+	"github.com/mitchellh/goamz/aws"
 )
 
 var Name = "kloud"
@@ -165,7 +167,13 @@ func newKite(conf *Config) *kite.Kite {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
-	dnsInstance := koding.NewDNSClient(conf.HostedZone)
+	// Credential belongs to the `koding-kloud` user in AWS IAM's
+	auth := aws.Auth{
+		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
+		SecretKey: "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",
+	}
+
+	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
@@ -173,9 +181,9 @@ func newKite(conf *Config) *kite.Kite {
 		Log:               newLogger("koding", conf.DebugMode),
 		Session:           db,
 		DomainStorage:     domainStorage,
-		EC2:               koding.NewEC2Client(),
+		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
 		DNS:               dnsInstance,
-		Bucket:            koding.NewBucket("koding-klient", klientFolder),
+		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
 		Test:              conf.TestMode,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,

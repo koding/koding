@@ -991,3 +991,59 @@ var ResetImageAttributeExample = `
   <return>true</return>
 </ResetImageAttributeResponse>
 `
+
+// http://goo.gl/ylxT4R
+var DescribeAvailabilityZonesExample1 = `
+<DescribeAvailabilityZonesResponse xmlns="http://ec2.amazonaws.com/doc/2014-05-01/">
+   <requestId>59dbff89-35bd-4eac-99ed-be587EXAMPLE</requestId> 
+   <availabilityZoneInfo>
+   <item>
+      <zoneName>us-east-1a</zoneName>
+      <zoneState>available</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet/>
+   </item>
+   <item>
+      <zoneName>us-east-1b</zoneName>
+      <zoneState>available</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet/>
+   </item>
+   <item>
+      <zoneName>us-east-1c</zoneName>
+      <zoneState>available</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet/>
+   </item>
+   <item>
+      <zoneName>us-east-1d</zoneName>
+      <zoneState>available</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet/>
+   </item>
+   </availabilityZoneInfo>
+</DescribeAvailabilityZonesResponse>
+`
+
+// http://goo.gl/ylxT4R
+var DescribeAvailabilityZonesExample2 = `
+<DescribeAvailabilityZonesResponse xmlns="http://ec2.amazonaws.com/doc/2014-05-01/">
+   <requestId>59dbff89-35bd-4eac-99ed-be587EXAMPLE</requestId> 
+   <availabilityZoneInfo>
+   <item>
+      <zoneName>us-east-1a</zoneName>
+      <zoneState>impaired</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet/>
+   </item>
+   <item>
+      <zoneName>us-east-1b</zoneName>
+      <zoneState>unavailable</zoneState>
+      <regionName>us-east-1</regionName>
+      <messageSet>
+         <item>us-east-1b is currently down for maintenance.</item>
+      </messageSet>
+   </item>
+   </availabilityZoneInfo>
+</DescribeAvailabilityZonesResponse>
+`
