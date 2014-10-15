@@ -47,8 +47,6 @@ class IDEAppController extends AppController
       { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
       { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
       { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
-      { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
-      { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
       { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
