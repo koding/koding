@@ -205,20 +205,24 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
 
     # ngrokProxy          :
     #   group             : "environment"
@@ -239,6 +243,8 @@ Configuration = (options={}) ->
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
+      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
     rerouting           :
       group             : "webserver"
