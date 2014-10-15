@@ -17,6 +17,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 const (
@@ -135,7 +136,23 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	} else {
 		artifact, err = a.Start(true)
 		if err != nil {
-			return nil, err
+			if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
+				p.Log.Warning("[%s] InsufficientInstanceCapacity: Starting again with using instance: %s instead of %s. Err: %s",
+					m.Id, T2Small.String(), DefaultInstanceType, err)
+
+				opts := &ec2.ModifyInstance{InstanceType: T2Small.String()}
+				if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
+					return nil, err
+				}
+
+				artifact, err = a.Start(true)
+				if err != nil {
+					return nil, err
+				}
+
+			} else {
+				return nil, err
+			}
 		}
 
 		a.Push("Initializing domain instance", 65, machinestate.Starting)
