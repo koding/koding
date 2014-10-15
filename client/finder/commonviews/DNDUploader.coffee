@@ -224,10 +224,20 @@ class DNDUploader extends KDView
                 callback: ->
                   modalStack.destroy()
 
-    fsFolderItem.exists (err, exists)=>
-      unless exists
-      then FSHelper.createRecursiveFolder fsFolderItem, -> upload()
-      else upload()
+    fsFolderItem.exists (err, exists)->
+
+      return if  KD.showError err
+
+      if exists
+      then do upload
+      else
+        FSItem.create {
+          path      : fsFolderItem.path
+          type      : 'folder'
+          recursive : yes
+          machine
+        } , (err) ->
+          do upload unless KD.showError err
 
     return fsFileItem
 
