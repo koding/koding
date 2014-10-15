@@ -242,9 +242,7 @@ class FSHelper
   # FS Chunk helpers
   #
 
-  @createChunkQueue = (data, skip=0, chunkSize=1024*1024)->
-
-    return unless data
+  @createChunkQueue = (data = "", skip=0, chunkSize=1024*1024)->
 
     chunks     = FSHelper.chunkify data, chunkSize
     queue      = []
