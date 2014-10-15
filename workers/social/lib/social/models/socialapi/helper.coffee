@@ -59,7 +59,7 @@ doRequest = (funcName, client, options, callback)->
       options.accountId       = socialApiId
       options.accountNickname = nickname
       options.showExempt    or= delegate.isExempt
-      options.sessionToken  or= client.sessionToken
+      options.sessionToken   = client.sessionToken
 
       bareRequest funcName, options, callback
 

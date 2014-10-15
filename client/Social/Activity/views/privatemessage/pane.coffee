@@ -53,6 +53,8 @@ class PrivateMessagePane extends MessagePane
 
   realtimeMessageArrived: (message) ->
 
+    return  if message.account._id is KD.whoami()._id
+
     wasAtBottom = @isPageAtBottom()
     item = @appendMessage message
 

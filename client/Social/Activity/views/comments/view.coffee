@@ -67,6 +67,8 @@ class CommentView extends KDView
 
   addMessage: (message) ->
 
+    return  if message.account._id is KD.whoami()._id
+
     @controller.addItem message
 
 

@@ -67,8 +67,6 @@ class MessageEventManager extends KDObject
       message.replies.push reply
       message.repliesCount++
 
-      return  unless KD.singletons.socialapi.isFromThisBrowser reply
-
       message.emit "AddReply", reply
       message.emit "update"
 
@@ -83,9 +81,5 @@ class MessageEventManager extends KDObject
     message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
     message.repliesCount--
 
-    return  unless KD.singletons.socialapi.isFromThisBrowser message
-
     message.emit "RemoveReply", reply
     message.emit "update"
-
-
