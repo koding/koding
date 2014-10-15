@@ -45,8 +45,6 @@ class IDE.ShortcutsView extends KDView
       'Open new terminal'      : 'Ctrl-Alt-T'
       'Open new browser'       : 'Ctrl-Alt-B'
       'Open new drawing board' : 'Ctrl-Alt-D'
-      'Collapse sidebar'       : 'Ctrl-Alt-C'
-      'Expand sidebar'         : 'Ctrl-Alt-E'
       'Toggle sidebar'         : 'Ctrl-Alt-K'
       'Fullscreen'             : 'Meta-Shift-Enter'
       'Close tab'              : 'Ctrl-Alt-W'
