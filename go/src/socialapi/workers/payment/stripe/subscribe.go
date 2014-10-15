@@ -1,6 +1,9 @@
 package stripe
 
-import "socialapi/workers/payment/paymenterrors"
+import (
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
+)
 
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
@@ -34,9 +37,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		_, err := CreateSubscription(customer, plan)
 
 		if err != nil {
-			ccErr := RemoveCreditCard(customer) // outer error is more important
-			Log.Error("Removing cc failed for customer: %s. %s", customer.Id, ccErr)
-
+			removeCreditCardHelper(customer)
 			return err
 		}
 
@@ -57,9 +58,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		err := UpdateSubscriptionForCustomer(customer, subscriptions, plan)
 
 		if err != nil {
-			ccErr := RemoveCreditCard(customer) // outer error is more important
-			Log.Error("Removing cc failed for customer: %s. %s", customer.Id, ccErr)
-
+			removeCreditCardHelper(customer)
 			return err
 		}
 
@@ -72,4 +71,11 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	return nil
+}
+
+func removeCreditCardHelper(customer *paymentmodel.Customer) {
+	ccErr := RemoveCreditCard(customer) // outer error is more important
+	if ccErr != nil {
+		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, ccErr)
+	}
 }
