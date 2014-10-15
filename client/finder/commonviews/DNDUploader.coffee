@@ -174,7 +174,7 @@ class DNDUploader extends KDView
     """
     @showCancel()
     if uploadToVM and @finder
-      @finder.expandFolders FSHelper.getPathHierarchy @path
+      @finder.expandFolders @path
 
   showCancel: ->
     @addSubView new KDCustomHTMLView
