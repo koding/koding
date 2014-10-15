@@ -262,26 +262,25 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 					continue
 				}
 
-				a.Builder.Zone = zone
-
-				for _, subnet := range subnets {
-					if subnet.AvailabilityZone == zone {
-						a.Builder.SubnetId = subnet.SubnetId
-
-						p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
-							m.Id, zone, a.Builder.SubnetId, err)
-
-						group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
-						if err != nil {
-							errLog("Checking security group err: %v", err)
-							return errors.New("checking security requirements failed")
-						}
-
-						// add now our security group
-						a.Builder.SecurityGroupId = group.Id
-						break
-					}
+				subnet, err := subnets.AvailabilityZone(zone)
+				if err != nil {
+					continue // shouldn't be happen, but let be safe
 				}
+
+				a.Builder.Zone = zone
+				a.Builder.SubnetId = subnet.SubnetId
+
+				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
+					m.Id, zone, a.Builder.SubnetId, err)
+
+				group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
+				if err != nil {
+					errLog("Checking security group err: %v", err)
+					return errors.New("checking security requirements failed")
+				}
+
+				// add now our security group
+				a.Builder.SecurityGroupId = group.Id
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
