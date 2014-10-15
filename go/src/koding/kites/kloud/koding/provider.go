@@ -89,7 +89,12 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	a.Amazon, err = amazonClient.New(m.Builder, p.EC2Clients.Region("us-east-1"))
+	client, err := p.EC2Clients.Region("us-east-1")
+	if err != nil {
+		return nil, err
+	}
+
+	a.Amazon, err = amazonClient.New(m.Builder, client)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}

@@ -68,21 +68,27 @@ func New(auth aws.Auth, regions []string) *Clients {
 	return clients
 }
 
-// HasRegion checks whether the given region exists or not
-func (c *Clients) HasRegion(region string) bool {
-	c.Lock()
-	_, ok := c.regions[region]
-	c.Unlock()
-	return ok
-}
-
 // Region returns an *ec2.EC2 reference that is used to make API calls to this
 // particular region.
-func (c *Clients) Region(region string) *ec2.EC2 {
+func (c *Clients) Region(region string) (*ec2.EC2, error) {
 	c.Lock()
-	client := c.regions[region]
+	client, ok := c.regions[region]
+	if !ok {
+		return nil, fmt.Errorf("no client availabile for the given region '%s'", region)
+	}
 	c.Unlock()
-	return client
+	return client, nil
+}
+
+// Zones returns a list of available zones for the given region
+func (c *Clients) Zones(region string) ([]string, error) {
+	c.Lock()
+	zones, ok := c.zones[region]
+	if !ok {
+		return nil, fmt.Errorf("no zone availabile for the given region '%s'", region)
+	}
+	c.Unlock()
+	return zones, nil
 }
 
 // Decide if we should retry a request.  In general, the criteria for retrying
