@@ -3,6 +3,7 @@ package koding
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
@@ -102,6 +103,9 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
+
+	infoLog("Using Availability Zone: %s", subnet.AvailabilityZone)
+	a.Builder.Zone = subnet.AvailabilityZone
 
 	// Use koding plans instead of those later
 	a.Builder.InstanceType = DefaultInstanceType
@@ -227,25 +231,80 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
-	// try the first zone, if there is no capacity we are going to use the next one
-	zone := "" // empty string is totally fine, AWS picks the zone itself
-	zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
-	if err == nil {
-		zone = zones[0]
-		infoLog("Using Availability Zone: %s", zone)
-	} else {
-		infoLog("No Availability Zone available %s, letting AWS pick one for us.", err)
-	}
-
-	a.Builder.Zone = zone
-
-	// build now our instance!!
 	var buildArtifact *protocol.Artifact
-	buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
-	if err != nil {
-		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
+	buildFunc := func() error {
+		// build our instance in a normal way
+		buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
+		if err == nil {
+			return nil
+		}
 
-			// use a difference instance type
+		// check if the error is a 'InsufficientInstanceCapacity" error, if not return back
+		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code != "InsufficientInstanceCapacity" {
+			return err
+		}
+
+		// now lets to some fallback mechanisms to avoid the capacity errors.
+		// 1. Try to use a different zone
+		zoneFunc := func() error {
+			// try the first zone, if there is no capacity we are going to use the next one
+			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
+			if err != nil {
+				return fmt.Errorf("couldn't fetch availability zones: %s", err)
+
+			}
+
+			currentZone := subnet.AvailabilityZone
+
+			infoLog("Searching a zone that has capacity amongst: %v", zones)
+			for _, zone := range zones {
+				if zone == currentZone {
+					// skip it because that's one is causing problems and doesn't have any capacity
+					continue
+				}
+
+				a.Builder.Zone = zone
+
+				for _, subnet := range subnets {
+					if subnet.AvailabilityZone == zone {
+						a.Builder.SubnetId = subnet.SubnetId
+
+						p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
+							m.Id, zone, a.Builder.SubnetId, err)
+
+						group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
+						if err != nil {
+							errLog("Checking security group err: %v", err)
+							return errors.New("checking security requirements failed")
+						}
+
+						// add now our security group
+						a.Builder.SecurityGroupId = group.Id
+					}
+				}
+
+				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
+				if err == nil {
+					return nil
+				}
+
+				if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
+					continue // pick up next zone
+				}
+
+				return err
+			}
+
+			return errors.New("no other zones are available")
+		}
+
+		// 2. Try to build it on another region
+		regionFunc := func() error {
+			return &ec2.Error{Code: "InsufficientInstanceCapacity", Message: "not implemented yet"}
+		}
+
+		// 3. Try to use another instance
+		instanceFunc := func() error {
 			fallbackInstance := T2Small.String()
 			a.Builder.InstanceType = fallbackInstance
 
@@ -253,14 +312,26 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				m.Id, fallbackInstance, DefaultInstanceType, err)
 
 			buildArtifact, err = a.Build(true, normalize(60), normalize(70))
-			if err != nil {
-				// return this time
-				return nil, err
-			}
-		} else {
-			// if something else return it back
-			return nil, err
+			return err
 		}
+
+		// We are going to to try each step and for each step if we get
+		// "InsufficentInstanceCapacity" error we move to the next one.
+		for _, fn := range []func() error{zoneFunc, regionFunc, instanceFunc} {
+			if err := fn(); err != nil {
+				p.Log.Error("Build failed. Moving to next fallback step: %s", err)
+				continue // pick up the next function
+			}
+
+			return nil
+		}
+
+		return errors.New("build reached the end. all fallback mechanism steps failed.")
+	}
+
+	// kabalaba booom!
+	if err := buildFunc(); err != nil {
+		return nil, err
 	}
 
 	// cleanup build if something goes wrong here
