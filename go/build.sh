@@ -7,7 +7,8 @@ if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
 
-ldflags="-X koding/artifact.VERSION $(git rev-parse HEAD || cat ../VERSION || echo "0")"
+version=$(git rev-parse HEAD || cat ../VERSION || echo "0")
+ldflags="-X koding/artifact.VERSION ${version:0:8}"
 
 services=(
   koding/broker
