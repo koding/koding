@@ -22,7 +22,7 @@ options = o =
   branch           : argv.branch         or "cake-rewrite"
   build            : argv.build          or 1
   version          : argv.version
-  tag              : argv.tag            or                 version or "1.0"
+  tag              : argv.tag
   environment      : argv.environment    or "dev"
   publicPort       : argv.publicPort     or "8090"
   target           : argv.target         or "localhost"
