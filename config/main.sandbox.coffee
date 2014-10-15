@@ -320,6 +320,8 @@ Configuration = (options={}) ->
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
+      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
 
     dailyemailnotifier  :
       group             : "socialapi"
