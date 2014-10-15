@@ -56,9 +56,6 @@ class ActivityListItemView extends KDListItemView
       itemView      : this
     , data
 
-    # related to Latency Compensation:
-    # prevent users taking action when data is fake.
-    @settingsButton.hide()  if data.isFake
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
@@ -268,4 +265,3 @@ class ActivityListItemView extends KDListItemView
     </div>
     {{> @commentBox}}
     """
-

@@ -97,10 +97,11 @@
     "url": "0.4.9",
     "validator": "0.2.0",
     "ws": "0.4.25",
-    "xml2js": "0.2.6"
+    "xml2js": "0.2.6",
+    "yield-siftscience": "0.0.8"
   },
   "devDependencies": {
-    "gulp-coffee": "^2.2.0",
+    "crypto": "0.0.3",
     "which": "^1.0.5"
   },
   "optionalDependencies": {},

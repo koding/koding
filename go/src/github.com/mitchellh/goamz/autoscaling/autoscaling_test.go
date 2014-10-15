@@ -1,11 +1,12 @@
 package autoscaling_test
 
 import (
+	"testing"
+
 	"github.com/mitchellh/goamz/autoscaling"
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/testutil"
 	. "github.com/motain/gocheck"
-	"testing"
 )
 
 func Test(t *testing.T) {
@@ -44,6 +45,7 @@ func (s *S) Test_CreateAutoScalingGroup(c *C) {
 		MinSize:                 2,
 		MaxSize:                 2,
 		PlacementGroup:          "foobar",
+		TerminationPolicies:     []string{"ClosestToNextInstanceHour", "OldestInstance"},
 		Name:                    "foobar",
 		Tags: []autoscaling.Tag{
 			autoscaling.Tag{
@@ -60,6 +62,8 @@ func (s *S) Test_CreateAutoScalingGroup(c *C) {
 	c.Assert(req.Form["Action"], DeepEquals, []string{"CreateAutoScalingGroup"})
 	c.Assert(req.Form["InstanceId"], DeepEquals, []string{"i-foo"})
 	c.Assert(req.Form["VPCZoneIdentifier"], DeepEquals, []string{"foo,bar"})
+	c.Assert(req.Form["TerminationPolicies.member.1"], DeepEquals, []string{"ClosestToNextInstanceHour"})
+	c.Assert(req.Form["TerminationPolicies.member.2"], DeepEquals, []string{"OldestInstance"})
 	c.Assert(err, IsNil)
 	c.Assert(resp.RequestId, Equals, "8d798a29-f083-11e1-bdfb-cb223EXAMPLE")
 }
@@ -74,7 +78,7 @@ func (s *S) Test_CreateLaunchConfiguration(c *C) {
 		InstanceType:   "m1.small",
 		KeyName:        "foobar",
 		Name:           "i-141421",
-		UserData:       "IyEvYmluL2Jhc2gKZWNobyBIZWxsbwo=", // echo '#!/bin/bash\necho Hello' | base64
+		UserData:       "#!/bin/bash\necho Hello\n",
 	}
 
 	resp, err := s.autoscaling.CreateLaunchConfiguration(&options)

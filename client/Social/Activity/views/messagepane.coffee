@@ -226,7 +226,6 @@ class MessagePane extends KDTabPaneView
 
   realtimeMessageArrived: (message) ->
 
-    return  if KD.isMyPost message
     return  if @currentFilter is 'Most Liked' and not KD.isMyPost message
 
     {lastToFirst}  = @getOptions()

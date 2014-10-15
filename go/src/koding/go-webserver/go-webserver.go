@@ -129,7 +129,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	// Machines
 	//----------------------------------------------------------
 
-	machines, err := modelhelper.GetMachines(username)
+	user, err := modelhelper.GetUser(username)
+	if err != nil {
+		log.Error("Couldn't get user of %s: %s", username, err)
+		log.Info("loggedout page took: %s", time.Since(start))
+
+		renderLoggedOutHome(w)
+	}
+
+	machines, err := modelhelper.GetMachines(user.ObjectId)
 	if err != nil {
 		log.Error("Couldn't fetch machines: %s", err)
 		machines = []*modelhelper.MachineContainer{}
@@ -157,12 +165,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	renderLoggedInHome(w,
 		accountJson, machinesJson, workspacesJson, kodingGroupJson,
+		username, clientId,
 	)
 
 	log.Info("loggedin page took: %s", time.Since(start))
 }
 
-func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte) {
+func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte, username, sessionId string) {
 	runtime, err := json.Marshal(conf.Client.RuntimeOptions)
 	if err != nil {
 		log.Error("Couldn't marshal runtime options: %s", err)
@@ -175,6 +184,7 @@ func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, gr
 		runtime,
 		account, machines, workspaces, group,
 		version, version, version, //json
+		username, sessionId,
 	)
 
 	fmt.Fprintf(w, html)

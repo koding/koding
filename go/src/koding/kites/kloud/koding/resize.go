@@ -17,7 +17,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// fix something. Intented lines are cleanup or self healing procedures
 	// which should be called in a defer - arslan:
 	//
-	// 0. Check if size is eglible (not equal or less than the current size)
+	// 0. Check if size is eligible (not equal or less than the current size)
 	// 1. Prepare/Get volumeId of current instance
 	// 2. Prepare/Get availabilityZone of current instance
 	// 3. Stop the instance so we can get the snapshot
@@ -25,10 +25,11 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	//		4a. Delete snapshot after we are done with all following steps (not needed anymore)
 	// 5. Create new volume with the desired size from the snapshot and same zone.
 	//		5a. Delete volume if something goes wrong in following steps
-	// 6. Detach the volume of current stopped instance, if something goes wrong:
+	// 6. Detach the volume of current stopped instance.
+	//    if something goes wrong:
 	//		6a. Detach new volume, attach old volume. New volume will be
-	//		attached in the following step, so we are going to rewind it.
-	//	  however if everything is ok:
+	//		    attached in the following step, so we are going to rewind it.
+	//	  if everything is ok:
 	//		6b. Delete old volume (not needed anymore)
 	// 7. Attach new volume to current stopped instance
 	// 8. Start the stopped instance with the new larger volume
@@ -45,7 +46,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	a.Push("Resizing initialized", 10, machinestate.Pending)
 
-	infoLog("checking if size is eglible for instance %s", a.Id())
+	infoLog("checking if size is eligible for instance %s", a.Id())
 	instance, err := a.Instance(a.Id())
 	if err != nil {
 		return nil, err
@@ -55,7 +56,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, fmt.Errorf("fatal error: no block device available")
 	}
 
-	// we need in a lot of placages!
+	// we need it in a lot of places!
 	oldVolumeId := instance.BlockDevices[0].VolumeId
 
 	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
@@ -79,7 +80,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 			desiredSize, currentSize)
 	}
 
-	if 100 < desiredSize {
+	if desiredSize > 100 {
 		return nil, fmt.Errorf("resizing is not allowed. Desired size: %d can't be larger than 100GB",
 			desiredSize)
 	}
@@ -109,7 +110,11 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	a.Push("Creating new volume", 50, machinestate.Pending)
 	infoLog("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
-	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, desiredSize)
+
+	// Go on with the current volume type. SSD(gp2) or Magnetic(standard)
+	volType := oldVolResp.Volumes[0].VolumeType
+
+	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, volType, desiredSize)
 	if err != nil {
 		return nil, err
 	}
@@ -176,13 +181,13 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	a.Push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := p.userDomains(m.Id)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		p.Log.Error("[%s] fetching domains for unsetting err: %s", m.Id, err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.DomainName, m.Username); err != nil {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
 			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 		}
 	}
