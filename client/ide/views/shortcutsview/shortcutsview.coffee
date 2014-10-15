@@ -82,7 +82,6 @@ class IDE.ShortcutsView extends KDView
       'Go to line end'         : { Others: 'End',            Apple: 'Ctrl-E'    }
       'Go to line start'       : { Others: 'Alt-Left',       Apple: 'Meta-Left' }
       'Go to line start'       : { Others: 'End',            Apple: 'Ctrl-A'    }
-      'Go to matching bracket' : 'Ctrl-P'
       'Go to page down'        : 'Ctrl-V'
       'Go to word left'        : { Others: 'Ctrl-Left',      Apple: 'Alt-Left'  }
       'Go to word right'       : { Others: 'Ctrl-Right',    Apple: 'Alt-Right' }
