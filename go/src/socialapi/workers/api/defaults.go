@@ -62,7 +62,7 @@ func setPublicChannel(log logging.Logger, group *kodingmodels.Group) {
 
 	socialApiId := strconv.FormatInt(c.Id, 10)
 	if group.SocialApiChannelId == socialApiId {
-		log.Error("mongo and postgres socialApiChannelId ids are same")
+		log.Debug("mongo and postgres socialApiChannelId ids are same")
 		return
 	}
 

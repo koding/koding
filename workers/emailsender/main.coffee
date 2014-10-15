@@ -94,5 +94,7 @@ emailSenderCron = new CronJob emailWorker.cronInstant, emailSender
 log "Email Sender CronJob started with #{emailWorker.cronInstant}"
 emailSenderCron.start()
 
+require('../runartifactserver')("emailSender")
+
 if emailWorker.forcedRecipient
   log "All e-mails will be send to #{emailWorker.forcedRecipient}"

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"koding/artifact"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
@@ -306,10 +307,13 @@ func (b *Broker) startSockJS() {
 	mux := &sockjs.Mux{
 		Handlers: map[string]http.Handler{
 			"/subscribe": service,
+			// i dont know if this is used by someone else, leaving it here for now
 			"/buildnumber": http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/plain")
 				w.Write([]byte(strconv.Itoa(conf.BuildNumber)))
 			}),
+			"/version":     http.HandlerFunc(artifact.VersionHandler()),
+			"/healthcheck": http.HandlerFunc(artifact.HealthCheckHandler(BROKER_NAME)),
 		},
 	}
 
