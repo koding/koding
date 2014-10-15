@@ -253,6 +253,8 @@ Configuration = (options={}) ->
       group             : "webserver"
       supervisord       :
         command         : "#{GOBIN}/rerun koding/rerouting -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
     authworker          :
       group             : "webserver"
