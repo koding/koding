@@ -227,11 +227,24 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
+	// try the first zone, if there is no capacity we are going to use the next one
+	zone := "" // empty string is totally fine, AWS picks the zone itself
+	zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
+	if err == nil {
+		zone = zones[0]
+		infoLog("Using Availability Zone: %s", zone)
+	} else {
+		infoLog("No Availability Zone available %s, letting AWS pick one for us.", err)
+	}
+
+	a.Builder.Zone = zone
+
 	// build now our instance!!
 	var buildArtifact *protocol.Artifact
 	buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
 	if err != nil {
 		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
+
 			// use a difference instance type
 			fallbackInstance := T2Small.String()
 			a.Builder.InstanceType = fallbackInstance
