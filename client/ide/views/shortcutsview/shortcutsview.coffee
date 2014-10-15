@@ -77,7 +77,6 @@ class IDE.ShortcutsView extends KDView
       'Go to previous line'    : 'Ctrl-P'
       'Go to left'             : 'Ctrl-B'
       'Go to right'            : 'Ctrl-F'
-      'Go to end'              : { Others: 'Ctrl-End',       Apple: 'Meta-Down' }
       'Go to line'             : 'Meta-G'
       'Go to line'             : 'Meta-L'
       'Go to line end'         : { Others: 'Alt-Right',      Apple: 'Meta-Right'}
