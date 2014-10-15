@@ -107,7 +107,7 @@ Configuration = (options={}) ->
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite" , artifactPort : 9520 }
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
