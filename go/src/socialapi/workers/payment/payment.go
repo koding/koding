@@ -187,14 +187,16 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 		return nil, nil
 	}
 
+	raw, err := json.Marshal(s.Data.Object)
+	if err != nil {
+		return nil, err
+	}
+
 	switch s.Name {
 	case "customer.subscription.deleted":
-		raw, err := json.Marshal(s.Data.Object)
-		if err != nil {
-			return nil, err
-		}
-
 		err = stripe.SubscriptionDeletedWebhook(raw)
+	case "invoice.created":
+		err = stripe.InvoiceCreatedWebhook(raw)
 	default:
 		fmt.Println("Unhandled Stripe webhook", s.Name)
 	}

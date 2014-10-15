@@ -44,6 +44,16 @@ func (p *Plan) Create() error {
 	return nil
 }
 
+func (p *Plan) ByProviderId(providerId, provider string) error {
+	selector := map[string]interface{}{
+		"provider_plan_id": providerId,
+		"provider":         provider,
+	}
+
+	err := p.Find(selector)
+	return err
+}
+
 var ErrTitleNotSet = errors.New("title not set")
 var ErrIntervalNotSet = errors.New("interval not set")
 
@@ -75,4 +85,9 @@ func (p *Plan) ByTitleAndInterval() (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (p *Plan) Find(selector map[string]interface{}) error {
+	err := p.One(bongo.NewQS(selector))
+	return err
 }

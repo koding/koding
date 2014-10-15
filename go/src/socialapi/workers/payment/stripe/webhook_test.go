@@ -72,3 +72,46 @@ func TestSubscriptionDeletedWebhook(t *testing.T) {
 		}),
 	)
 }
+
+func rawInvoiceCreatedData(subscriptionId string) ([]byte, string) {
+	planProviderId := LowerPlanProviderId
+
+	raw := `{
+		"id": "in_00000000000000",
+		"lines": {
+			"data": [
+				{ "id": "%s", "plan": { "id": "%s" } }
+			],
+			"count": 1
+		}
+	}`
+
+	data := fmt.Sprintf(raw, subscriptionId, planProviderId)
+
+	return []byte(data), planProviderId
+}
+
+func TestInvoiceCreatedWebhook(t *testing.T) {
+	Convey("Given customer has a subscription", t,
+		subscribeWithReturnsFn(func(customer *paymentmodel.Customer, subscription *paymentmodel.Subscription) {
+			subscriptionProviderId := subscription.ProviderSubscriptionId
+			data, planProviderId := rawInvoiceCreatedData(subscriptionProviderId)
+
+			err := InvoiceCreatedWebhook(data)
+			So(err, ShouldBeNil)
+
+			Convey("When 'invoice.created' webhook is fired", func() {
+				Convey("Then subscription plan id is updated if not same", func() {
+					err := subscription.ById(subscription.Id)
+					So(err, ShouldBeNil)
+
+					plan := paymentmodel.NewPlan()
+					err = plan.ByProviderId(planProviderId, ProviderName)
+					So(err, ShouldBeNil)
+
+					So(subscription.PlanId, ShouldEqual, plan.Id)
+				})
+			})
+		}),
+	)
+}
