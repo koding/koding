@@ -1,4 +1,4 @@
-module.exports = do ->
+module.exports = (name="") ->
   {argv} = require 'optimist'
   express = require 'express'
   cors = require 'cors'
@@ -15,9 +15,9 @@ module.exports = do ->
 
   KONFIG = require('koding-config-manager').load("main.#{argv.c}")
   app.get '/version',(req,res)->
-    res.send "Socialworker is running with version: #{KONFIG.version}"
+    res.send "#{KONFIG.version}"
 
   app.get '/healthCheck',(req,res)->
-    res.send "Socialworker is OK"
+    res.send "#{name} is running with version: #{KONFIG.version}"
 
   app.listen argv.p
