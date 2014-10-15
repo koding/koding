@@ -146,8 +146,12 @@ class DNDUploader extends KDView
         else @walkDirectory entry, callback, error
     , error
 
-  setPath: (@path = @getOptions().defaultPath) ->
-    {uploadToVM, title} = @getOptions()
+  setPath: (path) ->
+
+    {uploadToVM, defaultPath, title} = @getOptions()
+
+    @path = path or defaultPath or "/home/#{KD.nick()}/Uploads"
+
     @updatePartial """
       <div class="file-drop">
         #{title or "Drop files here!"}
