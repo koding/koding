@@ -86,7 +86,8 @@ module.exports = class JSession extends Model
         @createSession callback
 
   @fetchGuestUserSession = (callback) ->
-    @one username : 'guestuser', (err, session) ->
+    username = 'guestuser'
+    @one {username}, (err, session) ->
       return callback err if err?
       return callback null, session if session?
       clientId = createId()
