@@ -18,4 +18,8 @@ authWorker = new AuthWorker koding, {
   authExchange    : KONFIG.authWorker.authExchange
   authAllExchange : KONFIG.authWorker.authAllExchange
 }
+
+# expose healthcheck and version handlers
+require('../../../runartifactserver')("authworker")
+
 authWorker.connect()

@@ -29,7 +29,7 @@ Configuration = (options={}) ->
   customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510        }
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
@@ -94,9 +94,9 @@ Configuration = (options={}) ->
 
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                , useCacheHeader: no                     , kitePort          : 8860}
-    authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"}
+    authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
     mq                             : mq
-    emailWorker                    : {cronInstant   : '*/10 * * * * *'    , cronDaily : '0 10 0 * * *'             , run               : no                                      , forcedRecipient: email.forcedRecipient                           , maxAge: 3 }
+    emailWorker                    : {cronInstant   : '*/10 * * * * *'    , cronDaily : '0 10 0 * * *'             , run               : no                                      , forcedRecipient: email.forcedRecipient                           , maxAge: 3      , port  : 9540 }
     elasticSearch                  : {host          : "#{boot2dockerbox}" , port      : 9200                       , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                , login     : "#{rabbitmq.login}"        , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
@@ -105,8 +105,9 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
+    rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite" , artifactPort : 9520 }
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -196,30 +197,37 @@ Configuration = (options={}) ->
     gowebserver         :
       group             : "webserver"
       ports             :
-         incoming       : 6500
+         incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
         command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/\""
       nginx             :
         locations       : ["~^/IDE/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
     kontrol             :
       group             : "environment"
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
 
     ngrokProxy          :
       group             : "environment"
@@ -240,16 +248,22 @@ Configuration = (options={}) ->
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
+      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
     rerouting           :
       group             : "webserver"
       supervisord       :
         command         : "#{GOBIN}/fresh -w koding/rerouting -r koding/rerouting -a \"-c #{configName}\""
+      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
     authworker          :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+        command         : "./watch-node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     sourcemaps          :
       group             : "webserver"
@@ -261,7 +275,9 @@ Configuration = (options={}) ->
     emailsender         :
       group             : "webserver"
       supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -289,11 +305,8 @@ Configuration = (options={}) ->
         command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/xhr"]
-
-    guestCleaner        :
-      group             : "webserver"
-      supervisord       :
-        command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     clientWatcher       :
       group             : "webserver"
@@ -307,6 +320,8 @@ Configuration = (options={}) ->
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -461,6 +476,15 @@ Configuration = (options={}) ->
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/config/main.dev.coffee" ]; then
             echo your run file is older than your config file. doing ./configure.
+            sleep 1
+            ./configure
+
+            echo -e "\n\nPlease do ./run again\n"
+            exit 1;
+        fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/configure" ]; then
+            echo your run file is older than your configure file. doing ./configure.
             sleep 1
             ./configure
 

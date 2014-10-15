@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"koding/artifact"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/go-webserver/templates"
@@ -16,11 +17,12 @@ import (
 )
 
 var (
+	Name            = "gowebserver"
 	flagConfig      = flag.String("c", "", "Configuration profile from file")
 	flagTemplates   = flag.String("t", "", "Change template directory")
 	conf            *config.Config
 	kodingGroupJson []byte
-	log             = logging.NewLogger("gowebserver")
+	log             = logging.NewLogger(Name)
 )
 
 func initialize() {
@@ -59,6 +61,8 @@ func main() {
 	log.Info("Starting gowebserver on %v", url)
 
 	http.HandleFunc("/", HomeHandler)
+	http.HandleFunc("/version", artifact.VersionHandler())
+	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	http.ListenAndServe(url, nil)
 }
 

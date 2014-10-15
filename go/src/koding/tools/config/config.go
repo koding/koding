@@ -251,6 +251,9 @@ type Config struct {
 	Gowebserver          struct {
 		Port int
 	}
+	Rerouting struct {
+		Port int
+	}
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
