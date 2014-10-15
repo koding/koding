@@ -224,28 +224,32 @@ class DNDUploader extends KDView
         else
 
           modalStack.addModal modal = new KDModalView
-            overlay : no
-            title   : "Overwrite File?"
-            content : """
-            <div class="modalformline">
-            You already have the file <code>#{fsFileItem.path}</code>. Do you want
-            to overwrite it?
-            </div>
+
+            overlay        : no
+            title          : "Overwrite File?"
+            content        : """
+              <div class='modalformline'>
+                You already have the file <code>#{fsFileItem.path}</code>. Do you want
+                to overwrite it?
+              </div>
             """
-            buttons :
-              Overwrite:
-                cssClass: "modal-clean-green"
-                callback: =>
+
+            buttons        :
+
+              overwrite    :
+                cssClass   : "modal-clean-green"
+                callback   : =>
                   @saveFile fsFileItem, contents
                   modal.destroy()
-              cancel:
-                cssClass: "modal-cancel"
-                callback: ->
-                  modal.destroy()
-              "cancel all":
-                cssClass: "modal-cancel"
-                callback: ->
-                  modalStack.destroy()
+
+              cancel       :
+                cssClass   : "modal-cancel"
+                callback   : -> modal.destroy()
+
+              "cancel all" :
+                cssClass   : "modal-cancel"
+                callback   : -> modalStack.destroy()
+
 
     fsFolderItem.exists (err, exists)->
 
