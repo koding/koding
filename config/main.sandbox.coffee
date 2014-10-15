@@ -103,6 +103,7 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
+    rerouting                      : {port          : 9500 }
 
     kloud                          : {port          : 5500 , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile , kontrolUrl: kontrol.url , registerUrl : "#{customDomain.public}/kloud/kite" }
 

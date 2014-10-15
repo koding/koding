@@ -105,6 +105,7 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 8090 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
+    rerouting                      : {port          : 9500 }
 
     kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: "#{customDomain.public}/kontrol/kite"    , registerUrl : "#{customDomain.public}/kloud/kite" }
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
