@@ -120,9 +120,9 @@ do ->
     res.send "Socialworker is OK"
 
   app.get '/version',(req,res)->
-    res.send "Socialworker is running with version: #{KONFIG.version}"
+    res.send "#{KONFIG.version}"
 
   app.get '/healthCheck',(req,res)->
-    res.send "Socialworker is OK"
+    res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p
