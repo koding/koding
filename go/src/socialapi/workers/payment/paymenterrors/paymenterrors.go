@@ -32,6 +32,8 @@ var (
 		)
 	}
 
+	// Customer probably has a coupon or credit in account and therefore
+	// doesn't need to pay.
 	IsNothingToInvoiceErr = func(err error) bool {
 		return err.Error() == "Nothing to invoice for customer"
 	}
