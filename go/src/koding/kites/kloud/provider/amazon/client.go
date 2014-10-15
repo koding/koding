@@ -333,8 +333,9 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 	}
 
 	return &protocol.InfoArtifact{
-		State: statusToState(instance.State.Name),
-		Name:  instanceName,
+		State:        statusToState(instance.State.Name),
+		Name:         instanceName,
+		InstanceType: instance.InstanceType,
 	}, nil
 
 }

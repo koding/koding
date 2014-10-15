@@ -120,4 +120,7 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
+
+	// InstanceType defines the type of the given machine
+	InstanceType string
 }
