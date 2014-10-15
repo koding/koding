@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -89,7 +88,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// sort and get the lowest
 	infoLog("Searching a subnet with most IPs amongst '%d' subnets", len(subnets))
-	subnet := subnetWithMostIPs(subnets)
+	subnet := subnets.WithMostIps()
 
 	infoLog("Using subnet id %s, which has %d available IPs", subnet.SubnetId, subnet.AvailableIpAddressCount)
 	a.Builder.SubnetId = subnet.SubnetId
@@ -447,17 +446,4 @@ func (p *Provider) createKey(username, kiteId string) (string, error) {
 	}
 
 	return token.SignedString([]byte(p.KontrolPrivateKey))
-}
-
-type ByMostIP []ec2.Subnet
-
-func (a ByMostIP) Len() int      { return len(a) }
-func (a ByMostIP) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByMostIP) Less(i, j int) bool {
-	return a[i].AvailableIpAddressCount > a[j].AvailableIpAddressCount
-}
-
-func subnetWithMostIPs(subnets []ec2.Subnet) ec2.Subnet {
-	sort.Sort(ByMostIP(subnets))
-	return subnets[0]
 }

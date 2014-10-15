@@ -2,11 +2,25 @@ package amazon
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/mitchellh/goamz/ec2"
 )
 
-func (a *AmazonClient) SubnetsWithTag(tag string) ([]ec2.Subnet, error) {
+type Subnets []ec2.Subnet
+
+func (s Subnets) Len() int      { return len(s) }
+func (s Subnets) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s Subnets) Less(i, j int) bool {
+	return s[i].AvailableIpAddressCount > s[j].AvailableIpAddressCount
+}
+
+func (s Subnets) WithMostIps() ec2.Subnet {
+	sort.Sort(s)
+	return s[0]
+}
+
+func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
 	filter := ec2.NewFilter()
 	filter.Add("tag-key", tag)
 
