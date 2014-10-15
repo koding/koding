@@ -26,7 +26,11 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 	account, err := modelhelper.GetAccountById(accId)
 	if err == nil {
 		params.Meta = map[string]string{
-			"username": account.Profile.Nickname,
+			"username":  account.Profile.Nickname,
+			"createdAt": account.Meta.CreatedAt.String(),
+			"status":    account.Status,
+			"firstName": account.Profile.FirstName,
+			"lastName":  account.Profile.LastName,
 		}
 	}
 
