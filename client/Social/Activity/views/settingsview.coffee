@@ -88,7 +88,7 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @addSubView @settings  if _.every [
       not data.isFake
-      (KD.isMyPost data or KD.checkFlag 'super-admin')
+      (KD.isMyPost(data) or KD.checkFlag 'super-admin')
     ], Boolean
 
 
