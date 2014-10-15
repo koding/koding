@@ -256,7 +256,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			currentZone := subnet.AvailabilityZone
 
-			infoLog("Searching a zone that has capacity amongst: %v", zones)
+			infoLog("Searching a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
 				if zone == currentZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
@@ -280,6 +280,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 						// add now our security group
 						a.Builder.SecurityGroupId = group.Id
+						break
 					}
 				}
 
