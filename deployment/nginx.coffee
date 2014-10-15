@@ -224,13 +224,6 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
-      #{if environment isnt "dev" then "
-        location = /WFGH {
-          return 301 /;
-        }
-      " else ""
-      }
-
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
