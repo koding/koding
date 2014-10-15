@@ -162,14 +162,27 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			}
 
 			if ec2Error, ok := err.(*ec2.Error); ok {
-				if ec2Error.Code != "InsufficientInstanceCapacity" || ec2Error.Code != "InstanceLimitExceeded" {
+				isFallback := false
+
+				// check wether the incoming error code is one of the fallback
+				// errors
+				for _, fbErr := range FallbackErrors {
+					if ec2Error.Code == fbErr {
+						isFallback = true
+						break
+					}
+				}
+
+				// return for non fallback errors, because we can't do much
+				// here and probably it's need a more tailored solution
+				if !isFallback {
 					return err
 				}
 
 				p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 			}
 
-			for _, instanceType := range InstancesList {
+			for _, instanceType := range FallbackList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
 					m.Id, instanceType, DefaultInstanceType)
 

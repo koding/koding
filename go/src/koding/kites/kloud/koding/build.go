@@ -30,7 +30,7 @@ var (
 	// http://www.ec2instances.info/. t2.micro is not included because it's
 	// already the default type which we start to build. Only supported types
 	// are here.
-	InstancesList = []string{
+	FallbackList = []string{
 		"t2.small",
 		"t2.medium",
 		"m3.medium",
@@ -38,6 +38,8 @@ var (
 		"m3.large",
 		"c3.xlarge",
 	}
+
+	FallbackErrors = []string{"InsufficientInstanceCapacity", "InstanceLimitExceeded"}
 )
 
 const (
@@ -250,9 +252,24 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		// "InstanceLimitExceeded, if not return back because it's not a
 		// resource or capacity problem.
 		if ec2Error, ok := err.(*ec2.Error); ok {
-			if ec2Error.Code != "InsufficientInstanceCapacity" || ec2Error.Code != "InstanceLimitExceeded" {
+			isFallback := false
+
+			// check wether the incoming error code is one of the fallback
+			// errors
+			for _, fbErr := range FallbackErrors {
+				if ec2Error.Code == fbErr {
+					isFallback = true
+					break
+				}
+			}
+
+			// return for non fallback errors, because we can't do much
+			// here and probably it's need a more tailored solution
+			if !isFallback {
 				return err
 			}
+
+			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 		}
 
 		// now lets to some fallback mechanisms to avoid the capacity errors.
@@ -315,7 +332,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// 3. Try to use another instance
 		instanceFunc := func() error {
-			for _, instanceType := range InstancesList {
+			for _, instanceType := range FallbackList {
 				a.Builder.InstanceType = instanceType
 
 				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
