@@ -59,3 +59,7 @@ class IDE.TerminalPane extends IDE.Pane
   resurrect: ->
     @destroySubViews()
     @createTerminal()
+
+  setFocus: (state) ->
+    super state
+    @webtermView.setFocus state

@@ -166,8 +166,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       {paneType} = pane.getOptions()
       appManager = KD.getSingleton 'appManager'
 
-      if      paneType is 'editor'   then pane.aceView.ace.focus()
-      else if paneType is 'terminal' then pane.webtermView?.setFocus yes
+      pane.setFocus? yes
 
       if paneType is 'editor'
         appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
