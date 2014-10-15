@@ -85,6 +85,16 @@ module.exports = class JSession extends Model
       else
         @createSession callback
 
+  @fetchGuestUserSession = (callback) ->
+    @one username : 'guestuser', (err, session) ->
+      return callback err if err?
+      return callback null, session if session?
+      clientId = createId()
+      session = new JSession { clientId, username }
+      session.save (err)->
+        return callback err if err?
+        callback null, session
+
   @updateClientIP = (clientId, ipAddress, callback)->
     JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
       callback err
