@@ -151,12 +151,18 @@ class DNDUploader extends KDView
 
     dirReader.readEntries (entries)=>
 
+      if entries.length > 20
+        KD.showError "It's not allowed to upload more than 20 files at once."
+        return
+
       for entry in entries
         if entry.isFile
           entry.file (file)->
             file.relativePath = relative # + file.name
             callback file
-        else @walkDirectory entry, callback, error
+        else
+          @walkDirectory entry, callback, error
+
     , error
 
   setPath: (path) ->
@@ -270,4 +276,4 @@ class DNDUploader extends KDView
 
   getMachine: ->
 
-    @getDelegate().controller.machines.first.machine
+    @getDelegate().machines.first.machine
