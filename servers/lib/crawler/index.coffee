@@ -36,17 +36,21 @@ fetchProfileContent = (models, options, callback) ->
 fetchPostContent = (models, options, callback) ->
   {SocialMessage} = models
   {client, entrySlug} = options
-  SocialMessage.bySlug client, slug: entrySlug, replyLimit: 25, (err, activity) ->
-    return callback err  if err or not activity
 
-    createActivityContent models, activity, (err, content, activityContent)->
-      return callback err  if err or not content
-      graphMeta =
-        title    : "Post on koding.com by #{activityContent.fullName}"
-        body     : "#{activityContent.body}"
-        shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
-      fullPage = feed.putContentIntoFullPage content, "", graphMeta
-      callback null, fullPage
+  fetchGuestUserSession models, (err, sessionToken) ->
+    return callback err if err?
+    options = {slug: entrySlug, replyLimit: 25, sessionToken}
+    SocialMessage.bySlug client, options, (err, activity) ->
+      return callback err  if err or not activity
+
+      createActivityContent models, activity, (err, content, activityContent)->
+        return callback err  if err or not content
+        graphMeta =
+          title    : "Post on koding.com by #{activityContent.fullName}"
+          body     : "#{activityContent.body}"
+          shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
+        fullPage = feed.putContentIntoFullPage content, "", graphMeta
+        callback null, fullPage
 
 
 fetchTopicContent = (models, options, callback) ->
@@ -55,13 +59,17 @@ fetchTopicContent = (models, options, callback) ->
   options.channelName = entrySlug
 
   {SocialChannel} = models
-  SocialChannel.byName client, name: entrySlug, (err, channel) ->
-    return callback err  if err or not channel
+  fetchGuestUserSession models, (err, sessionToken) ->
+    return callback err if err?
 
-    options.channelId = channel.channel.id
-    options.route = "Topic/#{entrySlug}"
-    options.contentType = "topic"
-    feed.createFeed models, options, callback
+    SocialChannel.byName client, {name: entrySlug, sessionToken}, (err, channel) ->
+      return callback err  if err or not channel
+
+      options.channelId = channel.channel.id
+      options.route = "Topic/#{entrySlug}"
+      options.contentType = "topic"
+      options.sessionToken = sessionToken
+      feed.createFeed models, options, callback
 
 
 fetchGroupContent = (models, options, callback) ->
@@ -71,17 +79,27 @@ fetchGroupContent = (models, options, callback) ->
 
   options.channelName = "public"
 
-  # TODO change this slug after groups are implemented
-  JGroup.one slug: "koding", (err, group) ->
-    return callback err  if err
-    return callback notFoundError "group"  unless group
+  fetchGuestUserSession models, (err, sessionToken) ->
+    return callback err if err?
 
-    options.channelId = group.socialApiChannelId
-    # TODO change this with group implementation
-    options.route = "Public"
-    options.contentType = "post"
-    feed.createFeed models, options, callback
+    # TODO change this slug after groups are implemented
+    JGroup.one slug: "koding", (err, group) ->
+      return callback err  if err
+      return callback notFoundError "group"  unless group
 
+      options.channelId = group.socialApiChannelId
+      # TODO change this with group implementation
+      options.route = "Public"
+      options.contentType = "post"
+      options.sessionToken = sessionToken
+      feed.createFeed models, options, callback
+
+fetchGuestUserSession = (models, callback) ->
+  {JSession} = models
+  JSession.createGuestUserSession (err, session) ->
+    return callback err if err?
+    return callback notFoundError "session" unless session?.clientId?
+    callback null, session.clientId
 
 fetchAnnouncementContent = (models, options, callback) ->
 
