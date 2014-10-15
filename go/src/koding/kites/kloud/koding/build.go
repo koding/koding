@@ -87,11 +87,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	// sort and get the lowest
-	infoLog("Searching a subnet with most IPs amongst '%d' subnets", len(subnets))
 	subnet := subnets.WithMostIps()
-
-	infoLog("Using subnet id %s, which has %d available IPs", subnet.SubnetId, subnet.AvailableIpAddressCount)
-	a.Builder.SubnetId = subnet.SubnetId
 
 	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
 	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
@@ -100,14 +96,13 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, errors.New("checking security requirements failed")
 	}
 
-	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
-
-	infoLog("Using Availability Zone: %s", subnet.AvailabilityZone)
+	a.Builder.SubnetId = subnet.SubnetId
 	a.Builder.Zone = subnet.AvailabilityZone
-
-	// Use koding plans instead of those later
 	a.Builder.InstanceType = DefaultInstanceType
+
+	infoLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
 	// check if the user is egligible to create a vm with this size
@@ -267,12 +262,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 					continue // shouldn't be happen, but let be safe
 				}
 
-				a.Builder.Zone = zone
-				a.Builder.SubnetId = subnet.SubnetId
-
-				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
-					m.Id, zone, a.Builder.SubnetId, err)
-
 				group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
 				if err != nil {
 					errLog("Checking security group err: %v", err)
@@ -281,6 +270,11 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 				// add now our security group
 				a.Builder.SecurityGroupId = group.Id
+				a.Builder.Zone = zone
+				a.Builder.SubnetId = subnet.SubnetId
+
+				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
+					m.Id, zone, a.Builder.SubnetId, err)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
