@@ -20,6 +20,6 @@ authWorker = new AuthWorker koding, {
 }
 
 # expose healthcheck and version handlers
-require '../../../artifact'
+require('../../../runartifactserver')("authworker")
 
 authWorker.connect()
