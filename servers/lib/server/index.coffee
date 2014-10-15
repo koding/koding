@@ -410,6 +410,8 @@ app.get "/-/healthCheck", (req, res) ->
     "http://localhost:#{publicPort}#{socialApiUri}"
     "http://localhost:#{publicPort}#{broker.uri}/info"
     "http://localhost:#{publicPort}/kloud/kite/info"
+    # if versions are not same
+    "http://localhost:#{publicPort}/-/versionCheck"
   ]
 
   urlFns = urls.map (url)->->
@@ -433,9 +435,9 @@ app.get "/-/versionCheck", (req, res) ->
   urlFns = urls.map ({name, url})->->
     request url, (err, resp, body)->
       if err?
-        errs.push({ name, url, err })
+        errs.push({ name, err })
       else if KONFIG.version isnt body
-        errs.push({ name, url, message: "versions are not same" })
+        errs.push({ name, message: "versions are not same" })
 
       urlFns.fin()
 
