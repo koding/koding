@@ -236,8 +236,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			fallbackInstance := T2Small.String()
 			a.Builder.InstanceType = fallbackInstance
 
-			p.Log.Warning("[%s] InsufficientInstanceCapacity: Building again with using instance: %s instead of %s",
-				m.Id, fallbackInstance, DefaultInstanceType)
+			p.Log.Warning("[%s] InsufficientInstanceCapacity: Building again with using instance: %s instead of %s. Err: %s",
+				m.Id, fallbackInstance, DefaultInstanceType, err)
 
 			buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 			if err != nil {
