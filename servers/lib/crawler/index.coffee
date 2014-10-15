@@ -96,7 +96,7 @@ fetchGroupContent = (models, options, callback) ->
 
 fetchGuestUserSession = (models, callback) ->
   {JSession} = models
-  JSession.createGuestUserSession (err, session) ->
+  JSession.fetchGuestUserSession (err, session) ->
     return callback err if err?
     return callback notFoundError "session" unless session?.clientId?
     callback null, session.clientId
