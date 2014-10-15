@@ -139,7 +139,10 @@ KD.extend
     else if target?.originId?
       KD.whoami()._id is target.originId
 
-  isMyPost: (post) -> post.account._id is KD.whoami().getId() and post.typeConstant not in ['join', 'leave']
+  isMyPost: (post) ->
+    post         or= {}
+    post.account or= {}
+    post.account._id is KD.whoami().getId() and post.typeConstant not in ['join', 'leave']
 
   isMyChannel: (channel) -> channel.creatorId is KD.whoami().socialApiId
 
