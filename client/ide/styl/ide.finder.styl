@@ -13,6 +13,7 @@ resurrection.finder.styl
 }
 
 body.ide
+
   .nfinder
     ul ul li.selected
       bg                color, #131313
@@ -174,8 +175,8 @@ body.ide
         width         70px
       .progressbar-container
         visible()
-        abs           8px 30px
-        size          40px 5px
+        abs           9px 45px
+        size          40px 6px
         .bar
           gradient    #afafaf, #afafaf
           shadow      none
@@ -459,7 +460,11 @@ body.ide
 
   #finder-dnduploader
      color             #fff
-     padding           10px 0
+     padding-right     2px
+     z-index           1000
+     background        #252525
+     borderBox()
+     abs()
 
     .file-droparea
       kalc             width   100% \- 20px !important
