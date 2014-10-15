@@ -34,7 +34,9 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		_, err := CreateSubscription(customer, plan)
 
 		if err != nil {
-			RemoveCreditCard(customer) // outer error is more important
+			ccErr := RemoveCreditCard(customer) // outer error is more important
+			Log.Error("Removing cc failed for customer: %s. %s", customer.Id, ccErr)
+
 			return err
 		}
 
@@ -55,7 +57,9 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		err := UpdateSubscriptionForCustomer(customer, subscriptions, plan)
 
 		if err != nil {
-			RemoveCreditCard(customer) // outer error is more important
+			ccErr := RemoveCreditCard(customer) // outer error is more important
+			Log.Error("Removing cc failed for customer: %s. %s", customer.Id, ccErr)
+
 			return err
 		}
 

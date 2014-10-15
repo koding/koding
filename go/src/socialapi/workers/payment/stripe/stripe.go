@@ -1,9 +1,13 @@
 package stripe
 
-import stripe "github.com/stripe/stripe-go"
+import (
+	"github.com/koding/logging"
+	stripe "github.com/stripe/stripe-go"
+)
 
 var (
 	ProviderName = "stripe"
+	Log          = logging.NewLogger("payment")
 )
 
 func InitializeClientKey(key string) {

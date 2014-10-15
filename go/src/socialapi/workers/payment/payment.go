@@ -8,11 +8,14 @@ import (
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"time"
+
+	"github.com/koding/logging"
 )
 
 var (
 	ProviderNotFound       = errors.New("provider not found")
 	ProviderNotImplemented = errors.New("provider not implemented")
+	Log                    = logging.NewLogger("payment")
 )
 
 //----------------------------------------------------------
@@ -27,9 +30,18 @@ type SubscribeRequest struct {
 func (s *SubscribeRequest) Do() (interface{}, error) {
 	switch s.Provider {
 	case "stripe":
-		return nil, stripe.Subscribe(
+		err := stripe.Subscribe(
 			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
 		)
+
+		if err != nil {
+			Log.Error(
+				"Subscribing account: %s to plan: %s failed. %s",
+				s.AccountId, s.PlanTitle, err,
+			)
+		}
+
+		return nil, err
 	case "paypal":
 		return nil, ProviderNotImplemented
 	default:
@@ -106,23 +118,27 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
 	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
 	if err != nil {
-		return nil, err
+		Log.Error("Fetching invoices for account: %s failed. %s", a.AccountId, err)
 	}
 
-	return invoices, nil
+	return invoices, err
 }
 
 func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
 	resp, err := stripe.GetCreditCard(a.AccountId)
 	if err != nil {
-		return nil, err
+		Log.Error("Fetching cc for account: %s failed. %s", a.AccountId, err)
 	}
 
-	return resp, nil
+	return resp, err
 }
 
 func (a *AccountRequest) Delete() (interface{}, error) {
 	err := stripe.DeleteCustomer(a.AccountId)
+	if err != nil {
+		Log.Error("Deleting account: %s failed. %s", a.AccountId, err)
+	}
+
 	return nil, err
 }
 
@@ -137,7 +153,12 @@ type UpdateCreditCardRequest struct {
 func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
 	switch u.Provider {
 	case "stripe":
-		return nil, stripe.UpdateCreditCard(u.AccountId, u.Token)
+		err := stripe.UpdateCreditCard(u.AccountId, u.Token)
+		if err != nil {
+			Log.Error("Updating cc for account: %s failed. %s", u.AccountId, err)
+		}
+
+		return nil, err
 	case "paypal":
 		return nil, ProviderNotImplemented
 	default:
