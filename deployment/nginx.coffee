@@ -224,11 +224,9 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
-      #{if environment isnt "dev" then "
-        location = /WFGH {
-          return 301 /;
-        }
-      " else ""
+      location = /WFGH {
+        proxy_pass http://webserver;
+        #{if environment isnt "dev" then basicAuth else ""}
       }
 
       # no need to send static file serving requests to webserver
