@@ -51,7 +51,7 @@ class FinderController extends KDController
         @uploaderPlaceholder.hide()
 
       .on 'uploadProgress', ({ file, percent }) ->
-        filePath = "[#{file.vmName}]#{file.path}"
+        filePath = "[#{file.machine.uid}]#{file.path}"
         treeController.nodes[filePath]?.showProgressView percent
 
       .on "uploadComplete", ({ parentPath }) =>
