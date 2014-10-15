@@ -43,8 +43,11 @@ class DNDUploader extends KDView
     @_uploaded = {}
 
   drop: (event)->
+
     super
+
     {files, items}  = event.originalEvent.dataTransfer
+
 
     if files.length >= 20
       KD.notify_ """
@@ -55,7 +58,7 @@ class DNDUploader extends KDView
       You can archive your files and try again.
       """
 
-    if items?.item?(0)?.webkitGetAsEntry
+    if items[0].webkitGetAsEntry?
       for item in items
         entry = item.webkitGetAsEntry()
         if entry.isDirectory
@@ -74,7 +77,9 @@ class DNDUploader extends KDView
       @uploadFiles files, event
 
   uploadFiles: (files, event)->
+
     @_uploaded or= {}
+
     if files?.length
 
       lastFile = files.last
