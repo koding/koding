@@ -93,10 +93,12 @@ class DNDUploader extends KDView
       lastFile = files.last
 
       for file, index in files
+
         sizeInMb = file.size/1024/1024
         if sizeInMb > 100 && @getOptions().uploadToVM
           KD.notify_ "Too big file to upload.", "error", "Max 100MB allowed per file."
           continue
+
         reader = new FileReader
         reader.onloadend = do (file=files[index])=> (readEvent)=>
 
@@ -118,26 +120,29 @@ class DNDUploader extends KDView
             isLast  : file is lastFile
           , event, readEvent
 
-          @reset() if file is lastFile
+          @reset()  if file is lastFile
 
         reader.readAsBinaryString file
-    else
-      internalData = event.originalEvent.dataTransfer.getData "Text"
-      if internalData
-        multipleItems = internalData.split ","
-        lastItem = multipleItems.last
-        for item in multipleItems
-          {basename} = KD.getPathInfo item
-          fsFile = FSHelper.createFileInstance path: item
-          @emit "dropFile",
-            origin  : "internal"
-            filename: basename
-            instance: fsFile
-            content : null
-            isLast  : item is lastItem
-          , event, no
 
-          @reset() if item is lastItem
+    else
+
+      internalData = event.originalEvent.dataTransfer.getData "Text"
+      return  unless internalData
+
+      multipleItems = internalData.split ","
+      lastItem = multipleItems.last
+      for item in multipleItems
+        {basename} = KD.getPathInfo item
+        fsFile = FSHelper.createFileInstance path: item
+        @emit "dropFile",
+          origin  : "internal"
+          filename: basename
+          instance: fsFile
+          content : null
+          isLast  : item is lastItem
+        , event, no
+
+        @reset() if item is lastItem
 
   walkDirectory: (dirEntry, callback, error)->
 
@@ -213,8 +218,11 @@ class DNDUploader extends KDView
       fsFileItem.exists (err, exists)=>
 
         if not exists or fsFileItem.getLocalFileInfo().lastUploadedChunk?
-        then @saveFile fsFileItem, contents
+
+          @saveFile fsFileItem, contents
+
         else
+
           modalStack.addModal modal = new KDModalView
             overlay : no
             title   : "Overwrite File?"
@@ -252,7 +260,7 @@ class DNDUploader extends KDView
           recursive : yes
           machine
         } , (err) ->
-          do upload unless KD.showError err
+          do upload  unless KD.showError err
 
     return fsFileItem
 
