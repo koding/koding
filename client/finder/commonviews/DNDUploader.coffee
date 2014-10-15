@@ -181,19 +181,22 @@ class DNDUploader extends KDView
 
   upload: (fileName, contents, relativePath)->
 
+    machine = @getMachine()
     folder  = if relativePath and relativePath isnt fileName
     then "#{@path}/#{relativePath}"
     else @path
 
     modalStack   = KDModalView.createStack lastToFirst: yes
-    fsFolderItem = FSHelper.createFileInstance path: folder, type: 'folder'
-    fsFileItem   = FSHelper.createFileInstance path: "#{folder}/#{fileName}"
+    fsFolderItem = FSHelper.createFileInstance { path: folder, type: 'folder', machine }
+    fsFileItem   = FSHelper.createFileInstance { path: "#{folder}/#{fileName}", machine }
 
     return if FSHelper.isUnwanted fsFolderItem.path
     return if FSHelper.isUnwanted fsFileItem.path, yes
 
     upload = =>
+
       fsFileItem.exists (err, exists)=>
+
         if not exists or fsFileItem.getLocalFileInfo().lastUploadedChunk?
         then @saveFile fsFileItem, contents
         else
@@ -227,3 +230,7 @@ class DNDUploader extends KDView
       else upload()
 
     return fsFileItem
+
+  getMachine: ->
+
+    @getDelegate().controller.machines.first.machine
