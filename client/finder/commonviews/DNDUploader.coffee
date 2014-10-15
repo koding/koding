@@ -48,7 +48,6 @@ class DNDUploader extends KDView
 
     {files, items}  = event.originalEvent.dataTransfer
 
-
     if files.length >= 20
       KD.notify_ """
       Too many files to transfer!<br>
@@ -58,7 +57,8 @@ class DNDUploader extends KDView
       You can archive your files and try again.
       """
 
-    if items[0].webkitGetAsEntry?
+    if items?.first.webkitGetAsEntry?
+
       for item in items
         entry = item.webkitGetAsEntry()
         if entry.isDirectory
@@ -72,9 +72,17 @@ class DNDUploader extends KDView
           entry.file (file)=>
             # upload file entry
             @uploadFiles [file], event
+
     else
+
+      for file in files
+        if file.type is ""
+          KD.showError "Folder upload is only supported for Chrome 21+"
+          return
+
       # fallback to upload files for folder upload browsers
       @uploadFiles files, event
+
 
   uploadFiles: (files, event)->
 
