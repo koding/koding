@@ -8,7 +8,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     data    = @getData()
     account = KD.whoami()
 
-    @settings = new KDButtonViewWithMenu
+    @settings        = new KDButtonViewWithMenu
       title          : ''
       cssClass       : 'activity-settings-menu'
       itemChildClass : ActivityItemMenuItem
@@ -17,12 +17,6 @@ class ActivitySettingsView extends KDCustomHTMLView
       menu           : @bound 'settingsMenu'
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
-
-    myPost         = KD.isMyPost @getData()
-    iAmAdmin       = KD.checkFlag 'super-admin'
-
-    activityController = KD.getSingleton('activityController')
-
 
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
@@ -88,7 +82,14 @@ class ActivitySettingsView extends KDCustomHTMLView
     return @menu
 
 
-  viewAppended: -> @addSubView @settings
+  viewAppended: ->
+
+    data = @getData()
+
+    @addSubView @settings  if _.every [
+      not data.isFake
+      (KD.isMyPost data or KD.checkFlag 'super-admin')
+    ], Boolean
 
 
   confirmDeletePost: ->

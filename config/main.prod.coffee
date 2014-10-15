@@ -135,6 +135,7 @@ Configuration = (options={}) ->
     recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    siftScience                    : 'e6c3413236e08107'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -178,6 +179,7 @@ Configuration = (options={}) ->
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
+    siftScience       : '3305771626'
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
