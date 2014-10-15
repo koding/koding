@@ -5,6 +5,7 @@ log        = console.log
 fs         = require 'fs'
 os         = require 'os'
 request    = require 'request'
+git        = require 'git-rev'
 
 log "-------------------------"
 log ""
@@ -12,8 +13,7 @@ log "# ./configure assumes development environment - comes bundled with options 
 log "# override them as you see fit with command line arguments like --config --branch etc."
 log ""
 
-
-version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+version = undefined
 
 options = o =
   projectRoot      : argv.projectRoot    or __dirname
@@ -21,7 +21,7 @@ options = o =
   region           : argv.region         or "dev"
   branch           : argv.branch         or "cake-rewrite"
   build            : argv.build          or 1
-  version          : argv.version        or                 version or "1.0"
+  version          : argv.version
   tag              : argv.tag            or                 version or "1.0"
   environment      : argv.environment    or "dev"
   publicPort       : argv.publicPort     or "8090"
@@ -32,10 +32,9 @@ options = o =
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
-  
-  
-  
-  
+  options.version        = options.version or version or "1.0"
+  options.tag            = options.tag     or version or "1.0"
+
   log "Configuring with options:"
   log "-------------------------"
   log o
@@ -68,17 +67,23 @@ rest = ->
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
   createRunFile KONFIG
-  
-if argv.hostname
-  options.hostname       = argv.hostname
-  rest()
-else if os.type() is "Darwin"
-  options.hostname = "lvh.me"
-  rest()
-else
-  log "lemme find your IP"
-  request "http://echoip.net",(err,res,body)->
-      ip = body
-      options.hostname = ip
-      log "my ip is #{ip}"
-      rest()
+
+git.long (str) ->
+  if str != ""
+    version = str.substring 0, 8
+  else
+    version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+
+  if argv.hostname
+    options.hostname       = argv.hostname
+    rest()
+  else if os.type() is "Darwin"
+    options.hostname = "lvh.me"
+    rest()
+  else
+    log "lemme find your IP"
+    request "http://echoip.net",(err,res,body)->
+        ip = body
+        options.hostname = ip
+        log "my ip is #{ip}"
+        rest()
