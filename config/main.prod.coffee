@@ -258,7 +258,9 @@ Configuration = (options={}) ->
       group             : "webserver"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     sourcemaps          :
       group             : "webserver"
@@ -270,7 +272,9 @@ Configuration = (options={}) ->
     emailsender         :
       group             : "webserver"
       supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -302,11 +306,8 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/xhr"]
-
-    # guestCleaner        :
-      # group             : "webserver"
-      # supervisord       :
-        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     # clientWatcher       :
     #   group             : "webserver"
