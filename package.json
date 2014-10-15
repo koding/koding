@@ -43,6 +43,7 @@
     "express-session": "^1.8.2",
     "faker": "^1.1.0",
     "formidable": "1.0.12",
+    "git-rev": "0.2.1",
     "googleapis": "^1.0.16",
     "gulp": "^3.8.7",
     "hat": "0.0.3",
