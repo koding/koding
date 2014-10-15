@@ -146,8 +146,9 @@ module.exports = class HomeView extends KDView
 
     video = document.getElementById 'bgVideo'
     video.addEventListener 'loadedmetadata', ->
-      this.currentTime = 8;
-    , false
+      @currentTime = 8
+      @playbackRate = .7
+    , no
 
   updateStats: -> @$('div.counters').html @getStats()
 
@@ -177,6 +178,11 @@ module.exports = class HomeView extends KDView
   partial: ->
 
     """
+    <div class="video-wrapper">
+      <video id="bgVideo" autoplay loop muted playbackspeed="0.1">
+        <source src="./a/site.hackathon/images/intro-bg.webm" type="video/webm">
+      </video>
+    </div>
     <section class="introduction">
       <h2>
         <span class='top'>JOIN THE WORLD'S FIRST</span>
@@ -185,11 +191,6 @@ module.exports = class HomeView extends KDView
       </h2>
       <h3>Announcing the world's first global virtual hackathon IN THE BROWSER.<br> Join today to save your spot and win $10,000 in cash.</h3>
       <div class="form-wrapper clearfix"></div>
-      <div class="video-wrapper">
-        <video id="bgVideo" autoplay loop muted>
-          <source src="./a/site.hackathon/images/intro-bg.webm" type="video/webm">
-        </video>
-      </div>
     </section>
     <section class="content">
       <div class="counters">#{@getStats()}</div>
