@@ -19,6 +19,10 @@ func (Plan) TableName() string {
 // Crud methods
 //----------------------------------------------------------
 
+func NewPlan() *Plan {
+	return &Plan{}
+}
+
 func (p *Plan) ById(id int64) error {
 	return bongo.B.ById(p, id)
 }

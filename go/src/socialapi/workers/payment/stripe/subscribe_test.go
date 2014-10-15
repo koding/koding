@@ -153,7 +153,7 @@ func TestSubscribe5(t *testing.T) {
 					So(sub.Plan.Id, ShouldEqual, LowerPlan+"_"+LowerInterval)
 				})
 
-				Convey("Then subscription is saved", func() {
+				Convey("Then subscription isn't saved (wait for webhook)", func() {
 					subs, err := FindCustomerActiveSubscriptions(customer)
 					So(err, ShouldBeNil)
 
@@ -163,7 +163,7 @@ func TestSubscribe5(t *testing.T) {
 					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval)
 
 					So(err, ShouldBeNil)
-					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
+					So(currentSub.PlanId, ShouldNotEqual, newPlan.Id)
 				})
 			})
 		}),

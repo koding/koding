@@ -119,18 +119,32 @@ func CancelSubscriptionAndRemoveCC(customer *paymentmodel.Customer, currentSubsc
 }
 
 func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscriptions []paymentmodel.Subscription, plan *paymentmodel.Plan) error {
-	subParams := &stripe.SubParams{
-		Customer: customer.ProviderCustomerId,
-		Plan:     plan.ProviderPlanId,
-	}
-
 	if IsNoSubscriptions(subscriptions) {
 		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 	}
 
 	currentSubscription := subscriptions[0]
-	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
 
+	oldPlan := paymentmodel.NewPlan()
+	err := oldPlan.ById(currentSubscription.PlanId)
+	if err != nil {
+		return err
+	}
+
+	if IsDowngrade(oldPlan, plan) {
+		return handleDowngrade(currentSubscription, customer, plan)
+	}
+
+	return handleUpgrade(currentSubscription, customer, plan)
+}
+
+func handleUpgrade(currentSubscription paymentmodel.Subscription, customer *paymentmodel.Customer, plan *paymentmodel.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
 	_, err := stripeSub.Update(currentSubscriptionId, subParams)
 	if err != nil {
 		return handleStripeError(err)
@@ -155,4 +169,19 @@ func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscription
 	}
 
 	return err
+}
+
+func handleDowngrade(currentSubscription paymentmodel.Subscription, customer *paymentmodel.Customer, plan *paymentmodel.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
+	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return handleStripeError(err)
+	}
+
+	return nil
 }

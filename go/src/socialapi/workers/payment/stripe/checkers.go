@@ -37,3 +37,17 @@ func IsTooManyCreditCards(cardList *stripe.CardList) bool {
 func IsCreditCardEmpty(ccResp *CreditCardResponse) bool {
 	return ccResp.LastFour == ""
 }
+
+func IsDowngrade(oldPlan, newPlan *paymentmodel.Plan) bool {
+	oldPlanValue := GetPlanValue(
+		oldPlan.Title, oldPlan.Interval,
+	)
+
+	newPlanValue := GetPlanValue(newPlan.Title, newPlan.Interval)
+
+	if newPlanValue < oldPlanValue {
+		return true
+	}
+
+	return false
+}
