@@ -66,6 +66,17 @@ func (s *Subscription) UpdateState(state string) error {
 	return nil
 }
 
+func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
+	s.CanceledAt = t
+
+	err := bongo.B.Update(s)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var (
 	ErrProviderSubscriptionIdNotSet = errors.New("provider_subscription_id is not set")
 	ErrProviderNotSet               = errors.New("provider is not set")

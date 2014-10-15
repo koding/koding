@@ -183,5 +183,10 @@ func handleDowngrade(currentSubscription paymentmodel.Subscription, customer *pa
 		return handleStripeError(err)
 	}
 
+	err = currentSubscription.UpdateTimeForDowngrade(time.Now())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

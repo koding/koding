@@ -164,6 +164,10 @@ func TestSubscribe5(t *testing.T) {
 
 					So(err, ShouldBeNil)
 					So(currentSub.PlanId, ShouldNotEqual, newPlan.Id)
+
+					Convey("Then subscription canceledAt is updated", func() {
+						So(currentSub.CanceledAt.IsZero(), ShouldBeFalse)
+					})
 				})
 			})
 		}),
