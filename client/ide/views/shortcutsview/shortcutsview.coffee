@@ -124,6 +124,6 @@ class IDE.ShortcutsView extends KDView
       'Select to line start'   : { Others: 'Shift-Home',       Apple: 'Meta-Shift-Left'  }
       'Select to end'          : { Others: 'Ctrl-Shift-End',   Apple: 'Meta-Shift-Down'  }
       'Select to start'        : { Others: 'Ctrl-Shift-Home',  Apple: 'Meta-Shift-Up'    }
-      'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Up'     }
-      'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Up'     }
+      'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Left'   }
+      'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Right'  }
       'Toggle comment'         : 'Meta-/'
