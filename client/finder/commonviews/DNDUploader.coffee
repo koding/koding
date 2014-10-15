@@ -137,10 +137,11 @@ class DNDUploader extends KDView
     relative  = FSHelper.convertToRelative dirEntry.fullPath
 
     dirReader.readEntries (entries)=>
+
       for entry in entries
         if entry.isFile
           entry.file (file)->
-            file.relativePath = relative + file.name
+            file.relativePath = relative # + file.name
             callback file
         else @walkDirectory entry, callback, error
     , error
@@ -180,8 +181,8 @@ class DNDUploader extends KDView
 
   upload: (fileName, contents, relativePath)->
 
-    folder = if relativePath and relativePath isnt fileName
-    then "#{@path}/#{relativePath.replace /\/[^\/]*$/, ''}"
+    folder  = if relativePath and relativePath isnt fileName
+    then "#{@path}/#{relativePath}"
     else @path
 
     modalStack   = KDModalView.createStack lastToFirst: yes
