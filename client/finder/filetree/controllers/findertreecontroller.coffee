@@ -79,9 +79,6 @@ class NFinderTreeController extends JTreeViewController
     {vmName, path} = nodeView.getData()
     @appManager.open "Viewer", params: {path, vmName}
 
-  # resetVm:(nodeView)->
-  #   {vmName} = nodeView.data
-  #   KD.getSingleton('vmController').reinitialize vmName
 
   unmountVm:(nodeView)->
     { machine: { uid } } = nodeView.getData()
