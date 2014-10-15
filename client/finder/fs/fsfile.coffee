@@ -150,8 +150,6 @@ class FSFile extends FSItem
       @abortRequested = yes
       callback? null, abort: yes
 
-    kite = @getKite()
-
     iterateChunks = =>
 
       unless chunkQueue.length
@@ -169,10 +167,13 @@ class FSFile extends FSItem
         iterateChunks()
         return
 
-      kite.fsWriteFile {
-        path: FSHelper.plainPath @path
-        content, append
-      }
+      kite = @getKite().init()
+      .then =>
+
+        @getKite().fsWriteFile {
+          path: FSHelper.plainPath @path
+          content, append
+        }
 
       .then (res) =>
         @emit "ChunkUploaded", res
