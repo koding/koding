@@ -184,10 +184,14 @@ class SocialApiController extends KDController
 
   isFromThisBrowser : isFromThisBrowser
 
-  forwardMessageEvents = (source, target,  events)->
-    events.forEach ({event, mapperFn}) ->
+  forwardMessageEvents = (source, target, events) ->
+    events.forEach ({event, mapperFn, validatorFn}) ->
       source.on event, (data, rest...) ->
+
         data = mapperFn data
+
+        return  unless validatorFn?(data)
+
         target.emit event, data, rest...
 
   forwardMessageEvents : forwardMessageEvents
