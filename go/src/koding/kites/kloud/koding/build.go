@@ -25,6 +25,19 @@ import (
 var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 	DefaultInstanceType = "t2.micro"
+
+	// Starting from cheapest, list is according to us-east and coming from:
+	// http://www.ec2instances.info/. t2.micro is not included because it's
+	// already the default type which we start to build. Only supported types
+	// are here.
+	InstancesList = []string{
+		"t2.small",
+		"t2.medium",
+		"m3.medium",
+		"c3.large",
+		"m3.large",
+		"c3.xlarge",
+	}
 )
 
 const (
@@ -233,9 +246,13 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			return nil
 		}
 
-		// check if the error is a 'InsufficientInstanceCapacity" error, if not return back
-		if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code != "InsufficientInstanceCapacity" {
-			return err
+		// check if the error is a 'InsufficientInstanceCapacity" error or
+		// "InstanceLimitExceeded, if not return back because it's not a
+		// resource or capacity problem.
+		if ec2Error, ok := err.(*ec2.Error); ok {
+			if ec2Error.Code != "InsufficientInstanceCapacity" || ec2Error.Code != "InstanceLimitExceeded" {
+				return err
+			}
 		}
 
 		// now lets to some fallback mechanisms to avoid the capacity errors.
@@ -250,7 +267,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			currentZone := subnet.AvailabilityZone
 
-			infoLog("Searching a zone that has capacity amongst zones: %v", zones)
+			infoLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
 				if zone == currentZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
@@ -298,14 +315,22 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// 3. Try to use another instance
 		instanceFunc := func() error {
-			fallbackInstance := T2Small.String()
-			a.Builder.InstanceType = fallbackInstance
+			for _, instanceType := range InstancesList {
+				a.Builder.InstanceType = instanceType
 
-			p.Log.Warning("[%s] InsufficientInstanceCapacity: Building again with using instance: %s instead of %s. Err: %s",
-				m.Id, fallbackInstance, DefaultInstanceType, err)
+				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
+					m.Id, instanceType, DefaultInstanceType)
 
-			buildArtifact, err = a.Build(true, normalize(60), normalize(70))
-			return err
+				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
+				if err == nil {
+					return nil // we are finished!
+				}
+
+				p.Log.Warning("[%s] Fallback: couldn't build instance with type: '%s'. err: %s ",
+					m.Id, instanceType, err)
+			}
+
+			return errors.New("no other instances are available")
 		}
 
 		// We are going to to try each step and for each step if we get

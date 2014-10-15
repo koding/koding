@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -126,13 +127,19 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Starting machine", 10, machinestate.Starting)
 
-	// check if the user uses a t2.small and revert back to t2.micro
-	if infoResp.InstanceType == T2Small.String() {
+	// check if the user doesn't have t2.micro and revert back to t2.micro.
+	// This is lazy auto healing of instances that were created because there
+	// were no capacity for t2.micro
+	if infoResp.InstanceType != T2Micro.String() {
 		a.Log.Warning("[%s] instance is using t2.small. Changing back to t2.micro.", m.Id)
 		opts := &ec2.ModifyInstance{InstanceType: T2Micro.String()}
 		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
 			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
 		}
+
+		// wait for eventually consistency so Restart or Start below get the
+		// correct answer
+		time.Sleep(time.Second * 2)
 	}
 
 	// if the current db state is stopped but the machine is actually running,
@@ -148,25 +155,51 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			return nil, err
 		}
 	} else {
-		artifact, err = a.Start(true)
-		if err != nil {
-			if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
-				p.Log.Warning("[%s] InsufficientInstanceCapacity: Starting again with using instance: %s instead of %s. Err: %s",
-					m.Id, T2Small.String(), DefaultInstanceType, err)
+		startFunc := func() error {
+			artifact, err = a.Start(true)
+			if err == nil {
+				return nil
+			}
 
-				opts := &ec2.ModifyInstance{InstanceType: T2Small.String()}
-				if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-					return nil, err
+			if ec2Error, ok := err.(*ec2.Error); ok {
+				if ec2Error.Code != "InsufficientInstanceCapacity" || ec2Error.Code != "InstanceLimitExceeded" {
+					return err
 				}
+
+				p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+			}
+
+			for _, instanceType := range InstancesList {
+				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
+					m.Id, instanceType, DefaultInstanceType)
+
+				// now change the instance type before we start so we can
+				// avoid the instance capacity problem
+				opts := &ec2.ModifyInstance{InstanceType: instanceType}
+				if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
+					return err
+				}
+
+				// just give a little time so it can be catched because EC2 is
+				// eventuall consistent. Otherwise start might fail even if we
+				// do the ModifyInstance call
+				time.Sleep(time.Second * 2)
 
 				artifact, err = a.Start(true)
-				if err != nil {
-					return nil, err
+				if err == nil {
+					return nil
 				}
 
-			} else {
-				return nil, err
+				p.Log.Warning("[%s] Fallback: couldn't start instance with type: '%s'. err: %s ",
+					m.Id, instanceType, err)
 			}
+
+			return errors.New("no other instances are available")
+		}
+
+		// go go go!
+		if err := startFunc(); err != nil {
+			return nil, err
 		}
 
 		a.Push("Initializing domain instance", 65, machinestate.Starting)
