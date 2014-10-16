@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"bytes"
 	"flag"
 	"fmt"
+	"html/template"
 	"koding/artifact"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -184,31 +186,24 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		Username:   username,
 	}
 
-	renderLoggedInHome(w,
-		accountJson, machinesJson, workspacesJson, kodingGroupJson,
-		username, clientId,
-	)
+	renderLoggedInHome(w, loggedInUser)
 
 	log.Info("loggedin page took: %s", time.Since(start))
 }
 
-func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte, username, sessionId string) {
-	runtime, err := json.Marshal(conf.Client.RuntimeOptions)
-	if err != nil {
-		log.Error("Couldn't marshal runtime options: %s", err)
-		runtime = []byte("{}")
+func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
+	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedInHome))
+	hc := HomeContent{Version: conf.Version, Runtime: conf.Client.RuntimeOptions, User: u}
+
+	var buf bytes.Buffer
+	if err := homeTmpl.Execute(&buf, hc); err != nil {
+		log.Error("Failed to render loggedin page: %s", err)
+		renderLoggedOutHome(w)
+
+		return
 	}
 
-	version := conf.Version
-	html := fmt.Sprintf(templates.LoggedInHome,
-		version, version, //css
-		runtime,
-		account, machines, workspaces, group,
-		version, version, version, //json
-		username, sessionId,
-	)
-
-	fmt.Fprintf(w, html)
+	fmt.Fprintf(w, buf.String())
 }
 
 func renderLoggedOutHome(w http.ResponseWriter) {
