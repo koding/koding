@@ -1,10 +1,7 @@
-{Model} = require 'bongo'
+JCampaign = require './campaign'
+{Model}  = require 'bongo'
 
 module.exports = class JWFGH extends Model
-
-  CAP       = 50000
-  PRIZE     = 10000
-  DEADLINE  = new Date 1418626800000 # Mon, 15 Dec 2014 00:00:00 PDT
 
   {signature, secure} = require 'bongo'
   @share()
@@ -13,6 +10,9 @@ module.exports = class JWFGH extends Model
     indexes       :
       username    : 'unique'
       approved    : 'unique'
+    sharedMethods :
+      static      :
+        create    : (signature Object, Function)
     schema        :
       username    :
         type      : String
@@ -35,55 +35,77 @@ module.exports = class JWFGH extends Model
 
     return callback message : 'No username received!'  unless username
 
-    JWFGH.one {username}, (err, data)->
+    JCampaign.get 'WFGH', (err, campaign) ->
 
-      return callback err  if err
+      if err or not campaign or not campaign.content.active
 
-      return callback message : 'Already applied'  if data
+        return callback message : 'expired'
 
-      application = new JWFGH {username}
+      JWFGH.one {username}, (err, data)->
 
-      application.save (err)->
-        return callback err if err
-        JWFGH.getStats account, callback
+        return callback err  if err
 
+        return callback message : 'Already applied'  if data
+
+        application = new JWFGH {username}
+
+        application.save (err)->
+
+          return callback err if err
+
+          JWFGH.getStats account, callback
 
 
   @leave = (account, callback) ->
 
-    callback null, 'n/a'
+    callback message : 'n/a'
 
 
   @getStats = (account, callback) ->
 
-    username = account?.profile?.nickname
+    JCampaign.get 'WFGH', (err, campaign) ->
 
-    unless username
-      callback null,
-        cap                : CAP
-        prize              : PRIZE
-        deadline           : DEADLINE
-        totalApplicants    : 0
-        approvedApplicants : 0
-        isApplicant        : no
+      if err or not campaign or not campaign.content.active
 
-    JWFGH.one {username}, (err, applied)->
-      return callback err  if err
+        return callback message : 'expired'
 
-      isApplicant = applied?
-      isApproved  = applied?.approved
-      isWinner    = applied?.winner
+      username = account?.profile?.nickname
 
-      JWFGH.count {}, (err, totalApplicants)->
+      {cap, prize, deadline} = campaign
+
+      cap      ?= 50000
+      prize    ?= 10000
+      deadline ?= new Date 1418626800000 # Mon, 15 Dec 2014 00:00:00 PDT
+
+      unless username
+
+        callback null, {
+          totalApplicants    : 0
+          approvedApplicants : 0
+          isApplicant        : no
+          deadline
+          prize
+          cap
+        }
+
+      JWFGH.one {username}, (err, applied)->
+
         return callback err  if err
 
-        JWFGH.count approved : yes, (err, approvedApplicants)->
+        isApplicant = applied?
+        isApproved  = applied?.approved
+        isWinner    = applied?.winner
+
+        JWFGH.count {}, (err, totalApplicants)->
+
           return callback err  if err
 
-          callback err, {
-            cap      : CAP
-            prize    : PRIZE
-            deadline : DEADLINE
-            totalApplicants, approvedApplicants
-            isApplicant, isApproved, isWinner
-          }
+          JWFGH.count approved : yes, (err, approvedApplicants)->
+
+            return callback err  if err
+
+            callback err, {
+              cap, prize, deadline
+              totalApplicants, approvedApplicants
+              isApplicant, isApproved, isWinner
+            }
