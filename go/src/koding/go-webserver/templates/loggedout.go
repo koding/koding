@@ -13,17 +13,17 @@ var LoggedOutHome = `
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="/a/images/favicon.ico" />
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-  <link rel="stylesheet" href="/a/site.landing/css/kd.css?%s" />
-  <link rel="stylesheet" href="/a/site.landing/css/main.css?%s" />
+  <link rel="stylesheet" href="/a/site.landing/css/kd.css?{{.Version}}" />
+  <link rel="stylesheet" href="/a/site.landing/css/main.css?{{.Version}}" />
 </head>
 <body class='home'>
 
   <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-  <script src="/a/site.landing/js/libs.js?%s"></script>
-  <script src="/a/site.landing/js/kd.libs.js?%s"></script>
-  <script src="/a/site.landing/js/kd.js?%s"></script>
-  <script src="/a/site.landing/js/main.js?%s"></script>
+  <script src="/a/site.landing/js/libs.js?{{.Version}}"></script>
+  <script src="/a/site.landing/js/kd.libs.js?{{.Version}}"></script>
+  <script src="/a/site.landing/js/kd.js?{{.Version}}"></script>
+  <script src="/a/site.landing/js/main.js?{{.Version}}"></script>
 
   <!-- SEGMENT.IO -->
   <script type="text/javascript">

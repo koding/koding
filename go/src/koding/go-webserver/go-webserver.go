@@ -207,11 +207,13 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 }
 
 func renderLoggedOutHome(w http.ResponseWriter) {
-	version := conf.Version
-	html := fmt.Sprintf(templates.LoggedOutHome,
-		version, version, //css
-		version, version, version, version, //js
-	)
+	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedOutHome))
+	hc := HomeContent{Version: conf.Version}
 
-	fmt.Fprintf(w, html)
+	var buf bytes.Buffer
+	if err := homeTmpl.Execute(&buf, hc); err != nil {
+		log.Error("Failed to render loggedout page: %s", err)
+	}
+
+	fmt.Fprintf(w, buf.String())
 }
