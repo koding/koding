@@ -171,6 +171,7 @@ func handleUpgrade(currentSubscription paymentmodel.Subscription, customer *paym
 	return err
 }
 
+// On downgrade, unlike upgrade, wait till end of the billing cycle to move to the new plan.
 func handleDowngrade(currentSubscription paymentmodel.Subscription, customer *paymentmodel.Customer, plan *paymentmodel.Plan) error {
 	subParams := &stripe.SubParams{
 		Customer: customer.ProviderCustomerId,

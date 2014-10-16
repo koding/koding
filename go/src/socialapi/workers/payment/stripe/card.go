@@ -79,7 +79,10 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 	}
 
 	if IsTooManyCreditCards(creditCardList) {
-		//TODO: how to handle too many ccs?
+		Log.Error(
+			"Customer (stripe): %s has too many: %s credit cards.",
+			customer.ProviderCustomerId, creditCardList.Count,
+		)
 	}
 
 	creditCard := creditCardList.Values[0]
