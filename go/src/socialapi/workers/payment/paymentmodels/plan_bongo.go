@@ -3,7 +3,6 @@ package paymentmodel
 import (
 	"errors"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -57,13 +56,13 @@ func (p *Plan) ByProviderId(providerId, provider string) error {
 var ErrTitleNotSet = errors.New("title not set")
 var ErrIntervalNotSet = errors.New("interval not set")
 
-func (p *Plan) ByTitleAndInterval() (bool, error) {
+func (p *Plan) ByTitleAndInterval() error {
 	if p.Title == "" {
-		return false, ErrTitleNotSet
+		return ErrTitleNotSet
 	}
 
 	if p.Interval == "" {
-		return false, ErrIntervalNotSet
+		return ErrIntervalNotSet
 	}
 
 	selector := map[string]interface{}{
@@ -72,19 +71,7 @@ func (p *Plan) ByTitleAndInterval() (bool, error) {
 	}
 
 	err := p.One(bongo.NewQS(selector))
-	if err == bongo.RecordNotFound {
-		return false, nil
-	}
-
-	if err == gorm.RecordNotFound {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return err
 }
 
 func (p *Plan) Find(selector map[string]interface{}) error {
