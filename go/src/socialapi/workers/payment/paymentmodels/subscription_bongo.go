@@ -49,6 +49,11 @@ func (s *Subscription) UpdateInvoiceCreated(amountInCents uint64, planId, period
 	s.CurrentPeriodStart = time.Unix(periodStart, 0)
 	s.CurrentPeriodEnd = time.Unix(periodEnd, 0)
 
+	// when user downgrades to non-free plan, we set `CanceledAt` till the
+	// end of billing cycle and when `invoice.created` is fired we update
+	// null this field
+	s.CanceledAt = time.Time{}
+
 	return bongo.B.Update(s)
 }
 

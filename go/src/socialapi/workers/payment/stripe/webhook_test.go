@@ -94,6 +94,7 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 					So(subscription.PlanId, ShouldEqual, plan.Id)
 					So(subscription.CurrentPeriodStart, ShouldHappenOnOrBefore, time.Unix(periodStart, 0).UTC())
 					So(subscription.CurrentPeriodEnd, ShouldHappenOnOrBefore, time.Unix(periodEnd, 0).UTC())
+					So(subscription.CanceledAt.IsZero(), ShouldBeTrue)
 				})
 			})
 		}),
