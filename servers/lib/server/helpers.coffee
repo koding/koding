@@ -52,22 +52,19 @@ findUsernameFromSession = (req, res, callback) ->
     return process.nextTick -> callback null
 
   else
+
     koding.models.JSession.fetchSession clientId, (err, result)->
-      if err
-        console.error err
-        callback err, undefined, ""
 
+      return if err
+      then callback err
       else unless result?
-        res.status(403).send 'Access denied!'
-        callback null, false, ""
+      then callback null
 
-      { session } = result
+      {session} = result
 
-      unless session?
-        res.status(403).send 'Access denied!'
-        callback null, false, ""
-      else
-        callback null, false, session.username
+      return unless session?
+      then callback null
+      else callback null, session.username
 
 fetchJAccountByKiteUserNameAndKey = (req, callback)->
   if req.fields
@@ -131,8 +128,8 @@ serveHome = (req, res, next) ->
 isLoggedIn = (req, res, callback)->
 
   {JName} = koding.models
-  findUsernameFromSession req, res, (err, isLoggedIn, username)->
 
+  findUsernameFromSession req, res, (err, username)->
 
     return callback null, no, {}  unless username
 
