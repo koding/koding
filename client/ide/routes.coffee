@@ -1,15 +1,15 @@
 do ->
 
-  loadWorkspace = (machineLabel, workspaceSlug) ->
+  loadWorkspace = (machineLabel, workspaceSlug, username) ->
     workspace = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
     machine   = getMachineByLabel machineLabel
 
     if workspace
-      loadIDE { machine, workspace }
+      loadIDE { machine, workspace, username }
     else
       if workspaceSlug is 'my-workspace'
         workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine?.slug or machine?.label
-        loadIDE { machine, workspace }
+        loadIDE { machine, workspace, username }
       else
         routeToLatestWorkspace()
 
@@ -25,15 +25,22 @@ do ->
 
 
   loadIDE = (data) ->
-    { machine, workspace } = data
+    { machine, workspace, username } = data
 
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
     machineUId = machine?.uid
     callback   = ->
       appManager.open 'IDE', { forceNew: yes }, (app) ->
-        app.mountedMachineUId = machineUId
-        app.workspaceData     = workspace
+        app.mountedMachineUId   = machineUId
+        app.workspaceData       = workspace
+
+        if username
+          app.isCollaborative   = yes
+          app.collaborationHost = username
+          app.amIHost           = no
+        else
+          app.amIHost           = yes
 
         appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
         selectWorkspaceOnSidebar data
@@ -94,3 +101,9 @@ do ->
       { machineLabel, workspaceSlug } = data.params
 
       loadWorkspace machineLabel, workspaceSlug
+
+    '/:name?/IDE/:machineLabel/:workspaceSlug/:username': (data) ->
+
+      { machineLabel, workspaceSlug, username } = data.params
+
+      loadWorkspace machineLabel, workspaceSlug, username
