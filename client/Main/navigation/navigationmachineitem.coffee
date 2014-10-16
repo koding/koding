@@ -10,12 +10,17 @@ class NavigationMachineItem extends JView
 
     machine            = data
     @alias             = machine.slug or machine.label
-    path               = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
+
+    ideRoute           = "/IDE/#{@alias}/my-workspace"
+    machineOwner       = machine.jMachine.credential
+
+    unless machineOwner is KD.nick()
+      ideRoute         = "#{ideRoute}/#{machineOwner}"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : path
+      href             : KD.utils.groupifyLink ideRoute
       title            : "Open IDE for #{@alias}"
 
     super options, data
