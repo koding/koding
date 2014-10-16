@@ -65,9 +65,9 @@ class FinderController extends KDController
       .on 'drop', ->
         uploaderPlaceholder.hide()
 
-      .on 'uploadProgress', ({ file, percent }) ->
+      .on 'uploadProgress', ({ file, progress }) ->
         filePath = "[#{file.machine.uid}]#{file.path}"
-        treeController.nodes[filePath]?.showProgressView percent
+        treeController.nodes[filePath]?.showProgressView progress
 
       .on 'uploadComplete', ({ parentPath }) ->
         controller.expandFolders parentPath
