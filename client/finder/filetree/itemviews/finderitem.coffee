@@ -46,6 +46,7 @@ class NFinderItem extends JTreeItemView
       delete @renameView
 
     if @progressView
+      @progressView.unsetTooltip()
       @progressView.destroy()
       delete @progressView
 
@@ -90,17 +91,29 @@ class NFinderItem extends JTreeItemView
       @resetView()
     @renameView.input.setFocus()
 
-  showProgressView: (percent=0, determinate=yes)->
+  showProgressView: (progress, determinate=yes)->
+
+    { loaded, total, percent } = progress
 
     unless @progressView
       @addSubView @progressView = new KDProgressBarView
 
     @progressView.setOption "determinate", determinate
     @progressView.updateBar percent, "%", ""
+
+    if loaded? and total?
+      title = "#{loaded}mb of #{total}mb uploaded"
+      unless @progressView.tooltip?
+        @progressView.setTooltip { title }
+      else
+        @progressView.tooltip.setTitle title
+    else
+      @progressView.unsetTooltip()
+
     if 0 <= percent < 100
     then @setClass "progress"
-    else @utils.wait 1000, =>
-      @resetView()
+    else @utils.wait 1000, @bound 'resetView'
+
   viewAppended:->
 
     @addSubView @childView
