@@ -3,7 +3,6 @@ package payment
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
@@ -184,11 +183,13 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 	var err error
 
 	if !s.Livemode {
+		Log.Error("Received test Stripe webhook: %v", s)
 		return nil, nil
 	}
 
 	raw, err := json.Marshal(s.Data.Object)
 	if err != nil {
+		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return nil, err
 	}
 
@@ -197,8 +198,10 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 		err = stripe.SubscriptionDeletedWebhook(raw)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
-	default:
-		fmt.Println("Unhandled Stripe webhook", s.Name)
+	}
+
+	if err != nil {
+		Log.Error("Error handling Stripe webhook '%v' : %v", s, err)
 	}
 
 	return nil, err
