@@ -64,12 +64,9 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 }
 
 func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
-	plan := &paymentmodel.Plan{
-		Title:    title,
-		Interval: interval,
-	}
+	plan := paymentmodel.NewPlan()
 
-	err := plan.ByTitleAndInterval()
+	err := plan.ByTitleAndInterval(title, interval)
 	if err != nil {
 		if paymenterrors.IsPlanNotFoundErr(err) {
 			return nil, paymenterrors.ErrPlanNotFound

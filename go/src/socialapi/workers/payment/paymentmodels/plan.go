@@ -1,6 +1,11 @@
 package paymentmodel
 
-import "time"
+import (
+	"errors"
+	"time"
+
+	"github.com/koding/bongo"
+)
 
 type Plan struct {
 	Id int64 `json:"id,string"`
@@ -27,4 +32,34 @@ type Plan struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
 	DeletedAt time.Time `json:"deletedAt"`
+}
+
+var (
+	ErrTitleNotSet    = errors.New("title not set")
+	ErrIntervalNotSet = errors.New("interval not set")
+)
+
+func (p *Plan) ByProviderId(providerId, provider string) error {
+	selector := map[string]interface{}{
+		"provider_plan_id": providerId,
+		"provider":         provider,
+	}
+
+	err := p.Find(selector)
+	return err
+}
+
+func (p *Plan) ByTitleAndInterval(title, interval string) error {
+	selector := map[string]interface{}{
+		"title":    title,
+		"interval": interval,
+	}
+
+	err := p.One(bongo.NewQS(selector))
+	return err
+}
+
+func (p *Plan) Find(selector map[string]interface{}) error {
+	err := p.One(bongo.NewQS(selector))
+	return err
 }
