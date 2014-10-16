@@ -16,6 +16,7 @@ module.exports = [
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
+  "sidebar/vmitem.coffee"
   "sidebar/messageitem.coffee"
   "sidebar/memberitem.coffee"
   "sidebar/messageitemtext.coffee"
