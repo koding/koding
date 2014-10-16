@@ -1,7 +1,5 @@
 class NFinderItem extends JTreeItemView
 
-  JView.mixin @prototype
-
   constructor:(options = {},data)->
 
     options.tagName or= "li"
@@ -25,12 +23,6 @@ class NFinderItem extends JTreeItemView
     @on "ItemBeingDeleted", =>
       data.removeLocalFileInfo()
 
-    @on "viewAppended", =>
-      fileInfo = data.getLocalFileInfo()
-      if fileInfo.lastUploadedChunk
-        {lastUploadedChunk, totalChunks} = fileInfo
-        data.removeLocalFileInfo() if lastUploadedChunk is totalChunks
-        @showProgressView 100 * lastUploadedChunk / totalChunks
 
   getChildConstructor: (type) ->
     switch type
@@ -109,9 +101,19 @@ class NFinderItem extends JTreeItemView
     then @setClass "progress"
     else @utils.wait 1000, =>
       @resetView()
+  viewAppended:->
 
-  pistachio:->
+    @addSubView @childView
 
-    """
-    {{> @childView}}
-    """
+    file = @getData()
+    fileInfo = file.getLocalFileInfo()
+
+    if fileInfo.lastUploadedChunk
+
+      {lastUploadedChunk, totalChunks} = fileInfo
+
+      if lastUploadedChunk is totalChunks
+        file.removeLocalFileInfo()
+
+      @showProgressView
+        percentage : 100 * lastUploadedChunk / totalChunks
