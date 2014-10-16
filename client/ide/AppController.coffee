@@ -494,15 +494,14 @@ class IDEAppController extends AppController
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
       delete @generatedPanes[pane.view.hash]
-      @serialize()
 
       @statusBar.showInformation()  if ideViewLength is 0
 
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
 
-    # ideView.on 'ChangeHappened', (change) =>
-    #   @logChange change
+    ideView.on 'ChangeHappened', (change) =>
+      @handleChange change
 
   registerPane: (pane) ->
     {view} = pane
@@ -511,10 +510,9 @@ class IDEAppController extends AppController
 
     @generatedPanes or= {}
     @generatedPanes[view.hash] = yes
-    @serialize()
 
     view.on 'ChangeHappened', (change) =>
-      @logChange change
+      @handleChange change
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
@@ -707,7 +705,8 @@ class IDEAppController extends AppController
 
     @rtm.on 'ClientAuthenticated', =>
 
-      title = "#{KD.nick()}.#{machine.slug}.#{workspaceData.slug}"
+      hostName = if @amIHost then KD.nick() else @collaborationHost
+      title    = "#{hostName}.#{machine.slug}.#{workspaceData.slug}"
 
       rtm.fetchFileByTitle title
 
@@ -717,12 +716,12 @@ class IDEAppController extends AppController
         {result} = file
         return if result.selfLink.indexOf(title) is -1
 
-
         if result.items.length > 0
           @loadCollaborationFile file
           log '.............file found', file
-        else
+        else if @amIHost
           rtm.createFile title
+
           rtm.on 'FileCreated', (file) =>
             console.clear()
             log '.............file created', file
@@ -733,14 +732,49 @@ class IDEAppController extends AppController
     @rtm.getFile file.result.items.first.id
 
     @rtm.on 'FileLoaded', (doc) =>
-      @rtm.create 'string', doc, 'ACET', 'OSMAN'
-      @rtm.create 'list',   doc, 'LIST', [ 1, 2, 3, 4 ]
-      @rtm.create 'map',    doc, 'MAP',  { a: 1, b: 2 }
+      @realTimeDoc = doc
 
-      string = @rtm.getFromModel doc, 'ACET'
-      list   = @rtm.getFromModel doc, 'LIST'
-      map    = @rtm.getFromModel doc, 'MAP'
+      if @amIHost
+        @writeWorkspaceSnapshot()
+      else
+        @getWorkspaceSnaphot()
+        @rtm.on 'MapValueChanged', (map, v) ->
+          log '.................', map, v
 
-      log '............', string.getText()
-      log '////////////', map.items(), map.values()
-      log '++++++++++++', list.asArray()
+
+  writeWorkspaceSnapshot: ->
+    return  unless @realTimeDoc
+
+    @rtm.create 'map', @realTimeDoc, 'snapshot', @createWorkspaceSnapshot()
+
+
+  getWorkspaceSnaphot: ->
+    return  unless @realTimeDoc
+
+    snapshot = @rtm.getFromModel @realTimeDoc, 'snapshot'
+    log 'workspace snapshot is', snapshot.values()
+    return snapshot
+
+
+  createWorkspaceSnapshot: ->
+    panes = {}
+
+    @forEachSubViewInIDEViews_ (pane) ->
+      if pane.options.paneType is 'editor'
+        unless pane.file.path is 'localfile:/Untitled.txt'
+          data = pane.serialize()
+          panes[data.hash] = data
+      else
+        data = pane.serialize()
+        panes[data.hash] = data
+
+    return panes
+
+
+  handleChange: (change) ->
+    return  unless @realTimeDoc
+
+    if change.type in [ 'NewPaneCreated', 'PaneRemoved' ]
+      if @amIHost
+        log 'change detected', change.context
+        @writeWorkspaceSnapshot()
