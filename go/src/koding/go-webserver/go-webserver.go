@@ -21,6 +21,7 @@ var (
 	flagConfig      = flag.String("c", "", "Configuration profile from file")
 	conf            *config.Config
 	kodingGroupJson []byte
+	kodingGroup     *models.Group
 	log             = logging.NewLogger(Name)
 )
 
@@ -50,7 +51,8 @@ func initialize() {
 	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	kodingGroup, err := modelhelper.GetGroup("koding")
+	var err error
+	kodingGroup, err = modelhelper.GetGroup("koding")
 	if err != nil {
 		log.Critical("Couldn't fetching `koding` group: %v", err)
 		panic(err)
@@ -171,6 +173,15 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	workspacesJson, err := json.Marshal(workspaces)
 	if err != nil {
 		log.Error("Couldn't marshal workspaces: %s", err)
+	}
+
+	loggedInUser := LoggedInUser{
+		SessionId:  clientId,
+		Group:      kodingGroup,
+		Workspaces: workspaces,
+		Machines:   machines,
+		Account:    account,
+		Username:   username,
 	}
 
 	renderLoggedInHome(w,
