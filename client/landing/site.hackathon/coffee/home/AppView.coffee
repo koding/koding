@@ -54,7 +54,7 @@ module.exports = class HomeView extends KDView
 
       @signUpForm = new HomeRegisterForm
         cssClass    : 'login-form register no-anim'
-        buttonTitle : 'SIGN UP'
+        buttonTitle : 'LET\'S DO THIS '
         callback    : (formData) =>
           router.requireApp 'Login', (controller) =>
             controller.getView().showExtraInformation formData, @signUpForm
@@ -156,7 +156,7 @@ module.exports = class HomeView extends KDView
 
     { cap, prize, totalApplicants, approvedApplicants } = getStats()
 
-    return "PRIZE: $#{prize.toLocaleString()} <span>-</span> TOTAL SLOTS: #{cap.toLocaleString()} <span>-</span> APPLICATIONS: #{totalApplicants.toLocaleString()} <span>-</span> APPROVED APPLICANTS: #{approvedApplicants.toLocaleString()}"
+    return "PRIZE: <span>$#{prize.toLocaleString()}</span></span> TOTAL SLOTS: <span>#{cap.toLocaleString()}</span> APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span> APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>"
 
 
   updateGreeting: ->
@@ -185,11 +185,10 @@ module.exports = class HomeView extends KDView
     </div>
     <section class="introduction">
       <h2>
-        <span class='top'>JOIN THE WORLD'S FIRST</span>
-        <span class='bottom'>GLOBAL HACKATHON</span>
-        #WFGH
+        JOIN THE WORLD’S FIRST GLOBAL HACKATHON <span>#WFGH</span>
       </h2>
-      <h3>Announcing the world's first global virtual hackathon IN THE BROWSER.<br> Join today to save your spot and win $10,000 in cash.</h3>
+      <h3>Announcing the world's first global virtual hackathon IN THE BROWSER. <br>
+          Join today to save your spot <strong>and win $10,000 in cash.</strong></h3>
       <div class="form-wrapper clearfix"></div>
     </section>
     <section class="content">

@@ -18,8 +18,10 @@ strong
 #main-panel-wrapper
   background              none
 
+body
+  font-family             OpenSansFamily
+
 body.home
-  font-family             FocoFamily
   background              black
 
   .video-wrapper
@@ -48,7 +50,7 @@ body.home
 
   section.introduction
     size                  100%, auto
-    padding               149px 45px 198px
+    padding               149px 45px 210px
     text-align            center
     position              relative
     overflow              hidden
@@ -59,33 +61,32 @@ body.home
       z-index             20
 
     h2
-      font-family         HelveticaFamily
-      font-weight         bold
-      font-size           138px
-      color               #fff
-      text-shadow         1px 1px 1px rgba(0,0,0,.28)
+      font-weight         300
+      font-size           34.11px
+      letter-spacing      0.2em
+      color               #f4f4f4
       margin-bottom       46px
 
       span
-        font-size         41px
-        font-weight       300
-        display           block
-
-        &.bottom
-          font-size       52px
+        color             #848484
 
     h3
-      font-weight         light
-      font-size           26px
-      line-height         32px
-      color               #fff
-      text-shadow         1px 1px 1px rgba(0,0,0,.28)
+      font-weight         400
+      font-size           18px
+      line-height         28px
+      letter-spacing      0.1em
+      color               #f4f4f4
+
+      strong
+        font-weight       600
+        color             #fff
 
     .form-wrapper
-      margin              69px -45px 0 -45px
-      padding             26px
-      background          rgba(0,0,0,.2)
-      rounded             4px
+      margin              69px 0
+      padding             10px
+      background          rgba(38,38,38,.8)
+      rounded             6px
+      display             inline-block
       borderBox()
 
       .avatar-background
@@ -105,7 +106,6 @@ body.home
 
 
       section
-        width             504px
         margin            0 auto
 
         &.logged-in
@@ -141,12 +141,12 @@ body.home
             color         #fff
 
         > div
-          width           200px
-          margin          0 4px 0 0
+          width           190px
+          margin          0 9px 0 0
           padding         0
 
         .submit
-          width           96px
+          width           124px
           margin          0
 
       .input-wrapper
@@ -179,55 +179,55 @@ body.home
 
   section.content
     background            #fff
-    rounded               8px
-    max-width             960px
+    rounded               0 0 8px 8px
+    max-width             949px
     margin                -109px auto 0
-    border                1px solid #dfdfdf
-    padding               72px 0 0
+    padding               0
     position              relative
     z-index               30
     borderBox()
 
 
     .counters
-      font-weight         bold
-      font-style          italic
+      letter-spacing      .1em
+      font-weight         200
+      rounded             8px 8px 0 0
       color               #fff
-      font-size           16px
-      white-space         nowrap
-      abs                 -64px 0 0 50%
-      vendor              transform, translateX(-50%)
-      background          rgba(255,255,255,.2)
-      rounded             19px
-      height              38px
-      line-height         38px
+      font-size           14px
+      background          #2b2b2b
+      height              50px
+      line-height         50px
       padding             0 26px
+      abs                 0 0 100% 0px
+      width               100%
+      text-align          center
+      borderBox()
 
-      i
-        r-sprite          'home', 'love'
-        display           inline-block
-        vertical-align    middle
-        margin            -2px 12px 0
+      span
+        font-weight       700
+        margin-right      30px
 
-      .buttons
-        display           inline-block
+        &:last-of-type
+          margin-right    0
 
     article
-      padding             43px 359px 43px 112px
-      font-size           16px
-      color               #4a4a4a
+      padding             53px 276px 0 53px
+      font-size           14px
+      color               #333333
+      letter-spacing      .05em
 
       a
         color             #1563BC
         borderize(#1563BC)
 
       h4
-        font-weight       bold
-        font-size         26px
+        font-weight       600
+        font-size         18px
+        line-height       26px
 
       p
-        padding           32px 0 0
-        line-height       21px
+        padding           26px 0 0
+        line-height       22px
         borderBox()
 
         &.note
@@ -261,6 +261,7 @@ body.home
         border            1px solid #fff
         padding-right     112px
         vendor            transform, skewY(-2deg) translateY(-50px)
+        margin-top        70px
 
         h4
           margin-bottom   32px
@@ -288,10 +289,11 @@ body.home
             font-size     11px
 
     aside.partners
-      width               162px
-      abs                 0px 0px 0 0
-      padding             42px 42px 0
+      width               232px
+      abs                 46px 0px 0 0
+      padding             0 42px
       border-left         1px solid #f2f2f2
+      borderBox()
 
       &:after
         content           ''
@@ -349,23 +351,21 @@ body.home
 
 
 @media only screen and (min-device-width : 320px) and (max-device-width : 480px)
+  .social-buttons
+    display               none
+
   body.home
     section.introduction
       padding             119px 25px 288px
 
       h2
-        font-size         58px
+        font-size         22px
         margin-bottom     16px
-
-        span
-          font-size       19px
-
-        span.bottom
-          font-size       22px
+        line-height       28px
 
       h3
-        font-size         17px
-        line-height       22px
+        font-size         14px
+        line-height       19px
 
       .form-wrapper
         margin            29px -25px 0 -25px
@@ -385,16 +385,18 @@ body.home
       padding             32px 0 0
 
       .counters
-        padding           18px
+        padding           18px 0 0
         height            auto
-        line-height       20px
+        line-height       27px
         top               -146px
+        borderBox()
 
         span
+          margin-right    0
+
+        span:after
+          content         ""
           display         block
-          height          0
-          font-size       0
-          line-height     0
 
       article
         padding           24px
