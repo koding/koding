@@ -585,8 +585,11 @@ app.get '/WFGH/:section?', (req, res, next)->
       bongoModels : koding.models
       loggedIn
       account
-    }, (err, html)->
-      res.status(200).send html
+    }, (err, content) ->
+
+      return next()  if err
+
+      return res.status(200)#.send content
 
 
 
