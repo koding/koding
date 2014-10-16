@@ -19,7 +19,6 @@ import (
 var (
 	Name            = "gowebserver"
 	flagConfig      = flag.String("c", "", "Configuration profile from file")
-	flagTemplates   = flag.String("t", "", "Change template directory")
 	conf            *config.Config
 	kodingGroupJson []byte
 	log             = logging.NewLogger(Name)
@@ -31,10 +30,6 @@ func initialize() {
 	flag.Parse()
 	if *flagConfig == "" {
 		log.Critical("Please define config file with -c")
-	}
-
-	if *flagTemplates == "" {
-		log.Critical("Please define template folder with -t")
 	}
 
 	conf = config.MustConfig(*flagConfig)
