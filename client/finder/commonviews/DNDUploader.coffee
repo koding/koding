@@ -33,6 +33,32 @@ class DNDUploader extends KDView
     """
     @_uploaded = {}
 
+
+  showGenericError: (message)->
+
+    message or= "
+      <p>
+        Sorry, you can't upload more than 20 files, and uploading
+        folders is only supported for Chrome 21 and above.
+      </p>
+      <p>
+        You can also <a href='http://www.wikihow.com/Make-a-Zip-File' target='_blank'>zip</a>
+        your files for faster uploads. Please correct the error and try again.
+      </p>
+    "
+
+    modal = new KDModalView
+      title        : "Upload File Error"
+      width        : 500
+      overlay      : yes
+      cssClass     : "new-kdmodal"
+      content      : "<div class='modalformline'>#{message}</div>"
+      buttons      :
+        Ok         :
+          style    : "modal-clean-green"
+          callback : -> modal.destroy()
+
+
   drop: (event)->
 
     super
@@ -40,13 +66,7 @@ class DNDUploader extends KDView
     {files, items}  = event.originalEvent.dataTransfer
 
     if files.length >= 20
-      KD.notify_ """
-      Too many files to transfer!<br>
-      Archive your files and try again.
-      """, "error", """
-      Max 20 files allowed to upload at once.
-      You can archive your files and try again.
-      """
+      @showGenericError()
 
     if items?[0].webkitGetAsEntry?
 
@@ -68,7 +88,7 @@ class DNDUploader extends KDView
 
       for file in files
         if file.type is ""
-          KD.showError "Folder upload is only supported for Chrome 21+"
+          @showGenericError() # "Folder upload is only supported for Chrome 21+"
           return
 
       # fallback to upload files for folder upload browsers
@@ -143,7 +163,7 @@ class DNDUploader extends KDView
     dirReader.readEntries (entries)=>
 
       if entries.length > 20
-        KD.showError "It's not allowed to upload more than 20 files at once."
+        @showGenericError() # "It's not allowed to upload more than 20 files at once."
         return
 
       for entry in entries
