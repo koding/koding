@@ -115,8 +115,6 @@ class IDE.EditorPane extends IDE.Pane
 
   serialize: ->
     file       = @getFile()
-    content    = @getContent()
-    cursor     = @getCursor()
     {paneType} = @getOptions()
     {machine}  = file
 
@@ -125,7 +123,7 @@ class IDE.EditorPane extends IDE.Pane
     {label, ipAddress, slug, uid} = machine
 
     data       =
-      file     : { name, path, content, cursor }
+      file     : { name, path }
       machine  : { label, ipAddress, slug, uid }
       paneType : paneType
       hash     : @hash
