@@ -5,6 +5,7 @@ import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -73,6 +74,11 @@ func TestSubscriptionDeletedWebhook(t *testing.T) {
 	)
 }
 
+var (
+	periodStart int64 = 1445023445
+	periodEnd   int64 = 1476645845
+)
+
 func rawInvoiceCreatedData(subscriptionId string) ([]byte, string) {
 	planProviderId := LowerPlanProviderId
 
@@ -80,13 +86,22 @@ func rawInvoiceCreatedData(subscriptionId string) ([]byte, string) {
 		"id": "in_00000000000000",
 		"lines": {
 			"data": [
-				{ "id": "%s", "plan": { "id": "%s" } }
+				{
+					"id": "%s",
+					"plan": { "id": "%s" },
+					"period": {
+						"start": %d,
+						"end": %d
+					}
+				}
 			],
 			"count": 1
 		}
 	}`
 
-	data := fmt.Sprintf(raw, subscriptionId, planProviderId)
+	data := fmt.Sprintf(
+		raw, subscriptionId, planProviderId, periodStart, periodEnd,
+	)
 
 	return []byte(data), planProviderId
 }
@@ -101,7 +116,7 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When 'invoice.created' webhook is fired", func() {
-				Convey("Then subscription plan id is updated if not same", func() {
+				Convey("Then subscription plan, period start, end are updated", func() {
 					err := subscription.ById(subscription.Id)
 					So(err, ShouldBeNil)
 
@@ -110,6 +125,8 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 					So(err, ShouldBeNil)
 
 					So(subscription.PlanId, ShouldEqual, plan.Id)
+					So(subscription.CurrentPeriodStart, ShouldHappenOnOrBefore, time.Unix(periodStart, 0).UTC())
+					So(subscription.CurrentPeriodEnd, ShouldHappenOnOrBefore, time.Unix(periodEnd, 0).UTC())
 				})
 			})
 		}),

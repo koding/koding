@@ -39,6 +39,19 @@ func (s *Subscription) BeforeUpdate() error {
 
 var ErrUpdatingToSamePlan = errors.New("subscription already subscribed to that plan")
 
+func (s *Subscription) UpdateInvoiceCreated(amountInCents uint64, planId, periodStart, periodEnd int64) error {
+	if s.PlanId == planId {
+		return ErrUpdatingToSamePlan
+	}
+
+	s.PlanId = planId
+	s.AmountInCents = amountInCents
+	s.CurrentPeriodStart = time.Unix(periodStart, 0)
+	s.CurrentPeriodEnd = time.Unix(periodEnd, 0)
+
+	return bongo.B.Update(s)
+}
+
 func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 	if s.PlanId == planId {
 		return ErrUpdatingToSamePlan
@@ -47,12 +60,7 @@ func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 	s.PlanId = planId
 	s.AmountInCents = amountInCents
 
-	err := bongo.B.Update(s)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) UpdateState(state string) error {

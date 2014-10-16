@@ -3,6 +3,7 @@ package stripe
 import (
 	"encoding/json"
 	"socialapi/workers/payment/paymentmodels"
+	"time"
 )
 
 //----------------------------------------------------------
@@ -38,7 +39,11 @@ type InvoiceCreatedWebhookRequest struct {
 	Lines struct {
 		Data []struct {
 			SubscriptionId string `json:"id"`
-			Plan           struct {
+			Period         struct {
+				Start int64 `json:"start"`
+				End   int64 `json:"end"`
+			} `json:"period"`
+			Plan struct {
 				PlanId string `json:"id"`
 			} `json:"plan"`
 		} `json:"data"`
@@ -55,6 +60,7 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	}
 
 	if !IsLineCountAllowed(req.Lines.Count) {
+		Log.Error("'invoice.created': Line count: %s not allowed", req.Lines.Count)
 		return nil
 	}
 
@@ -73,13 +79,22 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	}
 
 	if subscription.PlanId != plan.Id {
-		err = subscription.UpdatePlan(plan.Id, plan.AmountInCents)
-		if err != nil {
-			return err
-		}
+		Log.Info(
+			"'invoice.created': Subscription: %v has planId: %v, but 'invoiced.created' webhook has planId: %v.",
+			subscription.Id, subscription.PlanId, plan.Id,
+		)
 	}
 
-	return nil
+	Log.Info(
+		"'invoice.created': Updating subscription: %v to plan: %v, starting: %v",
+		subscription.Id, plan.Id, time.Unix(item.Period.Start, 0),
+	)
+
+	err = subscription.UpdateInvoiceCreated(
+		plan.AmountInCents, plan.Id, item.Period.Start, item.Period.End,
+	)
+
+	return err
 }
 
 //----------------------------------------------------------
