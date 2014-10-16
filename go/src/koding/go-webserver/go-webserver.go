@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"bytes"
 	"flag"
 	"fmt"
@@ -19,12 +18,11 @@ import (
 )
 
 var (
-	Name            = "gowebserver"
-	flagConfig      = flag.String("c", "", "Configuration profile from file")
-	conf            *config.Config
-	kodingGroupJson []byte
-	kodingGroup     *models.Group
-	log             = logging.NewLogger(Name)
+	Name        = "gowebserver"
+	flagConfig  = flag.String("c", "", "Configuration profile from file")
+	log         = logging.NewLogger(Name)
+	kodingGroup *models.Group
+	conf        *config.Config
 )
 
 type HomeContent struct {
@@ -57,12 +55,6 @@ func initialize() {
 	kodingGroup, err = modelhelper.GetGroup("koding")
 	if err != nil {
 		log.Critical("Couldn't fetching `koding` group: %v", err)
-		panic(err)
-	}
-
-	kodingGroupJson, err = json.Marshal(kodingGroup)
-	if err != nil {
-		log.Critical("Couldn't marshalling `koding` group: %v", err)
 		panic(err)
 	}
 }
@@ -134,11 +126,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountJson, err := json.Marshal(account)
-	if err != nil {
-		log.Error("Couldn't marshal account: %s", err)
-	}
-
 	//----------------------------------------------------------
 	// Machines
 	//----------------------------------------------------------
@@ -157,11 +144,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		machines = []*modelhelper.MachineContainer{}
 	}
 
-	machinesJson, err := json.Marshal(machines)
-	if err != nil {
-		log.Error("Couldn't marshal account: %s", err)
-	}
-
 	//----------------------------------------------------------
 	// Workspaces
 	//----------------------------------------------------------
@@ -170,11 +152,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Couldn't fetch workspaces: %s", err)
 		workspaces = []*models.Workspace{}
-	}
-
-	workspacesJson, err := json.Marshal(workspaces)
-	if err != nil {
-		log.Error("Couldn't marshal workspaces: %s", err)
 	}
 
 	loggedInUser := LoggedInUser{
