@@ -607,7 +607,7 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
 
   if isInAppRoute name
     if name is 'Develop'
-      return res.redirect 301, '/Terminal'
+      return res.redirect 301, '/IDE'
 
     if name in ['Activity']
       isLoggedIn req, res, (err, loggedIn, account)->
