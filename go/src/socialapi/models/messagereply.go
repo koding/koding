@@ -48,6 +48,16 @@ func (m *MessageReply) MarkIfExempt() error {
 	return nil
 }
 
+func (m *MessageReply) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		m.TableName() +
+		` ("message_id","reply_id","created_at") VALUES ($1,$2,$3) ` +
+		"RETURNING ID"
+	return bongo.B.DB.CommonDB().
+		QueryRow(insertSql, m.MessageId, m.ReplyId, m.CreatedAt).
+		Scan(&m.Id)
+}
+
 func (m *MessageReply) Delete() error {
 	selector := map[string]interface{}{
 		"message_id": m.MessageId,
