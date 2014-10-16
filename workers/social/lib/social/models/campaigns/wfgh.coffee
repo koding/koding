@@ -50,7 +50,9 @@ module.exports = class JWFGH extends Model
         application = new JWFGH {username}
 
         application.save (err)->
+
           return callback err if err
+
           JWFGH.getStats account, callback
 
 

@@ -579,6 +579,7 @@ app.get '/WFGH/:section?', (req, res, next)->
   isLoggedIn req, res, (err, loggedIn, account)->
 
     return next()  if err
+
     JGroup.render.loggedOut.kodingHome {
       campaign    : 'hackathon'
       bongoModels : koding.models
