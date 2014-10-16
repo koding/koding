@@ -83,22 +83,20 @@ do ->
   #        do handler()
 
   KD.registerRoutes 'Login',
-    '/Login/:token?'    : handler (app, options)->
+
+    '/Login/:token?' : handler (app, options)->
       app.getView().animateToForm 'login'
       app.handleQuery options
-    '/Register'         : handler (app, options)->
+
+    '/Register' : handler (app, options)->
       app.getView().animateToForm 'register'
       app.handleQuery options
-    '/Redeem'              : handler (app)-> app.getView().animateToForm 'redeem'
-    '/ResendToken'         : handler (app)-> app.getView().animateToForm 'resendEmail'
-    '/Recover'             : handler (app)-> app.getView().animateToForm 'recover'
 
-    '/Verified'          : handleVerified
-    '/VerificationFailed': handleVerificationFailed
-    # '/:name?/Register/:token'  : handleFinishRegistration
-    # '/:name?/Confirm/:token'   : handleResetRoute
-    # '/:name?/Verify/:token?'   : handleVerifyRoute
-    # '/:name?/Redeem/:token'    : handleRedeemRoute
-    #'/:name?/Login/:token?'    : handleRestriction (app)->
-        #handler (app)-> app.getView().animateToForm 'login'
+    '/Redeem'       : handler (app)-> app.getView().animateToForm 'redeem'
     '/Reset/:token' : handleResetRoute
+    '/ResendToken'  : handler (app)-> app.getView().animateToForm 'resendEmail'
+    '/Recover'      : handler (app)-> app.getView().animateToForm 'recover'
+
+    '/Verified'     : handleVerified
+
+    '/VerificationFailed' : handleVerificationFailed
