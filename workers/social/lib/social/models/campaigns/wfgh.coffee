@@ -37,7 +37,9 @@ module.exports = class JWFGH extends Model
 
     JCampaign.get 'WFGH', (err, campaign) ->
 
-      return callback message : 'expired'  if err or not campaign
+      if err or not campaign or not campaign.content.active
+
+        return callback message : 'expired'
 
       JWFGH.one {username}, (err, data)->
 
@@ -61,7 +63,9 @@ module.exports = class JWFGH extends Model
 
     JCampaign.get 'WFGH', (err, campaign) ->
 
-      return callback message : 'expired'  if err or not campaign
+      if err or not campaign or not campaign.content.active
+
+        return callback message : 'expired'
 
       username = account?.profile?.nickname
 
