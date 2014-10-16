@@ -86,13 +86,13 @@ func InvoiceCreatedWebhook(raw []byte) error {
 
 	if subscription.PlanId != plan.Id {
 		Log.Info(
-			"'invoice.created': Subscription: %v has planId: %v, but 'invoiced.created' webhook has planId: %v.",
+			"'invoice.created': subscription: %v has planId: %v, but 'invoiced.created' webhook has planId: %v.",
 			subscription.Id, subscription.PlanId, plan.Id,
 		)
 	}
 
 	Log.Info(
-		"'invoice.created': Updating subscription: %v to plan: %v, starting: %v",
+		"'invoice.created': Updating subscription: %v to planId: %v, starting: %v",
 		subscription.Id, plan.Id, time.Unix(item.Period.Start, 0),
 	)
 
