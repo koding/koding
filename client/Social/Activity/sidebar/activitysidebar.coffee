@@ -395,6 +395,7 @@ class ActivitySidebar extends KDCustomHTMLView
   listMachines: (machines) ->
 
     treeData = []
+    nickname = KD.nick()
 
     for machine in machines
 
@@ -402,7 +403,9 @@ class ActivitySidebar extends KDCustomHTMLView
         machine = machine.getData()
 
       treeData.push item = new Machine {machine}
+
       id = item.getId()
+
       treeData.push
         title        : 'Workspaces <span class="ws-add-icon"></span>'
         type         : 'title'
@@ -411,20 +414,32 @@ class ActivitySidebar extends KDCustomHTMLView
         machineUId   : machine.uid
         machineLabel : machine.slug or machine.label
 
+      ideRoute       = "/IDE/#{machine.slug or machine.label}/my-workspace"
+      machineOwner   = machine.credential
+      isMyMachine    = machineOwner is KD.nick()
+
+      unless isMyMachine
+        ideRoute = "#{ideRoute}/#{machineOwner}"
+
       treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
-        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
+        href         : ideRoute
         id           : "#{machine.slug or machine.label}-workspace"
         parentId     : id
         machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
+          ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+
+          unless isMyMachine
+            ideRoute = "#{ideRoute}/#{machineOwner}"
+
           treeData.push
             title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
             type         : 'workspace'
-            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            href         : ideRoute
             machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
