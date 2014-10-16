@@ -60,6 +60,11 @@ class IDE.TerminalPane extends IDE.Pane
     @destroySubViews()
     @createTerminal()
 
+  setFocus: (state) ->
+    super state
+    @webtermView.setFocus state
+
+
   serialize: ->
     {label, ipAddress, slug, uid} = @machine
     {path, paneType} = @getOptions()

@@ -124,7 +124,7 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     @createStateLabel()
 
-    if @state in [ Stopped, Running, NotInitialized, Unknown ]
+    if @state in [ Stopped, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping, Terminating, Updating, Rebooting ]
       @createProgressBar response?.percentage
@@ -143,8 +143,12 @@ class IDE.MachineStateModal extends IDE.ModalView
             if response.State is Terminated
               @createStateButton()
           .catch noop
+    else if @state is Running
+      @prepareIDE()
+      @destroy()
 
     @createError()
+
 
 
   getStateLabel:->

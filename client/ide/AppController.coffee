@@ -47,8 +47,6 @@ class IDEAppController extends AppController
       { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
       { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
       { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
-      { command: 'collapse sidebar',    binding: 'ctrl+alt+c', global: yes }
-      { command: 'expand sidebar',      binding: 'ctrl+alt+e', global: yes }
       { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
@@ -98,6 +96,9 @@ class IDEAppController extends AppController
     workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
 
+    {windowController} = KD.singletons
+    windowController.addFocusListener @bound 'setActivePaneFocus'
+
     workspace.once 'ready', =>
       panel = workspace.getView()
       appView.addSubView panel
@@ -121,11 +122,16 @@ class IDEAppController extends AppController
         @bindRouteHandler()
 
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
+
+      return  unless app instanceof IDEAppController
+
+      @setActivePaneFocus on
+
       # Temporary fix for IDE is not shown after
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
-      if app instanceof IDEAppController
-        KD.singletons.windowController.notifyWindowResizeListeners()
+      KD.singletons.windowController.notifyWindowResizeListeners()
+
 
   bindRouteHandler: ->
     {router, mainView} = KD.singletons
@@ -153,7 +159,13 @@ class IDEAppController extends AppController
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
   setActiveTabView: (tabView) ->
+    @setActivePaneFocus off
     @activeTabView = tabView
+    @setActivePaneFocus on
+
+  setActivePaneFocus: (state) ->
+    return  unless pane = @getActivePaneView()
+    KD.utils.defer -> pane.setFocus? state
 
   splitTabView: (type = 'vertical', ideViewOptions) ->
     ideView        = @activeTabView.parent
@@ -534,7 +546,7 @@ class IDEAppController extends AppController
     @activeTabView.emit 'ShortcutsViewRequested'
 
   getActivePaneView: ->
-    return @activeTabView.getActivePane()?.getSubViews().first
+    return @activeTabView?.getActivePane()?.getSubViews().first
 
   saveFile: ->
     @getActivePaneView().emit 'SaveRequested'

@@ -60,6 +60,15 @@ class IDE.EditorPane extends IDE.Pane
   goToLine: (lineNumber) ->
     @getAce().gotoLine lineNumber
 
+  setFocus: (state) ->
+    super state
+
+    return  unless ace = @getEditor()
+
+    if state
+    then ace.focus()
+    else ace.blur()
+
   getContent: ->
     return @getAce().getContents()
 

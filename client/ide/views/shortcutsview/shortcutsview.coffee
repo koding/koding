@@ -45,10 +45,8 @@ class IDE.ShortcutsView extends KDView
       'Open new terminal'      : 'Ctrl-Alt-T'
       'Open new browser'       : 'Ctrl-Alt-B'
       'Open new drawing board' : 'Ctrl-Alt-D'
-      'Collapse sidebar'       : 'Ctrl-Alt-C'
-      'Expand sidebar'         : 'Ctrl-Alt-E'
       'Toggle sidebar'         : 'Ctrl-Alt-K'
-      'Fullscreen'             : 'Meta-Enter'
+      'Fullscreen'             : 'Meta-Shift-Enter'
       'Close tab'              : 'Ctrl-Alt-W'
       'Go to left tab'         : 'Ctrl-Alt-['
       'Go to right tab'        : 'Ctrl-Alt-]'
@@ -73,18 +71,15 @@ class IDE.ShortcutsView extends KDView
       'Preview file'           : 'Ctrl-Alt-P'
       'Go to top'              : { Others: 'Ctrl-Home',      Apple: 'Meta-Up'   }
       'Go to bottom'           : { Others: 'Ctrl-End',       Apple: 'Meta-Down' }
-      'Go line up'             : 'Ctrl-N'
-      'Go line down'           : 'Ctrl-P'
+      'Go to next line'        : 'Ctrl-N'
+      'Go to previous line'    : 'Ctrl-P'
       'Go to left'             : 'Ctrl-B'
       'Go to right'            : 'Ctrl-F'
-      'Go to end'              : { Others: 'Ctrl-End',       Apple: 'Meta-Down' }
       'Go to line'             : 'Meta-G'
-      'Go to line'             : 'Meta-L'
       'Go to line end'         : { Others: 'Alt-Right',      Apple: 'Meta-Right'}
       'Go to line end'         : { Others: 'End',            Apple: 'Ctrl-E'    }
       'Go to line start'       : { Others: 'Alt-Left',       Apple: 'Meta-Left' }
       'Go to line start'       : { Others: 'End',            Apple: 'Ctrl-A'    }
-      'Go to matching bracket' : 'Ctrl-P'
       'Go to page down'        : 'Ctrl-V'
       'Go to word left'        : { Others: 'Ctrl-Left',      Apple: 'Alt-Left'  }
       'Go to word right'       : { Others: 'Ctrl-Right',    Apple: 'Alt-Right' }
@@ -127,6 +122,6 @@ class IDE.ShortcutsView extends KDView
       'Select to line start'   : { Others: 'Shift-Home',       Apple: 'Meta-Shift-Left'  }
       'Select to end'          : { Others: 'Ctrl-Shift-End',   Apple: 'Meta-Shift-Down'  }
       'Select to start'        : { Others: 'Ctrl-Shift-Home',  Apple: 'Meta-Shift-Up'    }
-      'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Up'     }
-      'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Up'     }
+      'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Left'   }
+      'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Right'  }
       'Toggle comment'         : 'Meta-/'
