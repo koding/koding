@@ -1,3 +1,7 @@
+TYPEKITIDS =
+  hackathon : 'ndd8msy'
+  landing   : 'rbd0tum'
+
 module.exports = (options, callback)->
 
   getTitle = require './../title'
@@ -8,7 +12,7 @@ module.exports = (options, callback)->
   userAccount   = JSON.stringify account
   campaignStats = null
 
-  prepareHTML = ->
+  prepareHTML = (site)->
     """
     <!doctype html>
     <html lang="en">
@@ -22,19 +26,19 @@ module.exports = (options, callback)->
       <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
       <link rel="shortcut icon" href="/a/images/favicon.ico" />
       <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-      <link rel="stylesheet" href="/a/site.#{campaign}/css/kd.css?#{KONFIG.version}" />
-      <link rel="stylesheet" href="/a/site.#{campaign}/css/main.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.#{site}/css/kd.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
     </head>
     <body class='home'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      <script src="/a/site.#{campaign}/js/pistachio.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{campaign}/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{campaign}/js/kd.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.js?#{KONFIG.version}"></script>
       <script>KD.userAccount=#{userAccount}</script>
       <script>KD.campaignStats=#{campaignStats}</script>
-      <script src="/a/site.#{campaign}/js/main.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
 
       <!-- SEGMENT.IO -->
       <script type="text/javascript">
@@ -50,6 +54,15 @@ module.exports = (options, callback)->
         ga('create', 'UA-6520910-8', 'auto');
         ga('send', 'pageview');
       </script>
+      <script>
+        (function(d) {
+          var config = {
+            kitId: '#{TYPEKITIDS[campaign]}',
+            scriptTimeout: 3000
+          },
+          h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+        })(document);
+      </script>
     </body>
     </html>
     """
@@ -58,12 +71,13 @@ module.exports = (options, callback)->
     when 'hackathon'
       bongoModels.JWFGH.getStats account, (err, stats) ->
 
-        console.log err  if err
+        return callback null, prepareHTML 'landing'  if err
 
         campaignStats = JSON.stringify stats
-        callback null, prepareHTML()
+        return callback null, prepareHTML 'hackathon'
+
     else
-      callback null, prepareHTML()
+      return callback null, prepareHTML 'landing'
 
 
 
