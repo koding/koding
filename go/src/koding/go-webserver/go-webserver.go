@@ -76,7 +76,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	cookie, err := r.Cookie("clientId")
-	if err != nil || cookie.Value == "" {
+	if err != nil {
+		if err != http.ErrNoCookie {
+			log.Error("Couldn't fetch the cookie: %s", err)
+		}
+		log.Info("loggedout page took: %s", time.Since(start))
+		renderLoggedOutHome(w)
+
+		return
+	}
+
+	if cookie.Value == "" {
 		log.Info("loggedout page took: %s", time.Since(start))
 		renderLoggedOutHome(w)
 
@@ -87,7 +97,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := modelhelper.GetSession(clientId)
 	if err != nil {
-		log.Error("Failed to fetch session with clientId: %s", clientId)
+		log.Error("Couldn't fetch session with clientId %s: %s", clientId, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w) // TODO: clean up session
@@ -97,7 +107,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := session.Username
 	if username == "" {
-		log.Error("username is empty for session with clientId: %s", clientId)
+		log.Error("Username is empty for session with clientId: %s", clientId)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w)
@@ -111,7 +121,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		log.Error("Failed to fetch account with username: %s", username)
+		log.Error("Couldn't fetch account with username %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w)
