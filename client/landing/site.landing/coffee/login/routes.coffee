@@ -90,7 +90,6 @@ do ->
       app.getView().animateToForm 'register'
       app.handleQuery options
     '/Redeem'              : handler (app)-> app.getView().animateToForm 'redeem'
-    '/:name?/Reset/:token' : handleResetRoute
     '/ResendToken'         : handler (app)-> app.getView().animateToForm 'resendEmail'
     '/Recover'             : handler (app)-> app.getView().animateToForm 'recover'
 
@@ -102,3 +101,4 @@ do ->
     # '/:name?/Redeem/:token'    : handleRedeemRoute
     #'/:name?/Login/:token?'    : handleRestriction (app)->
         #handler (app)-> app.getView().animateToForm 'login'
+    '/Reset/:token' : handleResetRoute
