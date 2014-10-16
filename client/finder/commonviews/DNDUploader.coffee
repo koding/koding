@@ -57,7 +57,7 @@ class DNDUploader extends KDView
       You can archive your files and try again.
       """
 
-    if items?.first.webkitGetAsEntry?
+    if items?[0].webkitGetAsEntry?
 
       for item in items
         entry = item.webkitGetAsEntry()
