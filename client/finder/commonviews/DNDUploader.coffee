@@ -15,15 +15,6 @@ class DNDUploader extends KDView
       @on "dragleave", => @unsetClass "hover"
       @on "drop",      => @unsetClass "hover"
 
-    @on "uploadFile", (fsFile, percent) =>
-      @emit 'uploadProgress', { file: fsFile, percent }
-
-    @on "uploadStart", (fsFile) =>
-      filePath   = "[#{fsFile.vmName}]#{fsFile.path}"
-      parentPath = "[#{fsFile.vmName}]#{fsFile.parentPath}"
-
-      fsFile.save "", => @emit 'uploadComplete', { filePath, parentPath }
-
     KD.singletons.mainController.ready @bound 'reset'
 
 
@@ -191,7 +182,12 @@ class DNDUploader extends KDView
       click     : => @emit "cancel"
 
   saveFile: (fsFile, data) ->
-    @emit "uploadStart", fsFile
+
+    filePath   = "[#{fsFile.machine.uid}]#{fsFile.path}"
+    parentPath = "[#{fsFile.machine.uid}]#{fsFile.parentPath}"
+
+    fsFile.save "", => @emit 'uploadComplete', { filePath, parentPath }
+
     fsFile.saveBinary data, (err, res, progress)=>
 
       log "Upload result:", err, res, progress
@@ -199,11 +195,12 @@ class DNDUploader extends KDView
       progress or= res
       return if err
       if res.finished
-        @emit "uploadEnd", fsFile
+        @emit 'uploadEnd', fsFile
       else if res.abort
-        @emit "uploadAbort", fsFile
+        @emit 'uploadAbort', fsFile
       else
-        @emit "uploadFile", fsFile, progress.percent
+        @emit 'uploadProgress', { file: fsFile, progress }
+
 
   upload: (fileName, contents, relativePath)->
 
