@@ -238,7 +238,7 @@ class PrivateMessagePane extends MessagePane
         items.forEach (item, i) =>
           {scrollHeight} = body
           @prependMessage item
-          window.scrollTo 0, body.scrollHeight - scrollHeight
+          window.scrollTo 0, window.scrollY + (body.scrollHeight - scrollHeight)
 
         if items.length is 0
         then @listPreviousLink.hide()
