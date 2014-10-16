@@ -11,7 +11,7 @@ import (
 )
 
 func rawSubscriptionDeletedData(id string) []byte {
-	raw := `{ "id": "%s", }`
+	raw := `{"id": "%s"}`
 	data := fmt.Sprintf(raw, id)
 
 	return []byte(data)

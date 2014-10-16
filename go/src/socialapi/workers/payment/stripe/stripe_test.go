@@ -146,7 +146,7 @@ func subscribeWithReturnsFn(fn func(*paymentmodel.Customer, *paymentmodel.Subscr
 		So(err, ShouldBeNil)
 
 		customer := paymentmodel.NewCustomer()
-		err = customer.FindByOldId(accId)
+		err = customer.ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		subscription, err := customer.FindActiveSubscription()
