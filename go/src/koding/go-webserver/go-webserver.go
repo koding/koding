@@ -27,7 +27,7 @@ var (
 
 type HomeContent struct {
 	Version string
-	Runtime interface{}
+	Runtime config.RuntimeOptions
 	User    LoggedInUser
 }
 
