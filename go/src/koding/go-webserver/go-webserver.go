@@ -24,6 +24,21 @@ var (
 	log             = logging.NewLogger(Name)
 )
 
+type HomeContent struct {
+	Version string
+	Runtime interface{}
+	User    LoggedInUser
+}
+
+type LoggedInUser struct {
+	Account    *models.Account
+	Machines   []*modelhelper.MachineContainer
+	Workspaces []*models.Workspace
+	Group      *models.Group
+	Username   string
+	SessionId  string
+}
+
 func initialize() {
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
