@@ -14,5 +14,5 @@ do ->
 
 
   KD.registerRoutes 'Core',
-    '/'                      : handleRoot
-    ''                       : handleRoot
+    '/' : handleRoot
+    ''  : handleRoot
