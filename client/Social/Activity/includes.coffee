@@ -8,6 +8,7 @@ module.exports = [
   "sidebar/morelink.coffee"
   "sidebar/searchmodal.coffee"
   "sidebar/morechannelsmodal.coffee"
+  "sidebar/morevmsmodal.coffee"
   "sidebar/conversationsmodal.coffee"
   "sidebar/topicsearchmodal.coffee"
   "sidebar/chatsearchmodal.coffee"
