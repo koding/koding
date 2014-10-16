@@ -589,7 +589,7 @@ app.get '/WFGH/:section?', (req, res, next)->
 
       return next()  if err
 
-      return res.status(200)#.send content
+      return res.status(200).send content
 
 
 
