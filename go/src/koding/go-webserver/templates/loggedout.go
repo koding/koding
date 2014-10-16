@@ -20,7 +20,7 @@ var LoggedOutHome = `
 
   <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-  <script src="/a/site.landing/js/pistachio.js?%s"></script>
+  <script src="/a/site.landing/js/libs.js?%s"></script>
   <script src="/a/site.landing/js/kd.libs.js?%s"></script>
   <script src="/a/site.landing/js/kd.js?%s"></script>
   <script src="/a/site.landing/js/main.js?%s"></script>
