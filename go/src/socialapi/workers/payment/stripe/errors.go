@@ -7,7 +7,9 @@ import (
 )
 
 var (
-	ErrStripePlanAlreadyExists = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
+	ErrStripePlanAlreadyExists = errors.New(
+		`{"type":"invalid_request_error","message":"Plan already exists."}`,
+	)
 )
 
 // handlerStripeError casts error into stripe.Error if possible
