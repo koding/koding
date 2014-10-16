@@ -12,7 +12,7 @@ module.exports = (options, callback)->
   userAccount   = JSON.stringify account
   campaignStats = null
 
-  prepareHTML = ->
+  prepareHTML = (site)->
     """
     <!doctype html>
     <html lang="en">
@@ -26,19 +26,19 @@ module.exports = (options, callback)->
       <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
       <link rel="shortcut icon" href="/a/images/favicon.ico" />
       <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-      <link rel="stylesheet" href="/a/site.#{campaign}/css/kd.css?#{KONFIG.version}" />
-      <link rel="stylesheet" href="/a/site.#{campaign}/css/main.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.#{site}/css/kd.css?#{KONFIG.version}" />
+      <link rel="stylesheet" href="/a/site.#{site}/css/main.css?#{KONFIG.version}" />
     </head>
     <body class='home'>
 
       <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-      <script src="/a/site.#{campaign}/js/libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{campaign}/js/kd.libs.js?#{KONFIG.version}"></script>
-      <script src="/a/site.#{campaign}/js/kd.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.libs.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/kd.js?#{KONFIG.version}"></script>
       <script>KD.userAccount=#{userAccount}</script>
       <script>KD.campaignStats=#{campaignStats}</script>
-      <script src="/a/site.#{campaign}/js/main.js?#{KONFIG.version}"></script>
+      <script src="/a/site.#{site}/js/main.js?#{KONFIG.version}"></script>
 
       <!-- SEGMENT.IO -->
       <script type="text/javascript">
@@ -71,12 +71,13 @@ module.exports = (options, callback)->
     when 'hackathon'
       bongoModels.JWFGH.getStats account, (err, stats) ->
 
-        console.log err  if err
+        callback null, prepareHTML 'landing'  if err
 
         campaignStats = JSON.stringify stats
-        callback null, prepareHTML()
+        callback null, prepareHTML 'hackathon'
+
     else
-      callback null, prepareHTML()
+      callback null, prepareHTML 'landing'
 
 
 
