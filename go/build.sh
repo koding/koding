@@ -7,7 +7,11 @@ if [ $# == 1 ]; then
   export GOBIN=$GOPATH/$1
 fi
 
-version=$(git rev-parse HEAD || cat ../VERSION || echo "0")
+# first try to fetch it from git HEAD
+# then try to read currrent directory
+# it may be in one upper folder - if you are in go folder
+# it may be in root folder if you are in socialapi folder
+version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../VERSION || echo "0")
 ldflags="-X koding/artifact.VERSION ${version:0:8}"
 
 services=(
