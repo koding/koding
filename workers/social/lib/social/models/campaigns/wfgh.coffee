@@ -105,9 +105,7 @@ module.exports = class JWFGH extends Model
             return callback err  if err
 
             callback err, {
-              cap      : CAP
-              prize    : PRIZE
-              deadline : DEADLINE
+              cap, prize, deadline
               totalApplicants, approvedApplicants
               isApplicant, isApproved, isWinner
             }
