@@ -8,6 +8,11 @@ import (
 	"socialapi/workers/payment"
 )
 
+func InitCheckers() error {
+	err := payment.InitCheckers()
+	return err
+}
+
 func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),

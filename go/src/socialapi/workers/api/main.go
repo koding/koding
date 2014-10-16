@@ -58,6 +58,7 @@ func main() {
 	mux = handlers.Inject(mux, r.Metrics)
 
 	mux = injectDefaultHandlers(mux)
+
 	// init payment handlers, this done here instead of in `init()`
 	// like others so we can've access to `metrics`
 	mux = paymentapi.InitHandlers(mux, r.Metrics)
@@ -69,7 +70,7 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	// init stripe client
+	// payment:
 	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
 
 	go func() {
@@ -79,6 +80,8 @@ func main() {
 			panic(err)
 		}
 	}()
+
+	go paymentapi.InitCheckers()
 
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {
