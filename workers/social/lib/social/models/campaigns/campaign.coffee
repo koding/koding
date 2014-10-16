@@ -44,8 +44,6 @@ module.exports = class JCampaign extends JStorage
 
     JStorage.one { name }, (err, campaign) ->
 
-      console.log err, campaign
-
       return callback null, no  if err or not campaign or not campaign.content.active
 
       callback null, campaign
