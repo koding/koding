@@ -22,7 +22,13 @@ func SubscriptionDeletedWebhook(raw []byte) error {
 		return err
 	}
 
-	err = updateSubscriptionState(req.ID, SubscriptionStateExpired)
+	subscription := paymentmodel.NewSubscription()
+	err = subscription.ByProviderId(req.ID, ProviderName)
+	if err != nil {
+		return err
+	}
+
+	err = subscription.UpdateState(SubscriptionStateExpired)
 	if err != nil {
 		return err
 	}
@@ -95,23 +101,4 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	)
 
 	return err
-}
-
-//----------------------------------------------------------
-// Helpers
-//----------------------------------------------------------
-
-func updateSubscriptionState(providerId, state string) error {
-	subscription := paymentmodel.NewSubscription()
-	err := subscription.ByProviderId(providerId, ProviderName)
-	if err != nil {
-		return err
-	}
-
-	err = subscription.UpdateState(state)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
