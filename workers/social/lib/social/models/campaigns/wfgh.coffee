@@ -54,7 +54,7 @@ module.exports = class JWFGH extends Model
 
   @leave = (account, callback) ->
 
-    callback null, 'n/a'
+    callback message : 'n/a'
 
 
   @getStats = (account, callback) ->
