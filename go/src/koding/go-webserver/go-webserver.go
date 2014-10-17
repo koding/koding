@@ -19,10 +19,10 @@ import (
 
 var (
 	Name              = "gowebserver"
-	kodingTitle       = "Koding | Say goodbye to your localhost and write code in the cloud"
-	kodingDescription = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+	kodingTitle       = "Koding | Say goodbye to your localhost and write code in the cloud."
+	kodingDescription = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go, Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
-	flagConfig = flag.String("c", "", "Configuration profile from file")
+	flagConfig = flag.String("c", "dev", "Configuration profile from file")
 	log        = logging.NewLogger(Name)
 
 	kodingGroup *models.Group
@@ -69,13 +69,13 @@ func initialize() {
 func main() {
 	initialize()
 
-	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
-
-	log.Info("Starting gowebserver on %v", url)
-
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+
+	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
+	log.Info("Starting gowebserver on: %v", url)
+
 	http.ListenAndServe(url, nil)
 }
 
@@ -85,8 +85,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
 		if err != http.ErrNoCookie {
-			log.Error("Couldn't fetch the cookie: %s", err)
+			log.Error("Couldn't fetch 'clientId' cookie value: %s", err)
 		}
+
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
