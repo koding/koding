@@ -3,6 +3,7 @@ helpers = require '../helpers/helpers.js'
 faker   = require 'faker'
 assert  = require 'assert'
 
+activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
 
@@ -24,34 +25,29 @@ module.exports =
   likeActivity: (browser) ->
 
     helpers.postActivity(browser)
-    selector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child [testpath=activity-like-link]'
+    selector = activitySelector + ' [testpath=activity-like-link]'
 
     browser
       .waitForElementVisible selector, 10000
       .click                 selector
-
-    browser.waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
-
-    browser.end()
+      .waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
+      .end()
 
 
   editPost: (browser) ->
 
     helpers.postActivity(browser)
 
-    selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
     post = helpers.getFakeText()
 
     browser
-      .waitForElementVisible      selector + ' .settings-menu-wrapper', 10000
-      .click                      selector + ' .settings-menu-wrapper'
+      .waitForElementVisible      activitySelector + ' .settings-menu-wrapper', 10000
+      .click                      activitySelector + ' .settings-menu-wrapper'
       .click                      '.kdcontextmenu .edit-post'
-      .clearValue                 selector + ' .edit-widget [testpath=ActivityInputView]'
-      .setValue                   selector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
+      .clearValue                 activitySelector + ' .edit-widget [testpath=ActivityInputView]'
+      .setValue                   activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
       .pause                      3000
-
-    browser
-      .assert.containsText selector, post # Assertion
+      .assert.containsText activitySelector, post # Assertion
       .end()
 
 
@@ -60,16 +56,15 @@ module.exports =
     helpers.postActivity(browser)
     helpers.postActivity(browser, no)
 
-    selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
     post = helpers.getFakeText()
 
     browser
-      .waitForElementVisible        selector + ' .settings-menu-wrapper', 10000
-      .click                        selector + ' .settings-menu-wrapper'
+      .waitForElementVisible        activitySelector + ' .settings-menu-wrapper', 10000
+      .click                        activitySelector + ' .settings-menu-wrapper'
       .click                        '.kdcontextmenu .delete-post'
       .click                        '.kdmodal-inner .modal-clean-red'
       .pause                        3000, ->
-        text = browser.getText selector
+        text = browser.getText activitySelector
         assert.notEqual text, post # Assertion
       .end()
 
@@ -78,9 +73,8 @@ module.exports =
 
     helpers.postComment(browser)
 
-    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
-    commentSelector = selector + ' .comment-container .kdlistitemview-comment:first-child'
     comment         = helpers.getFakeText()
+    commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
     browser
       .waitForElementVisible    commentSelector, 3000
@@ -93,8 +87,7 @@ module.exports =
 
     helpers.postComment(browser)
 
-    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
-    commentSelector = selector + ' .comment-container button.comment-menu'
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
     post            =  helpers.getFakeText()
 
     browser
@@ -102,12 +95,10 @@ module.exports =
       .click                    commentSelector
       .waitForElementVisible    '.kdcontextmenu .edit-comment', 5000
       .click                    '.kdcontextmenu .edit-comment'
-      .clearValue               selector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
-      .setValue                 selector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
+      .clearValue               activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
+      .setValue                 activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
       .pause                    3000
-
-    browser
-      .assert.containsText selector + ' .comment-container', post # Assertion
+      .assert.containsText      activitySelector + ' .comment-container', post # Assertion
       .end()
 
 
@@ -115,8 +106,7 @@ module.exports =
 
     helpers.postComment(browser)
 
-    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
-    commentSelector = selector + ' .comment-container button.comment-menu'
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
     post            =  helpers.getFakeText()
 
     browser
@@ -126,17 +116,16 @@ module.exports =
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-clean-red'
       .pause                    3000, ->
-        text = browser.getText selector + ' .comment-container'
+        text = browser.getText activitySelector + ' .comment-container'
         assert.notEqual text, post # Assertion
       .end()
 
 
   cancelCommentDeletion: (browser) ->
 
-    comment         = helpers.postComment(browser)
+    comment = helpers.postComment(browser)
 
-    selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
-    commentSelector = selector + ' .comment-container button.comment-menu'
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
 
     browser
       .waitForElementPresent    commentSelector, 5000
@@ -145,6 +134,9 @@ module.exports =
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-cancel'
       .waitForElementNotPresent '.kdoverlay', 5000
+      .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
+      .end()
+
 
     browser
       .assert.containsText selector + ' .comment-container', comment # Assertion
