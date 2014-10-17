@@ -225,5 +225,7 @@ func buildHomeContent() HomeContent {
 
 func buildHomeTemplate(content string) *template.Template {
 	homeTmpl := template.Must(template.New("home").Parse(content))
+	analyticsTmpl := template.Must(template.New("analytics").Parse(templates.Analytics))
+	homeTmpl.AddParseTree("analytics", analyticsTmpl.Tree)
 	return homeTmpl
 }
