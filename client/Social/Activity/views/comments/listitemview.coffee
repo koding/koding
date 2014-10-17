@@ -29,35 +29,6 @@ class CommentListItemView extends KDListItemView
     else @unsetClass 'edited'
 
 
-  # setAnchors: ->
-
-  #   @$("p a").each (index, element) ->
-  #     href = element.getAttribute "href"
-  #     return  unless href
-
-  #     {location: {origin}} = window
-
-  #     beginning = href.substring 0, origin.length
-  #     rest      = href.substring origin.length + 1
-
-  #     if beginning is origin
-  #       element.setAttribute "href", "/#{rest}"
-  #     else if href is "/#{rest}" continue
-  #     else
-  #       element.setAttribute "target", "_blank"
-
-
-  # click: (event) ->
-
-  #   KD.utils.stopDOMEvent event
-
-  #   KD.singletons.router.handleRoute event.target.getAttribute 'href'
-
-  #   KD.utils.showMoreClickHandler event
-
-  #   return false
-
-
   handleInternalLink: (event) ->
 
     KD.utils.stopDOMEvent event
