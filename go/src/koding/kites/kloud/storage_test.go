@@ -54,6 +54,21 @@ func init() {
 	}
 }
 
+// TestDomainStorage satisfies the DomainStorage interface
+type TestDomainStorage struct{}
+
+func (t *TestDomainStorage) Add(*protocol.Domain) error { return nil }
+
+func (t *TestDomainStorage) Delete(name string) error { return nil }
+
+func (t *TestDomainStorage) UpdateMachine(name, machine string) error { return nil }
+
+func (t *TestDomainStorage) Get(name string) (*protocol.Domain, error) { return nil, nil }
+
+func (t *TestDomainStorage) GetByMachine(machine string) ([]*protocol.Domain, error) {
+	return nil, nil
+}
+
 // TestStorage satisfies the Storage interface
 type TestStorage struct{}
 

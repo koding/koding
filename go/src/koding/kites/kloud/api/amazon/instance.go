@@ -30,6 +30,7 @@ func (a *Amazon) CreateInstance() (*ec2.RunInstancesResp, error) {
 		SubnetId:                 a.Builder.SubnetId,
 		UserData:                 a.Builder.UserData,
 		SecurityGroups:           securityGroups,
+		AvailZone:                a.Builder.Zone,
 	}
 
 	// only add blockdevice if it's being added to prevent errors on aws

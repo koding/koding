@@ -2,7 +2,9 @@ class CommentListPreviousLink extends CustomLinkView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'hidden list-previous-link', options.cssClass
+    options.cssClass   = KD.utils.curry 'hidden list-previous-link', options.cssClass
+    options.attributes =
+      testpath         : 'list-previous-link'
 
     super options, data
 

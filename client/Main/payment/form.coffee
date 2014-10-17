@@ -162,6 +162,32 @@ class PaymentForm extends JView
       @emit 'PaymentWorkflowFinished', @state
 
 
+  showMaximumAttemptFailed: ->
+    [
+      @form
+      @existingCreditCardMessage
+      @securityNote
+      @yearPriceMessage
+      @submitButton
+    ].forEach (view) -> view.destroy()
+
+    [
+      @$('h3')
+      @$('.summary')
+    ].forEach (element) -> element.hide()
+
+    @successMessage.updatePartial "
+      We are sorry that you are having trouble upgrading.
+      Looks like there is an issue with the card you are
+      attempting to use. If you feel the error is on our end,
+      please send us relevant details at
+      <a href='mailto:support@koding.com'>support@koding.com</a>
+      (don't forget to include your username and the plan name
+      you were trying to purchase).
+    "
+    @successMessage.show()
+
+
   getPricePartial: (planInterval) ->
     { monthPrice, reducedMonth } = @state
 

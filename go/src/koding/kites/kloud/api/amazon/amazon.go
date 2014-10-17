@@ -34,6 +34,10 @@ type Amazon struct {
 		// EC2 instance
 		Region string `mapstructure:"region"`
 
+		// The name of the zone, such as "us-east-1b", in which to launch the
+		// EC2 instance
+		Zone string `mapstructure:"zone"`
+
 		// KeyPair defines the name which is used creating an EC2 instance. (optional)
 		// IMPORTANT: If you launch an instance without specifying a key pair,
 		// you can't connect to the instance.

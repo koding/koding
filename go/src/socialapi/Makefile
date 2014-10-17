@@ -139,15 +139,18 @@ installfresh:
 install:
 	@echo $(CONFIG)
 	@echo "$(OK_COLOR)==> Installing all packages $(NO_COLOR)"
-	@`which go` install $(VERBOSE) ${PACKAGES}
-
+	@echo "NOTICE: make install is deprecated use ../../build.sh"
+	@echo "building with ../../build.sh"
+	../../build.sh
 test:
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
 	@`which go` test $(VERBOSE) ${PACKAGES}
 
 build:
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@`which go` build $(VERBOSE) ${PACKAGES}
+	@echo "NOTICE: make build is deprecated use ../../build.sh"
+	@echo "building with ../../build.sh"
+	../../build.sh
 
 testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"

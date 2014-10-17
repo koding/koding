@@ -2,8 +2,8 @@ module.exports = (options, callback)->
   {account, client, bongoModels} = options
   getStyles       = require './../styleblock'
   fetchScripts    = require './../scriptblock'
-  getInnerNav     = require './../innernav'
   getTitle        = require './../title'
+  getGraphMeta    = require './../graphmeta'
 
   entryPoint         = { slug : "koding", type: "group" }
   options.entryPoint = entryPoint
@@ -14,6 +14,7 @@ module.exports = (options, callback)->
     <html lang="en">
     <head>
       #{getTitle()}
+      #{getGraphMeta()}
       #{getStyles()}
     </head>
     <body class='logged-in'>

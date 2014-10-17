@@ -174,10 +174,14 @@ func (a *Account) MarkAsTroll() error {
 		return err
 	}
 
-	// do not try to mark twice
-	if a.IsTroll {
-		return fmt.Errorf("account is already a troll %d", a.Id)
-	}
+	// once, mongo sync problem happened and we couldnt mark the user as troll
+	// in social api, in order to prevent it from happening again, i am removing
+	// this check ~ CS
+
+	// // do not try to mark twice
+	// if a.IsTroll {
+	// 	return fmt.Errorf("account is already a troll %d", a.Id)
+	// }
 
 	a.IsTroll = true
 	if err := a.Update(); err != nil {
@@ -201,10 +205,14 @@ func (a *Account) UnMarkAsTroll() error {
 		return err
 	}
 
-	// do not try to un-mark twice
-	if !a.IsTroll {
-		return fmt.Errorf("account is not a troll %d", a.Id)
-	}
+	// once, mongo sync problem happened and we couldnt mark the user as troll
+	// in social api, in order to prevent it from happening again, i am removing
+	// this check ~ CS
+
+	// // do not try to un-mark twice
+	// if !a.IsTroll {
+	// 	return fmt.Errorf("account is not a troll %d", a.Id)
+	// }
 
 	a.IsTroll = false
 	if err := a.Update(); err != nil {

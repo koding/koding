@@ -9,7 +9,7 @@ ITEMSPERPAGE = 20
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
   { page, channelId, client
-    route, contentType, channelName } = options
+    route, contentType, channelName, sessionToken } = options
 
   return callback "channelId not set"  unless channelId
 
@@ -22,9 +22,10 @@ createFeed = (models, options, callback)->
     limit       : ITEMSPERPAGE
     skip        : skip
     channelName : channelName
+    sessionToken
   }
 
-  SocialChannel.fetchActivityCount {channelId}, (err, response)->
+  SocialChannel.fetchActivityCount {channelId, sessionToken}, (err, response)->
     return callback err  if err
     itemCount = response?.totalCount
     return callback null, getEmptyPage channelName  unless itemCount

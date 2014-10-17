@@ -318,7 +318,21 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 	}
 
 	in := models.NewInteractionNotification(i.TypeConstant)
-	in.TargetId = i.MessageId
+	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_POST {
+		in.TargetId = i.MessageId
+	} else {
+		mr := socialapimodels.NewMessageReply()
+		mr.ReplyId = i.MessageId
+
+		cm, err := mr.FetchParent()
+		if err != nil {
+			return err
+		}
+
+		in.TargetId = cm.Id
+	}
+
+	in.MessageId = i.MessageId
 	in.NotifierId = i.AccountId
 	nc, err := models.CreateNotificationContent(in)
 	if err != nil {

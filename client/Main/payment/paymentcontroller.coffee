@@ -3,10 +3,16 @@ class PaymentController extends KDController
   DEFAULT_PROVIDER = "stripe"
 
   subscribe: (token, planTitle, planInterval, options, callback)->
-    params          = {token, planTitle, planInterval}
+    {planAmount, binNumber, lastFour, cardName} = options
 
-    params.email    = options.email     if options.email
-    params.provider = options.provider  or DEFAULT_PROVIDER
+    params = {
+      token,
+      planTitle, planInterval, planAmount,
+      binNumber, lastFour, cardName
+    }
+
+    params.email      = options.email     if options.email
+    params.provider   = options.provider  or DEFAULT_PROVIDER
 
     @api().subscribe params, (err, result)=>
       @emit "UserPlanUpdated"  unless err?
@@ -27,6 +33,9 @@ class PaymentController extends KDController
 
   canChangePlan: (planTitle, callback)->
     @api().canChangePlan {planTitle}, callback
+
+  logOrder: (params, callback)->
+    @api().logOrder params, callback
 
   api:-> KD.remote.api.Payment
 

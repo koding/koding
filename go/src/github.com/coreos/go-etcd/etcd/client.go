@@ -63,9 +63,9 @@ type Client struct {
 func NewClient(machines []string) *Client {
 	config := Config{
 		// default timeout is one second
-		DialTimeout: time.Second,
+		DialTimeout: 15 * time.Second,
 		// default consistency level is STRONG
-		Consistency: STRONG_CONSISTENCY,
+		Consistency: WEAK_CONSISTENCY,
 	}
 
 	client := &Client{
@@ -175,6 +175,7 @@ func (c *Client) initHTTPClient() {
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
+		MaxIdleConnsPerHost: 250,
 	}
 	c.httpClient = &http.Client{Transport: tr}
 }
@@ -345,7 +346,7 @@ func (c *Client) dial(network, addr string) (net.Conn, error) {
 	}
 
 	// Keep TCP alive to check whether or not the remote machine is down
-	if err = tcpConn.SetKeepAlive(true); err != nil {
+	if err = tcpConn.SetKeepAlive(false); err != nil {
 		return nil, err
 	}
 
