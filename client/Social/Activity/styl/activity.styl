@@ -9,6 +9,19 @@ resurrection.activity.styl
 */
 }
 
+paleYellow = #fdf6e3
+paleRed    = #ffe7e7
+
+
+.fade-out
+  opacity 1
+  vendor          transition, opacity .347s ease\, margin .347s .300s ease
+  &.out
+    bg      color, paleRed !important
+    opacity 0
+    .comment-container
+      bg    color, paleRed !important
+
 mainTextColor = #3B3B3B
 
 .activity-status-context
@@ -2103,7 +2116,7 @@ timeColor2 = #5F9E5E
       // hidden()
 
     &.editing
-      background        #fdf6e3
+      background        paleYellow
       .meta
         hidden()
 
