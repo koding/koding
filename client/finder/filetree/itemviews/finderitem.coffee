@@ -1,7 +1,5 @@
 class NFinderItem extends JTreeItemView
 
-  JView.mixin @prototype
-
   constructor:(options = {},data)->
 
     options.tagName or= "li"
@@ -25,12 +23,6 @@ class NFinderItem extends JTreeItemView
     @on "ItemBeingDeleted", =>
       data.removeLocalFileInfo()
 
-    @on "viewAppended", =>
-      fileInfo = data.getLocalFileInfo()
-      if fileInfo.lastUploadedChunk
-        {lastUploadedChunk, totalChunks} = fileInfo
-        data.removeLocalFileInfo() if lastUploadedChunk is totalChunks
-        @showProgressView 100 * lastUploadedChunk / totalChunks
 
   getChildConstructor: (type) ->
     switch type
@@ -54,6 +46,7 @@ class NFinderItem extends JTreeItemView
       delete @renameView
 
     if @progressView
+      @progressView.unsetTooltip()
       @progressView.destroy()
       delete @progressView
 
@@ -98,20 +91,42 @@ class NFinderItem extends JTreeItemView
       @resetView()
     @renameView.input.setFocus()
 
-  showProgressView: (percent=0, determinate=yes)->
+  showProgressView: (progress, determinate=yes)->
+
+    { loaded, total, percent } = progress
 
     unless @progressView
       @addSubView @progressView = new KDProgressBarView
 
     @progressView.setOption "determinate", determinate
     @progressView.updateBar percent, "%", ""
+
+    if loaded? and total?
+      title = "#{loaded}mb of #{total}mb uploaded"
+      unless @progressView.tooltip?
+        @progressView.setTooltip { title }
+      else
+        @progressView.tooltip.setTitle title
+    else
+      @progressView.unsetTooltip()
+
     if 0 <= percent < 100
     then @setClass "progress"
-    else @utils.wait 1000, =>
-      @resetView()
+    else @utils.wait 1000, @bound 'resetView'
 
-  pistachio:->
+  viewAppended:->
 
-    """
-    {{> @childView}}
-    """
+    @addSubView @childView
+
+    file = @getData()
+    fileInfo = file.getLocalFileInfo()
+
+    if fileInfo.lastUploadedChunk
+
+      {lastUploadedChunk, totalChunks} = fileInfo
+
+      if lastUploadedChunk is totalChunks
+        file.removeLocalFileInfo()
+
+      @showProgressView
+        percentage : 100 * lastUploadedChunk / totalChunks

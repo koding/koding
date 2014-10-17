@@ -96,33 +96,36 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa contents
 
-    kite = @getKite()
+    kite = @getKite().init()
 
-    ok = kite.init()
     .then =>
 
-      kite.fsWriteFile {
+      @getKite().fsWriteFile {
         path    : FSHelper.plainPath @path
         content : btoa contents
         append  : yes
       }
 
-    if callback?
-      ok
-      .then (response) =>
-        callback null, response
-        @emit 'fs.append.finished', null, response
 
-      .catch (err) ->
-        warn err
-        callback err
-        @emit 'fs.append.finished', err
+    if callback?
+
+      kite
+
+        .then (response) =>
+          callback null, response
+          @emit 'fs.append.finished', null, response
+
+        .catch (err) ->
+          warn err
+          callback err
+          @emit 'fs.append.finished', err
 
     else
-      ok
-      .then (response) =>
+
+      kite.then (response) =>
         @emit 'fs.append.finished', null, response
         Promise.cast response
+
 
   saveBinary:(contents, callback)->
 
@@ -147,8 +150,6 @@ class FSFile extends FSItem
       @abortRequested = yes
       callback? null, abort: yes
 
-    kite = @getKite()
-
     iterateChunks = =>
 
       unless chunkQueue.length
@@ -166,10 +167,13 @@ class FSFile extends FSItem
         iterateChunks()
         return
 
-      kite.fsWriteFile {
-        path: FSHelper.plainPath @path
-        content, append
-      }
+      kite = @getKite().init()
+      .then =>
+
+        @getKite().fsWriteFile {
+          path: FSHelper.plainPath @path
+          content, append
+        }
 
       .then (res) =>
         @emit "ChunkUploaded", res

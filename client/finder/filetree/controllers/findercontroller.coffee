@@ -2,7 +2,9 @@ class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.view = new KDView cssClass : "nfinder file-container"
+    options.view = new KDView
+      cssClass   : "nfinder file-container"
+      bind       : "dragenter dragover dragleave dragend drop"
 
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
