@@ -79,18 +79,22 @@ module.exports =
 
     return post
 
-  postComment: (browser) ->
 
-    @postActivity(browser)
+  postComment: (browser, shouldPostActivity = yes, shouldAssert = yes) ->
+
+    if shouldPostActivity
+      @postActivity(browser)
 
     comment = @getFakeText()
 
     browser
       .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
       .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
-      .pause        6000 # required
 
-    browser.assert.containsText  '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
+    if shouldAssert
+      browser
+        .pause               6000 # required
+        .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
     return comment
 
