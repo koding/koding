@@ -281,7 +281,6 @@ class IDEAppController extends AppController
 
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-          @ideViews.first.createCollaborationPane()
 
         else
           @createNewTerminal machine
@@ -501,7 +500,7 @@ class IDEAppController extends AppController
       @registerPane pane
 
     ideView.on 'ChangeHappened', (change) =>
-      @handleChange change
+      @writeChange change
 
   registerPane: (pane) ->
     {view} = pane
@@ -512,8 +511,7 @@ class IDEAppController extends AppController
     @generatedPanes[view.hash] = yes
 
     view.on 'ChangeHappened', (change) =>
-      @handleChange change
-
+      @writeChange change
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
     if typeof callback is 'string'
@@ -701,45 +699,39 @@ class IDEAppController extends AppController
     {workspaceData} = this
     @rtm = rtm      = new RealTimeManager
 
-    @rtm.auth()
+    rtm.auth()
 
-    @rtm.on 'ClientAuthenticated', =>
-
+    rtm.on 'ClientAuthenticated', =>
       hostName = if @amIHost then KD.nick() else @collaborationHost
       title    = "#{hostName}.#{machine.slug}.#{workspaceData.slug}"
 
       rtm.fetchFileByTitle title
 
       rtm.on 'FileQueryFinished', (file) =>
-        # TODO: Be sure we are working on correct file.
-        # TODO: Move file existence logic into API wrapper.
         {result} = file
         return if result.selfLink.indexOf(title) is -1
 
         if result.items.length > 0
           @loadCollaborationFile file
-          log '.............file found', file
-        else if @amIHost
-          rtm.createFile title
-
-          rtm.on 'FileCreated', (file) =>
-            console.clear()
-            log '.............file created', file
-            @loadCollaborationFile file
+        else
+          log 'acetz: FILE IS MISSING, HANDLE CREATE FILE...'
 
 
   loadCollaborationFile: (file) ->
-    @rtm.getFile file.result.items.first.id
+    firstFile = file.result.items.first
+
+    return unless firstFile
+
+    @rtm.getFile firstFile.id
 
     @rtm.on 'FileLoaded', (doc) =>
       @realTimeDoc = doc
 
-      if @amIHost
-        @writeWorkspaceSnapshot()
-      else
-        @getWorkspaceSnaphot()
-        @rtm.on 'MapValueChanged', (map, v) ->
-          log '.................', map, v
+      @getWorkspaceSnaphot()
+      @writeWorkspaceSnapshot()  if not @snapshot and @amIHost
+
+    @rtm.on 'MapValueChanged', (map, v) =>
+      @activeTabView.emit 'CollaborationDataUpdated', map.values()
 
 
   writeWorkspaceSnapshot: ->
@@ -751,9 +743,9 @@ class IDEAppController extends AppController
   getWorkspaceSnaphot: ->
     return  unless @realTimeDoc
 
-    snapshot = @rtm.getFromModel @realTimeDoc, 'snapshot'
-    log 'workspace snapshot is', snapshot.values()
-    return snapshot
+    @snapshot = @rtm.getFromModel @realTimeDoc, 'snapshot'
+
+    return @snapshot
 
 
   createWorkspaceSnapshot: ->
@@ -771,10 +763,17 @@ class IDEAppController extends AppController
     return panes
 
 
-  handleChange: (change) ->
-    return  unless @realTimeDoc
+  writeChange: (change) ->
+    {context} = change
 
-    if change.type in [ 'NewPaneCreated', 'PaneRemoved' ]
-      if @amIHost
-        log 'change detected', change.context
-        @writeWorkspaceSnapshot()
+    return  if not @realTimeDoc or not context or not @snapshot
+
+    return  if change.origin is KD.nick()
+
+    switch change.type
+
+      when 'NewPaneCreated'
+        @snapshot.set context.paneHash, change
+
+      when 'PaneRemoved'
+        @snapshot.delete context.paneHash
