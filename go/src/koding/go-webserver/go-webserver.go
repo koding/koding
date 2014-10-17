@@ -182,7 +182,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
-	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedInHome))
+	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
@@ -200,7 +200,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 }
 
 func renderLoggedOutHome(w http.ResponseWriter) {
-	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedOutHome))
+	homeTmpl := buildHomeTemplate(templates.LoggedOutHome)
 
 	hc := buildHomeContent()
 
@@ -221,4 +221,9 @@ func buildHomeContent() HomeContent {
 	hc.Description = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
 	return hc
+}
+
+func buildHomeTemplate(content string) *template.Template {
+	homeTmpl := template.Must(template.New("home").Parse(content))
+	return homeTmpl
 }
