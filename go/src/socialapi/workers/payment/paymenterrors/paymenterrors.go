@@ -19,7 +19,7 @@ var (
 
 	ErrStripePlanAlreadyExists = errors.New(`{"type":"invalid_request_error","message":"Plan already exists."}`)
 
-	// ErrPlanNotFoundFn returns true if argument has part of pg error
+	// IsPlanNotFoundErr returns true if argument has part of pg error
 	// messages matches. We do partial match since pg error message also
 	// returns the dynamic enum value.
 	IsPlanNotFoundErr = func(err error) bool {
@@ -35,6 +35,10 @@ var (
 	// Customer probably has a coupon or credit in account and therefore
 	// doesn't need to pay.
 	IsNothingToInvoiceErr = func(err error) bool {
+		if err == nil {
+			return false
+		}
+
 		return err.Error() == "Nothing to invoice for customer"
 	}
 )
