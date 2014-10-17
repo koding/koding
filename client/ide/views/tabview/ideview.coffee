@@ -22,6 +22,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
+    @tabView.on 'CollaborationDataUpdated', @bound 'checkCollaborationData'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
