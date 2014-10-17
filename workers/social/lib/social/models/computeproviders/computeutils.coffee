@@ -95,12 +95,28 @@ revive = do -> ({
     shouldPassCredential
     shouldReviveProvider
     shouldReviveProvisioners
+    shouldLockProcess
   }, fn) ->
 
-  (client, options, callback) ->
+  (client, options, _callback) ->
 
-    unless typeof callback is 'function'
-      callback = (err)-> console.error "Unhandled error:", err.message
+    unless typeof _callback is 'function'
+      _callback = (err)-> console.error "Unhandled error:", err.message
+
+    if shouldLockProcess
+
+      unless lockProcess client
+        return _callback new KodingError \
+          "There is a process on-going, try again later.", "Busy"
+
+      callback = (rest...)->
+        unlockProcess client
+        _callback rest...
+
+    else
+
+      callback = _callback
+
 
     shouldReviveProvider ?= yes
     {provider, credential, provisioners} = options
