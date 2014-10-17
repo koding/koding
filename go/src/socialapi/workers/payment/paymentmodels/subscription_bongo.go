@@ -41,7 +41,7 @@ func (s *Subscription) BeforeUpdate() error {
 
 func (s *Subscription) ById(id int64) error {
 	selector := map[string]interface{}{"id": s.Id}
-	err := s.One(bongo.NewQS(selector))
+	err := s.Find(selector)
 
 	return err
 }

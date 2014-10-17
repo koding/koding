@@ -45,11 +45,7 @@ func IsDowngrade(oldPlan, newPlan *paymentmodel.Plan) bool {
 
 	newPlanValue := GetPlanValue(newPlan.Title, newPlan.Interval)
 
-	if newPlanValue < oldPlanValue {
-		return true
-	}
-
-	return false
+	return newPlanValue < oldPlanValue
 }
 
 func IsLineCountAllowed(count int) bool {
