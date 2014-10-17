@@ -103,20 +103,20 @@ module.exports = class Koding extends ProviderInterface
 
     storage ?= 3
 
-    @fetchUserPlan client, (err, userPlan)=>
+    guessNextLabel user, group, label, (err, label)=>
 
-      # Commented-out this since if it fails to fetch
-      # plan it uses 'free' as default. ~ GG
-      # return callback err  if err?
+      @fetchUserPlan client, (err, userPlan)=>
 
-      @fetchUsage client, options, (err, usage)->
+        # Commented-out this since if it fails to fetch
+        # plan it uses 'free' as default. ~ GG
+        # return callback err  if err?
 
-        return callback err  if err?
+        @fetchUsage client, options, (err, usage)->
 
-        if err = checkUsage usage, userPlan, storage
-          return callback err
+          return callback err  if err?
 
-        guessNextLabel user, group, label, (err, label)->
+          if err = checkUsage usage, userPlan, storage
+            return callback err
 
           meta =
             type          : "amazon"
