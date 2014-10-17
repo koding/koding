@@ -4,7 +4,8 @@ class CommentListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = 'comment'
+    options.type     = 'comment'
+    options.cssClass = KD.utils.curry 'fade-out', options.cssClass
 
     super options, data
 
@@ -99,9 +100,15 @@ class CommentListItemView extends KDListItemView
   showDeleteModal: ->
 
     modal = new CommentDeleteModal {}, @getData()
-    modal.once "DeleteClicked"   , @bound "hide"
-    modal.once "DeleteConfirmed" , @bound "destroy"
-    modal.once "DeleteError"     , @bound "show"
+    modal.once 'DeleteClicked'   , @bound 'hide'
+    modal.once 'DeleteConfirmed' , @bound 'delete'
+    modal.once 'DeleteError'     , @bound 'show'
+
+
+  hide          : ActivityListItemView::hide
+  show          : ActivityListItemView::show
+  delete        : ActivityListItemView::delete
+  whenSubmitted : ActivityListItemView::whenSubmitted
 
 
   createReplyLink: ->
