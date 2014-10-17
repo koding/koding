@@ -13,6 +13,7 @@ import (
 
 func (mwc *Controller) migrateAllAccountsToAlgolia() {
 	mwc.log.Notice("Account migration to Algolia started")
+	successCount := 0
 
 	s := modelhelper.Selector{
 		"migration": modelhelper.Selector{"$exists": false},
@@ -45,5 +46,5 @@ func (mwc *Controller) migrateAllAccountsToAlgolia() {
 
 	helpers.Iter(modelhelper.Mongo, iterOptions)
 
-	mwc.log.Notice("Account migration completed")
+	mwc.log.Notice("Account migration completed for %d account with %d errors", successCount, errAccountCount)
 }

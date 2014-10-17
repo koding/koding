@@ -11,7 +11,7 @@ module.exports = ->
   <!DOCTYPE html>
   <html lang="en" itemscope itemtype="http://schema.org/LocalBusiness">
     <head>
-      <title>Koding | A New Way For Developers To Work</title>
+      <title>Koding | Say goodbye to your localhost and write code in the cloud</title>
       #{getGraphMeta()}
       <style rel="stylesheet">
         #koding-logo {

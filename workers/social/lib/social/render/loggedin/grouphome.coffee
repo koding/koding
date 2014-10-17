@@ -3,6 +3,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getTitle     = require './../title'
+  getGraphMeta = require './..graphmeta'
 
 
   {
@@ -21,6 +22,7 @@ module.exports = (options, callback)->
     <html>
     <head>
       #{getTitle()}
+      #{getGraphMeta()}
       #{getStyles customize}
     </head>
     <body class="group logged-in">
