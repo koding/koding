@@ -196,7 +196,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
+        command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
         locations       : ["~^/IDE/.*"]
         auth            : yes
