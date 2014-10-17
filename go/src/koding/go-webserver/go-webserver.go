@@ -183,7 +183,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedInHome))
-	hc := HomeContent{Version: conf.Version, Runtime: conf.Client.RuntimeOptions, User: u}
+
+	hc := buildHomeContent()
+	hc.Runtime = conf.Client.RuntimeOptions
+	hc.User = u
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
@@ -198,7 +201,8 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 
 func renderLoggedOutHome(w http.ResponseWriter) {
 	homeTmpl := template.Must(template.New("home").Parse(templates.LoggedOutHome))
-	hc := HomeContent{Version: conf.Version}
+
+	hc := buildHomeContent()
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
@@ -206,4 +210,15 @@ func renderLoggedOutHome(w http.ResponseWriter) {
 	}
 
 	fmt.Fprintf(w, buf.String())
+}
+
+func buildHomeContent() HomeContent {
+	hc := HomeContent{
+		Version:  conf.Version,
+		ShareUrl: conf.Client.RuntimeOptions.MainUri,
+	}
+	hc.Title = "Koding | Say goodbye to your localhost and write code in the cloud"
+	hc.Description = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+
+	return hc
 }
