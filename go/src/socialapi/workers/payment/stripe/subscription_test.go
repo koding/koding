@@ -55,7 +55,7 @@ func TestCreateAndFindSubscription(t *testing.T) {
 
 func TestCancelSubscription(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
-		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
 			plan, err := FindPlanByTitleAndInterval(StartingPlan, StartingInterval)
 			So(err, ShouldBeNil)
 			So(plan, ShouldNotBeNil)

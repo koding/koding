@@ -11,7 +11,7 @@ import (
 
 func TestCustomer1(t *testing.T) {
 	Convey("Given a description (id) and email", t,
-		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
 			Convey("Then it should create an customer in Stripe", func() {
 				stripeCustomerId := c.ProviderCustomerId
 				So(checkCustomerExistsInStripe(stripeCustomerId), ShouldBeTrue)

@@ -70,7 +70,7 @@ func UpdateCreditCard(oldId, token string) error {
 	return nil
 }
 
-func RemoveCreditCard(customer *paymentmodel.Customer) error {
+func RemoveCreditCard(customer *paymentmodels.Customer) error {
 	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return err

@@ -12,7 +12,7 @@ import (
 // CreateCustomer creates customer in Stripe and saves customer with
 // Stripe's customer_id; token is previously acquired from Stripe,
 // represents customer's cc info; accId is the `jAccount` id from mongo.
-func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) {
+func CreateCustomer(token, accId, email string) (*paymentmodels.Customer, error) {
 	if IsEmpty(token) {
 		return nil, paymenterrors.ErrTokenIsEmpty
 	}
@@ -43,7 +43,7 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 		return nil, handleStripeError(err)
 	}
 
-	customerModel := &paymentmodel.Customer{
+	customerModel := &paymentmodels.Customer{
 		OldId:              accId,
 		ProviderCustomerId: externalCustomer.Id,
 		Provider:           ProviderName,
@@ -54,8 +54,8 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 	return customerModel, err
 }
 
-func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
-	customerModel := paymentmodel.NewCustomer()
+func FindCustomerByOldId(oldId string) (*paymentmodels.Customer, error) {
+	customerModel := paymentmodels.NewCustomer()
 	err := customerModel.ByOldId(oldId)
 
 	return customerModel, err
@@ -71,7 +71,7 @@ func GetCustomer(id string) (*stripe.Customer, error) {
 }
 
 func DeleteCustomer(accId string) error {
-	customer := paymentmodel.NewCustomer()
+	customer := paymentmodels.NewCustomer()
 	err := customer.ByOldId(accId)
 	if err != nil {
 		return err

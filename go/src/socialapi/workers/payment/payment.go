@@ -96,7 +96,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 
 	currentSubscription := subscriptions[0]
 
-	plan := &paymentmodel.Plan{}
+	plan := &paymentmodels.Plan{}
 	err = plan.ById(currentSubscription.PlanId)
 	if err != nil {
 		return defaultResp, nil

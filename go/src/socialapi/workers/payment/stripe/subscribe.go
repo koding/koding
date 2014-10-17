@@ -70,7 +70,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	return err
 }
 
-func removeCreditCardHelper(customer *paymentmodel.Customer) {
+func removeCreditCardHelper(customer *paymentmodels.Customer) {
 	ccErr := RemoveCreditCard(customer) // outer error is more important
 	if ccErr != nil {
 		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, ccErr)

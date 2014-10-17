@@ -102,7 +102,7 @@ func checkCustomerExistsInStripe(id string) bool {
 	return true
 }
 
-func createCustomerFn(fn func(string, *paymentmodel.Customer)) func() {
+func createCustomerFn(fn func(string, *paymentmodels.Customer)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
 
@@ -138,14 +138,14 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 	}
 }
 
-func subscribeWithReturnsFn(fn func(*paymentmodel.Customer, *paymentmodel.Subscription)) func() {
+func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subscription)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
 
 		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
-		customer := paymentmodel.NewCustomer()
+		customer := paymentmodels.NewCustomer()
 		err = customer.ByOldId(accId)
 		So(err, ShouldBeNil)
 

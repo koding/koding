@@ -1,4 +1,4 @@
-package paymentmodel
+package paymentmodels
 
 import (
 	"time"

@@ -19,7 +19,7 @@ func rawSubscriptionDeletedData(id string) []byte {
 
 func TestSubscriptionDeletedWebhook(t *testing.T) {
 	Convey("Given customer has an unpaid subscription", t,
-		subscribeWithReturnsFn(func(customer *paymentmodel.Customer, subscription *paymentmodel.Subscription) {
+		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
 
 			data := rawSubscriptionDeletedData(subscriptionProviderId)
@@ -75,7 +75,7 @@ func rawInvoiceCreatedData(subscriptionId string) ([]byte, string) {
 
 func TestInvoiceCreatedWebhook(t *testing.T) {
 	Convey("Given customer has a subscription", t,
-		subscribeWithReturnsFn(func(customer *paymentmodel.Customer, subscription *paymentmodel.Subscription) {
+		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
 			data, planProviderId := rawInvoiceCreatedData(subscriptionProviderId)
 
@@ -87,7 +87,7 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 					err := subscription.ById(subscription.Id)
 					So(err, ShouldBeNil)
 
-					plan := paymentmodel.NewPlan()
+					plan := paymentmodels.NewPlan()
 					err = plan.ByProviderId(planProviderId, ProviderName)
 					So(err, ShouldBeNil)
 

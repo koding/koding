@@ -22,7 +22,7 @@ func SubscriptionDeletedWebhook(raw []byte) error {
 		return err
 	}
 
-	subscription := paymentmodel.NewSubscription()
+	subscription := paymentmodels.NewSubscription()
 	err = subscription.ByProviderId(req.ID, ProviderName)
 	if err != nil {
 		return err
@@ -69,13 +69,13 @@ func InvoiceCreatedWebhook(raw []byte) error {
 
 	item := req.Lines.Data[0]
 
-	subscription := paymentmodel.NewSubscription()
+	subscription := paymentmodels.NewSubscription()
 	err = subscription.ByProviderId(item.SubscriptionId, ProviderName)
 	if err != nil {
 		return err
 	}
 
-	plan := paymentmodel.NewPlan()
+	plan := paymentmodels.NewPlan()
 	plan.ByProviderId(item.Plan.PlanId, ProviderName)
 	if err != nil {
 		return err

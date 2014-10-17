@@ -33,7 +33,7 @@ func CreateDefaultPlans() error {
 
 // CreatePlan creates plan in Stripe and saves it locally. It deals with
 // cases where plan exists in stripe, but not locally.
-func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
+func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodels.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       id,
 		Name:     nameForStripe,
@@ -47,7 +47,7 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 		return nil, handleStripeError(err)
 	}
 
-	planModel := &paymentmodel.Plan{
+	planModel := &paymentmodels.Plan{
 		Title:          title,
 		ProviderPlanId: id,
 		Provider:       ProviderName,
@@ -60,8 +60,8 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 	return planModel, err
 }
 
-func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
-	plan := paymentmodel.NewPlan()
+func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
+	plan := paymentmodels.NewPlan()
 
 	err := plan.ByTitleAndInterval(title, interval)
 	if err != nil {

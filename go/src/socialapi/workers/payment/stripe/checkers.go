@@ -10,19 +10,19 @@ func IsEmpty(str string) bool {
 	return str == ""
 }
 
-func IsFreePlan(plan *paymentmodel.Plan) bool {
+func IsFreePlan(plan *paymentmodels.Plan) bool {
 	return plan.Title == "free"
 }
 
-func IsOverSubscribed(subscriptions []paymentmodel.Subscription) bool {
+func IsOverSubscribed(subscriptions []paymentmodels.Subscription) bool {
 	return len(subscriptions) > 1
 }
 
-func IsNoSubscriptions(subscriptions []paymentmodel.Subscription) bool {
+func IsNoSubscriptions(subscriptions []paymentmodels.Subscription) bool {
 	return len(subscriptions) == 0
 }
 
-func IsSubscribedToPlan(subscription paymentmodel.Subscription, plan *paymentmodel.Plan) bool {
+func IsSubscribedToPlan(subscription paymentmodels.Subscription, plan *paymentmodels.Plan) bool {
 	return subscription.PlanId == plan.Id
 }
 
@@ -38,7 +38,7 @@ func IsCreditCardEmpty(ccResp *CreditCardResponse) bool {
 	return ccResp.LastFour == ""
 }
 
-func IsDowngrade(oldPlan, newPlan *paymentmodel.Plan) bool {
+func IsDowngrade(oldPlan, newPlan *paymentmodels.Plan) bool {
 	oldPlanValue := GetPlanValue(
 		oldPlan.Title, oldPlan.Interval,
 	)

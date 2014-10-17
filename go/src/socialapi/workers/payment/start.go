@@ -17,7 +17,7 @@ func InitCheckers() error {
 func CheckForLeakedSubscriptions() error {
 	thirtyDaysAgo := time.Now().Add(-30 * 24 * time.Hour)
 
-	subscription := paymentmodel.NewSubscription()
+	subscription := paymentmodels.NewSubscription()
 	subscriptions, err := subscription.ByCanceledAtGte(thirtyDaysAgo)
 	if err != nil {
 		return err
