@@ -267,7 +267,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   getPlusMenuItems: ->
     ideApp = KD.getSingleton('appManager').getFrontApp()
     items  =
-      'Collaboration'     : callback : => @createCollaborationPane()
       'New File'          : callback : => @createEditor()
       'New Terminal'      : callback : => @createTerminal()
       'New Browser'       : callback : => @createPreview()
@@ -318,46 +317,5 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
 
 
-  createCollaborationPane: ->
-    cp = new IDE.CollaborativePane
-    @createPane_ cp, { name: 'KOLLAB v2' }
-
-
-
-class IDE.CollaborativePane extends IDE.Pane
-
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @addSubView @real   = new KDInputView
-      type              : 'textarea'
-      attributes: style : 'width: 42%; height: 90%; margin: 20px;'
-
-    @addSubView @mirror = new KDInputView
-      type              : 'textarea'
-      attributes: style : 'width: 42%; height: 90%; margin: 20px;'
-
-
-    rtm = new RealTimeManager
-
-    rtm.auth()
-
-    rtm.on 'ClientAuthenticated', =>
-      rtm.getFile '0B9RGB7N0fDPuOEhLTFg4NmhZNzQ'
-
-    rtm.on 'FileLoaded', (doc) =>
-      string = rtm.getFromModel doc, 'text'
-
-      @updateFields string
-
-      @real.on 'keyup',   => string.setText @real.getValue()
-      @mirror.on 'keyup', => string.setText @mirror.getValue()
-
-    rtm.on 'TextInsertedIntoString', (string, e) => @updateFields string
-    rtm.on 'TextDeletedFromString',  (string, e) => @updateFields string
-
-
-  updateFields: (string) ->
-    @real.setValue   string
-    @mirror.setValue string
+  checkCollaborationData: (data) ->
+    log 'acetz: is the data', data
