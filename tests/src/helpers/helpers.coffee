@@ -14,6 +14,8 @@ module.exports =
 
     @doLogin(browser, user)
 
+    browser.execute 'KD.isTesting = true;'
+
 
   doLogin: (browser, user) ->
 
