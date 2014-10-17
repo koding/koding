@@ -88,6 +88,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Error("Couldn't fetch the cookie: %s", err)
 		}
 		log.Info("loggedout page took: %s", time.Since(start))
+
+		expireCookie(cookie)
 		renderLoggedOutHome(w)
 
 		return
@@ -95,6 +97,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if cookie.Value == "" {
 		log.Info("loggedout page took: %s", time.Since(start))
+
+		expireCookie(cookie)
 		renderLoggedOutHome(w)
 
 		return
@@ -107,7 +111,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch session with clientId %s: %s", clientId, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w) // TODO: clean up session
+		expireCookie(cookie)
+		renderLoggedOutHome(w)
 
 		return
 	}
@@ -117,6 +122,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Username is empty for session with clientId: %s", clientId)
 		log.Info("loggedout page took: %s", time.Since(start))
 
+		expireCookie(cookie)
 		renderLoggedOutHome(w)
 
 		return
@@ -131,13 +137,20 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch account with username %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
+		expireCookie(cookie)
 		renderLoggedOutHome(w)
 
 		return
 	}
 
 	if account.Type != "registered" {
+		log.Error(
+			"Account type: %s is not 'registered' for %s's session.",
+			account.Type, username,
+		)
 		log.Info("loggedout page took: %s", time.Since(start))
+
+		expireCookie(cookie)
 		renderLoggedOutHome(w)
 
 		return
@@ -236,4 +249,8 @@ func buildHomeTemplate(content string) *template.Template {
 	homeTmpl.AddParseTree("analytics", analyticsTmpl.Tree)
 
 	return homeTmpl
+}
+
+func expireCookie(cookie *http.Cookie) {
+	cookie.Expires = time.Now()
 }
