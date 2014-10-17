@@ -44,6 +44,15 @@ module.exports = class HomeView extends KDView
     @createJudges()
     @createJoinForm()
 
+    scroller = new KDCustomHTMLView
+      tagName : 'figure'
+      click   : ->
+        $(document.body).animate
+          scrollTop : window.innerHeight - 50
+          duration  : 300
+
+    @addSubView scroller, '.introduction'
+
 
   createJoinForm : ->
     {router} = KD.singletons

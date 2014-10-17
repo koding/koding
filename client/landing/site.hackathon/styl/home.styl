@@ -39,11 +39,31 @@ body.home
       size                100% 100%
       abs                 0px 0 0 0px
 
+    figure
+      size                300px 100px
+      abs                 0 50% 75px 0
+      margin-right        -150px
+      bg                  color transparent
+      cursor              pointer
+      &:after
+        content           ''
+        r-sprite          home 'slideshow-next-light'
+        display           block
+        margin            7px 0 0 107px
+        opacity           .5
+        vendor            transform, rotate(90deg)
+        vendor            transition, opacity .2s ease
+      &:hover
+        &:after
+          opacity         1
+
+
     video
       z-index             0
       min-width           100%
       min-height          100%
       size                auto auto
+      bg                  color black
       bg                  size cover
       abs                 0px 0 0 0px
 
