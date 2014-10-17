@@ -212,18 +212,44 @@ body.home
 
     article
       padding             53px 276px 0 53px
-      font-size           14px
-      color               #333333
+      font-size           16px
+      color               #111
       letter-spacing      .05em
 
       a
         color             #1563BC
-        borderize(#1563BC)
+        borderize         #1563BC
+
+      h4, h5
+        font-weight       400
+        display           inline-block
+        text-transform    uppercase
+        line-height       2em
+        bg                color rgba(0,0,0,.05)
+        // bg                color #FEEF00
+        color             #313131
+        padding           0 26px// 0 53px
+        margin-left       -26px
+        // border-left       6px solid #848484
+        // shadow            0 3px 0 rgba(0,0,0,.3)
+        rel()
 
       h4
-        font-weight       600
-        font-size         18px
-        line-height       26px
+        // color             white
+        font-size         30px
+        // rounded           8px 8px 8px 0
+        z-index           0
+
+      h5
+        // font-weight       400
+        font-size         21px
+        padding-bottom    8px
+        // color             #848484
+        // rounded           0 0 8px 8px
+        z-index           1
+        i
+          // color           white
+          color           black
 
       p
         padding           26px 0 0
@@ -257,14 +283,15 @@ body.home
             margin-right 12px
 
       &.judges
-        background        #f8f8f8
-        border            1px solid #fff
-        padding-right     112px
-        vendor            transform, skewY(-2deg) translateY(-50px)
-        margin-top        70px
 
-        h4
-          margin-bottom   32px
+        margin-top        32px
+        padding           0 53px
+
+        > div
+          vendor          transform, skewY(-2deg) translateY(-50px)
+          margin-top      70px
+          width           calc(100% + 106px)
+          margin-left     -53px
 
         .judge
           width           20%
@@ -292,7 +319,6 @@ body.home
       width               232px
       abs                 46px 0px 0 0
       padding             0 42px
-      border-left         1px solid #f2f2f2
       borderBox()
 
       &:after
@@ -304,6 +330,9 @@ body.home
         background-image  -webkit-linear-gradient(#f2f2f2, rgba(255,255,255,0))
         background-image  -moz-linear-gradient(#f2f2f2, rgba(255,255,255,0))
         background-image  linear-gradient(#f2f2f2, rgba(255,255,255,1))
+
+      h4
+        margin-bottom   32px
 
       img
         width             100%

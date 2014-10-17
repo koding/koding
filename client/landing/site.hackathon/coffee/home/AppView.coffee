@@ -37,6 +37,7 @@ module.exports = class HomeView extends KDView
       isWinner           : no
 
   constructor: (options = {}, data)->
+
     super options, data
 
     @setPartial @partial()
@@ -135,7 +136,7 @@ module.exports = class HomeView extends KDView
           cssClass    : 'info'
           partial     : "#{name} <span>#{content.title}</span>"
 
-        @addSubView view, '.judges'
+        @addSubView view, '.judges > div'
 
 
   viewAppended : ->
@@ -156,7 +157,12 @@ module.exports = class HomeView extends KDView
 
     { cap, prize, totalApplicants, approvedApplicants } = getStats()
 
-    return "PRIZE: <span>$#{prize.toLocaleString()}</span></span> TOTAL SLOTS: <span>#{cap.toLocaleString()}</span> APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span> APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>"
+    return """
+      PRIZE: <span>$#{prize.toLocaleString()}</span>
+      TOTAL SLOTS: <span>#{cap.toLocaleString()}</span>
+      APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span>
+      APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>
+      """
 
 
   updateGreeting: ->
@@ -194,7 +200,8 @@ module.exports = class HomeView extends KDView
     <section class="content">
       <div class="counters">#{@getStats()}</div>
       <article>
-        <h4>Calling Developers of the World - All countries, All ages alike. Let's CODE!</h4>
+        <h4>Calling Developers of the World</h4>
+        <h5>All countries, All ages. <i>Let's CODE!</i></h5>
 
         <p>Software is shaping our world. Yet developers are still far apart, and
         lacking a level playing field. Our browsers are now so strong to do everything
@@ -309,15 +316,16 @@ module.exports = class HomeView extends KDView
         </ol>
       </article>
 
-      <article class="judges clearfix">
+      <article class='judges'>
         <h4>Judges</h4>
+        <div class='clearfix'></div>
       </article>
       <aside class="partners">
-        <img src="./a/site.hackathon/images/partners/atom.jpg">
-        <img src="./a/site.hackathon/images/partners/atom.jpg">
-        <img src="./a/site.hackathon/images/partners/atom.jpg">
-        <img src="./a/site.hackathon/images/partners/atom.jpg">
-        <img src="./a/site.hackathon/images/partners/atom.jpg">
+        <h4>Sponsors</h4>
+        <img src="http://upload.wikimedia.org/wikipedia/en/archive/7/7d/20140812175330!Red_Bull.svg">
+        <img src="./a/site.hackathon/images/partners/aws.png">
+        <img src="./a/site.hackathon/images/partners/rackspace.jpg">
+        <img src="./a/site.hackathon/images/partners/chrome.png">
       </aside>
     </section>
     <footer>
