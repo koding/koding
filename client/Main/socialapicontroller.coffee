@@ -176,6 +176,13 @@ class SocialApiController extends KDController
   # if the message is mine and current window has focus.
   isFromThisBrowser = (message) ->
 
+    # selenium doesn't put focus into the
+    # spawned browser, it's causing problems.
+    # Probably a temporary fix.
+    # This flag needs to be set before running
+    # tests. ~Umut
+    return no  if KD.isTesting
+
     isMyPost  = KD.isMyPost message
     isFocused = KD.singletons.windowController.isFocused()
     isBlocker = isMyPost and isFocused
