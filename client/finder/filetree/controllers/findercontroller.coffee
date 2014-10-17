@@ -268,7 +268,6 @@ class NFinderController extends KDViewController
     callback {message:"Folder not exists: #{folderPath}"}
 
 
-  # FIXME THIS ~GG getPathHiearchy needs to be fixed for machine.uid
   expandFolders: (paths, callback=noop)->
 
     if typeof paths is 'string'

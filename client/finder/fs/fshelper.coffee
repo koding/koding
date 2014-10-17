@@ -225,14 +225,14 @@ class FSHelper
       , callback
 
   @getPathHierarchy = (fullPath)->
-    {path, vmName} = KD.getPathInfo fullPath
+    {path, machineUid} = KD.getPathInfo fullPath
     path = path.replace /^~/, "/home/#{KD.nick()}"
     nodes = path.split("/").filter (node)-> return !!node
     queue = for node in nodes
       subPath = nodes.join "/"
       nodes.pop()
-      "[#{vmName}]/#{subPath}"
-    queue.push "[#{vmName}]/"
+      "[#{machineUid}]/#{subPath}"
+    queue.push "[#{machineUid}]/"
     return queue
 
   @getFullPath = (file)->
