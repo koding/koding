@@ -245,19 +245,17 @@ KD.extend
     return {path, basename, parent, machineUid, isPublic}
 
   getPublicURLOfPath: (fullPath, secure=no)->
-    {vmName, isPublic, path} = KD.getPathInfo fullPath
+
+    {machineUid, isPublic, path} = KD.getPathInfo fullPath
     return unless isPublic
     pathPartials = path.match /^\/home\/(\w+)\/Web\/(.*)/
     return unless pathPartials
     [_, user, publicPath] = pathPartials
 
     publicPath or= ""
-    subdomain =
-      if /^shared\-/.test(vmName) and user is KD.nick()
-      then "#{user}."
-      else ""
+    domain = "#{machineUid}.#{KD.nick()}.#{KD.config.userSitesDomain}"
 
-    return "#{if secure then 'https' else 'http'}://#{subdomain}#{vmName}/#{publicPath}"
+    return "#{if secure then 'https' else 'http'}://#{domain}/#{publicPath}"
 
   getGroup: -> KD.currentGroup
 
