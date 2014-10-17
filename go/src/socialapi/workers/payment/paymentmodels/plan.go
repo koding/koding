@@ -44,8 +44,8 @@ func (p *Plan) ByProviderId(providerId, provider string) error {
 		"provider_plan_id": providerId,
 		"provider":         provider,
 	}
-
 	err := p.Find(selector)
+
 	return err
 }
 
@@ -54,8 +54,8 @@ func (p *Plan) ByTitleAndInterval(title, interval string) error {
 		"title":    title,
 		"interval": interval,
 	}
-
 	err := p.One(bongo.NewQS(selector))
+
 	return err
 }
 

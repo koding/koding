@@ -49,9 +49,6 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 
 	subscription := NewSubscription()
 	err := subscription.ByCustomerIdAndState(c.Id, "active")
-	if err != nil {
-		return nil, err
-	}
 
-	return subscription, nil
+	return subscription, err
 }

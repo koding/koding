@@ -70,29 +70,23 @@ func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
 	s.PlanId = planId
 	s.AmountInCents = amountInCents
 
-	return bongo.B.Update(s)
+	err := bongo.B.Update(s)
+
+	return err
 }
 
 func (s *Subscription) UpdateState(state string) error {
 	s.State = state
-
 	err := bongo.B.Update(s)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 	s.CanceledAt = t
-
 	err := bongo.B.Update(s)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 var (
@@ -107,8 +101,8 @@ func (s *Subscription) ByProviderId(providerId, provider string) error {
 		"provider_subscription_id": providerId,
 		"provider":                 provider,
 	}
-
 	err := s.Find(selector)
+
 	return err
 }
 
