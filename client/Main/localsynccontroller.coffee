@@ -98,9 +98,9 @@ class LocalSyncController extends KDController
     @storage.unsetKey "OE-#{fileName}"
 
   addToOpenedFiles: (fileName)->
-    vmName = FSHelper.getVMNameFromPath fileName
-    index  = @openedFiles.indexOf fileName
-    if index is -1 and vmName
+    machineUid = FSHelper.getUidFromPath fileName
+    index = @openedFiles.indexOf fileName
+    if index is -1 and machineUid
       @openedFiles.push fileName
       @storage.setValue "openedFiles", @openedFiles
 

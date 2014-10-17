@@ -1,9 +1,10 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
 	"flag"
 	"fmt"
+	"html/template"
 	"koding/artifact"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -17,13 +18,30 @@ import (
 )
 
 var (
-	Name            = "gowebserver"
-	flagConfig      = flag.String("c", "", "Configuration profile from file")
-	flagTemplates   = flag.String("t", "", "Change template directory")
-	conf            *config.Config
-	kodingGroupJson []byte
-	log             = logging.NewLogger(Name)
+	Name        = "gowebserver"
+	flagConfig  = flag.String("c", "", "Configuration profile from file")
+	log         = logging.NewLogger(Name)
+	kodingGroup *models.Group
+	conf        *config.Config
 )
+
+type HomeContent struct {
+	Version     string
+	Runtime     config.RuntimeOptions
+	User        LoggedInUser
+	Title       string
+	Description string
+	ShareUrl    string
+}
+
+type LoggedInUser struct {
+	Account    *models.Account
+	Machines   []*modelhelper.MachineContainer
+	Workspaces []*models.Workspace
+	Group      *models.Group
+	Username   string
+	SessionId  string
+}
 
 func initialize() {
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
@@ -33,22 +51,13 @@ func initialize() {
 		log.Critical("Please define config file with -c")
 	}
 
-	if *flagTemplates == "" {
-		log.Critical("Please define template folder with -t")
-	}
-
 	conf = config.MustConfig(*flagConfig)
 	modelhelper.Initialize(conf.Mongo)
 
-	kodingGroup, err := modelhelper.GetGroup("koding")
+	var err error
+	kodingGroup, err = modelhelper.GetGroup("koding")
 	if err != nil {
 		log.Critical("Couldn't fetching `koding` group: %v", err)
-		panic(err)
-	}
-
-	kodingGroupJson, err = json.Marshal(kodingGroup)
-	if err != nil {
-		log.Critical("Couldn't marshalling `koding` group: %v", err)
 		panic(err)
 	}
 }
@@ -70,7 +79,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
 	cookie, err := r.Cookie("clientId")
-	if err != nil || cookie.Value == "" {
+	if err != nil {
+		if err != http.ErrNoCookie {
+			log.Error("Couldn't fetch the cookie: %s", err)
+		}
+		log.Info("loggedout page took: %s", time.Since(start))
+		renderLoggedOutHome(w)
+
+		return
+	}
+
+	if cookie.Value == "" {
 		log.Info("loggedout page took: %s", time.Since(start))
 		renderLoggedOutHome(w)
 
@@ -81,7 +100,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := modelhelper.GetSession(clientId)
 	if err != nil {
-		log.Error("Failed to fetch session with clientId: %s", clientId)
+		log.Error("Couldn't fetch session with clientId %s: %s", clientId, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w) // TODO: clean up session
@@ -91,7 +110,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	username := session.Username
 	if username == "" {
-		log.Error("username is empty for session with clientId: %s", clientId)
+		log.Error("Username is empty for session with clientId: %s", clientId)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w)
@@ -105,7 +124,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		log.Error("Failed to fetch account with username: %s", username)
+		log.Error("Couldn't fetch account with username %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		renderLoggedOutHome(w)
@@ -118,11 +137,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		renderLoggedOutHome(w)
 
 		return
-	}
-
-	accountJson, err := json.Marshal(account)
-	if err != nil {
-		log.Error("Couldn't marshal account: %s", err)
 	}
 
 	//----------------------------------------------------------
@@ -143,11 +157,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		machines = []*modelhelper.MachineContainer{}
 	}
 
-	machinesJson, err := json.Marshal(machines)
-	if err != nil {
-		log.Error("Couldn't marshal account: %s", err)
-	}
-
 	//----------------------------------------------------------
 	// Workspaces
 	//----------------------------------------------------------
@@ -158,44 +167,69 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		workspaces = []*models.Workspace{}
 	}
 
-	workspacesJson, err := json.Marshal(workspaces)
-	if err != nil {
-		log.Error("Couldn't marshal workspaces: %s", err)
+	loggedInUser := LoggedInUser{
+		SessionId:  clientId,
+		Group:      kodingGroup,
+		Workspaces: workspaces,
+		Machines:   machines,
+		Account:    account,
+		Username:   username,
 	}
 
-	renderLoggedInHome(w,
-		accountJson, machinesJson, workspacesJson, kodingGroupJson,
-		username, clientId,
-	)
+	renderLoggedInHome(w, loggedInUser)
 
 	log.Info("loggedin page took: %s", time.Since(start))
 }
 
-func renderLoggedInHome(w http.ResponseWriter, account, machines, workspaces, group []byte, username, sessionId string) {
-	runtime, err := json.Marshal(conf.Client.RuntimeOptions)
-	if err != nil {
-		log.Error("Couldn't marshal runtime options: %s", err)
-		runtime = []byte("{}")
+func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
+	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
+
+	hc := buildHomeContent()
+	hc.Runtime = conf.Client.RuntimeOptions
+	hc.User = u
+
+	var buf bytes.Buffer
+	if err := homeTmpl.Execute(&buf, hc); err != nil {
+		log.Error("Failed to render loggedin page: %s", err)
+		renderLoggedOutHome(w)
+
+		return
 	}
 
-	version := conf.Version
-	html := fmt.Sprintf(templates.LoggedInHome,
-		version, version, //css
-		runtime,
-		account, machines, workspaces, group,
-		version, version, version, //json
-		username, sessionId,
-	)
-
-	fmt.Fprintf(w, html)
+	fmt.Fprintf(w, buf.String())
 }
 
 func renderLoggedOutHome(w http.ResponseWriter) {
-	version := conf.Version
-	html := fmt.Sprintf(templates.LoggedOutHome,
-		version, version, //css
-		version, version, version, version, //js
-	)
+	homeTmpl := buildHomeTemplate(templates.LoggedOutHome)
 
-	fmt.Fprintf(w, html)
+	hc := buildHomeContent()
+
+	var buf bytes.Buffer
+	if err := homeTmpl.Execute(&buf, hc); err != nil {
+		log.Error("Failed to render loggedout page: %s", err)
+	}
+
+	fmt.Fprintf(w, buf.String())
+}
+
+func buildHomeContent() HomeContent {
+	hc := HomeContent{
+		Version:  conf.Version,
+		ShareUrl: conf.Client.RuntimeOptions.MainUri,
+	}
+	hc.Title = "Koding | Say goodbye to your localhost and write code in the cloud"
+	hc.Description = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+
+	return hc
+}
+
+func buildHomeTemplate(content string) *template.Template {
+	homeTmpl := template.Must(template.New("home").Parse(content))
+	headerTmpl := template.Must(template.New("header").Parse(templates.Header))
+	analyticsTmpl := template.Must(template.New("analytics").Parse(templates.Analytics))
+
+	homeTmpl.AddParseTree("header", headerTmpl.Tree)
+	homeTmpl.AddParseTree("analytics", analyticsTmpl.Tree)
+
+	return homeTmpl
 }
