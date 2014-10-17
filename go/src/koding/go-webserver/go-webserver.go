@@ -18,9 +18,13 @@ import (
 )
 
 var (
-	Name        = "gowebserver"
-	flagConfig  = flag.String("c", "", "Configuration profile from file")
-	log         = logging.NewLogger(Name)
+	Name              = "gowebserver"
+	kodingTitle       = "Koding | Say goodbye to your localhost and write code in the cloud"
+	kodingDescription = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+
+	flagConfig = flag.String("c", "", "Configuration profile from file")
+	log        = logging.NewLogger(Name)
+
 	kodingGroup *models.Group
 	conf        *config.Config
 )
@@ -214,11 +218,11 @@ func renderLoggedOutHome(w http.ResponseWriter) {
 
 func buildHomeContent() HomeContent {
 	hc := HomeContent{
-		Version:  conf.Version,
-		ShareUrl: conf.Client.RuntimeOptions.MainUri,
+		Version:     conf.Version,
+		ShareUrl:    conf.Client.RuntimeOptions.MainUri,
+		Title:       kodingTitle,
+		Description: kodingDescription,
 	}
-	hc.Title = "Koding | Say goodbye to your localhost and write code in the cloud"
-	hc.Description = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
 	return hc
 }
