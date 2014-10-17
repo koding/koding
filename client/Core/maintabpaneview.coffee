@@ -11,18 +11,13 @@ class MainTabPane extends KDTabPaneView
 
     super
 
-    KD.utils.defer =>
-      {body, documentElement}   = document
-      documentElement.scrollTop = @lastScrollTops.window
-      body.scrollTop            = @lastScrollTops.body
+    KD.utils.defer => window.scrollTo 0, @lastScrollTops.window
 
 
   hide: ->
 
     return  unless @active
 
-    {body, documentElement} = document
-    @lastScrollTops.window  = documentElement.scrollTop
-    @lastScrollTops.body    = body.scrollTop
+    @lastScrollTops.window = window.scrollY
 
     super
