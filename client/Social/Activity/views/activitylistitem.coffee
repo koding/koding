@@ -5,7 +5,7 @@ class ActivityListItemView extends KDListItemView
   constructor:(options = {}, data)->
 
     options.type               = 'activity'
-    options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
+    options.cssClass           = KD.utils.curry 'activity-item status fade-out', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
     options.attributes       or= {}
@@ -86,8 +86,10 @@ class ActivityListItemView extends KDListItemView
 
   initViewEvents: ->
 
-    @settingsButton.on 'ActivityIsDeleted',     @bound 'delete'
-    @settingsButton.on 'ActivityEditIsClicked', @bound 'showEditWidget'
+    @settingsButton.on 'ActivityDeleteStarted'  , @bound 'hide'
+    @settingsButton.on 'ActivityDeleteSucceded' , @bound 'delete'
+    @settingsButton.on 'ActivityDeleteFailed'   , @bound 'show'
+    @settingsButton.on 'ActivityEditIsClicked'  , @bound 'showEditWidget'
 
 
   initDataEvents: ->
@@ -151,13 +153,6 @@ class ActivityListItemView extends KDListItemView
     @unsetClass 'editing'
     list = @getDelegate()
     list.emit 'EditMessageReset'
-
-
-  delete: ->
-
-    @emit 'ActivityIsDeleted'
-    list.removeItem this
-    @destroy()
 
 
   # setAnchors: ->
@@ -224,8 +219,36 @@ class ActivityListItemView extends KDListItemView
   partial:-> ''
 
 
-  hide:-> @setClass   'hidden-item'
-  show:-> @unsetClass 'hidden-item'
+  hide: ->
+
+    @isBeingHidden = yes
+    @setClass 'out'
+    @setCss 'margin-top', "-#{@getHeight()}px"
+
+    KD.utils.wait 347 + 300, =>
+      @emit 'HideAnimationFinished'
+      @setClass 'hidden'
+      @isBeingHidden = no
+
+
+  show: -> @whenSubmitted().then => @unsetClass 'hidden out'
+
+
+  whenSubmitted: ->
+    new Promise (resolve) =>
+      if @isBeingHidden
+      then @once 'HideAnimationFinished', -> resolve()
+      else resolve()
+
+
+  delete: ->
+
+    @whenSubmitted().then =>
+      list = @getDelegate()
+      @emit 'ActivityIsDeleted'
+      list.removeItem this
+      @destroy()
+
 
   render : ->
     super
