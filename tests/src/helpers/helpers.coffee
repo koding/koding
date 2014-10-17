@@ -73,19 +73,9 @@ module.exports =
     if shouldBeginTest
       @beginTest(browser)
 
-    browser.click '[testpath="public-feed-link/Activity/Topic/public"]'
 
     post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
-
-    browser
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', post
-      .click                  '[testpath=post-activity-button]'
-      .pause                  6000 # required
-
-    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+    @doPostActivity(browser, post)
 
     return post
 
@@ -103,6 +93,20 @@ module.exports =
     browser.assert.containsText  '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
     return comment
+
+
+  doPostActivity: (browser, post) ->
+
+    browser
+      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', post
+      .click                  '[testpath=post-activity-button]'
+      .pause                  6000 # required
+
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
 
   getUrl: ->
