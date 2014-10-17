@@ -42,11 +42,8 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 		AmountInCents:          plan.AmountInCents,
 	}
 	err = subModel.Create()
-	if err != nil {
-		return nil, err
-	}
 
-	return subModel, nil
+	return subModel, err
 }
 
 func FindCustomerSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
@@ -81,11 +78,8 @@ func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmo
 	}
 
 	err = subscription.UpdateState(SubscriptionStateCanceled)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Query) ([]paymentmodel.Subscription, error) {
@@ -115,11 +109,8 @@ func CancelSubscriptionAndRemoveCC(customer *paymentmodel.Customer, currentSubsc
 	}
 
 	err = RemoveCreditCard(customer)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscriptions []paymentmodel.Subscription, plan *paymentmodel.Plan) error {
@@ -168,9 +159,6 @@ func handleUpgrade(currentSubscription paymentmodel.Subscription, customer *paym
 	}
 
 	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
-	if err != nil {
-		return err
-	}
 
 	return err
 }
@@ -189,9 +177,6 @@ func handleDowngrade(currentSubscription paymentmodel.Subscription, customer *pa
 	}
 
 	err = currentSubscription.UpdateTimeForDowngrade(time.Now())
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

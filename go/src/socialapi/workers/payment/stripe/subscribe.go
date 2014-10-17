@@ -66,11 +66,8 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	err = CancelSubscriptionAndRemoveCC(customer, &currentSubscription)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func removeCreditCardHelper(customer *paymentmodel.Customer) {

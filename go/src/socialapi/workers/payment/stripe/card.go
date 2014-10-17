@@ -94,11 +94,8 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 		Customer: externalCustomer.Id,
 	}
 	err = stripeCard.Del(creditCard.Id, creditCardParams)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func UpdateCreditCardIfEmpty(accId, token string) error {

@@ -56,11 +56,8 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 	}
 
 	err = planModel.Create()
-	if err != nil {
-		return nil, err
-	}
 
-	return planModel, nil
+	return planModel, err
 }
 
 func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
