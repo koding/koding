@@ -3,12 +3,13 @@
 encoder      = require 'htmlencode'
 
 module.exports = (options = {})->
-  options.title ?= "A new way for developers to work."
+  options.title ?= "Koding | Say goodbye to your localhost and write code in the cloud."
   options.shareUrl ?= "https://koding.com"
   options.image ?= "#{uri.address}/a/images/logos/share_logo.png"
   options.body ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser."
 
   """
+  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
   <meta charset="utf-8">
 
   <meta name="msvalidate.01" content="F56689F2116FE1CC34876D855B2A5A8A" />
@@ -23,7 +24,7 @@ module.exports = (options = {})->
   <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
-  <meta property="og:title" content="Koding - #{encoder.XSSEncode options.title}"/>
+  <meta property="og:title" content="#{encoder.XSSEncode options.title}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
   <meta property="og:image" content="#{options.image}"/>
@@ -36,7 +37,7 @@ module.exports = (options = {})->
   <!-- twitter cards -->
   <meta name="twitter:site" content="@koding"/>
   <meta name="twitter:url" content="#{options.shareUrl}"/>
-  <meta name="twitter:title" content="Koding - #{encoder.XSSEncode options.title}"/>
+  <meta name="twitter:title" content="#{encoder.XSSEncode options.title}"/>
   <meta name="twitter:creator" content="@koding"/>
   <meta name="twitter:card" content="summary"/>
   <meta name="twitter:image" content="#{options.image}"/>
@@ -49,5 +50,7 @@ module.exports = (options = {})->
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Koding">
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1">
+
+  <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
   """
