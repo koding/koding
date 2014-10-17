@@ -126,14 +126,14 @@ func (s *Subscription) ByCustomerIdAndState(customerId int64, state string) erro
 	return err
 }
 
-func (s *Subscription) ByCanceledAtGte(t time.Time) ([]*Subscription, error) {
-	subscriptions := []*Subscription{}
+func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
+	subscriptions := []Subscription{}
 
 	err := bongo.B.DB.
 		Table(s.TableName()).
 		Where(
-		"canceled_at > ", t,
-	).Find(&subscriptions).Error
+		"canceled_at > ?", t,
+	).Find(subscriptions).Error
 
 	return subscriptions, err
 }
