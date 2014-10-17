@@ -165,16 +165,9 @@ module.exports =
 
   sendHashtagActivity: (browser) ->
 
-    helpers.beginTest(browser)
+    helpers.sendHashtagActivity(browser)
+    browser.end()
 
-    paragraph = helpers.getFakeText()
-    hashtag   = '#' + paragraph.split(' ')[0]
-    post      = paragraph + ' ' + hashtag
 
-    helpers.doPostActivity(browser, post)
-
-    browser
-      .assert.containsText activitySelector + ' .has-markdown p a:first-child', hashtag # Assertion
-      .end()
 
 
