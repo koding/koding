@@ -34,7 +34,7 @@ type Kloud struct {
 	Storage Storage
 
 	// DomainStorage is used to store persistent data about domain data
-	DomainStorage DomainStorage
+	DomainStorage protocol.DomainStorage
 
 	// Locker is used to lock/unlock distributed locks based on unique ids
 	Locker Locker

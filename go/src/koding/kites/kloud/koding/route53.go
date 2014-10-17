@@ -8,6 +8,7 @@ import (
 
 	"github.com/dchest/validator"
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/route53"
 )
 
@@ -21,8 +22,9 @@ type DNS struct {
 }
 
 // NewDNSClient initializes a new DNS instance with default Koding credentials
-func NewDNSClient(hostedZone string) *DNS {
-	dns := route53.New(DefaultKodingAuth, DefaultAWSRegion)
+func NewDNSClient(hostedZone string, auth aws.Auth) *DNS {
+	// our route53 is based on this region, so we use it
+	dns := route53.New(auth, aws.USEast)
 
 	hostedZones, err := dns.ListHostedZones("", 100)
 	if err != nil {

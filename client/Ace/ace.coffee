@@ -95,7 +95,6 @@ class Ace extends KDView
       @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
-      @addKeyCombo 'gotoLineL',  'Ctrl-L',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
 
       if createFindAndReplaceView

@@ -23,11 +23,11 @@ var (
 	MachineConstructorName = "JMachine"
 )
 
-func GetMachines(username string) ([]*MachineContainer, error) {
+func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"credential": username}).All(&machines)
+		return c.Find(bson.M{"users.id": userId}).All(&machines)
 	}
 
 	err := Mongo.Run(MachineColl, query)

@@ -1054,7 +1054,32 @@ func (s *S) TestSignatureWithEndpointPath(c *C) {
 	c.Assert(err, IsNil)
 
 	req := testServer.WaitRequest()
-	c.Assert(req.Form["Signature"], DeepEquals, []string{"QmvgkYGn19WirCuCz/jRp3RmRgFwWR5WRkKZ5AZnyXQ="})
+	c.Assert(req.Form["Signature"], DeepEquals, []string{"tyOTQ0c0T5ujskCPTWa5ATMtv7UyErgT339cU8O2+Q8="})
+}
+
+func (s *S) TestDescribeInstanceStatusExample(c *C) {
+	testServer.Response(200, nil, DescribeInstanceStatusExample)
+	options := &ec2.DescribeInstanceStatus{}
+	resp, err := s.ec2.DescribeInstanceStatus(options, nil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeInstanceStatus"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "3be1508e-c444-4fef-89cc-0b1223c4f02fEXAMPLE")
+	c.Assert(resp.InstanceStatus[0].InstanceId, Equals, "i-1a2b3c4d")
+	c.Assert(resp.InstanceStatus[0].InstanceState.Code, Equals, 16)
+	c.Assert(resp.InstanceStatus[0].SystemStatus.Status, Equals, "impaired")
+	c.Assert(resp.InstanceStatus[0].SystemStatus.Details[0].Name, Equals, "reachability")
+	c.Assert(resp.InstanceStatus[0].SystemStatus.Details[0].Status, Equals, "failed")
+	c.Assert(resp.InstanceStatus[0].SystemStatus.Details[0].ImpairedSince, Equals, "YYYY-MM-DDTHH:MM:SS.000Z")
+	c.Assert(resp.InstanceStatus[0].InstanceStatus.Details[0].Name, Equals, "reachability")
+	c.Assert(resp.InstanceStatus[0].InstanceStatus.Details[0].Status, Equals, "failed")
+	c.Assert(resp.InstanceStatus[0].InstanceStatus.Details[0].ImpairedSince, Equals, "YYYY-MM-DDTHH:MM:SS.000Z")
+	c.Assert(resp.InstanceStatus[0].Events[0].Code, Equals, "instance-retirement")
+	c.Assert(resp.InstanceStatus[0].Events[0].Description, Equals, "The instance is running on degraded hardware")
+	c.Assert(resp.InstanceStatus[0].Events[0].NotBefore, Equals, "YYYY-MM-DDTHH:MM:SS+0000")
+	c.Assert(resp.InstanceStatus[0].Events[0].NotAfter, Equals, "YYYY-MM-DDTHH:MM:SS+0000")
 }
 
 func (s *S) TestAllocateAddressExample(c *C) {
@@ -1268,4 +1293,66 @@ func (s *S) TestResetImageAttribute(c *C) {
 
 	c.Assert(err, IsNil)
 	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+}
+
+func (s *S) TestDescribeAvailabilityZonesExample1(c *C) {
+	testServer.Response(200, nil, DescribeAvailabilityZonesExample1)
+
+	resp, err := s.ec2.DescribeAvailabilityZones(nil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeAvailabilityZones"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.Zones, HasLen, 4)
+
+	z0 := resp.Zones[0]
+	c.Assert(z0.Name, Equals, "us-east-1a")
+	c.Assert(z0.Region, Equals, "us-east-1")
+	c.Assert(z0.State, Equals, "available")
+	c.Assert(z0.MessageSet, HasLen, 0)
+
+	z1 := resp.Zones[1]
+	c.Assert(z1.Name, Equals, "us-east-1b")
+	c.Assert(z1.Region, Equals, "us-east-1")
+	c.Assert(z1.State, Equals, "available")
+	c.Assert(z1.MessageSet, HasLen, 0)
+
+	z2 := resp.Zones[2]
+	c.Assert(z2.Name, Equals, "us-east-1c")
+	c.Assert(z2.Region, Equals, "us-east-1")
+	c.Assert(z2.State, Equals, "available")
+	c.Assert(z2.MessageSet, HasLen, 0)
+
+	z3 := resp.Zones[3]
+	c.Assert(z3.Name, Equals, "us-east-1d")
+	c.Assert(z3.Region, Equals, "us-east-1")
+	c.Assert(z3.State, Equals, "available")
+	c.Assert(z3.MessageSet, HasLen, 0)
+}
+
+func (s *S) TestDescribeAvailabilityZonesExample2(c *C) {
+	testServer.Response(200, nil, DescribeAvailabilityZonesExample2)
+
+	resp, err := s.ec2.DescribeAvailabilityZones(nil)
+
+	req := testServer.WaitRequest()
+	c.Assert(req.Form["Action"], DeepEquals, []string{"DescribeAvailabilityZones"})
+
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "59dbff89-35bd-4eac-99ed-be587EXAMPLE")
+	c.Assert(resp.Zones, HasLen, 2)
+
+	z0 := resp.Zones[0]
+	c.Assert(z0.Name, Equals, "us-east-1a")
+	c.Assert(z0.Region, Equals, "us-east-1")
+	c.Assert(z0.State, Equals, "impaired")
+	c.Assert(z0.MessageSet, HasLen, 0)
+
+	z1 := resp.Zones[1]
+	c.Assert(z1.Name, Equals, "us-east-1b")
+	c.Assert(z1.Region, Equals, "us-east-1")
+	c.Assert(z1.State, Equals, "unavailable")
+	c.Assert(z1.MessageSet, DeepEquals, []string{"us-east-1b is currently down for maintenance."})
 }

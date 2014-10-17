@@ -53,8 +53,6 @@ class PrivateMessagePane extends MessagePane
 
   realtimeMessageArrived: (message) ->
 
-    return  if message.account._id is KD.whoami()._id
-
     wasAtBottom = @isPageAtBottom()
     item = @appendMessage message
 
@@ -240,7 +238,7 @@ class PrivateMessagePane extends MessagePane
         items.forEach (item, i) =>
           {scrollHeight} = body
           @prependMessage item
-          body.scrollTop += body.scrollHeight - scrollHeight
+          window.scrollTo 0, window.scrollY + (body.scrollHeight - scrollHeight)
 
         if items.length is 0
         then @listPreviousLink.hide()
@@ -397,19 +395,18 @@ class PrivateMessagePane extends MessagePane
   scrollDown: (item) ->
 
     return  unless @active
-    document.body.scrollTop = document.body.scrollHeight * 2
+    window.scrollTo 0, document.body.scrollHeight * 2
 
 
   setScrollTops: ->
 
-    {body} = document
-    @lastScrollTops.body = body.scrollTop or body.scrollHeight
+    {body: {scrollHeight}} = document
+    @lastScrollTops.window = window.scrollY or scrollHeight
 
 
   applyScrollTops: ->
 
-    {body} = document
-    body.scrollTop = @lastScrollTops.body
+    window.scrollTo 0, @lastScrollTops.window
 
 
   show: ->

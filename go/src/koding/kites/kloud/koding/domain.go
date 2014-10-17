@@ -99,6 +99,37 @@ func (d *Domains) Get(name string) (*protocol.Domain, error) {
 	}, nil
 }
 
+func (d *Domains) GetByMachine(machineId string) ([]*protocol.Domain, error) {
+	domainDocuments := make([]DomainDocument, 0)
+
+	query := func(c *mgo.Collection) error {
+		domain := DomainDocument{}
+
+		iter := c.Find(bson.M{"machineId": bson.ObjectIdHex(machineId)}).Batch(20).Iter()
+		for iter.Next(&domain) {
+			domainDocuments = append(domainDocuments, domain)
+		}
+
+		return iter.Close()
+	}
+
+	if err := d.DB.Run(domainCollection, query); err != nil {
+		return nil, err
+	}
+
+	domains := make([]*protocol.Domain, len(domainDocuments))
+
+	for i, domain := range domainDocuments {
+		domains[i] = &protocol.Domain{
+			Username:  domain.OriginId.Hex(),
+			MachineId: machineId,
+			Name:      domain.DomainName,
+		}
+	}
+
+	return domains, nil
+}
+
 func (d *Domains) UpdateMachine(name, machineId string) error {
 	updateData := bson.M{
 		"machineId":  "",
@@ -155,27 +186,4 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 	}
 
 	return nil
-}
-
-// userDomains returns a list of all domains that are bound to the given
-// machineId
-func (p *Provider) userDomains(machineId string) ([]DomainDocument, error) {
-	domains := make([]DomainDocument, 0)
-
-	query := func(c *mgo.Collection) error {
-		domain := DomainDocument{}
-
-		iter := c.Find(bson.M{"machineId": bson.ObjectIdHex(machineId)}).Batch(20).Iter()
-		for iter.Next(&domain) {
-			domains = append(domains, domain)
-		}
-
-		return iter.Close()
-	}
-
-	if err := p.Session.Run(domainCollection, query); err != nil {
-		return nil, err
-	}
-
-	return domains, nil
 }

@@ -4,10 +4,11 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"github.com/mitchellh/goamz/aws"
 	"log"
 	"sort"
 	"strings"
+
+	"github.com/mitchellh/goamz/aws"
 )
 
 var b64 = base64.StdEncoding
@@ -17,6 +18,7 @@ var b64 = base64.StdEncoding
 
 var s3ParamsToSign = map[string]bool{
 	"acl":                          true,
+	"delete":                       true,
 	"location":                     true,
 	"logging":                      true,
 	"notification":                 true,
@@ -45,6 +47,11 @@ func sign(auth aws.Auth, method, canonicalPath string, params, headers map[strin
 	// add security token
 	if auth.Token != "" {
 		headers["x-amz-security-token"] = []string{auth.Token}
+	}
+
+	if auth.SecretKey == "" {
+		// no auth secret; skip signing, e.g. for public read-only buckets.
+		return
 	}
 
 	for k, v := range headers {
@@ -111,6 +118,7 @@ func sign(auth aws.Auth, method, canonicalPath string, params, headers map[strin
 	} else {
 		headers["Authorization"] = []string{"AWS " + auth.AccessKey + ":" + string(signature)}
 	}
+
 	if debug {
 		log.Printf("Signature payload: %q", payload)
 		log.Printf("Signature: %q", signature)

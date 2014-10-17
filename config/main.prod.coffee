@@ -21,7 +21,7 @@ Configuration = (options={}) ->
   githubuser          = options.githubuser     or "koding"
 
   mongo               = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
-  etcd                = "10.0.0.98:4001,10.0.0.99:4001,10.0.0.100:4001"
+  etcd                = "10.0.0.172:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
@@ -29,7 +29,7 @@ Configuration = (options={}) ->
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
-  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510 }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
@@ -93,9 +93,9 @@ Configuration = (options={}) ->
 
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
-    authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
+    authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
-    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
+    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3    , port  : 9540 }
     elasticSearch                  : {host          : "localhost"                 , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
@@ -104,8 +104,9 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
+    rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite"        , artifactPort : 9520  }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -134,6 +135,8 @@ Configuration = (options={}) ->
     mixpanel                       : mixpanel.token
     recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
     segment                        : '4c570qjqo0'
+    googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    siftScience                    : 'e6c3413236e08107'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -177,6 +180,7 @@ Configuration = (options={}) ->
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
+    siftScience       : '3305771626'
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
@@ -186,36 +190,44 @@ Configuration = (options={}) ->
   GOBIN = "#{projectRoot}/go/bin"
 
 
-  # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+  # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
     gowebserver         :
       group             : "webserver"
       ports             :
-         incoming       : 6500
+         incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/go-webserver -c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/"
+        command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
         locations       : ["~^/IDE/.*"]
+        auth            : no
+      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
     kontrol             :
       group             : "environment"
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
 
     # ngrokProxy          :
     #   group             : "environment"
@@ -236,17 +248,23 @@ Configuration = (options={}) ->
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
+      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
     rerouting           :
       group             : "webserver"
       supervisord       :
         command         : "#{GOBIN}/rerouting -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
     authworker          :
       group             : "webserver"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     sourcemaps          :
       group             : "webserver"
@@ -258,7 +276,9 @@ Configuration = (options={}) ->
     emailsender         :
       group             : "webserver"
       supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -290,11 +310,8 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/xhr"]
-
-    # guestCleaner        :
-      # group             : "webserver"
-      # supervisord       :
-        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     # clientWatcher       :
     #   group             : "webserver"
@@ -311,6 +328,8 @@ Configuration = (options={}) ->
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
+      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
 
     dailyemailnotifier  :
       group             : "socialapi"

@@ -167,8 +167,8 @@ class CommentListItemView extends KDListItemView
     owner         = KD.isMyPost comment
     postOwner     = KD.isMyPost activity
     hasPermission = KD.utils.hasPermission.bind()
-    canEdit       = hasPermission 'edit comments'
-    canEditOwn    = hasPermission 'edit own comments'
+    canEdit       = hasPermission 'edit posts'
+    canEditOwn    = hasPermission 'edit own posts'
 
     if canEdit or (owner and canEditOwn)
       @addMenuView edit: yes, delete: yes

@@ -1,42 +1,39 @@
 package models
 
 import (
-	"time"
+    "time"
 
-	"labix.org/v2/mgo/bson"
+    "labix.org/v2/mgo/bson"
 )
 
 type Machine struct {
-	ObjectId bson.ObjectId `bson:"_id" json:"_id"`
-	Assignee struct {
-		InProgress bool `bson:"inProgress" json:"inProgress"`
-	} `bson:"assignee" json:"assignee"`
-	CreatedAt time.Time `bson:"createdAt" json:"createdAt" `
-	Domain    string    `bson:"domain" json:"domain"`
-	Groups    []struct {
-		Id bson.ObjectId `bson:"id" json:"id"`
-	} `bson:"groups" json:"groups"`
-	Label string `bson:"label" json:"label"`
-	Meta  struct {
-		Type         string `bson:"type" json:"type"`
-		Region       string `bson:"region" json:"region"`
-		SourceAmi    string `bson:"source_ami" json:"source_ami"`
-		InstanceType string `bson:"instance_type" json:"instance_type"`
-		StorageSize  int    `bson:"storage_size" json:"storage_size"`
-		AlwaysOn     bool   `bson:"alwaysOn" json:"alwaysOn"`
-	} `bson:"meta" json:"meta"`
-	Provider    string        `bson:"provider" json:"provider"`
-	Provisoners []interface{} `bson:"provisoners" json:"provisoners"`
-	Status      struct {
-		State      string    `bson:"state" json:"state"`
-		ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`
-	} `bson:"status" json:"status"`
-	Uid   string `bson:"uid" json:"uid"`
-	Users []struct {
-		Id    bson.ObjectId `bson:"id" json:"id"`
-		Sudo  bool          `bson:"sudo" json:"sudo"`
-		Owner bool          `bson:"owner" json:"owner"`
-	} `bson:"users" json:"users"`
-	UserDeleted bool   `bson:"userDeleted" json:"userDeleted"`
-	Slug        string `bson:"slug" json:"slug"`
+    ObjectId    bson.ObjectId   `bson:"_id" json:"_id"`
+    Uid         string          `bson:"uid" json:"uid"`
+    QueryString string          `bson:"queryString" json:"queryString"`
+    IpAddress   string          `bson:"ipAddress" json:"ipAddress"`
+    Domain      string          `bson:"domain" json:"domain"`
+    Provider    string          `bson:"provider" json:"provider"`
+    Label       string          `bson:"label" json:"label"`
+    Slug        string          `bson:"slug" json:"slug"`
+    Provisoners []bson.ObjectId `bson:"provisoners" json:"provisoners"`
+    Credential  string          `bson:"credential" json:"credential"`
+    Users       []struct {
+        Id    bson.ObjectId `bson:"id" json:"id"`
+        Sudo  bool          `bson:"sudo" json:"sudo"`
+        Owner bool          `bson:"owner" json:"owner"`
+    } `bson:"users" json:"users"`
+    Groups []struct {
+        Id bson.ObjectId `bson:"id" json:"id"`
+    } `bson:"groups" json:"groups"`
+    CreatedAt time.Time `bson:"createdAt" json:"createdAt" `
+    Status    struct {
+        State      string    `bson:"state" json:"state"`
+        ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`
+    } `bson:"status" json:"status"`
+    Meta     interface{} `bson:"meta" json:"meta"`
+    Assignee struct {
+        AssignedAt time.Time `bson:"assignedAt" json:"assignedAt"`
+        InProgress bool      `bson:"inProgress" json:"inProgress"`
+    } `bson:"assignee" json:"assignee"`
+    UserDeleted bool `bson:"userDeleted" json:"userDeleted"`
 }

@@ -8,9 +8,11 @@ import (
 	"os"
 	"time"
 
+	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/koding"
+	"koding/kites/kloud/multiec2"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -21,7 +23,10 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
+	"github.com/mitchellh/goamz/aws"
 )
+
+var Name = "kloud"
 
 // Config defines the configuration that Kloud needs to operate.
 type Config struct {
@@ -70,6 +75,9 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
+
+	// Artifacts endpoint port
+	ArtifactPort int
 }
 
 func main() {
@@ -120,6 +128,10 @@ func main() {
 		}
 	}
 
+	// TODO use kite's http server instead of creating another one here
+	// this is used for application lifecycle management
+	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
+
 	k.Run()
 }
 
@@ -155,7 +167,13 @@ func newKite(conf *Config) *kite.Kite {
 
 	kontrolPrivateKey, kontrolPublicKey := kontrolKeys(conf)
 
-	dnsInstance := koding.NewDNSClient(conf.HostedZone)
+	// Credential belongs to the `koding-kloud` user in AWS IAM's
+	auth := aws.Auth{
+		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
+		SecretKey: "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",
+	}
+
+	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
@@ -163,9 +181,9 @@ func newKite(conf *Config) *kite.Kite {
 		Log:               newLogger("koding", conf.DebugMode),
 		Session:           db,
 		DomainStorage:     domainStorage,
-		EC2:               koding.NewEC2Client(),
+		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
 		DNS:               dnsInstance,
-		Bucket:            koding.NewBucket("koding-klient", klientFolder),
+		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
 		Test:              conf.TestMode,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
@@ -209,7 +227,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
-	kld.Log = newLogger("kloud", conf.DebugMode)
+	kld.Log = newLogger(Name, conf.DebugMode)
 
 	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {

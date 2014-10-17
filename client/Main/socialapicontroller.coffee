@@ -171,11 +171,34 @@ class SocialApiController extends KDController
   mapChannels: mapChannels
 
 
+  # this method will prevent the arrival of
+  # realtime messages to the individual messages
+  # if the message is mine and current window has focus.
+  isFromThisBrowser = (message) ->
 
-  forwardMessageEvents = (source, target,  events)->
-    events.forEach ({event, mapperFn}) ->
+    # selenium doesn't put focus into the
+    # spawned browser, it's causing problems.
+    # Probably a temporary fix.
+    # This flag needs to be set before running
+    # tests. ~Umut
+    return no  if KD.isTesting
+
+    isMyPost  = KD.isMyPost message
+    isFocused = KD.singletons.windowController.isFocused()
+    isBlocker = isMyPost and isFocused
+
+    return not isBlocker
+
+  isFromThisBrowser : isFromThisBrowser
+
+  forwardMessageEvents = (source, target, events) ->
+    events.forEach ({event, mapperFn, validatorFn}) ->
       source.on event, (data, rest...) ->
+
         data = mapperFn data
+
+        return  unless validatorFn?(data)
+
         target.emit event, data, rest...
 
   forwardMessageEvents : forwardMessageEvents
@@ -314,8 +337,8 @@ class SocialApiController extends KDController
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded", mapperFn: mapActivity}
-      {event: "MessageRemoved", mapperFn: mapActivity}
+      {event: "MessageAdded",   mapperFn: mapActivity, validatorFn: isFromThisBrowser}
+      {event: "MessageRemoved", mapperFn: mapActivity, validatorFn: isFromThisBrowser}
       {event: "AddedToChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]

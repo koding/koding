@@ -27,7 +27,7 @@ func IsAdmin(username string) bool {
 func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) error {
 	// check if the incoming user is in the list of permitted user list
 	for _, u := range users {
-		if userId == u.Id {
+		if userId == u.Id && u.Owner {
 			return nil // ok he/she is good to go!
 		}
 	}

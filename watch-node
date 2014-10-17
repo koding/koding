@@ -12,10 +12,16 @@ command="node $path"
 # echo [watch-node $$] running $command and daemonizing, watching folder $watchfolder every 2 secs.
 # echo
 
+
 pid=0
 while [[ true ]]; do
-
-    files=`find $watchfolder -type f -mtime -2s`
+    
+    if [[ `uname` == "Darwin" ]]; then
+      files=`find $watchfolder -type f -mtime -2s`
+    else
+      files=`find $watchfolder -type f -mmin $(echo 2/60 | bc -l)`
+    fi
+    
     if [[ $files != "" ]]
     then
         echo [watch-node $$] files changed [$files] killing $pid $command

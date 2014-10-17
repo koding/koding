@@ -22,18 +22,18 @@ func TestTrollModeSetting(t *testing.T) {
 			Convey("then we should be able to mark as troll", func() {
 				res := rest.MarkAsTroll(account)
 				So(res, ShouldBeNil)
-				Convey("sholdnt be able to mark as troll twice", func() {
+				Convey("shold be able to mark as troll twice", func() {
 					res := rest.MarkAsTroll(account)
-					So(res, ShouldNotBeNil)
+					So(res, ShouldBeNil)
 				})
 			})
 
 			Convey("should be able to unmark as troll", func() {
 				res := rest.UnMarkAsTroll(account)
 				So(res, ShouldBeNil)
-				Convey("should not be able to unmark as troll twice", func() {
+				Convey("should be able to unmark as troll twice", func() {
 					res := rest.UnMarkAsTroll(account)
-					So(res, ShouldNotBeNil)
+					So(res, ShouldBeNil)
 				})
 			})
 		})

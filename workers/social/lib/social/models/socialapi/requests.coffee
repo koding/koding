@@ -430,7 +430,7 @@ setCookieIfRequired = (reqOptions, data)->
   if data?.sessionToken
     j = request.jar()
     cookie = request.cookie "clientId=#{data.sessionToken}"
-    j.setCookie cookie, reqOptions.url
+    j.setCookie cookie, reqOptions.url, {}, ->
     reqOptions.jar = j
 
     delete data.sessionToken

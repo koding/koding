@@ -31,12 +31,16 @@ class ProfileLinkView extends LinkView
       tagName   : 'span'
 
     @setClass "profile"
+    @updateHref()
+
+
+  updateHref: ->
+    nickname = @getData().profile?.nickname
+    @setAttribute "href", "/#{nickname}"  if nickname
+
 
   render: (fields) ->
-    nickname = @getData().profile?.nickname
-    slug = KD.getGroup()?.slug or 'koding'
-    href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
-    @setAttribute "href", href  if nickname
+    @updateHref()
 
     # only admin can see troll users
     if KD.checkFlag "super-admin"
