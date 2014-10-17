@@ -68,6 +68,28 @@ reviveClient = (client, callback, revive = yes)->
       callback null, res
 
 
+locks = []
+
+lockProcess = (client)->
+  {nickname} = client.connection.delegate.profile
+  if (locks.indexOf nickname) > -1
+    # console.log "[LOCKER] User #{nickname} requested to acquire lock again!"
+    return false
+  else
+    # console.log "[LOCKER] User #{nickname} locked."
+    locks.push nickname
+    return yes
+
+unlockProcess = (client)->
+  {nickname} = client.connection.delegate.profile
+  t = locks.indexOf nickname
+  if t > -1
+    # console.log "[UNLOCKER] User #{nickname} unlocked."
+    locks[t..t] = []
+  # else
+  #   console.log "[UNLOCKER] User #{nickname} was not locked, nothing to do."
+
+
 revive = do -> ({
     shouldReviveClient
     shouldPassCredential
