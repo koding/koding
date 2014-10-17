@@ -184,12 +184,10 @@ module.exports = class HomeView extends KDView
   partial: ->
 
     """
-    <div class="video-wrapper">
+    <section class="introduction">
       <video id="bgVideo" autoplay loop muted playbackspeed="0.1">
         <source src="./a/site.hackathon/images/intro-bg.webm" type="video/webm">
       </video>
-    </div>
-    <section class="introduction">
       <h2>
         JOIN THE WORLD’S FIRST GLOBAL HACKATHON <span>#WFGH</span>
       </h2>
@@ -197,8 +195,8 @@ module.exports = class HomeView extends KDView
           Join today to save your spot <strong>and win $10,000 in cash.</strong></h3>
       <div class="form-wrapper clearfix"></div>
     </section>
+    <div class="counters">#{@getStats()}</div>
     <section class="content">
-      <div class="counters">#{@getStats()}</div>
       <article>
         <h4>Calling Developers of the World</h4>
         <h5>All countries, All ages. <i>Let's CODE!</i></h5>

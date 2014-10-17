@@ -22,21 +22,21 @@ body
   font-family             OpenSansFamily
 
 body.home
-  background              black
 
-  .video-wrapper
-    left                  0
-    bottom                0
-    z-index               0
-    size                  100% 100%
-    fix()
+  section.introduction
+    size                  100% 100vh
+    padding               149px 45px 210px
+    text-align            center
+    position              relative
+    overflow              hidden
+    borderBox()
 
     &:after
       content             ''
       z-index             1
-      bg                  color rgba(0, 0, 0, .6)
+      bg                  color rgba(0, 0, 0, .3)
       size                100% 100%
-      abs()
+      abs                 0px 0 0 0px
 
     video
       z-index             0
@@ -44,17 +44,7 @@ body.home
       min-height          100%
       size                auto auto
       bg                  size cover
-      abs()
-
-
-
-  section.introduction
-    size                  100%, auto
-    padding               149px 45px 210px
-    text-align            center
-    position              relative
-    overflow              hidden
-    borderBox()
+      abs                 0px 0 0 0px
 
     > *
       position            relative
@@ -177,38 +167,47 @@ body.home
         .button-title
           color           inherit
 
+  .counters
+    letter-spacing      .1em
+    font-weight         200
+    color               #fff
+    font-size           14px
+    background          #2b2b2b
+    height              50px
+    line-height         50px
+    padding             0 26px
+    width               100%
+    text-align          center
+    margin-top          -50px
+    z-index             2
+    left                0
+    abs()
+    borderBox()
+
+    span
+      font-weight       700
+      margin-right      30px
+
+      &:last-of-type
+        margin-right    0
+
+
   section.content
     background            #fff
     rounded               0 0 8px 8px
-    max-width             949px
-    margin                -109px auto 0
+    width                 auto
+    max-width             1200px
+    margin                0 auto
     padding               0
     position              relative
     z-index               30
     borderBox()
 
+    // > *
+    //   max-width           1200px
+    //   margin              0 auto
 
-    .counters
-      letter-spacing      .1em
-      font-weight         200
-      rounded             8px 8px 0 0
-      color               #fff
-      font-size           14px
-      background          #2b2b2b
-      height              50px
-      line-height         50px
-      padding             0 26px
-      abs                 0 0 100% 0px
-      width               100%
-      text-align          center
-      borderBox()
 
-      span
-        font-weight       700
-        margin-right      30px
-
-        &:last-of-type
-          margin-right    0
 
     article
       padding             53px 276px 0 53px
