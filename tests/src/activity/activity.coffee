@@ -39,8 +39,8 @@ module.exports =
 
     helpers.postActivity(browser)
 
-    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
     selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    post = helpers.getFakeText()
 
     browser
       .waitForElementVisible      selector + ' .settings-menu-wrapper', 10000
@@ -60,8 +60,8 @@ module.exports =
     helpers.postActivity(browser)
     helpers.postActivity(browser, no)
 
-    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
     selector    = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
+    post = helpers.getFakeText()
 
     browser
       .waitForElementVisible        selector + ' .settings-menu-wrapper', 10000
@@ -78,9 +78,9 @@ module.exports =
 
     helpers.postComment(browser)
 
-    comment         =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
     selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
     commentSelector = selector + ' .comment-container .kdlistitemview-comment:first-child'
+    comment         = helpers.getFakeText()
 
     browser
       .waitForElementVisible    commentSelector, 3000
@@ -95,7 +95,7 @@ module.exports =
 
     selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
     commentSelector = selector + ' .comment-container button.comment-menu'
-    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    post            =  helpers.getFakeText()
 
     browser
       .waitForElementPresent    commentSelector, 3000
@@ -117,7 +117,7 @@ module.exports =
 
     selector        = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
     commentSelector = selector + ' .comment-container button.comment-menu'
-    post        =  faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    post            =  helpers.getFakeText()
 
     browser
       .waitForElementPresent    commentSelector, 3000

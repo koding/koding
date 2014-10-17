@@ -73,8 +73,8 @@ module.exports =
     if shouldBeginTest
       @beginTest(browser)
 
+    post = @getFakeText()
 
-    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
     @doPostActivity(browser, post)
 
     return post
@@ -83,7 +83,7 @@ module.exports =
 
     @postActivity(browser)
 
-    comment = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    comment = @getFakeText()
 
     browser
       .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
@@ -107,6 +107,10 @@ module.exports =
       .pause                  6000 # required
 
     browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+
+
+  getFakeText: ->
+    return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
   getUrl: ->
