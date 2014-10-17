@@ -81,9 +81,11 @@ class RealTimeManager extends KDObject
 
     data = doc.getModel().getRoot().get key
 
-    @bindRealtimeListeners data
-
-    return data
+    if data
+      @bindRealtimeListeners data
+      return data
+    else
+      return null
 
 
   create: (type, doc, key, initialValue) ->
