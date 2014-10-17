@@ -3,6 +3,8 @@ package paymenterrors
 import (
 	"errors"
 	"strings"
+
+	"github.com/jinzhu/gorm"
 )
 
 var (
@@ -25,6 +27,10 @@ var (
 	IsPlanNotFoundErr = func(err error) bool {
 		if err == nil {
 			return false
+		}
+
+		if err == gorm.RecordNotFound {
+			return true
 		}
 
 		return strings.Contains(

@@ -16,7 +16,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	if customer == nil {
+	if err == paymenterrors.ErrCustomerNotFound {
 		customer, err = CreateCustomer(token, accId, email)
 		if err != nil {
 			return err
