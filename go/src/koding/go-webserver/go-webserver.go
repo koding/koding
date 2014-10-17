@@ -26,9 +26,12 @@ var (
 )
 
 type HomeContent struct {
-	Version string
-	Runtime config.RuntimeOptions
-	User    LoggedInUser
+	Version     string
+	Runtime     config.RuntimeOptions
+	User        LoggedInUser
+	Title       string
+	Description string
+	ShareUrl    string
 }
 
 type LoggedInUser struct {
