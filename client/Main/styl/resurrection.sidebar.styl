@@ -15,9 +15,9 @@ sidebarSelectedBg = #262626
 
 #main-sidebar
 
-  size            258px 100%
+  size            215px 100%
   z-index         100
-  bg              color #323232
+  bg              color #38383B
   top             0
   left            0
   fix()
@@ -34,14 +34,14 @@ sidebarSelectedBg = #262626
     kalc              height, 100% \- 47px
 
   .logo-wrapper
-    size              100% 47px
-    bg                color #262626
-    padding           13px 0 0 23px
+    size              100% 42px
+    bg                color #131313
+    padding           14px 0 0 14px
     borderBox()
     a
       margin          0
       display         block
-      r-sprite        app logo-full
+      r-sprite        app logo-small
       cursor          default
 
   .more-items
@@ -127,15 +127,15 @@ sidebarSelectedBg = #262626
         z-index         1000
 
 .activity-sidebar
-  font-family         openSansFamily
+  font-family         adelleFamily
   padding             1px 16px
   borderBox()
 
   .more-link
     font-size         12px
-    color             #ababab
-    margin            0 0 0 8px
-    border-bottom     1px dotted #ababab
+    color             #6B6B71
+    margin            0 0 0 10px
+    borderize(#6B6B71)
     noTextDeco()
 
   .workspace.has-sub-items
@@ -190,25 +190,27 @@ sidebarSelectedBg = #262626
 
     // &.app
     &.workspace
-      color           sidebarActive
+      color           #D9D9D9
       font-size       12px
-      line-height     26px
-      padding         0 0 0 43px
+      line-height     22px
+      padding         0 0 0 45px
       rounded         0
 
       figure
         display       block
         width         16px
         height        16px
-        bg            color #222
-        abs           5px 0 0 22px
-        r-sprite      activity nav-workspace
+        bg            color #288CC1
+        abs           3px 0 0 24px
+        rounded       5px
+
       a
         padding           0
         display           block
-        size              auto 26px
+        size              auto 22px
+        line-height       23px
         opacity           1
-        color             sidebarActive
+        color             #D9D9D9
         max-width         155px
         ellipsis()
         borderBox()
@@ -236,11 +238,11 @@ sidebarSelectedBg = #262626
       bg              color rgba(21, 23, 26, 0.42)
 
     a
-      padding           5px 8px 5px 42px
+      padding           5px 8px 5px 34px
       display           block
       size              auto 26px
       opacity           1
-      color             sidebarActive
+      color             #fff
       borderBox()
       noTextDeco()
       &.add-app
@@ -273,7 +275,12 @@ sidebarSelectedBg = #262626
         r-sprite      app new-nav-ide
       &.vm
         > figure
-          r-sprite    app new-nav-vm
+          size        3px, 3px
+          rounded     100%
+          background  transparent
+          border      2px solid #6C6C6C
+          top         8px
+          left        12px
         > span
           r-sprite    app vm-settings-icon
           right       6px
@@ -287,7 +294,7 @@ sidebarSelectedBg = #262626
         &.notinitialized
           opacity     .5
         &.running > figure
-          r-sprite    app new-nav-vm-green
+          border      2px solid #8CEE71
         > .progressbar-container
           size        100% 3px
           background  none
@@ -336,7 +343,7 @@ sidebarSelectedBg = #262626
   > section
     size              auto auto
     overflow          visible
-    margin            0 0 15px 0
+    margin            0 0 22px 0
 
     &:hover h3.sidebar-title a
       opacity       1
@@ -373,8 +380,8 @@ sidebarSelectedBg = #262626
     color               #fff
 
   .kdlistitemview-sidebar-item
-    size              auto 28px
-    padding           5px 8px
+    size              auto 23px
+    padding           2px 15px
     rounded           4px
     font-size         12px
     overflow          visible
@@ -438,7 +445,7 @@ sidebarSelectedBg = #262626
       display        block
       font-weight    500
       color          sidebarGray
-      line-height    18px
+      line-height    19px
       font-size      14px
 
     .profile
@@ -623,7 +630,7 @@ sidebarSelectedBg = #262626
 .account-area
   bottom            0
   left              0
-  size              258px 59px
+  size              215px 59px
   fix()
 
   > div
@@ -722,12 +729,12 @@ h3.sidebar-title
   position        relative
   font-weight     600
   size            auto 1em
-  line-height     1em
-  font-size       12px
+  line-height     16px
+  font-size       10px
   color           #7F7F80
   text-transform  uppercase
   word-spacing    .2em
-  padding         19px 6px 12px
+  padding         14px 6px 12px
   pointer()
 
   a

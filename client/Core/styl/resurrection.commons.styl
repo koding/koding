@@ -157,7 +157,7 @@ validationRed = rgba(217, 58, 55, 0.65)
     fl()
 
 aside.app-sidebar
-  left            258px
+  left            215px
   top             0
   size            258px 100%
   z-index         10
@@ -662,6 +662,89 @@ button.app-settings-menu
 
 
 /*  */
+
+
+/* More vms modal  */
+
+.kdmodal.more-vms
+  background           #E7E7E7
+  font-family          adelleFamily
+
+  .kdmodal-title
+    border-bottom      1px solid #D0D0D0 !important
+    size               100%, 58px
+    line-height        63px !important
+    padding            0 16px 0 27px !important
+    margin             0 !important
+    borderBox()
+
+    span.title
+      display          inline
+      font-size        16px !important
+      color            #585858 !important
+      font-weight      400 !important
+
+    .kdbutton
+      font-family      inherit
+      background       #52A840
+      rounded          4px
+      height           29px
+      margin-top       15px
+      fr()
+
+      .button-title
+        font-family    inherit
+        font-size      10px
+        text-shadow    1px 1px 1px rgba(0,0,0,.22)
+
+  .close-icon
+    display            none
+
+  .kdmodal-inner
+    margin             0
+    background         transparent
+
+  .kdmodal-content
+    background         transparent
+    padding            24px !important
+    margin             0 !important
+    borderBox()
+
+    .kdlistitemview-sidebar-item
+      display          block
+      width            auto
+      height           35px
+      line-height      35px
+      padding-left     46px
+      color            #5E5E5E
+      font-size        14px
+
+      & ~ .kdlistitemview-sidebar-item
+        margin-top     8px
+
+      &:before
+        content        'K'
+        display        block
+        text-align     center
+        abs            0px 0 0 0px
+        size           35px, 35px
+        line-height    38px
+        background     #52A840
+        rounded        5px
+        color          #fff
+        font-size      14px
+
+      .kdbutton.clean-gray
+        font-size      0
+        background     none
+        border         none
+        shadow         none
+        outline        none
+        padding        0
+        r-sprite       'app', '16-cog'
+        margin-top     8px
+        fr()
+
 
 
 /* editor-advanced-settings-menu-button
