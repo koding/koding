@@ -138,20 +138,32 @@ module.exports =
       .end()
 
 
+  searchActivity: (browser) ->
+
+    post     = helpers.postActivity(browser)
+    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+
     browser
-      .assert.containsText selector + ' .comment-container', comment # Assertion
+      .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
+      .pause                    5000
+      .assert.containsText      selector , post # Assertion
       .end()
 
 
-  # searchActivity: (browser) ->
+  showMoreCommentLink: (browser) ->
 
-  #   post         = helpers.postActivity(browser)
+    helpers.postComment(browser)
 
-  #   selector        = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+    for i in [1..5]
+      helpers.postComment(browser, no, no)
 
-  #   browser
-  #     .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
-  #     .pause                    5000
-  #     .assert.containsText      selector , post # Assertion
-  #     .end()
+    browser
+      .refresh()
+      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 5000
+      .end()
+
+
+
+
+
 
