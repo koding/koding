@@ -13,6 +13,8 @@ class CommentListItemView extends KDListItemView
 
     @initDataEvents()
 
+    @bindTransitionEnd()
+
 
   initDataEvents: ->
 

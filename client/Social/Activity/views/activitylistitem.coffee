@@ -21,6 +21,8 @@ class ActivityListItemView extends KDListItemView
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account) =>
 
+    @bindTransitionEnd()
+
 
   createSubViews: ->
 
@@ -222,13 +224,26 @@ class ActivityListItemView extends KDListItemView
   hide: ->
 
     @isBeingHidden = yes
-    @setClass 'out'
-    @setCss 'margin-top', "-#{@getHeight()}px"
 
-    KD.utils.wait 347 + 300, =>
-      @emit 'HideAnimationFinished'
-      @setClass 'hidden'
-      @isBeingHidden = no
+    @once 'transitionend', =>
+
+      @once 'transitionend', =>
+        @emit 'HideAnimationFinished'
+        @setClass 'hidden'
+        @isBeingHidden = no
+
+      height  = @getHeight()
+      element = @getElement()
+      style   = window.getComputedStyle element
+      margins = ['margin-top', 'margin-bottom'].reduce (old, property) ->
+        calculated = parseInt (style.getPropertyValue property), 10
+        calculated = 0  if isNaN calculated
+        return old + calculated
+      , 0
+
+      @setCss 'margin-top', "-#{height + margins}px"
+
+    @setClass 'out'
 
 
   show: -> @whenSubmitted().then => @unsetClass 'hidden out'
