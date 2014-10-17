@@ -24,7 +24,7 @@ module.exports = (options={})->
   <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
-  <meta property="og:title" content="#{encoder.XSSEncode options.title}/>
+  <meta property="og:title" content="#{encoder.XSSEncode options.title}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
   <meta property="og:image" content="#{options.image}"/>
