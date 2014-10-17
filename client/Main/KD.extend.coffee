@@ -235,12 +235,14 @@ KD.extend
 
   getPathInfo: (fullPath)->
     return no unless fullPath
+
     path      = FSHelper.plainPath fullPath
     basename  = FSHelper.getFileNameFromPath fullPath
     parent    = FSHelper.getParentPath path
-    vmName    = FSHelper.getVMNameFromPath fullPath
+    machineUid= FSHelper.getUidFromPath fullPath
     isPublic  = FSHelper.isPublicPath fullPath
-    {path, basename, parent, vmName, isPublic}
+
+    return {path, basename, parent, machineUid, isPublic}
 
   getPublicURLOfPath: (fullPath, secure=no)->
     {vmName, isPublic, path} = KD.getPathInfo fullPath
