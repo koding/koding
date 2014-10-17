@@ -89,19 +89,23 @@ func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmo
 }
 
 func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Query) ([]paymentmodel.Subscription, error) {
-	var subs = []paymentmodel.Subscription{}
+	var subscriptions = []paymentmodel.Subscription{}
 
 	if customer.Id == 0 {
 		return nil, paymenterrors.ErrCustomerIdIsNotSet
 	}
 
 	s := paymentmodel.Subscription{}
-	err := s.Some(&subs, query)
+	err := s.Some(&subscriptions, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return subs, nil
+	if IsOverSubscribed(subscriptions) {
+		Log.Error("Customer: %v has no too many subscriptions: %v", len(subscriptions))
+	}
+
+	return subscriptions, nil
 }
 
 func CancelSubscriptionAndRemoveCC(customer *paymentmodel.Customer, currentSubscription *paymentmodel.Subscription) error {
