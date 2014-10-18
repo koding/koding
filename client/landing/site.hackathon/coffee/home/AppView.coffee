@@ -306,19 +306,19 @@ module.exports = class HomeView extends KDView
         <ul>
           <li><strong>Now</strong> - Registration open</li>
           <li><strong>Nov 20th</strong> - Applications are closed. Last notifications are sent to teams/individuals who were accepted into the hackathon</li>
-          <li><strong>Nov 26th</strong> - <strong>Day 1</strong>
+          <li><strong>Nov 29th</strong> - <strong>Day 1</strong>
             <ul>
               <li>0900 PDT  Announcement of topics on #WFGH</li>
               <li>0901 PDT  Let the hacking begin!</li>
             </ul>
           </li>
-          <li><strong>Nov 27th</strong> - <strong>Day 2</strong>
+          <li><strong>Nov 30th</strong> - <strong>Day 2</strong>
             <ul>
               <li>0000 – 2200 PDT Hacking continues</li>
-              <li>2200 – 2230 PDT Teams submit their projects</li>
+              <li>2200 – 2230 PDT Teams submit their projects</li> 
             </ul>
           </li>
-          <li><strong>Nov 28th</strong> - Winners are notified via email and winning projects are listed</li>
+          <li><strong>December 3rd</strong> - Winners are notified via email and winning projects are listed</li>
         </ul>
       </article>
       <article>
