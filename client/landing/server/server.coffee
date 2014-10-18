@@ -1,10 +1,10 @@
 fs          = require 'fs'
 STATIC_PATH = "#{__dirname}/../static/"
-PORT        = 5000
+PORT        = 80
 bodyParser  = require 'body-parser'
 crypto      = require 'crypto'
 request     = require 'request'
-
+basicAuth   = require 'basic-auth-connect'
 {exec}      = require 'child_process'
 
 module.exports = (siteName)->
@@ -18,7 +18,9 @@ module.exports = (siteName)->
   app.use '/', express.static STATIC_PATH
 
   app.use bodyParser.urlencoded({ extended: false })
-
+  
+  app.use basicAuth 'koding', 'hackathon'
+    
   app.post '/WFGH/Apply', (req, res) ->
     res.status(200).send {
       totalApplicants    : 14812
@@ -38,8 +40,7 @@ module.exports = (siteName)->
     _url     = "https://www.gravatar.com/#{_hash}.json"
     _request =
       url     : _url
-      headers :
-        'User-Agent': 'request'
+      headers : 'User-Agent' : 'request'
 
     request _request, (err, response, body) ->
       if body isnt "User not found"
