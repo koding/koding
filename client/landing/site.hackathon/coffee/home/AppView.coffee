@@ -2,25 +2,25 @@ CustomLinkView   = require './../core/customlinkview'
 HomeRegisterForm = require './registerform'
 
 JUDGES           =
-  'Devrim Yasar' :
-    imgUrl       : 'http://placepic.me/profiles/200-200-1-random'
-    title        : 'Ceo & Co-founder'
+  'Kirill Sheynkman' :
+    imgUrl       : 'https://pbs.twimg.com/profile_images/1826751334/ksheadright-web_400x400.jpg'
+    title        : 'RTP VC - Managing Director'
 
   'Sinan Yasar'  :
-    imgUrl       : 'http://placepic.me/profiles/200-200-2-random'
-    title        : 'Ceo & Co-founder'
+    imgUrl       : 'https://s.gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?s=400'
+    title        : 'Koding - lead UI/UX & co-founder'
 
-  'Emre Durmus'  :
-    imgUrl       : 'http://placepic.me/profiles/200-200-3-random'
-    title        : 'Ceo & Co-founder'
+  'Jason Yeh'  :
+    imgUrl       : 'http://greycroft.com/wp-content/uploads/2014/06/jason-yeh.jpg'
+    title        : 'Senior Associate'
 
-  'Burak Can'    :
-    imgUrl       : 'http://placepic.me/profiles/200-200-4-random'
-    title        : 'Ceo & Co-founder'
+  'Devrim Yasar' :
+    imgUrl       : 'https://pbs.twimg.com/profile_images/378800000863144334/uZWGPcJz.jpeg'
+    title        : 'Koding - ceo & co-founder'
 
-  'Can The Fason':
+  'Someone Else' :
     imgUrl       : 'http://placepic.me/profiles/200-200-5-random'
-    title        : 'Ceo & Co-founder'
+    title        : 'soon.'
 
 
 module.exports = class HomeView extends KDView
