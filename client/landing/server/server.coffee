@@ -19,7 +19,18 @@ module.exports = (siteName)->
 
   app.use bodyParser.urlencoded({ extended: false })
 
-  app.post '/FetchGravatarInfo', (req, res) ->
+  app.post '/WFGH/Apply', (req, res) ->
+    res.status(200).send {
+      totalApplicants    : 14812
+      approvedApplicants : 5613
+      isApplicant        : yes
+      deadline           : new Date '20 November 2014'
+      prize              : 10000
+      cap                : 50000
+    }
+
+
+  app.post '/Gravatar', (req, res) ->
     {email} = req.body
     console.log "Gravatar info request for: #{email}"
 
@@ -41,8 +52,16 @@ module.exports = (siteName)->
 
 
     # data = '{"entry":[{"id":"5390782","hash":"02e68fe6ba0d08c7ea5b63320beedc46","requestHash":"dyasar","profileUrl":"http:\/\/gravatar.com\/dyasar","preferredUsername":"dyasar","thumbnailUrl":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","photos":[{"value":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","type":"thumbnail"}],"name":{"givenName":"Devrim","familyName":"Yasar","formatted":"Devrim Yasar"},"displayName":"Devrim","urls":[]}]}'
+  app.post '/Validate/Username/:username?', (req, res) ->
 
-    # res.status(400).send(JSON.parse data)
+    return res.status(200).send
+      forbidden  : no
+      kodingUser : no
+
+
+  app.post '/Validate/Email/:email?', (req, res) ->
+
+    return res.status(200).send yes
 
 
   app.post '/Login', (req, res) ->
