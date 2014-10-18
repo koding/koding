@@ -70,7 +70,7 @@ module.exports = (siteName)->
 
     if 'wrong' in [username, password]
     then res.status(403).send 'Wrong password!'
-    else res.status(200).send null
+    else res.status(200).end()
 
 
   app.post '/Register', (req, res) ->
@@ -80,7 +80,7 @@ module.exports = (siteName)->
 
     if 'wrong' in [username, password]
     then res.status(403).send 'Wrong password!'
-    else res.status(200).send null
+    else res.status(200).end()
 
 
   app.get '/:name?', (req, res, next) ->
