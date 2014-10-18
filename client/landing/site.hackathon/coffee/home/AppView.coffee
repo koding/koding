@@ -49,9 +49,15 @@ module.exports = class HomeView extends KDView
       click   : ->
         $(document.body).animate
           scrollTop : window.innerHeight - 50
-          duration  : 300
+          easing    : 'ease-out'
+          duration  : 177
 
     @addSubView scroller, '.introduction'
+
+    KD.singletons.windowController.on 'ScrollHappened', ->
+      if window.scrollY > 50
+      then scroller.setClass 'out'
+      else scroller.unsetClass 'out'
 
 
   createJoinForm : ->
