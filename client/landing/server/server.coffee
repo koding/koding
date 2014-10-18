@@ -51,7 +51,6 @@ module.exports = (siteName)->
         res.status(400).send(body)
 
 
-    # data = '{"entry":[{"id":"5390782","hash":"02e68fe6ba0d08c7ea5b63320beedc46","requestHash":"dyasar","profileUrl":"http:\/\/gravatar.com\/dyasar","preferredUsername":"dyasar","thumbnailUrl":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","photos":[{"value":"http:\/\/0.gravatar.com\/avatar\/02e68fe6ba0d08c7ea5b63320beedc46","type":"thumbnail"}],"name":{"givenName":"Devrim","familyName":"Yasar","formatted":"Devrim Yasar"},"displayName":"Devrim","urls":[]}]}'
   app.post '/Validate/Username/:username?', (req, res) ->
 
     return res.status(200).send
