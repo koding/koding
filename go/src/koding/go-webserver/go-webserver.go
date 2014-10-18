@@ -91,7 +91,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -100,7 +100,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -113,7 +113,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -124,7 +124,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -139,7 +139,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -152,7 +152,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Info("loggedout page took: %s", time.Since(start))
 
 		expireCookie(cookie)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -166,7 +166,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't get user of %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w)
+		expireCookie(cookie)
+		writeLoggedOutHomeToResp(w)
 	}
 
 	machines, err := modelhelper.GetMachines(user.ObjectId)
@@ -194,12 +195,12 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		Username:   username,
 	}
 
-	renderLoggedInHome(w, loggedInUser)
+	writeLoggedInHomeToResp(w, loggedInUser)
 
 	log.Info("loggedin page took: %s", time.Since(start))
 }
 
-func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
+func writeLoggedInHomeToResp(w http.ResponseWriter, u LoggedInUser) {
 	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
 	hc := buildHomeContent()
@@ -209,7 +210,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
 		log.Error("Failed to render loggedin page: %s", err)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -217,7 +218,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	fmt.Fprintf(w, buf.String())
 }
 
-func renderLoggedOutHome(w http.ResponseWriter) {
+func writeLoggedOutHomeToResp(w http.ResponseWriter) {
 	homeTmpl := buildHomeTemplate(templates.LoggedOutHome)
 
 	hc := buildHomeContent()
