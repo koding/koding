@@ -88,10 +88,10 @@ class ActivityListItemView extends KDListItemView
 
   initViewEvents: ->
 
-    @settingsButton.on 'ActivityDeleteStarted'  , @bound 'hide'
-    @settingsButton.on 'ActivityDeleteSucceded' , @bound 'delete'
-    @settingsButton.on 'ActivityDeleteFailed'   , @bound 'show'
-    @settingsButton.on 'ActivityEditIsClicked'  , @bound 'showEditWidget'
+    @settingsButton.on 'ActivityDeleteStarted'   , @bound 'hide'
+    @settingsButton.on 'ActivityDeleteSucceeded' , @bound 'delete'
+    @settingsButton.on 'ActivityDeleteFailed'    , @bound 'show'
+    @settingsButton.on 'ActivityEditIsClicked'   , @bound 'showEditWidget'
 
 
   initDataEvents: ->
