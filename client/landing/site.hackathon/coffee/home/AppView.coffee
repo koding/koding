@@ -12,7 +12,7 @@ JUDGES           =
 
   'Jason Yeh'  :
     imgUrl       : 'http://greycroft.com/wp-content/uploads/2014/06/jason-yeh.jpg'
-    title        : 'Senior Associate'
+    title        : 'Greycroft - Senior Associate'
 
   'Devrim Yasar' :
     imgUrl       : 'https://pbs.twimg.com/profile_images/378800000863144334/uZWGPcJz.jpeg'
