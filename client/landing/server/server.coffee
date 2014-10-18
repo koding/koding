@@ -18,9 +18,9 @@ module.exports = (siteName)->
   app.use '/', express.static STATIC_PATH
 
   app.use bodyParser.urlencoded({ extended: false })
-  
+
   app.use basicAuth 'koding', 'hackathon'
-    
+
   app.post '/WFGH/Apply', (req, res) ->
     res.status(200).send {
       totalApplicants    : 14812
@@ -45,7 +45,6 @@ module.exports = (siteName)->
     request _request, (err, response, body) ->
       if body isnt "User not found"
         gravatar = JSON.parse body
-        console.log gravatar
         res.status(200).send(gravatar)
 
       else
