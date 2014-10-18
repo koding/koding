@@ -712,19 +712,17 @@ class IDEAppController extends AppController
         return if result.selfLink.indexOf(title) is -1
 
         if result.items.length > 0
-          @loadCollaborationFile file
+          @loadCollaborationFile file.result.items.first.id
         else
           rtm.createFile title
           rtm.once 'FileCreated', (file) =>
             @loadCollaborationFile file.result.id
 
 
-  loadCollaborationFile: (file) ->
-    firstFile = file.result.items.first
+  loadCollaborationFile: (fileId) ->
+    return unless fileId
 
-    return unless firstFile
-
-    @rtm.getFile firstFile.id
+    @rtm.getFile fileId
 
     @rtm.on 'FileLoaded', (doc) =>
       @realTimeDoc = doc

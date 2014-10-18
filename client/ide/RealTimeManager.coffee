@@ -34,8 +34,6 @@ class RealTimeManager extends KDObject
     gapi.client.drive.files.insert(options).execute (file) =>
       @emit 'FileCreated', file
 
-      @loadFile file.id
-
 
   getFile: (fileId) ->
 
