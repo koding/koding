@@ -726,32 +726,46 @@ class IDEAppController extends AppController
 
     @rtm.on 'FileLoaded', (doc) =>
       @realTimeDoc = doc
+      nickname     = KD.nick()
 
-      @getWorkspaceSnaphot()
-      @writeWorkspaceSnapshot()  if not @snapshot and @amIHost
+      @getParticipants()
 
-    @rtm.on 'MapValueChanged', (map, v) =>
-      @activeTabView.emit 'CollaborationDataUpdated', map.values()
+      if not @participants
+        @addParticipant yes  if @amIHost
+      else
+        if @participants.indexOf(nickname) is -1
+          log 'acetz: I am not in the participants list, adding myself'
+          @addParticipant()
+        else
+          log 'acetz: I am alread in participants lists'
+
+      log 'acetz: participants:', @participants.asArray()
 
 
-  writeWorkspaceSnapshot: ->
-    return  unless @realTimeDoc
-
-    @rtm.create 'map', @realTimeDoc, 'snapshot', @createWorkspaceSnapshot()
+  getParticipants: ->
+    @participants = @rtm.getFromModel @realTimeDoc, 'participants'
 
 
-  getWorkspaceSnaphot: ->
-    return  unless @realTimeDoc
+  addParticipant: (initalizeList = no) ->
+    nickname = KD.nick()
 
-    @snapshot = @rtm.getFromModel @realTimeDoc, 'snapshot'
+    if initalizeList
+      @rtm.create 'list', @realTimeDoc, 'participants', []
 
-    return @snapshot
+    @participants = @rtm.getFromModel @realTimeDoc, 'participants'
+    @participants.push nickname
+
+    @rtm.create 'map', @realTimeDoc, nickname, @createWorkspaceSnapshot()
+
+    log 'acetz: participant added:', @participants.asArray()
 
 
   createWorkspaceSnapshot: ->
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
+      return unless pane.serialize
+
       if pane.options.paneType is 'editor'
         unless pane.file.path is 'localfile:/Untitled.txt'
           data = pane.serialize()
@@ -766,14 +780,15 @@ class IDEAppController extends AppController
   writeChange: (change) ->
     {context} = change
 
-    return  if not @realTimeDoc or not context or not @snapshot
+    return  if not @realTimeDoc or not context
 
-    return  if change.origin is KD.nick()
+    {paneHash} = context
+    map        = @rtm.getFromModel @realTimeDoc, KD.nick()
 
     switch change.type
 
       when 'NewPaneCreated'
-        @snapshot.set context.paneHash, change
+        map.set paneHash, change
 
       when 'PaneRemoved'
-        @snapshot.delete context.paneHash
+        map.delete paneHash
