@@ -83,7 +83,7 @@ module.exports = class HomeView extends KDView
     {firstName, lastName, nickname, hash} = KD.whoami().profile
     {isApplicant, isApproved, isWinner} = getStats()
 
-    @addSubView (section = new KDCustomHTMLView
+    @addSubView (@section = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'logged-in'
     ), '.form-wrapper'
@@ -91,7 +91,7 @@ module.exports = class HomeView extends KDView
     size     = 80
     fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
 
-    section.addSubView avatarBg = new KDCustomHTMLView
+    @section.addSubView avatarBg = new KDCustomHTMLView
       cssClass   : 'avatar-background'
 
     avatarBg.addSubView avatar = new KDCustomHTMLView
@@ -100,7 +100,7 @@ module.exports = class HomeView extends KDView
       attributes :
         src      : "//gravatar.com/avatar/#{hash}?size=#{size}&d=#{fallback}&r=g"
 
-    section.addSubView label = new KDLabelView
+    @section.addSubView label = new KDLabelView
       title : "Hey, #{firstName or nickname}!"
 
     label.addSubView notYou = new CustomLinkView
@@ -113,7 +113,7 @@ module.exports = class HomeView extends KDView
 
     return if isApplicant
 
-    section.addSubView button = new KDButtonView
+    @section.addSubView button = new KDButtonView
       cssClass : 'apply-button solid green medium'
       title    : 'APPLY NOW'
       loader   : yes
@@ -125,14 +125,19 @@ module.exports = class HomeView extends KDView
           success     : (stats) =>
             button.hideLoader()
             KD.campaignStats = stats
-            section.destroy()
-            @updateGreeting()
-            @updateStats()
-            @createApplyWidget()
+            @updateWidget()
           error       : (xhr) ->
             {responseText} = xhr
             button.hideLoader()
             new KDNotificationView title : responseText
+
+
+  updateWidget : ->
+
+    @section.destroy()
+    @updateGreeting()
+    @updateStats()
+    @createApplyWidget()
 
 
   createJudges : ->
