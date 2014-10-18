@@ -714,7 +714,9 @@ class IDEAppController extends AppController
         if result.items.length > 0
           @loadCollaborationFile file
         else
-          log 'acetz: FILE IS MISSING, HANDLE CREATE FILE...'
+          rtm.createFile title
+          rtm.once 'FileCreated', (file) =>
+            @loadCollaborationFile file.result.id
 
 
   loadCollaborationFile: (file) ->
