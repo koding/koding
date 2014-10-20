@@ -82,15 +82,21 @@ gulp.task 'default', ->
       type    : 'confirm'
       name    : 'serve'
       message : 'Do you want to run the server?'
+    ,
+      when    : (answer)-> answer.serve
+      type    : 'list'
+      name    : 'port'
+      message : 'Choose the port that you want to run your server at?'
+      choices : ['5000', '80']
     ], (res) ->
 
-      {siteName, watch, serve, newSite, uglify} = res
+      {siteName, watch, serve, newSite, uglify, port} = res
 
       return req('task.site') newSite  if newSite
 
       if serve
         server = require SERVER_FILE
-        server siteName
+        server siteName, parseInt port, 10
 
       gulp.src ''
         .pipe shell [

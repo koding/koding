@@ -9,6 +9,8 @@ basicAuth   = require 'basic-auth-connect'
 
 module.exports = (siteName, port)->
 
+  port   ?= PORT
+
   express = require 'express'
   gutil   = require 'gulp-util'
 
@@ -19,7 +21,7 @@ module.exports = (siteName, port)->
 
   app.use bodyParser.urlencoded({ extended: false })
 
-  app.use basicAuth 'koding', 'hackathon'
+  app.use basicAuth 'koding', 'hackathon'  if port is 80
 
   app.post '/WFGH/Apply', (req, res) ->
     res.status(200).send {
@@ -109,7 +111,7 @@ module.exports = (siteName, port)->
     res.header 'Location', redirectTo
     res.status(301).end()
 
-  app.listen port or PORT
+  app.listen port
 
   log 'green', "HTTP server for #{STATIC_PATH} is ready at localhost:#{PORT}"
 
