@@ -1,7 +1,3 @@
-TYPEKITIDS =
-  hackathon : 'ndd8msy'
-  landing   : 'rbd0tum'
-
 module.exports = (options, callback)->
 
   getTitle = require './../title'
@@ -11,6 +7,8 @@ module.exports = (options, callback)->
 
   userAccount   = JSON.stringify account
   campaignStats = null
+
+  addSiteScripts = require './sitescript'
 
   prepareHTML = (site)->
     """
@@ -55,6 +53,9 @@ module.exports = (options, callback)->
         n.parentNode.insertBefore(g,n)})(window,document,'script','ga');
         ga('create', 'UA-6520910-8', 'koding.com');ga('send', 'pageview');
       </script>
+
+      #{addSiteScripts site}
+
     </body>
     </html>
     """
