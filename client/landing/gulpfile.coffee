@@ -84,8 +84,6 @@ gulp.task 'default', ->
       message : 'Do you want to run the server?'
     ], (res) ->
 
-      console.log '\n'
-
       {siteName, watch, serve, newSite, uglify} = res
 
       return req('task.site') newSite  if newSite
