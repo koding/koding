@@ -18,10 +18,6 @@ JUDGES           =
     imgUrl       : 'https://pbs.twimg.com/profile_images/378800000863144334/uZWGPcJz.jpeg'
     title        : 'Koding - ceo & co-founder'
 
-  'Someone Else' :
-    imgUrl       : 'http://placepic.me/profiles/200-200-5-random'
-    title        : 'soon.'
-
 
 module.exports = class HomeView extends KDView
 
