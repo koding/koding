@@ -92,7 +92,7 @@ module.exports = class Payment extends Base
     accountId = getAccountId client
     url = "/payments/customers/#{accountId}"
 
-    deleteReq url, callback
+    deleteReq url, {}, callback
 
 
   @logOrder = secure (client, raw, callback)->
