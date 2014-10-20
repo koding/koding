@@ -1,7 +1,6 @@
 package paymentmodels
 
 import (
-	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -25,11 +24,6 @@ type Customer struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
 }
-
-var (
-	ErrOldIdNotSet = errors.New("old_id not set")
-	ErrIdNotSet    = errors.New("id not set")
-)
 
 func (c *Customer) ByOldId(oldId string) error {
 	selector := map[string]interface{}{"old_id": oldId}

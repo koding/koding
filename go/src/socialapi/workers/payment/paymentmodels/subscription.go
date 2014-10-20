@@ -1,7 +1,6 @@
 package paymentmodels
 
 import (
-	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -88,13 +87,6 @@ func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 
 	return err
 }
-
-var (
-	ErrProviderSubscriptionIdNotSet = errors.New("provider_subscription_id is not set")
-	ErrProviderNotSet               = errors.New("provider is not set")
-	ErrIdNotset                     = errors.New("id is not set")
-	ErrUpdatingToSamePlan           = errors.New("subscription already subscribed to that plan")
-)
 
 func (s *Subscription) ByProviderId(providerId, provider string) error {
 	selector := map[string]interface{}{

@@ -1,7 +1,6 @@
 package paymentmodels
 
 import (
-	"errors"
 	"time"
 
 	"github.com/koding/bongo"
@@ -33,11 +32,6 @@ type Plan struct {
 	UpdatedAt time.Time `json:"updatedAt" `
 	DeletedAt time.Time `json:"deletedAt"`
 }
-
-var (
-	ErrTitleNotSet    = errors.New("title not set")
-	ErrIntervalNotSet = errors.New("interval not set")
-)
 
 func (p *Plan) ByProviderId(providerId, provider string) error {
 	selector := map[string]interface{}{
