@@ -3,6 +3,8 @@ package payment
 import (
 	"socialapi/workers/payment/paymentmodels"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 func InitCheckers() error {
@@ -20,6 +22,10 @@ func CheckForLeakedSubscriptions() error {
 	subscription := paymentmodels.NewSubscription()
 	subscriptions, err := subscription.ByCanceledAtGte(thirtyDaysAgo)
 	if err != nil {
+		if err == bongo.RecordNotFound {
+			return nil
+		}
+
 		return err
 	}
 

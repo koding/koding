@@ -127,7 +127,7 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 		Table(s.TableName()).
 		Where(
 		"canceled_at > ?", t,
-	).Find(subscriptions).Error
+	).Find(&subscriptions).Error
 
 	return subscriptions, err
 }
