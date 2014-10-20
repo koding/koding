@@ -163,9 +163,9 @@ var planLimits = map[Plan]Limits{
 		},
 	},
 	Koding: {
-		Total:    10,
-		AlwaysOn: 10,
-		Storage:  100,
+		Total:    100,
+		AlwaysOn: 100,
+		Storage:  1000,
 		Timeout:  60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Medium: {},
