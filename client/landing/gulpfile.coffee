@@ -64,24 +64,24 @@ gulp.task 'default', ->
       when    : (answer) -> answer.createOrBuild is firstOptions[0]
       type    : 'list'
       name    : 'siteName'
-      message : 'Which site would you like to build?'
+      message : 'Choose the site you want to build?'
       choices : sites
     ,
       when    : (answer) -> answer.siteName
       type    : 'confirm'
       name    : 'uglify'
       default : no
-      message : 'Would you like to uglify javascript?'
+      message : 'Do you want to uglify javascript?'
     ,
       when    : (answer) -> answer.siteName
       type    : 'confirm'
       name    : 'watch'
-      message : 'Would you like to watch for changes?'
+      message : 'Do you want to watch for changes?'
     ,
       when    : (answer)-> answer.watch
       type    : 'confirm'
       name    : 'serve'
-      message : 'Would you like to run the server?'
+      message : 'Do you want to run the server?'
     ], (res) ->
 
       console.log '\n'
