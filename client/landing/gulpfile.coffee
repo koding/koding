@@ -47,7 +47,7 @@ gulp.task 'default', ->
     .filter (folder) -> folder.search(/^site\./) is 0 and folder isnt 'site.boilerplate'
     .map (folder) -> folder.replace 'site.', ''
 
-  firstOptions = ['Create a new site', 'Build an existing site']
+  firstOptions = ['Build an existing site', 'Create a new site']
 
   gulp.src ''
     .pipe prompt.prompt [
@@ -56,12 +56,12 @@ gulp.task 'default', ->
       message : 'Would you like to create a new site or build an existing one?'
       choices : firstOptions
     ,
-      when    : (answer) -> answer.createOrBuild is firstOptions[0]
+      when    : (answer) -> answer.createOrBuild is firstOptions[1]
       type    : 'input'
       name    : 'newSite'
       message : 'Type a name for the new site:'
     ,
-      when    : (answer) -> answer.createOrBuild is firstOptions[1]
+      when    : (answer) -> answer.createOrBuild is firstOptions[0]
       type    : 'list'
       name    : 'siteName'
       message : 'Which site would you like to build?'
