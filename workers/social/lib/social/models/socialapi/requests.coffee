@@ -25,6 +25,12 @@ createAccount = ({id, nickname}, callback)->
   url = "/account"
   post url, {oldId: id, nick: nickname}, callback
 
+updateAccount = ({id, nick}, callback)->
+  if not id or not nick
+    return callback {message:"Request is not valid for updating account"}
+  url = "/account/#{id}"
+  post url, {id, nick}, callback
+
 createChannel = (data, callback)->
   unless data.name or data.creatorId
     return callback { message: "Request is not valid for creating channel"}
@@ -475,6 +481,7 @@ module.exports = {
   editMessage
   postToChannel
   createAccount
+  updateAccount
   createChannel
   fetchMessage
   fetchChannelActivities
