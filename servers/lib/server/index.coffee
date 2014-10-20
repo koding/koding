@@ -247,7 +247,7 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.status(200).send authTemplate data
 
-app.post "/:name?/Validate", (req, res) ->
+app.post '/:name?/Validate', (req, res) ->
   { JUser } = koding.models
   { fields } = req.body
 
@@ -267,7 +267,7 @@ app.post "/:name?/Validate", (req, res) ->
   res.status(if validations.isValid then 200 else 400).send validations
 
 
-app.post "/:name?/Validate/Username/:username?", (req, res) ->
+app.post '/:name?/Validate/Username/:username?', (req, res) ->
 
   { JUser } = koding.models
   { username } = req.params
@@ -285,7 +285,7 @@ app.post "/:name?/Validate/Username/:username?", (req, res) ->
     else
       res.status(400).send response
 
-app.post "/:name?/Validate/Email/:email?", (req, res) ->
+app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
   { JUser }    = koding.models
   { email }    = req.params
@@ -318,7 +318,7 @@ app.post "/:name?/Validate/Email/:email?", (req, res) ->
 
 
 
-app.get "/Verify/:token", (req, res) ->
+app.get '/Verify/:token', (req, res) ->
   { JPasswordRecovery } = koding.models
   { token } = req.params
 
@@ -327,7 +327,7 @@ app.get "/Verify/:token", (req, res) ->
 
     res.redirect 301, "/Verified"
 
-app.post "/:name?/Register", (req, res) ->
+app.post '/:name?/Register', (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
   { redirect } = req.body
