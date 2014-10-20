@@ -92,19 +92,21 @@ class ActivitySettingsView extends KDCustomHTMLView
     ], Boolean
 
 
+  deletePostConfirmed: (modal) ->
+
+    @emit 'ActivityDeleteStarted'
+    modal.destroy()
+    id = @getData().getId()
+    KD.singletons.appManager.tell 'Activity', 'delete', {id}, (err) =>
+
+      if err
+        KD.showErrorNotification err, { userMessage : "You are not allowed to delete this post." }
+        @emit 'ActivityDeleteFailed'
+      else
+        @emit 'ActivityDeleteSucceeded'
+
+
   confirmDeletePost: ->
-
-    deleteActivity = =>
-      @emit 'ActivityDeleteStarted'
-      modal.destroy()
-      id = @getData().getId()
-      KD.singletons.appManager.tell 'Activity', 'delete', {id}, (err) =>
-
-        if err
-          KD.showErrorNotification err, { userMessage : "You are not allowed to delete this post." }
-          @emit 'ActivityDeleteFailed'
-        else
-          @emit 'ActivityDeleteSucceeded'
 
     modal = new KDModalView
       title          : "Delete post"
@@ -116,9 +118,7 @@ class ActivitySettingsView extends KDCustomHTMLView
           style      : "modal-clean-red"
           loader     :
             color    : "#e94b35"
-          callback   : => deleteActivity()
-
-
+          callback   : => @deletePostConfirmed modal
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"
