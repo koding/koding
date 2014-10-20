@@ -9,6 +9,7 @@ module.exports = (options={})->
   options.body     ?= "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
   """
+  <title>#{options.title}</title>
   <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
   <meta charset="utf-8">
 
@@ -24,7 +25,7 @@ module.exports = (options={})->
   <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
-  <meta property="og:title" content="#{encoder.XSSEncode options.title}/>
+  <meta property="og:title" content="#{encoder.XSSEncode options.title}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
   <meta property="og:image" content="#{options.image}"/>
