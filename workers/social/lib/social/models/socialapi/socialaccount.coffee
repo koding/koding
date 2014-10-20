@@ -31,7 +31,7 @@ module.exports = class SocialAccount extends Base
 
           SocialAccount.update {
             id   : account.socialApiId
-            nick : username.replace("guest-", "unregistered-")
+            nick : username
           }, (err)->
             if err?
               console.error "err while changing the nickname in social api", err

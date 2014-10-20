@@ -124,7 +124,9 @@ func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 	acc.Nick = req.Nick
 
 	if err := models.ValidateAccount(acc); err != nil {
-		return response.NewBadRequest(err)
+		if err != models.ErrGuestsAreNotAllowed {
+			return response.NewBadRequest(err)
+		}
 	}
 
 	if err := acc.Update(); err != nil {
