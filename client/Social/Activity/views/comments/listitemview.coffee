@@ -5,7 +5,6 @@ class CommentListItemView extends KDListItemView
   constructor: (options = {}, data) ->
 
     options.type     = 'comment'
-    options.cssClass = KD.utils.curry 'fade-out', options.cssClass
 
     super options, data
 

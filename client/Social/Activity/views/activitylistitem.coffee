@@ -5,7 +5,7 @@ class ActivityListItemView extends KDListItemView
   constructor:(options = {}, data)->
 
     options.type               = 'activity'
-    options.cssClass           = KD.utils.curry 'activity-item status fade-out', options.cssClass
+    options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
     options.attributes       or= {}
