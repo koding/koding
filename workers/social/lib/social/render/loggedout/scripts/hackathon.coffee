@@ -1,12 +1,20 @@
 module.exports =
+
+  # <!-- twitter -->
+  # <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>
+  # <script type="text/javascript">twttr.conversion.trackPid('l50ku');</script>
+  # <noscript>
+  #   <img height="1" width="1" style="display:none;" alt="" src="https://analytics.twitter.com/i/adsct?txn_id=l50ku&p_id=Twitter" />
+  #   <img height="1" width="1" style="display:none;" alt="" src="//t.co/i/adsct?txn_id=l50ku&p_id=Twitter" />
+  # </noscript>
+
+  # forcing noscript option
+  # bc: https://twittercommunity.com/t/async-widgets-js-loader-is-not-compatible-with-oct-js-initialize-different-twttr-object-missing-ready/21522
+  # - SY
   """
   <!-- twitter -->
-  <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>
-  <script type="text/javascript">twttr.conversion.trackPid('l50ku');</script>
-  <noscript>
-    <img height="1" width="1" style="display:none;" alt="" src="https://analytics.twitter.com/i/adsct?txn_id=l50ku&p_id=Twitter" />
-    <img height="1" width="1" style="display:none;" alt="" src="//t.co/i/adsct?txn_id=l50ku&p_id=Twitter" />
-  </noscript>
+  <img height="1" width="1" style="display:none;" alt="" src="https://analytics.twitter.com/i/adsct?txn_id=l50ku&p_id=Twitter" />
+  <img height="1" width="1" style="display:none;" alt="" src="//t.co/i/adsct?txn_id=l50ku&p_id=Twitter" />
 
   <!-- facebook -->
   <script>
