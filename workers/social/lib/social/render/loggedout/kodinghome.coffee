@@ -9,6 +9,7 @@ module.exports = (options, callback)->
   campaignStats = null
 
   addSiteScripts = require './sitescripts'
+  addSiteTags    = require './sitetags'
 
   prepareHTML = (site)->
     """
@@ -17,6 +18,8 @@ module.exports = (options, callback)->
     <head>
       #{getTitle()}
       <meta charset="utf-8"/>
+
+      #{getTags site}
       <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-status-bar-style" content="black">
