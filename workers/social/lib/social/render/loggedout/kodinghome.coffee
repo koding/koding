@@ -8,7 +8,7 @@ module.exports = (options, callback)->
   userAccount   = JSON.stringify account
   campaignStats = null
 
-  addSiteScripts = require './sitescript'
+  addSiteScripts = require './sitescripts'
 
   prepareHTML = (site)->
     """

@@ -19,7 +19,7 @@ module.exports = (campaign) ->
 
   switch campaign
 
-    when 'hackathon' then scripts += require './hackathon.scripts'
+    when 'hackathon' then scripts += require './scripts/hackathon'
     else scripts += ''
 
 
