@@ -11,8 +11,9 @@ module.exports = (options, callback)->
   options.entryPoint = entryPoint
 
   prepareHTML = (scripts, socialApiData)->
-    if socialApiData
+    if socialApiData?.navigated?
       {navigated} = socialApiData
+
       {slug, data:{message}} = navigated
 
       if message
