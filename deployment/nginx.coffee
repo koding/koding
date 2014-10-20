@@ -174,6 +174,8 @@ module.exports.create = (KONFIG, environment)->
     client_header_buffer_size 4k;
     client_max_body_size 10m;
 
+    #{if environment is 'dev' then 'client_body_temp_path /tmp;' else ''}
+
     sendfile on;
 
     # for proper content type setting, include mime.types
