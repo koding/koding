@@ -4,8 +4,6 @@ TYPEKITIDS =
 
 module.exports = (campaign) ->
 
-  console.log {campaign}
-
   scripts =
     """
     <script>
