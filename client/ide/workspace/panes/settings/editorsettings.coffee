@@ -71,6 +71,7 @@ IDE.settings.editor =
     css         : ["CSS"          , "css"]
     dart        : ["Dart"         , "dart"]
     diff        : ["Diff"         , "diff|patch"]
+    fortran     : ["Fortran"      , "f|for|f77|f90|f95|f03|f2k"]
     golang      : ["Go"           , "go"]
     glsl        : ["GLSL"         , "glsl"]
     groovy      : ["Groovy"       , "groovy"]
@@ -143,6 +144,7 @@ IDE.settings.editor =
     css         : "css"
     diff        : "diff"
     dart        : "dart"
+    fortran     : "f95"
     golang      : "go"
     # groovy      : null
     # haxe        : null
