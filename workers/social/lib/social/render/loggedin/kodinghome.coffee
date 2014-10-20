@@ -14,10 +14,11 @@ module.exports = (options, callback)->
     if socialApiData
       {navigated} = socialApiData
       {slug, data:{message}} = navigated
-      {body} = message
 
-      summary = body.slice(0, 80)
-      title = "#{summary} | Koding Community"
+      if message
+        {body} = message
+        summary = body.slice(0, 80)
+        title = "#{summary} | Koding Community"
 
       url = if uri?.address then uri.address else "https://koding.com/"
       shareUrl = "#{url}/#{slug}"
