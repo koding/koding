@@ -2,7 +2,7 @@ title       = 'Koding | World\'s First Virtual Global Hackathon'
 shareUrl    = 'https://koding.com/WFGH'
 description = 'The World’s First Virtual Global Hackathon. This event is intended to connect developers across the globe and get them to  code together irrespective of their locations. You will problem solve and build with old or new team members and try to win!'
 
-module.exports = ->
+module.exports =
 
   """
   <!-- og meta tags -->

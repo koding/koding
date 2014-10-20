@@ -1,4 +1,4 @@
-module.exports = ->
+module.exports =
   """
   <!-- twitter -->
   <script src="//platform.twitter.com/oct.js" type="text/javascript"></script>

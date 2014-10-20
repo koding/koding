@@ -2,7 +2,7 @@ title       = 'Koding | Say goodbye to your localhost and write code in the clou
 shareUrl    = 'https://koding.com'
 description = 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
 
-module.exports = ->
+module.exports =
 
   """
   <!-- og meta tags -->
