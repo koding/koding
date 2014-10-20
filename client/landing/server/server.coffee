@@ -7,7 +7,7 @@ request     = require 'request'
 basicAuth   = require 'basic-auth-connect'
 {exec}      = require 'child_process'
 
-module.exports = (siteName)->
+module.exports = (siteName, port)->
 
   express = require 'express'
   gutil   = require 'gulp-util'
@@ -109,7 +109,7 @@ module.exports = (siteName)->
     res.header 'Location', redirectTo
     res.status(301).end()
 
-  app.listen PORT
+  app.listen port or PORT
 
   log 'green', "HTTP server for #{STATIC_PATH} is ready at localhost:#{PORT}"
 
