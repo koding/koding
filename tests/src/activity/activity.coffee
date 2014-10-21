@@ -169,5 +169,14 @@ module.exports =
     browser.end()
 
 
+  topicFollow: (browser) ->
 
+    hashtag = helpers.sendHashtagActivity(browser)
+    selector = activitySelector + ' .has-markdown p a:first-child'
 
+    browser
+      .waitForElementVisible   selector, 5000
+      .click                   selector
+      .pause                   3000 # really required
+      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
+      .end()
