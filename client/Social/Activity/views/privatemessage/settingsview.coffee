@@ -37,27 +37,6 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
           title      : 'Leave'
           callback   : @bound 'leaveConversation'
 
-    @addMenuItem 'Delete Conversation', =>
-      @deleteModal = KDModalView.confirm
-        title        : 'Are you sure'
-        content      : 'Delete this conversation?'
-        ok           :
-          title      : 'Remove'
-          callback   : @bound 'deleteConversation'
-
-  deleteConversation: ->
-    @prepareModal @deleteModal
-
-    channelId = @getData().getId()
-
-    {channel} = KD.singletons.socialapi
-
-    channel.delete {channelId}, (err) =>
-      return @handleModalError @deleteModal, err
-
-      @deleteModal.destroy()
-      KD.singletons.router.handleRoute '/Activity/Public'
-
   leaveConversation: ->
     @prepareModal @leaveModal
 
