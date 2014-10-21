@@ -89,8 +89,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Info("loggedout page took: %s", time.Since(start))
-
-		expireCookie(cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -98,8 +96,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	if cookie.Value == "" {
 		log.Info("loggedout page took: %s", time.Since(start))
-
-		expireCookie(cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -112,7 +108,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch session with clientId %s: %s", clientId, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		expireCookie(cookie)
+		expireCookie(w, cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -123,7 +119,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Username is empty for session with clientId: %s", clientId)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		expireCookie(cookie)
+		expireCookie(w, cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -138,7 +134,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch account with username %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		expireCookie(cookie)
+		expireCookie(w, cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -151,7 +147,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		expireCookie(cookie)
+		expireCookie(w, cookie)
 		writeLoggedOutHomeToResp(w)
 
 		return
@@ -166,7 +162,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't get user of %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		expireCookie(cookie)
+		expireCookie(w, cookie)
 		writeLoggedOutHomeToResp(w)
 	}
 
@@ -253,6 +249,7 @@ func buildHomeTemplate(content string) *template.Template {
 	return homeTmpl
 }
 
-func expireCookie(cookie *http.Cookie) {
+func expireCookie(w http.ResponseWriter, cookie *http.Cookie) {
 	cookie.Expires = time.Now()
+	http.SetCookie(w, cookie)
 }
