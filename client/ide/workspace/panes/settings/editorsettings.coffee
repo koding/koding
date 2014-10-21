@@ -71,6 +71,7 @@ IDE.settings.editor =
     css         : ["CSS"          , "css"]
     dart        : ["Dart"         , "dart"]
     diff        : ["Diff"         , "diff|patch"]
+    fortran     : ["Fortran"      , "f|for|f77|f90|f95|f03|f2k"]
     golang      : ["Go"           , "go"]
     glsl        : ["GLSL"         , "glsl"]
     groovy      : ["Groovy"       , "groovy"]
@@ -134,57 +135,6 @@ IDE.settings.editor =
     o.sort (a, b) -> if a.title < b.title then -1 else 1
 
     return o
-
-  aceToHighlightJsSyntaxMap :
-
-    coffee      : "coffee"
-    # coldfusion  : null
-    csharp      : "cs"
-    css         : "css"
-    diff        : "diff"
-    dart        : "dart"
-    golang      : "go"
-    # groovy      : null
-    # haxe        : null
-    haml        : "haml"
-    html        : "xml"
-    c_cpp       : "cpp"
-    # clojure     : null
-    jade        : "jade"
-    java        : "java"
-    javascript  : "javascript"
-    json        : "javascript"
-    # json        : "json"
-    latex       : "tex"
-    go          : "golang"
-    less        : "css"
-    lisp        : "lisp"
-    # liquid      : null
-    lua         : "lua"
-    markdown    : "markdown"
-    ocaml       : "ocaml"
-    perl        : "perl"
-    pgsql       : "sql"
-    php         : "php"
-    powershell  : "bash"
-    python      : "python"
-    r           : "r"
-    rhtml       : "rhtml"
-    ruby        : "ruby"
-    # scad        : null
-    scala       : "scala"
-    scss        : "css"
-    stylus      : "stylus"
-    sh          : "bash"
-    sql         : "sql"
-    typescript  : "ts"
-    # svg         : null
-    # text        : null
-    # textile     : null
-    xml         : "xml"
-    objectivec  : "objectivec"
-    # xquery      : null
-    # yaml        : null
 
   ignoreDirectories: {
     ".bzr"              : "Bazaar",
