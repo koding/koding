@@ -1,7 +1,10 @@
-package paymentmodel
+package paymentmodels
 
 import (
+	"socialapi/workers/payment/paymenterrors"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 type Subscription struct {
@@ -38,4 +41,85 @@ type Subscription struct {
 	CanceledAt         time.Time `json:"canceled_at"`
 	CurrentPeriodStart time.Time `json:"current_period_start"`
 	CurrentPeriodEnd   time.Time `json:"current_period_end"`
+}
+
+func (s *Subscription) UpdateInvoiceCreated(amountInCents uint64, planId, periodStart, periodEnd int64) error {
+	if s.PlanId == planId {
+		return ErrUpdatingToSamePlan
+	}
+
+	s.PlanId = planId
+	s.AmountInCents = amountInCents
+	s.CurrentPeriodStart = time.Unix(periodStart, 0)
+	s.CurrentPeriodEnd = time.Unix(periodEnd, 0)
+
+	// when user downgrades to non-free plan, we set `CanceledAt` till the
+	// end of billing cycle and when `invoice.created` is fired we update
+	// null this field
+	s.CanceledAt = time.Time{}
+
+	return bongo.B.Update(s)
+}
+
+func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
+	if s.PlanId == planId {
+		return ErrUpdatingToSamePlan
+	}
+
+	s.PlanId = planId
+	s.AmountInCents = amountInCents
+
+	err := bongo.B.Update(s)
+
+	return err
+}
+
+func (s *Subscription) UpdateState(state string) error {
+	s.State = state
+	err := bongo.B.Update(s)
+
+	return err
+}
+
+func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
+	s.CanceledAt = t
+	err := bongo.B.Update(s)
+
+	return err
+}
+
+func (s *Subscription) ByProviderId(providerId, provider string) error {
+	selector := map[string]interface{}{
+		"provider_subscription_id": providerId,
+		"provider":                 provider,
+	}
+	err := s.Find(selector)
+
+	return err
+}
+
+func (s *Subscription) ByCustomerIdAndState(customerId int64, state string) error {
+	selector := map[string]interface{}{
+		"customer_id": customerId,
+		"state":       state,
+	}
+
+	err := s.Find(selector)
+	if err == bongo.RecordNotFound {
+		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+	}
+
+	return err
+}
+
+func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
+	subscriptions := []Subscription{}
+
+	err := bongo.B.DB.
+		Table(s.TableName()).
+		Where(
+		"canceled_at > ?", t,
+	).Find(&subscriptions).Error
+
+	return subscriptions, err
 }

@@ -241,7 +241,10 @@ module.exports = class JUser extends jraphical.Module
                 counterName : "koding~#{confirmUsername}~"
                 offset      : 0
               }).reinitialize ->
-              user.unlinkOAuths => @logout client, callback
+              user.unlinkOAuths =>
+                Payment = require "../payment"
+                Payment.deleteAccount client, (err)=>
+                  @logout client, callback
 
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require '../registrationpreferences'

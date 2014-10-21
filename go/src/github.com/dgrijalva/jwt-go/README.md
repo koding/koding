@@ -1,5 +1,7 @@
 A [go](http://www.golang.org) (or 'golang' for search engine friendliness) implementation of [JSON Web Tokens](http://self-issued.info/docs/draft-jones-json-web-token.html)
 
+**NOTICE:** We recently introduced a breaking change in the API. Please refer to [VERSION_HISTORY.md](VERSION_HISTORY.md) for details.
+
 ## What the heck is a JWT?
 
 In short, it's a signed JSON object that does something useful (for example, authentication).  It's commonly used for `Bearer` tokens in Oauth 2.  A token is made of three parts, separated by `.`'s.  The first two parts are JSON objects, that have been [base64url](http://tools.ietf.org/html/rfc4648) encoded.  The last part is the signature, encoded the same way.
@@ -17,7 +19,7 @@ This library supports the parsing and verification as well as the generation and
 Parsing and verifying tokens is pretty straight forward.  You pass in the token and a function for looking up the key.  This is done as a callback since you may need to parse the token to find out what signing method and key was used.
 
 ```go
-	token, err := jwt.Parse(myToken, func(token *jwt.Token) ([]byte, error) {
+	token, err := jwt.Parse(myToken, func(token *jwt.Token) (interface{}, error) {
 		return myLookupKey(token.Header["kid"])
 	})
 

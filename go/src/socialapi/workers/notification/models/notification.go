@@ -10,6 +10,8 @@ import (
 	"github.com/koding/bongo"
 )
 
+var ErrContentIdsNotSet = errors.New("content ids are not set")
+
 type Notification struct {
 	// unique identifier of Notification
 	Id int64 `json:"id"`
@@ -243,6 +245,10 @@ func (n *Notification) FetchLastActivity() (*NotificationActivity, *Notification
 }
 
 func (n *Notification) HideByContentIds(ids []int64) error {
+	if len(ids) == 0 {
+		return ErrContentIdsNotSet
+	}
+
 	updateSql := "UPDATE " + n.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
 
 	return bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error

@@ -1,7 +1,6 @@
-package paymentmodel
+package paymentmodels
 
 import (
-	"errors"
 	"time"
 
 	"github.com/koding/bongo"
@@ -18,6 +17,10 @@ func (Subscription) TableName() string {
 //----------------------------------------------------------
 // Crud methods
 //----------------------------------------------------------
+
+func NewSubscription() *Subscription {
+	return &Subscription{}
+}
 
 func (s *Subscription) One(q *bongo.Query) error {
 	return bongo.B.One(s, s, q)
@@ -36,31 +39,14 @@ func (s *Subscription) BeforeUpdate() error {
 	return nil
 }
 
-var ErrUpdatingToSamePlan = errors.New("subscription already subscribed to that plan")
+func (s *Subscription) ById(id int64) error {
+	selector := map[string]interface{}{"id": s.Id}
+	err := s.Find(selector)
 
-func (s *Subscription) UpdatePlan(planId int64, amountInCents uint64) error {
-	if s.PlanId == planId {
-		return ErrUpdatingToSamePlan
-	}
-
-	s.PlanId = planId
-	s.AmountInCents = amountInCents
-
-	err := bongo.B.Update(s)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func (s *Subscription) UpdateState(state string) error {
-	s.State = state
-
-	err := bongo.B.Update(s)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (s *Subscription) Find(selector map[string]interface{}) error {
+	err := s.One(bongo.NewQS(selector))
+	return err
 }

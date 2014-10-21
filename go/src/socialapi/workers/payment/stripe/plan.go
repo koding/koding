@@ -33,7 +33,7 @@ func CreateDefaultPlans() error {
 
 // CreatePlan creates plan in Stripe and saves it locally. It deals with
 // cases where plan exists in stripe, but not locally.
-func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodel.Plan, error) {
+func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodels.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       id,
 		Name:     nameForStripe,
@@ -43,11 +43,14 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 	}
 
 	_, err := stripePlan.New(planParams)
-	if err != nil && err.Error() != ErrStripePlanAlreadyExists.Error() {
-		return nil, handleStripeError(err)
+	if err != nil {
+		err = handleStripeError(err)
+		if !IsPlanAlredyExistsErr(err) {
+			return nil, err
+		}
 	}
 
-	planModel := &paymentmodel.Plan{
+	planModel := &paymentmodels.Plan{
 		Title:          title,
 		ProviderPlanId: id,
 		Provider:       ProviderName,
@@ -56,30 +59,20 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 	}
 
 	err = planModel.Create()
-	if err != nil {
-		return nil, err
-	}
 
-	return planModel, nil
+	return planModel, err
 }
 
-func FindPlanByTitleAndInterval(title, interval string) (*paymentmodel.Plan, error) {
-	plan := &paymentmodel.Plan{
-		Title:    title,
-		Interval: interval,
-	}
+func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
+	plan := paymentmodels.NewPlan()
 
-	exists, err := plan.ByTitleAndInterval()
+	err := plan.ByTitleAndInterval(title, interval)
 	if err != nil {
 		if paymenterrors.IsPlanNotFoundErr(err) {
 			return nil, paymenterrors.ErrPlanNotFound
 		}
 
 		return nil, err
-	}
-
-	if !exists {
-		return nil, paymenterrors.ErrPlanNotFound
 	}
 
 	return plan, nil

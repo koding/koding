@@ -199,7 +199,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName} -t #{projectRoot}/go/src/koding/go-webserver/templates/\""
+        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName}\""
       nginx             :
         locations       : ["~^/IDE/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"

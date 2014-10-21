@@ -14,6 +14,8 @@ module.exports =
 
     @doLogin(browser, user)
 
+    browser.execute 'KD.isTesting = true;'
+
 
   doLogin: (browser, user) ->
 
@@ -46,22 +48,8 @@ module.exports =
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
 
-  postActivity: (browser) ->
-
-    post = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
-
-    browser
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', post
-      .click                  '[testpath=post-activity-button]'
-      .pause                  3000
-
-    browser.assert.containsText('[testpath=ActivityListItemView]:first-child', post)
-
-
   doRegister: (browser, user) ->
+
     user    = utils.getUser(yes) unless user
     url     = @getUrl()
 
@@ -78,6 +66,55 @@ module.exports =
     @doLogout browser
 
     @doLogin browser, user
+
+
+  postActivity: (browser, shouldBeginTest = yes) ->
+
+    if shouldBeginTest
+      @beginTest(browser)
+
+    post = @getFakeText()
+
+    @doPostActivity(browser, post)
+
+    return post
+
+
+  postComment: (browser, shouldPostActivity = yes, shouldAssert = yes) ->
+
+    if shouldPostActivity
+      @postActivity(browser)
+
+    comment = @getFakeText()
+
+    browser
+      .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
+      .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
+
+    if shouldAssert
+      browser
+        .pause               6000 # required
+        .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
+
+    return comment
+
+
+  doPostActivity: (browser, post) ->
+
+    browser
+      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', post
+      .click                  '[testpath=post-activity-button]'
+      .pause                  6000 # required
+
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+
+
+  getFakeText: ->
+    return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
   getUrl: ->
