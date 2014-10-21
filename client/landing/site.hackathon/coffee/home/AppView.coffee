@@ -140,7 +140,6 @@ module.exports = class HomeView extends KDView
     @updateGreeting()
     @updateStats()
     @createApplyWidget()
-    @createShareButtons()
 
 
   createShareButtons: ->
@@ -163,6 +162,7 @@ module.exports = class HomeView extends KDView
       """
 
     Socialite.load @$('ul.social-buttons')[0]
+    KD.utils.wait 3000, => @$('ul.social-buttons').addClass 'loaded'
 
 
   createJudges : ->
