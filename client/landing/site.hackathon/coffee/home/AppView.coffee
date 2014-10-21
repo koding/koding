@@ -83,6 +83,8 @@ module.exports = class HomeView extends KDView
     {firstName, lastName, nickname, hash} = KD.whoami().profile
     {isApplicant, isApproved, isWinner} = getStats()
 
+    @setClass 'apply'
+
     @addSubView (@section = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'logged-in'

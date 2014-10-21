@@ -23,6 +23,12 @@ body
 
 body.home
 
+  .apply
+    section.introduction
+      .form-wrapper
+        width             300px
+
+
   section.introduction
     size                  100% 100vh
     padding               149px 45px 0
@@ -41,10 +47,11 @@ body.home
 
     figure
       size                300px 100px
-      abs                 0 50% 75px 0
+      abs                 0 50% 50px 0
       margin-right        -150px
       bg                  color transparent
       cursor              pointer
+      z-index             19
       &:after
         content           ''
         r-sprite          home 'slideshow-next-light'
