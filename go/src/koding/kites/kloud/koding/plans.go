@@ -168,7 +168,7 @@ var planLimits = map[Plan]Limits{
 		Storage:  1000,
 		Timeout:  60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
-			T2Medium: {},
+			T2Micro: {}, T2Small: {}, T2Medium: {},
 		},
 	},
 }
