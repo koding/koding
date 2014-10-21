@@ -625,6 +625,7 @@ class IDEAppController extends AppController
 
   createStatusBar: (splitViewPanel) ->
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar
+    @statusBar.on 'ParticipantsModalRequired', @bound 'showParticipantsModal'
 
   createFindAndReplaceView: (splitViewPanel) ->
     splitViewPanel.addSubView @findAndReplaceView = new AceFindAndReplaceView
@@ -797,3 +798,8 @@ class IDEAppController extends AppController
 
       when 'PaneRemoved'
         map.delete paneHash
+
+
+  showParticipantsModal: ->
+    host = @collaborationHost or KD.nick()
+    new IDE.ParticipantsModal { @participants, @realTimeDoc, @rtm, host }
