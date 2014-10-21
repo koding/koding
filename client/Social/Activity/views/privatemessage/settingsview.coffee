@@ -41,12 +41,13 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     @prepareModal @leaveModal
 
     channelId = @getData().getId()
-    accountIds = [ KD.whoami().getId() ]
 
-    channel.removeParticipants {channelId, accountIds}, (err) =>
+    {channel} = KD.singletons.socialapi
+    channel.leave {channelId}, (err) =>
       return @handleModalError @leaveModal, err if err?
 
       @leaveModal.destroy()
+      KD.singletons.router.handleRoute '/Activity/Public'
 
   prepareModal: (modal) ->
     confirmButton = modal.buttons['OK']
