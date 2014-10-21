@@ -14,7 +14,7 @@ Object.defineProperty global, 'KONFIG',
   social
   broker
   recaptcha
-}       = KONFIG
+} = KONFIG
 
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
