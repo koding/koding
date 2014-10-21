@@ -31,8 +31,8 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
 
     @addMenuItem 'Leave Conversation', =>
       @leaveModal = KDModalView.confirm
-        title        : 'Are you sure you want to leave conversation?'
-        description  : 'You will not be able to recover your messages'
+        title        : 'Are you sure?'
+        description  : 'Other participants in this chat will see that you have left and you will stop receiving further notifications.'
         ok           :
           title      : 'Leave'
           callback   : @bound 'leaveConversation'
