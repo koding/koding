@@ -48,6 +48,11 @@ build:
           tail -n 100 /var/log/koding/social-populartopic.log
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
+          for i in `seq 1 10`; do
+            echo $i
+            curl "localhost:7000"
+            sleep 3
+          done
           make testapi config=./config/test.toml
 
 deploy:
