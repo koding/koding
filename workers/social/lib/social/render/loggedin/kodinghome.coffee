@@ -11,13 +11,15 @@ module.exports = (options, callback)->
   options.entryPoint = entryPoint
 
   prepareHTML = (scripts, socialApiData)->
-    if socialApiData
+    if socialApiData?.navigated?
       {navigated} = socialApiData
-      {slug, data:{message}} = navigated
-      {body} = message
 
-      summary = body.slice(0, 80)
-      title = "#{summary} | Koding Community"
+      {slug, data:{message}} = navigated
+
+      if message
+        {body} = message
+        summary = body.slice(0, 80)
+        title = "#{summary} | Koding Community"
 
       url = if uri?.address then uri.address else "https://koding.com/"
       shareUrl = "#{url}/#{slug}"

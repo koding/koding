@@ -185,6 +185,10 @@ func (n *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) erro
 		return err
 	}
 
+	if len(contentIds) == 0 {
+		return nil
+	}
+
 	return models.NewNotification().HideByContentIds(contentIds)
 }
 

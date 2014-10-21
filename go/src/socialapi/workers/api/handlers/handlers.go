@@ -282,6 +282,14 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		},
 	))
 
+	mux.Handle("POST", "/account/{id}", handler.Wrapper(
+		handler.Request{
+			Handler: account.Update,
+			Name:    "account-update",
+			Metrics: metrics,
+		},
+	))
+
 	// added troll mode protection
 	// list channels of the account
 	mux.Handle("GET", "/account/{id}/channels", handler.Wrapper(

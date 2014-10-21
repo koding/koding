@@ -184,7 +184,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 			for _, instanceType := range FallbackList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
-					m.Id, instanceType, DefaultInstanceType)
+					m.Id, instanceType, a.Builder.InstanceType)
 
 				// now change the instance type before we start so we can
 				// avoid the instance capacity problem
