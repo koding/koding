@@ -747,13 +747,13 @@ class IDEAppController extends AppController
 
 
   addParticipant: (initalizeList = no) ->
-    nickname = KD.nick()
+    {hash, nickname} = KD.whoami().profile
 
     if initalizeList
       @rtm.create 'list', @realTimeDoc, 'participants', []
 
     @participants = @rtm.getFromModel @realTimeDoc, 'participants'
-    @participants.push nickname
+    @participants.push { nickname, hash }
 
     @rtm.create 'map', @realTimeDoc, nickname, @createWorkspaceSnapshot()
 
