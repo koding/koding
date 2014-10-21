@@ -17,6 +17,7 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     if typeConstant in ['join', 'leave']
       data.body = "has #{@prepareActivity()} the chat"
+      @setClass 'join-leave'
 
     data.body = "#{data.body} from an invitation by @#{addedBy}" if addedBy
 
