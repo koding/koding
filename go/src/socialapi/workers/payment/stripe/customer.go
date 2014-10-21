@@ -12,7 +12,11 @@ import (
 // CreateCustomer creates customer in Stripe and saves customer with
 // Stripe's customer_id; token is previously acquired from Stripe,
 // represents customer's cc info; accId is the `jAccount` id from mongo.
-func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) {
+func CreateCustomer(token, accId, email string) (*paymentmodels.Customer, error) {
+	if IsEmpty(token) {
+		return nil, paymenterrors.ErrTokenIsEmpty
+	}
+
 	params := &stripe.CustomerParams{
 		Desc:  accId,
 		Email: email,
@@ -22,8 +26,16 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 	account, err := modelhelper.GetAccountById(accId)
 	if err == nil {
 		params.Meta = map[string]string{
-			"username": account.Profile.Nickname,
+			"username":  account.Profile.Nickname,
+			"createdAt": account.Meta.CreatedAt.String(),
+			"status":    account.Status,
+			"firstName": account.Profile.FirstName,
+			"lastName":  account.Profile.LastName,
 		}
+	}
+
+	if err != nil {
+		Log.Error("Fetching account: %s failed. %s", accId, err)
 	}
 
 	externalCustomer, err := stripeCustomer.New(params)
@@ -31,42 +43,51 @@ func CreateCustomer(token, accId, email string) (*paymentmodel.Customer, error) 
 		return nil, handleStripeError(err)
 	}
 
-	customerModel := &paymentmodel.Customer{
+	customerModel := &paymentmodels.Customer{
 		OldId:              accId,
 		ProviderCustomerId: externalCustomer.Id,
 		Provider:           ProviderName,
 	}
 
 	err = customerModel.Create()
-	if err != nil {
-		return nil, err
-	}
 
-	return customerModel, nil
+	return customerModel, err
 }
 
-func FindCustomerByOldId(oldId string) (*paymentmodel.Customer, error) {
-	customerModel := &paymentmodel.Customer{
-		OldId: oldId,
-	}
+func FindCustomerByOldId(oldId string) (*paymentmodels.Customer, error) {
+	customerModel := paymentmodels.NewCustomer()
+	err := customerModel.ByOldId(oldId)
 
-	exists, err := customerModel.ByOldId()
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists {
-		return nil, paymenterrors.ErrCustomerNotFound
-	}
-
-	return customerModel, nil
+	return customerModel, err
 }
 
-func GetCustomerFromStripe(id string) (*stripe.Customer, error) {
+func GetCustomer(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
 		return nil, handleStripeError(err)
 	}
 
 	return customer, nil
+}
+
+func DeleteCustomer(accId string) error {
+	customer := paymentmodels.NewCustomer()
+	err := customer.ByOldId(accId)
+	if err != nil {
+		return err
+	}
+
+	currentSubscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return err
+	}
+
+	err = CancelSubscriptionAndRemoveCC(customer, currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	err = stripeCustomer.Del(customer.ProviderCustomerId)
+
+	return err
 }

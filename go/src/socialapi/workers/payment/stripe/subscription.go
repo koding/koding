@@ -7,6 +7,7 @@ import (
 
 	"github.com/koding/bongo"
 	stripe "github.com/stripe/stripe-go"
+	stripeInvoice "github.com/stripe/stripe-go/invoice"
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
@@ -16,7 +17,7 @@ var (
 	SubscriptionStateExpired  = "expired"
 )
 
-func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan) (*paymentmodel.Subscription, error) {
+func CreateSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Plan) (*paymentmodels.Subscription, error) {
 	subParams := &stripe.SubParams{
 		Plan:     plan.ProviderPlanId,
 		Customer: customer.ProviderCustomerId,
@@ -30,7 +31,7 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 	start := time.Unix(sub.PeriodStart, 0)
 	end := time.Unix(sub.PeriodEnd, 0)
 
-	subModel := &paymentmodel.Subscription{
+	subModel := &paymentmodels.Subscription{
 		PlanId:                 plan.Id,
 		CustomerId:             customer.Id,
 		ProviderSubscriptionId: sub.Id,
@@ -41,14 +42,11 @@ func CreateSubscription(customer *paymentmodel.Customer, plan *paymentmodel.Plan
 		AmountInCents:          plan.AmountInCents,
 	}
 	err = subModel.Create()
-	if err != nil {
-		return nil, err
-	}
 
-	return subModel, nil
+	return subModel, err
 }
 
-func FindCustomerSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
+func FindCustomerSubscriptions(customer *paymentmodels.Customer) ([]paymentmodels.Subscription, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"customer_id": customer.Id,
@@ -58,7 +56,7 @@ func FindCustomerSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.
 	return _findCustomerSubscriptions(customer, query)
 }
 
-func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]paymentmodel.Subscription, error) {
+func FindCustomerActiveSubscriptions(customer *paymentmodels.Customer) ([]paymentmodels.Subscription, error) {
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"customer_id": customer.Id,
@@ -69,7 +67,7 @@ func FindCustomerActiveSubscriptions(customer *paymentmodel.Customer) ([]payment
 	return _findCustomerSubscriptions(customer, query)
 }
 
-func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmodel.Subscription) error {
+func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) error {
 	subParams := &stripe.SubParams{
 		Customer: customer.ProviderCustomerId,
 	}
@@ -80,25 +78,105 @@ func CancelSubscription(customer *paymentmodel.Customer, subscription *paymentmo
 	}
 
 	err = subscription.UpdateState(SubscriptionStateCanceled)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
-func _findCustomerSubscriptions(customer *paymentmodel.Customer, query *bongo.Query) ([]paymentmodel.Subscription, error) {
-	var subs = []paymentmodel.Subscription{}
+func _findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Query) ([]paymentmodels.Subscription, error) {
+	var subscriptions = []paymentmodels.Subscription{}
 
 	if customer.Id == 0 {
 		return nil, paymenterrors.ErrCustomerIdIsNotSet
 	}
 
-	s := paymentmodel.Subscription{}
-	err := s.Some(&subs, query)
+	s := paymentmodels.Subscription{}
+	err := s.Some(&subscriptions, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return subs, nil
+	if IsOverSubscribed(subscriptions) {
+		Log.Error("Customer: %v has no too many subscriptions: %v", len(subscriptions))
+	}
+
+	return subscriptions, nil
+}
+
+func CancelSubscriptionAndRemoveCC(customer *paymentmodels.Customer, currentSubscription *paymentmodels.Subscription) error {
+	err := CancelSubscription(customer, currentSubscription)
+	if err != nil {
+		return err
+	}
+
+	err = RemoveCreditCard(customer)
+
+	return err
+}
+
+func UpdateSubscriptionForCustomer(customer *paymentmodels.Customer, subscriptions []paymentmodels.Subscription, plan *paymentmodels.Plan) error {
+	if IsNoSubscriptions(subscriptions) {
+		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+	}
+
+	currentSubscription := subscriptions[0]
+
+	oldPlan := paymentmodels.NewPlan()
+	err := oldPlan.ById(currentSubscription.PlanId)
+	if err != nil {
+		return err
+	}
+
+	if IsDowngrade(oldPlan, plan) {
+		return handleDowngrade(currentSubscription, customer, plan)
+	}
+
+	return handleUpgrade(currentSubscription, customer, plan)
+}
+
+func handleUpgrade(currentSubscription paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
+	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return handleStripeError(err)
+	}
+
+	invoiceParams := &stripe.InvoiceParams{
+		Customer: customer.ProviderCustomerId,
+	}
+
+	_, err = stripeInvoice.New(invoiceParams)
+	if err != nil {
+		stripeErr := handleStripeError(err)
+
+		if !paymenterrors.IsNothingToInvoiceErr(stripeErr) {
+			return stripeErr
+		}
+	}
+
+	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
+
+	return err
+}
+
+// On downgrade, unlike upgrade, wait till end of the billing cycle to move to the new plan.
+func handleDowngrade(currentSubscription paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+	subParams := &stripe.SubParams{
+		Customer: customer.ProviderCustomerId,
+		Plan:     plan.ProviderPlanId,
+	}
+
+	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
+	_, err := stripeSub.Update(currentSubscriptionId, subParams)
+	if err != nil {
+		return handleStripeError(err)
+	}
+
+	err = currentSubscription.UpdateTimeForDowngrade(time.Now())
+
+	return err
 }
