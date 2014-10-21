@@ -36,6 +36,7 @@ module.exports = class JSession extends Model
         facebook    : Object
         linkedin    : Object
       foreignAuthType : String
+      impersonating : Boolean
     sharedEvents    :
       instance      : []
       static        : []

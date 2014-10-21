@@ -26,21 +26,23 @@ var (
 )
 
 type HomeContent struct {
-	Version     string
-	Runtime     config.RuntimeOptions
-	User        LoggedInUser
-	Title       string
-	Description string
-	ShareUrl    string
+	Version       string
+	Runtime       config.RuntimeOptions
+	User          LoggedInUser
+	Title         string
+	Description   string
+	ShareUrl      string
+	Impersonating bool
 }
 
 type LoggedInUser struct {
-	Account    *models.Account
-	Machines   []*modelhelper.MachineContainer
-	Workspaces []*models.Workspace
-	Group      *models.Group
-	Username   string
-	SessionId  string
+	Account       *models.Account
+	Machines      []*modelhelper.MachineContainer
+	Workspaces    []*models.Workspace
+	Group         *models.Group
+	Username      string
+	SessionId     string
+	Impersonating bool
 }
 
 func initialize() {
@@ -168,12 +170,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	loggedInUser := LoggedInUser{
-		SessionId:  clientId,
-		Group:      kodingGroup,
-		Workspaces: workspaces,
-		Machines:   machines,
-		Account:    account,
-		Username:   username,
+		SessionId:     clientId,
+		Group:         kodingGroup,
+		Workspaces:    workspaces,
+		Machines:      machines,
+		Account:       account,
+		Username:      username,
+		Impersonating: session.Impersonating,
 	}
 
 	renderLoggedInHome(w, loggedInUser)
@@ -187,6 +190,10 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
 	hc.User = u
+
+	if u.Impersonating {
+		hc.Impersonating = true
+	}
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {

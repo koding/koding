@@ -109,6 +109,8 @@ prepareFakeClient = (fakeClient, options) ->
   fakeClient.connection.delegate  = account or fakeClient.connection.delegate
   fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
 
+  fakeClient.impersonating or= session.impersonating or false
+
 
 module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
 

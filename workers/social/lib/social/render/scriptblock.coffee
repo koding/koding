@@ -21,7 +21,7 @@ module.exports = (options = {}, callback)->
 
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
-      {sessionToken, connection: {delegate}} = client
+      {impersonating, sessionToken, connection: {delegate}} = client
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -72,9 +72,12 @@ module.exports = (options = {}, callback)->
       // see analytic.coffee - SA
       // ga('send', 'pageview');
     </script>
-    <script type="text/javascript">
-      var _user_id = '#{nickname}'; var _session_id = '#{sessionToken}'; var _sift = _sift || []; _sift.push(['_setAccount', '#{siftScience}']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
-    </script>
+
+    #{if not impersonating then "
+      <script type='text/javascript'>
+        var _user_id = '#{nickname}'; var _session_id = '#{sessionToken}'; var _sift = _sift || []; _sift.push(['_setAccount', '#{siftScience}']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();</script>
+    " else '' }
+
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
 
