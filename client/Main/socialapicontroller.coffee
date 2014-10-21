@@ -235,14 +235,6 @@ class SocialApiController extends KDController
         # notify listener
         socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
-
-  cycleChannel: (channel, callback)->
-    options =
-      groupSlug     : channel.groupName
-      apiChannelType: channel.typeConstant
-      apiChannelName: channel.name
-    KD.remote.api.SocialChannel.cycleChannel options, callback
-
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
