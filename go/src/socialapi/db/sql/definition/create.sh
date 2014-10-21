@@ -32,6 +32,11 @@ sudo -u postgres psql social < $1/definition/004-table.sql
 # ctreate constraints
 sudo -u postgres  psql social < $1/definition/005-constraint.sql
 
+# create kontrol specific tables
+if [ -d "kontrol" ]; then
+  sudo -u postgres  psql social < $1/kontrol/database.sql
+fi
+
 # NOTIFICATION WORKER SQL IMPORTS
 
 # create sequences

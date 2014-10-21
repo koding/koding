@@ -36,6 +36,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteKeyName         = if environment is "dev" then "koding" else environment
   kiteHome            = "#{projectRoot}/kite_home/#{kiteKeyName}"
 
@@ -210,7 +211,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
@@ -433,7 +434,7 @@ Configuration = (options={}) ->
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
-      SERVICES="mongo redis postgres rabbitmq etcd"
+      SERVICES="mongo redis postgres rabbitmq"
 
       NGINX_CONF="#{projectRoot}/.dev.nginx.conf"
       NGINX_PID="#{projectRoot}/.dev.nginx.pid"
@@ -532,7 +533,7 @@ Configuration = (options={}) ->
       function chaosmonkey () {
 
         while [ 1==1 ]; do
-          for i in mongo redis etcd postgres
+          for i in mongo redis postgres
             do
               echo stopping $i
               docker stop $i
@@ -688,6 +689,13 @@ Configuration = (options={}) ->
 
         # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
+
+        # Include this to dockerfile before we continute with building
+        rm -rf kontrol 
+        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/database.sql kontrol/
+        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/database.sql
+        rm kontrol/database.sql.bak
+
         docker build -t koding/postgres .
 
         docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
@@ -695,7 +703,6 @@ Configuration = (options={}) ->
 
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding/postgres
-        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}
