@@ -240,74 +240,74 @@ module.exports = class HomeView extends KDView
         <h4>Developers of the World</h4>
         <br>
         <h5>Let's Hack Together!</h5>
-        <p>Traditional hackathons are all about the location and although we love the good old 
-        fashioned way of hacking together an awesome project, our browsers are now strong enough 
-        that distance is of no consequence when it comes to creating awesome projects. We can 
-        and should get together to write code and create awesome projects, regardless of 
+        <p>Traditional hackathons are all about the location and although we love the good old
+        fashioned way of hacking together an awesome project, our browsers are now strong enough
+        that distance is of no consequence when it comes to creating awesome projects. We can
+        and should get together to write code and create awesome projects, regardless of
         where we are.
         </p>
         <p>Welcome to the World’s First Global Hackathon (#wfgh)!</p>
 
-        <p>This event is intended to connect developers across the globe and get them to  code 
-        together irrespective of their locations. You will problem solve and build with old or 
+        <p>This event is intended to connect developers across the globe and get them to  code
+        together irrespective of their locations. You will problem solve and build with old or
         new team members and try to win!
         </p>
       </article>
       <article>
         <h4>How does it work? </h4>
 
-        <p> First, sign up using the simple form above. We will send you a short questionnaire 
-        that will help us understand a little bit more about you and your team’s background.  
+        <p> First, sign up using the simple form above. We will send you a short questionnaire
+        that will help us understand a little bit more about you and your team’s background.
         We promise to keep it short and sweet.
         </p>
-        
-        <p>Applications can come from individuals or teams of up to 5, however each team member 
-        needs to be a contributing team member (writing code or designing). If you are an 
+
+        <p>Applications can come from individuals or teams of up to 5, however each team member
+        needs to be a contributing team member (writing code or designing). If you are an
         individual who is selected and are looking for team members, post a message on the
-        <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a>. 
-        Your post should clearly articulate what type of skill set you are looking for and what 
-        type of skill set you have. e.g.: <i>I am a nodeJS developer looking for a backend 
-        database team member.</i> Once you get a response, jump into private chats on Koding 
+        <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a>.
+        Your post should clearly articulate what type of skill set you are looking for and what
+        type of skill set you have. e.g.: <i>I am a nodeJS developer looking for a backend
+        database team member.</i> Once you get a response, jump into private chats on Koding
         itself to discuss your ideas and start recruiting!
       </article>
       <article>
         <h4>How do I get accepted? </h4>
-        <p>We expect a lot of you to apply but to keep things sane, we will be limiting the 
-        final competition to a 1000 teams. Our panel of judges will decide who will be part 
-        of the competition. Their decision will be based on factors like location, team size, 
-        project work on github, social presence, etc. Applications are being reviewed on a first 
-        come first serve basis so apply today and if approved, you will receive an email from 
+        <p>We expect a lot of you to apply but to keep things sane, we will be limiting the
+        final competition to a 1000 teams. Our panel of judges will decide who will be part
+        of the competition. Their decision will be based on factors like location, team size,
+        project work on github, social presence, etc. Applications are being reviewed on a first
+        come first serve basis so apply today and if approved, you will receive an email from
         us with further instructions. We will also let you know if your application is not approved.
         </p>
       </article>
       <article>
       <h4>What is the theme for the Hackathon?</h4>
-      <p>48 hours before the start of the event, we will provide a theme for the event. Your task 
-      will be to use the API’s of one (or more) of our API partners and create a project that 
-      addresses the theme of the event. The theme will be announced on the 
+      <p>48 hours before the start of the event, we will provide a theme for the event. Your task
+      will be to use the API’s of one (or more) of our API partners and create a project that
+      addresses the theme of the event. The theme will be announced on the
       <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a>
        so make sure and mark your calendars!
       </article>
       <article>
         <h4> What are the rules?</h4>
-        <p>Our goal is to ensure that all teams have a level playing field; therefore it is 
+        <p>Our goal is to ensure that all teams have a level playing field; therefore it is
         imperative that all code, design, assets, etc… must be created during the duration
-        of the event. No exceptions. You can brainstorm ideas prior to the event, however 
-        any assets or code used as part of your submission must have been created during the event. 
-        The only exception to this rule is the usage of publicly available material. This includes: 
-        public code snippets, images, open source libraries and projects, public APIs, etc. You 
+        of the event. No exceptions. You can brainstorm ideas prior to the event, however
+        any assets or code used as part of your submission must have been created during the event.
+        The only exception to this rule is the usage of publicly available material. This includes:
+        public code snippets, images, open source libraries and projects, public APIs, etc. You
         get the picture. Play fair!
         </p>
         <p>
-        <i>Note: If your team qualifies for a prize, you are automatically subject to a code 
+        <i>Note: If your team qualifies for a prize, you are automatically subject to a code
         and asset review to ensure that the above rule has been adhered to.
-        </i>    
+        </i>
       </article>
       <article>
         <h4>What are the prizes?</h4>
         <ol>
         <li>$10,000 cash prize from Koding, split amongst 1 to 3 teams (100%, 70%-30%, 50%-30%-20%)</li>
-        <li>The top prize winners will be offered interviews with investors on our judging panel 
+        <li>The top prize winners will be offered interviews with investors on our judging panel
         (RTP Ventures and Greycroft Partners).</li>
         <li>More to come!</li>
         </ol>
@@ -315,7 +315,7 @@ module.exports = class HomeView extends KDView
       <article>
         <h4>Who will eventually own the projects created?</h4>
 
-        <p>You will retain full ownership and rights to your creation. Be super awesome and have fun! Get 
+        <p>You will retain full ownership and rights to your creation. Be super awesome and have fun! Get
         creative, meet new people, make new friends and problem solve with them.
         </p>
       </article>
@@ -331,24 +331,24 @@ module.exports = class HomeView extends KDView
               <li>0000 – 2200 PDT Hacking continues</li>
               <li>2330 – 0000 PDT Teams submit their projects)</li>
             </ul>
-          </li>  
+          </li>
           <li>Nov 25th - Winners are notified via email and winning projects are listed for public viewing.</li>
-        </ul>  
+        </ul>
       </article>
       <article>
         <h4>What is the judging process?</h4>
-        <p>Due to the large number of teams and potential hosting pitfalls that can come with, we request that 
-        each team submit their project using a Koding VM. Don’t worry, you don’t need a paid account. If you 
+        <p>Due to the large number of teams and potential hosting pitfalls that can come with, we request that
+        each team submit their project using a Koding VM. Don’t worry, you don’t need a paid account. If you
         submit your project and your VM is turned off due to inactivity, we will turn it on for you.
         </p>
         <p>Judging will happen in three rounds:</p>
         <ol>
-          <li>Round 1: All projects submitted for this round are distributed (ad-hoc) to our judges panel and 
-          they will evaluate it based on API’s used, complexity of solution, adherence to the theme, team size, 
+          <li>Round 1: All projects submitted for this round are distributed (ad-hoc) to our judges panel and
+          they will evaluate it based on API’s used, complexity of solution, adherence to the theme, team size,
           geolocation of team, etc. Selected projects move to round 2.
           </li>
-          <li>Round 2: Teams reaching this stage will have their projects evaluated on stricter versions of 
-          the same criteria above and will be exposed to our entire judging staff. Each judge gets to assign 
+          <li>Round 2: Teams reaching this stage will have their projects evaluated on stricter versions of
+          the same criteria above and will be exposed to our entire judging staff. Each judge gets to assign
           points (1-10) and the top 10 teams scoring the most move to the final round.
           </li>
           <Li>Round 3: Judges meet (virtually of course) for a live call to discuss and pick the final 3.
@@ -365,14 +365,14 @@ module.exports = class HomeView extends KDView
               <li>How your project addresses the theme of the hackathon.</li>
               <li>What tools did you use to collaborate.</li>
             </ol>
-          <p>Your submission should have a time label less than <b>23:59 PDT, Nov 23rd 2014</b>. 
+          <p>Your submission should have a time label less than <b>23:59 PDT, Nov 23rd 2014</b>.
           Submissions received after the deadline will not be considered. No exceptions.
-        </p>  
+        </p>
       </article>
       <article>
         <h4>Questions?</h4>
         <p>Send us an email at <a href="mailto:wfgh@koding.com">wfgh@koding.com</a></p>
-      </article>  
+      </article>
       <article class='judges'>
         <h4>Judges</h4>
         <div class='clearfix'></div>
