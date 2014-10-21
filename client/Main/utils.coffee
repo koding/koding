@@ -821,6 +821,77 @@ utils.extend utils,
     parts.join ''
 
 
+  s3upload: (name, content, callback)->
+
+    KD.remote.api.S3.generatePolicy (err, policy)->
+
+      fd = new FormData()
+
+      fd.append 'key', "#{policy.upload_url}/#{name}"
+      fd.append 'acl', 'public-read'
+      fd.append 'AWSAccessKeyId', policy.accessKey
+      fd.append 'policy', policy.policy
+      fd.append 'signature', policy.signature
+      fd.append 'file', content
+
+      xhr = new XMLHttpRequest()
+
+      xhr.addEventListener "load", ->
+        log "LOAD", arguments
+
+      xhr.addEventListener "error", ->
+        log "ERROR", arguments
+
+      xhr.addEventListener "abort", ->
+        log "ABORT", arguments
+
+      xhr.open 'POST', policy.req_url, true
+
+      xhr.send fd
+
+      # $.ajax
+      #   type              : "POST"
+      #   url               : policy.req_url
+      #   crossDomain       : yes
+      #   data              :
+      #     key             : "#{policy.upload_url}/#{name}"
+      #     AWSAccessKeyId  : policy.accessKey
+      #     acl             : 'public-read'
+      #     policy          : policy.policy
+      #     signature       : policy.signature
+      #     file            : content
+
+      #   error   : -> callback "fail"
+      #   success : (data)-> callback data
+      #   timeout : 5000
+
+      # Working version --- with FORM
+      #
+      # <html>
+      #   <head>
+      #     <title>S3 POST Form</title>
+      #     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      #   </head>
+
+      #   <body>
+      #     <form action="https://koding-client.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
+      #       <input type="hidden" name="key" value="user/gokmen/test.txt">
+      #       <input type="hidden" name="AWSAccessKeyId" value="AKIAJ26X7D2XKXVSGUAA">
+      #       <input type="hidden" name="acl" value="public-read">
+      #       <input type="hidden" name="policy" value="eyJleHBpcmF0aW9uIjoiMjAxNC0xMC0yMVQxOToyMjo1Ni44MjBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoia29kaW5nLWNsaWVudCJ9LHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsInVzZXIvZ29rbWVuIl0sWyJzdGFydHMtd2l0aCIsIiRDb250ZW50LVR5cGUiLCIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDEwNDg1NzZdXX0=">
+      #       <input type="hidden" name="signature" value="FAW4l0cqSoD6Ow2BZrkC9JX04mA=">
+      #       <input type="hidden" name="Content-Type" value="plain/text">
+      #       <!-- Include any additional input fields here -->
+
+      #       File to upload to S3:
+      #       <input name="file" value="Hello world ehem.">
+      #       <br>
+      #       <input type="submit" value="Upload File to S3">
+      #     </form>
+      #   </body>
+      # </html>
+
+
   ###*
   Decimal adjustment of a number
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
