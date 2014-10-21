@@ -133,5 +133,19 @@ module.exports =
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
+  openFolderContextMenu: (browser, user, folderName) ->
+
+    webPath       = '/home/' + user.username + '/' + folderName
+    webSelector   = "span[title='" + webPath + "']"
+
+    browser
+      .waitForElementVisible   '.vm-header', 5000
+      .click                   '.vm-header .buttons'
+      .waitForElementPresent   '.context-list-wrapper', 5000
+      .click                   '.context-list-wrapper .refresh'
+      .waitForElementVisible   webSelector, 10000
+      .click                   webSelector
+      .click                   webSelector + ' + .chevron'
+
   getUrl: ->
     return 'http://lvh.me:8090'
