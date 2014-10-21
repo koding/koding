@@ -24,14 +24,21 @@ type Account struct {
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 }
 
-// Tests are done.
-func (a *Account) FetchOrCreate() error {
+func ValidateAccount(a *Account) error {
 	if a.OldId == "" {
 		return ErrOldIdIsNotSet
 	}
 
 	if strings.Contains(a.Nick, "guest-") {
 		return ErrGuestsAreNotAllowed
+	}
+	return nil
+}
+
+// Tests are done.
+func (a *Account) FetchOrCreate() error {
+	if err := ValidateAccount(a); err != nil {
+		return err
 	}
 
 	selector := map[string]interface{}{
