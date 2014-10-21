@@ -560,6 +560,13 @@ Configuration = (options={}) ->
       }
 
       function run () {
+        go run go/src/socialapi/tests/pg-update.go #{postgres.host} #{postgres.port}
+        RESULT=$?
+
+        if [ $RESULT -ne 0 ]; then
+          exit 1
+        fi
+
         check
         npm i --silent
         #{projectRoot}/go/build.sh
