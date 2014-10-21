@@ -613,17 +613,22 @@ Configuration = (options={}) ->
           fi
         fi
 
-        mongo #{mongo} --eval "db.stats()"  # do a simple harmless command of some sort
+        mongo #{mongo} --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
 
         RESULT=$?   # returns 0 if mongo eval succeeds
 
         if [ $RESULT -ne 0 ]; then
-            echo "cant talk to mongodb at #{mongo}, is it not running? exiting."
+            echo ""
+            echo "Can't talk to mongodb at #{mongo}, is it not running? exiting."
             exit 1
-        else
-            echo "mongodb running!"
         fi
 
+        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        if [[ $EXISTS != '1' ]]; then
+          echo ""
+          echo "You don't have new Kontrol Postgres. Please call ./run buildservices."
+          exit 1
+        fi
 
       }
 
