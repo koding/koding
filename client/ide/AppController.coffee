@@ -733,7 +733,12 @@ class IDEAppController extends AppController
       if not @participants
         @addParticipant yes  if @amIHost
       else
-        if @participants.indexOf(nickname) is -1
+        isInList = no
+
+        @participants.asArray().forEach (participant) =>
+          isInList = yes  if participant.nickname is nickname
+
+        if not isInList
           log 'acetz: I am not in the participants list, adding myself'
           @addParticipant()
         else
