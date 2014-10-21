@@ -42,7 +42,7 @@ func TestGetCustomerCreditCard(t *testing.T) {
 
 func TestUpdateCustomerCreditCard(t *testing.T) {
 	Convey("Given an existing customer", t,
-		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
 			Convey("Then it should be able to update credit card", func() {
 				tokenParams := &stripe.TokenParams{
 					Card: &stripe.CardParams{
@@ -58,7 +58,7 @@ func TestUpdateCustomerCreditCard(t *testing.T) {
 				err = UpdateCreditCard(accId, token.Id)
 				So(err, ShouldBeNil)
 
-				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				externalCustomer, err := GetCustomer(c.ProviderCustomerId)
 				So(err, ShouldBeNil)
 
 				So(len(externalCustomer.Cards.Values), ShouldEqual, 1)
@@ -72,12 +72,12 @@ func TestUpdateCustomerCreditCard(t *testing.T) {
 
 func TestRemoveCreditCard(t *testing.T) {
 	Convey("Given an existing customer", t,
-		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
 			Convey("Then it should be able to remove credit card", func() {
 				err := RemoveCreditCard(c)
 				So(err, ShouldBeNil)
 
-				externalCustomer, err := GetCustomerFromStripe(c.ProviderCustomerId)
+				externalCustomer, err := GetCustomer(c.ProviderCustomerId)
 				So(err, ShouldBeNil)
 
 				So(len(externalCustomer.Cards.Values), ShouldEqual, 0)

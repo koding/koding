@@ -55,7 +55,7 @@ func TestCreateAndFindSubscription(t *testing.T) {
 
 func TestCancelSubscription(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
-		createCustomerFn(func(accId string, c *paymentmodel.Customer) {
+		createCustomerFn(func(accId string, c *paymentmodels.Customer) {
 			plan, err := FindPlanByTitleAndInterval(StartingPlan, StartingInterval)
 			So(err, ShouldBeNil)
 			So(plan, ShouldNotBeNil)
@@ -82,8 +82,8 @@ func TestCancelSubscription(t *testing.T) {
 
 					So(len(subscriptions), ShouldEqual, 1)
 
-					current_subscription := subscriptions[0]
-					So(current_subscription.State, ShouldEqual, SubscriptionStateCanceled)
+					currentSubscription := subscriptions[0]
+					So(currentSubscription.State, ShouldEqual, SubscriptionStateCanceled)
 				})
 			})
 		}),

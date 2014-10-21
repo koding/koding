@@ -1,7 +1,11 @@
-package paymentmodel
+package paymentmodels
 
 import (
+	"socialapi/workers/payment/paymenterrors"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Customer struct {
@@ -19,4 +23,26 @@ type Customer struct {
 	// Timestamps.
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt" `
+}
+
+func (c *Customer) ByOldId(oldId string) error {
+	selector := map[string]interface{}{"old_id": oldId}
+
+	err := c.One(bongo.NewQS(selector))
+	if err == gorm.RecordNotFound {
+		return paymenterrors.ErrCustomerNotFound
+	}
+
+	return err
+}
+
+func (c *Customer) FindActiveSubscription() (*Subscription, error) {
+	if c.Id == 0 {
+		return nil, ErrIdNotSet
+	}
+
+	subscription := NewSubscription()
+	err := subscription.ByCustomerIdAndState(c.Id, "active")
+
+	return subscription, err
 }

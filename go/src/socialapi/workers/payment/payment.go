@@ -1,17 +1,20 @@
 package payment
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"time"
+
+	"github.com/koding/logging"
 )
 
 var (
 	ProviderNotFound       = errors.New("provider not found")
 	ProviderNotImplemented = errors.New("provider not implemented")
+	Log                    = logging.NewLogger("payment")
 )
 
 //----------------------------------------------------------
@@ -26,9 +29,18 @@ type SubscribeRequest struct {
 func (s *SubscribeRequest) Do() (interface{}, error) {
 	switch s.Provider {
 	case "stripe":
-		return nil, stripe.Subscribe(
+		err := stripe.Subscribe(
 			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
 		)
+
+		if err != nil {
+			Log.Error(
+				"Subscribing account: %s to plan: %s failed. %s",
+				s.AccountId, s.PlanTitle, err,
+			)
+		}
+
+		return nil, err
 	case "paypal":
 		return nil, ProviderNotImplemented
 	default:
@@ -37,10 +49,10 @@ func (s *SubscribeRequest) Do() (interface{}, error) {
 }
 
 //----------------------------------------------------------
-// SubscriptionRequest
+// AccountRequest
 //----------------------------------------------------------
 
-type SubscriptionRequest struct {
+type AccountRequest struct {
 	AccountId string
 }
 
@@ -53,42 +65,45 @@ type SubscriptionsResponse struct {
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
 
-// Do checks if given `account_id` is a paying customer and returns
-// the current plan the current is subscribed if any.
-//
-// Errors:
-//		paymenterrors.ErrCustomerNotFound if user is found
-//		paymenterrors.ErrCustomerNotSubscribedToAnyPlans if user no subscriptions
-//		paymenterrors.ErrPlanNotFound if user subscription's plan isn't found
-func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
-	if s.AccountId == "" {
+// Subscriptions return given `account_id` subscription if it exists.
+// In case of no customer, or no subscriptions or no plan found, it
+// returns the default plan as subscription.
+func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
+	if a.AccountId == "" {
 		return nil, paymenterrors.ErrAccountIdIsNotSet
 	}
 
-	customer, err := stripe.FindCustomerByOldId(s.AccountId)
+	defaultResp := &SubscriptionsResponse{
+		AccountId:    a.AccountId,
+		PlanTitle:    "free",
+		PlanInterval: "month",
+		State:        "active",
+	}
+
+	customer, err := stripe.FindCustomerByOldId(a.AccountId)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	subscriptions, err := stripe.FindCustomerActiveSubscriptions(customer)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	if len(subscriptions) == 0 {
-		return nil, paymenterrors.ErrCustomerNotSubscribedToAnyPlans
+		return defaultResp, nil
 	}
 
 	currentSubscription := subscriptions[0]
 
-	plan := &paymentmodel.Plan{}
+	plan := &paymentmodels.Plan{}
 	err = plan.ById(currentSubscription.PlanId)
 	if err != nil {
-		return nil, err
+		return defaultResp, nil
 	}
 
 	resp := &SubscriptionsResponse{
-		AccountId:          s.AccountId,
+		AccountId:          a.AccountId,
 		PlanTitle:          plan.Title,
 		PlanInterval:       plan.Interval,
 		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
@@ -99,69 +114,31 @@ func (s *SubscriptionRequest) Do() (*SubscriptionsResponse, error) {
 	return resp, nil
 }
 
-// DoWithDefault is different from Do since client excepts to get
-// "free" plan regardless of user not found or doesn't have any
-// subscriptions etc.
-func (s *SubscriptionRequest) DoWithDefault() (*SubscriptionsResponse, error) {
-	resp, err := s.Do()
-	if err == nil {
-		return resp, nil
+func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
+	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
+	if err != nil {
+		Log.Error("Fetching invoices for account: %s failed. %s", a.AccountId, err)
 	}
 
-	defaultResp := &SubscriptionsResponse{
-		AccountId:    s.AccountId,
-		PlanTitle:    "free",
-		PlanInterval: "month",
-		State:        "active",
+	return invoices, err
+}
+
+func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
+	resp, err := stripe.GetCreditCard(a.AccountId)
+	if err != nil {
+		Log.Error("Fetching cc for account: %s failed. %s", a.AccountId, err)
 	}
 
-	defaultResponseErrs := []error{
-		paymenterrors.ErrCustomerNotSubscribedToAnyPlans,
-		paymenterrors.ErrCustomerNotFound,
-		paymenterrors.ErrPlanNotFound,
-	}
+	return resp, err
+}
 
-	for _, respError := range defaultResponseErrs {
-		if err == respError {
-			return defaultResp, nil
-		}
+func (a *AccountRequest) Delete() (interface{}, error) {
+	err := stripe.DeleteCustomer(a.AccountId)
+	if err != nil {
+		Log.Error("Deleting account: %s failed. %s", a.AccountId, err)
 	}
 
 	return nil, err
-}
-
-//----------------------------------------------------------
-// InvoiceRequest
-//----------------------------------------------------------
-
-type InvoiceRequest struct {
-	AccountId string
-}
-
-func (i *InvoiceRequest) Do() ([]*stripe.StripeInvoiceResponse, error) {
-	invoices, err := stripe.FindInvoicesForCustomer(i.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	return invoices, nil
-}
-
-//----------------------------------------------------------
-// GetCreditCard
-//----------------------------------------------------------
-
-type CreditCardRequest struct {
-	AccountId string
-}
-
-func (c *CreditCardRequest) Do() (*stripe.CreditCardResponse, error) {
-	resp, err := stripe.GetCreditCard(c.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }
 
 //----------------------------------------------------------
@@ -175,7 +152,12 @@ type UpdateCreditCardRequest struct {
 func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
 	switch u.Provider {
 	case "stripe":
-		return nil, stripe.UpdateCreditCard(u.AccountId, u.Token)
+		err := stripe.UpdateCreditCard(u.AccountId, u.Token)
+		if err != nil {
+			Log.Error("Updating cc for account: %s failed. %s", u.AccountId, err)
+		}
+
+		return nil, err
 	case "paypal":
 		return nil, ProviderNotImplemented
 	default:
@@ -188,27 +170,39 @@ func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
 //----------------------------------------------------------
 
 type StripeWebhook struct {
-	Name     string      `json:"type"`
-	Created  int         `json:"created"`
-	Livemode bool        `json:"livemode"`
-	Id       string      `json:"id"`
-	Data     interface{} `json:"data"`
-	Object   string      `json:"object"`
+	Name     string `json:"type"`
+	Created  int    `json:"created"`
+	Livemode bool   `json:"livemode"`
+	Id       string `json:"id"`
+	Data     struct {
+		Object interface{} `json:"object"`
+	} `json:"data"`
 }
 
 func (s *StripeWebhook) Do() (interface{}, error) {
-	switch s.Name {
-	case "charge.failed":
-		fmt.Println(">>>>>>>>>>> charge.failed")
-	case "charge.dispute.created":
-		fmt.Println(">>>>>>>>>>> charge.dispute.created")
-	case "invoice.payment_failed":
-		fmt.Println(">>>>>>>>>>> invoice.payment_failed")
-	case "transfer.failed":
-		fmt.Println(">>>>>>>>>>> transfer.failed")
-	default:
-		fmt.Println(">>>>>>>>>, unknown webhook", s.Name)
+	var err error
+
+	if !s.Livemode {
+		Log.Error("Received test Stripe webhook: %v", s)
+		return nil, nil
 	}
 
-	return nil, nil
+	raw, err := json.Marshal(s.Data.Object)
+	if err != nil {
+		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
+		return nil, err
+	}
+
+	switch s.Name {
+	case "customer.subscription.deleted":
+		err = stripe.SubscriptionDeletedWebhook(raw)
+	case "invoice.created":
+		err = stripe.InvoiceCreatedWebhook(raw)
+	}
+
+	if err != nil {
+		Log.Error("Error handling Stripe webhook '%v' : %v", s, err)
+	}
+
+	return nil, err
 }
