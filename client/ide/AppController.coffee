@@ -701,13 +701,13 @@ class IDEAppController extends AppController
 
     rtm.auth()
 
-    rtm.on 'ClientAuthenticated', =>
+    rtm.once 'ClientAuthenticated', =>
       hostName = if @amIHost then KD.nick() else @collaborationHost
       title    = "#{hostName}.#{machine.slug}.#{workspaceData.slug}"
 
       rtm.fetchFileByTitle title
 
-      rtm.on 'FileQueryFinished', (file) =>
+      rtm.once 'FileQueryFinished', (file) =>
         {result} = file
         return if result.selfLink.indexOf(title) is -1
 
@@ -724,7 +724,7 @@ class IDEAppController extends AppController
 
     @rtm.getFile fileId
 
-    @rtm.on 'FileLoaded', (doc) =>
+    @rtm.once 'FileLoaded', (doc) =>
       @realTimeDoc = doc
       nickname     = KD.nick()
 
