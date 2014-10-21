@@ -401,6 +401,11 @@ body.ide.dark
       abs()
       pointer()
       display           inline-block
+      &.participants
+        r-sprite        'ide', 'participants'
+        right           96px
+        top             9px
+        margin-right    2px
       &.shortcuts
         r-sprite        'ide', 'keyboard'
         right           68px
@@ -913,6 +918,65 @@ body.ide .kddialogview.save-as-dialog
       rounded           4px
 
 // Collaboration
-.ide
-  .firepad
-    height              100%
+
+.ide-participants-modal
+  .kdmodal-inner
+    margin              22px 30px
+  .kdmodal-title
+    padding             0 0 16px !important
+    margin              0 15px 19px 0
+    border-bottom       1px solid #f1f1f1 !important
+    .title
+      font-size         18px !important
+      color             #575757
+      font-weight       600
+      line-height       24px
+
+
+.ide-participant
+  position              relative
+  margin-bottom         10px
+  border-bottom         1px solid #efefef
+  padding-bottom        10px
+
+  &:last-child
+    border-bottom       none
+    padding-bottom      0
+    margin-bottom       0
+
+  .avatarview
+    margin-right        8px
+    size                46px, 46px
+    fl()
+
+  .name
+    font-size           15px
+    line-height         22px
+    span
+      margin-left       2px
+      font-size         12px
+      color             #9c9c9c
+
+  button
+    abs()
+    right               0
+    top                 10px
+    height              23px !important
+    padding             0 10px !important
+    span
+      line-height       23px !important
+      text-transform    uppercase
+
+  .open-panes
+    font-size           13px
+    span
+      margin            0 3px
+      border-bottom     1px solid
+      height            17px
+      display           inline-block
+      pointer()
+      &.info
+        border-bottom   none
+
+  .thats-me
+    font-size           13px
