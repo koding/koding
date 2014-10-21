@@ -24,7 +24,6 @@ import (
 
 var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
-	DefaultInstanceType = "t2.micro"
 
 	// Starting from cheapest, list is according to us-east and coming from:
 	// http://www.ec2instances.info/. t2.micro is not included because it's
@@ -114,7 +113,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Builder.SecurityGroupId = group.Id
 	a.Builder.SubnetId = subnet.SubnetId
 	a.Builder.Zone = subnet.AvailabilityZone
-	a.Builder.InstanceType = DefaultInstanceType
 
 	infoLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
@@ -336,7 +334,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				a.Builder.InstanceType = instanceType
 
 				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
-					m.Id, instanceType, DefaultInstanceType)
+					m.Id, instanceType, a.Builder.InstanceType)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
