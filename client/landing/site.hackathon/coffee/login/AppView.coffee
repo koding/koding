@@ -331,8 +331,8 @@ module.exports = class LoginView extends JView
           rules          :
             required     : yes
             rangeLength  : [4, 25]
-            # regExp       : /^[^0-9][a-z\d]+([-][a-z\d]+)*$/i
-            regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
+            regExp       : /^[^0-9][a-z\d]+([-][a-z\d]+)*$/i
+            # regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
             usernameCheck: (input, event) => @usernameCheck input, event
             finalCheck   : (input, event) => @usernameCheck input, event, 0
           messages       :
