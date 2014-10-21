@@ -2,10 +2,10 @@
 
 ## Installation
 
+You don't have to follow the installation steps. The instructions below are just for reference.
+
 We have a setup to provision the user VMs via Ansible.
 There is a configured machine on AWS, with the IP of `54.172.97.80`.
-
-You don't have to follow the installation steps. Above instructions are just for reference.
 
 Export `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
 Copy `ansible.cfg`, `hosts` and `ec2.ini` files into /etc/ansible/.
