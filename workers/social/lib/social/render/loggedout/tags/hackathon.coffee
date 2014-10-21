@@ -5,6 +5,9 @@ description = 'The World’s First Virtual Global Hackathon. This event is inten
 module.exports =
 
   """
+  <title>#{title}</title>
+  <meta name="description"             content="#{description}" />
+
   <!-- og meta tags -->
   <meta property="og:title" content="#{title}"/>
   <meta property="og:type" content="website"/>

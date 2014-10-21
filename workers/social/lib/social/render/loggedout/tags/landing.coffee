@@ -5,6 +5,9 @@ description = 'Koding is a cloud-based development environment complete with fre
 module.exports =
 
   """
+  <title>#{title}</title>
+  <meta name="description"             content="#{description}" />
+
   <!-- og meta tags -->
   <meta property="og:title" content="#{title}"/>
   <meta property="og:type" content="website"/>
