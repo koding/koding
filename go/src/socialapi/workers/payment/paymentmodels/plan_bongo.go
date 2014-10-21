@@ -1,9 +1,8 @@
-package paymentmodel
+package paymentmodels
 
 import (
 	"errors"
 
-	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -18,6 +17,10 @@ func (Plan) TableName() string {
 //----------------------------------------------------------
 // Crud methods
 //----------------------------------------------------------
+
+func NewPlan() *Plan {
+	return &Plan{}
+}
 
 func (p *Plan) ById(id int64) error {
 	return bongo.B.ById(p, id)
@@ -38,37 +41,4 @@ func (p *Plan) Create() error {
 	}
 
 	return nil
-}
-
-var ErrTitleNotSet = errors.New("title not set")
-var ErrIntervalNotSet = errors.New("interval not set")
-
-func (p *Plan) ByTitleAndInterval() (bool, error) {
-	if p.Title == "" {
-		return false, ErrTitleNotSet
-	}
-
-	if p.Interval == "" {
-		return false, ErrIntervalNotSet
-	}
-
-	selector := map[string]interface{}{
-		"title":    p.Title,
-		"interval": p.Interval,
-	}
-
-	err := p.One(bongo.NewQS(selector))
-	if err == bongo.RecordNotFound {
-		return false, nil
-	}
-
-	if err == gorm.RecordNotFound {
-		return false, nil
-	}
-
-	if err != nil {
-		return false, err
-	}
-
-	return true, nil
 }

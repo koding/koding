@@ -174,6 +174,8 @@ module.exports.create = (KONFIG, environment)->
     client_header_buffer_size 4k;
     client_max_body_size 10m;
 
+    #{if environment is 'dev' then 'client_body_temp_path /tmp;' else ''}
+
     sendfile on;
 
     # for proper content type setting, include mime.types
@@ -222,6 +224,14 @@ module.exports.create = (KONFIG, environment)->
       location = /healthcheck {
         return 200;
         access_log off;
+      }
+
+      location = /payments/stripe/webhook {
+        proxy_pass            http://socialapi;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
       }
 
       location = /WFGH {

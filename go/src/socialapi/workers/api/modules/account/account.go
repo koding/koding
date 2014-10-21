@@ -106,6 +106,36 @@ func Register(u *url.URL, h http.Header, req *models.Account) (int, http.Header,
 	return response.NewOK(req)
 }
 
+func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+	accountId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if accountId == 0 {
+		return response.NewBadRequest(models.ErrAccountIdIsNotSet)
+	}
+
+	acc := models.NewAccount()
+	if err := acc.ById(accountId); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	acc.Nick = req.Nick
+
+	if err := models.ValidateAccount(acc); err != nil {
+		if err != models.ErrGuestsAreNotAllowed {
+			return response.NewBadRequest(err)
+		}
+	}
+
+	if err := acc.Update(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(acc)
+}
+
 func Unfollow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {
 	targetId, err := request.GetURIInt64(u, "id")
 	if err != nil {
