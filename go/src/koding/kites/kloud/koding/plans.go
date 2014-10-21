@@ -102,7 +102,7 @@ const (
 	// Super: 10 VMs, 5 Always On, 100GB total Storage
 	Super
 
-	// Koding: 10 VMs, 10 Always On, 100GB total Storage
+	// Koding: 100 VMs, 100 Always On, 1000GB total Storage
 	// Internal use only
 	Koding
 )
