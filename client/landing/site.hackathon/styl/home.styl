@@ -103,6 +103,16 @@ body.home
       display             inline-block
       borderBox()
 
+      .social-buttons
+        position          static
+        display           inline-block
+        clear             both
+        margin            14px auto 0
+        height            26px
+
+        li:last-of-type
+          margin-right    0
+
       .avatar-background
         abs               -50px 0 0 50%
         bg                color rgba(0,0,0,.2)
@@ -118,12 +128,11 @@ body.home
         size              80px 80px
         z-index           1
 
-
       section
         margin            0 auto
 
         &.logged-in
-          margin-top      20px
+          margin-top      29px
 
         .kdlabel
           color           white
@@ -131,6 +140,7 @@ body.home
           text-align      center
           margin-right    0
           a
+            display       block
             color         #aaa
             font-size     .8em
           a:before
@@ -402,13 +412,28 @@ body.home
     position relative
 
 
-@media only screen and (min-device-width : 320px) and (max-device-width : 480px)
-  .social-buttons
-    display               none
-
+@media only screen and (min-device-height : 680px) and (max-device-height : 820px)
   body.home
     section.introduction
-      padding             119px 25px 288px
+      figure
+        vendor            transform, scale(.5)
+        bottom            35px
+
+
+@media only screen and (min-device-height : 0px) and (max-device-height : 680px)
+  body.home
+    section.introduction
+      figure
+        display            none
+
+
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px)
+  #main-header .social-buttons
+    display               none
+  body.home
+    section.introduction
+      padding             119px 25px 18px
+      height              auto
 
       h2
         font-size         22px
@@ -420,10 +445,17 @@ body.home
         line-height       19px
 
       .form-wrapper
-        margin            29px -25px 0 -25px
+        width             100%
+        margin-bottom     10px
 
         section
           width           100%
+
+          &.logged-in
+            margin-top    40px
+
+            .kdlabel a
+              margin-bottom 4px
 
           > div
             width         100%
@@ -432,6 +464,24 @@ body.home
           .submit
             width         100%
             margin-bottom 0
+
+        &.logged-in
+          margin-top      85px
+
+    .counters
+      height              auto
+      position            static
+      line-height         28px
+      padding             16px 25px
+      margin              0
+      borderBox()
+
+      span
+        margin            0
+
+      span:after
+        content           ''
+        display           block
 
     section.content
       padding             32px 0 0
@@ -455,12 +505,24 @@ body.home
 
         h4
           font-size       21px
+          line-height     26px
+          padding         10px 10px 10px 26px
+
+        h5
+          font-size       16px
+          padding         10px 10 10px 26px
 
         p
           padding         16px 0 0
+          font-size       16px
+          line-height     24px
 
       article.judges
-        padding-right     25px
+        padding           24px
+
+        > div
+          width           100%
+          margin-left     0
 
         .judge
           width           100%
@@ -469,3 +531,12 @@ body.home
         position          static
         width             100%
         borderBox()
+
+    footer
+      line-height         25px
+      padding             60px 25px
+      border-top          1px solid #dedede
+      background          rgba(0,0,0,.05)
+
+      a[href='/']
+        display           block

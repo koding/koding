@@ -107,7 +107,7 @@ module.exports = class HomeView extends KDView
         document.cookie = 'clientId=null'
         location.replace '/WFGH'
 
-    return if isApplicant
+    return @createShareButtons()  if isApplicant
 
     @section.addSubView button = new KDButtonView
       cssClass : 'apply-button solid green medium'
@@ -232,7 +232,7 @@ module.exports = class HomeView extends KDView
       </h2>
       <h3>Announcing the world's first global virtual hackathon. Let's hack together! <br>
           Join today and save your spot <strong>to win $10,000 in cash prizes.</strong></h3>
-      <div class="form-wrapper clearfix"></div>
+      <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
     <section class="content">
