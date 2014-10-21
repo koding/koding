@@ -1,6 +1,7 @@
 CustomLinkView   = require './../core/customlinkview'
 HomeRegisterForm = require './registerform'
 
+VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.webm'
 JUDGES           =
   'Kirill Sheynkman' :
     imgUrl       : 'https://pbs.twimg.com/profile_images/1826751334/ksheadright-web_400x400.jpg'
@@ -224,8 +225,8 @@ module.exports = class HomeView extends KDView
 
     """
     <section class="introduction">
-      <video id="bgVideo" autoplay loop muted playbackspeed="0.1">
-        <source src="./a/site.hackathon/images/intro-bg.webm" type="video/webm">
+      <video id="bgVideo" autoplay loop muted>
+        <source src="#{VIDEO_URL}" type="video/webm"; codecs=vp8,vorbis">
       </video>
       <h2>
         JOIN THE WORLD’S FIRST GLOBAL HACKATHON <span>#WFGH</span>
