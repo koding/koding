@@ -45,7 +45,7 @@ func checkIfLocalIsUptodate(db gorm.DB) {
 	var count int
 	err := db.Table("payment.plan").Count(&count).Error
 
-	if count == 6 {
+	if count == 0 || count == 10 {
 		fmt.Println(
 			"'payments' schema was updated, please run `/run buildservices`",
 		)
