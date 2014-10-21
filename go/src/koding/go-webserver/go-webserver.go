@@ -190,10 +190,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
 	hc.User = u
-
-	if u.Impersonating {
-		hc.Impersonating = true
-	}
+	hc.Impersonating = u.Impersonating
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
