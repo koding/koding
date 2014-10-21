@@ -44,10 +44,11 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
 
     channelId = channel.getId()
 
-    KD.remote.api.SocialChannel.delete {channelId}
-      .then =>
-        @deleteModal.destroy()
-        KD.singletons.router.handleRoute '/Activity/Public'
-      .catch (args...) ->
-        KD.showError args...
-        removeButton.hideLoader()
+    {channel} = KD.singletons.socialapi
+
+    channel.delete {channelId}, (err) =>
+      return KD.showError err if err?
+
+      @deleteModal.destroy()
+      KD.singletons.router.handleRoute '/Activity/Public'
+
