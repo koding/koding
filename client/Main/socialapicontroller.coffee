@@ -500,6 +500,10 @@ class SocialApiController extends KDController
       fnName              : 'removeParticipants'
       validateOptionsWith : ['channelId', "accountIds"]
 
+    leave                 : channelRequesterFn
+      fnName              : 'leave'
+      validateOptionsWith : ['channelId']
+
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'
       mapperFn           : mapChannels
