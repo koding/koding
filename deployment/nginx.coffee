@@ -234,11 +234,6 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      location = /WFGH {
-        proxy_pass http://webserver;
-        #{if environment isnt "dev" then basicAuth else ""}
-      }
-
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
