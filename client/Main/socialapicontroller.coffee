@@ -530,6 +530,10 @@ class SocialApiController extends KDController
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
 
+    delete               : channelRequesterFn
+      fnName             : 'delete'
+      validateOptionsWith: ["channelId"]
+
     revive               : mapChannel
 
   notifications          :
