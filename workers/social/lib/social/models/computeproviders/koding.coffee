@@ -33,7 +33,11 @@ module.exports = class Koding extends ProviderInterface
       alwaysOn         : 5
       storage          : 100
       allowedInstances : ['t2.micro']
-
+    koding             :
+      total            : 100
+      alwaysOn         : 100
+      storage          : 1000
+      allowedInstances : ['t2.micro', 't2.small', 't2.medium']
 
   @fetchPlans = (client, options, callback)->
 
