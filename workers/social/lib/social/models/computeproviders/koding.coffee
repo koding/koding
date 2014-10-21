@@ -130,6 +130,9 @@ module.exports = class Koding extends ProviderInterface
             storage_size  : storage
             alwaysOn      : no
 
+          if 't2.medium' in userPlan.allowedInstances
+            meta.instance_type = 't2.medium'
+
           callback null, {
             meta, label, credential: client.r.user.username
           }
