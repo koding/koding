@@ -71,12 +71,13 @@ generateFakeClientFromReq = (req, res, callback)->
 generateFakeClient = ({ clientId, groupName, section }, callback) ->
 
   fakeClient    =
-    context     :
-      group     : 'koding'
-      user      : 'guest-1'
-    connection  :
-      delegate  : null
-      groupName : 'koding'
+    context       :
+      group       : 'koding'
+      user        : 'guest-1'
+    connection    :
+      delegate    : null
+      groupName   : 'koding'
+    impersonating : false
 
 
   return callback null, fakeClient unless clientId?
@@ -109,7 +110,7 @@ prepareFakeClient = (fakeClient, options) ->
   fakeClient.connection.delegate  = account or fakeClient.connection.delegate
   fakeClient.connection.groupName = groupName or fakeClient.connection.groupName
 
-  fakeClient.impersonating or= session.impersonating or false
+  fakeClient.impersonating = session.impersonating or false
 
 
 module.exports = { generateFakeClient: generateFakeClientFromReq, updateCookie}
