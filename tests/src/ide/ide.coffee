@@ -28,3 +28,10 @@ module.exports =
       .waitForElementVisible   '.ace_content', 5000 # Assertion
       .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
       .end()
+
+
+  createNewFile: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.createFile(browser, user)
+    browser.end()

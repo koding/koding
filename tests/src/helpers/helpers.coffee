@@ -17,6 +17,8 @@ module.exports =
 
     browser.execute 'KD.isTesting = true;'
 
+    return user
+
 
   doLogin: (browser, user) ->
 
@@ -146,6 +148,26 @@ module.exports =
       .waitForElementVisible   webSelector, 10000
       .click                   webSelector
       .click                   webSelector + ' + .chevron'
+
+
+  createFile: (browser, user) ->
+
+    @openFolderContextMenu(browser, user, 'Web')
+
+    webPath   = '/home/' + user.username + '/Web'
+    paragraph = @getFakeText()
+    filename  = paragraph.split(' ')[0] + '.txt'
+
+    browser
+      .waitForElementVisible    'li.new-file', 5000
+      .click                    'li.new-file'
+      .waitForElementVisible    'li.selected .rename-container .hitenterview', 5000
+      .clearValue               'li.selected .rename-container .hitenterview'
+      .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
+      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 5000 # Assertion
+
+    return filename
+
 
   getUrl: ->
     return 'http://lvh.me:8090'
