@@ -307,6 +307,11 @@ module.exports = class LoginView extends JView
       itemClass : KDCustomHTMLView
       partial   : email
 
+    handleKeyup = (event) ->
+
+      return  unless event.which is ENTER
+      modal.modalTabs.forms.extraInformation.submit event
+
 
     fields.username =
       name               : 'username'
@@ -320,12 +325,7 @@ module.exports = class LoginView extends JView
         attributes       :
           testpath       : 'register-form-username'
         focus            : -> @unsetTooltip()
-        keyup            : (event) =>
-
-          return unless event.which is ENTER
-
-          modal.modalTabs.forms.extraInformation.submit event
-
+        keyup            : handleKeyup
         validate         :
           container      : this
           rules          :
@@ -355,11 +355,13 @@ module.exports = class LoginView extends JView
       fields.firstName =
         defaultValue : givenName
         label        : 'First Name'
+        keyup        : handleKeyup
 
     if familyName
       fields.lastName =
         defaultValue : familyName
         label        : 'Last Name'
+        keyup        : handleKeyup
 
 
     modal = new KDModalViewWithForms
