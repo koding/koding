@@ -9,6 +9,10 @@ class IDE.StatusBar extends KDView
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
     @addSubView new KDCustomHTMLView
+      cssClass : 'icon participants'
+      click    : => @emit 'ParticipantsModalRequired'
+
+    @addSubView new KDCustomHTMLView
       cssClass : 'icon shortcuts'
       click    : -> KD.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
