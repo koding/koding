@@ -107,7 +107,7 @@ module.exports = class HomeView extends KDView
         document.cookie = 'clientId=null'
         location.replace '/WFGH'
 
-    return if isApplicant
+    return @createShareButtons()  if isApplicant
 
     @section.addSubView button = new KDButtonView
       cssClass : 'apply-button solid green medium'
