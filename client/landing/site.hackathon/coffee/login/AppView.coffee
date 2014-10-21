@@ -405,13 +405,13 @@ module.exports = class LoginView extends JView
       form.email.icon.unsetTooltip()
       form.password.icon.unsetTooltip()
 
-  #   modal.once 'viewAppended', ->
+    modal.once 'viewAppended', ->
 
-  #     modal.addSubView new KDCustomHTMLView
-  #       partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
+      modal.addSubView new KDCustomHTMLView
+        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
 
-  #     KD.utils.defer ->
-  #       modal.modalTabs.forms.password.inputs.password.setFocus()
+      KD.utils.defer ->
+        modal.modalTabs.forms.extraInformation.inputs.username.input.setFocus()
 
 
   usernameCheckTimer = null
