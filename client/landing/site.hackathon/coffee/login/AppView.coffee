@@ -379,7 +379,7 @@ module.exports = class LoginView extends JView
               if USERNAME_VALID and username.input.valid
                 formData.username        = username.input.getValue()
                 formData.passwordConfirm = formData.password
-                formData.redirectTo      = 'WFGH'
+                formData.redirectTo    or= 'Hackathon'
 
                 @doRegister formData, @registerForm
 
@@ -512,7 +512,7 @@ module.exports = class LoginView extends JView
 
   doLogin: (formData)->
 
-    formData.redirectTo ?= 'WFGH'
+    formData.redirectTo ?= 'Hackathon'
 
     {username, password, redirectTo} = formData
 

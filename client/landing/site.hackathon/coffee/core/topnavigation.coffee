@@ -7,7 +7,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
   if KD.whoami().type isnt 'registered'
     menu.push
       title : 'SIGN IN'
-      href  : '/WFGH/Login'
+      href  : '/Hackathon/Login'
       name  : 'login'
 
   constructor: (options = {}, data) ->

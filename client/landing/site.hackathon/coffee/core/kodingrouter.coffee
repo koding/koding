@@ -70,10 +70,10 @@ module.exports = class KodingRouter extends KDRouter
     callback? app, pane
 
 
-  handleNotFound: (route) -> @handleRoute '/WFGH', replaceState: yes
+  handleNotFound: (route) -> @handleRoute '/Hackathon', replaceState: yes
 
 
-  getDefaultRoute: -> '/WFGH'
+  getDefaultRoute: -> '/Hackathon'
 
 
   setPageTitle: (title = 'Koding') -> document.title = Encoder.htmlDecode title
@@ -81,6 +81,6 @@ module.exports = class KodingRouter extends KDRouter
 
   clear: (route, replaceState = yes) ->
 
-    route or= '/WFGH'
+    route or= '/Hackathon'
 
     super route, replaceState

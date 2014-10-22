@@ -5,19 +5,19 @@ do ->
     return KD.singletons.router.clear()  if KD.isLoggedIn()
     KD.singletons.router.openSection 'Login', null, null, cb
 
-  redirect = (route) -> (options) -> KD.singletons.router.handleRoute "/WFGH#{route}"
+  redirect = (route) -> (options) -> KD.singletons.router.handleRoute "/Hackathon#{route}"
 
   KD.registerRoutes 'Login',
-    '/WFGH/Login'    : handler (app, options)->
+    '/Hackathon/Login'    : handler (app, options)->
       app.getView().animateToForm 'login'
       app.handleQuery options
-    '/WFGH/Register' : handler (app, options)->
+    '/Hackathon/Register' : handler (app, options)->
       app.getView().animateToForm 'register'
       app.handleQuery options
-    '/WFGH/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
-    '/WFGH/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
-    '/WFGH/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
-    '/WFGH/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+    '/Hackathon/Redeem'           : handler (app)-> app.getView().animateToForm 'redeem'
+    '/Hackathon/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
+    '/Hackathon/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
+    '/Hackathon/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
     '/Login'                 : redirect '/Login'
     '/Register'              : redirect '/Register'
     '/Redeem'                : redirect '/Redeem'
