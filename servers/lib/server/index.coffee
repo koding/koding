@@ -313,7 +313,7 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
         return
 
-      res.cookie 'clientId', info.replacementToken
+      res.cookie 'clientId', info.replacementToken, path : '/'
       return res.status(200).send 'User is logged in!'
 
 
@@ -345,7 +345,7 @@ app.post '/:name?/Register', (req, res) ->
     JUser.convert client, req.body, (err, result) ->
       return res.status(400).send err.message  if err?
 
-      res.cookie 'clientId', result.newToken
+      res.cookie 'clientId', result.newToken, path : '/'
       # handle the request as an XHR response:
       return res.status(200).end() if req.xhr
       # handle the request with an HTTP redirect:
@@ -361,7 +361,7 @@ app.post "/:name?/Login", (req, res) ->
 
   JUser.login clientId, { username, password }, (err, info) ->
     return res.status(403).send err.message  if err?
-    res.cookie 'clientId', info.replacementToken
+    res.cookie 'clientId', info.replacementToken, path : '/'
     res.status(200).end()
 
 app.post "/:name?/Recover", (req, res) ->
