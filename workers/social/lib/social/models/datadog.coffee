@@ -15,7 +15,7 @@ module.exports = class DataDog extends Base
       static           :
         sendEvent      : (signature Object, Function)
 
-  console.log {api_key, app_key}   = KONFIG.datadog
+  {api_key, app_key}   = KONFIG.datadog
   DogApi               = new dogapi {
     api_key, app_key
   }
