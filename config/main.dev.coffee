@@ -318,6 +318,8 @@ Configuration = (options={}) ->
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+      nginx             :
+        locations       : ["= /payments/stripe/webhook"]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
