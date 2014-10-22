@@ -333,10 +333,11 @@ class SocialApiController extends KDController
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded",   mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
-      {event: "MessageRemoved", mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
-      {event: "AddedToChannel", mapperFn: mapParticipant}
-      {event: "ChannelDeleted", mapperFn: mapChannel}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "AddedToChannel",     mapperFn: mapParticipant}
+      {event: "RemovedFromChannel", mapperFn: mapParticipant}
+      {event: "ChannelDeleted",     mapperFn: mapChannel}
     ]
 
   serialize = (obj) ->
