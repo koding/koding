@@ -149,6 +149,11 @@ module.exports.create = (KONFIG, environment)->
     when 'linux'  then 'use epoll;'
     else ''
 
+  for path in ['/etc/nginx/mime.types', '/usr/local/etc/nginx/mime.types']
+    continue  unless fs.existsSync path
+    mime_types = "include #{path};"
+    break
+
   config = """
   worker_processes #{if environment is "dev" then 1 else 16};
   master_process #{if environment is "dev" then "off" else "on"};
@@ -183,7 +188,7 @@ module.exports.create = (KONFIG, environment)->
     sendfile on;
 
     # for proper content type setting, include mime.types
-    include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
+    #{mime_types}
 
     #{createUpstreams(workers)}
 
