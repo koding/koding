@@ -8,62 +8,18 @@ VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro
 VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
 VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
 
-JUDGES           =
-  'Kirill Sheynkman' :
-    imgUrl       : 'https://pbs.twimg.com/profile_images/1826751334/ksheadright-web_400x400.jpg'
-    title        : 'Managing Director'
-    company      : 'RTP Ventures'
-    linkedIn     : 'https://www.linkedin.com/in/kirills'
-
-  'Sinan Yasar'  :
-    imgUrl       : 'https://s.gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?s=400'
-    title        : 'lead UI/UX & co-founder'
-    company      : 'Koding'
-    linkedIn     : 'https://www.linkedin.com/in/sinanyasar'
-
-  'Nitin Gupta'  :
-    imgUrl       : 'https://s.gravatar.com/avatar/93c78a09466852881cc055cba44670c3?s=400'
-    title        : 'Chief Business Officer'
-    company      : 'Koding'
-    linkedIn     : 'https://www.linkedin.com/in/gniting'
-
-  'Jason Yeh'  :
-    imgUrl       : 'http://greycroft.com/wp-content/uploads/2014/06/jason-yeh.jpg'
-    title        : 'Senior Associate'
-    company      : 'Greycroft Partners'
-    linkedIn     : 'http://www.linkedin.com/in/jayyeh'
-
-  'Devrim Yasar' :
-    imgUrl       : 'https://pbs.twimg.com/profile_images/378800000863144334/uZWGPcJz.jpeg'
-    title        : 'ceo & co-founder'
-    company      : 'Koding'
-    linkedIn     : 'https://www.linkedin.com/in/devrimyasar'
-
-  'Nihal Mehta'  :
-    imgUrl       : 'https://media.licdn.com/media/p/3/000/001/1c8/0c4a70a.jpg'
-    title        : 'Founding General Partner'
-    company      : 'ENIAC ventures'
-    linkedIn     : 'http://www.linkedin.com/in/nihalmehta'
-
-  'Eren Bali'    :
-    imgUrl       : 'https://dujk9xa5fr1wz.cloudfront.net/user/200_H/1_2fc7_10.jpg'
-    title        : 'Co-founder & Chairman'
-    company      : 'Udemy'
-    linkedIn     : 'https://www.linkedin.com/in/erenbali'
-
-  'Niko Bonatsos':
-    imgUrl       : 'https://media.licdn.com/mpr/mpr/shrink_240_240/p/2/005/012/158/218e034.jpg'
-    title        : 'Angel Investor'
-    company      : 'Yik Yak, Inc.'
-    linkedIn     : 'https://www.linkedin.com/in/bonatsos'
+{
+  judges   : JUDGES
+} = KD.campaignStats.campaign
 
 module.exports = class HomeView extends KDView
 
   getStats = ->
 
     KD.campaignStats ?=
-      cap                : 50000
-      prize              : 10000
+      campaign           :
+        cap              : 50000
+        prize            : 10000
       totalApplicants    : 34512
       approvedApplicants : 12521
       isApplicant        : no
@@ -180,7 +136,7 @@ module.exports = class HomeView extends KDView
 
   createShareButtons: ->
 
-    { isApplicant, isApproved, isWinner } = getStats()
+    { isApplicant, isApproved, isWinner } = getStats().content
 
 
     if isApplicant and not isApproved
@@ -208,26 +164,25 @@ module.exports = class HomeView extends KDView
   createJudges : ->
 
     for name, content of JUDGES
-      do =>
-        view = new KDCustomHTMLView
-          cssClass    : 'judge'
+      view = new KDCustomHTMLView
+        cssClass    : 'judge'
 
-        view.addSubView new KDCustomHTMLView
-          tagName     : 'figure'
-          attributes  :
-            style     : "background-image:url(#{content.imgUrl});"
+      view.addSubView new KDCustomHTMLView
+        tagName     : 'figure'
+        attributes  :
+          style     : "background-image:url(#{content.imgUrl});"
 
-        view.addSubView new CustomLinkView
-          cssClass    : 'info'
-          title       : name
-          href        : content.linkedIn
-          target      : '_blank'
+      view.addSubView new CustomLinkView
+        cssClass    : 'info'
+        title       : name
+        href        : content.linkedIn
+        target      : '_blank'
 
-        view.addSubView new KDCustomHTMLView
-          cssClass    : 'details'
-          partial     : "<span>#{content.title}</span><cite>#{content.company}</cite>"
+      view.addSubView new KDCustomHTMLView
+        cssClass    : 'details'
+        partial     : "<span>#{content.title}</span><cite>#{content.company}</cite>"
 
-        @addSubView view, '.judges > div'
+      @addSubView view, '.judges > div'
 
 
   viewAppended : ->
@@ -248,7 +203,8 @@ module.exports = class HomeView extends KDView
 
   getStats: ->
 
-    { cap, prize, totalApplicants, approvedApplicants } = getStats()
+    { totalApplicants, approvedApplicants, campaign } = getStats()
+    { cap, prize } = campaign
 
     return """
       PRIZE: <span>$#{prize.toLocaleString()}</span>
