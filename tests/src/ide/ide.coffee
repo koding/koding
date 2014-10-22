@@ -54,3 +54,31 @@ module.exports =
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 20000
       .end()
+
+
+  rename: (browser) ->
+
+    user         = helpers.beginTest(browser)
+    filename     = helpers.createFile(browser, user)
+    webPath      = '/home/' + user.username + '/Web'
+    fileSelector = "span[title='" + webPath + '/' + filename + "']"
+
+
+    newFileName      = paragraph.split(' ')[0] + '.txt'
+    newFileSelector  = "span[title='" + webPath + '/' + newFileName + "']"
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.rename', 5000
+      .click                     'li.rename'
+      .waitForElementVisible     'li.selected .rename-container .hitenterview', 5000
+      .clearValue                'li.selected .rename-container .hitenterview'
+      .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
+      .waitForElementPresent     newFileSelector, 5000 # Assertion
+      .end()
+
+
+
+
