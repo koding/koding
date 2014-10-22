@@ -6,6 +6,13 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class S3 extends Base
 
+  # Following aws credentials are belong to koding-client
+  # user on aws, and it only has permission for following:
+  #
+  # putObject : arn:bucket:koding-client
+  #
+  # Do not change it or do not take it from config ~ GG
+
   AWS_KEY      = "AKIAJ26X7D2XKXVSGUAA"
   AWS_SECRET   = "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"
 
