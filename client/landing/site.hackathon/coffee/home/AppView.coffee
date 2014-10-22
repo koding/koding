@@ -1,6 +1,9 @@
 CustomLinkView   = require './../core/customlinkview'
 HomeRegisterForm = require './registerform'
 
+TWEET_TEXT       = 'I\'ve applied for the world\'s first global virtual #hackathon by @koding. Join my team!'
+SHARE_URL        = 'http://koding.com/Hackathon'
+
 VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.webm'
 VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
 VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
@@ -8,20 +11,51 @@ VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro
 JUDGES           =
   'Kirill Sheynkman' :
     imgUrl       : 'https://pbs.twimg.com/profile_images/1826751334/ksheadright-web_400x400.jpg'
-    title        : 'RTP VC - Managing Director'
+    title        : 'Managing Director'
+    company      : 'RTP Ventures'
+    linkedIn     : 'https://www.linkedin.com/in/kirills'
 
   'Sinan Yasar'  :
     imgUrl       : 'https://s.gravatar.com/avatar/fb9edfce4f54230c890431a97db6c99e?s=400'
-    title        : 'Koding - lead UI/UX & co-founder'
+    title        : 'lead UI/UX & co-founder'
+    company      : 'Koding'
+    linkedIn     : 'https://www.linkedin.com/in/sinanyasar'
+
+  'Nitin Gupta'  :
+    imgUrl       : 'https://s.gravatar.com/avatar/93c78a09466852881cc055cba44670c3?s=400'
+    title        : 'Chief Business Officer'
+    company      : 'Koding'
+    linkedIn     : 'https://www.linkedin.com/in/gniting'
 
   'Jason Yeh'  :
     imgUrl       : 'http://greycroft.com/wp-content/uploads/2014/06/jason-yeh.jpg'
-    title        : 'Greycroft - Senior Associate'
+    title        : 'Senior Associate'
+    company      : 'Greycroft Partners'
+    linkedIn     : 'http://www.linkedin.com/in/jayyeh'
 
   'Devrim Yasar' :
     imgUrl       : 'https://pbs.twimg.com/profile_images/378800000863144334/uZWGPcJz.jpeg'
-    title        : 'Koding - ceo & co-founder'
+    title        : 'ceo & co-founder'
+    company      : 'Koding'
+    linkedIn     : 'https://www.linkedin.com/in/devrimyasar'
 
+  'Nihal Mehta'  :
+    imgUrl       : 'https://media.licdn.com/media/p/3/000/001/1c8/0c4a70a.jpg'
+    title        : 'Founding General Partner'
+    company      : 'ENIAC ventures'
+    linkedIn     : 'http://www.linkedin.com/in/nihalmehta'
+
+  'Eren Bali'    :
+    imgUrl       : 'https://dujk9xa5fr1wz.cloudfront.net/user/200_H/1_2fc7_10.jpg'
+    title        : 'Co-founder & Chairman'
+    company      : 'Udemy'
+    linkedIn     : 'https://www.linkedin.com/in/erenbali'
+
+  'Niko Bonatsos':
+    imgUrl       : 'https://media.licdn.com/mpr/mpr/shrink_240_240/p/2/005/012/158/218e034.jpg'
+    title        : 'Angel Investor'
+    company      : 'Yik Yak, Inc.'
+    linkedIn     : 'https://www.linkedin.com/in/bonatsos'
 
 module.exports = class HomeView extends KDView
 
@@ -177,9 +211,15 @@ module.exports = class HomeView extends KDView
           attributes  :
             style     : "background-image:url(#{content.imgUrl});"
 
-        view.addSubView new KDCustomHTMLView
+        view.addSubView new CustomLinkView
           cssClass    : 'info'
-          partial     : "#{name} <span>#{content.title}</span>"
+          title       : name
+          href        : content.linkedIn
+          target      : '_blank'
+
+        view.addSubView new KDCustomHTMLView
+          cssClass    : 'details'
+          partial     : "<span>#{content.title}</span><cite>#{content.company}</cite>"
 
         @addSubView view, '.judges > div'
 
