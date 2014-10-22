@@ -10,9 +10,35 @@ class IDE.ParticipantsModal extends KDModalView
 
     { @participants, @realTimeDoc, @rtm, @host } = options
 
+    @participantViews = []
+
     @createParticipantsList()
+    @markParticipantsAsWatching()
+
 
   createParticipantsList: ->
 
     @participants.asArray().forEach (participant) =>
-      @addSubView new IDE.ParticipantView { participant, @realTimeDoc, @rtm, @host }
+      view = new IDE.ParticipantView { participant, @realTimeDoc, @rtm, @host }
+
+      @participantViews.push view
+      @addSubView view
+
+      @forwardEvent view, 'ParticipantWatchRequested'
+
+
+  markParticipantsAsWatching: ->
+    # TODO: Presence check before marking participant
+
+    nick = KD.nick()
+    map  = @rtm.getFromModel @realTimeDoc, "#{nick}WatchMap"
+
+    return unless map
+
+    watchings = map.keys()
+
+    for participantView in @participantViews
+      {nickname} = participantView.getOption 'participant'
+
+      if nickname in watchings
+        participantView.watchButton.setTitle 'Watching'
