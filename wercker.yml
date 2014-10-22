@@ -48,18 +48,17 @@ build:
           tail -n 100 /var/log/koding/social-populartopic.log
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
-          curl localhost:7000
+          curl localhost:7000 || echo "curl failed"
           sleep 1
-          curl localhost:7000
+          curl localhost:7000 || echo "curl failed"
           sleep 1
-          curl localhost:7000
+          curl localhost:7000 || echo "curl failed"
           sleep 1
-          curl localhost:7000
+          curl localhost:7000 || echo "curl failed"
           sleep 1
-          curl localhost:7000
-          sleep 1
-          curl localhost:7000
-          sleep 1
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
           make testapi config=./config/test.toml
 
 deploy:
