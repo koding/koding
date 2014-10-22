@@ -36,7 +36,9 @@ class ActivitySideView extends JView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : @getOption 'title'
-      # click   : @bound 'reload'
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
+        KD.singletons.router.handleRoute searchLink
 
 
     @listController.on 'ListIsEmptied', @lazyBound 'setClass', 'empty'
