@@ -235,10 +235,13 @@ module.exports = class HomeView extends KDView
     super
 
     video = document.getElementById 'bgVideo'
-    video.addEventListener 'loadedmetadata', ->
-      @currentTime = 8
-      @playbackRate = .7
-    , no
+    if window.innerWidth < 680
+      video.parentNode.removeChild video
+    else
+      video.addEventListener 'loadedmetadata', ->
+        @currentTime = 8
+        @playbackRate = .7
+      , no
 
 
   updateStats: -> @$('div.counters').html @getStats()
