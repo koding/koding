@@ -197,7 +197,11 @@ class SocialApiController extends KDController
 
         data = mapperFn data
 
-        return  unless validatorFn?(data)
+        if validatorFn
+          if typeof validatorFn isnt "function"
+            return warn "validator function is not valid"
+
+          return  unless validatorFn(data)
 
         target.emit event, data, rest...
 
