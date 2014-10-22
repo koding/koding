@@ -480,8 +480,13 @@ body.home
     display               none
   body.home
     section.introduction
-      padding             119px 25px 18px
+      padding             74px 25px 18px
       height              auto
+      background          #000
+
+      h1
+        font-size         24px
+        line-height       32px
 
       h2
         font-size         22px
@@ -574,11 +579,24 @@ body.home
 
         .judge
           width           100%
+          margin          0 0 32px
 
       aside.partners
         position          static
         width             100%
+        padding           34px
+        margin-top        32px
+        text-align        left
         borderBox()
+
+        h4
+          font-size       21px
+          line-height     26px
+          padding         10px 10px 10px 26px
+          margin-left     -35px
+
+          & ~ h4
+            margin-top    24px
 
     footer
       line-height         25px
