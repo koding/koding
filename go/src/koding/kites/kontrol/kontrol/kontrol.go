@@ -1,6 +1,7 @@
 package kontrol
 
 import (
+	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"log"
@@ -58,6 +59,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 		kon.SetStorage(kontrol.NewPostgres(postgresConf, kon.Kite.Log))
 	default:
+		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
 	}
 
 	if c.TLSKeyFile != "" && c.TLSCertFile != "" {
