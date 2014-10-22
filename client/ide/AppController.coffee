@@ -798,7 +798,21 @@ class IDEAppController extends AppController
 
       when 'PaneRemoved'
         map.delete paneHash
+  watchParticipant: (targetParticipant) ->
+    # TODO: Add presence check before watching user.
+    target   = targetParticipant.nickname
+    nickname = KD.nick()
+    mapName  = "#{nickname}WatchMap"
 
+    map = @rtm.getFromModel @realTimeDoc, mapName
+
+    if map
+      if map.get target
+        map.delete target
+      else
+        map.set target, target
+    else
+      map = @rtm.create 'map', @realTimeDoc, mapName, { target }
 
   showParticipantsModal: ->
     host = @collaborationHost or KD.nick()
