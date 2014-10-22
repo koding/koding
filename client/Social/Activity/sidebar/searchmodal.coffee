@@ -88,7 +88,9 @@ class SidebarSearchModal extends KDModalView
 
   getLazyLoadOptions: ->
 
-    return skip: @listController.getItemCount()
+    skip  = @listController.getItemCount()
+
+    return {skip}
 
 
   search: ->
