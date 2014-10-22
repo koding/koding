@@ -23,7 +23,7 @@ module.exports = class DataDog extends Base
   Events               =
     MachineStateFailed :
       title            : "vms.failed"
-      text             : "Machine state failed for %nickname%"
+      text             : "VM start failed for user: %nickname%"
       notify           : "@slack-_devops"
       tags             : ["user:%nickname%", "context:vms"]
 
@@ -52,7 +52,10 @@ module.exports = class DataDog extends Base
       tags.push tag.replace '%nickname%', nickname
 
     if logs?
-      text += "\n ------- \n KD.parseLogs() \n #{logs} \n ------- \n"
+      if logs.length < 400
+        text += " LOGS: #{logs}"
+      else
+        text += "\n ------- \n LOGS: #{logs} \n ------- \n"
 
     if ev.notify?
       text += "\n #{ev.notify}"

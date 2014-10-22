@@ -821,6 +821,19 @@ utils.extend utils,
     parts.join ''
 
 
+  sendDataDogEvent: (eventName)->
+
+    KD.utils.s3upload
+      name    : "logs_#{new Date().toISOString()}.txt"
+      content : KD.parseLogs()
+    , (err, publicUrl)->
+
+      logs = if err? and not publicUrl
+      then KD.parseLogs()
+      else publicUrl
+
+      KD.remote.api.DataDog.sendEvent { eventName, logs }
+
 
   s3upload: (options, callback = noop)->
 
