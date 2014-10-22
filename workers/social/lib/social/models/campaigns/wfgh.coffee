@@ -71,9 +71,9 @@ module.exports = class JWFGH extends Model
 
       username = account?.profile?.nickname
 
-      {cap, prize, deadline} = campaign
+      {cap, prize, deadline} = campaign.content
 
-      cap      ?= 50000
+      cap      ?= 1000
       prize    ?= 10000
       deadline ?= new Date 1418626800000 # Mon, 15 Dec 2014 00:00:00 PDT
 

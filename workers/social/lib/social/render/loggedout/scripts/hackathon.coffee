@@ -35,4 +35,6 @@ module.exports =
   <noscript>
     <img height="1" width="1" alt="" style="display:none" src="https://www.facebook.com/tr?ev=6021968268835&amp;cd[value]=0.00&amp;cd[currency]=USD&amp;noscript=1" />
   </noscript>
+  <!-- addthis -->
+  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5446b4f213717e36" async></script>
   """

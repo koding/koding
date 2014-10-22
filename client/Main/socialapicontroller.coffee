@@ -174,7 +174,7 @@ class SocialApiController extends KDController
   # this method will prevent the arrival of
   # realtime messages to the individual messages
   # if the message is mine and current window has focus.
-  isFromThisBrowser = (message) ->
+  isFromOtherBrowser = (message) ->
 
     # selenium doesn't put focus into the
     # spawned browser, it's causing problems.
@@ -189,7 +189,7 @@ class SocialApiController extends KDController
 
     return not isBlocker
 
-  isFromThisBrowser : isFromThisBrowser
+  isFromOtherBrowser : isFromOtherBrowser
 
   forwardMessageEvents = (source, target, events) ->
     events.forEach ({event, mapperFn, validatorFn}) ->
@@ -337,8 +337,8 @@ class SocialApiController extends KDController
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded",   mapperFn: mapActivity, validatorFn: isFromThisBrowser}
-      {event: "MessageRemoved", mapperFn: mapActivity, validatorFn: isFromThisBrowser}
+      {event: "MessageAdded",   mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageRemoved", mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "AddedToChannel", mapperFn: mapParticipant}
       {event: "ChannelDeleted", mapperFn: mapChannel}
     ]

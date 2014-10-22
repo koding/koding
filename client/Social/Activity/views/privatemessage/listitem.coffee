@@ -49,7 +49,7 @@ class PrivateMessageListItemView extends ActivityListItemView
   showParentPost: ->
 
     @setClass 'with-parent'
-    firstReply = @commentBox.controller.getListItems().first
+    firstReply = @commentBox.listController.getListItems().first
 
     return  unless firstReply
 
