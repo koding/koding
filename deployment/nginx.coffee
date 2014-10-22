@@ -144,6 +144,11 @@ createStubLocation = (env)->
 module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
 
+  event_mechanism = switch process.platform
+    when 'darwin' then 'use kqueue;'
+    when 'linux'  then 'use epoll;'
+    else ''
+
   config = """
   worker_processes #{if environment is "dev" then 1 else 16};
   master_process #{if environment is "dev" then "off" else "on"};
@@ -158,8 +163,7 @@ module.exports.create = (KONFIG, environment)->
   events {
     worker_connections  1024;
     multi_accept on;
-    # epoll is only valid for linux environments
-    use #{if environment is 'dev' then 'kqueue' else 'epoll'};
+    #{event_mechanism}
   }
 
   # start http
