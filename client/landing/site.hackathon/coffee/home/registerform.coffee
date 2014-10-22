@@ -57,6 +57,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
       @email.icon.unsetTooltip()
       @password.icon.unsetTooltip()
 
+    @addCustomData 'redirectTo', 'Hackathon/Apply'
 
   pistachio : ->
 

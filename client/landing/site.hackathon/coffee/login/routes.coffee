@@ -18,6 +18,11 @@ do ->
     '/Hackathon/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
     '/Hackathon/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     '/Hackathon/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
+    '/Hackathon/Apply'            : ->
+      return KD.singletons.router.clear()  unless KD.isLoggedIn()
+      KD.singletons.router.openSection 'Home', null, null, (app) ->
+        app.getView().apply()
+
     '/Login'                 : redirect '/Login'
     '/Register'              : redirect '/Register'
     '/Redeem'                : redirect '/Redeem'
