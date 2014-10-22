@@ -10,6 +10,7 @@ VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro
 
 {
   judges   : JUDGES
+  partners : PARTNERS
 } = KD.campaignStats.campaign
 
 module.exports = class HomeView extends KDView
@@ -31,6 +32,7 @@ module.exports = class HomeView extends KDView
     super options, data
 
     @setPartial @partial()
+    @createPartners()
     @createJudges()
     @createJoinForm()
 
@@ -183,6 +185,25 @@ module.exports = class HomeView extends KDView
         partial     : "<span>#{content.title}</span><cite>#{content.company}</cite>"
 
       @addSubView view, '.judges > div'
+
+
+  createPartners: ->
+
+    header = new KDCustomHTMLView
+      tagName : 'h4'
+      partial : 'Event Partners'
+
+    @addSubView header, 'aside.partners'
+
+    for name, img of PARTNERS
+
+      image = new KDCustomHTMLView
+        tagName    : 'img'
+        attributes :
+          src      : img
+          alt      : name
+
+      @addSubView image, 'aside.partners'
 
 
   viewAppended : ->
@@ -403,14 +424,7 @@ module.exports = class HomeView extends KDView
         <h4>Questions?</h4>
         <p>Send us an email at <a href="mailto:hackathon@koding.com">hackathon@koding.com</a></p>
       </article>
-      <aside class="partners">
-        <h4>Event Partners</h4>
-        <img src="./a/site.hackathon/images/partners/aws.png">
-        <!-- 
-        <h4>Awesome APIs</h4>
-        <img src="./a/site.hackathon/images/partners/aws.png">
-        -->
-      </aside>
+      <aside class="partners"></aside>
     </section>
     <footer>
       <a href="/">Copyright © #{(new Date).getFullYear()} Koding, Inc</a>
