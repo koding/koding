@@ -117,7 +117,12 @@ module.exports = class HomeView extends KDView
     {firstName, lastName, nickname, hash} = KD.whoami().profile
     {isApplicant, isApproved, isWinner} = getStats()
 
-    @setClass 'apply'
+    if KD.isLoggedIn() and isApplicant
+      @setClass 'applied'
+    else if KD.isLoggedIn()
+      @setClass 'about-to-apply'
+
+    return @createShareButtons()  if isApplicant
 
     @addSubView (@section = new KDCustomHTMLView
       tagName  : 'section'
@@ -126,6 +131,7 @@ module.exports = class HomeView extends KDView
 
     size     = 80
     fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
 
     @section.addSubView avatarBg = new KDCustomHTMLView
       cssClass   : 'avatar-background'
