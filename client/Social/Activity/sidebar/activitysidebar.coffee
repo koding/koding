@@ -617,7 +617,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addMessages: ->
 
-    limit = 3
+    limit = 10
 
     @addSubView @sections.messages = new ActivitySideView
       title      : 'Messages'
