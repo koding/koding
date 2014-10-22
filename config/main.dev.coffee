@@ -842,11 +842,12 @@ Configuration = (options={}) ->
 
         check_service_dependencies
 
-        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]
-        then
+        if [ "$2" != "force" ]; then
+          read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+          echo ""
+          if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 1
+          fi
         fi
 
         build_services
