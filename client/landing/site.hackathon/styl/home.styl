@@ -271,12 +271,6 @@ body.home
     z-index               30
     borderBox()
 
-    // > *
-    //   max-width           1200px
-    //   margin              0 auto
-
-
-
     article
       padding             53px 276px 0 53px
       font-size           16px
@@ -293,29 +287,20 @@ body.home
         text-transform    uppercase
         line-height       2em
         bg                color rgba(0,0,0,.05)
-        // bg                color #FEEF00
         color             #313131
         padding           0 26px// 0 53px
         margin-left       -26px
-        // border-left       6px solid #848484
-        // shadow            0 3px 0 rgba(0,0,0,.3)
         rel()
 
       h4
-        // color             white
         font-size         30px
-        // rounded           8px 8px 8px 0
         z-index           0
 
       h5
-        // font-weight       400
         font-size         21px
         padding-bottom    8px
-        // color             #848484
-        // rounded           0 0 8px 8px
         z-index           1
         i
-          // color           white
           color           black
 
       p
@@ -386,6 +371,29 @@ body.home
             line-height   16px
           cite
             font-weight   bold
+      &.apis
+        h4
+          margin-bottom   22px
+
+        a
+          margin-bottom   12px
+          font-weight     400
+          display         inline-block
+          text-transform  uppercase
+          line-height     2em
+          bg              color rgba(0,0,0,.05)
+          color           #313131
+          padding         0 13px// 0 53px
+          white-space     nowrap
+          border-bottom   1px solid rgba(0,0,0,.1)
+          &:hover
+            color         white
+            border-bottom 1px solid #ccc
+            bg            color rgba(0,0,0,.8)
+
+        p
+          padding-top     10px
+          font-size       14px
 
     aside.partners
       width               232px

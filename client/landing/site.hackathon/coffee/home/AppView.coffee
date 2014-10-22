@@ -298,8 +298,8 @@ module.exports = class HomeView extends KDView
       <article>
       <h4>What is the theme for the Hackathon?</h4>
       <p>48 hours before the start of the event, we will provide a theme for the event. Your task
-      will be to use publicly available resources (APIs, data sets, graphics, etc.) and your imagination 
-      to create a project that addresses one of the the themes of the event. You can expect the themes 
+      will be to use publicly available resources (APIs, data sets, graphics, etc.) and your imagination
+      to create a project that addresses one of the the themes of the event. You can expect the themes
       to revolve around topics like: Global finance, Education, Healthcare, Climate change, Travel, etc.
       The final themes will be announced on the
       <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>
@@ -391,34 +391,32 @@ module.exports = class HomeView extends KDView
         <h4>Judges</h4>
         <div class='clearfix'></div>
       </article>
-      <article>
+      <article class='apis'>
         <h4>Awesome API's for you to check out</h4>
-        <a href="http://developer.factual.com/">Factual</a>, 
-        <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>, 
-        <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>,
-        <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding</a>,
-        <a href="https://developers.google.com/books/">Google Books</a>,
-        <a href="http://opensocial.org/">OpenSocial</a>,
-        <a href="https://cloud.google.com/prediction/docs">Google Predictions</a>,
-        <a href="https://delicious.com/help/api">Delicious</a>,
-        <a href="https://www.flickr.com/services/api/">Flickr</a>,
-        <a href="https://developer.yahoo.com/">Yahoo Local</a>,
-        <a href="https://dev.twitter.com/">Twitter</a>,
-        <a href="https://developers.facebook.com/">Facebook</a>,
-        <a href="https://developer.foursquare.com/">Foursquare</a>,
-        <a href="https://developers.soundcloud.com/">Soundcloud</a>,
-        <a href="http://www.yelp.com/developers/documentation">Yelp</a>,
-        <a href="http://dev.bitly.com/">Bit.ly</a>,
-        <a href="http://www.twilio.com/docs/api/rest">Twilio</a>,
-        <a href="https://developer.linkedin.com/apis">LinkedIn</a>,
-        <a href="https://developers.google.com/freebase/">Freebase</a>,
+        <a href="http://developer.factual.com/">Factual</a>
+        <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>
+        <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>
+        <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding</a>
+        <a href="https://developers.google.com/books/">Google Books</a>
+        <a href="http://opensocial.org/">OpenSocial</a>
+        <a href="https://cloud.google.com/prediction/docs">Google Predictions</a>
+        <a href="https://delicious.com/help/api">Delicious</a>
+        <a href="https://www.flickr.com/services/api/">Flickr</a>
+        <a href="https://developer.yahoo.com/">Yahoo Local</a>
+        <a href="https://dev.twitter.com/">Twitter</a>
+        <a href="https://developers.facebook.com/">Facebook</a>
+        <a href="https://developer.foursquare.com/">Foursquare</a>
+        <a href="https://developers.soundcloud.com/">Soundcloud</a>
+        <a href="http://www.yelp.com/developers/documentation">Yelp</a>
+        <a href="http://dev.bitly.com/">Bit.ly</a>
+        <a href="http://www.twilio.com/docs/api/rest">Twilio</a>
+        <a href="https://developer.linkedin.com/apis">LinkedIn</a>
+        <a href="https://developers.google.com/freebase/">Freebase</a>
         <a href="http://products.wolframalpha.com/api/">Wolfram Alpha</a>
         <a href="http://buzzdata.com/faq/api/getting-started">Buzzdata</a>
         <a href="https://api.import.io/">Import.io</a>
-        <p>
-        ...to name a few. And any metion of APIs would be incomplete without a hat tip
-        to <a href="http://www.programmableweb.com/">Programmable Web</a>
-        </p>
+        <a href="http://www.programmableweb.com/">Programmable Web</a>
+        <p>...to name just a few.</p>
       </article>
       <article>
         <h4>Questions?</h4>
