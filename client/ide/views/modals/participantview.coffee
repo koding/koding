@@ -46,10 +46,13 @@ class IDE.ParticipantView extends KDView
           cssClass : 'info'
           partial  : "and #{missing} more"
 
-      @addSubView watchButton = new KDButtonView
+      @addSubView @watchButton = new KDButtonView
         title      : 'Watch'
         cssClass   : 'solid compact green'
-        callback   : => @emit 'ParticipantWatchRequested'
+        callback   : =>
+          title = if @watchButton.getTitle() is 'Watching' then 'Watch' else 'Watching'
+          @watchButton.setTitle title
+          @emit 'ParticipantWatchRequested', participant
 
     else
       @addSubView new KDCustomHTMLView
