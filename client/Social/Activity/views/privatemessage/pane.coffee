@@ -126,6 +126,8 @@ class PrivateMessagePane extends MessagePane
     @applyDayMark item, index
     @putNewMessageMark()
 
+    return  if data.typeConstant in ['join', 'leave']
+
     return  if @doesBreakConsequency item, index
 
     [prev, next] = @getSiblings index
