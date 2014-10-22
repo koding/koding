@@ -9,24 +9,21 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
       title          : ''
       cssClass       : 'activity-settings-menu'
       itemChildClass : ActivityItemMenuItem
-      menu           : @bound 'settingMenu'
+      menu           : @bound 'settingsMenu'
       style          : 'resurrection'
+
+    @menu = {}
+
+    @addSubView @settings
 
   viewAppended: ->
     if KD.checkFlag('super-admin') or KD.isMyChannel @getData()
       @addSubView @settings
 
-  settingMenu: ->
-    @menu = {}
-
-    if KD.checkFlag('super-admin') or KD.isMyChannel @getData()
-      @addDeleteMenu()
-
-    @menu
-
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
-  addDeleteMenu: ->
+  settingsMenu: ->
+
     channel = @getData()
 
     @addMenuItem 'Leave Conversation', =>
@@ -36,6 +33,8 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
         ok           :
           title      : 'Leave'
           callback   : @bound 'leaveConversation'
+
+    @menu
 
   leaveConversation: ->
     @prepareModal @leaveModal
