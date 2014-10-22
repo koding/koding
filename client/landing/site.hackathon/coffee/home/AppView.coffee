@@ -145,15 +145,6 @@ module.exports = class HomeView extends KDView
     @section.addSubView label = new KDLabelView
       title : "Hey, #{firstName or nickname}!"
 
-    label.addSubView notYou = new CustomLinkView
-      title : '(not you?)'
-      href  : '/Logout'
-      click : (event) ->
-        KD.utils.stopDOMEvent event
-        document.cookie = 'clientId=null'
-        location.replace '/WFGH'
-
-    return @createShareButtons()  if isApplicant
 
     @section.addSubView @button = new KDButtonView
       cssClass : 'apply-button solid green medium'
@@ -183,32 +174,35 @@ module.exports = class HomeView extends KDView
   updateWidget : ->
 
     @section.destroy()
-    @updateGreeting()
     @updateStats()
     @createApplyWidget()
 
 
   createShareButtons: ->
 
-    @section.setPartial """
-      <ul class="social-buttons clearfix">
-        <li>
-            <a href="http://twitter.com/share" class="socialite twitter-share" data-text="JOIN THE WORLD'S FIRST GLOBAL HACKATHON #WFGH @koding" data-url="http://koding.com/WFGH" data-count="none" rel="nofollow" target="_blank"><span class="vhidden">Share on Twitter</span></a>
-        </li>
-        <li>
-            <a href="https://plus.google.com/share?url=http://koding.com/WFGH" data-annotation="none" class="socialite googleplus-one" data-size="tall" data-href="http://koding.com/WFGH" rel="nofollow" target="_blank"><span class="vhidden">Share on Google+</span></a>
-        </li>
-        <li>
-            <a href="http://www.facebook.com/sharer.php?u=http://koding.com/WFGH&t=JOIN THE WORLD'S FIRST GLOBAL HACKATHON #WFGH @koding" class="socialite facebook-like" data-colorscheme="light" data-href="http://koding.com/WFGH" data-send="false" data-layout="button" data-width="60" data-show-faces="false" rel="nofollow" target="_blank"><span class="vhidden">Share on Facebook</span></a>
-        </li>
-        <li>
-            <a href="http://www.linkedin.com/shareArticle?mini=true&url=http://koding.com/WFGH&title=JOIN THE WORLD'S FIRST GLOBAL HACKATHON #WFGH @koding" data-annotation="none" class="socialite linkedin-share" data-url="http://koding.com/WFGH" data-counter="none" rel="nofollow" target="_blank"><span class="vhidden">Share on LinkedIn</span></a>
-        </li>
-      </ul>
-      """
+    { isApplicant, isApproved, isWinner } = getStats()
 
-    Socialite.load @$('ul.social-buttons')[0]
-    KD.utils.wait 3000, => @$('ul.social-buttons').addClass 'loaded'
+
+    if isApplicant and not isApproved
+      greeting = """
+        <strong>THANK YOU!</strong>
+        We have received your application. You\'ll shortly receive an email with more details!</br>
+        Share now to increase your chances to get approved!
+        """
+
+    if isApplicant and isApproved
+      greeting = '<strong>CONGRATULATIONS!</strong>you are in!'
+
+    if isApplicant and isWinner
+      greeting = '<strong>WOHOOOO!</strong>You are the WINNER!'
+
+    @$('.form-wrapper').append "<p>#{greeting}</p>"
+    @$('.form-wrapper').append "<div class=\"addthis_sharing_toolbox\" data-title=\"#{TWEET_TEXT}\" data-url=\"#{SHARE_URL}\"></div>"
+
+    repeater = KD.utils.repeat 200, ->
+      if addthis?.layers?.refresh
+        addthis.layers.refresh()
+        KD.utils.killRepeat repeater
 
 
   createJudges : ->
@@ -240,13 +234,12 @@ module.exports = class HomeView extends KDView
 
     super
 
-    @updateGreeting()
-
     video = document.getElementById 'bgVideo'
     video.addEventListener 'loadedmetadata', ->
       @currentTime = 8
       @playbackRate = .7
     , no
+
 
   updateStats: -> @$('div.counters').html @getStats()
 
@@ -262,22 +255,6 @@ module.exports = class HomeView extends KDView
       """
 
 
-  updateGreeting: ->
-
-    { isApplicant, isApproved, isWinner } = getStats()
-
-    if isApplicant and not isApproved
-      greeting = 'We received your application, check back later to see if you\'re approved!'
-
-    if isApplicant and isApproved
-      greeting = 'CONGRATULATIONS! you are in!'
-
-    if isApplicant and isWinner
-      greeting = 'WOHOOOO! You are the WINNER!'
-
-    @$('.introduction > h3').first().html greeting  if greeting
-
-
   partial: ->
 
     """
@@ -287,11 +264,9 @@ module.exports = class HomeView extends KDView
         <source src="#{VIDEO_URL_OGG}" type="video/ogg"; codecs=theora,vorbis">
         <source src="#{VIDEO_URL_MP4}">
       </video>
-      <h2>
-        JOIN THE WORLD’S FIRST GLOBAL HACKATHON <span>#WFGH</span>
-      </h2>
-      <h3>Announcing the world's first global virtual hackathon. Let's hack together! <br>
-          Join today and save your spot <strong>to win $10,000 in cash prizes.</strong></h3>
+      <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
+      <h3>Let's hack together, wherever we are!</h3>
+      <h4>Apply today with your Koding account to get a chance <strong>to win up to $10,000 in cash prizes.</strong></h4>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
@@ -306,7 +281,7 @@ module.exports = class HomeView extends KDView
         and should get together to write code and create awesome projects, regardless of
         where we are.
         </p>
-        <p>Welcome to the World’s First Global Hackathon (#wfgh)!</p>
+        <p>Welcome to the World’s First Global Virtual Hackathon!</p>
 
         <p>This event is intended to connect developers across the globe and get them to  code
         together irrespective of their locations. You will problem solve and build with old or
@@ -324,7 +299,7 @@ module.exports = class HomeView extends KDView
         <p>Applications can come from individuals or teams of up to 5, however each team member
         needs to be a contributing team member (writing code or designing). If you are an
         individual who is selected and are looking for team members, post a message on the
-        <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a>.
+        <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>.
         Your post should clearly articulate what type of skill set you are looking for and what
         type of skill set you have. e.g.: <i>I am a nodeJS developer looking for a backend
         database team member.</i> Once you get a response, jump into private chats on Koding
@@ -345,7 +320,7 @@ module.exports = class HomeView extends KDView
       <p>48 hours before the start of the event, we will provide a theme for the event. Your task
       will be to use the API’s of one (or more) of our API partners and create a project that
       addresses the theme of the event. The theme will be announced on the
-      <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a>
+      <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>
        so make sure and mark your calendars!
       </article>
       <article>
@@ -384,7 +359,7 @@ module.exports = class HomeView extends KDView
         <ul>
           <li>Now - Registration open.</li>
           <li>Nov 16th - Applications are closed. Final notifications are sent to teams/individuals who were accepted.</li>
-          <li>Nov 18th, 1000 PDT - Hackathon theme is announced on the  <a href="https://koding.com/Activity/Topic/wfgh" target=_blank>#wfgh channel on Koding</a></li>
+          <li>Nov 18th, 1000 PDT - Hackathon theme is announced on the  <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a></li>
           <li>Nov 22th - Day 1 Let the hacking begin!</li>
           <li>Nov 23rd - Day 2 of the Hackathon
             <ul>
@@ -417,7 +392,7 @@ module.exports = class HomeView extends KDView
         </article>
       <article class="schedule">
         <h4>How to submit your project</h4>
-          <p>Send the following details to <a href="mailto:wfgh@koding.com">wfgh@koding.com</a>
+          <p>Send the following details to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a>
             <ol>
               <li>Koding VM URL where the judges can see your project.</li>
               <li>A brief description of your project (not more than 250 words).</li>

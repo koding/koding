@@ -44,7 +44,7 @@ body.home
   section.introduction
     size                  100% 100vh
     padding               149px 45px 0
-    padding-top           calc(50vh - 170px)
+    padding-top           calc(50vh - 260px)
     text-align            center
     position              relative
     overflow              hidden
@@ -59,7 +59,7 @@ body.home
 
     figure
       size                300px 100px
-      abs                 0 50% 50px 0
+      abs                 0 50% 75px 0
       margin-right        -150px
       bg                  color transparent
       cursor              pointer
@@ -93,17 +93,30 @@ body.home
       position            relative
       z-index             20
 
-    h2
+    h1
       font-weight         300
-      font-size           34.11px
+      font-size           34px
+      line-height         50px
       letter-spacing      0.2em
       color               #f4f4f4
-      margin-bottom       46px
+      margin-bottom       36px
 
       span
         color             #848484
 
     h3
+      font-weight         300
+      font-size           32px
+      line-height         40px
+      letter-spacing      0.1em
+      color               #f4f4f4
+      margin-bottom       30px
+
+      strong
+        font-weight       600
+        color             #fff
+
+    h4
       font-weight         400
       font-size           18px
       line-height         28px
@@ -122,15 +135,17 @@ body.home
       display             inline-block
       borderBox()
 
-      .social-buttons
-        position          static
-        display           inline-block
-        clear             both
-        margin            14px auto 0
-        height            26px
+      p
+        color             white
+        font-size         16px
+        line-height       30px
+        margin-bottom     10px
+        strong
+          font-size       24px
+          font-weight     400
+          display         block
 
-        li:last-of-type
-          margin-right    0
+
 
       .avatar-background
         abs               -50px 0 0 50%
@@ -189,7 +204,7 @@ body.home
           padding         0
 
         .submit
-          width           124px
+          width           150px
           margin          0
 
       .input-wrapper
