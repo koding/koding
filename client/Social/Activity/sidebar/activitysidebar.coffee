@@ -529,8 +529,7 @@ class ActivitySidebar extends KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : 'VMs'
-      click    : KD.singletons.computeController
-        .bound 'handleNewMachineRequest'
+      click    : @bound 'handleMoreVMsClick'
 
     section.addSubView @machineTree.getView()
 
@@ -545,9 +544,9 @@ class ActivitySidebar extends KDCustomHTMLView
       @fetchMachines @bound 'listMachines'
 
     # section.addSubView more = new MoreVMsModal {}, null
-    section.addSubView more = new SidebarMoreLink
-      tagName  : 'a'
-      click    : @bound 'handleMoreVMsClick'
+    # section.addSubView more = new SidebarMoreLink
+    #   tagName  : 'a'
+    #   click    : @bound 'handleMoreVMsClick'
 
   handleMachineItemClick: (machineItem, event) ->
 
