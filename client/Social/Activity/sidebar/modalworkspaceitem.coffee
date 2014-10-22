@@ -11,6 +11,6 @@ class ModalWorkspaceItem extends SidebarItem
 
   pistachio: ->
     """
-    #(slug)
+    {{ #(slug) }}
     """
 

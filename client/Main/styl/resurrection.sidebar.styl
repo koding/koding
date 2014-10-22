@@ -665,9 +665,6 @@ sidebarCountBg    = #C14C4C
     bg              color, #1D1D1D
     border-left     1px solid #323232
 
-    .count
-      left          24px
-
   .acc-icon .icon
     display         block
     padding-bottom  1px
@@ -678,7 +675,10 @@ sidebarCountBg    = #C14C4C
       border-right    1px solid #1d1d1d
     .icon
       r-sprite        app 'account-notifications'
+      size            20px 21px
       margin          15px auto
+    &.active .count
+      left            22px !important
     .count
       position        absolute
       width           14px

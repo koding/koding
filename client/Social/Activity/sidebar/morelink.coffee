@@ -23,8 +23,8 @@ class SidebarMoreLink extends CustomLinkView
 
     return  if err
 
-    { visibleCount } = @getOptions()
-    { totalCount }   = res
+    { visibleCount, limit } = @getOptions()
+    { totalCount }          = res
 
     if totalCount > limit
     then @show()
