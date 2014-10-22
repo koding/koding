@@ -20,7 +20,6 @@ services=(
   koding/kites/os
   koding/kites/terminal
   github.com/koding/kite/kitectl
-  github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
   github.com/coreos/etcd
   koding/kites/klient
