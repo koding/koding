@@ -228,6 +228,8 @@ class IDE.MachineStateModal extends IDE.ModalView
 
     return  unless @hasError
 
+    KD.utils.sendDataDogEvent "MachineStateFailed"
+
     @errorMessage = new KDCustomHTMLView
       cssClass    : 'error-message'
       partial     : """
