@@ -316,7 +316,7 @@ module.exports = class LoginView extends JView
     fields.username =
       name               : 'username'
       itemClass          : LoginInputView
-      label              : 'Username'
+      label              : 'Pick a username'
       inputOptions       :
         name             : 'username'
         defaultValue     : preferredUsername
