@@ -55,7 +55,7 @@ module.exports = class S3 extends Base
     callback null, {
 
       req_url    : AWS_URL
-      upload_url : "/user/#{nickname}"
+      upload_url : "user/#{nickname}"
       accessKey  : AWS_KEY
 
       policy, signature

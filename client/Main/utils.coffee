@@ -821,75 +821,52 @@ utils.extend utils,
     parts.join ''
 
 
-  s3upload: (name, content, callback)->
+
+  s3upload: (options, callback = noop)->
+
+    {name, content} = options
+
+    name   ?= uuid.v4()
+
+    unless content
+      warn "Content required."
+      return
+
+    name    = Encoder.htmlDecode name
+    content = Encoder.htmlDecode content
 
     KD.remote.api.S3.generatePolicy (err, policy)->
 
-      fd = new FormData()
+      return callback err  if err?
 
-      fd.append 'key', "#{policy.upload_url}/#{name}"
-      fd.append 'acl', 'public-read'
-      fd.append 'AWSAccessKeyId', policy.accessKey
-      fd.append 'policy', policy.policy
-      fd.append 'signature', policy.signature
-      fd.append 'file', content
+      data = new FormData()
 
-      xhr = new XMLHttpRequest()
+      data.append 'key', "#{policy.upload_url}/#{name}"
+      data.append 'acl', 'public-read'
 
-      xhr.addEventListener "load", ->
-        log "LOAD", arguments
+      # koding-client IAM accessKey provided by S3.generatePolicy
+      data.append 'AWSAccessKeyId', policy.accessKey
+      data.append 'policy', policy.policy
+      data.append 'signature', policy.signature
 
-      xhr.addEventListener "error", ->
-        log "ERROR", arguments
+      # Update this later for feature requirements
+      data.append 'Content-Type', "plain/text"
 
-      xhr.addEventListener "abort", ->
-        log "ABORT", arguments
+      data.append 'file', content
 
-      xhr.open 'POST', policy.req_url, true
-
-      xhr.send fd
-
-      # $.ajax
-      #   type              : "POST"
-      #   url               : policy.req_url
-      #   crossDomain       : yes
-      #   data              :
-      #     key             : "#{policy.upload_url}/#{name}"
-      #     AWSAccessKeyId  : policy.accessKey
-      #     acl             : 'public-read'
-      #     policy          : policy.policy
-      #     signature       : policy.signature
-      #     file            : content
-
-      #   error   : -> callback "fail"
-      #   success : (data)-> callback data
-      #   timeout : 5000
-
-      # Working version --- with FORM
-      #
-      # <html>
-      #   <head>
-      #     <title>S3 POST Form</title>
-      #     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-      #   </head>
-
-      #   <body>
-      #     <form action="https://koding-client.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
-      #       <input type="hidden" name="key" value="user/gokmen/test.txt">
-      #       <input type="hidden" name="AWSAccessKeyId" value="AKIAJ26X7D2XKXVSGUAA">
-      #       <input type="hidden" name="acl" value="public-read">
-      #       <input type="hidden" name="policy" value="eyJleHBpcmF0aW9uIjoiMjAxNC0xMC0yMVQxOToyMjo1Ni44MjBaIiwiY29uZGl0aW9ucyI6W3siYnVja2V0Ijoia29kaW5nLWNsaWVudCJ9LHsiYWNsIjoicHVibGljLXJlYWQifSxbInN0YXJ0cy13aXRoIiwiJGtleSIsInVzZXIvZ29rbWVuIl0sWyJzdGFydHMtd2l0aCIsIiRDb250ZW50LVR5cGUiLCIiXSxbImNvbnRlbnQtbGVuZ3RoLXJhbmdlIiwwLDEwNDg1NzZdXX0=">
-      #       <input type="hidden" name="signature" value="FAW4l0cqSoD6Ow2BZrkC9JX04mA=">
-      #       <input type="hidden" name="Content-Type" value="plain/text">
-      #       <!-- Include any additional input fields here -->
-
-      #       File to upload to S3:
-      #       <input name="file" value="Hello world ehem.">
-      #       <br>
-      #       <input type="submit" value="Upload File to S3">
-      #     </form>
-      #   </body>
-      # </html>
+      $.ajax
+        type        : "POST"
+        url         : policy.req_url
+        cache       : no
+        contentType : no
+        processData : no
+        crossDomain : yes
+        data        : data
+        timeout     : 5000
+        error       : ->
+          callback message: "Failed to upload"
+        success     : ->
+          callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
 
 
   ###*
