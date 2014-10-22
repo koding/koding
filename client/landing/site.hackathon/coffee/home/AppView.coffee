@@ -149,23 +149,29 @@ module.exports = class HomeView extends KDView
 
     return @createShareButtons()  if isApplicant
 
-    @section.addSubView button = new KDButtonView
+    @section.addSubView @button = new KDButtonView
       cssClass : 'apply-button solid green medium'
       title    : 'APPLY NOW'
       loader   : yes
-      callback : =>
-        $.ajax
-          url         : '/WFGH/Apply'
-          type        : 'POST'
-          xhrFields   : withCredentials : yes
-          success     : (stats) =>
-            button.hideLoader()
-            KD.campaignStats = stats
-            @updateWidget()
-          error       : (xhr) ->
-            {responseText} = xhr
-            button.hideLoader()
-            new KDNotificationView title : responseText
+      callback : @bound 'apply'
+
+
+  apply: ->
+
+    $.ajax
+      url         : '/Hackathon/Apply'
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : (stats) =>
+        @button.hideLoader()
+        KD.campaignStats = stats
+        @updateWidget()
+        KD.singletons.router.handleRoute '/Hackathon'
+      error       : (xhr) ->
+        {responseText} = xhr
+        @button.hideLoader()
+        new KDNotificationView title : responseText
+        KD.singletons.router.handleRoute '/Hackathon'
 
 
   updateWidget : ->
