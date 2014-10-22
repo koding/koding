@@ -15,9 +15,10 @@ module.exports = class DataDog extends Base
       static           :
         sendEvent      : (signature Object, Function)
 
-  DogApi               = new dogapi
-    api_key            : '6d3e00fb829d97cb6ee015f80063627c'
-    app_key            : 'c9be251621bc75acf4cd040e3edea17fff17a13a'
+  console.log {api_key, app_key}   = KONFIG.datadog
+  DogApi               = new dogapi {
+    api_key, app_key
+  }
 
   Events               =
     MachineStateFailed :
