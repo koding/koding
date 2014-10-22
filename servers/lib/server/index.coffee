@@ -552,7 +552,7 @@ isInAppRoute = (name)->
   return false
 
 
-app.post '/WFGH/Apply', (req, res, next)->
+app.post '/Hackathon/Apply', (req, res, next)->
 
   {JWFGH} = koding.models
 
@@ -590,7 +590,7 @@ app.post '/Gravatar', (req, res) ->
     res.status(400).send body
 
 
-app.get '/WFGH/:section?', (req, res, next)->
+app.get '/Hackathon/:section?', (req, res, next)->
 
   {JGroup} = koding.models
 
