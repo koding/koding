@@ -21,15 +21,13 @@ class SidebarMoreLink extends CustomLinkView
 
   renderCount: (err, res) ->
 
-    return if err
+    return  if err
 
-    options                      = @getOptions()
-    {title, limit, visibleCount} = options
-    {totalCount}                 = res
-    limit                        = visibleCount  if visibleCount
+    { visibleCount } = @getOptions()
+    { totalCount }   = res
 
-    if totalCount > limit then @show() else @hide()
+    if totalCount > limit
+    then @show()
+    else @hide()
 
-    data = @getData()
-    data.title = "+#{totalCount - limit} #{title}"
-    @render()
+
