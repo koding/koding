@@ -2053,11 +2053,12 @@ timeColor2 = #5F9E5E
       rounded             50%
       background          transparent
       padding             0
+      text-align          center
+      line-height         28px
       fl()
 
       .icon
-        margin            0 0 0 9px
-        display           block
+        display           inline-block
         r-sprite          'activity', 'new-participant-plus'
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
@@ -2125,7 +2126,6 @@ timeColor2 = #5F9E5E
             padding           6px
             border-color      #dfcc97
             margin-bottom     0
-
 
     .link-embed-box
       padding           10px 1px 10px 0
@@ -2374,6 +2374,11 @@ timeColor2 = #5F9E5E
             line-height     39px
             font-weight     400
             color           #b2b2b2
+
+    &.join-leave
+      article
+        font-style          italic
+        opacity             .5
 
   .reply-input-widget
     bottom              30px
