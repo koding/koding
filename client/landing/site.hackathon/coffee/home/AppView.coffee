@@ -417,21 +417,20 @@ module.exports = class HomeView extends KDView
           Submissions received after the deadline will not be considered. No exceptions.
         </p>
       </article>
-      <article>
-        <h4>Questions?</h4>
-        <p>Send us an email at <a href="mailto:wfgh@koding.com">wfgh@koding.com</a></p>
-      </article>
       <article class='judges'>
         <h4>Judges</h4>
         <div class='clearfix'></div>
       </article>
-      <!-- aside class="partners">
-        <h4>Sponsors</h4>
-        <img src="http://upload.wikimedia.org/wikipedia/en/archive/7/7d/20140812175330!Red_Bull.svg">
+      <article>
+        <h4>Questions?</h4>
+        <p>Send us an email at <a href="mailto:hackathon@koding.com">hackathon@koding.com</a></p>
+      </article>
+      <aside class="partners">
+        <h4>Event Partners</h4>
         <img src="./a/site.hackathon/images/partners/aws.png">
-        <img src="./a/site.hackathon/images/partners/rackspace.jpg">
-        <img src="./a/site.hackathon/images/partners/chrome.png">
-      </aside -->
+        <h4>API Partners</h4>
+        <img src="./a/site.hackathon/images/partners/aws.png">
+      </aside>
     </section>
     <footer>
       <a href="/">Copyright © #{(new Date).getFullYear()} Koding, Inc</a>
@@ -441,3 +440,6 @@ module.exports = class HomeView extends KDView
       <a href="/Legal" target="_blank">Legal</a>
     </footer>
     """
+        # <img src="http://upload.wikimedia.org/wikipedia/en/archive/7/7d/20140812175330!Red_Bull.svg">
+        # <img src="./a/site.hackathon/images/partners/chrome.png">
+        # <img src="./a/site.hackathon/images/partners/aws.png">
