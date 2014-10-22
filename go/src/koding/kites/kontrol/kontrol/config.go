@@ -31,6 +31,17 @@ type Config struct {
 
 	// Artifacts endpoint port
 	ArtifactPort int
+
+	// Define storage type, such as "etcd", "postgres" etc..
+	Storage string
+
+	Postgres struct {
+		Host     string `default:"localhost"`
+		Port     int    `default:"5432"`
+		Username string `required:"true"`
+		Password string `required:"true"`
+		DBName   string `required:"true" `
+	}
 }
 
 func FindPath(path string) string {

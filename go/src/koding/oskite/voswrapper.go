@@ -157,7 +157,7 @@ func (o *Oskite) kiteWho(r *kitelib.Request) (interface{}, error) {
 	hostname := strings.Replace(s[1], "_", ".", -1)
 
 	proc := o.NewKite.Kite()
-	query := protocol.KontrolQuery{
+	query := &protocol.KontrolQuery{
 		Username:    proc.Username,
 		Environment: proc.Environment,
 		Name:        proc.Name,
