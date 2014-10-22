@@ -629,7 +629,7 @@ Configuration = (options={}) ->
             exit 1
         fi
 
-        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h #{boot2dockerbox} social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
         if [[ $EXISTS != '1' ]]; then
           echo ""
           echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
