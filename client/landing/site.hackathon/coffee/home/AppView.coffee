@@ -415,8 +415,10 @@ module.exports = class HomeView extends KDView
         <a href="http://products.wolframalpha.com/api/">Wolfram Alpha</a>
         <a href="http://buzzdata.com/faq/api/getting-started">Buzzdata</a>
         <a href="https://api.import.io/">Import.io</a>
-        <a href="http://www.programmableweb.com/">Programmable Web</a>
-        <p>...to name just a few.</p>
+        <p>
+        ...to name a few. And any metion of APIs would be incomplete without a hat tip
+        to <a href="http://www.programmableweb.com/">Programmable Web</a>
+        </p>
       </article>
       <article>
         <h4>Questions?</h4>
