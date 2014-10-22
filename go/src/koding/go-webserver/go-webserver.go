@@ -18,9 +18,13 @@ import (
 )
 
 var (
-	Name        = "gowebserver"
-	flagConfig  = flag.String("c", "", "Configuration profile from file")
-	log         = logging.NewLogger(Name)
+	Name              = "gowebserver"
+	kodingTitle       = "Koding | Say goodbye to your localhost and write code in the cloud."
+	kodingDescription = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go, Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+
+	flagConfig = flag.String("c", "dev", "Configuration profile from file")
+	log        = logging.NewLogger(Name)
+
 	kodingGroup *models.Group
 	conf        *config.Config
 )
@@ -67,13 +71,13 @@ func initialize() {
 func main() {
 	initialize()
 
-	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
-
-	log.Info("Starting gowebserver on %v", url)
-
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+
+	url := fmt.Sprintf(":%d", conf.Gowebserver.Port)
+	log.Info("Starting gowebserver on: %v", url)
+
 	http.ListenAndServe(url, nil)
 }
 
@@ -83,17 +87,18 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
 		if err != http.ErrNoCookie {
-			log.Error("Couldn't fetch the cookie: %s", err)
+			log.Error("Couldn't fetch 'clientId' cookie value: %s", err)
 		}
+
 		log.Info("loggedout page took: %s", time.Since(start))
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
 
 	if cookie.Value == "" {
 		log.Info("loggedout page took: %s", time.Since(start))
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -105,7 +110,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch session with clientId %s: %s", clientId, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w) // TODO: clean up session
+		expireCookie(w, cookie)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -115,7 +121,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Username is empty for session with clientId: %s", clientId)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w)
+		expireCookie(w, cookie)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -129,14 +136,21 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't fetch account with username %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w)
+		expireCookie(w, cookie)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
 
 	if account.Type != "registered" {
+		log.Error(
+			"Account type: %s is not 'registered' for %s's session.",
+			account.Type, username,
+		)
 		log.Info("loggedout page took: %s", time.Since(start))
-		renderLoggedOutHome(w)
+
+		expireCookie(w, cookie)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -150,7 +164,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error("Couldn't get user of %s: %s", username, err)
 		log.Info("loggedout page took: %s", time.Since(start))
 
-		renderLoggedOutHome(w)
+		expireCookie(w, cookie)
+		writeLoggedOutHomeToResp(w)
 	}
 
 	machines, err := modelhelper.GetMachines(user.ObjectId)
@@ -179,12 +194,12 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		Impersonating: session.Impersonating,
 	}
 
-	renderLoggedInHome(w, loggedInUser)
+	writeLoggedInHomeToResp(w, loggedInUser)
 
 	log.Info("loggedin page took: %s", time.Since(start))
 }
 
-func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
+func writeLoggedInHomeToResp(w http.ResponseWriter, u LoggedInUser) {
 	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
 	hc := buildHomeContent()
@@ -195,7 +210,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
 		log.Error("Failed to render loggedin page: %s", err)
-		renderLoggedOutHome(w)
+		writeLoggedOutHomeToResp(w)
 
 		return
 	}
@@ -203,7 +218,7 @@ func renderLoggedInHome(w http.ResponseWriter, u LoggedInUser) {
 	fmt.Fprintf(w, buf.String())
 }
 
-func renderLoggedOutHome(w http.ResponseWriter) {
+func writeLoggedOutHomeToResp(w http.ResponseWriter) {
 	homeTmpl := buildHomeTemplate(templates.LoggedOutHome)
 
 	hc := buildHomeContent()
@@ -218,11 +233,11 @@ func renderLoggedOutHome(w http.ResponseWriter) {
 
 func buildHomeContent() HomeContent {
 	hc := HomeContent{
-		Version:  conf.Version,
-		ShareUrl: conf.Client.RuntimeOptions.MainUri,
+		Version:     conf.Version,
+		ShareUrl:    conf.Client.RuntimeOptions.MainUri,
+		Title:       kodingTitle,
+		Description: kodingDescription,
 	}
-	hc.Title = "Koding | Say goodbye to your localhost and write code in the cloud"
-	hc.Description = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
 	return hc
 }
@@ -236,4 +251,9 @@ func buildHomeTemplate(content string) *template.Template {
 	homeTmpl.AddParseTree("analytics", analyticsTmpl.Tree)
 
 	return homeTmpl
+}
+
+func expireCookie(w http.ResponseWriter, cookie *http.Cookie) {
+	cookie.Expires = time.Now()
+	http.SetCookie(w, cookie)
 }
