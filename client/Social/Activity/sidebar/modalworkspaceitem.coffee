@@ -10,8 +10,7 @@ class ModalWorkspaceItem extends SidebarItem
 
 
   pistachio: ->
-    { slug } = @getData()
     """
-      #{slug}
+    #(slug)
     """
 
