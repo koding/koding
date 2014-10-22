@@ -666,7 +666,7 @@ button.app-settings-menu
 
 /* More vms modal  */
 
-.kdmodal.more-vms
+.kdmodal.more-modal
   background           #E7E7E7
   font-family          adelleFamily
 
@@ -694,7 +694,7 @@ button.app-settings-menu
 
       .button-title
         font-family    inherit
-        font-size      10px
+        font-size      12px
         text-shadow    1px 1px 1px rgba(0,0,0,.22)
 
   .close-icon
@@ -723,7 +723,6 @@ button.app-settings-menu
         margin-top     8px
 
       &:before
-        content        'K'
         display        block
         text-align     center
         abs            0px 0 0 0px
@@ -745,6 +744,11 @@ button.app-settings-menu
         margin-top     8px
         fr()
 
+.more-vms .kdlistitemview-sidebar-item:before
+  content              'K'
+
+.more-workspaces .kdlistitemview-sidebar-item:before
+  content              'W'
 
 
 /* editor-advanced-settings-menu-button

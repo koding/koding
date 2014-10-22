@@ -28,11 +28,11 @@ sidebarCountBg    = #C14C4C
 
   > .kdcustomscrollview
     width              100%
-    kalc              height, 100% \- 107px
+    kalc              height, 100% \- 88px
     styleScrollBars()
 
   &.static > .kdcustomscrollview
-    kalc              height, 100% \- 47px
+    kalc              height, 100% \- 28px
 
   .logo-wrapper
     size              100% 42px
@@ -134,7 +134,8 @@ sidebarCountBg    = #C14C4C
 
   .more-link
     font-size         12px
-    color             #6B6B71
+    color             #6B6B71 !important
+    padding           0 !important
     borderize(#6B6B71)
     noTextDeco()
 
@@ -151,6 +152,7 @@ sidebarCountBg    = #C14C4C
   //     rounded           4px 4px 0 0
 
   li.selected + ul.kdlistview-main-nav.expanded
+    // bg                color, sidebarSelectedBg
     padding-bottom    8px
     rounded           0 0 4px 4px
 
@@ -186,6 +188,10 @@ sidebarCountBg    = #C14C4C
       color           sidebarSubtitle
       font-size       12px
 
+      .more-link
+        display       inline
+        height        16px
+
     // &.app
     &.workspace
       color           #D9D9D9
@@ -200,7 +206,7 @@ sidebarCountBg    = #C14C4C
         height        16px
         bg            color #288CC1
         abs           3px 0 0 24px
-        rounded       5px
+        rounded       100%
 
       a
         padding           0
@@ -270,12 +276,12 @@ sidebarCountBg    = #C14C4C
         r-sprite      app new-nav-ide
       &.vm
         > figure
-          size        3px, 3px
-          rounded     100%
-          background  transparent
-          border      2px solid #6C6C6C
-          top         8px
-          left        8px
+          display       block
+          width         16px
+          height        16px
+          bg            color sidebarGray
+          abs           3px 0 0 3px
+          rounded       5px
         > span
           r-sprite    app vm-settings-icon
           right       6px
@@ -289,7 +295,8 @@ sidebarCountBg    = #C14C4C
         &.notinitialized
           opacity     .5
         &.running > figure
-          border      2px solid #8CEE71
+          bg          color, #8CEE71
+          // border      2px solid #8CEE71
         > .progressbar-container
           size        100% 3px
           background  none
@@ -306,7 +313,7 @@ sidebarCountBg    = #C14C4C
     display           inline-block
     r-sprite          app circle-plus-14
     right             8px
-    top               10px
+    top               5px
     opacity           0
     vendor            transition, opacity .1s .1s ease
     pointer()
@@ -330,7 +337,7 @@ sidebarCountBg    = #C14C4C
     .kdinput
       border-radius   3px
       bg              image, none
-      size            152px, 22px
+      size            104px, 22px
       margin-right    5px
       font-size       12px
       padding         5px
@@ -379,7 +386,7 @@ sidebarCountBg    = #C14C4C
     padding           2px 15px
     rounded           4px
     font-size         14px
-    font-weight       300
+    font-weight       400
     overflow          visible
     position          relative
     display           block
@@ -455,6 +462,7 @@ sidebarCountBg    = #C14C4C
         font-size    18px
         left         0
         color        #6d6d6d
+        text-shadow  none
         abs()
 
 
@@ -488,7 +496,7 @@ sidebarCountBg    = #C14C4C
       hidden()
 
     .kdlistitemview-sidebar-item
-      height        34px
+      height        28px
       min-height    0
       margin        0
       borderBox()
@@ -570,12 +578,12 @@ sidebarCountBg    = #C14C4C
         > .profile
           display     block
           float       none
+          margin-top  3px
           padding     0 0 0 14px
-          line-height 21px
+          line-height 23px
           width       auto
           borderBox()
           ellipsis()
-          margin-top  3px
 
 
       > .purpose
@@ -635,7 +643,7 @@ sidebarCountBg    = #C14C4C
 .account-area
   bottom            0
   left              0
-  size              215px 59px
+  size              215px 45px
   fix()
 
   > div
@@ -644,7 +652,7 @@ sidebarCountBg    = #C14C4C
     vertical-align  top
 
   .acc-icon
-    size            50px 60px
+    size            42px 46px
     display         block
     abs             -1px 0px 0 0
     borderBox()
@@ -659,14 +667,14 @@ sidebarCountBg    = #C14C4C
   .acc-icon .icon
     display         block
     padding-bottom  1px
-    margin          27px auto 23px
+    margin          23px auto
 
   .acc-notification-icon
     &.active
       border-right    1px solid #1d1d1d
     .icon
       r-sprite        app 'account-notifications'
-      margin          23px auto
+      margin          15px auto
     .count
       position        absolute
       width           14px
@@ -676,13 +684,13 @@ sidebarCountBg    = #C14C4C
       background      #E75A5A
       border-radius   7px
       text-align      center
-      top             16px
-      left            25px
+      top             9px
+      left            23px
     .count cite
       color           #fff
 
   .acc-dropdown-icon
-    right           50px
+    right           42px
     &.active
       border-right  1px solid #323232
 
@@ -691,7 +699,8 @@ sidebarCountBg    = #C14C4C
 
   .avatar-area
     bg                color, #262626
-    padding           10px 12px
+    font-family       adelleFamily
+    padding           10px
     size              100% 100%
     borderBox()
     rel()
@@ -702,10 +711,10 @@ sidebarCountBg    = #C14C4C
 
     a.profile
       font-size       14px
-      line-height     38px
+      line-height     30px
       font-weight     400
       white-space     nowrap
-      width           100px
+      width           90px
       display         block
       color           white
       overflow        hidden
@@ -739,6 +748,7 @@ h3.sidebar-title
   color           #7F7F80
   text-transform  uppercase
   word-spacing    .2em
+  letter-spacing  .05em
   padding         14px 0 12px
   pointer()
 
