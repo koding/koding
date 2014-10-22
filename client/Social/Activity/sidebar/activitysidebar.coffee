@@ -735,7 +735,10 @@ class ActivitySidebar extends KDCustomHTMLView
             for key, node of @machineTree.nodes when node.type is 'title'
               list = node.getDelegate()
 
-          @machineTree.addNode data
+          # this is a temporary fix,
+          # this will be updated with the new
+          # sidebar design. ~Umut
+          @machineTree.addNode data, 0
 
           KD.userWorkspaces.push workspace
 
