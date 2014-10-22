@@ -301,9 +301,11 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
+      return res.status(400).send 'Bad request'  if err
+
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
-      if err and isEmail
+      if isEmail
         JUser.emailAvailable email, (err_, response) =>
           return res.status(400).send 'Bad request'  if err_
 
