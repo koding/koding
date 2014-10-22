@@ -1,14 +1,11 @@
 package runner
 
 import (
-	"io"
 	"os/exec"
 	"strings"
 )
 
 func run() bool {
-	runnerLog("Running...")
-
 	var cmd *exec.Cmd
 	if extArgs() != "" {
 		args := strings.Split(extArgs(), " ")
@@ -42,9 +39,6 @@ func run() bool {
 		}
 
 	}()
-
-	go io.Copy(appLogWriter{}, stderr)
-	go io.Copy(appLogWriter{}, stdout)
 
 	go func() {
 		<-stopChannel
