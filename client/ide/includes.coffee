@@ -68,6 +68,9 @@ module.exports = [
   "../../website/a/js/sketchpad.js"
   "../../website/a/js/gapi.js"
 
-  # realtime
+  # collaboration
   "RealTimeManager.coffee"
+  "views/modals/participantview.coffee"
+  "views/modals/participantsmodal.coffee"
+
 ]
