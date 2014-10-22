@@ -16,7 +16,6 @@ module.exports = (options, callback)->
     <!doctype html>
     <html lang="en">
     <head>
-      #{getTitle()}
 
       #{addSiteTags site}
 

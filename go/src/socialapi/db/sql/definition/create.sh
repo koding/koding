@@ -32,6 +32,11 @@ sudo -u postgres psql social < $1/definition/004-table.sql
 # ctreate constraints
 sudo -u postgres  psql social < $1/definition/005-constraint.sql
 
+# create kontrol specific tables
+if [ -d "kontrol" ]; then
+  sudo -u postgres  psql social < $1/kontrol/database.sql
+fi
+
 # NOTIFICATION WORKER SQL IMPORTS
 
 # create sequences
@@ -73,3 +78,8 @@ sudo -u postgres psql social < $1/payment_definition/004-table.sql
 
 # create constraints
 sudo -u postgres psql social < $1/payment_definition/005-constraint.sql
+
+# modifications
+sudo -u postgres psql social < $1/payment_definition/modifications/001-add-koding-to-enum.sql
+
+# TODO: if you make changes to this file, don't forget `create-wercker.sh`

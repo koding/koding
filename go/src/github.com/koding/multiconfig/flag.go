@@ -19,6 +19,10 @@ type FlagLoader struct {
 	// --foo-bar is converted to --prefix-foo-bar.
 	Prefix string
 
+	// EnvPrefix is just a placeholder to print the correct usages when an
+	// EnvLoader is used
+	EnvPrefix string
+
 	// args defines a custom argument list that overides os.Args[]
 	args []string
 }
@@ -38,7 +42,7 @@ func (f *FlagLoader) Load(s interface{}) error {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		flagSet.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\nGenerated environment variables:\n")
-		e := &EnvironmentLoader{}
+		e := &EnvironmentLoader{f.EnvPrefix}
 		e.PrintEnvs(s)
 		fmt.Println("")
 	}

@@ -524,7 +524,7 @@ class ComputeController extends KDController
           limits  = plans[plan]
           options = { plan, limits, usage }
 
-          if plan in ['developer', 'professional', 'super']
+          if limits.total > 1
 
             new ComputePlansModal.Paid options
             @_inprogress = no

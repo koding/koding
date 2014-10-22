@@ -168,24 +168,26 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @validate = (token, callback)->
     @one {token}, (err, certificate)->
-      if err
-        callback err
-      else unless certificate
-        callback { message: 'Invalid token.', short: 'invalid_token' }
-      else if certificate.status is 'redeemed'
-        callback { message: 'Already redeemed', short: 'redeemed_token' }
-      else if certificate.getAt('expiresAt') < new Date
+      return callback err  if err
+
+      unless certificate
+        return callback { message: 'Invalid token.', short: 'invalid_token' }
+
+      if certificate.status is 'redeemed'
+        return callback { message: 'Already redeemed', short: 'redeemed_token' }
+
+      if certificate.getAt('expiresAt') < new Date
         certificate.expire (err)->
-          if err
-            callback err
-          else
-            callback { message: 'The token has expired.', short: 'expired_token' }
-      else
-        JUser = require './user'
-        JUser.one {email:certificate.email}, (err, user)->
-          return callback UNKNOWN_ERROR if err or not user
-          user.confirmEmail (err)->
-            return callback UNKNOWN_ERROR if err
+          return callback err  if err
+          return callback { message: 'The token has expired.', short: 'expired_token' }
+
+      JUser = require './user'
+      JUser.one {email:certificate.email}, (err, user)->
+        return callback UNKNOWN_ERROR  if err or not user
+        user.confirmEmail (err)->
+          return callback UNKNOWN_ERROR  if err
+          certificate.update {$set: status: 'redeemed'}, (err) ->
+            return callback err if err
 
             welcomeemail = require "./welcomeemail"
             welcomeemail.send certificate.email, user.username, (err)->

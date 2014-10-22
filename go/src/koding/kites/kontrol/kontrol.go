@@ -11,13 +11,21 @@ import (
 var Name = "kontrol"
 
 func main() {
-	m := multiconfig.New()
+	loader := multiconfig.MultiLoader(
+		&multiconfig.TagLoader{},
+		&multiconfig.EnvironmentLoader{Prefix: "kontrol"},
+		&multiconfig.FlagLoader{EnvPrefix: "kontrol"},
+	)
 
 	conf := new(kontrol.Config)
 
 	// Load the config, it's reads from the file, environment variables and
 	// lastly from flags in order
-	if err := m.Load(conf); err != nil {
+	if err := loader.Load(conf); err != nil {
+		panic(err)
+	}
+
+	if err := multiconfig.MultiValidator(&multiconfig.RequiredValidator{}).Validate(conf); err != nil {
 		panic(err)
 	}
 
