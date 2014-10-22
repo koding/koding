@@ -235,11 +235,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
 
-    reverseProxy        :
-      group             : "environment"
-      supervisord       :
-        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{process.env.USER}.ngrok.com -publicPort 80"
-
     broker              :
       group             : "webserver"
       ports             :
@@ -626,7 +621,7 @@ Configuration = (options={}) ->
         EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
         if [[ $EXISTS != '1' ]]; then
           echo ""
-          echo "You don't have new Kontrol Postgres. Please call ./run buildservices."
+          echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
           exit 1
         fi
 

@@ -36,7 +36,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
-  postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapplication"    , password:        "kontrolapplication"                  , dbname:   "social"             }
+  kontrolPostgres     = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -232,11 +232,6 @@ Configuration = (options={}) ->
     #   group             : "environment"
     #   supervisord       :
     #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-
-    # reverseProxy        :
-    #   group             : "environment"
-    #   supervisord       :
-    #     command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"
