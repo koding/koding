@@ -2,7 +2,7 @@ class MoreVMsModal extends SidebarSearchModal
 
   constructor: (options = {}, data) ->
 
-    options.cssClass         = KD.utils.curry 'more-vms', options.cssClass
+    options.cssClass         = KD.utils.curry 'more-modal more-vms', options.cssClass
     options.width            = 462
     options.title          or= 'VMs'
     options.disableSearch    = yes
@@ -17,11 +17,12 @@ class MoreVMsModal extends SidebarSearchModal
     @addButton = new KDButtonView
       title    : "Add VMs"
       style    : 'solid green small'
-      callback : KD.singletons.computeController
-        .bound 'handleNewMachineRequest'
+      loader   : yes
+      callback : =>
+        @addButton.showLoader()
+        KD.singletons.computeController.handleNewMachineRequest @bound 'destroy'
 
     @addSubView @addButton, '.kdmodal-title'
-
 
 
   populate: ->
