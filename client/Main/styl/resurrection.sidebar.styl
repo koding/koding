@@ -280,13 +280,15 @@ sidebarCountBg    = #C14C4C
         r-sprite      app new-nav-ide
       &.vm
         > figure
-          r-sprite    app new-nav-vm
-          // display       block
-          // width         16px
-          // height        16px
-          // bg            color sidebarGray
-          // abs           3px 0 0 3px
-          // rounded       5px
+          // r-sprite    app new-nav-vm
+          display       block
+          width         13px
+          height        13px
+          bg            color, transparent
+          abs           5px 0 0 2px
+          rounded       3px
+          border        3px solid sidebarGray
+          borderBox()
         > span
           r-sprite    app vm-settings-icon
           right       6px
@@ -300,7 +302,7 @@ sidebarCountBg    = #C14C4C
         &.notinitialized
           opacity     .5
         &.running > figure
-          r-sprite    app new-nav-vm-green
+          border-color   #24B463
           // bg          color, #8CEE71
           // border      2px solid #8CEE71
         > .progressbar-container
@@ -461,12 +463,13 @@ sidebarCountBg    = #C14C4C
       display        block
       line-height    19px
       font-size      14px
+      margin-left    12px
 
       &:before
         display      block
         content      '#'
-        font-size    18px
-        left         0
+        font-size    24px
+        left         5px
         color        #6d6d6d
         text-shadow  none
         abs()
@@ -668,7 +671,7 @@ sidebarCountBg    = #C14C4C
   .acc-icon .icon
     display         block
     padding-bottom  1px
-    margin          23px auto
+    margin          21px auto
 
   .acc-notification-icon
     &.active
@@ -748,13 +751,16 @@ h3.sidebar-title
   font-weight     400
   size            auto 1em
   line-height     16px
-  font-size       10px
+  font-size       12px
   color           #7F7F80
   text-transform  uppercase
   word-spacing    .2em
   letter-spacing  .05em
   padding         14px 0 12px
   pointer()
+
+  &:hover
+    color           #fff
 
   a
     font-size       10px
