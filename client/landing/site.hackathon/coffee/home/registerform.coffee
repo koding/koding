@@ -59,6 +59,25 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     @addCustomData 'redirectTo', 'Hackathon/Apply'
 
+
+  handleFocus: ->
+
+    super
+
+    video = document.getElementById 'bgVideo'
+
+    speed = 1
+
+    repeater = KD.utils.repeat 20, ->
+
+      speed -= .02
+      video.playbackRate = speed
+
+      if speed <= 0
+        video.pause()
+        KD.utils.killRepeat repeater
+
+
   pistachio : ->
 
     """
