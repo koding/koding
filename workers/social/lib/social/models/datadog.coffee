@@ -13,7 +13,6 @@ module.exports = class DataDog extends Base
   @set
     sharedMethods      :
       static           :
-        pink           : (signature Object, Function)
         sendEvent      : (signature Object, Function)
 
   DogApi               = new dogapi
