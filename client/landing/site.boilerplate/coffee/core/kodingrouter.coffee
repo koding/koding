@@ -56,6 +56,11 @@ module.exports = class KodingRouter extends KDRouter
   requireApp: (name, callback)->
 
     {mainView : {mainTabView}} = KD.singletons
+
+    if app = @appControllers[name]
+      pane = mainTabView.getPaneByName name
+      return callback? app, pane
+
     AppClass              = KD.getAppClass name
     app                   = new AppClass
     view                  = app.getView()
