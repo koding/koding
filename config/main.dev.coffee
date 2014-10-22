@@ -125,6 +125,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
+    datadog                        : {api_key       : "6d3e00fb829d97cb6ee015f80063627c"             , app_key       : "c9be251621bc75acf4cd040e3edea17fff17a13a"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
@@ -701,7 +702,7 @@ Configuration = (options={}) ->
         cd #{projectRoot}/go/src/socialapi/db/sql
 
         # Include this to dockerfile before we continute with building
-        rm -rf kontrol 
+        rm -rf kontrol
         mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/database.sql kontrol/
         sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/database.sql
         rm kontrol/database.sql.bak
