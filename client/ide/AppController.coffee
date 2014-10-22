@@ -815,5 +815,8 @@ class IDEAppController extends AppController
       map = @rtm.create 'map', @realTimeDoc, mapName, { target }
 
   showParticipantsModal: ->
-    host = @collaborationHost or KD.nick()
-    new IDE.ParticipantsModal { @participants, @realTimeDoc, @rtm, host }
+    host  = @collaborationHost or KD.nick()
+    modal = new IDE.ParticipantsModal { @participants, @realTimeDoc, @rtm, host }
+
+    modal.on 'ParticipantWatchRequested', (participant) =>
+      @watchParticipant participant
