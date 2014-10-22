@@ -425,9 +425,10 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		return
 	}
 
-	p.Log.Info("[%s] klient is not running, adding machine to list of inactive machines.", m.Id)
+	p.Log.Info("[%s] klient is not running (username: %s), adding machine to list of inactive machines.",
+		m.Id, m.Username)
 	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*5, func() {
-		p.Log.Info("[%s] stopping machine after five minutes klient disconnection.", m.Id)
+		p.Log.Info("[%s] stopping machine (username :%s) after five minutes klient disconnection.", m.Id, m.Username)
 
 		p.Lock(m.Id)
 		defer p.Unlock(m.Id)
