@@ -22,7 +22,7 @@ type HomeContent struct {
 func writeLoggedInHomeToResp(w http.ResponseWriter, u LoggedInUser) {
 	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
-	imp, ok := u["impersonating"].(bool)
+	imp, ok := u["Impersonating"].(bool)
 	if !ok {
 		imp = false
 	}
