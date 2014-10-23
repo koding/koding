@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -32,7 +33,7 @@ func CreatePrivateMessageUser(nickname string) {
 	modelhelper.CreateAccount(acc)
 }
 
-func TestPrivateMesssage(t *testing.T) {
+func TestPrivateMesssages(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -373,6 +374,50 @@ func TestPrivateMesssage(t *testing.T) {
 
 			_, err = rest.UpdatePost(joinMessage)
 			So(err, ShouldNotBeNil)
+		})
+
+		Convey("first chat message should include initial participants", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			pmr := models.PrivateMessageRequest{}
+			pmr.AccountId = account.Id
+			pmr.Body = "test initial participation message"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"chris", "devrim"}
+
+			cc, err := rest.SendPrivateMessage(pmr)
+			So(err, ShouldBeNil)
+			So(cc, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
+			joinMessage := history.MessageList[1].Message
+			So(joinMessage.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
+			So(joinMessage.Payload, ShouldNotBeNil)
+			initialParticipants, ok := joinMessage.Payload["initialParticipants"]
+			So(ok, ShouldBeTrue)
+
+			participants := make([]string, 0)
+			err = json.Unmarshal([]byte(*initialParticipants), &participants)
+			So(err, ShouldBeNil)
+			So(len(participants), ShouldEqual, 2)
+			So(participants, ShouldContain, "chris")
+			// So(*addedBy, ShouldEqual, account.OldId)
+
 		})
 
 		Convey("targetted account should be able to list private message channel of himself", nil)
