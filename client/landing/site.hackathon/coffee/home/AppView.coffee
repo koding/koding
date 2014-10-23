@@ -189,13 +189,15 @@ module.exports = class HomeView extends KDView
 
   createPartners: ->
 
-    header = new KDCustomHTMLView
-      tagName : 'h4'
-      partial : 'Event Partners'
-
-    @addSubView header, 'aside.partners'
+    header = null
 
     for name, img of PARTNERS
+
+      unless header
+        header = new KDCustomHTMLView
+          tagName : 'h4'
+          partial : 'Event Partners'
+        @addSubView header, 'aside.partners'
 
       image = new KDCustomHTMLView
         tagName    : 'img'
