@@ -34,7 +34,8 @@ sudo -u postgres  psql social < $1/definition/005-constraint.sql
 
 # create kontrol specific tables
 if [ -d "kontrol" ]; then
-  sudo -u postgres  psql social < $1/kontrol/database.sql
+  sudo -u postgres psql social < $1/kontrol/001-schema.sql
+  sudo -u postgres psql social < $1/kontrol/002-table.sql
 fi
 
 # NOTIFICATION WORKER SQL IMPORTS
