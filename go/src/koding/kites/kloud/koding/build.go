@@ -80,6 +80,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	a.Log.Info("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
+
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
