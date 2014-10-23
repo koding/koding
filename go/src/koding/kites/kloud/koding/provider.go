@@ -428,13 +428,46 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 	p.Log.Info("[%s] klient is not running (username: %s), adding machine to list of inactive machines.",
 		m.Id, m.Username)
 	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*30, func() {
-		p.Log.Info("[%s] stopping machine (username :%s) after 30 minutes klient disconnection.", m.Id, m.Username)
+		a, err := p.NewClient(m)
+		if err != nil {
+			return
+		}
+
+		p.Log.Info("[%s] stop timer started. Checking again for the last time... (username: %s)",
+			m.Id, m.Username)
+
+		infoResp, err := a.Info()
+		if err != nil {
+			return
+		}
+
+		if infoResp.State == machinestate.Stopped {
+			p.Log.Info("[%s] stop timer aborting. Machine is already stopped (username: %s)",
+				m.Id, m.Username)
+			return // already stopped nothing to do
+		}
+
+		if infoResp.State == machinestate.Running {
+			_, err := p.KlientPool.Get(m.QueryString)
+			if err == nil {
+				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
+					m.Id, m.Username)
+				return // we have a connection to klient, do not stop it
+			}
+
+			if err != kite.ErrNoKitesAvailable {
+				return // do not stop if we get something else
+			}
+		}
 
 		p.Lock(m.Id)
 		defer p.Unlock(m.Id)
 
 		// mark our state as stopping so others know what we are doing
 		p.UpdateState(m.Id, machinestate.Stopping)
+
+		p.Log.Info("[%s] stopping machine (username: %s) after 30 minutes klient disconnection.",
+			m.Id, m.Username)
 
 		// Hasta la vista, baby!
 		if err := p.Stop(m); err != nil {
