@@ -293,7 +293,7 @@ func TestPrivateMesssage(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 1)
+			So(len(history.MessageList), ShouldEqual, 2)
 
 			// add participant
 			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
@@ -309,7 +309,7 @@ func TestPrivateMesssage(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 2)
+			So(len(history.MessageList), ShouldEqual, 3)
 
 			So(history.MessageList[0].Message, ShouldNotBeNil)
 			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
@@ -332,7 +332,7 @@ func TestPrivateMesssage(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 2)
+			So(len(history.MessageList), ShouldEqual, 3)
 
 		})
 
@@ -366,7 +366,7 @@ func TestPrivateMesssage(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(history, ShouldNotBeNil)
-			So(len(history.MessageList), ShouldEqual, 2)
+			So(len(history.MessageList), ShouldEqual, 3)
 
 			joinMessage := history.MessageList[0].Message
 			So(joinMessage, ShouldNotBeNil)

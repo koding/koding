@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"koding/db/mongodb/modelhelper"
 	"strconv"
 	"time"
@@ -33,6 +34,10 @@ type ChatJoin struct {
 
 type ChatLeave struct{}
 
+type ChatInit struct {
+	InitialParticipants []int64
+}
+
 func (cm ChatMessage) GetType() string {
 	return ChannelMessage_TYPE_PRIVATE_MESSAGE
 }
@@ -55,6 +60,14 @@ func (cm ChatLeave) GetType() string {
 
 func (cm ChatLeave) GetBody(p *PrivateMessageRequest) string {
 	return "leave"
+}
+
+func (cm ChatInit) GetType() string {
+	return ChannelMessage_TYPE_JOIN
+}
+
+func (cm ChatInit) GetBody(p *PrivateMessageRequest) string {
+	return "join"
 }
 
 func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
@@ -95,6 +108,8 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 			return nil, err
 		}
 	}
+
+	p.AddInitActivity(c, participantIds)
 
 	// create private message
 	cmc, err := p.AddMessage(c)
@@ -189,6 +204,19 @@ func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy int64) error
 
 func (p *PrivateMessageRequest) AddLeaveActivity(c *Channel) error {
 	_, err := p.createActivity(c, ChatLeave{})
+
+	return err
+}
+
+func (p *PrivateMessageRequest) AddInitActivity(c *Channel, participantIds []int64) error {
+	ci := ChatInit{}
+	if len(participantIds) == 0 {
+		return nil
+	}
+
+	ci.InitialParticipants = participantIds
+
+	_, err := p.createActivity(c, ci)
 
 	return err
 }
@@ -300,6 +328,14 @@ func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) 
 
 			cm.Payload["addedBy"] = &addedBy
 		}
+	case ChatInit:
+		initialParticipants := ca.(ChatInit).InitialParticipants
+		if len(initialParticipants) > 0 {
+			cm.Payload = gorm.Hstore{}
+
+			payload := formatParticipantIds(initialParticipants)
+			cm.Payload["initialParticipants"] = &payload
+		}
 	}
 
 	if err := cm.Create(); err != nil {
@@ -307,4 +343,18 @@ func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) 
 	}
 
 	return cm, nil
+}
+
+func formatParticipantIds(participantIds []int64) string {
+	pids := make([]string, len(participantIds)-1)
+
+	// exclude first participant since it is the private channel owner
+	for i, participantId := range participantIds[1:len(participantIds)] {
+		accountId := strconv.FormatInt(participantId, 10)
+		pids[i] = accountId
+	}
+
+	result, _ := json.Marshal(pids)
+
+	return string(result)
 }
