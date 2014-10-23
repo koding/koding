@@ -175,8 +175,10 @@ class MessagePane extends KDTabPaneView
     {name, isParticipant, typeConstant} = @getData()
 
     @channelTitleView = new KDCustomHTMLView
-      partial   : "##{name}"
-      cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
+      partial    : "##{name}"
+      cssClass   : "channel-title #{if isParticipant then 'participant' else ''}"
+      attributes :
+        testpath : 'channel-title'
 
     if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
