@@ -226,14 +226,6 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
-      location = /payments/stripe/webhook {
-        proxy_pass            http://socialapi;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {

@@ -11,8 +11,6 @@ class MoreChannelsModal extends SidebarSearchModal
 
     super options, data
 
-    @setSkipCount()
-
 
   viewAppended: ->
 
@@ -26,25 +24,3 @@ class MoreChannelsModal extends SidebarSearchModal
       @destroy()
 
 
-  setSkipCount: ->
-
-    {mainView: {activitySidebar}} = KD.singletons
-    {sections: {channels}}        = activitySidebar
-    {listController}              = channels
-
-    @skipCount = listController.getItemCount() - 2 or 0
-
-
-  fetch: (options = {}, callback = noop) ->
-
-    options.skip ?= @skipCount
-
-    super options, callback
-
-
-  getLazyLoadOptions: ->
-
-    skip  = @listController.getItemCount()
-    skip += @skipCount  unless @searchActive
-
-    return {skip}

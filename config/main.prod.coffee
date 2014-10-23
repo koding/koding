@@ -125,6 +125,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "tvkuPsOd7qzTlFoJORwo6w"                       , secret        : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA" , redirect_uri : "https://koding.com/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "aza9cks1zb3d"                                 , client_secret : "zIMa5kPYbZjHfOsq"                           , redirect_uri : "https://koding.com/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
+    datadog                        : {api_key       : "6d3e00fb829d97cb6ee015f80063627c"             , app_key       : "c9be251621bc75acf4cd040e3edea17fff17a13a"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
