@@ -34,7 +34,6 @@ services=(
   koding/kontrol/kontroldaemon
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
-  koding/workers/graphitefeeder
   koding/workers/guestcleanerworker
   github.com/skelterjohn/rerun
   koding/go-webserver
