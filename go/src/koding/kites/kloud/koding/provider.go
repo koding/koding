@@ -90,15 +90,24 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	client, err := p.EC2Clients.Region("us-east-1")
+	// we pass a nil client just to fill the Builder data. The reason for that
+	// is to retrieve the `region` of a user so we can create a client based on
+	// the region below.
+	a.Amazon, err = amazonClient.New(m.Builder, nil)
+	if err != nil {
+		return nil, fmt.Errorf("koding-amazon err: %s", err)
+	}
+
+	if a.Builder.Region == "" {
+		return nil, errors.New("region is not set in meta/builder data")
+	}
+
+	client, err := p.EC2Clients.Region(a.Builder.Region)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Amazon, err = amazonClient.New(m.Builder, client)
-	if err != nil {
-		return nil, fmt.Errorf("koding-amazon err: %s", err)
-	}
+	a.Client = client
 
 	// needed to deploy during build
 	a.Builder.KeyPair = p.KeyName
