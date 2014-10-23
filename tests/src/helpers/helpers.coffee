@@ -17,8 +17,6 @@ module.exports =
 
     browser.execute 'KD.isTesting = true;'
 
-    return user
-
 
   doLogin: (browser, user) ->
 
@@ -133,40 +131,6 @@ module.exports =
 
   getFakeText: ->
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
-
-
-  openFolderContextMenu: (browser, user, folderName) ->
-
-    webPath       = '/home/' + user.username + '/' + folderName
-    webSelector   = "span[title='" + webPath + "']"
-
-    browser
-      .waitForElementVisible   '.vm-header', 5000
-      .click                   '.vm-header .buttons'
-      .waitForElementPresent   '.context-list-wrapper', 5000
-      .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 10000
-      .click                   webSelector
-      .click                   webSelector + ' + .chevron'
-
-
-  createFile: (browser, user) ->
-
-    @openFolderContextMenu(browser, user, 'Web')
-
-    webPath   = '/home/' + user.username + '/Web'
-    paragraph = @getFakeText()
-    filename  = paragraph.split(' ')[0] + '.txt'
-
-    browser
-      .waitForElementVisible    'li.new-file', 5000
-      .click                    'li.new-file'
-      .waitForElementVisible    'li.selected .rename-container .hitenterview', 5000
-      .clearValue               'li.selected .rename-container .hitenterview'
-      .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
-      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 5000 # Assertion
-
-    return filename
 
 
   getUrl: ->
