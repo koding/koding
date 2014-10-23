@@ -94,6 +94,10 @@ type Artifact struct {
 	// droplet Id, AWS returns an instance id, etc..
 	InstanceId string
 
+	// InstanceType defines the type of the instance. Such as t2.micro,
+	// m3.medium and so on
+	InstanceType string
+
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 
