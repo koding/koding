@@ -598,7 +598,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
     unless delegate.can 'list-blocked-users'
-      callback new KodingError 'Access denied!'
+      return callback new KodingError 'Access denied!'
 
     selector = blockedUntil: $gte: new Date()
 
