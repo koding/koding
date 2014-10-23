@@ -1,0 +1,14 @@
+# overrride ::setAttribute to not to put
+# testpath attributes in production - SY
+do ->
+
+  {environment} = KD.config
+
+  return  if environment isnt 'production'
+
+  setAttribute = KDView::setAttribute
+
+  KDView::setAttribute = (attr, val) ->
+    return  if attr is 'testpath'
+    setAttribute.call this, attr, val
+
