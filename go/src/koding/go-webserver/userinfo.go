@@ -12,11 +12,12 @@ import (
 
 // UserInfo contains the relevant user models.
 type UserInfo struct {
-	ClientId  string
-	Username  string
-	UserId    bson.ObjectId
-	AccountId bson.ObjectId
-	Account   *models.Account
+	ClientId      string
+	Username      string
+	UserId        bson.ObjectId
+	AccountId     bson.ObjectId
+	Account       *models.Account
+	Impersonating bool
 }
 
 // fetchUseInfo fetches different user models and returns
@@ -47,11 +48,12 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 	}
 
 	userInfo := &UserInfo{
-		ClientId:  clientId,
-		Username:  username,
-		AccountId: account.Id,
-		UserId:    user.ObjectId,
-		Account:   account,
+		ClientId:      clientId,
+		Username:      username,
+		AccountId:     account.Id,
+		UserId:        user.ObjectId,
+		Account:       account,
+		Impersonating: session.Impersonating,
 	}
 
 	return userInfo, nil

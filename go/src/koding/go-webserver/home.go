@@ -19,15 +19,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeLoggedOutHomeToResp(w)
 		return
-
 	}
+
 	onItem := make(chan Item, 0)
 	onDone := make(chan LoggedInUser, 1)
 	onError := make(chan error, 1)
 
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
 
-	go collectItems(onItem, onDone, 4)
+	user := LoggedInUser{
+		"Group":         kodingGroup,
+		"Impersonating": userInfo.Impersonating,
+		"Username":      userInfo.Username,
+		"SessionId":     userInfo.ClientId,
+	}
+
+	go collectItems(user, onItem, onDone, 4)
 
 	go sendAccount(userInfo.Account, outputter)
 	go fetchMachines(userInfo.UserId, outputter)
@@ -42,11 +49,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func collectItems(onItem <-chan Item, onDone chan<- LoggedInUser, max int) {
-	resp := LoggedInUser{}
-
-	for i := 0; i < max; i++ {
+func collectItems(resp LoggedInUser, onItem <-chan Item, onDone chan<- LoggedInUser, max int) {
+	for i := 1; i <= max; i++ {
 		item := <-onItem
 		resp[item.Name] = item.Data
 	}
+
+	onDone <- resp
 }

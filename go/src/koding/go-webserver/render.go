@@ -22,10 +22,15 @@ type HomeContent struct {
 func writeLoggedInHomeToResp(w http.ResponseWriter, u LoggedInUser) {
 	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
+	imp, ok := u["impersonating"].(bool)
+	if !ok {
+		imp = false
+	}
+
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
 	hc.User = u
-	hc.Impersonating = u["impersonating"].(bool)
+	hc.Impersonating = imp
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
