@@ -39,7 +39,7 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 
 	statsd, err := kodingmetrics.NewDogStatsD(appName)
 	if err == nil {
-		go kodingmetrics.DogStatsD(metric.Registry, statsd, 6e10)
+		go kodingmetrics.Collect(metric.Registry, statsd, 6e10)
 	}
 
 	return metric
