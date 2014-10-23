@@ -30,10 +30,11 @@ func MustInit(conf *config.Config, log logging.Logger, debug bool) *gorm.DB {
 	// By default, table name is plural of struct type, you can use struct type as table name with:
 	db.SingularTable(true)
 
+	db.SetLogger(NewGormLogger(log))
+
 	// log queries if only in debug mode
 	if debug {
 		db.LogMode(true)
-		db.SetLogger(NewGormLogger(log))
 	}
 
 	DB = &db

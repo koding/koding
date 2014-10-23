@@ -12,7 +12,7 @@ import (
 	stripeToken "github.com/stripe/stripe-go/token"
 )
 
-func TestSubscribe(t *testing.T) {
+func TestSubscribe1(t *testing.T) {
 	Convey("Given nonexistent plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
 		err := Subscribe(token, accId, email, "random_plans", "random_interval")
@@ -21,7 +21,9 @@ func TestSubscribe(t *testing.T) {
 			So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
 		})
 	})
+}
 
+func TestSubscribe2(t *testing.T) {
 	Convey("Given nonexistent customer, plan", t,
 		subscribeFn(func(token, accId, email string) {
 			customerModel, err := FindCustomerByOldId(accId)
@@ -39,7 +41,7 @@ func TestSubscribe(t *testing.T) {
 			})
 
 			Convey("Then it should subscribe user to plan", func() {
-				customer, err := GetCustomerFromStripe(id)
+				customer, err := GetCustomer(id)
 				So(err, ShouldBeNil)
 
 				So(customer.Subs.Count, ShouldEqual, 1)
@@ -51,7 +53,9 @@ func TestSubscribe(t *testing.T) {
 			})
 		}),
 	)
+}
 
+func TestSubscribe3(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		existingSubscribeFn(func(token, accId, email string) {
 			customerModel, err := FindCustomerByOldId(accId)
@@ -60,14 +64,16 @@ func TestSubscribe(t *testing.T) {
 			id := customerModel.ProviderCustomerId
 
 			Convey("Then it should subscribe user to plan", func() {
-				customer, err := GetCustomerFromStripe(id)
+				customer, err := GetCustomer(id)
 				So(err, ShouldBeNil)
 
 				So(customer.Subs.Count, ShouldEqual, 1)
 			})
 		}),
 	)
+}
 
+func TestSubscribe4(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		existingSubscribeFn(func(token, accId, email string) {
 			customer, err := FindCustomerByOldId(accId)
@@ -116,7 +122,9 @@ func TestSubscribe(t *testing.T) {
 			})
 		}),
 	)
+}
 
+func TestSubscribe5(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		subscribeFn(func(token, accId, email string) {
 			customer, err := FindCustomerByOldId(accId)
@@ -145,7 +153,7 @@ func TestSubscribe(t *testing.T) {
 					So(sub.Plan.Id, ShouldEqual, LowerPlan+"_"+LowerInterval)
 				})
 
-				Convey("Then subscription is saved", func() {
+				Convey("Then subscription isn't saved (wait for webhook)", func() {
 					subs, err := FindCustomerActiveSubscriptions(customer)
 					So(err, ShouldBeNil)
 
@@ -155,12 +163,18 @@ func TestSubscribe(t *testing.T) {
 					newPlan, err := FindPlanByTitleAndInterval(LowerPlan, LowerInterval)
 
 					So(err, ShouldBeNil)
-					So(currentSub.PlanId, ShouldEqual, newPlan.Id)
+					So(currentSub.PlanId, ShouldNotEqual, newPlan.Id)
+
+					Convey("Then subscription canceledAt is updated", func() {
+						So(currentSub.CanceledAt.IsZero(), ShouldBeFalse)
+					})
 				})
 			})
 		}),
 	)
+}
 
+func TestSubscribe6(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		subscribeFn(func(token, accId, email string) {
 			Convey("When customer downgrades to free plan", func() {
@@ -186,7 +200,9 @@ func TestSubscribe(t *testing.T) {
 			})
 		}),
 	)
+}
 
+func TestSubscribe7(t *testing.T) {
 	Convey("Given an existent customer, but no subscription", t,
 		subscribeFn(func(token, accId, email string) {
 			Convey("When customer upgrades to plan", func() {
@@ -216,4 +232,39 @@ func TestSubscribe(t *testing.T) {
 			})
 		}),
 	)
+}
+
+func TestSubscribe8(t *testing.T) {
+	Convey("Given nonexistent customer, plan", t, func() {
+		_, accId, email := generateFakeUserInfo()
+
+		tokenParams := &stripe.TokenParams{
+			Card: &stripe.CardParams{
+				Number: "4000000000000341", // Attaching this card to a Customer object will succeed, but attempts to charge the customer will fail.
+				Month:  "10",
+				Year:   "20",
+			},
+		}
+
+		token, err := stripeToken.New(tokenParams)
+		So(err, ShouldBeNil)
+
+		Convey("When customer buys plan with credit card that'll decline", func() {
+			err := Subscribe(token.Id, accId, email, StartingPlan, StartingInterval)
+
+			Convey("Then it should throw error", func() {
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("Then credit card should be removed from account", func() {
+				customer, err := FindCustomerByOldId(accId)
+				So(err, ShouldBeNil)
+
+				externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
+				So(err, ShouldBeNil)
+
+				So(externalCustomer.Cards.Count, ShouldEqual, 0)
+			})
+		})
+	})
 }

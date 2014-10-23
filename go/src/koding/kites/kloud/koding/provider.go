@@ -184,7 +184,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 			for _, instanceType := range FallbackList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
-					m.Id, instanceType, DefaultInstanceType)
+					m.Id, instanceType, a.Builder.InstanceType)
 
 				// now change the instance type before we start so we can
 				// avoid the instance capacity problem
@@ -414,7 +414,7 @@ func (p *Provider) stopTimer(m *protocol.Machine) {
 }
 
 // startTimer starts the inactive timeout timer for the given queryString. It
-// stops the machine after 5 minutes.
+// stops the machine after 30 minutes.
 func (p *Provider) startTimer(m *protocol.Machine) {
 	p.InactiveMachinesMu.Lock()
 	_, ok := p.InactiveMachines[m.QueryString]
@@ -425,9 +425,10 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		return
 	}
 
-	p.Log.Info("[%s] klient is not running, adding machine to list of inactive machines.", m.Id)
-	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*5, func() {
-		p.Log.Info("[%s] stopping machine after five minutes klient disconnection.", m.Id)
+	p.Log.Info("[%s] klient is not running (username: %s), adding machine to list of inactive machines.",
+		m.Id, m.Username)
+	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*30, func() {
+		p.Log.Info("[%s] stopping machine (username :%s) after 30 minutes klient disconnection.", m.Id, m.Username)
 
 		p.Lock(m.Id)
 		defer p.Unlock(m.Id)

@@ -36,6 +36,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteKeyName         = if environment is "dev" then "koding" else environment
   kiteHome            = "#{projectRoot}/kite_home/#{kiteKeyName}"
 
@@ -124,6 +125,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
+    datadog                        : {api_key       : "6d3e00fb829d97cb6ee015f80063627c"             , app_key       : "c9be251621bc75acf4cd040e3edea17fff17a13a"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
@@ -210,7 +212,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
@@ -233,11 +235,6 @@ Configuration = (options={}) ->
       group             : "environment"
       supervisord       :
         command         : "coffee #{projectRoot}/ngrokProxy --user #{process.env.USER}"
-
-    reverseProxy        :
-      group             : "environment"
-      supervisord       :
-        command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{process.env.USER}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"
@@ -322,6 +319,8 @@ Configuration = (options={}) ->
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+      nginx             :
+        locations       : ["= /payments/stripe/webhook"]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -433,7 +432,7 @@ Configuration = (options={}) ->
       # ------ THIS FILE IS AUTO-GENERATED ON EACH BUILD ----- #\n
       mkdir #{projectRoot}/.logs &>/dev/null
 
-      SERVICES="mongo redis postgres rabbitmq etcd"
+      SERVICES="mongo redis postgres rabbitmq"
 
       NGINX_CONF="#{projectRoot}/.dev.nginx.conf"
       NGINX_PID="#{projectRoot}/.dev.nginx.pid"
@@ -532,7 +531,7 @@ Configuration = (options={}) ->
       function chaosmonkey () {
 
         while [ 1==1 ]; do
-          for i in mongo redis etcd postgres
+          for i in mongo redis postgres
             do
               echo stopping $i
               docker stop $i
@@ -560,6 +559,13 @@ Configuration = (options={}) ->
       }
 
       function run () {
+        go run go/src/socialapi/tests/pg-update.go #{postgres.host} #{postgres.port}
+        RESULT=$?
+
+        if [ $RESULT -ne 0 ]; then
+          exit 1
+        fi
+
         check
         npm i --silent
         #{projectRoot}/go/build.sh
@@ -612,17 +618,22 @@ Configuration = (options={}) ->
           fi
         fi
 
-        mongo #{mongo} --eval "db.stats()"  # do a simple harmless command of some sort
+        mongo #{mongo} --eval "db.stats()" > /dev/null  # do a simple harmless command of some sort
 
         RESULT=$?   # returns 0 if mongo eval succeeds
 
         if [ $RESULT -ne 0 ]; then
-            echo "cant talk to mongodb at #{mongo}, is it not running? exiting."
+            echo ""
+            echo "Can't talk to mongodb at #{mongo}, is it not running? exiting."
             exit 1
-        else
-            echo "mongodb running!"
         fi
 
+        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        if [[ $EXISTS != '1' ]]; then
+          echo ""
+          echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
+          exit 1
+        fi
 
       }
 
@@ -637,6 +648,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -688,6 +700,13 @@ Configuration = (options={}) ->
 
         # Build postgres
         cd #{projectRoot}/go/src/socialapi/db/sql
+
+        # Include this to dockerfile before we continute with building
+        rm -rf kontrol
+        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/001-schema.sql
+        rm kontrol/001-schema.sql.bak
+
         docker build -t koding/postgres .
 
         docker run -d -p 27017:27017              --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
@@ -695,7 +714,6 @@ Configuration = (options={}) ->
 
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding/postgres
-        docker run -d -p 4001:4001 -p 7001:7001   --name=etcd     coreos/etcd -peer-addr #{boot2dockerbox}:7001 -addr #{boot2dockerbox}:4001
 
         echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
         cd #{projectRoot}

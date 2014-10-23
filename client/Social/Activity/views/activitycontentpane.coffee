@@ -44,14 +44,8 @@ class ActivityContentPane extends KDView
   getLoadedCount: ->
     @listController.getListView().items.length
 
-  removeMessage: (message) ->
-    { items } = @listController.getListView()
+  removeMessage: MessagePane::removeMessage
 
-    items
-      .filter (item) -> item.getData().getId() is message.getId()
-      .forEach (item) => @listController.removeItem item
+  addItem: (item, index) -> @listController.addItem item, index
 
-    @listController.showNoItemWidget() if items.length is 0
 
-  addItem: (item, index) ->
-    @listController.addItem item, index

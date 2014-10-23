@@ -7,13 +7,8 @@ import (
 )
 
 func initFolders() {
-	runnerLog("InitFolders")
 	path := tmpPath()
-	// runnerLog("mkdir %s", path)
-	err := os.Mkdir(path, 0755)
-	if err != nil {
-		runnerLog(err.Error())
-	}
+	os.Mkdir(path, 0755)
 }
 
 func isTmpDir(path string) bool {
@@ -54,10 +49,4 @@ func createBuildErrorsLog(message string) bool {
 	}
 
 	return true
-}
-
-func removeBuildErrorsLog() error {
-	err := os.Remove(buildErrorsFilePath())
-
-	return err
 }

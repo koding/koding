@@ -37,8 +37,8 @@ func init() {
 
 func TestSubscriptionsRequest(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {
-		req := SubscriptionRequest{AccountId: "indianajones"}
-		resp, err := req.DoWithDefault()
+		req := AccountRequest{AccountId: "indianajones"}
+		resp, err := req.Subscriptions()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return 'free' plan", func() {
@@ -59,8 +59,8 @@ func TestSubscriptionsRequest(t *testing.T) {
 		customer, err := stripe.FindCustomerByOldId(accId)
 		So(err, ShouldBeNil)
 
-		req := SubscriptionRequest{AccountId: customer.OldId}
-		resp, err := req.DoWithDefault()
+		req := AccountRequest{AccountId: customer.OldId}
+		resp, err := req.Subscriptions()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the plan", func() {

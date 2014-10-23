@@ -507,7 +507,7 @@ class ComputeController extends KDController
       else callback @lastKnownUserPlan = subscription.planTitle
 
 
-  handleNewMachineRequest: ->
+  handleNewMachineRequest: (callback = noop)->
 
     return  if @_inprogress
     @_inprogress = yes
@@ -524,10 +524,12 @@ class ComputeController extends KDController
           limits  = plans[plan]
           options = { plan, limits, usage }
 
-          if plan in ['developer', 'professional', 'super']
+          if limits.total > 1
 
             new ComputePlansModal.Paid options
             @_inprogress = no
+
+            callback()
 
           else
 
@@ -538,6 +540,8 @@ class ComputeController extends KDController
               if err? or machines.length > 0
                 new ComputePlansModal.Free options
                 @_inprogress = no
+
+                callback()
 
               else if machines.length is 0
 
@@ -550,6 +554,8 @@ class ComputeController extends KDController
                 }, (err, machine)=>
 
                   @_inprogress = no
+
+                  callback()
 
                   unless KD.showError err
                     KD.userMachines.push machine

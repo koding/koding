@@ -8,6 +8,11 @@ import (
 	"socialapi/workers/payment"
 )
 
+func InitCheckers() error {
+	err := payment.InitCheckers()
+	return err
+}
+
 func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Do(),
@@ -15,32 +20,42 @@ func Subscribe(u *url.URL, h http.Header, req *payment.SubscribeRequest) (int, h
 }
 
 func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	subscriptionRequest := &payment.SubscriptionRequest{
+	subscriptionRequest := &payment.AccountRequest{
 		AccountId: u.Query().Get("account_id"),
 	}
 
 	return response.HandleResultAndClientError(
-		subscriptionRequest.DoWithDefault(),
+		subscriptionRequest.Subscriptions(),
+	)
+}
+
+func DeleteCustomerRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.AccountRequest{
+		AccountId: u.Query().Get("accountId"),
+	}
+
+	return response.HandleResultAndClientError(
+		req.Delete(),
 	)
 }
 
 func InvoiceRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	invoiceRequest := &payment.InvoiceRequest{
+	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
 	}
 
 	return response.HandleResultAndClientError(
-		invoiceRequest.Do(),
+		req.Invoices(),
 	)
 }
 
 func CreditCardRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	creditCardRequest := &payment.CreditCardRequest{
+	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
 	}
 
 	return response.HandleResultAndClientError(
-		creditCardRequest.Do(),
+		req.CreditCard(),
 	)
 }
 

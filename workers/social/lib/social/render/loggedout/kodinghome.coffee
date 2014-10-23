@@ -1,7 +1,3 @@
-TYPEKITIDS =
-  hackathon : 'ndd8msy'
-  landing   : 'rbd0tum'
-
 module.exports = (options, callback)->
 
   getTitle = require './../title'
@@ -12,18 +8,17 @@ module.exports = (options, callback)->
   userAccount   = JSON.stringify account
   campaignStats = null
 
+  addSiteScripts = require './sitescripts'
+  addSiteTags    = require './sitetags'
+
   prepareHTML = (site)->
     """
     <!doctype html>
     <html lang="en">
     <head>
-      #{getTitle()}
-      <meta charset="utf-8"/>
-      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-status-bar-style" content="black">
-      <meta name="apple-mobile-web-app-title" content="Koding" />
-      <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
+
+      #{addSiteTags site}
+
       <link rel="shortcut icon" href="/a/images/favicon.ico" />
       <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
       <link rel="stylesheet" href="/a/site.#{site}/css/kd.css?#{KONFIG.version}" />
@@ -49,20 +44,15 @@ module.exports = (options, callback)->
 
       <!-- Google Analytics -->
       <script>
-        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        (function(k,o,d,i,n,g){k['GoogleAnalyticsObject']=i;k[i]=k[i]||function(){
+        (k[i].q=k[i].q||[]).push(arguments)},k[i].l=1*new Date();g=o.createElement(d),
+        n=o.getElementsByTagName(d)[0];g.async=1;g.src='//www.google-analytics.com/analytics.js';
+        n.parentNode.insertBefore(g,n)})(window,document,'script','ga');
+        ga('create', 'UA-6520910-8', 'koding.com');ga('send', 'pageview');
+      </script>
 
-        ga('create', 'UA-6520910-8', 'auto');
-        ga('send', 'pageview');
-      </script>
-      <script>
-        (function(d) {
-          var config = {
-            kitId: '#{TYPEKITIDS[campaign]}',
-            scriptTimeout: 3000
-          },
-          h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
-        })(document);
-      </script>
+      #{addSiteScripts site}
+
     </body>
     </html>
     """

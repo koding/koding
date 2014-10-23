@@ -175,8 +175,10 @@ class MessagePane extends KDTabPaneView
     {name, isParticipant, typeConstant} = @getData()
 
     @channelTitleView = new KDCustomHTMLView
-      partial   : "##{name}"
-      cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
+      partial    : "##{name}"
+      cssClass   : "channel-title #{if isParticipant then 'participant' else ''}"
+      attributes :
+        testpath : 'channel-title'
 
     if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
@@ -242,13 +244,26 @@ class MessagePane extends KDTabPaneView
 
 
   prependMessage: (message, index, callback = noop) ->
+
     KD.getMessageOwner message, (err, owner) =>
       return callback err  if err
       return callback() if KD.filterTrollActivity owner
       item = @listController.addItem message, index
       callback null, item
 
-  removeMessage: (message) -> @listController.removeItem null, message
+
+  removeMessage: (message) ->
+
+    listItems = @listController.getListItems()
+
+    [item] = listItems.filter (item) -> item.getData().getId() is message.getId()
+
+    if item?
+      item.once 'HideAnimationFinished', =>
+        @listController.removeItem item
+        @listController.showNoItemWidget() if @listController.getListItems().length is 0
+
+      item.hide()
 
 
   viewAppended: ->

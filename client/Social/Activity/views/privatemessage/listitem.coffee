@@ -17,6 +17,7 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     if typeConstant in ['join', 'leave']
       data.body = "has #{@prepareActivity()} the chat"
+      @setClass 'join-leave'
 
     data.body = "#{data.body} from an invitation by @#{addedBy}" if addedBy
 
@@ -49,7 +50,7 @@ class PrivateMessageListItemView extends ActivityListItemView
   showParentPost: ->
 
     @setClass 'with-parent'
-    firstReply = @commentBox.controller.getListItems().first
+    firstReply = @commentBox.listController.getListItems().first
 
     return  unless firstReply
 

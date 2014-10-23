@@ -36,6 +36,7 @@ Configuration = (options={}) ->
   algoliaSecret       = { appId:    algolia.appId                            , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"       , enabled:            no                                  }
   postgres            = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  kontrolPostgres     = { host:     "#{prod_simulation_server}"              , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -123,6 +124,7 @@ Configuration = (options={}) ->
     twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "#{customDomain.public}:#{customDomain.port}/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
     linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "#{customDomain.public}:#{customDomain.port}/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
+    datadog                        : {api_key       : "6d3e00fb829d97cb6ee015f80063627c"             , app_key       : "c9be251621bc75acf4cd040e3edea17fff17a13a"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
@@ -208,7 +210,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
@@ -231,11 +233,6 @@ Configuration = (options={}) ->
     #   group             : "environment"
     #   supervisord       :
     #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-
-    # reverseProxy        :
-    #   group             : "environment"
-    #   supervisord       :
-    #     command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"

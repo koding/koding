@@ -9,6 +9,7 @@ resurrection.activity.styl
 */
 }
 
+paleYellow    = #fdf6e3
 mainTextColor = #3B3B3B
 
 .activity-status-context
@@ -1091,6 +1092,7 @@ span.collapsedtext
       // border-top          1px solid #e9e9e9
       padding             3px 15px 12px 37px
       borderBox()
+      fadeOut()
 
       &.edited time:after
         content       ' (edited)'
@@ -1115,7 +1117,7 @@ span.collapsedtext
         border            none
         shadow            none
         padding           0
-        abs               0px 0px 0 0
+        abs               15px 0px 0 0
         opacity           0
 
         .icon
@@ -1400,6 +1402,7 @@ span.collapsedtext
   background                #fff
   rounded                   3px
   border                    1px solid #e2e2e2
+  fadeOut()
 
   &.static
     margin-bottom           16px
@@ -1524,11 +1527,20 @@ span.collapsedtext
         fr()
 
   .university-widget
+    li:before
+      content               '•'
+      display               inline-block
+      margin-right          6px
+      color                 #a4a4a4
+
     a
       color                 #848484
-      display               block
+      display               inline-block
       line-height           18px
       noTextDeco()
+
+      &:hover
+        text-decoration     underline
 
   .posting-guide-widget
     background              #FFFFF7
@@ -1858,7 +1870,7 @@ timeColor2 = #5F9E5E
       background        #fff
       z-index           10
       padding-bottom    12px
-      left              258px
+      left              215px
       kalc              width, 100% \- 292px
       max-width         600px
       position          fixed
@@ -2050,11 +2062,12 @@ timeColor2 = #5F9E5E
       rounded             50%
       background          transparent
       padding             0
+      text-align          center
+      line-height         28px
       fl()
 
       .icon
-        margin            0 0 0 9px
-        display           block
+        display           inline-block
         r-sprite          'activity', 'new-participant-plus'
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
@@ -2103,7 +2116,7 @@ timeColor2 = #5F9E5E
       // hidden()
 
     &.editing
-      background        #fdf6e3
+      background        paleYellow
       .meta
         hidden()
 
@@ -2122,7 +2135,6 @@ timeColor2 = #5F9E5E
             padding           6px
             border-color      #dfcc97
             margin-bottom     0
-
 
     .link-embed-box
       padding           10px 1px 10px 0
@@ -2372,9 +2384,14 @@ timeColor2 = #5F9E5E
             font-weight     400
             color           #b2b2b2
 
+    &.join-leave
+      article
+        font-style          italic
+        opacity             .5
+
   .reply-input-widget
     bottom              30px
-    left                291px
+    left                243px
     size                100% auto
     max-width           532px
     min-height          50px
