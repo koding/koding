@@ -414,6 +414,7 @@ module.exports = class HomeView extends KDView
       </article>
       <article class='apis'>
         <h4>Awesome API's for you to check out</h4>
+        <br />
         <a href="http://developer.factual.com/">Factual</a>
         <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>
         <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>
