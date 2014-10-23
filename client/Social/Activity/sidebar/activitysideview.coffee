@@ -36,7 +36,14 @@ class ActivitySideView extends JView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : @getOption 'title'
-      # click   : @bound 'reload'
+      click    : (event) =>
+        KD.utils.stopDOMEvent event
+
+        route = if 'add-icon' in event.target.classList
+        then event.target.getAttribute 'href'
+        else searchLink
+
+        KD.singletons.router.handleRoute route
 
 
     @listController.on 'ListIsEmptied', @lazyBound 'setClass', 'empty'

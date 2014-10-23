@@ -60,3 +60,8 @@ psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/004-table.sql
 
 # create constraints
 psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/005-constraint.sql
+
+# modifications
+psql $WERCKER_POSTGRESQL_URL < $1/payment_definition/modifications/001-add-koding-to-enum.sql
+
+# TODO: if you make changes to this file, don't forget `create.sh`

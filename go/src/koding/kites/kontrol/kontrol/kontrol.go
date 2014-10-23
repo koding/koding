@@ -1,6 +1,7 @@
 package kontrol
 
 import (
+	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
 	"log"
@@ -43,7 +44,23 @@ func New(c *Config) *kontrol.Kontrol {
 	kon := kontrol.New(kiteConf, Version, string(publicKey), string(privateKey))
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
 	kon.MachineAuthenticate = authenticateFromKodingPassword
-	kon.Machines = c.Machines
+
+	switch c.Storage {
+	case "etcd":
+		kon.SetStorage(kontrol.NewEtcd(c.Machines, kon.Kite.Log))
+	case "postgres":
+		postgresConf := &kontrol.PostgresConfig{
+			Host:     c.Postgres.Host,
+			Port:     c.Postgres.Port,
+			Username: c.Postgres.Username,
+			Password: c.Postgres.Password,
+			DBName:   c.Postgres.DBName,
+		}
+
+		kon.SetStorage(kontrol.NewPostgres(postgresConf, kon.Kite.Log))
+	default:
+		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
+	}
 
 	if c.TLSKeyFile != "" && c.TLSCertFile != "" {
 		kon.Kite.UseTLSFile(c.TLSCertFile, c.TLSKeyFile)

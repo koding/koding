@@ -68,6 +68,9 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'renderMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
+
+    @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
+
   # event handling
 
   messageAddedToChannel: (update) ->
@@ -407,7 +410,7 @@ class ActivitySidebar extends KDCustomHTMLView
       id = item.getId()
 
       treeData.push
-        title        : 'Workspaces <span class="ws-add-icon"></span>'
+        title        : 'Workspaces'
         type         : 'title'
         parentId     : id
         id           : machine._id
@@ -541,12 +544,7 @@ class ActivitySidebar extends KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
       partial  : 'VMs'
-
-    header.addSubView new KDCustomHTMLView
-      tagName  : 'a'
-      cssClass : 'buy-vm'
-      click    : KD.singletons.computeController
-        .bound 'handleNewMachineRequest'
+      click    : @bound 'handleMoreVMsClick'
 
     section.addSubView @machineTree.getView()
 
@@ -560,6 +558,10 @@ class ActivitySidebar extends KDCustomHTMLView
     else
       @fetchMachines @bound 'listMachines'
 
+    # section.addSubView more = new MoreVMsModal {}, null
+    # section.addSubView more = new SidebarMoreLink
+    #   tagName  : 'a'
+    #   click    : @bound 'handleMoreVMsClick'
 
   handleMachineItemClick: (machineItem, event) ->
 
@@ -579,6 +581,19 @@ class ActivitySidebar extends KDCustomHTMLView
     else if machineItem.getData().status?.state is Machine.State.Building
 
       return
+
+  handleMoreVMsClick: ->
+    new MoreVMsModal {}, KD.userMachines
+
+
+  handleMoreWorkspacesClick: (data) ->
+    workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
+      workspace.machineLabel = data.machineLabel
+      workspace
+
+    data.workspaces = workspaces or []
+
+    new MoreWorkspacesModal {}, data
 
 
   addFollowedTopics: ->
@@ -630,7 +645,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   addMessages: ->
 
-    limit = 3
+    limit = 10
 
     @addSubView @sections.messages = new ActivitySideView
       title      : 'Messages'
@@ -657,12 +672,11 @@ class ActivitySidebar extends KDCustomHTMLView
       @sections.messages.hide()
 
 
-  addNewWorkspace: (machineItem) ->
+  addNewWorkspace: (machineData) ->
     return if @addWorkspaceView
 
-    {machineUId, machineLabel} = machineItem.getData()
+    {machineUId, machineLabel, delegate} = machineData
     type     = 'new-workspace'
-    delegate = machineItem.getDelegate()
     parentId = machineUId
     id       = "#{machineUId}-input"
     data     = { type, machineUId, machineLabel, parentId, id }
@@ -674,7 +688,7 @@ class ActivitySidebar extends KDCustomHTMLView
       delegate.removeItem @addWorkspaceView
       @addWorkspaceView = null
 
-    @addWorkspaceView.child.input.setFocus()
+    KD.utils.wait 177, => @addWorkspaceView.child.input.setFocus()
 
 
   createNewWorkspace: (options = {}) ->

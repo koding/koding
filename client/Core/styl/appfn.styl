@@ -11,6 +11,7 @@ finderSelectedColor2 = #DC911D
 neueFamily           = 'Helvetica Neue', Helvetica, Arial, sans-serif
 proximaFamily        = 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
 openSansFamily       = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+adelleFamily         = 'Adelle Sans', 'Helvetica Neue', Helvetica, Arial
 monoFamily           = 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
 logoFamily           = 'Ubuntu','Proxima Nova', 'Helvetica Neue', Helvetica, Arial
 asapFamily           = 'Asap', 'Helvetica Neue', Helvetica, sans-serif
@@ -26,6 +27,7 @@ socialColor          = #2d97de
 footerLinkColor      = #a8a8a8
 footerBg             = #222627
 emphasized           = #242a2c
+paleRed              = #ffe7e7
 
 r-sprite(folder, name)
   sprite(folder, name)
@@ -50,6 +52,15 @@ fadeIn()
   vendor          transition, opacity .177s ease
   &.in
     opacity       1
+
+fadeOut()
+  opacity         1
+  vendor          transition, opacity .347s ease\, margin .347s ease
+  &.out
+    bg      color, paleRed !important
+    opacity 0
+    *
+      bg    color, transparent !important
 
 leftTransition()
   transition left .3s linear

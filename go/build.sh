@@ -20,7 +20,6 @@ services=(
   koding/kites/os
   koding/kites/terminal
   github.com/koding/kite/kitectl
-  github.com/koding/kite/reverseproxy/reverseproxy
   koding/kites/kontrol
   github.com/coreos/etcd
   koding/kites/klient
@@ -34,7 +33,6 @@ services=(
   koding/kontrol/kontroldaemon
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
-  koding/workers/graphitefeeder
   koding/workers/guestcleanerworker
   github.com/skelterjohn/rerun
   koding/go-webserver

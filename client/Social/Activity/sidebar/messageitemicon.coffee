@@ -4,7 +4,7 @@ class SidebarMessageItemIcon extends JView
 
     options.tagName    = 'span'
     options.cssClass or= 'sidebar-message-icon'
-    options.size     or= { width: 24, height: 24 }
+    options.size     or= { width: 20, height: 20 }
 
     super options, data
 

@@ -23,6 +23,11 @@ func IsNoSubscriptions(subscriptions []paymentmodels.Subscription) bool {
 }
 
 func IsSubscribedToPlan(subscription paymentmodels.Subscription, plan *paymentmodels.Plan) bool {
+	if subscription.PlanId == 0 || plan.Id == 0 {
+		Log.Error("unitialized subscription: %v and plan: %v id comparison", subscription, plan)
+		return false
+	}
+
 	return subscription.PlanId == plan.Id
 }
 
