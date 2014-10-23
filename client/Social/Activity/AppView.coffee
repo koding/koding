@@ -136,6 +136,8 @@ class ActivityAppView extends KDView
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
+    pane.on "LeftChannel", @bound 'leaveChannel'
+
     return pane
 
 
@@ -208,3 +210,7 @@ class ActivityAppView extends KDView
       top = window.innerHeight - 220
 
     return {top, left}
+
+  leaveChannel: ->
+    KD.singletons.socialapi.leaveChannel pane.getData()
+    @tabs.removePane pane

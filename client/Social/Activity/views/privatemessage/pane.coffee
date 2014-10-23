@@ -307,6 +307,8 @@ class PrivateMessagePane extends MessagePane
 
     @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
 
+    @forwardEvent @actionsMenu, "LeftChannel"
+
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'
 

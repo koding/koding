@@ -45,6 +45,7 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
     channel.leave {channelId}, (err) =>
       return @handleModalError @leaveModal, err if err?
 
+      @emit "LeftChannel"
       @leaveModal.destroy()
       KD.singletons.router.handleRoute '/Activity/Public'
 
