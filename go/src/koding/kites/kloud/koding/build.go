@@ -238,6 +238,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
+	if a.Builder.InstanceType == "" {
+		return nil, errors.New("Instance type is not defined")
+	}
+
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
 		// build our instance in a normal way

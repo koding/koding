@@ -407,6 +407,14 @@ class ActivitySidebar extends KDCustomHTMLView
       treeData.push item = new Machine {machine}
       id = item.getId()
       treeData.push
+        title        : 'Workspaces'
+        type         : 'title'
+        parentId     : id
+        id           : machine._id
+        machineUId   : machine.uid
+        machineLabel : machine.slug or machine.label
+
+      treeData.push
         title        : 'My Workspace'
         type         : 'workspace'
         href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
@@ -424,14 +432,6 @@ class ActivitySidebar extends KDCustomHTMLView
             data         : workspace
             id           : workspace._id
             parentId     : id
-
-      treeData.push
-        title        : 'More...'
-        type         : 'title'
-        parentId     : id
-        id           : machine._id
-        machineUId   : machine.uid
-        machineLabel : machine.slug or machine.label
 
     @machineTree.addNode data for data in treeData
 
@@ -667,9 +667,7 @@ class ActivitySidebar extends KDCustomHTMLView
     data     = { type, machineUId, machineLabel, parentId, id }
     tree     = @machineTree
 
-    index = 0
-
-    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }, index
+    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
     @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
       delegate.removeItem @addWorkspaceView
@@ -734,10 +732,7 @@ class ActivitySidebar extends KDCustomHTMLView
             for key, node of @machineTree.nodes when node.type is 'title'
               list = node.getDelegate()
 
-          # this is a temporary fix,
-          # this will be updated with the new
-          # sidebar design. ~Umut
-          @machineTree.addNode data, 0
+          @machineTree.addNode data
 
           KD.userWorkspaces.push workspace
 

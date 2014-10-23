@@ -57,7 +57,8 @@ func init() {
 	// Power up our own kontrol kite for self-contained tests
 	kontrol.DefaultPort = 4099
 	kntrl := kontrol.New(conf.Copy(), "0.1.0", testkeys.Public, testkeys.Private)
-	kntrl.Machines = []string{etcdIp}
+	kntrl.SetStorage(kontrol.NewPostgres(nil, kntrl.Kite.Log))
+
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 

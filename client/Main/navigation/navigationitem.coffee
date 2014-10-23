@@ -28,9 +28,11 @@ class NavigationItem extends JTreeItemView
 
     @setClass 'sub-title'
     { activitySidebar } = KD.singletons.mainView
+    { title } = @getData()
     data.delegate = @getDelegate()
 
     @child = new SidebarMoreLink
+      title   : title
       tagName : 'a'
       click   : (event) ->
         KD.utils.stopDOMEvent event
