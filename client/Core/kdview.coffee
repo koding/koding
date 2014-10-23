@@ -1,4 +1,4 @@
-# overrride ::setAttribute to not to put
+# overrride ::setAttribute to not put
 # testpath attributes in production - SY
 do ->
 

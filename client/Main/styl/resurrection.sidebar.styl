@@ -16,9 +16,9 @@ sidebarCountBg    = #C14C4C
 
 #main-sidebar
 
-  size            215px 100%
+  size            sidebarWidth 100%
   z-index         100
-  bg              color #38383B
+  bg              color #323232
   top             0
   left            0
   fix()
@@ -35,9 +35,9 @@ sidebarCountBg    = #C14C4C
     kalc              height, 100% \- 28px
 
   .logo-wrapper
-    size              100% 42px
-    bg                color #131313
-    padding           12px 0 0 14px
+    size              100% 40px
+    bg                color #262626
+    padding           10px 0 0 12px
     borderBox()
     a
       margin          0
@@ -184,15 +184,17 @@ sidebarCountBg    = #C14C4C
           abs           12px 0 0 5px
 
     &.sub-title
-      padding         2px 0 0 22px
+      padding         2px 0 0 24px
       color           sidebarSubtitle
-      font-size       12px
-      margin-bottom   3px
+      font-size       11px
+      margin-bottom   1px
+      text-transform  uppercase
 
       .more-link
         display       inline
         height        16px
         border-bottom none
+        font-size     11px
 
         &:hover
           border-bottom 1px solid #6b6b71
@@ -643,7 +645,7 @@ sidebarCountBg    = #C14C4C
 .account-area
   bottom            0
   left              0
-  size              215px 45px
+  size              sidebarWidth 45px
   fix()
 
   > div
@@ -652,7 +654,7 @@ sidebarCountBg    = #C14C4C
     vertical-align  top
 
   .acc-icon
-    size            40px 46px
+    size            50px 46px
     display         block
     abs             -1px 0px 0 0
     borderBox()
@@ -674,7 +676,7 @@ sidebarCountBg    = #C14C4C
       // size            20px 21px
       margin          15px auto
     &.active .count
-      left            22px !important
+      left            27px !important
     .count
       position        absolute
       width           14px
@@ -684,13 +686,13 @@ sidebarCountBg    = #C14C4C
       background      #E75A5A
       border-radius   7px
       text-align      center
-      top             9px
-      left            23px
+      top             7px
+      left            28px
     .count cite
       color           #fff
 
   .acc-dropdown-icon
-    right           40px
+    right           50px
     &.active
       border-right  1px solid #323232
 
