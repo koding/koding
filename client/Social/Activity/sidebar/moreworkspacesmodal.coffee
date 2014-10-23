@@ -7,6 +7,7 @@ class MoreWorkspacesModal extends SidebarSearchModal
     options.title          or= 'Workspaces'
     options.disableSearch    = yes
     options.itemClass      or= ModalWorkspaceItem
+    options.bindModalDestroy = no
 
     super options, data
 
