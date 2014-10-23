@@ -45,8 +45,10 @@ fetchPostContent = (models, options, callback) ->
 
       createActivityContent models, activity, (err, content, activityContent)->
         return callback err  if err or not content
+
+        summary = activityContent.body.slice(0, 80)
         graphMeta =
-          title    : "Post on koding.com by #{activityContent.fullName}"
+          title    : "#{summary} | Koding Community"
           body     : "#{activityContent.body}"
           shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
         fullPage = feed.putContentIntoFullPage content, "", graphMeta

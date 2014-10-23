@@ -44,6 +44,8 @@ var (
 	LowerInterval     = "month"
 	FreePlan          = "free"
 	FreeInterval      = "month"
+
+	LowerPlanProviderId = "hobbyist_month"
 )
 
 func generateFakeUserInfo() (string, string, string) {
@@ -100,7 +102,7 @@ func checkCustomerExistsInStripe(id string) bool {
 	return true
 }
 
-func createCustomerFn(fn func(string, *paymentmodel.Customer)) func() {
+func createCustomerFn(fn func(string, *paymentmodels.Customer)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
 
@@ -133,5 +135,23 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 		So(err, ShouldBeNil)
 
 		fn(token, accId, email)
+	}
+}
+
+func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subscription)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+
+		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+		So(err, ShouldBeNil)
+
+		customer := paymentmodels.NewCustomer()
+		err = customer.ByOldId(accId)
+		So(err, ShouldBeNil)
+
+		subscription, err := customer.FindActiveSubscription()
+		So(err, ShouldBeNil)
+
+		fn(customer, subscription)
 	}
 }

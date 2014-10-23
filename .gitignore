@@ -91,5 +91,7 @@ deployment/generated_files
 website/a/out
 *.test
 
+/go/src/socialapi/db/sql/kontrol
+
 /tests/users.json
 /tests/output/

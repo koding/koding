@@ -3,6 +3,8 @@ package koding
 import (
 	"koding/kites/kloud/klient"
 	"time"
+
+	"github.com/mitchellh/goamz/ec2"
 )
 
 type infoFunc func(format string, formatArgs ...interface{})
@@ -42,4 +44,28 @@ func (p *Provider) IsKlientReady(querystring string) bool {
 	}
 
 	return true
+}
+
+func isCapacityError(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false // return back if it's not an ec2.Error type
+	}
+
+	fallbackErrors := []string{
+		"InsufficientInstanceCapacity",
+		"InstanceLimitExceeded",
+	}
+
+	// check wether the incoming error code is one of the fallback
+	// errors
+	for _, fbErr := range fallbackErrors {
+		if ec2Error.Code == fbErr {
+			return true
+		}
+	}
+
+	// return for non fallback errors, because we can't do much
+	// here and probably it's need a more tailored solution
+	return false
 }

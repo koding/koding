@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/koding/kite"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
@@ -61,15 +63,18 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		klientChecked = true
 
 		klientRef, err := p.KlientPool.Get(m.QueryString)
-		if err != nil {
-			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
-				m.Id, resultState)
+
+		switch err {
+		case kite.ErrNoKitesAvailable:
+			p.Log.Warning("[%s] klient is disconnected, I couldn't find it trough Kontrol. err: %s",
+				m.Id, err)
+
 			resultState = machinestate.Stopped
 
 			// start shutdown timer, because klient is not running, don't let
 			// it be running forever
 			p.startTimer(m)
-		} else {
+		case nil:
 			// now assume it's running
 			resultState = machinestate.Running
 
@@ -85,6 +90,9 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 				// functional so we assume it's stopped
 				resultState = machinestate.Stopped
 			}
+		default:
+			// error is something else and critical, so don't do anything until it's resolved
+			p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
 		}
 
 		if resultState != dbState {

@@ -22,7 +22,7 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 		return nil, err
 	}
 
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,10 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 	}
 
 	if IsTooManyCreditCards(creditCardList) {
-		//TODO: how to handle too many ccs?
+		Log.Error(
+			"Customer (stripe): %s has too many: %s credit cards.",
+			customer.ProviderCustomerId, creditCardList.Count,
+		)
 	}
 
 	creditCard := creditCardList.Values[0]
@@ -48,6 +51,10 @@ func GetCreditCard(oldId string) (*CreditCardResponse, error) {
 }
 
 func UpdateCreditCard(oldId, token string) error {
+	if IsEmpty(token) {
+		return paymenterrors.ErrTokenIsEmpty
+	}
+
 	customer, err := FindCustomerByOldId(oldId)
 	if err != nil {
 		return err
@@ -63,8 +70,8 @@ func UpdateCreditCard(oldId, token string) error {
 	return nil
 }
 
-func RemoveCreditCard(customer *paymentmodel.Customer) error {
-	externalCustomer, err := GetCustomerFromStripe(customer.ProviderCustomerId)
+func RemoveCreditCard(customer *paymentmodels.Customer) error {
+	externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
 	if err != nil {
 		return err
 	}
@@ -75,7 +82,10 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 	}
 
 	if IsTooManyCreditCards(creditCardList) {
-		//TODO: how to handle too many ccs?
+		Log.Error(
+			"Customer (stripe): %s has too many: %s credit cards.",
+			customer.ProviderCustomerId, creditCardList.Count,
+		)
 	}
 
 	creditCard := creditCardList.Values[0]
@@ -84,8 +94,21 @@ func RemoveCreditCard(customer *paymentmodel.Customer) error {
 		Customer: externalCustomer.Id,
 	}
 	err = stripeCard.Del(creditCard.Id, creditCardParams)
+
+	return err
+}
+
+func UpdateCreditCardIfEmpty(accId, token string) error {
+	ccResp, err := GetCreditCard(accId)
 	if err != nil {
 		return err
+	}
+
+	if IsCreditCardEmpty(ccResp) {
+		err := UpdateCreditCard(accId, token)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

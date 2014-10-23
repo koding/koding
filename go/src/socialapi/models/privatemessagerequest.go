@@ -136,6 +136,11 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 		return nil, err
 	}
 
+	c.UpdatedAt = time.Now()
+	if err = c.Update(); err != nil {
+		return nil, err
+	}
+
 	if !canOpen {
 		return nil, ErrCannotOpenChannel
 	}

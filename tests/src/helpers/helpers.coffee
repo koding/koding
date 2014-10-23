@@ -2,6 +2,7 @@ utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
 
+activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
 
@@ -111,6 +112,21 @@ module.exports =
       .pause                  6000 # required
 
     browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+
+
+  sendHashtagActivity: (browser) ->
+
+    @beginTest(browser)
+
+    paragraph = @getFakeText()
+    hashtag   = '#' + paragraph.split(' ')[0]
+    post      = paragraph + ' ' + hashtag
+
+    @doPostActivity(browser, post)
+
+    browser.assert.containsText activitySelector + ' .has-markdown p a:first-child', hashtag # Assertion
+
+    return hashtag
 
 
   getFakeText: ->

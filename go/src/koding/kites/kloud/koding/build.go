@@ -24,13 +24,12 @@ import (
 
 var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
-	DefaultInstanceType = "t2.micro"
 
 	// Starting from cheapest, list is according to us-east and coming from:
 	// http://www.ec2instances.info/. t2.micro is not included because it's
 	// already the default type which we start to build. Only supported types
 	// are here.
-	FallbackList = []string{
+	InstancesList = []string{
 		"t2.small",
 		"t2.medium",
 		"m3.medium",
@@ -38,8 +37,6 @@ var (
 		"m3.large",
 		"c3.xlarge",
 	}
-
-	FallbackErrors = []string{"InsufficientInstanceCapacity", "InstanceLimitExceeded"}
 )
 
 const (
@@ -83,6 +80,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	a.Log.Info("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
+
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
@@ -114,7 +113,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Builder.SecurityGroupId = group.Id
 	a.Builder.SubnetId = subnet.SubnetId
 	a.Builder.Zone = subnet.AvailabilityZone
-	a.Builder.InstanceType = DefaultInstanceType
 
 	infoLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
@@ -240,6 +238,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
+	if a.Builder.InstanceType == "" {
+		return nil, errors.New("Instance type is not defined")
+	}
+
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
 		// build our instance in a normal way
@@ -251,31 +253,15 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		// check if the error is a 'InsufficientInstanceCapacity" error or
 		// "InstanceLimitExceeded, if not return back because it's not a
 		// resource or capacity problem.
-		if ec2Error, ok := err.(*ec2.Error); ok {
-			isFallback := false
-
-			// check wether the incoming error code is one of the fallback
-			// errors
-			for _, fbErr := range FallbackErrors {
-				if ec2Error.Code == fbErr {
-					isFallback = true
-					break
-				}
-			}
-
-			// return for non fallback errors, because we can't do much
-			// here and probably it's need a more tailored solution
-			if !isFallback {
-				return err
-			}
-
-			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+		if !isCapacityError(err) {
+			return err
 		}
+
+		p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 
 		// now lets to some fallback mechanisms to avoid the capacity errors.
 		// 1. Try to use a different zone
 		zoneFunc := func() error {
-			// try the first zone, if there is no capacity we are going to use the next one
 			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
 			if err != nil {
 				return fmt.Errorf("couldn't fetch availability zones: %s", err)
@@ -315,8 +301,9 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 					return nil
 				}
 
-				if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
-					continue // pick up next zone
+				if isCapacityError(err) {
+					// if there is no capacity we are going to use the next one
+					continue
 				}
 
 				return err
@@ -332,11 +319,11 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// 3. Try to use another instance
 		instanceFunc := func() error {
-			for _, instanceType := range FallbackList {
+			for _, instanceType := range InstancesList {
 				a.Builder.InstanceType = instanceType
 
 				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
-					m.Id, instanceType, DefaultInstanceType)
+					m.Id, instanceType, a.Builder.InstanceType)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
