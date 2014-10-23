@@ -34,13 +34,14 @@ func init() {
 			Username:  username,
 			IpAddress: "",
 			Builder: map[string]interface{}{
-				"username":     username,
-				"type":         "amazon",
-				"region":       "us-east-1",
-				"source_ami":   "ami-2651904e",
-				"storage_size": 3,
-				"alwaysOn":     false,
-				"instanceName": instanceName,
+				"username":      username,
+				"type":          "amazon",
+				"region":        "us-east-1",
+				"source_ami":    "ami-2651904e",
+				"storage_size":  3,
+				"alwaysOn":      false,
+				"instanceName":  instanceName,
+				"instance_type": "t2.micro",
 			},
 			Credential: map[string]interface{}{
 				"username": "kodinginc",
@@ -165,30 +166,4 @@ func SetMachineData(id string, machine *protocol.Machine) {
 
 func newInstanceName() string {
 	return "kloudtest-" + strconv.Itoa(rand.Intn(100000))
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-
-	TestMachineData = map[string]*protocol.Machine{
-		"koding_id0": &protocol.Machine{
-			Id:        "koding_id0",
-			Provider:  "koding",
-			Username:  username,
-			IpAddress: "",
-			Builder: map[string]interface{}{
-				"username":     username,
-				"type":         "amazon",
-				"region":       "us-east-1",
-				"source_ami":   "ami-2651904e",
-				"storage_size": 3,
-				"alwaysOn":     false,
-				"instanceName": newInstanceName(),
-			},
-			State: machinestate.NotInitialized,
-			Domain: protocol.Domain{
-				Name: "foo." + username + ".dev.koding.io",
-			},
-		},
-	}
 }
