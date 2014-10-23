@@ -182,7 +182,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 
-			for _, instanceType := range FallbackList {
+			for _, instanceType := range InstancesList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
 					m.Id, instanceType, a.Builder.InstanceType)
 

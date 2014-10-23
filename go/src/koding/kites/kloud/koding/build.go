@@ -29,7 +29,7 @@ var (
 	// http://www.ec2instances.info/. t2.micro is not included because it's
 	// already the default type which we start to build. Only supported types
 	// are here.
-	FallbackList = []string{
+	InstancesList = []string{
 		"t2.small",
 		"t2.medium",
 		"m3.medium",
@@ -317,7 +317,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// 3. Try to use another instance
 		instanceFunc := func() error {
-			for _, instanceType := range FallbackList {
+			for _, instanceType := range InstancesList {
 				a.Builder.InstanceType = instanceType
 
 				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
