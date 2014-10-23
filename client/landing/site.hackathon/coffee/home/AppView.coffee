@@ -122,9 +122,9 @@ module.exports = class HomeView extends KDView
         KD.campaignStats = stats
         @updateWidget()
         KD.singletons.router.handleRoute '/Hackathon'
-      error       : (xhr) ->
+      error       : (xhr) =>
         {responseText} = xhr
-        @button.hideLoader()
+        @button?.hideLoader()
         new KDNotificationView title : responseText
         KD.singletons.router.handleRoute '/Hackathon'
 
@@ -138,7 +138,7 @@ module.exports = class HomeView extends KDView
 
   createShareButtons: ->
 
-    { isApplicant, isApproved, isWinner } = getStats().content
+    { isApplicant, isApproved, isWinner } = getStats()
 
 
     if isApplicant and not isApproved
@@ -233,6 +233,25 @@ module.exports = class HomeView extends KDView
       APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span>
       APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>
       """
+
+  click: (event) ->
+
+    return  if event.target.tagName in ['INPUT', 'BUTTON']
+
+    video    = document.getElementById 'bgVideo'
+    speed    = video.playbackRate
+
+    video.play()
+
+    repeater = KD.utils.repeat 20, ->
+
+      speed += .02
+      video.playbackRate = speed
+
+      if speed >= 1
+        video.playbackRate = 1
+        KD.utils.killRepeat repeater
+
 
 
   partial: ->

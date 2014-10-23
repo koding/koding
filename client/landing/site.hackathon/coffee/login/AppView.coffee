@@ -168,9 +168,7 @@ module.exports = class LoginView extends JView
               @afterLoginCallback err, {account, replacementToken}
 
 
-
   viewAppended:->
-
 
     @setTemplate @pistachio()
     @template.update()
@@ -190,9 +188,8 @@ module.exports = class LoginView extends JView
 
     KD.utils.defer => @setClass 'shown'
 
+
   pistachio:->
-      # {{> @loginOptions}}
-      # {{> @registerOptions}}
     """
     <div class='tint'></div>
     {{> @logo }}
