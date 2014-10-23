@@ -149,8 +149,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
 		}
 
-		// wait for eventually consistency so Restart or Start below get the
-		// correct answer
+		// wait for AWS eventually consistency state, so we wait to get the
+		// correct answer.
 		time.Sleep(time.Second * 2)
 	}
 
@@ -173,26 +173,14 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 				return nil
 			}
 
-			if ec2Error, ok := err.(*ec2.Error); ok {
-				isFallback := false
-
-				// check wether the incoming error code is one of the fallback
-				// errors
-				for _, fbErr := range FallbackErrors {
-					if ec2Error.Code == fbErr {
-						isFallback = true
-						break
-					}
-				}
-
-				// return for non fallback errors, because we can't do much
-				// here and probably it's need a more tailored solution
-				if !isFallback {
-					return err
-				}
-
-				p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+			// check if the error is a 'InsufficientInstanceCapacity" error or
+			// "InstanceLimitExceeded, if not return back because it's not a
+			// resource or capacity problem.
+			if !isCapacityError(err) {
+				return err
 			}
+
+			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 
 			for _, instanceType := range FallbackList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",

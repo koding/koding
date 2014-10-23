@@ -37,8 +37,6 @@ var (
 		"m3.large",
 		"c3.xlarge",
 	}
-
-	FallbackErrors = []string{"InsufficientInstanceCapacity", "InstanceLimitExceeded"}
 )
 
 const (
@@ -253,31 +251,15 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		// check if the error is a 'InsufficientInstanceCapacity" error or
 		// "InstanceLimitExceeded, if not return back because it's not a
 		// resource or capacity problem.
-		if ec2Error, ok := err.(*ec2.Error); ok {
-			isFallback := false
-
-			// check wether the incoming error code is one of the fallback
-			// errors
-			for _, fbErr := range FallbackErrors {
-				if ec2Error.Code == fbErr {
-					isFallback = true
-					break
-				}
-			}
-
-			// return for non fallback errors, because we can't do much
-			// here and probably it's need a more tailored solution
-			if !isFallback {
-				return err
-			}
-
-			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+		if !isCapacityError(err) {
+			return err
 		}
+
+		p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 
 		// now lets to some fallback mechanisms to avoid the capacity errors.
 		// 1. Try to use a different zone
 		zoneFunc := func() error {
-			// try the first zone, if there is no capacity we are going to use the next one
 			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
 			if err != nil {
 				return fmt.Errorf("couldn't fetch availability zones: %s", err)
@@ -317,8 +299,9 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 					return nil
 				}
 
-				if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
-					continue // pick up next zone
+				if isCapacityError(err) {
+					// if there is no capacity we are going to use the next one
+					continue
 				}
 
 				return err
