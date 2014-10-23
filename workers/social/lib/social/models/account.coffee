@@ -237,27 +237,6 @@ module.exports = class JAccount extends jraphical.Module
         likes               :
           type              : Number
           default           : 0
-        statusUpdates       :
-          type              : Number
-          default           : 0
-        staffLikes          :
-          type              : Number
-          default           : 0
-        comments            :
-          type              : Number
-          default           : 0
-        referredUsers       :
-          type              : Number
-          default           : 0
-        invitations         :
-          type              : Number
-          default           : 0
-        lastLoginDate       :
-          type              : Date
-          default           : new Date
-        twitterFollowers    :
-          type              : Number
-          default           : 0
 
       environmentIsCreated  : Boolean
       type                  :
