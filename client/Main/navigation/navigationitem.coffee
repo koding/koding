@@ -12,7 +12,7 @@ class NavigationItem extends JTreeItemView
     @type = data.type
 
     if      data.jMachine                then @createMachineItem      data
-    else if data.type is 'title'         then @createTitleView        data
+    else if data.type is 'title'         then @createMoreLink         data
     else if data.type is 'new-workspace' then @createNewWorkspaceView data
     else if data.type is 'workspace'     then @createWorkspaceItem    data
     else if data.type is 'app'           then @createAppItem          data
@@ -24,16 +24,17 @@ class NavigationItem extends JTreeItemView
     @child = new NavigationMachineItem {}, data
 
 
-  createTitleView: (data) ->
-    @setClass 'sub-title'
-    @child = new KDCustomHTMLView
-      tagName : 'h3'
-      partial : data.title
-      click   : (event) =>
-        KD.utils.stopDOMEvent event
-        if event.target.classList.contains 'ws-add-icon'
-          KD.singletons.mainView.activitySidebar.addNewWorkspace this
+  createMoreLink: (data) ->
 
+    @setClass 'sub-title'
+    { activitySidebar } = KD.singletons.mainView
+    data.delegate = @getDelegate()
+
+    @child = new SidebarMoreLink
+      tagName : 'a'
+      click   : (event) ->
+        KD.utils.stopDOMEvent event
+        activitySidebar.emit 'MoreWorkspaceModalRequested', data
 
   createWorkspaceItem: (data) ->
     @setClass 'workspace'

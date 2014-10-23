@@ -25,15 +25,17 @@ class SidebarSearchModal extends KDModalView
 
   viewAppended: ->
 
-    {placeholder, noItemText, itemClass} = @getOptions()
-    @addSubView @searchField = new KDInputView
-      placeholder : placeholder
-      cssClass    : 'search-input'
-      keyup       : KD.utils.debounce 300, @bound 'search'
+    {placeholder, noItemText, itemClass, disableSearch} = @getOptions()
 
-    @addSubView new KDCustomHTMLView
-      tagName  : 'cite'
-      cssClass : 'search-icon'
+    unless disableSearch
+      @addSubView @searchField = new KDInputView
+        placeholder : placeholder
+        cssClass    : 'search-input'
+        keyup       : KD.utils.debounce 300, @bound 'search'
+
+      @addSubView new KDCustomHTMLView
+        tagName  : 'cite'
+        cssClass : 'search-icon'
 
     @listController = new KDListViewController
       startWithLazyLoader : yes
@@ -86,7 +88,9 @@ class SidebarSearchModal extends KDModalView
 
   getLazyLoadOptions: ->
 
-    return skip: @listController.getItemCount()
+    skip  = @listController.getItemCount()
+
+    return {skip}
 
 
   search: ->
