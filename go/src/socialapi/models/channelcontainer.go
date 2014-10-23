@@ -2,6 +2,7 @@ package models
 
 import (
 	"socialapi/request"
+	"sync"
 
 	"github.com/koding/bongo"
 )
@@ -256,11 +257,20 @@ func NewChannelContainers() *ChannelContainers {
 }
 
 func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
+	var wg sync.WaitGroup
+
 	for i, _ := range channelList {
-		cc := NewChannelContainer()
-		cc.PopulateWith(channelList[i], accountId)
-		c.Add(cc)
+		go func(i int) {
+			wg.Add(1)
+			defer wg.Done()
+
+			cc := NewChannelContainer()
+			cc.PopulateWith(channelList[i], accountId)
+			c.Add(cc)
+		}(i)
 	}
+
+	wg.Wait()
 
 	return c
 }
