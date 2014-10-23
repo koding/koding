@@ -35,22 +35,3 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.createFile(browser, user)
     browser.end()
-
-
-  deleteFile: (browser) ->
-
-    user         = helpers.beginTest(browser)
-    filename     = helpers.createFile(browser, user)
-    webPath      = '/home/' + user.username + '/Web'
-    fileSelector = "span[title='" + webPath + '/' + filename + "']"
-
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 5000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 5000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  fileSelector, 20000
-      .end()
