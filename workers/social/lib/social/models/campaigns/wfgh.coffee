@@ -71,21 +71,13 @@ module.exports = class JWFGH extends Model
 
       username = account?.profile?.nickname
 
-      {cap, prize, deadline} = campaign.content
-
-      cap      ?= 1000
-      prize    ?= 10000
-      deadline ?= new Date 1418626800000 # Mon, 15 Dec 2014 00:00:00 PDT
-
       unless username
 
         callback null, {
           totalApplicants    : 0
           approvedApplicants : 0
           isApplicant        : no
-          deadline
-          prize
-          cap
+          campaign           : campaign.content
         }
 
       JWFGH.one {username}, (err, applied)->
@@ -105,7 +97,7 @@ module.exports = class JWFGH extends Model
             return callback err  if err
 
             callback err, {
-              cap, prize, deadline
               totalApplicants, approvedApplicants
               isApplicant, isApproved, isWinner
+              campaign : campaign.content
             }
