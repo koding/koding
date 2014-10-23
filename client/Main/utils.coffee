@@ -823,16 +823,31 @@ utils.extend utils,
 
   sendDataDogEvent: (eventName)->
 
-    KD.utils.s3upload
-      name    : "logs_#{new Date().toISOString()}.txt"
-      content : KD.parseLogs()
-    , (err, publicUrl)->
-
-      logs = if err? and not publicUrl
-      then KD.parseLogs()
-      else publicUrl
-
+    sendEvent = (logs)->
       KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+    kdlogs = KD.parseLogs()
+
+    # If there is enough log to send, no more checks required
+    # just send them away, first to s3 then datadog
+    if kdlogs.length > 100
+
+      KD.utils.s3upload
+        name    : "logs_#{new Date().toISOString()}.txt"
+        content : kdlogs
+      , (err, publicUrl)->
+
+        logs = if err? and not publicUrl
+        then KD.parseLogs()
+        else publicUrl
+
+        sendEvent publicUrl
+
+    else
+
+      # Send only events when hostname is koding.com
+      # and user enabled logs somehow
+      sendEvent()  if location.hostname is "koding.com"
 
 
   s3upload: (options, callback = noop)->
