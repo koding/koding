@@ -1527,11 +1527,20 @@ span.collapsedtext
         fr()
 
   .university-widget
+    li:before
+      content               '•'
+      display               inline-block
+      margin-right          6px
+      color                 #a4a4a4
+
     a
       color                 #848484
-      display               block
+      display               inline-block
       line-height           18px
       noTextDeco()
+
+      &:hover
+        text-decoration     underline
 
   .posting-guide-widget
     background              #FFFFF7
