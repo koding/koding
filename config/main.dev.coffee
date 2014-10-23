@@ -703,9 +703,9 @@ Configuration = (options={}) ->
 
         # Include this to dockerfile before we continute with building
         rm -rf kontrol
-        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/database.sql kontrol/
-        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/database.sql
-        rm kontrol/database.sql.bak
+        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/001-schema.sql
+        rm kontrol/001-schema.sql.bak
 
         docker build -t koding/postgres .
 
