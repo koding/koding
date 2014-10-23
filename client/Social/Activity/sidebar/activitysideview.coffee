@@ -38,7 +38,12 @@ class ActivitySideView extends JView
       partial  : @getOption 'title'
       click    : (event) =>
         KD.utils.stopDOMEvent event
-        KD.singletons.router.handleRoute searchLink
+
+        route = if 'add-icon' in event.target.classList
+        then event.target.getAttribute 'href'
+        else searchLink
+
+        KD.singletons.router.handleRoute route
 
 
     @listController.on 'ListIsEmptied', @lazyBound 'setClass', 'empty'
