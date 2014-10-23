@@ -841,7 +841,7 @@ utils.extend utils,
         then KD.parseLogs()
         else publicUrl
 
-        sendEvent publicUrl
+        sendEvent logs
 
     else
 
