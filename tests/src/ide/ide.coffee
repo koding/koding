@@ -78,3 +78,22 @@ module.exports =
       .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
       .waitForElementPresent     newFileSelector, 5000 # Assertion
       .end()
+
+
+  duplicate: (browser) ->
+
+    user          = helpers.beginTest(browser)
+    filename      = helpers.createFile(browser, user)
+    newFileName   = filename.split('.txt').join('_1.txt')
+    webPath       = '/home/' + user.username + '/Web'
+    fileSelector  = "span[title='" + webPath + '/' + filename + "']"
+    newFile       = "span[title='" + webPath + '/' + newFileName + "']"
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.duplicate', 5000
+      .click                     'li.duplicate'
+      .waitForElementVisible     newFile, 5000 # Assertion
+      .end()
