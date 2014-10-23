@@ -99,7 +99,8 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	}
 
 	if a.Builder.Region == "" {
-		return nil, errors.New("region is not set in meta/builder data")
+		a.Builder.Region = "us-east-1"
+		a.Log.Critical("[%s] region is not set in. Fallback to us-east-1.", m.Id)
 	}
 
 	client, err := p.EC2Clients.Region(a.Builder.Region)
