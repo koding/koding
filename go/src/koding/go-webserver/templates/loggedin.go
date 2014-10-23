@@ -22,6 +22,7 @@ var LoggedInHome = `
   <script>KD.userMachines={{.User.Machines}};</script>
   <script>KD.userWorkspaces={{.User.Workspaces}};</script>
   <script>KD.currentGroup={{.User.Group}};</script>
+  <script>KD.socialApiData={{.User.SocialApiData}};</script>
 
   <script src='/a/js/kd.libs.js?{{.Version}}'></script>
   <script src='/a/js/kd.js?{{.Version}}'></script>
