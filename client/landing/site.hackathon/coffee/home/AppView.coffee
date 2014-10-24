@@ -62,6 +62,22 @@ module.exports = class HomeView extends KDView
         @unsetClass 'no-anim'
         @setCss 'margin-left', '-1280px'
 
+      partial    : """
+        <i class="odesk"></i>
+        <i class="kissmetrics"></i>
+        <i class="accel"></i>
+        <i class="udemy"></i>
+        <i class="aws"></i>
+        <i class="tutum"></i>
+        <i class="code"></i>
+        <i class="facebook"></i>
+        <i class="iron"></i>
+        <i class="turkcell"></i>
+        <i class="digitalocean"></i>
+        <i class="deviantart"></i>
+        <i class="baincapital"></i>
+        <i class="eniac"></i>
+      """
 
 
     video = document.getElementById 'bgVideo'

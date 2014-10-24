@@ -32,8 +32,6 @@ module.exports = class MainView extends KDView
       attributes :
         testpath : 'main-header'
 
-    @header.addSubView new TopNavigation
-
     @header.addSubView @logo = new KDCustomHTMLView
       tagName    : 'a'
       domId      : 'koding-logo'
@@ -42,6 +40,7 @@ module.exports = class MainView extends KDView
         href     : 'https://koding.com'
         target   : '_blank'
 
+    @header.addSubView new TopNavigation
 
   createPanelWrapper:->
 

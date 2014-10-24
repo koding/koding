@@ -34,6 +34,9 @@ body
 
 body.home
 
+  #_atssh
+    display               none
+
   .about-to-apply
     section.introduction
       .form-wrapper
@@ -75,6 +78,8 @@ body.home
       width               100%
       fix()
 
+    i
+      display             none
 
 
   section.introduction
@@ -518,9 +523,103 @@ body.home
 @media only screen and (min-device-width : 320px) and (max-device-width : 480px)
   #main-header .social-buttons
     display               none
+
+  #main-header
+    padding                 0 25px
+    top                     24px
+    text-align              center
+
+    #koding-logo
+      float                 none
+      display               inline-block
+      width                 auto
+      margin                0 0 24px
+
+    nav
+      display               inline-block
+      margin                0
+      float                 none
+
+      a:first-of-type
+        margin-left         0
+
+
   body.home
+    figure.logos
+      position              relative
+      background            #000
+      opacity               1
+      width                 100%
+      margin                0
+      height                auto
+      padding               0 0 25px 0
+      left                  initial
+      bottom                initial
+
+      vendor                pointer-events, none
+
+      &:before
+        position            static
+        padding             25px 0 10px
+
+      i
+        display             block
+        vertical-align      middle
+        margin              26px auto
+        position            relative
+
+        & ~ i:before
+          content           ''
+          display           block
+          size              200px, 1px
+          abs               -13px 0 0 50%
+          margin-left       -100px
+          background        radial-gradient(ellipse at center, rgba(255,255,255,0.65) 0%,rgba(0,0,0,0) 100%)
+
+        &.odesk
+          r-sprite          'sponsors', 'odesk'
+
+        &.kissmetrics
+          r-sprite          'sponsors', 'kissmetrics'
+
+        &.accel
+          r-sprite          'sponsors', 'accel'
+
+        &.udemy
+          r-sprite          'sponsors', 'udemy'
+
+        &.aws
+          r-sprite          'sponsors', 'aws'
+
+        &.tutum
+          r-sprite          'sponsors', 'tutum'
+
+        &.code
+          r-sprite          'sponsors', 'code'
+
+        &.facebook
+          r-sprite          'sponsors', 'facebook'
+
+        &.iron
+          r-sprite          'sponsors', 'iron'
+
+        &.turkcell
+          r-sprite          'sponsors', 'turkcell'
+
+        &.digitalocean
+          r-sprite          'sponsors', 'digitalocean'
+
+        &.deviantart
+          r-sprite          'sponsors', 'deviantart'
+
+        &.baincapital
+          r-sprite          'sponsors', 'baincapital'
+
+        &.eniac
+          r-sprite          'sponsors', 'eniac'
+
     section.introduction
-      padding             74px 25px 18px
+      padding             124px 25px 18px
       height              auto
       background          #000
 
