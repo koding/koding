@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 )
@@ -49,16 +51,19 @@ func fetchSocial(socialApiId string, outputter *Outputter) {
 
 			item, err := fetchSocialItem(url)
 			if err != nil {
-				fmt.Println(">>>>>", err)
+				fmt.Println("Error fetching prefetched social data: ", name, err)
+
+				onItem <- Item{Name: name, Data: nil}
+				return
 			}
 
 			onItem <- Item{Name: name, Data: item}
 		}(name, url)
 	}
 
-	go collectSocialItems(onItem, outputter, len(urls))
-
 	wg.Wait()
+
+	collectSocialItems(onItem, outputter, len(urls))
 }
 
 func collectSocialItems(onItem <-chan Item, outputter *Outputter, max int) {
@@ -75,8 +80,17 @@ func collectSocialItems(onItem <-chan Item, outputter *Outputter, max int) {
 	outputter.OnItem <- Item{Name: "SocialApiData", Data: socialApiData}
 }
 
+var timeout = time.Duration(1 * time.Second)
+
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, timeout)
+}
+
 func fetchSocialItem(url string) (interface{}, error) {
-	resp, err := http.Get(url)
+	transport := http.Transport{Dial: dialTimeout}
+	client := http.Client{Transport: &transport}
+
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
