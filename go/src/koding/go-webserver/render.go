@@ -12,7 +12,7 @@ import (
 type HomeContent struct {
 	Version       string
 	Runtime       config.RuntimeOptions
-	User          *LoggedInUser
+	User          map[string]interface{}
 	Title         string
 	Description   string
 	ShareUrl      string
@@ -34,7 +34,7 @@ func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
 
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
-	hc.User = u
+	hc.User = u.Data
 	hc.Impersonating = impBool
 
 	var buf bytes.Buffer

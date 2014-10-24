@@ -12,13 +12,10 @@ import (
 
 // UserInfo contains the relevant user models.
 type UserInfo struct {
-	ClientId      string
-	Username      string
-	SocialApiId   int64
-	UserId        bson.ObjectId
-	AccountId     bson.ObjectId
-	Account       *models.Account
-	Impersonating bool
+	ClientId, Username, SocialApiId string
+	UserId, AccountId               bson.ObjectId
+	Account                         *models.Account
+	Impersonating                   bool
 }
 
 // fetchUseInfo fetches different user models and returns
