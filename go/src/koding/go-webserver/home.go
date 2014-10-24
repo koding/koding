@@ -6,8 +6,8 @@ import (
 )
 
 // HomeHandler renders both loggedin and loggedout page for user.
-// When user is loggedin, we send some data with payload so the
-// client doesn't need to fetch them after the page loads.
+// When user is loggedin, we send some extra data with the payload
+// so the client doesn't need to fetch them after the page loads.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	userInfo, err := fetchUserInfo(w, r)
 	if err != nil {
@@ -17,17 +17,10 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	onItem := make(chan Item, 0)   // individual prefetched items come here
 	onDone := make(chan bool, 1)   // signals when done prefetching items
-	onError := make(chan error, 1) // when error prefetching, return right away
+	onError := make(chan error, 1) // when there's an error, return right away
 
+	collectItemCount := 3
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
-
-	user := NewLoggedInUser()
-	user.Set("Group", kodingGroup)
-	user.Set("Username", userInfo.Username)
-	user.Set("SessionId", userInfo.ClientId)
-	user.Set("Impersonating", userInfo.Impersonating)
-
-	var collectItemCount = 3
 
 	// on new register, there's a race condition where SocialApiId
 	// isn't sometimes set; in that case don't prefetch socialdata
@@ -36,6 +29,12 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		collectItemCount = 4
 		go fetchSocial(userInfo.SocialApiId, outputter)
 	}
+
+	user := NewLoggedInUser()
+	user.Set("Group", kodingGroup)
+	user.Set("Username", userInfo.Username)
+	user.Set("SessionId", userInfo.ClientId)
+	user.Set("Impersonating", userInfo.Impersonating)
 
 	// the goroutines below (and maybe one above) will work in parallel
 	// and send results
