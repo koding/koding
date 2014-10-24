@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -35,7 +36,7 @@ func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
 	outputter.OnItem <- Item{Name: "Workspaces", Data: workspaces}
 }
 
-func fetchSocial(socialApiId int64, outputter *Outputter) {
+func fetchSocial(socialApiId string, outputter *Outputter) {
 	var wg sync.WaitGroup
 	urls := socialUrls(socialApiId)
 
@@ -82,6 +83,10 @@ func fetchSocialItem(url string) (interface{}, error) {
 
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return nil, errors.New("status code was not 200")
+	}
+
 	var data interface{}
 	decoder := json.NewDecoder(resp.Body)
 
@@ -93,17 +98,17 @@ func fetchSocialItem(url string) (interface{}, error) {
 	return data, nil
 }
 
-func socialUrls(id int64) map[string]string {
+func socialUrls(id string) map[string]string {
 	var urls = map[string]string{
-		"followedChannels": buildUrl("%s/account/%[2]d/channels?accountId=%[2]d", id),
-		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%d", id),
-		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%d", id),
-		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%d", id),
+		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id),
+		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id),
+		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
+		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
 	}
 
 	return urls
 }
 
-func buildUrl(path string, id int64) string {
-	return fmt.Sprintf(path, conf.SocialApi.ProxyUrl, id)
+func buildUrl(path, socialApiId string) string {
+	return fmt.Sprintf(path, conf.SocialApi.ProxyUrl, socialApiId)
 }
