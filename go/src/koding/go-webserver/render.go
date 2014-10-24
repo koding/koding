@@ -12,25 +12,30 @@ import (
 type HomeContent struct {
 	Version       string
 	Runtime       config.RuntimeOptions
-	User          LoggedInUser
+	User          *LoggedInUser
 	Title         string
 	Description   string
 	ShareUrl      string
 	Impersonating bool
 }
 
-func writeLoggedInHomeToResp(w http.ResponseWriter, u LoggedInUser) {
+func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
 	homeTmpl := buildHomeTemplate(templates.LoggedInHome)
 
-	imp, ok := u["Impersonating"].(bool)
+	imp, ok := u.Get("Impersonating")
 	if !ok {
 		imp = false
+	}
+
+	impBool, ok := imp.(bool)
+	if !ok {
+		impBool = false
 	}
 
 	hc := buildHomeContent()
 	hc.Runtime = conf.Client.RuntimeOptions
 	hc.User = u
-	hc.Impersonating = imp
+	hc.Impersonating = impBool
 
 	var buf bytes.Buffer
 	if err := homeTmpl.Execute(&buf, hc); err != nil {
