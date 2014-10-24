@@ -1255,7 +1255,7 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError 'Failed to fetch user!'  unless user
 
       { registeredAt, lastLoginDate, email, status } = user
-      { profile, referrerUsername, referralUsed } = this
+      { profile, referrerUsername, referralUsed, globalFlags } = this
 
       fakeClient = connection: delegate: this
 
@@ -1274,7 +1274,7 @@ module.exports = class JAccount extends jraphical.Module
 
           callback null, {
             profile, registeredAt, lastLoginDate, email, status
-            referrerUsername, referralUsed, plan, machines
+            globalFlags, referrerUsername, referralUsed, plan, machines
           }
 
 
