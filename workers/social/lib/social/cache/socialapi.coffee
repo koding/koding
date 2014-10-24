@@ -35,7 +35,10 @@ module.exports = (options={}, callback)->
     SocialChannel.fetchPinnedMessages client, defaultOptions, cb
 
   fetchPrivateMessages = (cb)->
-    SocialMessage.fetchPrivateMessages client, defaultOptions, cb
+    options =
+      limit : 10
+
+    SocialMessage.fetchPrivateMessages client, options, cb
 
   fetchGroupActivities = (cb)->
     SocialChannel.fetchGroupActivities client, {}, cb

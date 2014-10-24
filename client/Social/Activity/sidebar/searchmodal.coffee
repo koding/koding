@@ -14,10 +14,16 @@ class SidebarSearchModal extends KDModalView
       fetch               : dummyCallback
       search              : dummyCallback
 
+    options.bindModalDestroy ?= yes
+
     super options, data
 
     {appManager, router} = KD.singletons
-    appManager.tell 'Activity', 'bindModalDestroy', this, router.visitedRoutes.last
+
+    { bindModalDestroy } = @getOptions()
+
+    if bindModalDestroy
+      appManager.tell 'Activity', 'bindModalDestroy', this, router.visitedRoutes.last
 
     @beingFetched = no
     @searchActive = no
