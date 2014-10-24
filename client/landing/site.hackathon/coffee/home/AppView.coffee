@@ -60,7 +60,7 @@ module.exports = class HomeView extends KDView
         KD.utils.wait 300, => @setClass 'no-anim'
       mouseleave : ->
         @unsetClass 'no-anim'
-        @setCss 'margin-left', '-1280px'
+        @setCss 'margin-left', '-1400px'
 
       partial    : """
         <i class="odesk"></i>
