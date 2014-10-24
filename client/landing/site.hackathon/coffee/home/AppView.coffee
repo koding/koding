@@ -62,6 +62,22 @@ module.exports = class HomeView extends KDView
         @unsetClass 'no-anim'
         @setCss 'margin-left', '-1280px'
 
+      partial    : """
+        <i class="odesk"></i>
+        <i class="kissmetrics"></i>
+        <i class="accel"></i>
+        <i class="udemy"></i>
+        <i class="aws"></i>
+        <i class="tutum"></i>
+        <i class="code"></i>
+        <i class="facebook"></i>
+        <i class="iron"></i>
+        <i class="turkcell"></i>
+        <i class="digitalocean"></i>
+        <i class="deviantart"></i>
+        <i class="baincapital"></i>
+        <i class="eniac"></i>
+      """
 
 
     video = document.getElementById 'bgVideo'
@@ -88,16 +104,17 @@ module.exports = class HomeView extends KDView
       APPLICATIONS RECEIVED: <span>#{totalApplicants.toLocaleString()}</span>
       APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>
       """
+# <video id="bgVideo" autoplay loop muted>
+#         <source src="#{VIDEO_URL}" type="video/webm"; codecs=vp8,vorbis">
+#         <source src="#{VIDEO_URL_OGG}" type="video/ogg"; codecs=theora,vorbis">
+#         <source src="#{VIDEO_URL_MP4}">
+#       </video>
 
   partial: ->
 
     """
     <section class="introduction">
-      <video id="bgVideo" autoplay loop muted>
-        <source src="#{VIDEO_URL}" type="video/webm"; codecs=vp8,vorbis">
-        <source src="#{VIDEO_URL_OGG}" type="video/ogg"; codecs=theora,vorbis">
-        <source src="#{VIDEO_URL_MP4}">
-      </video>
+
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, no matter where we are!</h3>
       <h3>STARTING MONDAY OCTOBER 24 2014 10:00AM PDT</h3>
