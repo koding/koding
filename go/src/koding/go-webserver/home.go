@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// HomeHandler renders both loggedin and loggedout page for user.
+// When user is loggedin, we send some data with payload so the
+// client doesn't need to fetch them after the page loads.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	userInfo, err := fetchUserInfo(w, r)
 	if err != nil {
@@ -12,9 +15,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	onItem := make(chan Item, 0)
-	onDone := make(chan bool, 1)
-	onError := make(chan error, 1)
+	onItem := make(chan Item, 0)   // individual prefetched items come here
+	onDone := make(chan bool, 1)   // signals when done prefetching items
+	onError := make(chan error, 1) // when error prefetching, return right away
 
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
 
@@ -34,7 +37,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		go fetchSocial(userInfo.SocialApiId, outputter)
 	}
 
-	// 3 goroutines below will work in parallel & send results
+	// the goroutines below (and maybe one above) will work in parallel
+	// and send results
 	go collectItems(user, onItem, onDone, collectItemCount)
 
 	go sendAccount(userInfo.Account, outputter)
