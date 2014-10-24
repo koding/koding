@@ -714,7 +714,7 @@ class IDEAppController extends AppController
 
         if result.items.length > 0
           @loadCollaborationFile file.result.items.first.id
-        else
+        else if @amIHost
           rtm.createFile title
           rtm.once 'FileCreated', (file) =>
             @loadCollaborationFile file.result.id
