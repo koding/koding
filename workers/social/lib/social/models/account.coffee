@@ -1265,10 +1265,17 @@ module.exports = class JAccount extends jraphical.Module
         then plan = 'free'
         else plan = subscription.planTitle
 
-        callback null, {
-          registeredAt, lastLoginDate, email, status
-          referrerUsername, referralUsed, plan
-        }
+        JMachine = require "./computeproviders/machine"
+        selector = 'users.id' : user.getId()
+
+        JMachine.some selector, limit: 30, (err, machines)->
+
+          if err? then machines = err
+
+          callback null, {
+            registeredAt, lastLoginDate, email, status
+            referrerUsername, referralUsed, plan, machines
+          }
 
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
