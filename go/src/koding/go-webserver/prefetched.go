@@ -35,25 +35,6 @@ func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
 	outputter.OnItem <- Item{Name: "Workspaces", Data: workspaces}
 }
 
-func socialUrls(id int64) map[string]string {
-	var urls = map[string]string{
-		"followedChannels": fmt.Sprintf(
-			"http://localhost:7000/account/%[1]s/channels?accountId=%[1]s", id,
-		),
-		"privateMessages": fmt.Sprintf(
-			"http://localhost:7000/privatemessage/list?accountId=1", id,
-		),
-		"popularposts": fmt.Sprintf(
-			"http://localhost:7000/popular/posts/public?accountId=%s", id,
-		),
-		"pinnedmessages": fmt.Sprintf(
-			"http://localhost:7000/activity/pin/list?accountId=%s", id,
-		),
-	}
-
-	return urls
-}
-
 func fetchSocial(socialApiId int64, outputter *Outputter) {
 	var wg sync.WaitGroup
 	urls := socialUrls(socialApiId)
@@ -110,4 +91,19 @@ func fetchSocialItem(url string) (interface{}, error) {
 	}
 
 	return data, nil
+}
+
+func socialUrls(id int64) map[string]string {
+	var urls = map[string]string{
+		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id),
+		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id),
+		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
+		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
+	}
+
+	return urls
+}
+
+func buildUrl(path string, id int64) string {
+	return fmt.Sprintf(path, conf.Client.RuntimeOptions.SocialApiUri, id)
 }
