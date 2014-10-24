@@ -84,7 +84,7 @@ func fetchSocialItem(url string) (interface{}, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New("status code was not 200")
+		return nil, errors.New("Socialapi return non 200 status")
 	}
 
 	var data interface{}
