@@ -3,7 +3,8 @@ site = SITE_NAME or argv.site or 'landing'
 base = "#{__dirname}/.."
 
 module.exports =
-  STYLES_PATH     : ["#{base}/site.#{site}/styl/*.styl"]
+  STYLES_PATH     : ["#{base}/site.#{site}/styl/*.styl", "!#{base}/site.#{site}/styl/sprite@*x.styl"]
+  SPRITES_PATH    : ["#{base}/site.#{site}/sprites*/**/*"]
   COFFEE_PATH     : ["#{base}/site.#{site}/coffee/**/*.coffee"]
   LIBS_PATH       : ["#{base}/site.#{site}/libs/**/*.js"]
   BROWSERFIY_PATH : ["#{base}/site.#{site}/coffee/main.coffee"]

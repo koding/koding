@@ -7,8 +7,12 @@ GLOBAL.SITE_NAME = site
 
 # CONSTANTS
 
-{ STYLES_PATH, COFFEE_PATH, INDEX_PATH
-  SERVER_FILE, SERVER_PATH, BUILD_PATH } = req 'helper.constants'
+{
+  STYLES_PATH, COFFEE_PATH
+  INDEX_PATH, SPRITES_PATH
+  SERVER_FILE, SERVER_PATH
+  BUILD_PATH
+} = req 'helper.constants'
 
 
 # HELPERS
@@ -49,11 +53,13 @@ gulp.task 'build-kd', req 'task.build-kd'
 
 # WATCHERS
 
-watchersTasks = [ 'watch-styles', 'watch-coffee' ]
+watchersTasks = [ 'watch-styles', 'watch-coffee', 'watch-sprites' ]
 
 getWatcherTask = (tasks, exporterTask) ->
   tasks.push exporterTask  if argv.exportDir
   return tasks
+
+gulp.task 'watch-sprites', ['sprites'], -> watchLogger 'cyan', gulp.watch SPRITES_PATH, (getWatcherTask ['styles'], 'export-only-sprites')
 
 gulp.task 'watch-styles', ['styles'], -> watchLogger 'cyan', gulp.watch STYLES_PATH, (getWatcherTask ['styles-only'], 'export-only-styles')
 
@@ -68,6 +74,7 @@ buildTasks = ['build-kd', 'libs', 'sprites', 'styles', 'coffee']
 gulp.task 'export-only', req 'task.export'
 gulp.task 'export-only-coffee', ['coffee'], req 'task.export'
 gulp.task 'export-only-styles', ['styles-only'], req 'task.export'
+gulp.task 'export-only-sprites', ['styles'], req 'task.export'
 
 gulp.task 'export', buildTasks, req 'task.export'
 
