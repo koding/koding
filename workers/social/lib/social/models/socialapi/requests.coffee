@@ -186,35 +186,37 @@ addParticipants = (data, callback)->
 
 removeParticipants = (data, callback)->
   url = "/channel/#{data.channelId}/participants/remove"
-  doChannelParticipantOperation data, url, (err, response)->
-    return callback err if err
-    cycleChannelHelper data, response, callback
+
+  {channelId, accountId} = data
+  # fetch channel details
+  channelById {id: channelId, accountId}, (err, channel)->
+    return callback err if err?
+    return callback { message: 'Channel not found' } unless channel?.channel
+
+    doChannelParticipantOperation data, url, (err, leftUsers)->
+      return callback err if err
+      cycleChannelHelper {leftUsers, channel}, callback
 
 # TODO we can move this to realtime worker later on
-cycleChannelHelper = (data, removeResult, callback)->
-  return callback { message: "user(s) could not leave the channel" } unless removeResult?.length
+cycleChannelHelper = ({leftUsers, channel}, callback)->
+  return callback { message: "user could not leave the channel" } unless leftUsers?.length
 
-  isUserRemoved = (removeResult)->
-    for accountResult in removeResult
-      return yes  if accountResult.statusConstant is 'left'
+  isUserRemoved = (leftUsers)->
+    return yes  for user in leftUsers when user.statusConstant is 'left'
 
     return no
 
-  return callback { message: "user(s) could not leave the channel" } unless isUserRemoved removeResult
+  return callback { message: "user could not leave the channel" } unless isUserRemoved leftUsers
 
-  {channelId, accountId} = data
-  channelById {id: channelId, accountId}, (err, channel)->
-    return callback err if err
-    return callback { message: 'Channel not found' } unless channel?.channel
-    {channel} = channel
-    options =
-      groupSlug     : channel.groupName
-      apiChannelType: channel.typeConstant
-      apiChannelName: channel.name
-    SocialChannel = require './channel'
-    SocialChannel.cycleChannel options, (err)->
-      return callback err if err
-      callback null, removeResult
+  {channel} = channel
+  options =
+    groupSlug     : channel.groupName
+    apiChannelType: channel.typeConstant
+    apiChannelName: channel.name
+  SocialChannel = require './channel'
+  SocialChannel.cycleChannel options, (err)->
+    return callback err if err?
+    callback null, leftUsers
 
 
 doChannelParticipantOperation = (data, url, callback)->
