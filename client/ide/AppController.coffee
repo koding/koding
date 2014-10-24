@@ -836,3 +836,10 @@ class IDEAppController extends AppController
     @rtm.on 'ValuesRemovedFromList', (list, value) =>
       @handleChange value.values[0]  if list is @changes
 
+
+  handleChange: (change) ->
+    myWatchMap = @rtm.getFromModel @realTimeDoc, "#{KD.nick()}WatchMap"
+    {origin}   = change
+
+    if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
+      log 'i need to handle this change...', change
