@@ -162,18 +162,6 @@ class ProfileView extends JView
       @sendMessageLink?.on 'MessageShouldBeSent', ({formOutput, callback}) =>
         @prepareMessage formOutput, callback
 
-    if KD.checkFlag 'super-admin' and not KD.isMine @memberData
-      @trollSwitch   = new KDCustomHTMLView
-        tagName      : "a"
-        partial      : if @memberData.isExempt then 'Unmark Troll' else 'Mark as Troll'
-        cssClass     : "troll-switch"
-        click        : =>
-          if @memberData.isExempt
-          then mainController.unmarkUserAsTroll @memberData
-          else mainController.markUserAsTroll   @memberData
-    else
-      @trollSwitch = new KDCustomHTMLView
-
   viewAppended:->
     super
     @createExternalProfiles()
