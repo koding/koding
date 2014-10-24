@@ -95,15 +95,15 @@ func fetchSocialItem(url string) (interface{}, error) {
 
 func socialUrls(id int64) map[string]string {
 	var urls = map[string]string{
-		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id),
-		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id),
-		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
-		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
+		"followedChannels": buildUrl("%s/account/%[2]d/channels?accountId=%[2]d", id),
+		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%d", id),
+		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%d", id),
+		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%d", id),
 	}
 
 	return urls
 }
 
 func buildUrl(path string, id int64) string {
-	return fmt.Sprintf(path, conf.Client.RuntimeOptions.SocialApiUri, id)
+	return fmt.Sprintf(path, conf.SocialApi.ProxyUrl, id)
 }
