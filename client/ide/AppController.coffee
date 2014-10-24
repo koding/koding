@@ -791,7 +791,12 @@ class IDEAppController extends AppController
     return  if not @realTimeDoc or not context
 
     {paneHash} = context
-    map        = @rtm.getFromModel @realTimeDoc, KD.nick()
+    nickname   = KD.nick()
+    map        = @rtm.getFromModel @realTimeDoc, nickname
+    changes    = @rtm.getFromModel @realTimeDoc, 'changes'
+
+    if change.origin is nickname
+      changes.push change
 
     switch change.type
 
