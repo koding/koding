@@ -44,18 +44,30 @@ class SocialApiController extends KDController
     then callback channel
     else @once "ChannelRegistered-#{channelName}", callback
 
-  leaveChannel: (channel) ->
+  leaveChannel = (response) ->
+    {first} = response
+    return  unless first
+
+    {socialapi} = KD.singletons
+    {channelId} = first
+    channel = socialapi._cache["privatemessage"][channelId]
+
+    return  unless channel
+
     channelName = generateChannelName channel
+
     # delete channel data from cache
-    delete @openedChannels[channelName] if @openedChannels[channelName]?
+    delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
+
     {typeConstant, id} = channel
-    delete @_cache[typeConstant][id]
+    delete socialapi._cache[typeConstant][id]
     # unsubscribe from the channel.
     # When a user leaves, and then rejoins a private channel, broker sends
     # related channel from cache, but this channel contains old secret name.
     # For this reason I have added this unsubscribe call.
     # !!! This cache invalidation must be handled when cycleChannel event is received
     KD.remote.mq.unsubscribe channelName
+
 
   mapActivity = (data) ->
 
@@ -522,6 +534,7 @@ class SocialApiController extends KDController
     leave                 : channelRequesterFn
       fnName              : 'leave'
       validateOptionsWith : ['channelId']
+      successFn           : leaveChannel
 
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'
