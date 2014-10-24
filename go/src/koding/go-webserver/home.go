@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+var (
+	TimeoutTime = 750 * time.Millisecond
+)
+
 // HomeHandler renders both loggedin and loggedout page for user.
 // When user is loggedin, we send some extra data with the payload
 // so the client doesn't need to fetch them after the page loads.
@@ -36,16 +40,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	user.Set("SessionId", userInfo.ClientId)
 	user.Set("Impersonating", userInfo.Impersonating)
 
-	// the goroutines below (and maybe one above) will work in parallel
-	// and send results
+	// the goroutines below (and maybe one above) work in parallel
+	// and send items to here to be collected
 	go collectItems(user, onItem, onDone, collectItemCount)
 
-	go sendAccount(userInfo.Account, outputter)
+	// prefetch items
+	go sendAccount(userInfo.Account, outputter) // this is fetched above
 	go fetchMachines(userInfo.UserId, outputter)
 	go fetchWorkspaces(userInfo.AccountId, outputter)
 
-	// return in 750ms regardless and let client get what it wants
-	timeout := time.NewTimer(time.Millisecond * 750)
+	// return if timeout reached and let client get what it wants
+	timeout := time.NewTimer(time.Millisecond * TimeoutTime)
 
 	select {
 	case <-onError:
