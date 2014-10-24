@@ -10,7 +10,8 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// UserInfo contains the relevant user models.
+// UserInfo contains the relevant user models and other info
+// required to render loggedin page.
 type UserInfo struct {
 	ClientId, Username, SocialApiId string
 	UserId, AccountId               bson.ObjectId
@@ -18,9 +19,9 @@ type UserInfo struct {
 	Impersonating                   bool
 }
 
-// fetchUseInfo fetches different user models and returns
-// UserInfo. It first fetches `clientId` cookie and if it exists, it
-// fetches JSession and other info.
+// fetchUseInfo fetches different user models and returns UserInfo.
+// It first fetches `clientId` cookie and if it exists, it fetches
+// JSession and other info.
 func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 	cookie, err := getCookie(w, r)
 	if err != nil {
