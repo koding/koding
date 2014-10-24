@@ -14,6 +14,7 @@ import (
 type UserInfo struct {
 	ClientId      string
 	Username      string
+	SocialApiId   int64
 	UserId        bson.ObjectId
 	AccountId     bson.ObjectId
 	Account       *models.Account
@@ -50,6 +51,7 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 	userInfo := &UserInfo{
 		ClientId:      clientId,
 		Username:      username,
+		SocialApiId:   account.SocialApiId,
 		AccountId:     account.Id,
 		UserId:        user.ObjectId,
 		Account:       account,

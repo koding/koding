@@ -35,15 +35,28 @@ func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
 	outputter.OnItem <- Item{Name: "Workspaces", Data: workspaces}
 }
 
-func fetchSocial(accountId bson.ObjectId, outputter *Outputter) {
-	var wg sync.WaitGroup
-
+func socialUrls(id int64) map[string]string {
 	var urls = map[string]string{
-		"followedChannels": "http://localhost:7000/account/1/channels?accountId=1",
-		"privateMessages":  "http://localhost:7000/privatemessage/list?accountId=1",
-		"popularposts":     "http://localhost:7000/popular/posts/public?accountId=1",
-		"pinnedmessages":   "http://localhost:7000/activity/pin/list?accountId=1",
+		"followedChannels": fmt.Sprintf(
+			"http://localhost:7000/account/%[1]s/channels?accountId=%[1]s", id,
+		),
+		"privateMessages": fmt.Sprintf(
+			"http://localhost:7000/privatemessage/list?accountId=1", id,
+		),
+		"popularposts": fmt.Sprintf(
+			"http://localhost:7000/popular/posts/public?accountId=%s", id,
+		),
+		"pinnedmessages": fmt.Sprintf(
+			"http://localhost:7000/activity/pin/list?accountId=%s", id,
+		),
 	}
+
+	return urls
+}
+
+func fetchSocial(socialApiId int64, outputter *Outputter) {
+	var wg sync.WaitGroup
+	urls := socialUrls(socialApiId)
 
 	onItem := make(chan Item, len(urls))
 

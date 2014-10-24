@@ -39,7 +39,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	go sendAccount(userInfo.Account, outputter)
 	go fetchMachines(userInfo.UserId, outputter)
 	go fetchWorkspaces(userInfo.AccountId, outputter)
-	go fetchSocial(userInfo.AccountId, outputter)
+	go fetchSocial(userInfo.SocialApiId, outputter)
 
 	select {
 	case <-onError:
