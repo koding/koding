@@ -24,13 +24,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	user.Set("SessionId", userInfo.ClientId)
 	user.Set("Impersonating", userInfo.Impersonating)
 
-	// 4 goroutines below will work in parallel & send results
-	go collectItems(user, onItem, onDone, 4)
+	var collectItemCount = 3
+
+	// on new register, there's a race condition where SocialApiId
+	// isn't sometimes set; in that case don't prefetch socialdata
+	// since it'll return empty
+	if !isSocialIdEmpty(userInfo.SocialApiId) {
+		collectItemCount = 4
+		go fetchSocial(userInfo.SocialApiId, outputter)
+	}
+
+	// 3 goroutines below will work in parallel & send results
+	go collectItems(user, onItem, onDone, collectItemCount)
 
 	go sendAccount(userInfo.Account, outputter)
 	go fetchMachines(userInfo.UserId, outputter)
 	go fetchWorkspaces(userInfo.AccountId, outputter)
-	go fetchSocial(userInfo.SocialApiId, outputter)
 
 	// return in 750ms regardless and let client get what it wants
 	timeout := time.NewTimer(time.Millisecond * 750)
@@ -52,4 +61,8 @@ func collectItems(resp *LoggedInUser, onItem <-chan Item, onDone chan<- bool, ma
 	}
 
 	onDone <- true
+}
+
+func isSocialIdEmpty(id string) bool {
+	return id == ""
 }
