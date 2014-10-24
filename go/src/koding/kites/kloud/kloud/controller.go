@@ -53,6 +53,7 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
+				"instanceType": resp.InstanceType,
 			},
 		})
 
@@ -89,6 +90,7 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
+				"instanceType": resp.InstanceType,
 			},
 		})
 
@@ -128,6 +130,7 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
+				"instanceType": resp.InstanceType,
 				"queryString":  resp.KiteQuery,
 			},
 		})
