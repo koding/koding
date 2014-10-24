@@ -76,11 +76,6 @@ type Machine struct {
 	State machinestate.State
 }
 
-// Domain represents a machines domain necessary information
-type Domain struct {
-	Name string
-}
-
 // Artifact should be returned from a Build method. It contains data
 // that is needed in other interfaces
 type Artifact struct {
@@ -98,6 +93,10 @@ type Artifact struct {
 	// given by the third-party provider, for example DigitalOcean returns a
 	// droplet Id, AWS returns an instance id, etc..
 	InstanceId string
+
+	// InstanceType defines the type of the instance. Such as t2.micro,
+	// m3.medium and so on
+	InstanceType string
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
@@ -125,4 +124,7 @@ type InfoArtifact struct {
 
 	// Name defines the name of the machine.
 	Name string
+
+	// InstanceType defines the type of the given machine
+	InstanceType string
 }

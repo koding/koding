@@ -44,6 +44,31 @@ class SocialApiController extends KDController
     then callback channel
     else @once "ChannelRegistered-#{channelName}", callback
 
+  leaveChannel = (response) ->
+    {first} = response
+    return  unless first
+
+    {socialapi} = KD.singletons
+    {channelId} = first
+    channel = socialapi._cache["privatemessage"][channelId]
+
+    return  unless channel
+
+    channelName = generateChannelName channel
+
+    # delete channel data from cache
+    delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
+
+    {typeConstant, id} = channel
+    delete socialapi._cache[typeConstant][id]
+    # unsubscribe from the channel.
+    # When a user leaves, and then rejoins a private channel, broker sends
+    # related channel from cache, but this channel contains old secret name.
+    # For this reason I have added this unsubscribe call.
+    # !!! This cache invalidation must be handled when cycleChannel event is received
+    KD.remote.mq.unsubscribe channelName
+
+
   mapActivity = (data) ->
 
     return  unless data
@@ -75,7 +100,7 @@ class SocialApiController extends KDController
         actorsPreview : []
         isInteracted  : no
 
-    if payload
+    if payload?.link_url
       m.link       =
         link_url   : payload.link_url
         link_embed :
@@ -171,11 +196,38 @@ class SocialApiController extends KDController
   mapChannels: mapChannels
 
 
+  # this method will prevent the arrival of
+  # realtime messages to the individual messages
+  # if the message is mine and current window has focus.
+  isFromOtherBrowser = (message) ->
 
-  forwardMessageEvents = (source, target,  events)->
-    events.forEach ({event, mapperFn}) ->
+    # selenium doesn't put focus into the
+    # spawned browser, it's causing problems.
+    # Probably a temporary fix.
+    # This flag needs to be set before running
+    # tests. ~Umut
+    return no  if KD.isTesting
+
+    isMyPost  = KD.isMyPost message
+    isFocused = KD.singletons.windowController.isFocused()
+    isBlocker = isMyPost and isFocused
+
+    return not isBlocker
+
+  isFromOtherBrowser : isFromOtherBrowser
+
+  forwardMessageEvents = (source, target, events) ->
+    events.forEach ({event, mapperFn, validatorFn}) ->
       source.on event, (data, rest...) ->
+
         data = mapperFn data
+
+        if validatorFn
+          if typeof validatorFn isnt "function"
+            return warn "validator function is not valid"
+
+          return  unless validatorFn(data)
+
         target.emit event, data, rest...
 
   forwardMessageEvents : forwardMessageEvents
@@ -212,14 +264,6 @@ class SocialApiController extends KDController
         # notify listener
         socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
-
-  cycleChannel: (channel, callback)->
-    options =
-      groupSlug     : channel.groupName
-      apiChannelType: channel.typeConstant
-      apiChannelName: channel.name
-    KD.remote.api.SocialChannel.cycleChannel options, callback
-
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
@@ -231,9 +275,13 @@ class SocialApiController extends KDController
     options.apiType = "channel"
     return requester options
 
+  notificationRequesterFn = (options)->
+    options.apiType = "notification"
+    return requester options
+
   requester = (req) ->
     (options, callback)->
-      {fnName, validate, mapperFn, defaults, apiType} = req
+      {fnName, validate, mapperFn, defaults, apiType, successFn} = req
       # set default mapperFn
       mapperFn or= (value) -> return value
       if validate?.length > 0
@@ -247,13 +295,17 @@ class SocialApiController extends KDController
       _.defaults options, defaults  if defaults
 
       api = {}
-      if apiType is "channel"
-        api = KD.remote.api.SocialChannel
-      else
-        api = KD.remote.api.SocialMessage
+      switch apiType
+        when "channel"
+          api = KD.remote.api.SocialChannel
+        when "notification"
+          api = KD.remote.api.SocialNotification
+        else
+          api = KD.remote.api.SocialMessage
 
       api[fnName] options, (err, result)->
         return callback err if err
+        successFn result if successFn and typeof successFn is "function"
         return callback null, mapperFn result
 
   cacheItem: (item) ->
@@ -307,11 +359,19 @@ class SocialApiController extends KDController
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded", mapperFn: mapActivity}
-      {event: "MessageRemoved", mapperFn: mapActivity}
-      {event: "AddedToChannel", mapperFn: mapParticipant}
-      {event: "ChannelDeleted", mapperFn: mapChannel}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "AddedToChannel",     mapperFn: mapParticipant}
+      {event: "RemovedFromChannel", mapperFn: mapParticipant}
+      {event: "ChannelDeleted",     mapperFn: mapChannel}
     ]
+
+  serialize = (obj) ->
+    str = []
+    for own p of obj
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]))
+
+    return str.join "&"
 
   message:
     byId                 : messageRequesterFn
@@ -409,10 +469,27 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : channelRequesterFn
-      fnName             : 'fetchActivities'
-      validateOptionsWith: ['id']
-      mapperFn           : mapActivities
+    fetchActivities      : (options, callback)->
+      err = {message: "An error occured"}
+
+      xhr = new XMLHttpRequest
+      endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
+      xhr.open 'GET', endPoint
+      xhr.onreadystatechange = =>
+        # 0     - connection failed
+        # >=400 - http errors
+        return if xhr.status is 0 or xhr.status >= 400
+          return callback err
+
+        return if xhr.readyState isnt 4
+
+        if xhr.status not in [200, 304]
+          return callback err
+
+        response = JSON.parse xhr.responseText
+        return callback null, mapActivities response
+
+      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'
@@ -454,6 +531,11 @@ class SocialApiController extends KDController
       fnName              : 'removeParticipants'
       validateOptionsWith : ['channelId', "accountIds"]
 
+    leave                 : channelRequesterFn
+      fnName              : 'leave'
+      validateOptionsWith : ['channelId']
+      successFn           : leaveChannel
+
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'
       mapperFn           : mapChannels
@@ -476,4 +558,15 @@ class SocialApiController extends KDController
       fnName             : 'updateLastSeenTime'
       validateOptionsWith: ["channelId"]
 
+    delete               : channelRequesterFn
+      fnName             : 'delete'
+      validateOptionsWith: ["channelId"]
+
     revive               : mapChannel
+
+  notifications          :
+    fetch                : notificationRequesterFn
+      fnName             : 'fetch'
+
+    glance               : notificationRequesterFn
+      fnName             : 'glance'

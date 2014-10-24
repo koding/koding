@@ -36,6 +36,7 @@ module.exports = class JSession extends Model
         facebook    : Object
         linkedin    : Object
       foreignAuthType : String
+      impersonating : Boolean
     sharedEvents    :
       instance      : []
       static        : []
@@ -84,6 +85,17 @@ module.exports = class JSession extends Model
         callback null, { session }
       else
         @createSession callback
+
+  @fetchGuestUserSession = (callback) ->
+    username = 'guestuser'
+    @one {username}, (err, session) ->
+      return callback err if err?
+      return callback null, session if session?
+      clientId = createId()
+      session = new JSession { clientId, username }
+      session.save (err)->
+        return callback err if err?
+        callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
     JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->

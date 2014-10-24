@@ -56,6 +56,7 @@ module.exports = [
   "CommonViews/linkviews/taglinkview.coffee",
   "CommonViews/linkviews/applinkview.coffee",
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
+  "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/splitview.coffee",
   "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
@@ -114,6 +115,7 @@ module.exports = [
   "CommonViews/topicfollowbutton.coffee",
 
   "CommonViews/trollbutton.coffee",
+  "CommonViews/metainfobuttonview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
@@ -178,7 +180,10 @@ module.exports = [
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
-  "guideslinksview.coffee"
+  "domains/managedomainsview.coffee",
+  "domains/domainitem.coffee",
+
+  "guideslinksview.coffee",
   "workspacesettingspopup.coffee",
 
   # LOCATION
@@ -234,6 +239,11 @@ module.exports = [
   "avatararea/avatarareapopuplist.coffee",
   "avatararea/avatarareagroupswitcherpopup.coffee",
   "avatararea/avatarareaiconlink.coffee",
+
+  # notifications
+  "notifications/popupnotifications.coffee",
+  "notifications/notificationlistitem.coffee",
+  "notifications/notificationlistcontroller.coffee",
 
   "maincontroller/groupdata.coffee",
   "maincontroller/groupscontroller.coffee",

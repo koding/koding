@@ -25,6 +25,12 @@ createAccount = ({id, nickname}, callback)->
   url = "/account"
   post url, {oldId: id, nick: nickname}, callback
 
+updateAccount = ({id, nick}, callback)->
+  if not id or not nick
+    return callback {message:"Request is not valid for updating account"}
+  url = "/account/#{id}"
+  post url, {id, nick}, callback
+
 createChannel = (data, callback)->
   unless data.name or data.creatorId
     return callback { message: "Request is not valid for creating channel"}
@@ -76,7 +82,7 @@ deleteMessage = (data, callback)->
   unless data.id
     return callback { message: "Request is not valid for deleting message"}
   url =  "/message/#{data.id}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 likeMessage = (data, callback)->
   unless data.id
@@ -155,6 +161,20 @@ glancePinnedPost = (data, callback)->
   url = "/activity/pin/glance"
   post url, data, callback
 
+glanceNotifications = (data, callback)->
+  if not data.accountId
+    return callback { message: "Request is not valid"}
+
+  url = "/notification/glance"
+  post url, data, callback
+
+listNotifications = (data, callback)->
+  if not data.accountId # or not data.groupName
+    return callback {message: "Request is not valid"}
+
+  url = "/notification/#{data.accountId}"
+  get url, data, callback
+
 listParticipants = (data, callback)->
   return callback { message: "Request is not valid" } unless data.channelId
   url = "/channel/#{data.channelId}/participants"
@@ -166,35 +186,37 @@ addParticipants = (data, callback)->
 
 removeParticipants = (data, callback)->
   url = "/channel/#{data.channelId}/participants/remove"
-  doChannelParticipantOperation data, url, (err, response)->
-    return callback err if err
-    cycleChannelHelper data, response, callback
+
+  {channelId, accountId} = data
+  # fetch channel details
+  channelById {id: channelId, accountId}, (err, channel)->
+    return callback err if err?
+    return callback { message: 'Channel not found' } unless channel?.channel
+
+    doChannelParticipantOperation data, url, (err, leftUsers)->
+      return callback err if err
+      cycleChannelHelper {leftUsers, channel}, callback
 
 # TODO we can move this to realtime worker later on
-cycleChannelHelper = (data, removeResult, callback)->
-  return callback { message: "user(s) could not leave the channel" } unless removeResult?.length
+cycleChannelHelper = ({leftUsers, channel}, callback)->
+  return callback { message: "user could not leave the channel" } unless leftUsers?.length
 
-  isUserRemoved = (removeResult)->
-    for accountResult in removeResult
-      return yes  if accountResult.statusConstant is 'left'
+  isUserRemoved = (leftUsers)->
+    return yes  for user in leftUsers when user.statusConstant is 'left'
 
     return no
 
-  return callback { message: "user(s) could not leave the channel" } unless isUserRemoved removeResult
+  return callback { message: "user could not leave the channel" } unless isUserRemoved leftUsers
 
-  {channelId, accountId} = data
-  channelById {id: channelId, accountId}, (err, channel)->
-    return callback err if err
-    return callback { message: 'Channel not found' } unless channel?.channel
-    {channel} = channel
-    options =
-      groupSlug     : channel.groupName
-      apiChannelType: channel.typeConstant
-      apiChannelName: channel.name
-    SocialChannel = require './channel'
-    SocialChannel.cycleChannel options, (err)->
-      return callback err if err
-      callback null, removeResult
+  {channel} = channel
+  options =
+    groupSlug     : channel.groupName
+    apiChannelType: channel.typeConstant
+    apiChannelName: channel.name
+  SocialChannel = require './channel'
+  SocialChannel.cycleChannel options, (err)->
+    return callback err if err?
+    callback null, leftUsers
 
 
 doChannelParticipantOperation = (data, url, callback)->
@@ -341,7 +363,7 @@ unmarkAsTroll = (data, callback)->
     return callback {message: "Request is not valid"}
 
   url = "/trollmode/#{data.accountId}"
-  deleteReq url, callback
+  deleteReq url, data, callback
 
 getSiteMap = (data, callback)->
   url = data.name
@@ -359,40 +381,69 @@ checkOwnership = (data, callback) ->
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
-      body   : data
       method : 'POST'
-    , wrapCallback callback
 
-deleteReq = (url, callback)->
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    reqOptions.body = data
+
+    request reqOptions, wrapCallback callback
+
+deleteReq = (url, data, callback)->
+  [data, callback] = [callback, null] unless callback
+
   getNextApiURL (err, apiurl)->
     return callback err if err
 
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       json   : true
       method : 'DELETE'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 getXml = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    request reqOptions, wrapCallback callback
 
 get = (url, data, callback)->
   getNextApiURL (err, apiurl)->
     return callback err if err
-    request
+    reqOptions =
       url    : "#{apiurl}#{url}"
-      qs     : data
       json   : true
       method : 'GET'
-    , wrapCallback callback
+
+    {reqOptions, data} = setCookieIfRequired reqOptions, data
+
+    # finally set query string
+    reqOptions.qs = data
+
+    request reqOptions, wrapCallback callback
+
+setCookieIfRequired = (reqOptions, data)->
+  # inject clientId cookie if exists
+  if data?.sessionToken
+    j = request.jar()
+    cookie = request.cookie "clientId=#{data.sessionToken}"
+    j.setCookie cookie, reqOptions.url, {}, ->
+    reqOptions.jar = j
+
+    delete data.sessionToken
+
+  return {reqOptions, data}
 
 module.exports = {
   unmarkAsTroll
@@ -403,6 +454,8 @@ module.exports = {
   channelById
   channelByName
   glancePinnedPost
+  glanceNotifications
+  listNotifications
   updateLastSeenTime
   fetchProfileFeed
   searchTopics
@@ -430,6 +483,7 @@ module.exports = {
   editMessage
   postToChannel
   createAccount
+  updateAccount
   createChannel
   fetchMessage
   fetchChannelActivities
@@ -443,4 +497,5 @@ module.exports = {
   checkOwnership
   post
   get
+  deleteReq
 }

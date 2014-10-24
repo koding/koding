@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 var (
@@ -22,10 +23,7 @@ func init() {
 	}
 }
 
-// Gets URL and string data to be sent and makes request
-// reads response body and returns as string
-func DoRequest(requestType, url string, data []byte) ([]byte, error) {
-	//convert string into bytestream
+func createHttpReq(requestType, url string, data []byte) (*http.Request, error) {
 	var req *http.Request
 	var err error
 
@@ -37,9 +35,49 @@ func DoRequest(requestType, url string, data []byte) ([]byte, error) {
 	}
 
 	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// Gets URL and string data to be sent and makes request
+// reads response body and returns as string
+func DoRequest(requestType, url string, data []byte) ([]byte, error) {
+	req, err := createHttpReq(requestType, url, data)
+	if err != nil {
 		return make([]byte, 0), err
 	}
 
+	return DoWithRequest(req, requestType, url, data)
+}
+
+func DoRequestWithAuth(requestType, url string, data []byte, token string) ([]byte, error) {
+	req, err := createHttpReq(requestType, url, data)
+	if err != nil {
+		return make([]byte, 0), err
+	}
+
+	expire := time.Now().AddDate(0, 0, 1)
+	cookie := http.Cookie{
+		Name:       "clientId",
+		Value:      token,
+		Path:       "/",
+		Domain:     "localhost",
+		Expires:    expire,
+		RawExpires: expire.Format(time.UnixDate),
+		Raw:        "clientId=" + token,
+		Unparsed:   []string{"test=" + token},
+	}
+
+	req.AddCookie(&cookie)
+
+	return DoWithRequest(req, requestType, url, data)
+}
+
+// Gets URL and string data to be sent and makes request
+// reads response body and returns as string
+func DoWithRequest(req *http.Request, requestType, url string, data []byte) ([]byte, error) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 
@@ -112,4 +150,9 @@ func marshallAndSendRequest(reqType, url string, model interface{}) ([]byte, err
 func sendRequest(reqType, url string, data []byte) ([]byte, error) {
 	url = fmt.Sprintf("%s%s", ENDPOINT, url)
 	return DoRequest(reqType, url, data)
+}
+
+func sendRequestWithAuth(reqType, url string, data []byte, token string) ([]byte, error) {
+	url = fmt.Sprintf("%s%s", ENDPOINT, url)
+	return DoRequestWithAuth(reqType, url, data, token)
 }

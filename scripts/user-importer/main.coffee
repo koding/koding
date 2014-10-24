@@ -104,7 +104,7 @@ createUsers = (users)->
         setTimeout ->
           console.log "\nALL DONE."
           process.exit 0
-        , 5000
+        , 10000
 
 
 csv = require 'csv'

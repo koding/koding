@@ -110,6 +110,49 @@ func TestAccountFetchAccountById(t *testing.T) {
 	})
 }
 
+func TestAccountByNick(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching an account by nick", t, func() {
+		Convey("it should not have error while fething", func() {
+			// create account
+			acc := createAccountWithTest()
+			So(acc.Create(), ShouldBeNil)
+
+			fa := NewAccount()
+
+			// fetch the account by nick of account
+			err := fa.ByNick(acc.Nick)
+			// error should be nil
+			// means that fetching is done successfully
+			So(err, ShouldBeNil)
+			// account in the db should be equal to fetched account
+			So(fa.Id, ShouldEqual, acc.Id)
+			So(fa.OldId, ShouldEqual, acc.OldId)
+			So(fa.Nick, ShouldEqual, acc.Nick)
+		})
+
+		Convey("it should have error if nick is not set", func() {
+			fa := NewAccount()
+			err := fa.ByNick("")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrNickIsNotSet)
+		})
+
+		Convey("it should have error if record is not found", func() {
+			fa := NewAccount()
+			err := fa.ByNick("foobarzaa")
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+	})
+}
+
 func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
@@ -263,15 +306,15 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 
-		Convey("it should have error if not troll", func() {
-			// create account
-			acc := createAccountWithTest()
-			So(acc.Create(), ShouldBeNil)
+		// Convey("it should have error if not troll", func() {
+		// 	// create account
+		// 	acc := createAccountWithTest()
+		// 	So(acc.Create(), ShouldBeNil)
 
-			err := acc.UnMarkAsTroll()
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "account is not a troll")
-		})
+		// 	err := acc.UnMarkAsTroll()
+		// 	So(err, ShouldNotBeNil)
+		// 	So(err.Error(), ShouldContainSubstring, "account is not a troll")
+		// })
 
 		Convey("it should not have error if troll is mark as not a troll", func() {
 			// create account
@@ -310,16 +353,16 @@ func TestAccountMarkAsTroll(t *testing.T) {
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
 
-		Convey("it should have error if account is already troll", func() {
-			// create account
-			acc := createAccountWithTest()
-			acc.IsTroll = true
-			So(acc.Create(), ShouldBeNil)
+		// Convey("it should have error if account is already troll", func() {
+		// 	// create account
+		// 	acc := createAccountWithTest()
+		// 	acc.IsTroll = true
+		// 	So(acc.Create(), ShouldBeNil)
 
-			err := acc.MarkAsTroll()
-			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, "account is already a troll")
-		})
+		// 	err := acc.MarkAsTroll()
+		// 	So(err, ShouldNotBeNil)
+		// 	So(err.Error(), ShouldContainSubstring, "account is already a troll")
+		// })
 
 		Convey("it should not have error if non-troll account is marked as troll", func() {
 			// create account
@@ -378,4 +421,34 @@ func TestAccountFetchChannel(t *testing.T) {
 		})
 
 	})
+}
+
+func TestAccountsByNick(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching account ids by nicknames", t, func() {
+		Convey("it should not fetch any accounts when nicknames are empty", func() {
+			nicknames := make([]string, 0)
+
+			accounts, err := FetchAccountsByNicks(nicknames)
+			So(err, ShouldBeNil)
+			So(len(accounts), ShouldEqual, 0)
+		})
+
+		Convey("it should fetch accounts by nicknames", func() {
+			acc1 := createAccountWithTest()
+			acc2 := createAccountWithTest()
+			nicknames := make([]string, 0)
+			nicknames = append(nicknames, acc1.Nick, acc2.Nick)
+			accounts, err := FetchAccountsByNicks(nicknames)
+			So(err, ShouldBeNil)
+			So(accounts, ShouldNotBeNil)
+			So(len(accounts), ShouldEqual, 2)
+		})
+	})
+
 }

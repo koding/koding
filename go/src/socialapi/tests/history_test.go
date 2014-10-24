@@ -1,22 +1,30 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
+	"socialapi/workers/common/runner"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChannelHistory(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
 	Convey("While testing history of a channel", t, func() {
 		var channel *models.Channel
-		var err error
 		Convey("We should be able to create it(channel) first", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err = rest.CreateAccount(account)
+			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
@@ -42,11 +50,57 @@ func TestChannelHistory(t *testing.T) {
 
 						}
 						Convey("We should be able to fetch the history", func() {
-							history, err := rest.GetHistory(channel.Id, &request.Query{AccountId: channelParticipant.AccountId})
+
+							ses, err := models.FetchOrCreateSession(account.Nick)
+							So(err, ShouldBeNil)
+							So(ses, ShouldNotBeNil)
+
+							history, err := rest.GetHistory(
+								channel.Id,
+								&request.Query{
+									AccountId: channelParticipant.AccountId,
+								},
+								ses.ClientId,
+							)
 							So(err, ShouldBeNil)
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
 						})
+						Convey("We should be not able to fetch the history if the clientId is not set", func() {
+
+							ses, err := models.FetchOrCreateSession(account.Nick)
+							So(err, ShouldBeNil)
+							So(ses, ShouldNotBeNil)
+
+							history, err := rest.GetHistory(
+								channel.Id,
+								&request.Query{
+									AccountId: channelParticipant.AccountId,
+								},
+								"",
+							)
+							So(err, ShouldNotBeNil)
+							So(history, ShouldBeNil)
+						})
+
+						Convey("We should be not able to fetch the history if the clientId doesnt exist", func() {
+
+							ses, err := models.FetchOrCreateSession(account.Nick)
+							So(err, ShouldBeNil)
+							So(ses, ShouldNotBeNil)
+
+							history, err := rest.GetHistory(
+								channel.Id,
+								&request.Query{
+									AccountId: channelParticipant.AccountId,
+								},
+								"foobarzaa",
+							)
+
+							So(err, ShouldNotBeNil)
+							So(history, ShouldBeNil)
+						})
+
 						Convey("We should be able to get channel message count", func() {
 							count, err := rest.CountHistory(channel.Id)
 							So(err, ShouldBeNil)

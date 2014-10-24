@@ -4,13 +4,15 @@ class CommentListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = 'comment'
+    options.type     = 'comment'
 
     super options, data
 
     (KD.singleton 'mainController').on 'AccountChanged', @bound 'addMenu'
 
     @initDataEvents()
+
+    @bindTransitionEnd()
 
 
   initDataEvents: ->
@@ -27,35 +29,6 @@ class CommentListItemView extends KDListItemView
     if updatedAt > createdAt
     then @setClass 'edited'
     else @unsetClass 'edited'
-
-
-  # setAnchors: ->
-
-  #   @$("p a").each (index, element) ->
-  #     href = element.getAttribute "href"
-  #     return  unless href
-
-  #     {location: {origin}} = window
-
-  #     beginning = href.substring 0, origin.length
-  #     rest      = href.substring origin.length + 1
-
-  #     if beginning is origin
-  #       element.setAttribute "href", "/#{rest}"
-  #     else if href is "/#{rest}" continue
-  #     else
-  #       element.setAttribute "target", "_blank"
-
-
-  # click: (event) ->
-
-  #   KD.utils.stopDOMEvent event
-
-  #   KD.singletons.router.handleRoute event.target.getAttribute 'href'
-
-  #   KD.utils.showMoreClickHandler event
-
-  #   return false
 
 
   handleInternalLink: (event) ->
@@ -128,9 +101,15 @@ class CommentListItemView extends KDListItemView
   showDeleteModal: ->
 
     modal = new CommentDeleteModal {}, @getData()
-    modal.once "DeleteClicked"   , @bound "hide"
-    modal.once "DeleteConfirmed" , @bound "destroy"
-    modal.once "DeleteError"     , @bound "show"
+    modal.once 'DeleteClicked'   , @bound 'hide'
+    modal.once 'DeleteConfirmed' , @bound 'delete'
+    modal.once 'DeleteError'     , @bound 'show'
+
+
+  hide          : ActivityListItemView::hide
+  show          : ActivityListItemView::show
+  delete        : ActivityListItemView::delete
+  whenSubmitted : ActivityListItemView::whenSubmitted
 
 
   createReplyLink: ->
@@ -167,8 +146,8 @@ class CommentListItemView extends KDListItemView
     owner         = KD.isMyPost comment
     postOwner     = KD.isMyPost activity
     hasPermission = KD.utils.hasPermission.bind()
-    canEdit       = hasPermission 'edit comments'
-    canEditOwn    = hasPermission 'edit own comments'
+    canEdit       = hasPermission 'edit posts'
+    canEditOwn    = hasPermission 'edit own posts'
 
     if canEdit or (owner and canEditOwn)
       @addMenuView edit: yes, delete: yes

@@ -14,7 +14,7 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
         guides      :
           label     : "Related Guides"
           itemClass : GuidesLinksView
-          links     : "Understanding Workspaces" : "http://learn.koding.com"
+          links     : "Understanding Workspaces" : "http://learn.koding.com/guides/getting-started/workspaces/"
 
     super options, data
 

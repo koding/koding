@@ -20,17 +20,14 @@ class Machine extends KDObject
 
   constructor: (options = {})->
 
-    { machine, stack } = options
+    { machine } = options
     unless machine?.bongo_?.constructorName is 'JMachine'
       error 'Data should be a JMachine instance'
-      # throw new Error 'Data should be a JMachine instance'
 
     delete options.machine
-    delete options.stack
 
     super options, machine
 
-    @stack    = stack
     @jMachine = @getData()
     @updateLocalData()
 

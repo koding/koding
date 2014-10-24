@@ -12,7 +12,6 @@ class SidebarMessageItem extends SidebarItem
 
     data.on 'ChannelDeleted', @bound 'channelDeleted'
 
-    @icon = new SidebarMessageItemIcon {}, data
     @text = new SidebarMessageItemText {}, data
 
     owner = data.creatorId is KD.whoami().socialApiId
@@ -41,7 +40,6 @@ class SidebarMessageItem extends SidebarItem
   pistachio: ->
 
     """
-    {{> @icon}}
     {{> @text}}
     {{> @endButton}}
     {{> @unreadCount}}

@@ -3,12 +3,14 @@
 encoder      = require 'htmlencode'
 
 module.exports = (options={})->
-  options.title    ?= "A new way for developers to work."
+  options.title    ?= "Koding | Say goodbye to your localhost and write code in the cloud."
   options.shareUrl ?= "https://koding.com"
   options.image    ?= "#{uri.address}/a/images/logos/share_logo.png"
-  options.body     ?= "Koding is a developer community and cloud development environment where developers come together and code in the browser."
+  options.body     ?= "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 
   """
+  <title>#{options.title}</title>
+  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
   <meta charset="utf-8">
 
   <meta name="msvalidate.01" content="F56689F2116FE1CC34876D855B2A5A8A" />
@@ -23,7 +25,7 @@ module.exports = (options={})->
   <meta itemprop="image" content="#{uri.address}/a/images/logos/share_logo.png">
 
   <!-- og meta tags -->
-  <meta property="og:title" content="#{encoder.XSSEncode options.title}/>
+  <meta property="og:title" content="#{encoder.XSSEncode options.title}"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="#{options.shareUrl}"/>
   <meta property="og:image" content="#{options.image}"/>
@@ -55,5 +57,7 @@ module.exports = (options={})->
   <link rel="stylesheet" href="/a/css/kd.css?#{version}">
   <link rel="stylesheet" href="/a/css/koding.css?#{version}">
   <link class="internal-style-app-members" rel="stylesheet" href="/a/css/__app.members.css?#{version}">
+
+  <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 
   """

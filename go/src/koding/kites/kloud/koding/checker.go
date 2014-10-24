@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"koding/db/mongodb"
 	"strconv"
@@ -110,11 +111,31 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
-	// connect and get real time data directly from the machines klient
-	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
+	// check aws to see if it's still running
+	infoResp, err := p.Provider.Info(p.Machine)
 	if err != nil {
 		return err
 	}
+
+	if infoResp.State != machinestate.Running {
+		return errors.New("machine is not running")
+	}
+
+	// connect and get real time data directly from the machines klient
+	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
+	if err == kite.ErrNoKitesAvailable {
+		p.Provider.startTimer(p.Machine)
+		return err
+	}
+
+	// return if it's something else
+	if err != nil {
+		return err
+	}
+
+	// now the klient is connected again, stop the timer and remove it from the
+	// list of inactive machines if it's still there.
+	p.Provider.stopTimer(p.Machine)
 
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klient.Usage()
@@ -143,14 +164,17 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
+		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, plan)
 
 	// lock so it doesn't interfere with others.
 	p.Provider.Lock(p.Machine.Id)
 	defer p.Provider.Unlock(p.Machine.Id)
 
 	// mark our state as stopping so others know what we are doing
-	p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
+	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
+		planTimeout.Minutes())
+
+	p.Provider.UpdateState(p.Machine.Id, stoppingReason, machinestate.Stopping)
 
 	// Hasta la vista, baby!
 	err = p.Provider.Stop(p.Machine)
@@ -159,7 +183,8 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	// update to final state too
-	return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
+	stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes", planTimeout.Minutes())
+	return p.Provider.UpdateState(p.Machine.Id, stopReason, machinestate.Stopped)
 }
 
 func (p *PlanChecker) Total() error {

@@ -25,7 +25,7 @@ class ActivityTopicsWidget extends KDCustomHTMLView
     @addSubView @listController.getView()
 
     KD.singletons.socialapi.channel.fetchPopularTopics
-      limit  : 3
+      limit: 5
     , @bound 'createTopicsList'
 
   createTopicsList : (err, data) ->

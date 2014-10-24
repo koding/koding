@@ -31,39 +31,6 @@ const (
 	NotificationContent_TYPE_PM      = "pm"
 )
 
-func NewNotificationContent() *NotificationContent {
-	return &NotificationContent{}
-}
-
-func (n *NotificationContent) GetId() int64 {
-	return n.Id
-}
-
-func (n NotificationContent) TableName() string {
-	return "notification.notification_content"
-}
-
-// Create checks for NotificationContent using type_constant and target_id
-// and creates new one if it does not exist.
-func (n *NotificationContent) Create() error {
-	if err := n.FindByTarget(); err != nil {
-		if err != bongo.RecordNotFound {
-			return err
-		}
-		return bongo.B.Create(n)
-	}
-
-	return nil
-}
-
-func (n *NotificationContent) One(q *bongo.Query) error {
-	return bongo.B.One(n, n, q)
-}
-
-func (n *NotificationContent) ById(id int64) error {
-	return bongo.B.ById(n, id)
-}
-
 func (n *NotificationContent) FindByTarget() error {
 	s := map[string]interface{}{
 		"type_constant": n.TypeConstant,
@@ -134,6 +101,19 @@ func (n *NotificationContent) FetchMapByIds(ids []int64) (map[int64]Notification
 	return ncMap, nil
 }
 
+func (n *NotificationContent) FetchIdsByTargetId(targetId int64) ([]int64, error) {
+	var ids []int64
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"target_id": targetId,
+		},
+		Pluck: "id",
+	}
+
+	return ids, n.Some(&ids, query)
+}
+
 // CreateNotificationType creates an instance of notifiable subclasses
 func CreateNotificationContentType(notificationType string) (Notifiable, error) {
 	switch notificationType {
@@ -162,16 +142,4 @@ func (n *NotificationContent) GetDefinition() string {
 	}
 
 	return nt.GetDefinition()
-}
-
-func (nc *NotificationContent) AfterCreate() {
-	bongo.B.AfterCreate(nc)
-}
-
-func (nc *NotificationContent) AfterUpdate() {
-	bongo.B.AfterUpdate(nc)
-}
-
-func (nc *NotificationContent) AfterDelete() {
-	bongo.B.AfterDelete(nc)
 }

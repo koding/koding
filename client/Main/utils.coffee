@@ -721,7 +721,9 @@ utils.extend utils,
   formatContent: (body = '') ->
 
     fns = [
+      KD.utils.transformTagTokens
       KD.utils.transformTags
+      KD.utils.formatQuotes
       KD.utils.formatBlockquotes
       KD.utils.applyMarkdown
     ]
@@ -730,6 +732,17 @@ utils.extend utils,
     body = KD.utils.expandUsernames body, 'code'
 
     return body
+
+
+  transformTagTokens: (text = '') ->
+
+    tokenPattern = /\|#:JTag:.*?:(.*?)\|/g
+
+    return text  unless tokenPattern.test text
+
+    text.replace tokenPattern, (match, name) ->
+
+      return "##{name.replace ' ', ''}"
 
 
   transformTags: (text = '') ->
@@ -777,6 +790,21 @@ utils.extend utils,
     return ranges
 
 
+  formatQuotes: (text = '') ->
+
+    text = Encoder.htmlDecode text
+
+    return text  unless (/^>/gm).test text
+
+    val = ''
+
+    for line in text.split '\n'
+      line += '\n'  if line[0] is '>'
+      val  += "#{line}\n"
+
+    return val
+
+
   formatBlockquotes: (text = '') ->
 
     parts = text.split '```'
@@ -791,6 +819,82 @@ utils.extend utils,
         parts[index] = "\n```#{part}\n```\n"
 
     parts.join ''
+
+
+  sendDataDogEvent: (eventName)->
+
+    sendEvent = (logs)->
+      KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+    kdlogs = KD.parseLogs()
+
+    # If there is enough log to send, no more checks required
+    # just send them away, first to s3 then datadog
+    if kdlogs.length > 100
+
+      KD.utils.s3upload
+        name    : "logs_#{new Date().toISOString()}.txt"
+        content : kdlogs
+      , (err, publicUrl)->
+
+        logs = if err? and not publicUrl
+        then KD.parseLogs()
+        else publicUrl
+
+        sendEvent logs
+
+    else
+
+      # Send only events when hostname is koding.com
+      # and user enabled logs somehow
+      sendEvent()  if location.hostname is "koding.com"
+
+
+  s3upload: (options, callback = noop)->
+
+    {name, content} = options
+
+    name   ?= uuid.v4()
+
+    unless content
+      warn "Content required."
+      return
+
+    name    = Encoder.htmlDecode name
+    content = Encoder.htmlDecode content
+
+    KD.remote.api.S3.generatePolicy (err, policy)->
+
+      return callback err  if err?
+
+      data = new FormData()
+
+      data.append 'key', "#{policy.upload_url}/#{name}"
+      data.append 'acl', 'public-read'
+
+      # koding-client IAM accessKey provided by S3.generatePolicy
+      data.append 'AWSAccessKeyId', policy.accessKey
+      data.append 'policy', policy.policy
+      data.append 'signature', policy.signature
+
+      # Update this later for feature requirements
+      data.append 'Content-Type', "plain/text"
+
+      data.append 'file', content
+
+      $.ajax
+        type        : "POST"
+        url         : policy.req_url
+        cache       : no
+        contentType : no
+        processData : no
+        crossDomain : yes
+        data        : data
+        timeout     : 5000
+        error       : ->
+          callback message: "Failed to upload"
+        success     : ->
+          callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
 
 
   ###*
@@ -819,5 +923,3 @@ utils.extend utils,
     # Shift back
     value = value.toString().split("e")
     +(value[0] + "e" + ((if value[1] then (+value[1] + exp) else exp)))
-
-

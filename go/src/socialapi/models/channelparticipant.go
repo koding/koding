@@ -60,6 +60,9 @@ func NewChannelParticipant() *ChannelParticipant {
 // multiple call of this function will result
 func (c *ChannelParticipant) Create() error {
 	err := c.FetchParticipant()
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
 
 	// if err is nil
 	// it means we already have that user in the channel
@@ -74,20 +77,19 @@ func (c *ChannelParticipant) Create() error {
 			return err
 		}
 
-		if err := bongo.B.PublishEvent(
-			ChannelParticipant_Added_To_Channel_Event, c,
-		); err != nil {
-			// log here
+	} else {
+		if err := bongo.B.Create(c); err != nil {
+			return err
 		}
-
-		return nil
 	}
 
-	if err != bongo.RecordNotFound {
-		return err
+	if err := bongo.B.PublishEvent(
+		ChannelParticipant_Added_To_Channel_Event, c,
+	); err != nil {
+		// log here
 	}
 
-	return bongo.B.Create(c)
+	return nil
 }
 
 func (c *ChannelParticipant) CreateRaw() error {

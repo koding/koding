@@ -5,8 +5,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-
-	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -14,17 +12,16 @@ var (
 )
 
 func testFrontpageOperations() {
-
-	var accounts []int64
+	var accounts []*models.Account
 	for i := 0; i < 2; i++ {
-		account := models.NewAccount()
-		account.OldId = bson.NewObjectId().Hex()
-		account, _ = rest.CreateAccount(account)
-		accounts = append(accounts, account.Id)
+		account, err := models.CreateAccountInBothDbs()
+		if err == nil {
+			accounts = append(accounts, account)
+		}
 	}
 
 	for i := 0; i < len(accounts); i++ {
-		_, err := populateChannelwithAccount(accounts[i])
+		_, err := populateChannelwithAccount(accounts[i].Id)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -32,7 +29,7 @@ func testFrontpageOperations() {
 	}
 
 	for i := 0; i < len(accounts); i++ {
-		channels, err := rest.FetchChannels(accounts[i])
+		channels, err := rest.FetchChannels(accounts[i].Id)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -43,8 +40,21 @@ func testFrontpageOperations() {
 	}
 }
 
-func fetchHistoryAndCheckMessages(channelId, accountId int64) {
-	history, err := rest.GetHistory(channelId, &request.Query{AccountId: accountId})
+func fetchHistoryAndCheckMessages(channelId int64, account *models.Account) {
+	ses, err := models.FetchOrCreateSession(account.Nick)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	history, err := rest.GetHistory(
+		channelId,
+		&request.Query{
+			AccountId: account.Id,
+		},
+		ses.ClientId,
+	)
+
 	if err != nil {
 		fmt.Println(err)
 		return

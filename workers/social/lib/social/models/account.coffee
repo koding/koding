@@ -214,6 +214,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
         fetchKites :
           (signature Object, Function)
+        fetchMetaInformation :
+          (signature Function)
 
     schema                  :
       socialApiId           : String
@@ -235,27 +237,6 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         likes               :
-          type              : Number
-          default           : 0
-        statusUpdates       :
-          type              : Number
-          default           : 0
-        staffLikes          :
-          type              : Number
-          default           : 0
-        comments            :
-          type              : Number
-          default           : 0
-        referredUsers       :
-          type              : Number
-          default           : 0
-        invitations         :
-          type              : Number
-          default           : 0
-        lastLoginDate       :
-          type              : Date
-          default           : new Date
-        twitterFollowers    :
           type              : Number
           default           : 0
 
@@ -575,8 +556,10 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError 'Access denied'
     else
       JSession = require './session'
-      JSession.update {clientId: sessionToken}, $set:{username: nickname}, (err) ->
-        callback err
+      JSession.update {clientId: sessionToken}, $set:{
+        username      : nickname
+        impersonating : true
+      }, (err) -> callback err
 
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
@@ -617,7 +600,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
     unless delegate.can 'list-blocked-users'
-      callback new KodingError 'Access denied!'
+      return callback new KodingError 'Access denied!'
 
     selector = blockedUntil: $gte: new Date()
 
@@ -1256,6 +1239,44 @@ module.exports = class JAccount extends jraphical.Module
     {delegate} = client.connection
     if (delegate.equals this) or delegate.can 'administer accounts'
       @fetchDecoratedPaymentMethods callback
+
+
+  fetchMetaInformation: secure (client, callback)->
+
+    {delegate} = client.connection
+    unless delegate.can 'administer accounts'
+      return callback new KodingError 'Access denied!'
+
+    Payment = require './payment'
+
+    @fetchUser (err, user)=>
+
+      return callback err  if err
+      return callback new KodingError 'Failed to fetch user!'  unless user
+
+      { registeredAt, lastLoginDate, email, status } = user
+      { profile, referrerUsername, referralUsed, globalFlags } = this
+
+      fakeClient = connection: delegate: this
+
+      Payment.subscriptions fakeClient, {}, (err, subscription)=>
+
+        if err? or not subscription?
+        then plan = 'free'
+        else plan = subscription.planTitle
+
+        JMachine = require "./computeproviders/machine"
+        selector = 'users.id' : user.getId()
+
+        JMachine.some selector, limit: 30, (err, machines)->
+
+          if err? then machines = err
+
+          callback null, {
+            profile, registeredAt, lastLoginDate, email, status
+            globalFlags, referrerUsername, referralUsed, plan, machines
+          }
+
 
   fetchSubscriptions$: secure ({ connection:{ delegate }}, options, callback) ->
     return callback { message: 'Access denied!' }  unless @equals delegate

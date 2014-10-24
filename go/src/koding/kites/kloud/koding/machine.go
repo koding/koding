@@ -23,6 +23,7 @@ type MachineDocument struct {
 	} `bson:"assignee"`
 	Status struct {
 		State      string    `bson:"state"`
+		Reason     string    `bson:"reason"`
 		ModifiedAt time.Time `bson:"modifiedAt"`
 	} `bson:"status"`
 	Provider   string               `bson:"provider"`

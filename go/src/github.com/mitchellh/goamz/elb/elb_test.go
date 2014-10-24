@@ -30,6 +30,48 @@ func (s *S) TearDownTest(c *C) {
 	testServer.Flush()
 }
 
+func (s *S) TestAddTags(c *C) {
+	testServer.Response(200, nil, AddTagsExample)
+
+	options := elb.AddTags{
+		LoadBalancerNames: []string{"foobar"},
+		Tags: []elb.Tag{
+			{
+				Key:   "hello",
+				Value: "world",
+			},
+		},
+	}
+
+	resp, err := s.elb.AddTags(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"AddTags"})
+	c.Assert(req.Form["LoadBalancerNames.member.1"], DeepEquals, []string{"foobar"})
+	c.Assert(req.Form["Tags.member.1.Key"], DeepEquals, []string{"hello"})
+	c.Assert(req.Form["Tags.member.1.Value"], DeepEquals, []string{"world"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "360e81f7-1100-11e4-b6ed-0f30EXAMPLE")
+}
+
+func (s *S) TestRemoveTags(c *C) {
+	testServer.Response(200, nil, RemoveTagsExample)
+
+	options := elb.RemoveTags{
+		LoadBalancerNames: []string{"foobar"},
+		TagKeys:           []string{"hello"},
+	}
+
+	resp, err := s.elb.RemoveTags(&options)
+	req := testServer.WaitRequest()
+
+	c.Assert(req.Form["Action"], DeepEquals, []string{"RemoveTags"})
+	c.Assert(req.Form["LoadBalancerNames.member.1"], DeepEquals, []string{"foobar"})
+	c.Assert(req.Form["Tags.member.1.Key"], DeepEquals, []string{"hello"})
+	c.Assert(err, IsNil)
+	c.Assert(resp.RequestId, Equals, "83c88b9d-12b7-11e3-8b82-87b12EXAMPLE")
+}
+
 func (s *S) TestCreateLoadBalancer(c *C) {
 	testServer.Response(200, nil, CreateLoadBalancerExample)
 

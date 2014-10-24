@@ -23,7 +23,7 @@ type AmazonClient struct {
 	InfoLog func(string, ...interface{})
 }
 
-func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.Artifact, error) {
+func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
 	infoLog := func(format string, args ...interface{}) {
 		a.Log.Info(format, args...)
 	}
@@ -61,6 +61,11 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.
 
 	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
+
+	return a.Build(true, start, finish)
+}
+
+func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
 	resp, err := a.CreateInstance()
 	if err != nil {
 		return nil, err
@@ -71,15 +76,30 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.
 	// by panicing
 	instance := resp.Instances[0]
 
+	// cleanup build if something goes wrong here
+	defer func() {
+		if errResp != nil {
+			a.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
+				instance.InstanceId, err)
+
+			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
+				a.Log.Warning("Cleaning up instance '%s' failed: %v", instance.InstanceId, err)
+			}
+		}
+	}()
+
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
 		instance, err = a.Instance(instance.InstanceId)
 		if err != nil {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
-			instanceName, instance.State.Name),
-			currentPercentage, machinestate.Building)
+		if withPush {
+			a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
+				instance.InstanceId, instance.State.Name),
+				currentPercentage, machinestate.Building)
+		}
+
 		return statusToState(instance.State.Name), nil
 	}
 
@@ -94,11 +114,9 @@ func (a *AmazonClient) Build(instanceName string, start, finish int) (*protocol.
 	}
 
 	return &protocol.Artifact{
-		IpAddress:     instance.PublicIpAddress,
-		InstanceName:  instanceName,
-		InstanceId:    instance.InstanceId,
-		SSHPrivateKey: a.Builder.PrivateKey,
-		SSHUsername:   "", // deploy with root
+		IpAddress:    instance.PublicIpAddress,
+		InstanceId:   instance.InstanceId,
+		InstanceType: a.Builder.Region,
 	}, nil
 }
 
@@ -173,8 +191,9 @@ func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 	}
 
 	return &protocol.Artifact{
-		InstanceId: instance.InstanceId,
-		IpAddress:  instance.PublicIpAddress,
+		InstanceId:   instance.InstanceId,
+		IpAddress:    instance.PublicIpAddress,
+		InstanceType: a.Builder.Region,
 	}, nil
 }
 
@@ -213,8 +232,11 @@ func (a *AmazonClient) Stop(withPush bool) error {
 	return ws.Wait()
 }
 
-func (a *AmazonClient) Restart() error {
-	a.Push("Restarting machine", 10, machinestate.Rebooting)
+func (a *AmazonClient) Restart(withPush bool) error {
+	if withPush {
+		a.Push("Restarting machine", 10, machinestate.Rebooting)
+	}
+
 	_, err := a.Client.RebootInstances(a.Id())
 	if err != nil {
 		return err
@@ -226,9 +248,11 @@ func (a *AmazonClient) Restart() error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Rebooting)
+		if withPush {
+			a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
+				a.Builder.InstanceName, instance.State.Name),
+				currentPercentage, machinestate.Rebooting)
+		}
 
 		return statusToState(instance.State.Name), nil
 	}
@@ -311,8 +335,9 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 	}
 
 	return &protocol.InfoArtifact{
-		State: statusToState(instance.State.Name),
-		Name:  instanceName,
+		State:        statusToState(instance.State.Name),
+		Name:         instanceName,
+		InstanceType: instance.InstanceType,
 	}, nil
 
 }

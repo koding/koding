@@ -1,6 +1,8 @@
 package models
 
 import (
+	kodingmodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"strconv"
 	"time"
@@ -70,4 +72,62 @@ func createMessageWithTest() *ChannelMessage {
 	// set body
 	cm.Body = "5five"
 	return cm
+}
+
+func FetchOrCreateSession(nick string) (*kodingmodels.Session, error) {
+	session, err := modelhelper.GetOneSessionForAccount(nick)
+	if err == nil {
+		return session, nil
+	}
+
+	return modelhelper.CreateSessionForAccount(nick)
+}
+
+func CreateAccountInBothDbs() (*Account, error) {
+	return CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
+}
+
+func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
+	accId := bson.NewObjectId()
+	accHex := nick
+
+	oldAcc := &kodingmodels.Account{
+		Id: accId,
+		Profile: struct {
+			Nickname  string `bson:"nickname"`
+			FirstName string `bson:"firstName"`
+			LastName  string `bson:"lastName"`
+			Hash      string `bson:"hash"`
+		}{
+			Nickname: accHex,
+		},
+	}
+
+	err := modelhelper.CreateAccount(oldAcc)
+	if err != nil {
+		return nil, err
+	}
+
+	oldUser := &kodingmodels.User{
+		ObjectId:       bson.NewObjectId(),
+		Password:       accHex,
+		Salt:           accHex,
+		Name:           accHex,
+		Email:          accHex,
+		EmailFrequency: kodingmodels.EmailFrequency{},
+	}
+
+	err = modelhelper.CreateUser(oldUser)
+	if err != nil {
+		return nil, err
+	}
+
+	a := NewAccount()
+	a.Nick = accHex
+	a.OldId = accHex
+	if err := a.Create(); err != nil {
+		return nil, err
+	}
+
+	return a, nil
 }

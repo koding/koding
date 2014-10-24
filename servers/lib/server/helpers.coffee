@@ -44,25 +44,27 @@ findUsernameFromKey = (req, res, callback) ->
       callback false, account.profile.nickname
 
 findUsernameFromSession = (req, res, callback) ->
+
   {clientId} = req.cookies
+
   unless clientId?
-    process.nextTick -> callback null, no, ""
+
+    return process.nextTick -> callback null
+
   else
+
     koding.models.JSession.fetchSession clientId, (err, result)->
-      if err
-        console.error err
-        callback err, undefined, ""
+
+      return if err
+      then callback err
       else unless result?
-        res.status(403).send 'Access denied!'
-        callback null, false, ""
+      then callback null
 
-      { session } = result
+      {session} = result
 
-      unless session?
-        res.status(403).send 'Access denied!'
-        callback null, false, ""
-      else
-        callback null, false, session.username
+      return unless session?
+      then callback null
+      else callback null, session.username
 
 fetchJAccountByKiteUserNameAndKey = (req, callback)->
   if req.fields
@@ -124,20 +126,30 @@ serveHome = (req, res, next) ->
 
 
 isLoggedIn = (req, res, callback)->
+
   {JName} = koding.models
-  findUsernameFromSession req, res, (err, isLoggedIn, username)->
+
+  findUsernameFromSession req, res, (err, username)->
+
     return callback null, no, {}  unless username
+
     JName.fetchModels username, (err, result)->
+
       return callback null, no, {}  unless result?
 
       { models } = result
 
       return callback null, no, {}  if err or not models?.first
+
       user = models.last
       user.fetchAccount "koding", (err, account)->
+
         if err or not account or account.type is 'unregistered'
+
           return callback err, no, account
+
         return callback null, yes, account
+
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback)->
   {JSession}                       = koding.models

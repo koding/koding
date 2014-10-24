@@ -3,8 +3,8 @@ package koding
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +14,7 @@ import (
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
 
+	"code.google.com/p/go.crypto/ssh"
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/ec2"
@@ -23,7 +24,19 @@ import (
 
 var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
-	DefaultInstanceType = "t2.micro"
+
+	// Starting from cheapest, list is according to us-east and coming from:
+	// http://www.ec2instances.info/. t2.micro is not included because it's
+	// already the default type which we start to build. Only supported types
+	// are here.
+	InstancesList = []string{
+		"t2.small",
+		"t2.medium",
+		"m3.medium",
+		"c3.large",
+		"m3.large",
+		"c3.xlarge",
+	}
 )
 
 const (
@@ -67,7 +80,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
-	instanceName := m.Builder["instanceName"].(string)
+	a.Log.Info("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
 
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
@@ -75,14 +88,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	errLog := p.GetCustomLogger(m.Id, "error")
 
 	a.InfoLog = infoLog
-
-	// this can happen when an Info method is called on a terminated instance.
-	// This updates the DB records with the name that EC2 gives us, which is a
-	// "terminated-instance"
-	if instanceName == "terminated-instance" {
-		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
-	}
 
 	a.Push("Checking network requirements", normalize(20), machinestate.Building)
 
@@ -96,11 +101,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	// sort and get the lowest
-	infoLog("Searching a subnet with most IPs amongst '%d' subnets", len(subnets))
-	subnet := subnetWithMostIPs(subnets)
-
-	infoLog("Using subnet id %s, which has %d available IPs", subnet.SubnetId, subnet.AvailableIpAddressCount)
-	a.Builder.SubnetId = subnet.SubnetId
+	subnet := subnets.WithMostIps()
 
 	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
 	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
@@ -109,11 +110,12 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, errors.New("checking security requirements failed")
 	}
 
-	// add now our security group
 	a.Builder.SecurityGroupId = group.Id
+	a.Builder.SubnetId = subnet.SubnetId
+	a.Builder.Zone = subnet.AvailabilityZone
 
-	// Use koding plans instead of those later
-	a.Builder.InstanceType = DefaultInstanceType
+	infoLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
 	// check if the user is egligible to create a vm with this size
@@ -144,22 +146,18 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	device := image.BlockDevices[0]
+
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
-	if a.Builder.StorageSize != 0 {
-		for _, device := range image.BlockDevices {
-			a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-				DeviceName:          device.DeviceName,
-				VirtualName:         device.VirtualName,
-				SnapshotId:          device.SnapshotId,
-				VolumeType:          device.VolumeType,
-				VolumeSize:          int64(a.Builder.StorageSize),
-				DeleteOnTermination: true,
-				Encrypted:           false,
-			}
-
-			break
-		}
+	a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
+		DeviceName:          device.DeviceName,
+		VirtualName:         device.VirtualName,
+		SnapshotId:          device.SnapshotId,
+		VolumeType:          "standard", // Use magnetic storage because it is cheaper
+		VolumeSize:          int64(a.Builder.StorageSize),
+		DeleteOnTermination: true,
+		Encrypted:           false,
 	}
 
 	kiteId, err := uuid.NewV4()
@@ -195,7 +193,17 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// check if the user has some keys
 	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
 		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
-			cloudInitConfig.UserSSHKeys = keys
+			for _, key := range keys {
+				// validate the public keys
+				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+				if err != nil {
+					errLog(`User (%s) has an invalid public SSH key.
+							Not adding it to the authorized keys.
+							Key: %s. Err: %v`, m.Username, key, err)
+					continue
+				}
+				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
+			}
 		}
 	}
 
@@ -230,24 +238,148 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
 
-	// build now our instance!!
-	buildArtifact, err := a.Build(instanceName, normalize(45), normalize(60))
-	if err != nil {
+	if a.Builder.InstanceType == "" {
+		return nil, errors.New("Instance type is not defined")
+	}
+
+	var buildArtifact *protocol.Artifact
+	buildFunc := func() error {
+		// build our instance in a normal way
+		buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
+		if err == nil {
+			return nil
+		}
+
+		// check if the error is a 'InsufficientInstanceCapacity" error or
+		// "InstanceLimitExceeded, if not return back because it's not a
+		// resource or capacity problem.
+		if !isCapacityError(err) {
+			return err
+		}
+
+		p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+
+		// now lets to some fallback mechanisms to avoid the capacity errors.
+		// 1. Try to use a different zone
+		zoneFunc := func() error {
+			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
+			if err != nil {
+				return fmt.Errorf("couldn't fetch availability zones: %s", err)
+
+			}
+
+			currentZone := subnet.AvailabilityZone
+
+			infoLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
+			for _, zone := range zones {
+				if zone == currentZone {
+					// skip it because that's one is causing problems and doesn't have any capacity
+					continue
+				}
+
+				subnet, err := subnets.AvailabilityZone(zone)
+				if err != nil {
+					continue // shouldn't be happen, but let be safe
+				}
+
+				group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
+				if err != nil {
+					errLog("Checking security group err: %v", err)
+					return errors.New("checking security requirements failed")
+				}
+
+				// add now our security group
+				a.Builder.SecurityGroupId = group.Id
+				a.Builder.Zone = zone
+				a.Builder.SubnetId = subnet.SubnetId
+
+				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
+					m.Id, zone, a.Builder.SubnetId, err)
+
+				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
+				if err == nil {
+					return nil
+				}
+
+				if isCapacityError(err) {
+					// if there is no capacity we are going to use the next one
+					continue
+				}
+
+				return err
+			}
+
+			return errors.New("no other zones are available")
+		}
+
+		// 2. Try to build it on another region
+		regionFunc := func() error {
+			return &ec2.Error{Code: "InsufficientInstanceCapacity", Message: "not implemented yet"}
+		}
+
+		// 3. Try to use another instance
+		instanceFunc := func() error {
+			for _, instanceType := range InstancesList {
+				a.Builder.InstanceType = instanceType
+
+				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
+					m.Id, instanceType, a.Builder.InstanceType)
+
+				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
+				if err == nil {
+					return nil // we are finished!
+				}
+
+				p.Log.Warning("[%s] Fallback: couldn't build instance with type: '%s'. err: %s ",
+					m.Id, instanceType, err)
+			}
+
+			return errors.New("no other instances are available")
+		}
+
+		// We are going to to try each step and for each step if we get
+		// "InsufficentInstanceCapacity" error we move to the next one.
+		for _, fn := range []func() error{zoneFunc, regionFunc, instanceFunc} {
+			if err := fn(); err != nil {
+				p.Log.Error("Build failed. Moving to next fallback step: %s", err)
+				continue // pick up the next function
+			}
+
+			return nil
+		}
+
+		return errors.New("build reached the end. all fallback mechanism steps failed.")
+	}
+
+	// kabalaba booom!
+	if err := buildFunc(); err != nil {
 		return nil, err
 	}
-	buildArtifact.MachineId = m.Id
 
 	// cleanup build if something goes wrong here
 	defer func() {
 		if err != nil {
-			p.Log.Warning("[%s] Cleaning up instance. Terminating instance: %s",
-				m.Id, buildArtifact.InstanceId)
+			p.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
+				buildArtifact.InstanceId, err)
 
 			if _, err := a.Client.TerminateInstances([]string{buildArtifact.InstanceId}); err != nil {
-				p.Log.Warning("[%s] Cleaning up instance failed: %v", m.Id, err)
+				p.Log.Warning("Cleaning up instance '%s' failed: %v", buildArtifact.InstanceId, err)
 			}
 		}
 	}()
+
+	buildArtifact.MachineId = m.Id
+
+	// this can happen when an Info method is called on a terminated instance.
+	// This updates the DB records with the name that EC2 gives us, which is a
+	// "terminated-instance"
+	instanceName := m.Builder["instanceName"].(string)
+	if instanceName == "terminated-instance" {
+		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
+	}
+
+	buildArtifact.InstanceName = instanceName
 
 	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
 	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
@@ -258,12 +390,23 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		if err != nil {
 			p.Log.Warning("[%s] Cleaning up domain record. Deleting domain record: %s",
 				m.Id, m.Domain.Name)
-			if err := p.DNS.DeleteDomain(m.Domain.Name, buildArtifact.IpAddress); err != nil {
+			if err := p.DNS.Delete(m.Domain.Name, buildArtifact.IpAddress); err != nil {
 				p.Log.Warning("[%s] Cleaning up domain failed: %v", m.Id, err)
 			}
-
 		}
 	}()
+
+	a.Push("Updating domain aliases", normalize(72), machinestate.Building)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for setting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(buildArtifact.IpAddress, domain.Name, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
+		}
+	}
 
 	tags := []ec2.Tag{
 		{Key: "Name", Value: buildArtifact.InstanceName},
@@ -325,17 +468,4 @@ func (p *Provider) createKey(username, kiteId string) (string, error) {
 	}
 
 	return token.SignedString([]byte(p.KontrolPrivateKey))
-}
-
-type ByMostIP []ec2.Subnet
-
-func (a ByMostIP) Len() int      { return len(a) }
-func (a ByMostIP) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByMostIP) Less(i, j int) bool {
-	return a[i].AvailableIpAddressCount > a[j].AvailableIpAddressCount
-}
-
-func subnetWithMostIPs(subnets []ec2.Subnet) ec2.Subnet {
-	sort.Sort(ByMostIP(subnets))
-	return subnets[0]
 }

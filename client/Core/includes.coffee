@@ -7,6 +7,7 @@ module.exports = [
   'KD.extend.coffee'
   'oauthcontroller.coffee'
   'kodingrouter.coffee'
+  'kdview.coffee'
   'jview.coffee'
   'ApplicationManager.coffee'
   'AppController.coffee'

@@ -5,9 +5,10 @@ class ComputeController extends KDController
   @timeout = 30000
 
   constructor:->
+
     super
 
-    { mainController, kontrol } = KD.singletons
+    { mainController, kontrol, router } = KD.singletons
 
     do @reset
 
@@ -56,27 +57,29 @@ class ComputeController extends KDController
           queue = []
           return
 
-        if stacks.length > 0
+        KD.remote.api.JMachine.some {}, (err, _machines = [])=>
+
+          if err?
+            cb err  for cb in queue
+            queue = []
+            return
 
           machines = []
-          stacks.forEach (stack)->
-            stack.machines.forEach (machine, index)->
-              machine = new Machine { machine, stack }
-              stack.machines[index] = machine
-              machines.push machine
+          for machine in _machines
+            machines.push new Machine { machine }
 
-          @machines = machines
           @stacks   = stacks
+          @machines = machines
+
+          @stateChecker.machines = machines
+          @stateChecker.start()
 
           KD.userMachines = machines
           @emit "MachineDataUpdated"
 
           cb null, stacks  for cb in queue
+          queue = []
 
-        else
-          cb null, []  for cb in queue
-
-        queue = []
 
 
   fetchMachines: do (queue=[])->
@@ -90,23 +93,14 @@ class ComputeController extends KDController
 
       return  if (queue.push callback) > 1
 
-      @fetchStacks (err, stacks)=>
+      @fetchStacks (err)=>
 
         if err?
           cb err  for cb in queue
           queue = []
           return
 
-        machines = []
-        stacks.forEach (stack)->
-          stack.machines.forEach (machine)->
-            machines.push machine
-
-        @machines = machines
-        @stateChecker.machines = machines
-        @stateChecker.start()
-
-        cb null, machines  for cb in queue
+        cb null, @machines  for cb in queue
         queue = []
 
 
@@ -164,7 +158,7 @@ class ComputeController extends KDController
     @plans    = null
     @_trials  = {}
 
-    if render then @fetchStacks =>
+    if render then @fetchMachines =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
 
@@ -447,6 +441,42 @@ class ComputeController extends KDController
 
       (@errorHandler call, 'info', machine) err
 
+  # Domain management
+  #
+
+  fetchDomains: do (queue=[])->
+
+    (callback = noop)-> KD.singletons.mainController.ready =>
+
+      @domains ?= []
+
+      if @domains.length > 0
+        callback null, @domains
+        info "Domains returned from cache."
+        return
+
+      return  if (queue.push callback) > 1
+
+      topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+
+      KD.remote.api.JDomainAlias.some {}, (err, domains)=>
+
+        if err?
+          cb err  for cb in queue
+          queue = []
+          return
+
+        # Move topDomain to index 0
+        _domains = []
+        for jdomain in domains
+          if jdomain.domain is topDomain
+          then _domains.unshift jdomain
+          else _domains.push    jdomain
+
+        @domains = _domains
+        cb null, @domains  for cb in queue
+        queue = []
+
 
   # Utils beyond this point
   #
@@ -477,7 +507,7 @@ class ComputeController extends KDController
       else callback @lastKnownUserPlan = subscription.planTitle
 
 
-  handleNewMachineRequest: ->
+  handleNewMachineRequest: (callback = noop)->
 
     return  if @_inprogress
     @_inprogress = yes
@@ -494,10 +524,12 @@ class ComputeController extends KDController
           limits  = plans[plan]
           options = { plan, limits, usage }
 
-          if plan in ['developer', 'professional', 'super']
+          if limits.total > 1
 
             new ComputePlansModal.Paid options
             @_inprogress = no
+
+            callback()
 
           else
 
@@ -508,6 +540,8 @@ class ComputeController extends KDController
               if err? or machines.length > 0
                 new ComputePlansModal.Free options
                 @_inprogress = no
+
+                callback()
 
               else if machines.length is 0
 
@@ -520,6 +554,8 @@ class ComputeController extends KDController
                 }, (err, machine)=>
 
                   @_inprogress = no
+
+                  callback()
 
                   unless KD.showError err
                     KD.userMachines.push machine

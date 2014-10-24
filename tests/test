@@ -1,0 +1,33 @@
+#!/bin/bash
+
+runTests() {
+  a=$1
+
+  if [ ! "$a" ]; then
+    for i in ./output/*;do
+      if [ -d "$i" ];then
+          if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
+            echo "skipping $i"
+          else
+            echo "running $i test"
+            command="nightwatch --group $i"
+            $command
+          fi
+      fi
+    done
+  else
+    echo "running single test: $a"
+    command="nightwatch --group ./output/$a"
+    $command
+  fi
+}
+
+echo 'deleting output folder'
+rm -rf ./output
+
+echo 'compiling coffee files'
+gulp
+
+echo 'running tests'
+
+runTests $1

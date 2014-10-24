@@ -3,10 +3,6 @@ package stripe
 import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
-
-	stripe "github.com/stripe/stripe-go"
-	stripeInvoice "github.com/stripe/stripe-go/invoice"
-	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
@@ -20,31 +16,16 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	if customer == nil {
-		if IsEmpty(token) {
-			return paymenterrors.ErrTokenIsEmpty
-		}
-
+	if err == paymenterrors.ErrCustomerNotFound {
 		customer, err = CreateCustomer(token, accId, email)
 		if err != nil {
 			return err
 		}
 	}
 
-	resp, err := GetCreditCard(customer.OldId)
+	err = UpdateCreditCardIfEmpty(accId, token)
 	if err != nil {
 		return err
-	}
-
-	if IsEmpty(resp.LastFour) {
-		if IsEmpty(token) {
-			return paymenterrors.ErrTokenIsEmpty
-		}
-
-		err := UpdateCreditCard(customer.OldId, token)
-		if err != nil {
-			return err
-		}
 	}
 
 	subscriptions, err := FindCustomerActiveSubscriptions(customer)
@@ -53,8 +34,14 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if IsNoSubscriptions(subscriptions) {
-		_, err = CreateSubscription(customer, plan)
-		return err
+		_, err := CreateSubscription(customer, plan)
+
+		if err != nil {
+			removeCreditCardHelper(customer)
+			return err
+		}
+
+		return nil
 	}
 
 	if IsOverSubscribed(subscriptions) {
@@ -68,63 +55,24 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	if !IsFreePlan(plan) {
-		err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
-		return err
+		err := UpdateSubscriptionForCustomer(customer, subscriptions, plan)
+
+		if err != nil {
+			removeCreditCardHelper(customer)
+			return err
+		}
+
+		return nil
 	}
 
-	err = DowngradeToFreePlan(customer, &currentSubscription)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DowngradeToFreePlan(customer *paymentmodel.Customer, currentSubscription *paymentmodel.Subscription) error {
-	err := CancelSubscription(customer, currentSubscription)
-	if err != nil {
-		return err
-	}
-
-	err = RemoveCreditCard(customer)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func UpdateSubscriptionForCustomer(customer *paymentmodel.Customer, subscriptions []paymentmodel.Subscription, plan *paymentmodel.Plan) error {
-	subParams := &stripe.SubParams{
-		Customer: customer.ProviderCustomerId,
-		Plan:     plan.ProviderPlanId,
-	}
-
-	if IsNoSubscriptions(subscriptions) {
-		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
-	}
-
-	currentSubscription := subscriptions[0]
-	currentSubscriptionId := currentSubscription.ProviderSubscriptionId
-
-	_, err := stripeSub.Update(currentSubscriptionId, subParams)
-	if err != nil {
-		return handleStripeError(err)
-	}
-
-	invoiceParams := &stripe.InvoiceParams{
-		Customer: customer.ProviderCustomerId,
-	}
-
-	_, err = stripeInvoice.New(invoiceParams)
-	if err != nil {
-		return err
-	}
-
-	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
-	if err != nil {
-		return err
-	}
+	err = CancelSubscriptionAndRemoveCC(customer, &currentSubscription)
 
 	return err
+}
+
+func removeCreditCardHelper(customer *paymentmodels.Customer) {
+	ccErr := RemoveCreditCard(customer) // outer error is more important
+	if ccErr != nil {
+		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, ccErr)
+	}
 }

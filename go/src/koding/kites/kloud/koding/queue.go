@@ -8,7 +8,6 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 
-	"github.com/koding/kite"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -40,13 +39,8 @@ func (p *Provider) RunChecker(interval time.Duration) {
 			}
 
 			if err := p.CheckUsage(machine); err != nil {
-				if err == kite.ErrNoKitesAvailable {
-					p.Log.Error("[%s] can't check machine (%s). klient kite has not started yet, waiting...",
-						machine.Id.Hex(), machine.IpAddress)
-				} else {
-					p.Log.Error("[%s] check usage of kite [%s] err: %v",
-						machine.Id.Hex(), machine.IpAddress, err)
-				}
+				p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
+					machine.Id.Hex(), machine.IpAddress, err)
 			}
 		}()
 	}

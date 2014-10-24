@@ -9,6 +9,7 @@ Configuration = (options={}) ->
 
   publicPort          = options.publicPort     = "80"
   hostname            = options.hostname       = "koding.com#{if options.publicPort is "80" then "" else ":"+publicPort}"
+  protocol            = options.protocol      or "https:"
   publicHostname      = options.publicHostname = "https://#{options.hostname}"
   region              = "aws"
   configName          = "prod"
@@ -19,22 +20,23 @@ Configuration = (options={}) ->
   publicIP            = options.publicIP       or "*"
   githubuser          = options.githubuser     or "koding"
 
-  mongo               = "dev:k9lc4G1k32nyD72@sjc-mongos1.objectrocket.com:14129/koding"
-  etcd                = "10.0.0.98:4001,10.0.0.99:4001,10.0.0.100:4001"
+  mongo               = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
+  etcd                = "10.0.0.172:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                        , protocol:           'https:'                              , defaultFromMail: 'hello@koding.com'     , defaultFromName: 'koding'                             , username: sendgrid.username      , password:      sendgrid.password }
-  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem" }
+  email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510 }
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
   postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  kontrolPostgres     = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
 
   # configuration for socialapi, order will be the same with
@@ -53,11 +55,12 @@ Configuration = (options={}) ->
     environment       : environment
     region            : region
     hostname          : hostname
+    protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: "3" }
+    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
     eventExchangeName : "BrokerMessageBus"
     disableCaching    : no
     debug             : no
@@ -73,6 +76,7 @@ Configuration = (options={}) ->
     regions                        : regions
     region                         : region
     hostname                       : hostname
+    protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
@@ -88,10 +92,11 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    gowebserver                    : {port          : 6500}
     webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
-    authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"}
+    authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
-    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3 }
+    emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3    , port  : 9540 }
     elasticSearch                  : {host          : "localhost"                 , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
     social                         : {port          : 3030                        , login     : "#{rabbitmq.login}"         , queueName         : socialQueueName                         , kitePort        : 8760 }
     email                          : email
@@ -100,8 +105,9 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
+    rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite" }
+    kloud                          : {port          : 5500                        , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                        , kontrolUrl: kontrol.url                               , registerUrl : "#{customDomain.public}/kloud/kite"        , artifactPort : 9520  }
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -113,12 +119,13 @@ Configuration = (options={}) ->
     sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "5891e574253e65ddb7ea"                         , clientSecret  : "9c8e89e9ae5818a2896c01601e430808ad31c84a"}
-    odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"                , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://koding.com/-/oauth/odesk/callback"}
-    facebook                       : {clientId      : "475071279247628"                              , clientSecret  : "65cc36108bb1ac71920dbd4d561aca27"           , redirectUri  : "https://koding.com/-/oauth/facebook/callback"}
-    google                         : {client_id     : "1058622748167.apps.googleusercontent.com"     , client_secret : "vlF2m9wue6JEvsrcAaQ-y9wq"                   , redirect_uri : "https://koding.com/-/oauth/google/callback"}
-    twitter                        : {key           : "aFVoHwffzThRszhMo2IQQ"                        , secret        : "QsTgIITMwo2yBJtpcp9sUETSHqEZ2Fh7qEQtRtOi2E" , redirect_uri : "https://koding.com/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
-    linkedin                       : {client_id     : "f4xbuwft59ui"                                 , client_secret : "fBWSPkARTnxdfomg"                           , redirect_uri : "https://koding.com/-/oauth/linkedin/callback"}
+    odesk                          : {key           : "9ed4e3e791c61a1282c703a42f6e10b7"             , secret        : "1df959f971cb437c"                           , request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"                , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://koding.com/-/oauth/odesk/callback"}
+    facebook                       : {clientId      : "434245153353814"                              , clientSecret  : "84b024e0d627d5e80ede59150a2b251e"           , redirectUri  : "https://koding.com/-/oauth/facebook/callback"}
+    google                         : {client_id     : "134407769088.apps.googleusercontent.com"      , client_secret : "6Is_WwxB19tuY2xkZNbnAU-t"                   , redirect_uri : "https://koding.com/-/oauth/google/callback"}
+    twitter                        : {key           : "tvkuPsOd7qzTlFoJORwo6w"                       , secret        : "48HXyTkCYy4hvUuRa7t4vvhipv4h04y6Aq0n5wDYmA" , redirect_uri : "https://koding.com/-/oauth/twitter/callback"   , request_url  : "https://twitter.com/oauth/request_token"           , access_url   : "https://twitter.com/oauth/access_token"            , secret_url: "https://twitter.com/oauth/authenticate?oauth_token=" , version: "1.0"         , signature: "HMAC-SHA1"}
+    linkedin                       : {client_id     : "aza9cks1zb3d"                                 , client_secret : "zIMa5kPYbZjHfOsq"                           , redirect_uri : "https://koding.com/-/oauth/linkedin/callback"}
     slack                          : {token         : "xoxp-2155583316-2155760004-2158149487-a72cf4" , channel       : "C024LG80K"}
+    datadog                        : {api_key       : "6d3e00fb829d97cb6ee015f80063627c"             , app_key       : "c9be251621bc75acf4cd040e3edea17fff17a13a"}
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
@@ -130,6 +137,8 @@ Configuration = (options={}) ->
     mixpanel                       : mixpanel.token
     recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
     segment                        : '4c570qjqo0'
+    googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    siftScience                    : 'e6c3413236e08107'
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -172,6 +181,9 @@ Configuration = (options={}) ->
       odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
       facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint        : {slug:'koding'       , type:'group'}
+    siftScience       : '3305771626'
+
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
@@ -180,38 +192,49 @@ Configuration = (options={}) ->
   GOBIN = "#{projectRoot}/go/bin"
 
 
-  # THESE COMMANDS WILL EXECUTE SEQUENTIALLY.
+  # THESE COMMANDS WILL EXECUTE IN PARALLEL.
 
   KONFIG.workers =
+    gowebserver         :
+      group             : "webserver"
+      ports             :
+         incoming       : "#{KONFIG.gowebserver.port}"
+      supervisord       :
+        command         : "#{GOBIN}/go-webserver -c #{configName}"
+      nginx             :
+        locations       : ["~^/IDE/.*"]
+        auth            : no
+      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
+
     kontrol             :
       group             : "environment"
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
 
     # ngrokProxy          :
     #   group             : "environment"
     #   supervisord       :
     #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-
-    # reverseProxy        :
-    #   group             : "environment"
-    #   supervisord       :
-    #     command         : "#{GOBIN}/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
 
     broker              :
       group             : "webserver"
@@ -222,17 +245,23 @@ Configuration = (options={}) ->
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
+      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
+      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
     rerouting           :
       group             : "webserver"
       supervisord       :
         command         : "#{GOBIN}/rerouting -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
     authworker          :
       group             : "webserver"
       instances         : 2
       supervisord       :
-        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     sourcemaps          :
       group             : "webserver"
@@ -244,7 +273,9 @@ Configuration = (options={}) ->
     emailsender         :
       group             : "webserver"
       supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} --disable-newrelic"
+        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
+      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -276,11 +307,8 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : ["/xhr"]
-
-    # guestCleaner        :
-      # group             : "webserver"
-      # supervisord       :
-        # command         : "#{GOBIN}/guestcleanerworker -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     # clientWatcher       :
     #   group             : "webserver"
@@ -297,6 +325,8 @@ Configuration = (options={}) ->
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
+      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
+      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
 
     dailyemailnotifier  :
       group             : "socialapi"

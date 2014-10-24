@@ -6,7 +6,7 @@ class SidebarItem extends KDListItemView
     options.route        = KD.utils.groupifyLink "/Activity/#{options.route}"
     options.tagName    or= 'a'
     options.attributes or= href : options.route
-    options.attributes.testpath = "public-feed-link"
+    options.attributes.testpath = "public-feed-link#{options.route}"
 
     super options, data
 
@@ -21,8 +21,8 @@ class SidebarItem extends KDListItemView
     # "FOLLOWED Topics" and "HOT Topics" sections
     @lastClickedTimestamp = 0
 
-    @on 'click', =>
-      @getDelegate().emit 'ItemShouldBeSelected', this
+    @on 'click', (event) =>
+      @getDelegate().emit 'ItemShouldBeSelected', this, event
       @lastClickedTimestamp = Date.now()
 
 

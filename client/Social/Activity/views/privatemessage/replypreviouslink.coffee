@@ -4,7 +4,7 @@ class ReplyPreviousLink extends CommentListPreviousLink
     super options, data
 
 
-  updateView: (replies) ->
+  updateView: _.once (replies) ->
     {SocialChannel} = KD.remote.api
     data = @getData()
     SocialChannel.fetchActivityCount {channelId: data.id}, (err, {totalCount}) =>
@@ -18,9 +18,3 @@ class ReplyPreviousLink extends CommentListPreviousLink
 
 
   viewAppended: ->
-  #   {SocialChannel} = KD.remote.api
-  #   data = @getData()
-  #   SocialChannel.fetchActivityCount {channelId: data.id}, (err, {totalCount}) =>
-  #     return warn err if err
-  #     data.repliesCount = totalCount if data
-  #     super

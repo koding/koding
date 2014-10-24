@@ -16,8 +16,9 @@ class UpdateCreditCardWorkflow extends KDController
 
   handleSubmit: (formData) ->
 
-    { cardNumber, cardCVC
-      cardMonth, cardYear } = formData
+    { cardNumber, cardCVC, cardName
+      cardMonth, cardYear
+    } = formData
 
     # Just because stripe validates both 2 digit
     # and 4 digit year, and different types of month
@@ -26,12 +27,13 @@ class UpdateCreditCardWorkflow extends KDController
     cardYear  = null  if cardYear.length isnt 4
     cardMonth = null  if cardMonth.length isnt 2
 
-    Stripe.card.createToken
+    Stripe.card.createToken {
       number    : cardNumber
       cvc       : cardCVC
       exp_month : cardMonth
       exp_year  : cardYear
-    , (status, response) =>
+      name      : cardName
+    }, (status, response) =>
 
       if response.error
         @modal.emit 'StripeRequestValidationFalied', response.error

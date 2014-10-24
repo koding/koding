@@ -241,7 +241,7 @@ class AdministrationView extends KDTabViewWithForms
         account = accounts[0]
         inputs.Flags.setValue account.globalFlags?.join(',')
         userRequestLineEdit.hide()
-        @showConnectedFields()
+        @showConnectedFields account
       else
         userRequestLineEdit.show()
         @hideConnectedFields()
@@ -256,10 +256,21 @@ class AdministrationView extends KDTabViewWithForms
     fields.Block.hide()
     inputs.Flags.setValue ''
 
-  showConnectedFields:->
+    @metaInfo?.destroy()
+
+  showConnectedFields: (account)->
+
     {fields, inputs, buttons} = @forms["User Details"]
     fields.Impersonate.show()
     fields.Flags.show()
     fields.Block.show()
     buttons.Update.show()
 
+    @metaInfo?.destroy()
+
+    account.fetchMetaInformation (err, info)=>
+      return if KD.showError err
+      info = KD.utils.objectToString info, separator: "  "
+      @addSubView @metaInfo = new KDView
+        cssClass : 'has-markdown'
+        partial  : KD.utils.applyMarkdown "```json \n#{info}\n```"

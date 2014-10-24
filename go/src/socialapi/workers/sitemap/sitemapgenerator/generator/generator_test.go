@@ -75,7 +75,8 @@ func TestSitemapGeneration(t *testing.T) {
 							So(len(container.Update), ShouldEqual, 0)
 
 							hostname := config.MustGet().Hostname
-							location := fmt.Sprintf("%s/%s", hostname, firstItem.Slug)
+							protocol := config.MustGet().Protocol
+							location := fmt.Sprintf("%s//%s/%s", protocol, hostname, firstItem.Slug)
 							So(container.Add[0].Location, ShouldEqual, location)
 							Convey("item should be able to added to sitemap", func() {
 								err = controller.updateFile(container)

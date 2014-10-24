@@ -22,6 +22,8 @@ class PaymentWorkflow extends KDController
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
+  FAILED_ATTEMPT_LIMIT = 3
+
   @isUpgrade = (current, selected) ->
 
     arr = [
@@ -34,7 +36,9 @@ class PaymentWorkflow extends KDController
     (arr.indexOf selected) > (arr.indexOf current)
 
 
-  getInitialState: -> KD.utils.dict()
+  getInitialState: -> {
+    failedAttemptCount : 0
+  }
 
 
   constructor: (options = {}, data) ->
@@ -58,8 +62,9 @@ class PaymentWorkflow extends KDController
   startRegularFlow: ->
 
     @modal = new PaymentModal { @state }
-    @modal.on 'PaymentWorkflowFinished', @bound 'finish'
-    @modal.on "PaymentSubmitted",        @bound 'handlePaymentSubmit'
+    @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
+    @modal.on 'PaymentSubmitted',                 @bound 'handlePaymentSubmit'
+    @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
 
   startDowngradeFlow: ->
@@ -78,10 +83,12 @@ class PaymentWorkflow extends KDController
 
   handlePaymentSubmit: (formData) ->
 
+    return @failedAttemptLimitReached()  if @state.failedAttemptCount >= FAILED_ATTEMPT_LIMIT
+
     {
       cardNumber, cardCVC, cardMonth,
-      cardYear, planTitle, planInterval,
-      currentPlan
+      cardYear, planTitle, planInterval, planAmount
+      currentPlan, cardName
     } = formData
 
     # Just because stripe validates both 2 digit
@@ -91,6 +98,14 @@ class PaymentWorkflow extends KDController
     cardYear  = null  if cardYear.length isnt 4
     cardMonth = null  if cardMonth.length isnt 2
 
+    binNumber = cardNumber.slice 0, 6
+    lastFour  = cardNumber.slice -4
+
+    KD.utils.defer ->
+      KD.singletons.paymentController.logOrder {
+        planTitle, planAmount, binNumber, lastFour, cardName
+      }, noop
+
     if currentPlan is PaymentWorkflow.planTitle.FREE
 
       Stripe.card.createToken {
@@ -98,22 +113,28 @@ class PaymentWorkflow extends KDController
         cvc       : cardCVC
         exp_month : cardMonth
         exp_year  : cardYear
-      } , (status, response) =>
+        name      : cardName
+      }, (status, response) =>
 
         if response.error
           @modal.emit 'StripeRequestValidationFailed', response.error
           @modal.form.submitButton.hideLoader()
+          @state.failedAttemptCount++
           return
 
         token = response.id
-        @subscribeToPlan planTitle, planInterval, token
+        @subscribeToPlan planTitle, planInterval, token, {
+          binNumber, lastFour, planAmount, cardName
+        }
     else
-      @subscribeToPlan planTitle, planInterval, 'a'
+      @subscribeToPlan planTitle, planInterval, 'a', {
+        binNumber, lastFour, planAmount, cardName
+      }
 
     @state.currentPlan = planTitle
 
 
-  subscribeToPlan: (planTitle, planInterval, token = 'a') ->
+  subscribeToPlan: (planTitle, planInterval, token, options) ->
     { paymentController } = KD.singletons
 
     me = KD.whoami()
@@ -121,14 +142,21 @@ class PaymentWorkflow extends KDController
 
       return KD.showError err  if err
 
-      obj = { email }
+      options.email = email
 
-      paymentController.subscribe token, planTitle, planInterval, obj, (err, result) =>
+      paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
         @modal.form.submitButton.hideLoader()
 
         if err
-        then @modal.emit 'PaymentFailed', err
-        else @modal.emit 'PaymentSucceeded'
+          @modal.emit 'PaymentFailed', err
+          @state.failedAttemptCount++
+        else
+          @modal.emit 'PaymentSucceeded'
+
+
+  failedAttemptLimitReached: ->
+
+    @modal.emit 'FailedAttemptLimitReached'
 
 
   finish: (state) ->
@@ -141,4 +169,10 @@ class PaymentWorkflow extends KDController
 
     @modal.destroy()
 
+
+  finishWithError: (state) ->
+
+    @emit 'PaymentWorkflowFinishedWithError', state
+
+    @destroy()
 

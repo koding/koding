@@ -148,6 +148,27 @@ func TestMap_CustomTag(t *testing.T) {
 
 }
 
+func TestMap_OmitEmpty(t *testing.T) {
+	type A struct {
+		Name  string
+		Value string    `structs:",omitempty"`
+		Time  time.Time `structs:",omitempty"`
+	}
+	a := A{}
+
+	m := Map(a)
+
+	_, ok := m["Value"].(map[string]interface{})
+	if ok {
+		t.Error("Map should not contain the Value field that is tagged as omitempty")
+	}
+
+	_, ok = m["Time"].(map[string]interface{})
+	if ok {
+		t.Error("Map should not contain the Time field that is tagged as omitempty")
+	}
+}
+
 func TestMap_OmitNested(t *testing.T) {
 	type A struct {
 		Name  string
@@ -277,6 +298,24 @@ func TestValues(t *testing.T) {
 		if !inSlice(val) {
 			t.Errorf("Values should have the value %v", val)
 		}
+	}
+}
+
+func TestValues_OmitEmpty(t *testing.T) {
+	type A struct {
+		Name  string
+		Value int `structs:",omitempty"`
+	}
+
+	a := A{Name: "example"}
+	s := Values(a)
+
+	if len(s) != 1 {
+		t.Errorf("Values of omitted empty fields should be not counted")
+	}
+
+	if s[0].(string) != "example" {
+		t.Errorf("Values of omitted empty fields should left the value example")
 	}
 }
 
@@ -733,4 +772,53 @@ func TestName(t *testing.T) {
 	}()
 
 	Name([]string{})
+}
+
+func TestNestedNilPointer(t *testing.T) {
+	type Collar struct {
+		Engraving string
+	}
+
+	type Dog struct {
+		Name   string
+		Collar *Collar
+	}
+
+	type Person struct {
+		Name string
+		Dog  *Dog
+	}
+
+	person := &Person{
+		Name: "John",
+	}
+
+	personWithDog := &Person{
+		Name: "Ron",
+		Dog: &Dog{
+			Name: "Rover",
+		},
+	}
+
+	personWithDogWithCollar := &Person{
+		Name: "Kon",
+		Dog: &Dog{
+			Name: "Ruffles",
+			Collar: &Collar{
+				Engraving: "If lost, call Kon",
+			},
+		},
+	}
+
+	defer func() {
+		err := recover()
+		if err != nil {
+			fmt.Printf("err %+v\n", err)
+			t.Error("Internal nil pointer should not panic")
+		}
+	}()
+
+	_ = Map(person)                  // Panics
+	_ = Map(personWithDog)           // Panics
+	_ = Map(personWithDogWithCollar) // Doesn't panic
 }

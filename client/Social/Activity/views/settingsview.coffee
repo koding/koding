@@ -8,7 +8,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     data    = @getData()
     account = KD.whoami()
 
-    @settings = new KDButtonViewWithMenu
+    @settings        = new KDButtonViewWithMenu
       title          : ''
       cssClass       : 'activity-settings-menu'
       itemChildClass : ActivityItemMenuItem
@@ -17,15 +17,6 @@ class ActivitySettingsView extends KDCustomHTMLView
       menu           : @bound 'settingsMenu'
       style          : 'resurrection'
       callback       : (event) => @settings.contextMenu event
-
-    followDisabled = @getOptions().disableFollow
-    myPost         = KD.isMyPost @getData()
-    iAmAdmin       = KD.checkFlag 'super-admin'
-
-    return @hide()  if followDisabled or (not myPost and not iAmAdmin)
-
-    activityController = KD.getSingleton('activityController')
-
 
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
@@ -84,14 +75,35 @@ class ActivitySettingsView extends KDCustomHTMLView
 
     @menu = {}
 
-    @addFollowActionMenu()  unless @getOptions().disableFollow
+    # @addFollowActionMenu()
     @addOwnerMenu()  if KD.isMyPost @getData()
     @addAdminMenu()  if KD.checkFlag('super-admin')
 
     return @menu
 
 
-  viewAppended: -> @addSubView @settings
+  viewAppended: ->
+
+    data = @getData()
+
+    @addSubView @settings  if _.every [
+      not data.isFake
+      (KD.isMyPost(data) or KD.checkFlag 'super-admin')
+    ], Boolean
+
+
+  deletePostConfirmed: (modal) ->
+
+    @emit 'ActivityDeleteStarted'
+    modal.destroy()
+    id = @getData().getId()
+    KD.singletons.appManager.tell 'Activity', 'delete', {id}, (err) =>
+
+      if err
+        KD.showErrorNotification err, { userMessage : "You are not allowed to delete this post." }
+        @emit 'ActivityDeleteFailed'
+      else
+        @emit 'ActivityDeleteSucceeded'
 
 
   confirmDeletePost: ->
@@ -106,19 +118,7 @@ class ActivitySettingsView extends KDCustomHTMLView
           style      : "modal-clean-red"
           loader     :
             color    : "#e94b35"
-          callback   : =>
-
-            id = @getData().getId()
-
-            (KD.singleton 'appManager').tell 'Activity', 'delete', {id}, (err) =>
-              return modal.destroy()  unless err
-              options =
-                userMessage : "You are not allowed to delete this post."
-
-              KD.showErrorNotification err, options
-
-              modal.destroy()
-
+          callback   : => @deletePostConfirmed modal
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"

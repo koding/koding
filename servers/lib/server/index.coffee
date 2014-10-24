@@ -14,7 +14,7 @@ Object.defineProperty global, 'KONFIG',
   social
   broker
   recaptcha
-}       = KONFIG
+} = KONFIG
 
 webPort = argv.p ? webserver.port
 koding  = require './bongo'
@@ -32,6 +32,7 @@ nodePath   = require 'path'
 http       = require "https"
 helmet     = require 'helmet'
 request    = require 'request'
+bodyParser = require 'body-parser'
 
 {JSession} = koding.models
 app        = express()
@@ -57,7 +58,6 @@ app        = express()
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
 
-bodyParser = require 'body-parser'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -126,6 +126,18 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
+
+
+app.get "/-/google-api",(req, res)->
+  ggl = require("googleapis")
+  gsc = KONFIG.googleapiServiceAccount
+  eml = gsc.serviceAccountEmail
+  key = gsc.serviceAccountKeyFile
+  scp = ['https://www.googleapis.com/auth/drive']
+  jwt = new ggl.auth.JWT(eml, key, null, scp).authorize (err,authToken)->
+
+    return res.status(401).send err if err
+    res.status(200).send authToken
 
 
 app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
@@ -235,12 +247,12 @@ app.get "/-/auth/register/:hostname/:key", (req, res)->
       else
         res.status(200).send authTemplate data
 
-app.post "/:name?/Validate", (req, res) ->
+app.post '/:name?/Validate', (req, res) ->
   { JUser } = koding.models
   { fields } = req.body
 
   unless fields?
-    res.status(400).send "Bad request"
+    res.status(400).send 'Bad request'
     return
 
   validations = Object.keys fields
@@ -255,7 +267,7 @@ app.post "/:name?/Validate", (req, res) ->
   res.status(if validations.isValid then 200 else 400).send validations
 
 
-app.post "/:name?/Validate/Username/:username?", (req, res) ->
+app.post '/:name?/Validate/Username/:username?', (req, res) ->
 
   { JUser } = koding.models
   { username } = req.params
@@ -263,31 +275,50 @@ app.post "/:name?/Validate/Username/:username?", (req, res) ->
   return res.status(400).send 'Bad request'  unless username?
 
   JUser.usernameAvailable username, (err, response) =>
+
     return res.status(400).send 'Bad request'  if err
 
     {kodingUser, forbidden} = response
 
     if not kodingUser and not forbidden
       res.status(200).send response
-    else if kodingUser
+    else
       res.status(400).send response
 
-app.post "/:name?/Validate/Email/:email?", (req, res) ->
+app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
-  { JUser } = koding.models
-  { email } = req.params
+  { JUser }    = koding.models
+  { email }    = req.params
+  { password } = req.body
 
   return res.status(400).send 'Bad request'  unless email?
 
-  JUser.emailAvailable email, (err, response) =>
-    return res.status(400).send 'Bad request'  if err
+  { password, redirect } = req.body
 
-    return if response
-    then res.status(200).send response
-    else res.status(400).send 'Email is taken!'
+  clientId =  getClientId req, res
+
+  if clientId
+
+    JUser.login clientId, { username : email, password }, (err, info) ->
+
+      {isValid : isEmail} = JUser.validateAt 'email', email, yes
+
+      if err and isEmail
+        JUser.emailAvailable email, (err_, response) =>
+          return res.status(400).send 'Bad request'  if err_
+
+          return if response
+          then res.status(200).send response
+          else res.status(400).send 'Email is taken!'
+
+        return
+
+      res.cookie 'clientId', info.replacementToken, path : '/'
+      return res.status(200).send 'User is logged in!'
 
 
-app.get "/Verify/:token", (req, res) ->
+
+app.get '/Verify/:token', (req, res) ->
   { JPasswordRecovery } = koding.models
   { token } = req.params
 
@@ -296,7 +327,7 @@ app.get "/Verify/:token", (req, res) ->
 
     res.redirect 301, "/Verified"
 
-app.post "/:name?/Register", (req, res) ->
+app.post '/:name?/Register', (req, res) ->
   { JUser } = koding.models
   context = { group: 'koding' }
   { redirect } = req.body
@@ -314,7 +345,7 @@ app.post "/:name?/Register", (req, res) ->
     JUser.convert client, req.body, (err, result) ->
       return res.status(400).send err.message  if err?
 
-      res.cookie 'clientId', result.newToken
+      res.cookie 'clientId', result.newToken, path : '/'
       # handle the request as an XHR response:
       return res.status(200).end() if req.xhr
       # handle the request with an HTTP redirect:
@@ -330,14 +361,8 @@ app.post "/:name?/Login", (req, res) ->
 
   JUser.login clientId, { username, password }, (err, info) ->
     return res.status(403).send err.message  if err?
-    # implementing a temporary opt-out for new koding:
-    storageOptions =
-      appId   : 'NewKoding'
-      version : '2.0'
-    info.account.fetchOrCreateAppStorage storageOptions, (err, appStorage) ->
-      return res.status(500).send 'Internal error'  if err?
-      res.cookie 'clientId', info.replacementToken
-      res.status(200).end()
+    res.cookie 'clientId', info.replacementToken, path : '/'
+    res.status(200).end()
 
 app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models
@@ -388,17 +413,15 @@ app.get "/activity/p/?*", (req, res)->
   res.redirect 301, '/Activity'
 
 app.get "/-/healthCheck", (req, res) ->
-  {socialapi, newkontrol, publicPort} = KONFIG
-  {socialApiUri, broker} = KONFIG.client.runtimeOptions
+  {workers, publicPort} = KONFIG
 
   errs = []
-  urls = [
-    socialapi.proxyUrl
-    newkontrol.url
-    "http://localhost:#{publicPort}#{socialApiUri}"
-    "http://localhost:#{publicPort}#{broker.uri}/info"
-    "http://localhost:#{publicPort}/kloud/kite/info"
-  ]
+  urls = []
+
+  for own _, worker of workers
+    urls.push worker.healthCheckURL  if worker.healthCheckURL
+
+  urls.push("http://localhost:#{publicPort}/-/versionCheck")
 
   urlFns = urls.map (url)->->
     request url, (err, resp, body)->
@@ -408,6 +431,28 @@ app.get "/-/healthCheck", (req, res) ->
   dash urlFns, ->
     if Object.keys(errs).length > 0
       console.log "HEALTHCHECK ERROR:", errs
+      res.status(500).end()
+    else
+      res.status(200).end()
+
+app.get "/-/versionCheck", (req, res) ->
+  errs = []
+  urls = []
+  for own key, val of KONFIG.workers
+    urls.push {name: key, url: val.versionURL}  if val?.versionURL?
+
+  urlFns = urls.map ({name, url})->->
+    request url, (err, resp, body)->
+      if err?
+        errs.push({ name, err })
+      else if KONFIG.version isnt body
+        errs.push({ name, message: "versions are not same" })
+
+      urlFns.fin()
+
+  dash urlFns, ->
+    if Object.keys(errs).length > 0
+      console.log "VERSIONCHECK ERROR:", errs
       res.status(500).end()
     else
       res.status(200).end()
@@ -485,8 +530,6 @@ app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
 app.post "/:name?/OAuth"              , require  "./oauth"
 app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
-# Handlers for Stripe
-app.post '/-/stripe/webhook' , require "./stripe_webhook"
 app.get  '/-/subscriptions'  , require "./subscriptions"
 
 # TODO: we need to add basic auth!
@@ -508,9 +551,66 @@ isInAppRoute = (name)->
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
 
-# Handles all internal pages
-# /USER || /SECTION || /GROUP[/SECTION] || /APP
-#
+
+app.post '/Hackathon/Apply', (req, res, next)->
+
+  {JWFGH} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return res.status(400).send 'not ok' unless loggedIn
+
+    JWFGH.apply account, (err, stats)->
+      return res.status(400).send err.message or 'not ok'  if err
+      res.status(200).send stats
+
+
+app.post '/Gravatar', (req, res) ->
+  crypto  = require 'crypto'
+  {email} = req.body
+
+  console.log "Gravatar info request for: #{email}"
+
+  _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex')).toString()
+  _url      = "https://www.gravatar.com/#{_hash}.json"
+  _request  =
+    url     : _url
+    headers : 'User-Agent': 'request'
+
+  request _request, (err, response, body) ->
+
+    if body isnt 'User not found'
+      try
+        gravatar = JSON.parse body
+      catch
+        return res.status(400).send 'User not found'
+
+      return res.status(200).send gravatar
+
+    res.status(400).send body
+
+
+app.get '/Hackathon/:section?', (req, res, next)->
+
+  {JGroup} = koding.models
+
+  isLoggedIn req, res, (err, loggedIn, account)->
+
+    return next()  if err
+
+    JGroup.render.loggedOut.kodingHome {
+      campaign    : 'hackathon'
+      bongoModels : koding.models
+      loggedIn
+      account
+    }, (err, content) ->
+
+      return next()  if err
+
+      return res.status(200).send content
+
+
+
 app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
@@ -529,7 +629,7 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
 
   if isInAppRoute name
     if name is 'Develop'
-      return res.redirect 301, '/Terminal'
+      return res.redirect 301, '/IDE'
 
     if name in ['Activity']
       isLoggedIn req, res, (err, loggedIn, account)->

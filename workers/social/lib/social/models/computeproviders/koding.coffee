@@ -33,7 +33,11 @@ module.exports = class Koding extends ProviderInterface
       alwaysOn         : 5
       storage          : 100
       allowedInstances : ['t2.micro']
-
+    koding             :
+      total            : 100
+      alwaysOn         : 100
+      storage          : 1000
+      allowedInstances : ['t2.micro', 't2.small', 't2.medium']
 
   @fetchPlans = (client, options, callback)->
 
@@ -103,20 +107,20 @@ module.exports = class Koding extends ProviderInterface
 
     storage ?= 3
 
-    @fetchUserPlan client, (err, userPlan)=>
+    guessNextLabel user, group, label, (err, label)=>
 
-      # Commented-out this since if it fails to fetch
-      # plan it uses 'free' as default. ~ GG
-      # return callback err  if err?
+      @fetchUserPlan client, (err, userPlan)=>
 
-      @fetchUsage client, options, (err, usage)->
+        # Commented-out this since if it fails to fetch
+        # plan it uses 'free' as default. ~ GG
+        # return callback err  if err?
 
-        return callback err  if err?
+        @fetchUsage client, options, (err, usage)->
 
-        if err = checkUsage usage, userPlan, storage
-          return callback err
+          return callback err  if err?
 
-        guessNextLabel user, group, label, (err, label)->
+          if err = checkUsage usage, userPlan, storage
+            return callback err
 
           meta =
             type          : "amazon"
@@ -126,9 +130,21 @@ module.exports = class Koding extends ProviderInterface
             storage_size  : storage
             alwaysOn      : no
 
+          if 't2.medium' in userPlan.allowedInstances
+            meta.instance_type = 't2.medium'
+
           callback null, {
             meta, label, credential: client.r.user.username
           }
+
+
+  @postCreate = (client, options, callback)->
+
+    { r: { account } } = client
+    { machine } = options
+
+    JDomainAlias = require '../domainalias'
+    JDomainAlias.ensureTopDomainExistence account, machine._id, callback
 
 
   @update = (client, options, callback)->

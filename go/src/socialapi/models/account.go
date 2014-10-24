@@ -24,14 +24,21 @@ type Account struct {
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 }
 
-// Tests are done.
-func (a *Account) FetchOrCreate() error {
+func ValidateAccount(a *Account) error {
 	if a.OldId == "" {
 		return ErrOldIdIsNotSet
 	}
 
 	if strings.Contains(a.Nick, "guest-") {
 		return ErrGuestsAreNotAllowed
+	}
+	return nil
+}
+
+// Tests are done.
+func (a *Account) FetchOrCreate() error {
+	if err := ValidateAccount(a); err != nil {
+		return err
 	}
 
 	selector := map[string]interface{}{
@@ -152,6 +159,19 @@ func (a *Account) FetchChannel(channelType string) (*Channel, error) {
 }
 
 // Tests are done.
+func (a *Account) ByNick(nick string) error {
+	if nick == "" {
+		return ErrNickIsNotSet
+	}
+
+	selector := map[string]interface{}{
+		"nick": nick,
+	}
+
+	return a.One(bongo.NewQS(selector))
+}
+
+// Tests are done.
 func (a *Account) MarkAsTroll() error {
 	if a.Id == 0 {
 		return ErrAccountIdIsNotSet
@@ -161,10 +181,14 @@ func (a *Account) MarkAsTroll() error {
 		return err
 	}
 
-	// do not try to mark twice
-	if a.IsTroll {
-		return fmt.Errorf("account is already a troll %d", a.Id)
-	}
+	// once, mongo sync problem happened and we couldnt mark the user as troll
+	// in social api, in order to prevent it from happening again, i am removing
+	// this check ~ CS
+
+	// // do not try to mark twice
+	// if a.IsTroll {
+	// 	return fmt.Errorf("account is already a troll %d", a.Id)
+	// }
 
 	a.IsTroll = true
 	if err := a.Update(); err != nil {
@@ -188,10 +212,14 @@ func (a *Account) UnMarkAsTroll() error {
 		return err
 	}
 
-	// do not try to un-mark twice
-	if !a.IsTroll {
-		return fmt.Errorf("account is not a troll %d", a.Id)
-	}
+	// once, mongo sync problem happened and we couldnt mark the user as troll
+	// in social api, in order to prevent it from happening again, i am removing
+	// this check ~ CS
+
+	// // do not try to un-mark twice
+	// if !a.IsTroll {
+	// 	return fmt.Errorf("account is not a troll %d", a.Id)
+	// }
 
 	a.IsTroll = false
 	if err := a.Update(); err != nil {
@@ -284,4 +312,23 @@ func FetchOldIdsByAccountIds(accountIds []int64) ([]string, error) {
 	}
 
 	return oldIds, nil
+}
+
+func FetchAccountsByNicks(nicks []string) ([]Account, error) {
+	var accounts []Account
+
+	if len(nicks) == 0 {
+		return accounts, nil
+	}
+
+	a := NewAccount()
+	res := bongo.B.DB.
+		Table(a.TableName()).
+		Where("nick in (?)", nicks).Find(&accounts)
+
+	if err := bongo.CheckErr(res); err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
 }

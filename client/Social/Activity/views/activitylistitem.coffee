@@ -8,9 +8,9 @@ class ActivityListItemView extends KDListItemView
     options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
-    options.activitySettings or= {}
     options.attributes       or= {}
     options.attributes.testpath = "ActivityListItemView"
+    options.editWidgetClass  or= ActivityEditWidget
 
     super options, data
 
@@ -20,6 +20,8 @@ class ActivityListItemView extends KDListItemView
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account) =>
+
+    @bindTransitionEnd()
 
 
   createSubViews: ->
@@ -41,7 +43,7 @@ class ActivityListItemView extends KDListItemView
 
     @author      = new ProfileLinkView { origin }
 
-    {commentViewClass, activitySettings: {disableFollow}} = options
+    {commentViewClass} = options
 
     {socialapi} = KD.singletons
 
@@ -54,12 +56,8 @@ class ActivityListItemView extends KDListItemView
     @settingsButton = new ActivitySettingsView
       cssClass      : 'settings-menu-wrapper'
       itemView      : this
-      disableFollow : disableFollow
     , data
 
-    # related to Latency Compensation:
-    # prevent users taking action when data is fake.
-    @settingsButton.hide()  if data.isFake
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
@@ -90,8 +88,10 @@ class ActivityListItemView extends KDListItemView
 
   initViewEvents: ->
 
-    @settingsButton.on 'ActivityIsDeleted',     @bound 'delete'
-    @settingsButton.on 'ActivityEditIsClicked', @bound 'showEditWidget'
+    @settingsButton.on 'ActivityDeleteStarted'   , @bound 'hide'
+    @settingsButton.on 'ActivityDeleteSucceeded' , @bound 'delete'
+    @settingsButton.on 'ActivityDeleteFailed'    , @bound 'show'
+    @settingsButton.on 'ActivityEditIsClicked'   , @bound 'showEditWidget'
 
 
   initDataEvents: ->
@@ -117,7 +117,8 @@ class ActivityListItemView extends KDListItemView
   showEditWidget : ->
 
     unless @editWidget
-      @editWidget = new ActivityEditWidget null, @getData()
+      { editWidgetClass } = @getOptions()
+      @editWidget = new editWidgetClass { delegate:this }, @getData()
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidget.input.on 'blur', @bound 'resetEditing'
@@ -156,44 +157,6 @@ class ActivityListItemView extends KDListItemView
     list.emit 'EditMessageReset'
 
 
-  delete: ->
-
-    @emit 'ActivityIsDeleted'
-    list.removeItem this
-    @destroy()
-
-
-  # setAnchors: ->
-
-  #   @$("article a").each (index, element) ->
-  #     {location: {origin}} = window
-  #     href = element.getAttribute "href"
-  #     return  unless href
-
-  #     beginning = href.substring 0, origin.length
-  #     rest      = href.substring origin.length + 1
-
-  #     if beginning is origin
-  #       element.setAttribute "href", "/#{rest}"
-  #       element.classList.add "internal"
-  #       element.classList.add "teamwork"  if rest.match /^Teamwork/
-  #     else
-  #       element.setAttribute "target", "_blank"
-
-
-  # click: (event) ->
-
-  #   {target} = event
-
-  #   if $(target).is "article a.internal"
-  #     @utils.stopDOMEvent event
-  #     href = target.getAttribute "href"
-
-  #     if target.classList.contains("teamwork") and KD.singleton("appManager").get "Teamwork"
-  #     then window.open "#{window.location.origin}#{href}", "_blank"
-  #     else KD.singleton("router").handleRoute href
-
-
   showResend: ->
 
     @setClass 'failed'
@@ -227,8 +190,49 @@ class ActivityListItemView extends KDListItemView
   partial:-> ''
 
 
-  hide:-> @setClass   'hidden-item'
-  show:-> @unsetClass 'hidden-item'
+  hide: ->
+
+    @isBeingHidden = yes
+
+    @once 'transitionend', =>
+
+      @once 'transitionend', =>
+        @emit 'HideAnimationFinished'
+        @setClass 'hidden'
+        @isBeingHidden = no
+
+      height  = @getHeight()
+      element = @getElement()
+      style   = window.getComputedStyle element
+      margins = ['margin-top', 'margin-bottom'].reduce (old, property) ->
+        calculated = parseInt (style.getPropertyValue property), 10
+        calculated = 0  if isNaN calculated
+        return old + calculated
+      , 0
+
+      @setCss 'margin-top', "-#{height + margins}px"
+
+    @setClass 'out'
+
+
+  show: -> @whenSubmitted().then => @unsetClass 'hidden out'
+
+
+  whenSubmitted: ->
+    new Promise (resolve) =>
+      if @isBeingHidden
+      then @once 'HideAnimationFinished', -> resolve()
+      else resolve()
+
+
+  delete: ->
+
+    @whenSubmitted().then =>
+      list = @getDelegate()
+      @emit 'ActivityIsDeleted'
+      list.removeItem this
+      @destroy()
+
 
   render : ->
     super
@@ -268,4 +272,3 @@ class ActivityListItemView extends KDListItemView
     </div>
     {{> @commentBox}}
     """
-

@@ -176,17 +176,19 @@ module.exports = class JComputeStack extends jraphical.Module
 
         else
 
-          stacks = []
+          callback null, _stacks
 
-          queue = _stacks.map (stack) -> ->
-            stack.revive (err, revivedStack)->
-              stacks.push revivedStack
-              queue.next()
+          # stacks = []
 
-          queue.push ->
-            callback null, stacks
+          # queue = _stacks.map (stack) -> ->
+          #   stack.revive (err, revivedStack)->
+          #     stacks.push revivedStack
+          #     queue.next()
 
-          daisy queue
+          # queue.push ->
+          #   callback null, stacks
+
+          # daisy queue
 
 
 

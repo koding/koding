@@ -1,8 +1,11 @@
 package koding
 
 import (
+	"fmt"
 	"sync"
 	"time"
+
+	"github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -61,13 +64,23 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		klientChecked = true
 
 		klientRef, err := p.KlientPool.Get(m.QueryString)
-		if err != nil {
-			p.Log.Warning("[%s] state is '%s' but I can't connect to klient.",
-				m.Id, resultState)
+
+		switch err {
+		case kite.ErrNoKitesAvailable:
+			p.Log.Warning("[%s] klient is disconnected, I couldn't find it trough Kontrol. err: %s",
+				m.Id, err)
+
 			resultState = machinestate.Stopped
-		} else {
+
+			// start shutdown timer, because klient is not running, don't let
+			// it be running forever
+			p.startTimer(m)
+		case nil:
 			// now assume it's running
 			resultState = machinestate.Running
+
+			// stop any if any timer is available
+			p.stopTimer(m)
 
 			// ping the klient again just to see if it can respond to us
 			if err := klientRef.Ping(); err != nil {
@@ -78,11 +91,25 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 				// functional so we assume it's stopped
 				resultState = machinestate.Stopped
 			}
+		default:
+			// error is something else and critical, so don't do anything until it's resolved
+			p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
 		}
 
 		if resultState != dbState {
+
+			reason := ""
+			switch resultState {
+			case machinestate.Running:
+				reason = "Klient is active and healthy."
+			case machinestate.Stopped:
+				reason = "Klient is not active."
+			default:
+				reason = "Klient is in unknown state."
+			}
+
 			// return an error anything here if the DB is locked.
-			if err := p.CheckAndUpdateState(m.Id, resultState); err == mgo.ErrNotFound {
+			if err := p.CheckAndUpdateState(m.Id, reason, resultState); err == mgo.ErrNotFound {
 				return nil, kloud.ErrLockAcquired
 			}
 		}
@@ -102,7 +129,9 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		// change the db state if there is an ongoing process. If there is no
 		// error than it means there is no lock so we could update it with the
 		// state from amazon. Therefore send it back!
-		err := p.CheckAndUpdateState(m.Id, awsState)
+		reason := fmt.Sprintf("State is inconsistent. Have '%s' in DB, updating to AWS state: '%s'",
+			dbState, awsState)
+		err := p.CheckAndUpdateState(m.Id, reason, awsState)
 		if err == nil {
 			p.Log.Info("[%s] info decision : inconsistent state. using amazon state '%s'",
 				m.Id, awsState)
@@ -113,7 +142,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		}
 	}
 
-	p.Log.Info("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
+	p.Log.Debug("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,
@@ -124,7 +153,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 // CheckAndUpdate state updates only if the given machine id is not used by
 // anyone else
-func (p *Provider) CheckAndUpdateState(id string, state machinestate.State) error {
+func (p *Provider) CheckAndUpdateState(id, reason string, state machinestate.State) error {
 	p.Log.Info("[%s] storage state update request to state %v", id, state)
 	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
@@ -136,6 +165,7 @@ func (p *Provider) CheckAndUpdateState(id string, state machinestate.State) erro
 				"$set": bson.M{
 					"status.state":      state.String(),
 					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
 				},
 			},
 		)

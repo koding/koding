@@ -41,5 +41,9 @@ func (r *Resize) Action(args []string, k *kite.Client) error {
 	}
 
 	DefaultUi.Info(fmt.Sprintf("%+v", result))
+
+	if flagWatchEvents {
+		return watch(k, "resize", *r.id, defaultPollInterval)
+	}
 	return nil
 }

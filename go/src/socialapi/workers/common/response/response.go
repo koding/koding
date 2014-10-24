@@ -9,6 +9,8 @@ import (
 	"github.com/koding/bongo"
 )
 
+var ErrContentNotFound = errors.New("content not found")
+
 // NewBadRequest is creating a new http response with predifined
 // http response properties
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
@@ -20,7 +22,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	helper.MustGetLogger().Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
-	if config.MustGet().Environment != config.VagrantEnvName {
+	if config.MustGet().Environment != "dev" {
 		err = genericError
 	}
 
@@ -68,7 +70,7 @@ func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 
 // NewNotFound returns http StatusNotFound response
 func NewNotFound() (int, http.Header, interface{}, error) {
-	return http.StatusNotFound, nil, nil, NotFoundError{errors.New("content not found")}
+	return http.StatusNotFound, nil, nil, NotFoundError{ErrContentNotFound}
 }
 
 // NewDeleted returns http StatusAccepted response

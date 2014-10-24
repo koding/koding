@@ -4,10 +4,10 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
-	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
+	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 
@@ -33,9 +33,15 @@ func CreatePrivateMessageUser(nickname string) {
 }
 
 func TestPrivateMesssage(t *testing.T) {
-	mm := config.MustRead(*flagConfFile).Mongo
-	modelhelper.Initialize(mm)
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
 	defer modelhelper.Close()
+
 	CreatePrivateMessageUser("devrim")
 	CreatePrivateMessageUser("sinan")
 	CreatePrivateMessageUser("chris")
@@ -257,6 +263,116 @@ func TestPrivateMesssage(t *testing.T) {
 			So(pm[0].Channel.PrivacyConstant, ShouldEqual, models.Channel_PRIVACY_PRIVATE)
 			So(pm[0].IsParticipant, ShouldBeTrue)
 
+		})
+
+		Convey("user join activity should be listed by recipients", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			pmr := models.PrivateMessageRequest{}
+			pmr.AccountId = account.Id
+			pmr.Body = "test private message participants"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"chris", "devrim"}
+
+			cc, err := rest.SendPrivateMessage(pmr)
+
+			So(err, ShouldBeNil)
+			So(cc, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 1)
+
+			// add participant
+			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
+			So(err, ShouldBeNil)
+
+			history, err = rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
+			So(history.MessageList[0].Message, ShouldNotBeNil)
+			So(history.MessageList[0].Message.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_JOIN)
+			So(history.MessageList[0].Message.Payload, ShouldNotBeNil)
+			addedBy, ok := history.MessageList[0].Message.Payload["addedBy"]
+			So(ok, ShouldBeTrue)
+			So(*addedBy, ShouldEqual, account.OldId)
+
+			// try to add same participant
+			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
+			So(err, ShouldBeNil)
+
+			history, err = rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
+		})
+
+		Convey("user should not be able to edit join messages", func() {
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
+
+			pmr := models.PrivateMessageRequest{}
+			pmr.AccountId = account.Id
+			pmr.Body = "test private message participants again"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"chris"}
+
+			cc, err := rest.SendPrivateMessage(pmr)
+			So(err, ShouldBeNil)
+			So(cc, ShouldNotBeNil)
+
+			_, err = rest.AddChannelParticipant(cc.Channel.Id, account.Id, recipient.Id)
+			So(err, ShouldBeNil)
+
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cc.Channel.Id,
+				&request.Query{
+					AccountId: account.Id,
+				},
+				ses.ClientId,
+			)
+
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 2)
+
+			joinMessage := history.MessageList[0].Message
+			So(joinMessage, ShouldNotBeNil)
+
+			_, err = rest.UpdatePost(joinMessage)
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("targetted account should be able to list private message channel of himself", nil)

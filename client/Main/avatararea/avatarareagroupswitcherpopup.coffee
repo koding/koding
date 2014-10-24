@@ -122,11 +122,35 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     #   click      : handleSubMenu
     #   mousemove  : KD.utils.stopDOMEvent
 
-    @avatarPopupContent.addSubView new KDCustomHTMLView
-      tagName    : 'a'
-      attributes : href : '/Account', testpath : "AccountSettingsLink"
+    @avatarPopupContent.addSubView new CustomLinkView
+      title      : 'Upgrade plan'
+      href       : '/Pricing'
       cssClass   : 'bottom-separator'
-      partial    : 'Account Settings'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        router.handleRoute '/Pricing'
+        @hide()
+
+    @avatarPopupContent.addSubView new CustomLinkView
+      title      : 'Koding University'
+      href       : 'http://learn.koding.com'
+      target     : '_blank'
+
+    @avatarPopupContent.addSubView new CustomLinkView
+      title      : 'Contact support'
+      cssClass   : 'bottom-separator support'
+      click      : (event)=>
+        KD.utils.stopDOMEvent event
+        new HelpSupportModal
+        @hide()
+
+
+    @avatarPopupContent.addSubView new CustomLinkView
+      title      : 'Account Settings'
+      href       : '/Account'
+      attributes :
+        testpath : 'AccountSettingsLink'
+      cssClass   : 'bottom-separator'
       click      : (event)=>
         KD.utils.stopDOMEvent event
         router.handleRoute '/Account'
@@ -157,11 +181,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     #     new TroubleshootModal
     #     @hide()
 
-    @avatarPopupContent.addSubView new CustomLinkView
-      tagName    : 'a'
-      title      : 'Koding University'
-      href       : 'http://learn.koding.com'
-      target     : '_blank'
 
     @avatarPopupContent.addSubView dashboardLink = new KDCustomHTMLView
       tagName  : "a"
@@ -192,7 +211,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
-      attributes : href : '/Logout'
+      attributes :
+        href     : '/Logout'
+        testpath : 'logout-link'
       partial    : 'Logout'
       click      : (event)=>
         KD.utils.stopDOMEvent event
@@ -272,6 +293,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   hide:->
     super
     @groupSubMenuWrapper.unsetClass 'active'
+
+    @emit 'AvatarPopupShouldBeHidden'
 
 class PopupGroupListItem extends KDListItemView
 

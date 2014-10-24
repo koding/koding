@@ -40,5 +40,7 @@ func main() {
 	}
 
 	r.ShutdownHandler = handler.Shutdown
+
+	r.Listen()
 	r.Wait()
 }

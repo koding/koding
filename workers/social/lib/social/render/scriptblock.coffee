@@ -21,7 +21,7 @@ module.exports = (options = {}, callback)->
 
   createHTML = ->
     if client.connection?.delegate?.profile?.nickname
-      {connection: {delegate}} = client
+      {impersonating, sessionToken, connection: {delegate}} = client
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
@@ -33,7 +33,8 @@ module.exports = (options = {}, callback)->
 
     usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
 
-    {rollbar, version, environment, segment} = KONFIG
+    {rollbar, version, environment, segment, client} = KONFIG
+    {siftScience} = client.runtimeOptions
 
     """
     <!-- SEGMENT.IO -->
@@ -61,19 +62,30 @@ module.exports = (options = {}, callback)->
 
     <!-- Google Analytics -->
     <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      (function(k,o,d,i,n,g){k['GoogleAnalyticsObject']=i;k[i]=k[i]||function(){
+      (k[i].q=k[i].q||[]).push(arguments)},k[i].l=1*new Date();g=o.createElement(d),
+      n=o.getElementsByTagName(d)[0];g.async=1;g.src='//www.google-analytics.com/analytics.js';
+      n.parentNode.insertBefore(g,n)})(window,document,'script','ga');
+      ga('create', 'UA-6520910-8', 'koding.com');ga('send', 'pageview');
 
-    ga('create', 'UA-6520910-8', 'auto');
-
-    // we hook onto KD router 'RouteInfoHandled' to send page views instead,
-    // see analytic.coffee
-    //ga('send', 'pageview');
-
+      // we hook onto KD router 'RouteInfoHandled' to send page views instead,
+      // see analytic.coffee - SA
+      // ga('send', 'pageview');
     </script>
-    <!-- End Google Analytics -->
+    <script>
+      (function(d) {
+        var config = {
+          kitId: 'rbd0tum',
+          scriptTimeout: 3000
+        },
+        h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+      })(document);
+    </script>
+
+    #{if not impersonating then "
+      <script type='text/javascript'>
+        var _user_id = '#{nickname}'; var _session_id = '#{sessionToken}'; var _sift = _sift || []; _sift.push(['_setAccount', '#{siftScience}']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();</script>
+    " else '' }
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
     """
@@ -111,4 +123,4 @@ module.exports = (options = {}, callback)->
         queue.fin()
   ]
 
-  dash queue, -> callback null, createHTML()
+  dash queue, -> callback null, createHTML(), socialapidata

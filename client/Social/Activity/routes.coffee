@@ -1,28 +1,32 @@
 do ->
 
-  appManager = -> KD.singletons.appManager
+  currentTab = 'Liked'
 
   activityPane = (callback) ->
-    appManager().open 'Activity', (app) ->
+    {appManager} = KD.singletons
+    appManager.open 'Activity', (app) ->
       view = app.getView()
       view.open 'topic', 'public'
       callback view.tabs.getPaneByName 'topic-public'
 
   handleChannel = (type, slug, callback) ->
     callback    ?= (app) -> app.getView().open type, slug
-    appManager().open 'Activity', callback
+    {appManager} = KD.singletons
+    appManager.open 'Activity', callback
 
   KD.registerRoutes 'Activity',
 
     '/:name?/Activity/Public' : ({params: {name}}) ->
-      @handleRoute "/#{if name then name else ''}/Activity/Public/Liked",
+      @handleRoute "/#{if name then name else ''}/Activity/Public/#{currentTab}",
         replaceState: yes
         shouldPushState: no
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
+      currentTab = 'Liked'
       activityPane (pane) -> pane.open 'Most Liked'
 
     '/:name?/Activity/Public/Recent': ({ params: {name}}) ->
+      currentTab = 'Recent'
       activityPane (pane) -> pane.open 'Most Recent'
 
     '/:name?/Activity/Public/Search': ({ params: {name}, query}) ->
@@ -69,5 +73,5 @@ do ->
       if query.tagged?
         KD.getSingleton('router').handleRoute "/Activity/Topic/#{query.tagged}"
       else
-        {router, appManager} = KD.singletons
+        {router} = KD.singletons
         router.handleRoute '/Activity/Public'

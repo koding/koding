@@ -19,9 +19,12 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         canChangePlan     :
           (signature Object, Function)
+        logOrder          :
+          (signature Object, Function)
 
 
-  { get, post } = require "./socialapi/requests"
+  { get, post, deleteReq } = require "./socialapi/requests"
+
 
   @subscribe = secure (client, data, callback)->
     requiredParams = [
@@ -37,7 +40,15 @@ module.exports = class Payment extends Base
         data.accountId = getAccountId client
         url = "/payments/subscribe"
 
-        post url, data, callback
+        post url, data, (err, response)->
+          callback err, response
+
+          data.status = if err then "$failed" else "$success"
+
+          SiftScience = require "./siftscience"
+          SiftScience.transaction client, data, (err)->
+            log "logging to SiftScience failed", err  if err
+
 
   @subscriptions$ = secure (client, data, callback)->
     Payment.subscriptions client, data, callback
@@ -77,6 +88,17 @@ module.exports = class Payment extends Base
     validateParams requiredParams, data, (err)->
       canChangePlan client, data.planTitle, callback
 
+  @deleteAccount = (client, callback)->
+    accountId = getAccountId client
+    url = "/payments/customers/#{accountId}"
+
+    deleteReq url, {}, callback
+
+
+  @logOrder = secure (client, raw, callback)->
+    SiftScience = require "./siftscience"
+    SiftScience.createOrder client, raw, callback
+
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams
@@ -87,6 +109,9 @@ module.exports = class Payment extends Base
 
   getAccountId = (client)->
     return client.connection.delegate.getId()
+
+  getUserName = (client)->
+    return client.connection.delegate.profile.nickname
 
   prettifyFeature = (name)->
     switch name

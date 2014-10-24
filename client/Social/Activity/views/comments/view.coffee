@@ -14,10 +14,10 @@ class CommentView extends KDView
 
     {controllerClass} = @getOptions()
 
-    @controller = new controllerClass delegate: this, data
+    @listController = new controllerClass delegate: this, data
 
     @listPreviousLink = new CommentListPreviousLink
-      delegate : @controller
+      delegate : @listController
       click    : @bound 'listPreviousReplies'
     , data
 
@@ -43,7 +43,7 @@ class CommentView extends KDView
 
     data
       .on 'AddReply',    @bound 'addMessage'
-      .on 'RemoveReply', @controller.lazyBound 'removeItem', null
+      .on 'RemoveReply', @bound 'removeMessage'
 
 
   createInputWidget: ->
@@ -65,11 +65,10 @@ class CommentView extends KDView
       .on 'SubmitFailed',    @bound 'messageSubmitFailed'
 
 
-  addMessage: (message) ->
+  addMessage: (message) -> @listController.addItem message
 
-    return  if message.account._id is KD.whoami()._id
 
-    @controller.addItem message
+  removeMessage: (reply) -> MessagePane::removeMessage.call this, reply
 
 
   handleEnter: (value, clientRequestId) ->
@@ -83,7 +82,7 @@ class CommentView extends KDView
 
   putMessage: (message, index) ->
 
-    @controller.addItem message, index or @controller.getItemCount()
+    @listController.addItem message, index or @listController.getItemCount()
 
 
   createFakeItemView: (value, clientRequestId) ->
@@ -106,9 +105,9 @@ class CommentView extends KDView
 
     return  unless item = @fakeMessageMap[identifier]
 
-    index = @controller.getListView().getItemIndex item
+    index = @listController.getListView().getItemIndex item
 
-    @controller.removeItem item
+    @listController.removeItem item
 
     return index
 
@@ -142,7 +141,7 @@ class CommentView extends KDView
 
       activity.replies = replies.concat activity.replies
 
-      @controller.addItem reply, index for reply, index in replies
+      @listController.addItem reply, index for reply, index in replies
       @listPreviousLink.update()
 
 
@@ -167,7 +166,7 @@ class CommentView extends KDView
   setFixedHeight: (maxHeight) ->
 
     @setClass 'fixed-height'
-    @controller.getView().$().css {maxHeight}
+    @listController.getView().$().css {maxHeight}
 
 
   resetDecoration: ->
@@ -184,7 +183,7 @@ class CommentView extends KDView
     @setFixedHeight fixedHeight  if {fixedHeight} = @getOptions()
 
     @addSubView @listPreviousLink
-    @addSubView @controller.getView()
+    @addSubView @listController.getView()
     @addSubView @input
 
 

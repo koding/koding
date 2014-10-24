@@ -9,7 +9,7 @@ class ReplyView extends CommentView
 
     @listPreviousLink.destroy()
     @listPreviousLink = new CommentListPreviousLink
-      delegate : @controller
+      delegate : @listController
       click    : @bound 'listPreviousReplies'
       linkCopy : 'Show previous replies'
     , data
