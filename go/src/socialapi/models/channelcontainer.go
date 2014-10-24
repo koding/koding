@@ -258,6 +258,7 @@ func NewChannelContainers() *ChannelContainers {
 
 func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
 	var wg sync.WaitGroup
+	var onChannel = make(chan *ChannelContainer, len(channelList))
 
 	for i, _ := range channelList {
 		go func(i int) {
@@ -266,11 +267,15 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 
 			cc := NewChannelContainer()
 			cc.PopulateWith(channelList[i], accountId)
-			c.Add(cc)
+			onChannel <- cc
 		}(i)
 	}
 
 	wg.Wait()
+
+	for i := 1; i <= len(channelList); i++ {
+		c.Add(<-onChannel)
+	}
 
 	return c
 }
