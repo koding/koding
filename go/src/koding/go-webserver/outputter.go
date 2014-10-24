@@ -1,7 +1,7 @@
 package main
 
 type Outputter struct {
-	OnItem  chan Item
+	OnItem  chan *Item
 	OnError chan error
 }
 

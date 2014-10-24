@@ -15,7 +15,7 @@ import (
 )
 
 func sendAccount(account *models.Account, outputter *Outputter) {
-	outputter.OnItem <- Item{Name: "Account", Data: account}
+	outputter.OnItem <- &Item{Name: "Account", Data: account}
 }
 
 func fetchMachines(userId bson.ObjectId, outputter *Outputter) {
@@ -25,7 +25,7 @@ func fetchMachines(userId bson.ObjectId, outputter *Outputter) {
 		machines = []*modelhelper.MachineContainer{}
 	}
 
-	outputter.OnItem <- Item{Name: "Machines", Data: machines}
+	outputter.OnItem <- &Item{Name: "Machines", Data: machines}
 }
 
 func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
@@ -35,14 +35,14 @@ func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
 		workspaces = []*models.Workspace{}
 	}
 
-	outputter.OnItem <- Item{Name: "Workspaces", Data: workspaces}
+	outputter.OnItem <- &Item{Name: "Workspaces", Data: workspaces}
 }
 
 func fetchSocial(socialApiId string, outputter *Outputter) {
 	var wg sync.WaitGroup
 	urls := socialUrls(socialApiId)
 
-	onItem := make(chan Item, len(urls))
+	onSocialItem := make(chan *Item, len(urls))
 
 	for name, url := range urls {
 		go func(name, url string) {
@@ -53,20 +53,20 @@ func fetchSocial(socialApiId string, outputter *Outputter) {
 			if err != nil {
 				Log.Error("Fetching prefetched socialdata item: %s, %v", name, err)
 
-				onItem <- Item{Name: name, Data: nil}
+				onSocialItem <- &Item{Name: name, Data: nil}
 				return
 			}
 
-			onItem <- Item{Name: name, Data: item}
+			onSocialItem <- &Item{Name: name, Data: item}
 		}(name, url)
 	}
 
 	wg.Wait()
 
-	collectSocialItems(onItem, outputter, len(urls))
+	collectSocialItems(onSocialItem, outputter, len(urls))
 }
 
-func collectSocialItems(onItem <-chan Item, outputter *Outputter, max int) {
+func collectSocialItems(onItem <-chan *Item, outputter *Outputter, max int) {
 	socialApiData := map[string]interface{}{}
 
 	for i := 1; i <= max; i++ {
@@ -77,7 +77,7 @@ func collectSocialItems(onItem <-chan Item, outputter *Outputter, max int) {
 		}
 	}
 
-	outputter.OnItem <- Item{Name: "SocialApiData", Data: socialApiData}
+	outputter.OnItem <- &Item{Name: "SocialApiData", Data: socialApiData}
 }
 
 var timeout = time.Duration(1 * time.Second)

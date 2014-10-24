@@ -19,7 +19,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	onItem := make(chan Item, 0)   // individual prefetched items come here
+	onItem := make(chan *Item, 0)  // individual prefetched items come here
 	onDone := make(chan bool, 1)   // signals when done prefetching items
 	onError := make(chan error, 1) // when there's an error, return right away
 
@@ -64,7 +64,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func collectItems(resp *LoggedInUser, onItem <-chan Item, onDone chan<- bool, max int) {
+func collectItems(resp *LoggedInUser, onItem <-chan *Item, onDone chan<- bool, max int) {
 	for i := 1; i <= max; i++ {
 		item := <-onItem
 		resp.Set(item.Name, item.Data)
