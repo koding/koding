@@ -90,17 +90,17 @@ utils.extend utils,
       (key, value)->
 
         return if depth > maxDepth
-        return 'undefined'  unless value
+        return 'undefined'  unless value?
 
         depth++
 
         if typeof value is 'object'
           return  unless ccache.indexOf value is -1
           ccache.push value
-        else if typeof value is 'function'
-          return value.toString()
+        else
+          value = value.toString()
 
-        value
+        return value
 
     try
       string = JSON.stringify object, stringfy(), separator
