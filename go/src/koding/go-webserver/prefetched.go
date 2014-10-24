@@ -51,7 +51,7 @@ func fetchSocial(socialApiId string, outputter *Outputter) {
 
 			item, err := fetchSocialItem(url)
 			if err != nil {
-				fmt.Println("Error fetching prefetched social data: ", name, err)
+				Log.Error("Fetching prefetched socialdata item: %s, %v", name, err)
 
 				onItem <- Item{Name: name, Data: nil}
 				return

@@ -53,9 +53,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	timeout := time.NewTimer(time.Millisecond * TimeoutTime)
 
 	select {
-	case <-onError:
+	case err := <-onError:
+		Log.Error("Rendering loggedout page due to error: %v", err)
 		writeLoggedOutHomeToResp(w)
 	case <-timeout.C:
+		Log.Warning("Loggedin page timedout for user: %s", userInfo.Username)
 		writeLoggedInHomeToResp(w, user)
 	case <-onDone:
 		writeLoggedInHomeToResp(w, user)
