@@ -139,7 +139,7 @@ sidebarTextShadow()
 
   .more-link
     font-size         12px
-    color             #6B6B71 !important
+    color             sidebarSectionHeaderColor
     padding           0 !important
     borderize(#6B6B71)
     noTextDeco()
@@ -201,9 +201,10 @@ sidebarTextShadow()
         height        16px
         border-bottom none
         font-size     11px
+        color         sidebarSectionHeaderColor
 
         &:hover
-          border-bottom 1px solid #6b6b71
+          border-bottom 1px solid sidebarSectionHeaderColor
 
     // &.app
     &.workspace
@@ -471,6 +472,7 @@ sidebarTextShadow()
       line-height    19px
       font-size      14px
       margin-left    7px
+      margin-top     2px
 
       &:before
         display      block
