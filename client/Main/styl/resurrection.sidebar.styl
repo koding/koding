@@ -149,22 +149,6 @@ sidebarTextShadow()
     cite
       display         none !important
 
-  // ul.expanded
-  //   .expanded
-  //     bg                color, sidebarSelectedBg
-  //   ul.expanded
-  //     rounded           0 0 4px 4px
-  //   li.expanded
-  //     rounded           4px 4px 0 0
-
-  li.selected + ul.kdlistview-main-nav.expanded
-    // bg                color, sidebarSelectedBg
-    padding-bottom    8px
-    rounded           0 0 4px 4px
-
-  li + ul.kdlistview-main-nav.expanded
-    padding-bottom    8px
-
   li.kdlistitemview-main-nav
     z-index           1
     vendor            transition, top .2s linear \,\
@@ -204,7 +188,7 @@ sidebarTextShadow()
         color         sidebarSectionHeaderColor
 
         &:hover
-          border-bottom 1px solid sidebarSectionHeaderColor
+          color       sidebarActive
 
     // &.app
     &.workspace
@@ -236,6 +220,7 @@ sidebarTextShadow()
         noTextDeco()
         sidebarTextShadow()
 
+      &:hover a
       &.selected a
         color             #fff
 
@@ -427,14 +412,14 @@ sidebarTextShadow()
     &.selected
       color           sidebarActive
 
+      .ttag:before
+        color         #fff
+
     borderBox()
     &:hover
       bg              color rgba(0,0,0,.01)
+      color           sidebarActive
       pointer()
-      .purpose
-      .profile
-      .ttag
-        text-decoration underline
 
     &.activity
       font-size       14px
@@ -505,6 +490,9 @@ sidebarTextShadow()
 
   .messages
 
+    h3.sidebar-title
+      padding-bottom    7px
+
     .nothing
       hidden()
 
@@ -551,6 +539,9 @@ sidebarTextShadow()
           > .profile > .profile
             color       sidebarActive
 
+          &:before
+            bg        color, sidebarActive
+
       .sidebar-message-text
         > .purpose
         > .profile
@@ -558,7 +549,7 @@ sidebarTextShadow()
           float       none
           margin-top  3px
           line-height 23px
-          width       auto
+          width       170px
           margin-left 7px
           borderBox()
           ellipsis()
@@ -569,7 +560,7 @@ sidebarTextShadow()
           size          10px, 10px
           bg            color, #6d6d6d
           border-radius 100%
-          abs           7px 0 0 -12px
+          abs           7px 0 0 -14px
 
       .avatarview
         size            24px 24px
