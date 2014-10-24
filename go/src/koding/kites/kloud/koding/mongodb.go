@@ -135,7 +135,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	})
 }
 
-func (p *Provider) UpdateState(id string, state machinestate.State) error {
+func (p *Provider) UpdateState(id, reason string, state machinestate.State) error {
 	p.Log.Info("[%s] updating state to '%v'", id, state)
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
@@ -146,6 +146,7 @@ func (p *Provider) UpdateState(id string, state machinestate.State) error {
 				"$set": bson.M{
 					"status.state":      state.String(),
 					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
 				},
 			},
 		)
