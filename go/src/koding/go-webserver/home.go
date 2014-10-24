@@ -20,9 +20,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	user := NewLoggedInUser()
 	user.Set("Group", kodingGroup)
-	user.Set("Impersonating", userInfo.Impersonating)
 	user.Set("Username", userInfo.Username)
 	user.Set("SessionId", userInfo.ClientId)
+	user.Set("Impersonating", userInfo.Impersonating)
 
 	go collectItems(user, onItem, onDone, 4)
 
@@ -38,8 +38,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		writeLoggedOutHomeToResp(w)
 	case <-timer.C:
 		writeLoggedInHomeToResp(w, user)
-	case resp := <-onDone:
-		writeLoggedInHomeToResp(w, resp)
+	case <-onDone:
+		writeLoggedInHomeToResp(w, user)
 	}
 }
 
