@@ -84,19 +84,19 @@ body
     fl()
 
   #koding-logo
-    margin              0 14px 0 0
+    margin              17px 0 0 17px
     size                auto auto
     bg                  color transparent
     position            static
     fl()
 
     cite
-      r-sprite          app 'logo-full-white'
+      r-sprite          app 'logo-full'
       margin            0
       display           block
 
   nav
-    line-height         18px
+    margin              11px 11px 0 0
     fr()
 
     a
@@ -122,35 +122,6 @@ body
         font-weight     600
         border          1px solid rgba(255, 255, 255, .5)
 
-
-#koding-logo
-  size              57px 55px
-  bg                color, logoBg
-  z-index           11
-  top               0
-  left              0
-  abs()
-
-  &.staging
-    bg              color #ff9200 // old koding orange
-
-  &.sandbox
-    bg              color #0099cc
-
-  &.vagrant
-    bg              color purple
-
-  &.custom
-    bg              color transparent
-    bg              position, center center
-    bg              repeat, no-repeat
-    cite
-      hidden()
-
-  cite
-    r-sprite        app 'nav-logo'
-    margin          0 0 0 1px
-    display         block
 
 
 #kdmaincontainer.scale

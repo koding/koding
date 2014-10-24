@@ -4,9 +4,9 @@ HomeRegisterForm = require './registerform'
 TWEET_TEXT       = 'I\'ve applied for the world\'s first global virtual #hackathon by @koding. Join my team!'
 SHARE_URL        = 'http://koding.com/Hackathon'
 
-VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.webm'
-VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
-VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
+VIDEO_URL        = ''#https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.webm'
+VIDEO_URL_MP4    = ''#https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
+VIDEO_URL_OGG    = ''#https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
 
 {
   judges   : JUDGES
@@ -85,7 +85,7 @@ module.exports = class HomeView extends KDView
     return """
       PRIZE: <span>$#{prize.toLocaleString()}</span>
       TOTAL SLOTS: <span>#{cap.toLocaleString()}</span>
-      APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span>
+      APPLICATIONS RECEIVED: <span>#{totalApplicants.toLocaleString()}</span>
       APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>
       """
 
@@ -99,8 +99,8 @@ module.exports = class HomeView extends KDView
         <source src="#{VIDEO_URL_MP4}">
       </video>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
-      <h3>Let's hack together, wherever we are!</h3>
-      <h3>APPLICATIONS START TUE OCT 28 2014 10:00AM</h3>
+      <h3>Let's hack together, no matter where we are!</h3>
+      <h3>STARTING MONDAY OCTOBER 24 2014 10:00AM PDT</h3>
     </section>
     <div class="counters">#{@getStats()}</div>
     """
