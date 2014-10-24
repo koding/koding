@@ -748,6 +748,7 @@ class IDEAppController extends AppController
 
       log 'acetz: participants:', @participants.asArray()
 
+      @listenChangeEvents()
 
   getParticipants: ->
     @participants = @rtm.getFromModel @realTimeDoc, 'participants'
@@ -821,3 +822,17 @@ class IDEAppController extends AppController
 
     modal.on 'ParticipantWatchRequested', (participant) =>
       @watchParticipant participant
+
+
+  listenChangeEvents: ->
+    @changes = @rtm.getFromModel @realTimeDoc, 'changes'
+    @changes.clear()  if @amIHost
+
+    @rtm.bindRealtimeListeners @changes
+
+    @rtm.on 'ValuesAddedToList', (list, value) =>
+      @handleChange value.values[0]  if list is @changes
+
+    @rtm.on 'ValuesRemovedFromList', (list, value) =>
+      @handleChange value.values[0]  if list is @changes
+
