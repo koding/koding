@@ -15,6 +15,10 @@ sidebarSelectedBg         = #262626
 sidebarCountBg            = #C14C4C
 sidebarSectionHeaderColor = #626262
 
+
+sidebarTextShadow()
+  text-shadow     1px 1px 1px rgba(0, 0, 0, .75)
+
 #main-sidebar
 
   size            sidebarWidth 100%
@@ -139,6 +143,7 @@ sidebarSectionHeaderColor = #626262
     padding           0 !important
     borderize(#6B6B71)
     noTextDeco()
+    sidebarTextShadow()
 
   .workspace.has-sub-items
     cite
@@ -228,6 +233,7 @@ sidebarSectionHeaderColor = #626262
         ellipsis()
         borderBox()
         noTextDeco()
+        sidebarTextShadow()
 
       &.selected a
         color             #fff
@@ -258,6 +264,7 @@ sidebarSectionHeaderColor = #626262
       color             #fff
       borderBox()
       noTextDeco()
+      sidebarTextShadow()
       &.add-app
       &.add-vm
         padding         5px 8px
@@ -414,7 +421,7 @@ sidebarSectionHeaderColor = #626262
     .purpose
     .profile
     .ttag
-      text-shadow     1px 1px 1px rgba(0, 0, 0, .75)
+      sidebarTextShadow()
 
     &.selected
       color           sidebarActive
@@ -754,6 +761,7 @@ h3.sidebar-title
   word-spacing    .2em
   letter-spacing  .05em
   padding         14px 0 12px
+  sidebarTextShadow()
   pointer()
 
   &:hover
