@@ -61,7 +61,6 @@ module.exports = class HomeView extends KDView
       mouseleave : ->
         @unsetClass 'no-anim'
         @setCss 'margin-left', '-1400px'
-
       partial    : """
         <i class="odesk"></i>
         <i class="kissmetrics"></i>
@@ -71,6 +70,7 @@ module.exports = class HomeView extends KDView
         <i class="tutum"></i>
         <i class="code"></i>
         <i class="facebook"></i>
+        <i class="atlassian"></i>
         <i class="iron"></i>
         <i class="turkcell"></i>
         <i class="digitalocean"></i>
