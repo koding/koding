@@ -9,13 +9,14 @@ module.exports =
   beginTest: (browser) ->
     url  = @getUrl()
     user = utils.getUser()
-
     browser.url(url)
     browser.maximizeWindow()
 
     @doLogin(browser, user)
 
     browser.execute 'KD.isTesting = true;'
+
+    return user
 
 
   doLogin: (browser, user) ->
