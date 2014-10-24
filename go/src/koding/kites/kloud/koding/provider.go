@@ -423,9 +423,12 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		return
 	}
 
-	p.Log.Info("[%s] klient is not running (username: %s), adding machine to list of inactive machines.",
+	p.Log.Info("[%s] klient is not running (username: %s), adding to list of inactive machines.",
 		m.Id, m.Username)
-	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*30, func() {
+
+	stopAfter := time.Minute * 30
+
+	p.InactiveMachines[m.QueryString] = time.AfterFunc(stopAfter, func() {
 		a, err := p.NewClient(m)
 		if err != nil {
 			return
@@ -462,7 +465,8 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		defer p.Unlock(m.Id)
 
 		// mark our state as stopping so others know what we are doing
-		p.UpdateState(m.Id, machinestate.Stopping)
+		stoppingReason := "Stopping process started due not active klient after 30 minutes waiting."
+		p.UpdateState(m.Id, stoppingReason, machinestate.Stopping)
 
 		p.Log.Info("[%s] stopping machine (username: %s) after 30 minutes klient disconnection.",
 			m.Id, m.Username)
@@ -473,7 +477,8 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		}
 
 		// update to final state too
-		p.UpdateState(m.Id, machinestate.Stopped)
+		stopReason := "Stopping due not active and unreachable klient"
+		p.UpdateState(m.Id, stopReason, machinestate.Stopped)
 
 		// we don't need it anymore
 		p.InactiveMachinesMu.Lock()
