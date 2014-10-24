@@ -41,13 +41,39 @@ body.home
       figure, h3, h4
         hidden()
 
+  figure.logos
+    r-sprite              home altogether
+    bottom                50px
+    left                  50%
+    margin-left           -1280px
+    z-index               100
+    vendor                transition, margin-left .3s ease\, opacity .3s ease
+    opacity               .5
+    fix()
+    &:hover
+      opacity             1
+    &.no-anim
+      vendor              transition, opacity .3s linear
+    &:before
+      content             'with some amazing judges from:'
+      bottom              140px
+      left                0
+      color               #999
+      text-align          center
+      display             block
+      width               100%
+      fix()
+
+
+
   section.introduction
     size                  100% 100vh
     padding               149px 45px 0
-    padding-top           calc(50vh - 260px)
+    padding-top           calc(50vh - 120px)
     text-align            center
     position              relative
     overflow              hidden
+    bg                    color black
     borderBox()
 
     &:after
@@ -88,6 +114,11 @@ body.home
       bg                  color black
       bg                  size cover
       abs                 0px 0px 0 0
+      opacity             0.001
+      vendor              transition, opacity .5s ease
+      &.in
+        opacity           1
+
 
     > *
       position            relative
