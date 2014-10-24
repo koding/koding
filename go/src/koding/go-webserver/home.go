@@ -32,8 +32,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	go fetchWorkspaces(userInfo.AccountId, outputter)
 	go fetchSocial(userInfo.SocialApiId, outputter)
 
-	// return in 500ms regardless and let client get what it wants
-	timeout := time.NewTimer(time.Millisecond * 500)
+	// return in 750ms regardless and let client get what it wants
+	timeout := time.NewTimer(time.Millisecond * 750)
 
 	select {
 	case <-onError:
