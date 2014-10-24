@@ -158,20 +158,21 @@ class ProfileView extends JView
       @sendMessageLink?.on 'MessageShouldBeSent', ({formOutput, callback}) =>
         @prepareMessage formOutput, callback
 
-    if KD.checkFlag('super-admin')# and not KD.isMine @memberData
 
-      @trollButton = new TrollButtonView
-        style : 'solid medium red'
-      , data
+    @trollButton    = new KDCustomHTMLView
+    @metaInfoButton = new KDCustomHTMLView
+
+    if KD.checkFlag('super-admin')
+
+      unless KD.isMine @memberData
+
+        @trollButton = new TrollButtonView
+          style : 'solid medium red'
+        , data
 
       @metaInfoButton = new MetaInfoButtonView
         style : 'solid medium green'
-        , data
-
-    else
-
-      @trollButton    = new KDCustomHTMLView
-      @metaInfoButton = new KDCustomHTMLView
+      , data
 
 
   viewAppended:->
