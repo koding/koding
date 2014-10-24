@@ -102,8 +102,8 @@ func socialUrls(id string) map[string]string {
 	var urls = map[string]string{
 		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id),
 		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id),
-		"popularposts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
-		"pinnedmessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
+		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
+		"pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
 	}
 
 	return urls
