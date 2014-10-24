@@ -170,3 +170,4 @@ module.exports =
 
   getUrl: ->
     return 'http://lvh.me:8090'
+    # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
