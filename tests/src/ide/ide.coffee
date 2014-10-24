@@ -97,3 +97,26 @@ module.exports =
       .click                     'li.duplicate'
       .waitForElementVisible     newFile, 5000 # Assertion
       .end()
+
+
+  collapse: (browser) ->
+
+    user        = helpers.beginTest(browser)
+    webPath     = '/home/' + user.username + '/Web'
+    webSelector = "span[title='" + webPath + "']"
+    file        = "span[title='" + webPath + '/' + 'index.html' + "']"
+
+    helpers.openFolderContextMenu(browser, user, 'Web')
+
+    browser
+      .waitForElementVisible    '.expand', 20000
+      .click                    '.expand'
+      .pause                    2000 # required
+      .waitForElementVisible    webSelector, 20000
+      .click                    webSelector + ' + .chevron'
+      .waitForElementVisible    '.collapse', 20000
+      .click                    '.collapse'
+      .waitForElementNotPresent file, 20000 # Assertion
+      .end()
+
+
