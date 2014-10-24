@@ -111,7 +111,7 @@ class RealTimeManager extends KDObject
       @bindMapListeners data
 
     else if data instanceof gapi.drive.realtime.CollaborativeList
-      @bindMapListeners data
+      @bindListListeners data
 
 
   bindStringListeners: (string) ->
