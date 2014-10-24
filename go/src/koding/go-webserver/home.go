@@ -13,7 +13,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	onItem := make(chan Item, 0)
-	onDone := make(chan *LoggedInUser, 1)
+	onDone := make(chan bool, 1)
 	onError := make(chan error, 1)
 
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
@@ -43,11 +43,11 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func collectItems(resp *LoggedInUser, onItem <-chan Item, onDone chan<- *LoggedInUser, max int) {
+func collectItems(resp *LoggedInUser, onItem <-chan Item, onDone chan<- bool, max int) {
 	for i := 1; i <= max; i++ {
 		item := <-onItem
 		resp.Set(item.Name, item.Data)
 	}
 
-	onDone <- resp
+	onDone <- true
 }
