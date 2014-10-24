@@ -30,6 +30,7 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 	clientId := cookie.Value
 	session, err := fetchSession(clientId)
 	if err != nil {
+		expireClientId(w, r)
 		return nil, err
 	}
 
@@ -37,6 +38,7 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 
 	account, err := fetchAccount(username)
 	if err != nil {
+		expireClientId(w, r)
 		return nil, err
 	}
 
