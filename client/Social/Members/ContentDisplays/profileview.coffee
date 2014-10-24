@@ -114,10 +114,6 @@ class ProfileView extends JView
       click       : (event) =>
         KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
-    if KD.checkFlag('super-admin') and @memberData.getId() isnt KD.whoami().getId()
-    then @trollButton = new TrollButtonView style : 'solid medium red', data
-    else @trollButton = new KDCustomHTMLView
-
     nickname = @memberData.profile.nickname
 
     @followers = new JView
@@ -161,6 +157,22 @@ class ProfileView extends JView
 
       @sendMessageLink?.on 'MessageShouldBeSent', ({formOutput, callback}) =>
         @prepareMessage formOutput, callback
+
+    if KD.checkFlag('super-admin')# and not KD.isMine @memberData
+
+      @trollButton = new TrollButtonView
+        style : 'solid medium red'
+      , data
+
+      @metaInfoButton = new MetaInfoButtonView
+        style : 'solid medium green'
+        , data
+
+    else
+
+      @trollButton    = new KDCustomHTMLView
+      @metaInfoButton = new KDCustomHTMLView
+
 
   viewAppended:->
     super
@@ -280,6 +292,7 @@ class ProfileView extends JView
         <h3 class="full-name">{{> @firstName}} {{> @lastName}}</h3>
         {{> @bio }}
         {{> @trollButton}}
+        {{> @metaInfoButton}}
         <div class="profilestats">
           {{> @followers}}
           {{> @following}}
