@@ -10,7 +10,10 @@ class MetaInfoButtonView extends KDButtonView
 
         return if KD.showError err
 
-        info = KD.utils.objectToString info, separator: "  "
+        info = KD.utils.objectToString info,
+          separator : "  "
+          maxDepth  : 100
+
         colorized = KD.utils.applyMarkdown "```json \n#{info}\n```"
 
         new KDModalView
