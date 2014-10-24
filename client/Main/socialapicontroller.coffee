@@ -269,7 +269,7 @@ class SocialApiController extends KDController
 
   requester = (req) ->
     (options, callback)->
-      {fnName, validate, mapperFn, defaults, apiType} = req
+      {fnName, validate, mapperFn, defaults, apiType, successFn} = req
       # set default mapperFn
       mapperFn or= (value) -> return value
       if validate?.length > 0
@@ -293,6 +293,7 @@ class SocialApiController extends KDController
 
       api[fnName] options, (err, result)->
         return callback err if err
+        successFn result if successFn and typeof successFn is "function"
         return callback null, mapperFn result
 
   cacheItem: (item) ->
