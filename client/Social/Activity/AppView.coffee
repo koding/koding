@@ -136,6 +136,8 @@ class ActivityAppView extends KDView
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
+    pane.on 'LeftChannel', => @tabs.removePane pane
+
     return pane
 
 

@@ -63,3 +63,49 @@ utils.extend utils,
   # parent window, which isn't available in a chrome app. Therefore, we
   # disable/change oauth behavior based on this flag: SA.
   oauthEnabled: -> window.name isnt "chromeapp"
+
+
+  # Arguments:
+  #
+  #  object      : an object
+  #
+  #  options     :
+  #    maxDepth  : maximum depth for object walk (default: 24)
+  #    separator : char to use depth separator   (default: \t)
+  #
+  # If fails, returns [Object object]
+  #
+  objectToString: (object, options = {})->
+
+    { maxDepth, separator } = options
+
+    maxDepth  ?= 24
+    separator ?= "\t"
+
+    stringfy = ->
+
+      depth  = 0
+      ccache = []
+
+      (key, value)->
+
+        return if depth > maxDepth
+        return 'undefined'  unless value?
+
+        depth++
+
+        if typeof value is 'object'
+          return  unless ccache.indexOf value is -1
+          ccache.push value
+        else
+          value = value.toString()
+
+        return value
+
+    try
+      string = JSON.stringify object, stringfy(), separator
+    catch e
+      console.warn "Failed to stringfy:", e, object
+      string = "[Object object]"
+
+    return string

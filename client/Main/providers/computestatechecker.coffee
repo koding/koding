@@ -23,7 +23,7 @@ class ComputeStateChecker extends KDObject
     return  if @running
     @running = yes
 
-    info "ComputeState checker started."
+    # info "ComputeState checker started."
 
     @tick()
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
@@ -34,7 +34,7 @@ class ComputeStateChecker extends KDObject
     return  unless @running
     @running = no
 
-    info "ComputeState checker stopped."
+    # info "ComputeState checker stopped."
 
     KD.utils.killWait @timer
 

@@ -115,6 +115,7 @@ module.exports = [
   "CommonViews/topicfollowbutton.coffee",
 
   "CommonViews/trollbutton.coffee",
+  "CommonViews/metainfobuttonview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
