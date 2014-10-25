@@ -23,7 +23,7 @@ module.exports = (siteName, port)->
 
   app.use basicAuth 'koding', 'hackathon'  if port is 80
 
-  app.post '/WFGH/Apply', (req, res) ->
+  app.post '/Hackathon/Apply', (req, res) ->
     res.status(200).send {
       totalApplicants    : 14812
       approvedApplicants : 5613
