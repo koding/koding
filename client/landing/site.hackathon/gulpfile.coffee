@@ -43,7 +43,7 @@ gulp.task 'sprites@2x', ['sprites@1x'], (req 'task.sprites').bind this, 2
 
 # IMAGE MINIFICATION
 
-gulp.task 'imagemin', ['sprites', 'export'], req 'task.imagemin'
+gulp.task 'imagemin', ['sprites'], req 'task.imagemin'
 
 
 # COFFEE COMPILATION
@@ -73,6 +73,7 @@ gulp.task 'watch-coffee', ['coffee'], -> watchLogger 'cyan', gulp.watch COFFEE_P
 gulp.task 'watchers', watchersTasks
 
 buildTasks = ['build-kd', 'libs', 'sprites', 'styles', 'coffee']
+buildTasks.push 'imagemin'  if argv.imageMin
 
 # EXPORT
 
@@ -91,8 +92,6 @@ gulp.task 'clean', req 'task.clean'
 
 # COMBINED TASKS
 
-log 'green', buildTasks
-
 gulp.task 'libs', req 'task.libs'
 
 gulp.task 'build', buildTasks
@@ -101,6 +100,5 @@ gulp.task 'watch', ['build'].concat watchersTasks
 
 defaultTasks = ['watch']
 defaultTasks.push 'export'    if argv.exportDir
-defaultTasks.push 'imagemin'  if argv.imageMin
 
 gulp.task 'default', defaultTasks
