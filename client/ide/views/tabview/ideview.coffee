@@ -252,7 +252,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
         type              : 'separator'
 
-    label                 = if @isFullScreen then 'Exit Fullscren' else 'Enter Fullscren'
+    label                 = if @isFullScreen then 'Exit Fullscreen' else 'Enter Fullscreen'
     items[label]          =
       callback            : @bound 'toggleFullscreen'
 
