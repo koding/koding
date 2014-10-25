@@ -116,7 +116,7 @@ module.exports = class HomeView extends KDView
       </video>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, no matter where we are!</h3>
-      <h3>STARTING MONDAY OCTOBER 27 2014 10:00AM PDT</h3>
+      <h3>APPLICATIONS OPEN ON MONDAY OCTOBER 27 2014 10:00AM PDT</h3>
     </section>
     <div class="counters">#{@getStats()}</div>
     """
