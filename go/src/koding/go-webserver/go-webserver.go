@@ -19,7 +19,7 @@ import (
 
 var (
 	Name              = "gowebserver"
-	kodingTitle       = "Koding | Say goodbye to your localhost and write code in the cloud."
+	kodingTitle       = "Koding | Say goodbye to your localhost and code in the cloud."
 	kodingDescription = "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go, Java, NodeJS, PHP, C, C++, Perl, Python, etc."
 	kodingShareUrl    = "https://koding.com"
 	kodingGpImage     = "koding.com/a/site.landing/images/share.g+.jpg"
