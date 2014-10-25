@@ -1,5 +1,5 @@
 title       = 'World\'s First Virtual Global Hackathon | Koding'
-shareUrl    = 'https://koding.com/WFGH'
+shareUrl    = 'https://koding.com/Hackathon'
 description = 'This event is intended to connect developers across the globe and get them to  code together irrespective of their locations. You will problem solve and build with old or new team members and try to win!'
 fbImage     = 'koding.com/a/site.hackathon/images/share.hackathon.jpg'
 twImage     = 'koding.com/a/site.hackathon/images/share.hackathon.tw.jpg'
