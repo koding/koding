@@ -41,6 +41,11 @@ gulp.task 'sprites@1x', (req 'task.sprites').bind this, 1
 gulp.task 'sprites@2x', ['sprites@1x'], (req 'task.sprites').bind this, 2
 
 
+# IMAGE MINIFICATION
+
+gulp.task 'imagemin', ['sprites', 'export'], req 'task.imagemin'
+
+
 # COFFEE COMPILATION
 
 gulp.task 'coffee', req 'task.coffee'
@@ -95,6 +100,7 @@ gulp.task 'build', buildTasks
 gulp.task 'watch', ['build'].concat watchersTasks
 
 defaultTasks = ['watch']
-defaultTasks.push 'export'  if argv.exportDir
+defaultTasks.push 'export'    if argv.exportDir
+defaultTasks.push 'imagemin'  if argv.imageMin
 
 gulp.task 'default', defaultTasks

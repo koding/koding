@@ -9,4 +9,5 @@ module.exports =
   LIBS_PATH       : ["#{base}/site.#{site}/libs/**/*.js"]
   BROWSERFIY_PATH : ["#{base}/site.#{site}/coffee/main.coffee"]
   INDEX_PATH      : ["#{base}/site.#{site}/index.html"]
-  BUILD_PATH      : "#{base}/static/a/site.#{site}"
+  BUILD_PATH      :  "#{base}/static/a/site.#{site}"
+  IMAGE_PATH      : ["#{base}/static/a/site.#{site}/**/*"]
