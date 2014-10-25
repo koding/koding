@@ -49,6 +49,7 @@ class PrivateMessagePane extends MessagePane
     super channel
 
     channel.on 'AddedToChannel', @bound 'addParticipant'
+    channel.on 'RemovedFromChannel', @bound 'removeParticipant'
 
 
   realtimeMessageArrived: (message) ->
@@ -124,6 +125,8 @@ class PrivateMessagePane extends MessagePane
 
     @applyDayMark item, index
     @putNewMessageMark()
+
+    return  if data.typeConstant in ['join', 'leave']
 
     return  if @doesBreakConsequency item, index
 
@@ -263,17 +266,25 @@ class PrivateMessagePane extends MessagePane
   addParticipant: (participant) ->
 
     return  unless participant
-    return  if @participantMap[participant._id]
+    return  if @participantMap[participant._id]?
 
     participant.id = participant._id
 
-    @heads.addSubView new AvatarView
+    @heads.addSubView avatar = new AvatarView
       size      :
         width   : 30
         height  : 30
       origin    : participant
 
-    @participantMap[participant._id] = yes
+    @participantMap[participant._id] = avatar
+
+
+  removeParticipant: (participant) ->
+    return  unless participant
+    return  unless @participantMap[participant._id]?
+
+    @participantMap[participant._id].destroy()
+    delete @participantMap[participant._id]
 
 
   createPreviousLink: ->
@@ -295,6 +306,8 @@ class PrivateMessagePane extends MessagePane
 
 
     @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+
+    @forwardEvent @actionsMenu, 'LeftChannel'
 
     @participantsView.addSubView @heads = new KDCustomHTMLView
       cssClass    : 'heads'

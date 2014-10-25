@@ -155,33 +155,13 @@ KD.extend
     KD.__logs      ?= []
     window.konsole ?= {}
 
-    stringfy = ->
-
-      depth  = 0
-      ccache = []
-
-      (key, value)->
-
-        return if depth > 4
-        return 'undefined'  unless value
-
-        depth++
-
-        if typeof value is 'object'
-          return  unless ccache.indexOf value is -1
-          ccache.push value
-        else if typeof value is 'function'
-          return value.toString()
-
-        value
-
     _log = (method)->
 
       ->
         line = "[#{dateFormat Date.now(), "HH:MM:ss"}][#{method[0]}] "
         for arg in arguments
           if typeof arg is 'object'
-            try arg = JSON.stringify arg, stringfy(), "\t"
+            arg = KD.utils.objectToString arg, maxDepth: 6
           line += "#{arg} "
 
         unless line is KD.__logs.last
