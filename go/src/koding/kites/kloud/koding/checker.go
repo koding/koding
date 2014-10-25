@@ -171,7 +171,10 @@ func (p *PlanChecker) Timeout() error {
 	defer p.Provider.Unlock(p.Machine.Id)
 
 	// mark our state as stopping so others know what we are doing
-	p.Provider.UpdateState(p.Machine.Id, machinestate.Stopping)
+	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
+		planTimeout.Minutes())
+
+	p.Provider.UpdateState(p.Machine.Id, stoppingReason, machinestate.Stopping)
 
 	// Hasta la vista, baby!
 	err = p.Provider.Stop(p.Machine)
@@ -180,7 +183,8 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	// update to final state too
-	return p.Provider.UpdateState(p.Machine.Id, machinestate.Stopped)
+	stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes", planTimeout.Minutes())
+	return p.Provider.UpdateState(p.Machine.Id, stopReason, machinestate.Stopped)
 }
 
 func (p *PlanChecker) Total() error {

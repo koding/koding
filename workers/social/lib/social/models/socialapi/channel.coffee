@@ -34,6 +34,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         removeParticipants   :
           (signature Object, Function)
+        leave                :
+          (signature Object, Function)
         fetchPopularTopics   :
           (signature Object, Function)
         fetchPopularPosts    :
@@ -177,6 +179,14 @@ module.exports = class SocialChannel extends Base
   @removeParticipants = secureRequest
     fnName  : 'removeParticipants'
     validate: ["channelId"]
+
+  @leave = secure (client, data, callback) ->
+    return callback message: "channel id is required for leaving a channel"  unless data.channelId
+
+    { delegate } = client.connection
+    data.accountIds = [ delegate.socialApiId ]
+
+    doRequest 'removeParticipants', client, data, callback
 
   # glancePinnedPost - updates user's lastSeenDate for pinned posts
   @glancePinnedPost = secureRequest
