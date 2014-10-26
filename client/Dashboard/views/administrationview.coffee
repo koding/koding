@@ -27,7 +27,7 @@ class AdministrationView extends KDTabViewWithForms
                   new KDNotificationView {title : "Select a user first"}
           fields            :
             Username        :
-              label         : "Dear User"
+              label         : "Search for user:"
               type          : "hidden"
               nextElement   :
                 userWrapper :
