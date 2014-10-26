@@ -174,7 +174,7 @@ sidebarTextShadow()
           abs           12px 0 0 5px
 
     &.sub-title
-      padding         2px 0 0 24px
+      padding         2px 0 0 20px
       color           sidebarSubtitle
       font-size       11px
       margin-bottom   1px
@@ -202,7 +202,7 @@ sidebarTextShadow()
         display       block
         width         6px
         height        6px
-        abs           7px 0 0 23px
+        abs           8px 0 0 23px
         rounded       100%
         border        2px solid rgba(255, 255, 255, .2)
         borderBox()
@@ -242,12 +242,16 @@ sidebarTextShadow()
       abs()
       hidden()
 
+
+    &.selected a
+      color             sidebarActive
+
     a
-      padding           5px 8px 5px 34px
+      padding           5px 8px 5px 31px
       display           block
       size              auto 26px
       opacity           1
-      color             #fff
+      color             sidebarGray
       borderBox()
       noTextDeco()
       sidebarTextShadow()
@@ -456,7 +460,7 @@ sidebarTextShadow()
       display        block
       line-height    19px
       font-size      14px
-      margin-left    7px
+      margin-left    4px
       margin-top     2px
 
       &:before
@@ -550,7 +554,7 @@ sidebarTextShadow()
           margin-top  3px
           line-height 23px
           width       170px
-          margin-left 7px
+          margin-left 4px
           borderBox()
           ellipsis()
 
