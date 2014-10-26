@@ -202,7 +202,7 @@ sidebarTextShadow()
         display       block
         width         6px
         height        6px
-        abs           7px 0 0 23px
+        abs           8px 0 0 23px
         rounded       100%
         border        2px solid rgba(255, 255, 255, .2)
         borderBox()
@@ -242,12 +242,16 @@ sidebarTextShadow()
       abs()
       hidden()
 
+
+    &.selected a
+      color             sidebarActive
+
     a
       padding           5px 8px 5px 31px
       display           block
       size              auto 26px
       opacity           1
-      color             #fff
+      color             sidebarGray
       borderBox()
       noTextDeco()
       sidebarTextShadow()
