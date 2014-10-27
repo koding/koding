@@ -101,7 +101,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-  createTerminal: (machine, path) ->
+  createTerminal: (machine, path, session, joinUser) ->
     ideApp = KD.getSingleton('appManager').getFrontApp()
 
     unless machine
@@ -114,7 +114,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       if ideApp.workspaceData?.rootPath
         path = ideApp.workspaceData.rootPath
 
-    terminalPane = new IDE.TerminalPane { machine, path }
+    terminalPane = new IDE.TerminalPane { machine, path, joinUser, session }
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>

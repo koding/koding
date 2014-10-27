@@ -444,14 +444,14 @@ class IDEAppController extends AppController
 
       @openFile file, contents
 
-  createNewTerminal: (machine, path) ->
+  createNewTerminal: (machine, path, session, joinUser) ->
     machine = null  unless machine instanceof Machine
 
     if @workspaceData
       {rootPath} = @workspaceData
       path = rootPath  if rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', machine, path
+    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser
 
   createNewBrowser: (url) ->
     url = ''  unless typeof url is 'string'
