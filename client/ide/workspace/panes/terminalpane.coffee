@@ -13,13 +13,24 @@ class IDE.TerminalPane extends IDE.Pane
     @createTerminal()
 
   createTerminal: ->
-    @webtermView       = new WebTermView
+    options =
       delegate         : this
       readOnly         : @getOption 'readOnly'
       machine          : @machine
-      mode             : @getMode()
+      mode             : 'create'
       cssClass         : 'webterm'
       advancedSettings : no
+
+
+    {joinUser, session} = @getOptions()
+
+    if joinUser and session
+      # TODO: Also pass sizeX and sizeY
+      options.joinUser = joinUser
+      options.session  = session
+      options.mode     = 'shared'
+
+    @webtermView = new WebTermView options
 
     @addSubView @webtermView
 
