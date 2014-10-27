@@ -444,12 +444,15 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 			return err
 		}
 
+		// add fake eventer to avoid panic errors on NewClient at provider
+		m.Eventer = &eventer.Events{}
+
 		a, err := p.NewClient(m)
 		if err != nil {
 			return err
 		}
 
-		p.Log.Info("[%s] stop timer started. Checking again for the last time... (username: %s)",
+		p.Log.Info("[%s] 30 minutes passed. Rechecking again before I stop the machine (username: %s)",
 			m.Id, m.Username)
 
 		infoResp, err := a.Info()
@@ -487,7 +490,7 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		stoppingReason := "Stopping process started due not active klient after 30 minutes waiting."
 		p.UpdateState(m.Id, stoppingReason, machinestate.Stopping)
 
-		p.Log.Info("[%s] stopping machine (username: %s) after 30 minutes klient disconnection.",
+		p.Log.Info("[%s] Stopping machine (username: %s) after 30 minutes klient disconnection.",
 			m.Id, m.Username)
 
 		// Hasta la vista, baby!
