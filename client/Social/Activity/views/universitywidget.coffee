@@ -19,6 +19,6 @@ class ActivityUniversityWidget extends ActivityBaseWidget
           <li><a href='http://learn.koding.com/guides/getting-started/workspaces/' target='_blank'>Getting started with IDE Workspaces</a></li>
           <li><a href='http://learn.koding.com/faq/open-ports/' target='_blank'>What ports are open on my VM?</a></li>
         </ol>
-        <br><a href="http://learn.koding.com/" target="_blank">More guides on Koding University...</a>
-        </p>
+        <a href="http://learn.koding.com/" target="_blank">More guides on Koding University...</a>
+      </p>
     """
