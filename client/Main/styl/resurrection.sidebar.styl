@@ -8,11 +8,16 @@ resurrection.styl
 */
 }
 
-sidebarGray       = #A0A0A0
-sidebarActive     = #fff
-sidebarSubtitle   = #979087
-sidebarSelectedBg = #262626
-sidebarCountBg    = #C14C4C
+sidebarGray               = #A0A0A0
+sidebarActive             = #fff
+sidebarSubtitle           = #979087
+sidebarSelectedBg         = #262626
+sidebarCountBg            = #C14C4C
+sidebarSectionHeaderColor = #626262
+
+
+sidebarTextShadow()
+  text-shadow     1px 1px 1px rgba(0, 0, 0, .75)
 
 #main-sidebar
 
@@ -134,30 +139,15 @@ sidebarCountBg    = #C14C4C
 
   .more-link
     font-size         12px
-    color             #6B6B71 !important
+    color             sidebarSectionHeaderColor
     padding           0 !important
     borderize(#6B6B71)
     noTextDeco()
+    sidebarTextShadow()
 
   .workspace.has-sub-items
     cite
       display         none !important
-
-  // ul.expanded
-  //   .expanded
-  //     bg                color, sidebarSelectedBg
-  //   ul.expanded
-  //     rounded           0 0 4px 4px
-  //   li.expanded
-  //     rounded           4px 4px 0 0
-
-  li.selected + ul.kdlistview-main-nav.expanded
-    // bg                color, sidebarSelectedBg
-    padding-bottom    8px
-    rounded           0 0 4px 4px
-
-  li + ul.kdlistview-main-nav.expanded
-    padding-bottom    8px
 
   li.kdlistitemview-main-nav
     z-index           1
@@ -184,7 +174,7 @@ sidebarCountBg    = #C14C4C
           abs           12px 0 0 5px
 
     &.sub-title
-      padding         2px 0 0 24px
+      padding         2px 0 0 20px
       color           sidebarSubtitle
       font-size       11px
       margin-bottom   1px
@@ -195,9 +185,10 @@ sidebarCountBg    = #C14C4C
         height        16px
         border-bottom none
         font-size     11px
+        color         sidebarSectionHeaderColor
 
         &:hover
-          border-bottom 1px solid #6b6b71
+          color       sidebarActive
 
     // &.app
     &.workspace
@@ -211,7 +202,7 @@ sidebarCountBg    = #C14C4C
         display       block
         width         6px
         height        6px
-        abs           7px 0 0 23px
+        abs           8px 0 0 23px
         rounded       100%
         border        2px solid rgba(255, 255, 255, .2)
         borderBox()
@@ -227,7 +218,9 @@ sidebarCountBg    = #C14C4C
         ellipsis()
         borderBox()
         noTextDeco()
+        sidebarTextShadow()
 
+      &:hover a
       &.selected a
         color             #fff
 
@@ -249,14 +242,19 @@ sidebarCountBg    = #C14C4C
       abs()
       hidden()
 
+
+    &.selected a
+      color             sidebarActive
+
     a
-      padding           5px 8px 5px 34px
+      padding           5px 8px 5px 31px
       display           block
       size              auto 26px
       opacity           1
-      color             #fff
+      color             sidebarGray
       borderBox()
       noTextDeco()
+      sidebarTextShadow()
       &.add-app
       &.add-vm
         padding         5px 8px
@@ -273,7 +271,7 @@ sidebarCountBg    = #C14C4C
 
       > div
         position      relative
-        left          -10px
+        left          -12px
 
 
       &.social > figure
@@ -292,7 +290,7 @@ sidebarCountBg    = #C14C4C
           width         13px
           height        13px
           bg            color, transparent
-          abs           8px 0 0 2px
+          abs           7px 0 0 0px
           rounded       3px
           border        3px solid sidebarGray
           borderBox()
@@ -413,19 +411,19 @@ sidebarCountBg    = #C14C4C
     .purpose
     .profile
     .ttag
-      text-shadow     1px 1px 1px rgba(0, 0, 0, .75)
+      sidebarTextShadow()
 
     &.selected
       color           sidebarActive
 
+      .ttag:before
+        color         #fff
+
     borderBox()
     &:hover
       bg              color rgba(0,0,0,.01)
+      color           sidebarActive
       pointer()
-      .purpose
-      .profile
-      .ttag
-        text-decoration underline
 
     &.activity
       font-size       14px
@@ -448,7 +446,7 @@ sidebarCountBg    = #C14C4C
       size            20px 20px
       line-height     20px
       color           #fff
-      abs             1px 7px 0 0
+      abs             3px 7px 0 0
       font-size       10px
       font-weight     700
       background      sidebarCountBg
@@ -462,14 +460,16 @@ sidebarCountBg    = #C14C4C
       display        block
       line-height    19px
       font-size      14px
-      margin-left    12px
+      margin-left    4px
+      margin-top     2px
 
       &:before
         display      block
         content      '#'
         font-size    24px
-        left         5px
         color        #6d6d6d
+        top          2px
+        left         0
         text-shadow  none
         abs()
 
@@ -494,6 +494,9 @@ sidebarCountBg    = #C14C4C
 
   .messages
 
+    h3.sidebar-title
+      padding-bottom    7px
+
     .nothing
       hidden()
 
@@ -504,7 +507,7 @@ sidebarCountBg    = #C14C4C
       borderBox()
 
       cite.count
-        abs         4px 7px 0 0
+        abs         6px 7px 0 0
 
       > .user-numbers
         padding     0 0 0 36px
@@ -524,40 +527,6 @@ sidebarCountBg    = #C14C4C
           font-weight inherit
           color       inherit
 
-      .sidebar-message-icon
-      .avatarview
-        top           0
-        left          0
-        abs()
-
-      .stacked
-
-        margin-left   -1px
-        margin-top    2px
-        size          auto auto
-        display       block
-
-        .avatarview
-
-          img
-            border      1px solid rgb(50, 50, 50)
-            borderBox()
-
-          &:nth-of-type(1)
-            top       0
-            left      0
-            z-index   1
-
-          &:nth-of-type(2)
-            top       3px
-            left      3px
-            z-index   2
-
-          &:nth-of-type(3)
-            top       6px
-            left      6px
-            z-index   3
-
       &.unread
         > .profile
           color       #F9F7F3
@@ -574,6 +543,8 @@ sidebarCountBg    = #C14C4C
           > .profile > .profile
             color       sidebarActive
 
+          &:before
+            bg        color, sidebarActive
 
       .sidebar-message-text
         > .purpose
@@ -581,16 +552,19 @@ sidebarCountBg    = #C14C4C
           display     block
           float       none
           margin-top  3px
-          padding     0 0 0 14px
           line-height 23px
-          width       auto
+          width       170px
+          margin-left 4px
           borderBox()
           ellipsis()
 
-
-      > .purpose
-      > .profile
-        color           sidebarActive
+        &:before
+          content       ''
+          display       block
+          size          10px, 10px
+          bg            color, #6d6d6d
+          border-radius 100%
+          abs           7px 0 0 -14px
 
       .avatarview
         size            24px 24px
@@ -747,11 +721,12 @@ h3.sidebar-title
   size            auto 1em
   line-height     16px
   font-size       12px
-  color           #7F7F80
+  color           sidebarSectionHeaderColor
   text-transform  uppercase
   word-spacing    .2em
   letter-spacing  .05em
   padding         14px 0 12px
+  sidebarTextShadow()
   pointer()
 
   &:hover

@@ -1,8 +1,10 @@
-title       = 'Koding | World\'s First Virtual Global Hackathon'
-shareUrl    = 'https://koding.com/WFGH'
+origin      = 'koding.com'
+title       = 'World\'s First Virtual Global Hackathon | Koding'
+shareUrl    = "https://#{origin}/Hackathon"
 description = 'This event is intended to connect developers across the globe and get them to  code together irrespective of their locations. You will problem solve and build with old or new team members and try to win!'
-fbImage     = 'koding.com/a/site.hackathon/images/share.hackathon.jpg'
-twImage     = 'koding.com/a/site.hackathon/images/share.hackathon.tw.jpg'
+gpImage     = "#{origin}/a/site.hackathon/images/share.hackathon.g+.jpg"
+fbImage     = "#{origin}/a/site.hackathon/images/share.hackathon.fb.jpg"
+twImage     = "#{origin}/a/site.hackathon/images/share.hackathon.tw.jpg"
 
 module.exports =
 
@@ -14,7 +16,7 @@ module.exports =
   <meta itemprop="name"                content="#{title}">
   <meta itemprop="description"         content="#{description}">
   <meta itemprop="url"                 content="#{shareUrl}">
-  <meta itemprop="image"               content="http://#{twImage}">
+  <meta itemprop="image"               content="http://#{gpImage}">
 
   <!-- og meta tags -->
   <meta property="og:title"            content="#{title}"/>
@@ -24,8 +26,8 @@ module.exports =
   <meta property="og:image:secure_url" content="https://#{fbImage}"/>
   <meta property="og:description"      content="#{description}"/>
   <meta property="og:image:type"       content="image/jpeg">
-  <meta property="og:image:width"      content="750"/>
-  <meta property="og:image:height"     content="750"/>
+  <meta property="og:image:width"      content="1200"/>
+  <meta property="og:image:height"     content="627"/>
 
   <!-- twitter cards -->
   <meta name="twitter:site"            content="@koding"/>

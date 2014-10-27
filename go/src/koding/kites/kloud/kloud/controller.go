@@ -53,7 +53,6 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
-				"instanceType": resp.InstanceType,
 			},
 		})
 
@@ -90,7 +89,6 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
-				"instanceType": resp.InstanceType,
 			},
 		})
 
@@ -130,7 +128,6 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 				"domainName":   resp.DomainName,
 				"instanceId":   resp.InstanceId,
 				"instanceName": resp.InstanceName,
-				"instanceType": resp.InstanceType,
 				"queryString":  resp.KiteQuery,
 			},
 		})
@@ -271,7 +268,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	}
 
 	// now mark that we are starting...
-	k.Storage.UpdateState(machine.Id, s.initial)
+	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.initial, r.Method)
+	k.Storage.UpdateState(machine.Id, initialReason, s.initial)
 
 	// each method has his own unique eventer
 	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
@@ -288,6 +286,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		defer k.idlock.Get(machine.Id).Unlock()
 
 		status := s.final
+		finishReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.final, r.Method)
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
 		eventErr := ""
 
@@ -299,13 +298,16 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 			status = machine.State
 			msg = ""
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
+			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
+				r.Method, machine.State)
 		} else {
 			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
 				machine.Id, strings.ToUpper(r.Method), status)
 		}
 
 		// update final status in storage
-		k.Storage.UpdateState(machine.Id, status)
+
+		k.Storage.UpdateState(machine.Id, finishReason, status)
 
 		// update final status in storage
 		machine.Eventer.Push(&eventer.Event{

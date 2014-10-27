@@ -111,7 +111,6 @@ module.exports = [
   "views/comments/listviewcontroller.coffee"
   "views/comments/replylistviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"
-  "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
   "views/comments/replylistitemview.coffee"
   "views/comments/timeview.coffee"
@@ -126,7 +125,6 @@ module.exports = [
   "views/privatemessage/replyinputeditwidget.coffee"
   "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
-  "views/privatemessage/deletemodal.coffee"
   "views/privatemessage/settingsview.coffee"
 
   "views/buymachinemodal.coffee"

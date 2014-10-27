@@ -109,14 +109,12 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
-		data["meta.instance_type"] = s.Data["instanceType"]
 	case "info":
 		data["meta.instanceName"] = s.Data["instanceName"]
 	case "start":
 		data["ipAddress"] = s.Data["ipAddress"]
 		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
-		data["meta.instance_type"] = s.Data["instanceType"]
 	case "stop":
 		data["ipAddress"] = s.Data["ipAddress"]
 	case "domain":
@@ -135,7 +133,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 	})
 }
 
-func (p *Provider) UpdateState(id string, state machinestate.State) error {
+func (p *Provider) UpdateState(id, reason string, state machinestate.State) error {
 	p.Log.Info("[%s] updating state to '%v'", id, state)
 	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
@@ -146,6 +144,7 @@ func (p *Provider) UpdateState(id string, state machinestate.State) error {
 				"$set": bson.M{
 					"status.state":      state.String(),
 					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
 				},
 			},
 		)

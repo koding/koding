@@ -118,6 +118,12 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+
+	if a.Builder.InstanceType == "" {
+		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.mico")
+		a.Builder.InstanceType = T2Micro.String()
+	}
+
 	// check if the user is egligible to create a vm with this size
 	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
 		return nil, err
@@ -237,10 +243,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// add our Koding keypair
 	a.Builder.KeyPair = p.KeyName
-
-	if a.Builder.InstanceType == "" {
-		return nil, errors.New("Instance type is not defined")
-	}
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {

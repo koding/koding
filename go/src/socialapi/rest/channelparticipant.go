@@ -45,11 +45,14 @@ func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParti
 	return participants, nil
 }
 
-func AddChannelParticipant(channelId, requesterId, accountId int64) (*models.ChannelParticipant, error) {
-	c := models.NewChannelParticipant()
-	c.AccountId = accountId
+func AddChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
 
-	res := []*models.ChannelParticipant{c}
+	res := make([]*models.ChannelParticipant, 0)
+	for _, accountId := range accountIds {
+		c := models.NewChannelParticipant()
+		c.AccountId = accountId
+		res = append(res, c)
+	}
 
 	url := fmt.Sprintf("/channel/%d/participants/add?accountId=%d", channelId, requesterId)
 	cps, err := sendModel("POST", url, &res)

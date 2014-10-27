@@ -90,6 +90,7 @@ module.exports = class JMachine extends Module
       status            :
 
         modifiedAt      : Date
+        reason          : String
 
         state           :
           type          : String

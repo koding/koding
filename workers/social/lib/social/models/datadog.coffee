@@ -24,7 +24,7 @@ module.exports = class DataDog extends Base
     MachineStateFailed :
       title            : "vms.failed"
       text             : "VM start failed for user: %nickname%"
-      notify           : "@slack-_devops"
+      notify           : "@slack-alerts"
       tags             : ["user:%nickname%", "context:vms"]
 
 
