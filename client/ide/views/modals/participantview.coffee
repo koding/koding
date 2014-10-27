@@ -26,11 +26,10 @@ class IDE.ParticipantView extends KDView
         partial  : 'Working on: '
         cssClass : 'open-panes'
 
-      changes = rtm.getFromModel(realTimeDoc, participant.nickname).values()
-      subset  = changes.slice 0, 4
-      missing = changes.length - subset.length
+      changes = rtm.getFromModel(realTimeDoc, "#{participant.nickname}Snapshot").values()
+      terminalCounter = 1
 
-      subset.forEach (change, i) ->
+      changes.forEach (change, i) ->
         return if not change.type or not change.context
 
         {type, context: { file, paneType, hash }} = change
@@ -40,11 +39,6 @@ class IDE.ParticipantView extends KDView
             tagName: 'span'
             partial: FSHelper.getFileNameFromPath file.path
 
-      if missing
-        state.addSubView new KDCustomHTMLView
-          tagName  : 'span'
-          cssClass : 'info'
-          partial  : "and #{missing} more"
 
       @addSubView @watchButton = new KDButtonView
         title      : 'Watch'
