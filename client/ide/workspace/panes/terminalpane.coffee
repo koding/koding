@@ -84,4 +84,5 @@ class IDE.TerminalPane extends IDE.Pane
       path     : path
       machine  : { label, ipAddress, slug, uid }
       paneType : paneType
+      session  : @remote?.session
       hash     : @hash
