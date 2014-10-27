@@ -413,9 +413,15 @@ func (p *Provider) stopTimer(m *protocol.Machine) {
 
 // startTimer starts the inactive timeout timer for the given queryString. It
 // stops the machine after 30 minutes.
-func (p *Provider) startTimer(m *protocol.Machine) {
+func (p *Provider) startTimer(curMachine *protocol.Machine) {
+	if a, ok := curMachine.Builder["alwaysOn"]; ok {
+		if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+			return // don't stop if alwaysOn is enabled
+		}
+	}
+
 	p.InactiveMachinesMu.Lock()
-	_, ok := p.InactiveMachines[m.QueryString]
+	_, ok := p.InactiveMachines[curMachine.QueryString]
 	p.InactiveMachinesMu.Unlock()
 	if ok {
 		// just return, because it's already in the map so it will be expired
@@ -424,20 +430,23 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 	}
 
 	p.Log.Info("[%s] klient is not running (username: %s), adding to list of inactive machines.",
-		m.Id, m.Username)
+		curMachine.Id, curMachine.Username)
 
 	stopAfter := time.Minute * 30
 
-	p.InactiveMachines[m.QueryString] = time.AfterFunc(stopAfter, func() {
-		if a, ok := m.Builder["alwaysOn"]; ok {
-			if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
-				return // don't stop if alwaysOn is enabled
-			}
+	// wrap it so we can return errors and log them
+	stopFunc := func(id string) error {
+		// fetch it again so we have always the latest data. This is important
+		// because another kloud instance might already stopped or we have
+		// again a connection to klient
+		m, err := p.Get(id)
+		if err != nil {
+			return err
 		}
 
 		a, err := p.NewClient(m)
 		if err != nil {
-			return
+			return err
 		}
 
 		p.Log.Info("[%s] stop timer started. Checking again for the last time... (username: %s)",
@@ -445,13 +454,17 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 
 		infoResp, err := a.Info()
 		if err != nil {
-			return
+			return err
+		}
+
+		if infoResp.State.InProgress() {
+			return fmt.Errorf("machine is in progress of '%s'", infoResp.State)
 		}
 
 		if infoResp.State == machinestate.Stopped {
 			p.Log.Info("[%s] stop timer aborting. Machine is already stopped (username: %s)",
 				m.Id, m.Username)
-			return // already stopped nothing to do
+			return errors.New("machine is already stopped")
 		}
 
 		if infoResp.State == machinestate.Running {
@@ -459,11 +472,11 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 			if err == nil {
 				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
 					m.Id, m.Username)
-				return // we have a connection to klient, do not stop it
+				return errors.New("we have a klient connection")
 			}
 
 			if err != kite.ErrNoKitesAvailable {
-				return // do not stop if we get something else
+				return err
 			}
 		}
 
@@ -490,5 +503,13 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		p.InactiveMachinesMu.Lock()
 		delete(p.InactiveMachines, m.QueryString)
 		p.InactiveMachinesMu.Unlock()
+
+		return nil
+	}
+
+	p.InactiveMachines[curMachine.QueryString] = time.AfterFunc(stopAfter, func() {
+		if err := stopFunc(curMachine.Id); err != nil {
+			p.Log.Error("[%s] inactive klient stopper err: %s", curMachine.Id, err)
+		}
 	})
 }
