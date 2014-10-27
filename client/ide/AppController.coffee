@@ -835,7 +835,7 @@ class IDEAppController extends AppController
 
   listenChangeEvents: ->
     @changes = @rtm.getFromModel @realTimeDoc, 'changes'
-    @changes.clear()  if @amIHost
+    @changes?.clear()  if @amIHost
 
     @rtm.bindRealtimeListeners @changes
 
