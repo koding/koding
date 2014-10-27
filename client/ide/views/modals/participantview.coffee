@@ -34,10 +34,15 @@ class IDE.ParticipantView extends KDView
 
         {type, context: { file, paneType, hash }} = change
 
-        if type is 'NewPaneCreated' and paneType is 'editor'
+        if type is 'NewPaneCreated'
+          if paneType is 'editor'
+            partial = FSHelper.getFileNameFromPath file.path
+          else if paneType is 'terminal'
+            partial = "Terminal #{terminalCounter++}"
+
           state.addSubView new KDCustomHTMLView
             tagName: 'span'
-            partial: FSHelper.getFileNameFromPath file.path
+            partial: partial
 
 
       @addSubView @watchButton = new KDButtonView
