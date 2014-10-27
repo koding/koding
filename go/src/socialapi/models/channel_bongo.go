@@ -53,11 +53,14 @@ func (c *Channel) Update() error {
 }
 
 func (c *Channel) Delete() error {
-	if err := c.deleteChannelMessages(); err != nil {
+	// first delete channel list relations
+	messageMap, err := c.deleteChannelLists()
+	if err != nil {
 		return err
 	}
 
-	if err := c.deleteChannelLists(); err != nil {
+	// and delete messages
+	if err := c.deleteChannelMessages(messageMap); err != nil {
 		return err
 	}
 
