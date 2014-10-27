@@ -121,12 +121,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       terminalPane.webtermView.on 'click', =>
         @click()
 
-    change        =
-      context     :
-        machine   :
-          uid     : machine.uid
+      change        =
+        context     :
+          session   : terminalPane.remote.session
+          machine   :
+            uid     : machine.uid
 
-    @emitChange terminalPane, change
+      @emitChange terminalPane, change
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
