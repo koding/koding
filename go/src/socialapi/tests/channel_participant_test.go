@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -104,6 +105,31 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(len(participants), ShouldEqual, 3)
 					})
 				})
+
+			})
+
+			Convey("All private messages must be deleted when all participant users leave the channel", func() {
+				account := models.NewAccount()
+				err = account.ByNick("devrim")
+				So(err, ShouldBeNil)
+
+				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, account.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerAccount.Id)
+				So(err, ShouldBeNil)
+
+				testChannel := models.NewChannel()
+				err := testChannel.ById(channelContainer.Channel.Id)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+
+				testChannelList := models.NewChannelMessageList()
+				err = bongo.B.Unscoped().Where("channel_id = ?", channelContainer.Channel.Id).Find(testChannelList).Error
+				So(err, ShouldEqual, bongo.RecordNotFound)
+
+				testMessage := models.NewChannelMessage()
+				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
+				So(err, ShouldEqual, bongo.RecordNotFound)
 
 			})
 
