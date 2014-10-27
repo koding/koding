@@ -850,5 +850,7 @@ class IDEAppController extends AppController
     myWatchMap = @rtm.getFromModel @realTimeDoc, "#{KD.nick()}WatchMap"
     {origin}   = change
 
+    return if origin is KD.nick()
+
     if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
       log 'i need to handle this change...', change
