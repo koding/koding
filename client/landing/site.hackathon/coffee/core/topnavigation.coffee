@@ -1,5 +1,5 @@
 CustomLinkView = require './customlinkview'
-TWEET_TEXT     = 'Join the world\'s first virtual global #hackathon by @koding. No matter where you are! Applications start on Monday!'
+TWEET_TEXT     = 'Join the world\'s first virtual global #hackathon by @koding. No matter where you are!'
 SHARE_URL      = 'http://koding.com/Hackathon'
 
 module.exports = class TopNavigation extends KDCustomHTMLView
