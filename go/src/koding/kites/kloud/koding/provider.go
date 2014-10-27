@@ -429,6 +429,12 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 	stopAfter := time.Minute * 30
 
 	p.InactiveMachines[m.QueryString] = time.AfterFunc(stopAfter, func() {
+		if a, ok := m.Builder["alwaysOn"]; ok {
+			if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+				return // don't stop if alwaysOn is enabled
+			}
+		}
+
 		a, err := p.NewClient(m)
 		if err != nil {
 			return
@@ -477,7 +483,7 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		}
 
 		// update to final state too
-		stopReason := "Stopping due not active and unreachable klient"
+		stopReason := "Stopping due not active and unreachable klient after 30 minutes waiting."
 		p.UpdateState(m.Id, stopReason, machinestate.Stopped)
 
 		// we don't need it anymore
