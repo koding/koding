@@ -717,7 +717,7 @@ class IDEAppController extends AppController
         else if @amIHost
           rtm.createFile title
           rtm.once 'FileCreated', (file) =>
-            @rtm.create 'list', @realTimeDoc, 'changes'
+            @rtm.create 'list', @realTimeDoc, 'changes', []
             @loadCollaborationFile file.result.id
 
 
