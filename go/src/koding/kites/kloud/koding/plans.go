@@ -107,7 +107,7 @@ const (
 	Koding
 
 	// Betatester: 1 VM, 1 Always On, 3GB total storage
-	Betatester Plan = iota + 1
+	Betatester
 )
 
 var plans = map[string]Plan{
