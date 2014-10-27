@@ -79,8 +79,13 @@ func main() {
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
 
-	// dont' allow anyone to call a method if we are during an update
+	// don't pass any request if the caller is outside of our scope.
+	// don't allow anyone to call a method if we are during an update.
 	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
+		if r.Username != k.Config.Username {
+			return nil, fmt.Errorf("User %s is not allowed to make a call to us.", r.Username)
+		}
+
 		updatingMu.Lock()
 		defer updatingMu.Unlock()
 
