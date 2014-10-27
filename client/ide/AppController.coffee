@@ -763,7 +763,7 @@ class IDEAppController extends AppController
     @participants = @rtm.getFromModel @realTimeDoc, 'participants'
     @participants.push { nickname, hash }
 
-    @rtm.create 'map', @realTimeDoc, nickname, @createWorkspaceSnapshot()
+    @rtm.create 'map', @realTimeDoc, "#{nickname}Snapshot", @createWorkspaceSnapshot()
 
     log 'acetz: participant added:', @participants.asArray()
 
@@ -792,7 +792,7 @@ class IDEAppController extends AppController
 
     {paneHash} = context
     nickname   = KD.nick()
-    map        = @rtm.getFromModel @realTimeDoc, nickname
+    map        = @rtm.getFromModel @realTimeDoc, "#{nickname}Snapshot"
     changes    = @rtm.getFromModel @realTimeDoc, 'changes'
 
     if change.origin is nickname
