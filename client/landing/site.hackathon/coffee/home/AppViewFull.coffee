@@ -337,6 +337,7 @@ module.exports = class HomeViewFull extends KDView
         <source src="#{VIDEO_URL_OGG}" type="video/ogg"; codecs=theora,vorbis">
         <source src="#{VIDEO_URL_MP4}">
       </video>
+      <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, wherever we are!</h3>
       <h4>Apply today with your Koding account to get a chance <strong>to win up to $10,000 in cash prizes.</strong></h4>
@@ -381,7 +382,7 @@ module.exports = class HomeViewFull extends KDView
       <article>
         <h4>How do I get accepted? </h4>
         <p>We expect a lot of you to apply but to keep things sane, we will be limiting the
-        final competition to a 1000 teams. Our panel of judges will decide who will be part
+        final competition to 1000 teams. Our panel of judges will decide who will be part
         of the competition. Their decision will be based on factors like location, team size,
         project work on github, social presence, etc. Applications are being reviewed on a first
         come first serve basis so apply today and if approved, you will receive an email from
@@ -389,15 +390,16 @@ module.exports = class HomeViewFull extends KDView
         </p>
       </article>
       <article>
-      <h4>What is the theme for the Hackathon?</h4>
-      <p>72 hours before the start of the event, we will provide a theme for the event. Your task
-      will be to use publicly available resources (APIs, data sets, graphics, etc.) and your imagination
-      to create a project that addresses one of the the themes of the event. You can expect the themes
-      to revolve around topics like: Global finance, Education, Healthcare, Climate change, Travel, etc.
-      The final themes will be announced on the
-      <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>
-       so make sure and mark your calendars! We will also email the themes to all teams that are
-       accepted into the event.
+        <h4>What is the theme for the Hackathon?</h4>
+        <p>We will provide a few themes for the hackathon. Your task
+        will be to use publicly available resources (APIs, data sets, graphics, etc.) and your imagination
+        to create a project that addresses one of the the themes of the event. You can expect the themes
+        to revolve around topics like: Global finance, Education, Healthcare, Climate change, Travel, etc.
+        </p>
+        <p>On Nov 21st, the hackathon themes will be announced on the
+        <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>.
+        We will also email the themes to all teams that are
+        accepted into the event.</p>
       </article>
       <article>
         <h4> What are the rules?</h4>
@@ -407,12 +409,14 @@ module.exports = class HomeViewFull extends KDView
         any assets or code used as part of your submission must have been created during the event.
         The only exception to this rule is the usage of publicly available material. This includes:
         public code snippets, images, open source libraries and projects, public APIs, etc. You
-        get the picture. Play fair!
+        get the picture.
         </p>
-        <p>
-        <i>Note: If your team qualifies for a prize, you are automatically subject to a code
-        and asset review to ensure that the above rule has been adhered to.
-        </i>
+
+        <p>We will request a review of all the code you submit as part of your hackathon project
+        to ensure that it has been created during the hackathon period (Dec 6th - Dec 7th).
+        Being engineers ourselves we are savvy to what can and can't be created in 48 hours. :)</p>
+
+        <p>Play fair!</p>
       </article>
       <article>
         <h4>What are the prizes?</h4>
@@ -433,13 +437,13 @@ module.exports = class HomeViewFull extends KDView
         <h4>What is the schedule?</h4>
         <ul>
           <li>Now - Registration open.</li>
-          <li>#{closeDay} - Applications are closed. Final notifications are sent to teams/individuals who were accepted.</li>
-          <li>#{announceDay}, 1000 PDT - Hackathon theme is announced on the  <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a></li>
+          <li>#{closeDay}, 1200 PDT - Applications are closed. Final notifications are sent to teams/individuals who were accepted and the
+          Hackathon Theme is announced (on the <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a> and via email to the accepted teams).</li>
           <li>#{firstDay} - Day 1 Let the hacking begin!</li>
           <li>#{secondDay} - Day 2 of the Hackathon
             <ul>
               <li>0000 – 2200 PDT Hacking continues</li>
-              <li>2330 – 0000 PDT Teams submit their projects)</li>
+              <li>2330 – 2359 PDT Teams submit their projects to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a> (see section below on how to submit)</li>
             </ul>
           </li>
           <li>#{emailDay} - Winners are notified via email and winning projects are listed for public viewing.</li>
@@ -475,7 +479,7 @@ module.exports = class HomeViewFull extends KDView
               <li>How your project addresses the theme of the hackathon.</li>
               <li>What tools did you use to collaborate.</li>
             </ol>
-          <p>Your submission should have a time label less than <b>#{endDay}</b>.
+          <p>Your submission should have a time label less than <b>#{secondDay} 2359 PDT</b>.
           Submissions received after the deadline will not be considered. No exceptions.
         </p>
       </article>
@@ -517,6 +521,7 @@ module.exports = class HomeViewFull extends KDView
       <article>
         <h4>Questions?</h4>
         <p>Send us an email at <a href="mailto:hackathon@koding.com">hackathon@koding.com</a></p>
+        <p>(We would like to thank NASA for the awesome video.)</p>
       </article>
       <aside class="partners"></aside>
     </section>
