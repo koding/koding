@@ -2,32 +2,40 @@ package templates
 
 var Header = `
     <title>{{.Title}}</title>
-    <meta name="description" content="{{.Description}}">
-    <meta name="author" content="Koding">
-    <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
 
     <meta charset="utf-8"/>
 
+    <meta name="description"             content="{{.Description}}" />
+    <meta name="author"                  content="Koding">
+    <meta name="keywords"                content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, Wordpress, Django, Programming, virtual machines">
+
+    <!-- Schema.org for Google+ -->
+    <meta itemprop="name"                content="{{.Title}}">
+    <meta itemprop="description"         content="{{.Description}}">
+    <meta itemprop="url"                 content="{{.ShareUrl}}">
+    <meta itemprop="image"               content="http://{{.GpImage}}">
+
     <!-- og meta tags -->
-    <meta property="og:title" content="{{.Title}}"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:url" content="{{.ShareUrl}}"/>
-    <meta property="og:image" content="http://koding.com/a/images/logos/share_logo.png"/>
-    <meta property="og:image:secure_url" content="https://koding.com/a/images/logos/share_logo.png"/>
-    <meta property="og:description" content="{{.Description}}"/>
-    <meta property="og:image:type" content="png">
-    <meta property="og:image:width" content="400"/>
-    <meta property="og:image:height" content="300"/>
+    <meta property="og:title"            content="{{.Title}}"/>
+    <meta property="og:type"             content="website"/>
+    <meta property="og:url"              content="{{.ShareUrl}}"/>
+    <meta property="og:image"            content="http://{{.FbImage}}"/>
+    <meta property="og:image:secure_url" content="https://{{.FbImage}}"/>
+    <meta property="og:description"      content="{{.Description}}"/>
+    <meta property="og:image:type"       content="image/jpeg">
+    <meta property="og:image:width"      content="1200"/>
+    <meta property="og:image:height"     content="627"/>
 
     <!-- twitter cards -->
-    <meta name="twitter:site" content="@koding"/>
-    <meta name="twitter:url" content="{{.ShareUrl}}"/>
-    <meta name="twitter:title" content="{{.Title}}"/>
-    <meta name="twitter:creator" content="@koding"/>
-    <meta name="twitter:card" content="summary"/>
-    <meta name="twitter:image" content="https://koding.com/a/images/logos/share_logo.png"/>
-    <meta name="twitter:description" content="{{.Description}}"/>
-    <meta name="twitter:domain" content="koding.com">
+    <meta name="twitter:site"            content="@koding"/>
+    <meta name="twitter:url"             content="{{.ShareUrl}}"/>
+    <meta name="twitter:title"           content="{{.Title}}"/>
+    <meta name="twitter:creator"         content="@koding"/>
+    <meta name="twitter:author"          content="@koding"/>
+    <meta name="twitter:card"            content="summary_large_image"/>
+    <meta name="twitter:image"           content="http://{{.TwImage}}"/>
+    <meta name="twitter:description"     content="{{.Description}}"/>
+    <meta name="twitter:domain"          content="koding.com">
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
