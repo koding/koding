@@ -854,3 +854,11 @@ class IDEAppController extends AppController
 
     if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
       log 'i need to handle this change...', change
+
+
+  createPaneFromChange: (change) ->
+    {context} = change
+    return unless context
+
+    if context.paneType is 'terminal'
+      @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()

@@ -43,6 +43,7 @@ class IDE.ParticipantView extends KDView
           state.addSubView new KDCustomHTMLView
             tagName: 'span'
             partial: partial
+            click  : => KD.singletons.appManager.tell 'IDE', 'createPaneFromChange', change
 
 
       @addSubView @watchButton = new KDButtonView
