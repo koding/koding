@@ -8,6 +8,9 @@ VIDEO_URL        = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro
 VIDEO_URL_MP4    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.mp4'
 VIDEO_URL_OGG    = 'https://koding-cdn.s3.amazonaws.com/campaign/hackathon/intro-bg.ogv'
 
+DAYS             = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
+MONTHS           = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+
 {
   judges   : JUDGES
   partners : PARTNERS
@@ -29,7 +32,11 @@ module.exports = class HomeView extends KDView
 
   constructor: (options = {}, data)->
 
+    options.bind = 'mousemove'
+
     super options, data
+
+    @logosBeingDragged = no
 
     @setPartial @partial()
 
@@ -43,24 +50,10 @@ module.exports = class HomeView extends KDView
 
     super
 
-    @addSubView new KDCustomHTMLView
+    @logos = new KDCustomHTMLView
       cssClass  : 'logos'
       tagName   : 'figure'
       bind      : 'mousemove mouseleave mouseenter'
-      mousemove : (event) ->
-        ww        = window.innerWidth
-        width     = @getWidth()
-        slideable = width - ww
-        margin    = -(width / 2)
-        percent   = event.clientX / ww
-        slide     = slideable * percent
-        newMargin = (margin + (slideable / 2)) - slide
-        @setCss 'margin-left', "#{newMargin}px"
-      mouseenter : ->
-        KD.utils.wait 300, => @setClass 'no-anim'
-      mouseleave : ->
-        @unsetClass 'no-anim'
-        @setCss 'margin-left', '-1400px'
       partial    : """
         <i class="odesk"></i>
         <i class="kissmetrics"></i>
@@ -79,6 +72,13 @@ module.exports = class HomeView extends KDView
         <i class="eniac"></i>
       """
 
+    logosTitle = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'logos-title'
+      partial  : 'with some amazing judges from:'
+    @addSubView logosTitle, 'section.introduction'
+    @addSubView @logos, 'section.introduction'
+
 
     video = document.getElementById 'bgVideo'
     if window.innerWidth < 680
@@ -89,6 +89,45 @@ module.exports = class HomeView extends KDView
         @playbackRate = .7
         KD.utils.wait 3000, -> video.classList.add 'in'
       , no
+
+  mouseMove: (event) ->
+
+    yPos   = event.clientY + window.scrollY
+    height = @$('section.introduction').outerHeight()
+
+    if height - 250 < yPos < height + 50
+    then @mouseEnter()
+    else return @mouseLeave()
+
+    ww        = window.innerWidth
+    width     = @logos.getWidth()
+    slideable = width - ww
+    margin    = -(width / 2)
+    percent   = event.clientX / ww
+    slide     = slideable * percent
+    newMargin = (margin + (slideable / 2)) - slide
+
+    @logos.setCss 'margin-left', "#{newMargin}px"
+
+
+  mouseLeave: ->
+
+    return  unless @logosBeingDragged
+
+    @logosBeingDragged = no
+    @logos.unsetClass 'no-anim'
+    @logos.setCss 'margin-left', '-1400px'
+
+
+  mouseEnter: do ->
+    waiting = no
+    ->
+      return  if waiting or @logosBeingDragged
+      waiting = yes
+      KD.utils.wait 300, =>
+        waiting = no
+        @logosBeingDragged = yes
+        @logos.setClass 'no-anim'
 
 
   updateStats: -> @$('div.counters').html @getStats()
@@ -107,6 +146,20 @@ module.exports = class HomeView extends KDView
 
   partial: ->
 
+    dateString = KD.campaignStats?.campaign?.startDate or 'Mon Oct 27 2014 10:00:00 GMT-0700 (PDT)'
+    startDate  = new Date dateString
+
+    day      = DAYS[startDate.getDay()]
+    month    = MONTHS[startDate.getMonth()]
+    date     = startDate.getDate()
+    year     = startDate.getYear() + 1900
+    hour     = startDate.getHours()
+    minutes  = startDate.getMinutes()
+    minutes  = if minutes < 10 then "0#{minutes}" else minutes
+    meridiem = if hour > 12 then 'PM' else 'AM'
+
+    niceDate = "#{day} #{month} #{date} #{year} #{hour}:#{minutes}#{meridiem}"
+
     """
     <section class="introduction">
       <video id="bgVideo" autoplay loop muted>
@@ -116,8 +169,7 @@ module.exports = class HomeView extends KDView
       </video>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, no matter where we are!</h3>
-      <h3>APPLICATIONS OPEN ON MONDAY OCTOBER 27 2014 10:00AM PDT</h3>
+      <h3>APPLICATIONS OPEN ON #{niceDate}</h3>
     </section>
     <div class="counters">#{@getStats()}</div>
     """
-      # <h4>Apply today with your Koding account to get a chance <strong>to win up to $10,000 in cash prizes.</strong></h4>
