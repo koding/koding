@@ -79,11 +79,28 @@ func main() {
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
 
+	userIn := func(user string, users ...string) bool {
+		for _, u := range users {
+			if u == user {
+				return true
+			}
+		}
+		return false
+	}
+
 	// don't pass any request if the caller is outside of our scope.
 	// don't allow anyone to call a method if we are during an update.
 	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		if r.Username != k.Config.Username {
-			return nil, fmt.Errorf("User %s is not allowed to make a call to us.", r.Username)
+		// only authenticated methods have correct username. For example
+		// kite.ping has authentication disabled so username can be empty.
+		if r.Auth != nil {
+			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
+				r.Username, r.Client.Environment, r.Client.Name, r.Method)
+
+			allowedUsers := []string{k.Config.Username, "koding"}
+			if !userIn(r.Username, allowedUsers...) {
+				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
+			}
 		}
 
 		updatingMu.Lock()
