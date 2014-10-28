@@ -16,7 +16,8 @@ import (
 )
 
 func (k *Kite) addDefaultHandlers() {
-	k.HandleFunc("kite.systemInfo", systemInfo)
+	// Default RPC methods
+	k.HandleFunc("kite.systemInfo", handleSystemInfo)
 	k.HandleFunc("kite.heartbeat", k.handleHeartbeat)
 	k.HandleFunc("kite.ping", handlePing).DisableAuthentication()
 	k.HandleFunc("kite.tunnel", handleTunnel)
@@ -29,8 +30,8 @@ func (k *Kite) addDefaultHandlers() {
 	}
 }
 
-// systemInfo returns info about the system (CPU, memory, disk...).
-func systemInfo(r *Request) (interface{}, error) {
+// handleSystemInfo returns info about the system (CPU, memory, disk...).
+func handleSystemInfo(r *Request) (interface{}, error) {
 	return systeminfo.New()
 }
 
@@ -46,7 +47,6 @@ func (k *Kite) handleHeartbeat(r *Request) (interface{}, error) {
 	// stop the ticker and close the done chan so we can break the loop
 	var once sync.Once
 	r.Client.OnDisconnect(func() {
-		heartbeat.Stop()
 		once.Do(func() { close(done) })
 	})
 
@@ -68,6 +68,7 @@ loop:
 
 	// remove the onDisconnect again so it doesn't call close twice
 	r.Client.onDisconnectHandlers = nil
+	heartbeat.Stop()
 
 	return nil, nil
 }

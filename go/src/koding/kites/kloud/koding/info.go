@@ -92,6 +92,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 				resultState = machinestate.Stopped
 			}
 		default:
+			p.stopTimer(m)
 			// error is something else and critical, so don't do anything until it's resolved
 			p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
 		}
