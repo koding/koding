@@ -424,13 +424,12 @@ class PrivateMessagePane extends MessagePane
 
   setScrollTops: ->
 
-    {body: {scrollHeight}} = document
-    @lastScrollTops.window = window.scrollY or scrollHeight
+    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
 
 
   applyScrollTops: ->
 
-    window.scrollTo 0, @lastScrollTops.window
+    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
 
 
   show: ->
