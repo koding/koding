@@ -63,12 +63,21 @@ koding = new Bongo {
     [callback, context] = [context, callback] unless callback
     context             ?= group: 'koding'
     callback            ?= ->
-    JUser.authenticateClient sessionToken, context, (err, account)->
+    JUser.authenticateClient sessionToken, context, (err, res = {})->
+
+      { account, session } = res
+
       if err
         console.error "bongo.fetchClient", {err, sessionToken, context}
         koding.emit 'error', err
+
       else if account instanceof JAccount
-        callback {sessionToken, context, connection:delegate:account}
+        { clientIP } = session
+        callback {
+          sessionToken, context, clientIP,
+          connection:delegate:account
+        }
+
       else
         console.error "this is not a proper account", {sessionToken}
         console.error "constructor is JAccount", JAccount is account.constructor
