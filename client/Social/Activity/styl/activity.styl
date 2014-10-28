@@ -749,11 +749,12 @@ span.collapsedtext
 
 /* Activity items */
 
-.kdlistitemview-activity.hidden-item
-  hidden()
-
-.activity-item
+.kdlistitemview-activity
   borderBox()
+
+  &.hidden-item
+    hidden()
+
 
   &.edited .meta time:after
     content       ' (edited)'
@@ -1231,7 +1232,7 @@ span.collapsedtext
         display           none
 
 
-.activity-item.preview
+.kdlistitemview-activity.preview
   margin-top              9px
   overflow                visible
   border                  2px dashed #cfcfcf
@@ -1398,7 +1399,7 @@ span.collapsedtext
     rounded                 50%
     abs()
 
-.activity-item.status
+.activity-tab-view .kdlistitemview-activity
   margin-bottom             13px
   padding                   0
   background                #fff
@@ -1629,7 +1630,7 @@ span.collapsedtext
       noTextDeco()
 
 
-// .activity-item.status
+// .kdlistitemview-activity.status
 //   .link-embed-box
 //     .preview-text-link
 //       input.preview-title-input
