@@ -9,6 +9,7 @@ class ActivityContentPane extends KDView
       type          : typeConstant
       viewOptions   :
         itemOptions : { channelId }
+      scrollView    : no
       wrapper
       itemClass
       lastToFirst
@@ -17,7 +18,7 @@ class ActivityContentPane extends KDView
     @isLoaded = no
 
   viewAppended: ->
-    @addSubView @listController.getView()
+    @addSubView @listController.getListView()
 
   removeItem: (item) ->
     index = @listController.getListView().getItemIndex item
