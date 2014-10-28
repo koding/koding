@@ -51,15 +51,15 @@ class IDEAppController extends AppController
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
       { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
       { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+1', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+2', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+3', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+4', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+5', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+6', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+7', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+8', global: yes }
-      { command: 'go to tab number',    binding: 'ctrl+alt+9', global: yes }
+      { command: 'go to tab number',    binding: 'mod+1',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+2',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+3',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+4',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+5',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+6',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+7',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+8',      global: yes }
+      { command: 'go to tab number',    binding: 'mod+9',      global: yes }
       { command: 'fullscren ideview',   binding: 'meta+shift+enter', global: yes }
     ]
 
