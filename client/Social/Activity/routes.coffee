@@ -1,7 +1,5 @@
 do ->
 
-  currentTab = 'Liked'
-
   activityPane = (callback) ->
     {appManager} = KD.singletons
     appManager.open 'Activity', (app) ->
@@ -17,14 +15,14 @@ do ->
   KD.registerRoutes 'Activity',
 
     '/:name?/Activity/Public' : ({params: {name}}) ->
-      @handleRoute "/#{if name then name else ''}/Activity/Public/#{currentTab}"
+      @handleRoute "/#{if name then name else ''}/Activity/Public",
+        replaceState: yes
+        shouldPushState: no
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
-      currentTab = 'Liked'
       activityPane (pane) -> pane.open 'Most Liked'
 
     '/:name?/Activity/Public/Recent': ({ params: {name}}) ->
-      currentTab = 'Recent'
       activityPane (pane) -> pane.open 'Most Recent'
 
     '/:name?/Activity/Public/Search': ({ params: {name}, query}) ->
