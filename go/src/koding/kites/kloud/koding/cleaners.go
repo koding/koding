@@ -105,6 +105,8 @@ func (p *Provider) CleanDeletedVMs() error {
 		}
 	}
 
+	machines = nil // garbage collect it
+
 	return nil
 }
 
