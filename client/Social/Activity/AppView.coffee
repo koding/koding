@@ -27,12 +27,12 @@ class ActivityAppView extends KDView
     @tabs = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
+    @tabs.unsetClass 'kdscrollview'
 
     @tabs.on 'PaneDidShow', (pane) =>
       if type = pane.getData()?.typeConstant
         @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
 
-    @tabs.unsetClass 'kdscrollview'
 
   viewAppended: ->
 
@@ -42,6 +42,15 @@ class ActivityAppView extends KDView
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
     @addSubView @widgetsBar
+
+    @parent.on 'PaneDidShow', =>
+
+      return  unless pane = @tabs.getActivePane()
+
+      KD.utils.defer ->
+        pane.applyScrollTops()
+        pane.scrollView.verticalTrack.thumb.handleMutation()
+        pane.scrollView.horizontalTrack.thumb.handleMutation()
 
 
   scroll: ->
