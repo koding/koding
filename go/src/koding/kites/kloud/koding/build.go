@@ -296,7 +296,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				a.Builder.SubnetId = subnet.SubnetId
 
 				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
-					m.Id, zone, a.Builder.SubnetId, err)
+					m.Id, zone, a.Builder.SubnetId)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
