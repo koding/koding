@@ -305,6 +305,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 				if isCapacityError(err) {
 					// if there is no capacity we are going to use the next one
+					p.Log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
+						m.Id, zone)
 					continue
 				}
 

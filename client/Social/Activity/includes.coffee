@@ -111,6 +111,7 @@ module.exports = [
   "views/comments/listviewcontroller.coffee"
   "views/comments/replylistviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"
+  "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
   "views/comments/replylistitemview.coffee"
   "views/comments/timeview.coffee"
