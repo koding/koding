@@ -126,7 +126,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	// check if the user is egligible to create a vm
 	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-		a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, instances[a.Builder.InstanceType])
+		a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
 		a.Builder.InstanceType = T2Micro.String()
 	}
 
