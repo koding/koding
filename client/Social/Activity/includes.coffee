@@ -130,5 +130,6 @@ module.exports = [
   "views/buymachinemodal.coffee"
 
   "styl/activity.styl"
+  "styl/activity.pm.styl"
   "styl/activity.responsive.styl"
 ]
