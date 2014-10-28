@@ -17,9 +17,7 @@ do ->
   KD.registerRoutes 'Activity',
 
     '/:name?/Activity/Public' : ({params: {name}}) ->
-      @handleRoute "/#{if name then name else ''}/Activity/Public/#{currentTab}",
-        replaceState: yes
-        shouldPushState: no
+      @handleRoute "/#{if name then name else ''}/Activity/Public/#{currentTab}"
 
     '/:name?/Activity/Public/Liked': ({ params: {name}}) ->
       currentTab = 'Liked'
