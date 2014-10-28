@@ -26,9 +26,13 @@ class ActivityAppView extends KDView
 
     @tabs = new KDTabView
       tagName             : 'main'
-      cssClass            : 'app-content'
       hideHandleContainer : yes
 
+    @tabs.on 'PaneDidShow', (pane) =>
+      if type = pane.getData()?.typeConstant
+        @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
+
+    @tabs.unsetClass 'kdscrollview'
 
     @appStorage.setValue 'liveUpdates', off
 

@@ -147,15 +147,6 @@ validationRed = rgba(217, 58, 55, 0.65)
   img
     rounded                 3px
 
-.content-page
-  margin                    0 auto
-  size                      auto auto
-
-  > .kdtabview
-    height              100%
-    font-size           14px
-    fl()
-
 aside.app-sidebar
   left            sidebarWidth
   top             0
@@ -165,12 +156,11 @@ aside.app-sidebar
   fix()
   styleScrollBars()
 
-.app-content
+.content-page > .kdtabview
   min-height       100vh
-  padding-left     34px
   borderBox()
 
-.content-page .app-sidebar ~ .app-content
+.content-page .app-sidebar ~ .kdtabview
   kalc                  width, 100% \- 292px
   margin-left           292px
   padding-left          0
