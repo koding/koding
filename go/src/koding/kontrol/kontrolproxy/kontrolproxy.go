@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"io"
 	"koding/db/mongodb/modelhelper"
-	"koding/kodingkite"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
@@ -31,7 +30,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
 	"github.com/koding/kite"
-	"github.com/koding/kite/protocol"
 	"github.com/nranchev/go-libGeoIP"
 )
 
@@ -173,85 +171,12 @@ func main() {
 	p.resolvers[resolver.ModeVM] = p.vm
 	p.resolvers[resolver.ModeInternal] = p.internal
 
-	go p.runNewKite()
-
 	p.mux.Handle("/", p)
 	p.mux.Handle("/_resetcache_/", p.resetCacheHandler())
 
 	p.setupLogging()
 	p.startHTTPS() // non-blocking
 	p.startHTTP()
-}
-
-func (p *Proxy) runNewKite() {
-	k, err := kodingkite.New(conf, KONTROLPROXY_NAME, "0.0.1")
-	if err != nil {
-		panic(err)
-	}
-
-	k.Config.Region = *flagRegion
-	go k.Run()
-	<-k.Kite.ServerReadyNotify()
-
-	// TODO: remove this later, this is needed in order to reinitiliaze the logger package
-	log.SetLevel(logLevel)
-
-	query := &protocol.KontrolQuery{
-		Username:    "koding-kites",
-		Environment: *flagConfig,
-		Name:        "oskite",
-		Version:     "0.0.1",
-		Region:      *flagRegion,
-	}
-
-	onEvent := func(e *kite.Event, err *kite.Error) {
-		if err != nil {
-			log.Error(err.Error())
-			return
-		}
-
-		serviceUniqueHostname := strings.Replace(e.Kite.Hostname, ".", "_", -1)
-		if serviceUniqueHostname == "" {
-			k.Log.Warning("serviceUniqueHostname is empty for %s", e)
-			return
-		}
-
-		switch e.Action {
-		case protocol.Register:
-			k.Log.Info("Oskite registered.")
-
-			p.oskitesMu.Lock()
-			defer p.oskitesMu.Unlock()
-
-			oskite, ok := p.oskites[serviceUniqueHostname]
-			if ok && oskite != nil {
-				k.Log.Info("Oskite registered already, discarding ...")
-				return
-			}
-
-			// update oskite instance with new one
-			oskite = e.Client()
-			err := oskite.Dial()
-			if err != nil {
-				log.Warning(err.Error())
-			}
-
-			p.oskites[serviceUniqueHostname] = oskite
-		case protocol.Deregister:
-			k.Log.Warning("Oskite deregistered.")
-			p.oskitesMu.Lock()
-			defer p.oskitesMu.Unlock()
-
-			// make sure we don't send msg's to a dead service
-			p.oskites[serviceUniqueHostname] = nil
-			delete(p.oskites, serviceUniqueHostname)
-		}
-	}
-
-	_, err = k.Kite.WatchKites(query, onEvent)
-	if err != nil {
-		log.Warning(err.Error())
-	}
 }
 
 func (p *Proxy) randomOskite() (*kite.Client, bool) {

@@ -25,6 +25,23 @@ func GetSession(token string) (*models.Session, error) {
 	return session, nil
 }
 
+func UpdateSessionIP(token string, ip string) (error) {
+	updateData := bson.M{
+		"clientIP": ip,
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"clientId": token}, bson.M{"$set": updateData})
+	}
+
+	err := Mongo.Run("jSessions", query)
+	if err != nil {
+		return fmt.Errorf("failed to update ip for sessionID '%s'; err: %s", token, err)
+	}
+
+	return nil
+}
+
 func CreateSession(s *models.Session) error {
 	return Mongo.Run("jSessions", insertQuery(s))
 }
