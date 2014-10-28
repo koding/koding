@@ -42,13 +42,10 @@ class AboutAppView extends JView
     </section>
     <section class='contact'>
       <div class='inner-container clearfix'>
-        <h3>Contact Koding</h3>
-        <div class='contact-item sales'>sales@koding.com</div>
-        <div class='contact-item support'>support@koding.com</div>
-        <div class='contact-item partnerships'>partnerships@koding.com</div>
-        <div class='contact-item press'>press@koding.com</div>
-        <div class='contact-item hello'>hello@koding.com</div>
-        <div class='contact-item careers'>careers@koding.com</div>
+        <h3>Get in touch with us</h3>
+        <a href="mailto:business@koding.com" class='contact-item sales'>business@koding.com</a>
+        <a href="mailto:support@koding.com" class='contact-item support'>support@koding.com</a>
+        <a href="mailto:apply@koding.com" class='contact-item careers'>apply@koding.com</a>
       </div>
     </section>
     <section class='where'>
