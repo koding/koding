@@ -513,7 +513,7 @@ module.exports = class HomeViewFull extends KDView
         <a href="https://api.import.io/">Import.io</a>
         <a href="https://api.imgur.com//">Imgur</a>
         <p>
-        ...to name a few. And any metion of APIs would be incomplete without a hat tip
+        ...to name a few. And any mention of APIs would be incomplete without a hat tip
         to <a href="http://www.programmableweb.com/">Programmable Web</a>
         </p>
       </article>
