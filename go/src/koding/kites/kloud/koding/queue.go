@@ -12,12 +12,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var (
-	// Be cautious if your try to lower this. A build might really last more
-	// than 10 minutes.
-	CleanUpTimeout = time.Minute * 10
-)
-
 // RunChecker runs the checker every given interval time. It fetches a single
 // document.
 func (p *Provider) RunChecker(interval time.Duration) {

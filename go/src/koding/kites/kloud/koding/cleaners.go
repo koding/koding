@@ -9,17 +9,23 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+var (
+	// Be cautious if your try to lower this. A build might really last more
+	// than 10 minutes.
+	CleanUpTimeout = time.Minute * 10
+)
+
 // RunCleaner runs the given cleaners for the given timeout duration. It cleans
 // up/resets machine documents and VM leftovers.
 func (p *Provider) RunCleaners(interval time.Duration) {
 	cleaners := func() {
 		// run for the first
 		if err := p.CleanLocks(CleanUpTimeout); err != nil {
-			p.Log.Warning("Cleaning queue: %s", err)
+			p.Log.Warning("Cleaning locks: %s", err)
 		}
 
-		if err := p.CleanDeletedVMs(CleanUpTimeout); err != nil {
-			p.Log.Warning("Cleaning queue: %s", err)
+		if err := p.CleanDeletedVMs(); err != nil {
+			p.Log.Warning("Cleaning deleted vms: %s", err)
 		}
 	}
 
@@ -34,7 +40,7 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 // their VM's. This can happen for example if the user deletes their VM during
 // an ongoing (build, start, stop...) process. There will be a lock due Build
 // which will prevent to delete it.
-func (p *Provider) CleanDeletedVMs(timeout time.Duration) error {
+func (p *Provider) CleanDeletedVMs() error {
 	machines := make([]MachineDocument, 0)
 
 	query := func(c *mgo.Collection) error {
