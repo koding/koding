@@ -41,6 +41,7 @@ IDE.settings.editor =
 
     Dark : [
       { title: 'Ambiance',              value: 'ambiance' }
+      { title: 'Base16',                value: 'base16' }
       { title: 'Clouds Midnight',       value: 'clouds_midnight' }
       { title: 'Cobalt',                value: 'cobalt' }
       { title: 'Idle Fingers',          value: 'idle_fingers' }
