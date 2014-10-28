@@ -267,12 +267,16 @@ class ActivitySidebar extends KDCustomHTMLView
   addItem: (data, index) ->
 
     listController = @getListController data.typeConstant
+    item = @getItemByData data
 
-    if item = @getItemByData data
-      listController.moveItemToIndex item, index  if index?
-      return item
+    # add the new topic item in sidebar
+    return listController.addItem data, index  unless item
 
-    item = listController.addItem data, index
+    # since announcement is fixed in sidebar no need to add/move it
+    return item  if data.typeConstant is 'announcement'
+
+    # move the channel to the given index
+    listController.moveItemToIndex item, index  if index?
 
     return item
 
