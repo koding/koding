@@ -201,7 +201,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : ["~^/IDE/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -241,7 +241,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/broker -r koding/broker -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -251,7 +251,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/rerouting -r koding/rerouting -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
