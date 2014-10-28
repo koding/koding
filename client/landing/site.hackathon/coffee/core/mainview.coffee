@@ -40,7 +40,7 @@ module.exports = class MainView extends KDView
         href     : 'https://koding.com'
         target   : '_blank'
 
-    @header.addSubView new TopNavigation
+    @header.addSubView @header.nav = new TopNavigation
 
   createPanelWrapper:->
 

@@ -152,6 +152,7 @@ module.exports = class HomeViewFull extends KDView
     repeater = KD.utils.repeat 200, ->
       if addthis?.layers?.refresh
         addthis.layers.refresh()
+        KD.singletons.mainView.header.nav.addThis.destroy()
         KD.utils.killRepeat repeater
 
 

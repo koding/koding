@@ -15,7 +15,7 @@ module.exports = class TopNavigation extends KDCustomHTMLView
 
   viewAppended: ->
 
-    @addSubView new KDCustomHTMLView
+    @addSubView @addThis = new KDCustomHTMLView
       cssClass       : 'addthis_sharing_toolbox'
       attributes     :
         'data-title' : TWEET_TEXT
