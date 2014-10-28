@@ -56,6 +56,13 @@ func (c *Channel) Delete() error {
 	// first delete channel list relations
 	messageMap, err := c.deleteChannelLists()
 	if err != nil {
+		fmt.Printf("channel delete error: %s \n", err)
+
+		// in case of an error delete the messages up to that point
+		if err := c.deleteChannelMessages(messageMap); err != nil {
+			fmt.Printf("channel message delete error: %s \n", err)
+		}
+
 		return err
 	}
 
