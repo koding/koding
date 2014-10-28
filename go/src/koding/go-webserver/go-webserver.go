@@ -9,6 +9,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/go-webserver/templates"
+	"koding/go-webserver/utils"
 	"koding/tools/config"
 	"net/http"
 	"runtime"
@@ -121,6 +122,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	modelhelper.UpdateSessionIP(clientId, utils.GetIpAddress(r))
 
 	username := session.Username
 	if username == "" {
