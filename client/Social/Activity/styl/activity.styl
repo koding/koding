@@ -51,52 +51,6 @@ body.activity
       abs         23px 12px
       opacity     .6
 
-    .activity-pane
-      .kdtabhandle
-        padding   0
-
-      .kdtabhandlecontainer.filters
-        background        none
-        border            none
-        margin            0 0 13px 0
-        max-width         600px
-        padding           0
-        height            62px
-        borderBox()
-        shadow            inset 0 -3px 0 #e0e0e0
-
-        &.search-active
-          cite.search-icon
-            cursor            pointer
-            abs               22px 8px
-            r-sprite          app '20-close-tab'
-
-        .filter
-          border              none
-          opacity             .99
-          height              62px
-          noTextDeco()
-          fl()
-
-          a
-            display             block
-            text-decoration     none
-            height              62px
-            padding             22px 23px 0
-            font-weight         600
-            line-height         20px
-            color               #969696
-            text-align          center
-            font-size           14px
-            borderBox()
-
-            span
-              display           block
-
-          &.active
-            shadow            inset 0 -3px 0 #01B05A
-            color             #575757
-            background        none
 
     .announcement-pane .kdtabhandlecontainer.filters
         height          auto
@@ -136,6 +90,53 @@ body.activity
     display     block
     r-sprite    'activity', 'search'
     z-index     2
+
+.activity-pane
+  .kdtabhandle
+    padding   0
+
+  .kdtabhandlecontainer.filters
+    background        none
+    border            none
+    margin            0 0 13px 0
+    max-width         600px
+    padding           0
+    height            62px
+    borderBox()
+    shadow            inset 0 -3px 0 #e0e0e0
+
+    &.search-active
+      cite.search-icon
+        cursor            pointer
+        abs               22px 8px
+        r-sprite          app '20-close-tab'
+
+    .filter
+      border              none
+      opacity             .99
+      height              62px
+      noTextDeco()
+      fl()
+
+      a
+        display             block
+        text-decoration     none
+        height              62px
+        padding             22px 23px 0
+        font-weight         600
+        line-height         20px
+        color               #969696
+        text-align          center
+        font-size           14px
+        borderBox()
+
+        span
+          display           block
+
+      &.active
+        shadow            inset 0 -3px 0 #01B05A
+        color             #575757
+        background        none
 
 
 .content-page.activity
@@ -226,10 +227,6 @@ body.activity
       margin-right      auto
       float             none
 
-    // .kdtabpaneview
-
-    //   min-height        990px
-
 
     > .activity-input-widget
       margin-bottom     26px
@@ -319,10 +316,6 @@ body.activity
 
         &.active
           color         logoBg
-
-
-.activity-related
-  padding-bottom      62px
 
 
 .activity-modal
