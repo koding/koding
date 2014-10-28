@@ -368,10 +368,17 @@ class PrivateMessagePane extends MessagePane
 
   viewAppended: ->
 
+
     @addSubView @participantsView
     @addSubView @autoCompleteForm
-    @addSubView @listPreviousLink
-    @addSubView @listController.getView()
+
+    @addSubView @scrollView = new KDCustomScrollView
+      cssClass          : 'message-pane-scroller'
+      lazyLoadThreshold : 100
+
+    {wrapper} = @scrollView
+    wrapper.addSubView @listPreviousLink
+    wrapper.addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
 

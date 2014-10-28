@@ -101,6 +101,7 @@ class ActivityPane extends MessagePane
       tabHandleClass    : ActivityTabHandle
       maxHandleWidth    : Infinity
       paneData          : @getPaneData()
+    @tabView.unsetClass 'kdscrollview'
     @tabView.tabHandleContainer.setClass 'filters'
     @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
 
@@ -165,9 +166,16 @@ class ActivityPane extends MessagePane
   createContentAppender: contentMethod 'appendContent'
 
   viewAppended: ->
-    @addSubView @channelTitleView
-    @addSubView @input
-    @addSubView @tabView
+
+    @addSubView @scrollView = new KDCustomScrollView
+      cssClass          : 'message-pane-scroller'
+      lazyLoadThreshold : 100
+
+    {wrapper} = @scrollView
+
+    wrapper.addSubView @channelTitleView
+    wrapper.addSubView @input
+    wrapper.addSubView @tabView
 
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]

@@ -268,10 +268,11 @@ class MessagePane extends KDTabPaneView
 
   viewAppended: ->
 
-    @addSubView @channelTitleView  if @channelTitleView
-    @addSubView @input             if @input
-    @addSubView @filterLinks       if @filterLinks
-    @addSubView @listController.getView()
+    @addSubView @scrollView = new KDCustomScrollView cssClass : 'message-pane-scroller'
+    @scrollView.wrapper.addSubView @channelTitleView  if @channelTitleView
+    @scrollView.wrapper.addSubView @input             if @input
+    @scrollView.wrapper.addSubView @filterLinks       if @filterLinks
+    @scrollView.wrapper.addSubView @listController.getView()
 
 
   show: ->
