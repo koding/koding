@@ -34,9 +34,6 @@ class ActivityAppView extends KDView
 
     @tabs.unsetClass 'kdscrollview'
 
-    @appStorage.setValue 'liveUpdates', off
-
-
   viewAppended: ->
 
     # @addSubView @groupHeader  unless isKoding()

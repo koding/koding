@@ -50,7 +50,6 @@ module.exports = [
   "views/likesummaryview.coffee"
   "views/likeview.coffee"
   "views/activityactions.coffee"
-  "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
