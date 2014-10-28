@@ -116,7 +116,7 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 	return &protocol.Artifact{
 		IpAddress:    instance.PublicIpAddress,
 		InstanceId:   instance.InstanceId,
-		InstanceType: a.Builder.Region,
+		InstanceType: a.Builder.InstanceType,
 	}, nil
 }
 
@@ -193,7 +193,7 @@ func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 	return &protocol.Artifact{
 		InstanceId:   instance.InstanceId,
 		IpAddress:    instance.PublicIpAddress,
-		InstanceType: a.Builder.Region,
+		InstanceType: a.Builder.InstanceType,
 	}, nil
 }
 

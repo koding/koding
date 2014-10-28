@@ -366,6 +366,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @selectedItem = null
 
+    @machineTree.deselectAllNodes()
+
     for own name, {listController} of @sections
       listController.deselectAllItems()
 
@@ -566,6 +568,7 @@ class ActivitySidebar extends KDCustomHTMLView
     else if machineItem.getData().status?.state is Machine.State.Building
 
       return
+
 
   handleMoreVMsClick: ->
     new MoreVMsModal {}, KD.userMachines

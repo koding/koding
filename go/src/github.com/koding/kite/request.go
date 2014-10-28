@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/cache"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/kite/kitekey"
+	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
 )
 
@@ -200,12 +202,45 @@ func (k *Kite) AuthenticateFromToken(r *Request) error {
 		return errors.New("Invalid signature in token")
 	}
 
+	// check if we have an audience and it matches our own signature
+	audience, ok := token.Claims["aud"].(string)
+	if ok && audience != "/" {
+		if checkAudience(k.Kite().String(), audience); err != nil {
+			return err
+		}
+	}
+
 	// We don't check for exp and nbf claims here because jwt-go package
 	// already checks them.
-	if username, ok := token.Claims["sub"].(string); !ok {
+	username, ok := token.Claims["sub"].(string)
+	if !ok {
 		return errors.New("Username is not present in token")
-	} else {
-		r.Username = username
+	}
+
+	// replace the requester username so we reflect the validated
+	r.Username = username
+
+	return nil
+}
+
+func checkAudience(kiteRepr, audience string) error {
+	a, err := protocol.KiteFromString(audience)
+	if err != nil {
+		return err
+	}
+
+	// it doesn't make sense to return an error if the audience is fully empty
+	if a.Username == "" {
+		return nil
+	}
+
+	// this is good so our kites can also work behind load balancers
+	threePart := fmt.Sprintf("/%s/%s/%s", a.Username, a.Environment, a.Name)
+
+	// now check if the first three fields are matching our own fields
+	if !strings.HasPrefix(kiteRepr, threePart) {
+		return fmt.Errorf("Invalid audience in token. Have: '%s' Must be a part of: '%s'",
+			audience, kiteRepr)
 	}
 
 	return nil
