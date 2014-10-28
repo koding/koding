@@ -258,7 +258,7 @@ class PrivateMessagePane extends MessagePane
 
     channel = @getData()
 
-    @input = new ReplyInputWidget {channel}
+    @input = new ReplyInputWidget {channel, cssClass : 'private'}
 
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
