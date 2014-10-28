@@ -195,7 +195,7 @@ getSidebar = ->
           <section class="followed topics">
             <h3 class="sidebar-title">Channels</h3>
             <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag" data-paths="name">#public</span></a>
-            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/koding"><span class="ttag" data-paths="name">#koding</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/changelog"><span class="ttag" data-paths="name">#changelog</span></a>
           </section>
           <section class='sidebar-join'>
             Join our growing community of developers from all over the world who
