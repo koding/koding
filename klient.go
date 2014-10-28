@@ -74,6 +74,13 @@ func main() {
 		Interval: *flagUpdateInterval,
 	}
 
+	// before we register check for latest update and re-update itself before
+	// we continue
+	k.Log.Info("Checking for new updates")
+	if err := updater.checkAndUpdate(); err != nil {
+		klog.Warning("Self-update: %s", err)
+	}
+
 	go updater.Run()
 
 	// always boot up with the same id in the kite.key
