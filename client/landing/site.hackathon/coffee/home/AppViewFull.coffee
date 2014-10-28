@@ -141,10 +141,13 @@ module.exports = class HomeViewFull extends KDView
         """
 
     if isApplicant and isApproved
-      greeting = '<strong>CONGRATULATIONS!</strong>you are in!'
+      greeting   = '<strong>CONGRATULATIONS!</strong>you are in!'
+      TWEET_TEXT = 'Awesome! I\'ve been accepted into @koding\'s global virtual #hackathon.'
+
 
     if isApplicant and isWinner
       greeting = '<strong>WOHOOOO!</strong>You are the WINNER!'
+      TWEET_TEXT = 'Woohoooo! I won @koding\'s global virtual #hackathon.'
 
     @$('.form-wrapper').append "<p>#{greeting}</p>"
     @$('.form-wrapper').append "<div class=\"addthis_sharing_toolbox\" data-title=\"#{TWEET_TEXT}\" data-url=\"#{SHARE_URL}\"></div>"
