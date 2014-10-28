@@ -424,7 +424,7 @@ app.get "/-/healthCheck", (req, res) ->
   urls.push("http://localhost:#{publicPort}/-/versionCheck")
 
   urlFns = urls.map (url)->->
-    request url, (err, resp, body)->
+    request {url, timeout:5}, (err, resp, body)->
       errs.push({ url, err })  if err?
       urlFns.fin()
 
