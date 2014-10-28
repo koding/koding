@@ -12,12 +12,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var (
-	// Be cautious if your try to lower this. A build might really last more
-	// than 10 minutes.
-	CleanUpTimeout = time.Minute * 10
-)
-
 // RunChecker runs the checker every given interval time. It fetches a single
 // document.
 func (p *Provider) RunChecker(interval time.Duration) {
@@ -43,21 +37,6 @@ func (p *Provider) RunChecker(interval time.Duration) {
 					machine.Id.Hex(), machine.IpAddress, err)
 			}
 		}()
-	}
-}
-
-// RunCleaner runs the cleaner for the given timeout duration. It cleans
-// up/resets machine documents.
-func (p *Provider) RunCleaner(interval time.Duration) {
-	// run for the first
-	if err := p.CleanQueue(CleanUpTimeout); err != nil {
-		p.Log.Warning("Cleaning queue: %s", err)
-	}
-
-	for _ = range time.Tick(interval) {
-		if err := p.CleanQueue(CleanUpTimeout); err != nil {
-			p.Log.Warning("Cleaning queue: %s", err)
-		}
 	}
 }
 
@@ -156,39 +135,4 @@ func (p *Provider) FetchOne() (*MachineDocument, error) {
 	}
 
 	return machine, nil
-}
-
-// CleanQueue resets documents that where locked by workers who died and left
-// the documents untouched/unlocked. These documents are *ghost* documents,
-// because they have an assignee that is not nil no worker will pick it up. The
-// given timeout specificies to look up documents from now on.
-func (p *Provider) CleanQueue(timeout time.Duration) error {
-	query := func(c *mgo.Collection) error {
-		// machines that can't be updated because they seems to be in progress
-		ghostMachines := bson.M{
-			"assignee.inProgress": true,
-			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-timeout)},
-		}
-
-		cleanMachines := bson.M{
-			"assignee.inProgress": false,
-			"assignee.assignedAt": time.Now().UTC(),
-		}
-
-		// reset all machines
-		info, err := c.UpdateAll(ghostMachines, bson.M{"$set": cleanMachines})
-		if err != nil {
-			return err
-		}
-
-		// only show if there is something, that will prevent spamming the
-		// output with the same content over and over
-		if info.Updated != 0 {
-			p.Log.Info("[checker] cleaned up %d documents", info.Updated)
-		}
-
-		return nil
-	}
-
-	return p.Session.Run("jMachines", query)
 }

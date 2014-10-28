@@ -9,22 +9,33 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
 mongo = "mongodb://#{KONFIG.mongo}"
 
-module.exports = koding = new Bongo {
-  mongo: mongoReplSet or mongo
-  root: projectRoot
-  models: 'workers/social/lib/social/models'
-  fetchClient :(sessionToken, context, callback)->
+module.exports = koding = new Bongo
+
+  mongo       : mongoReplSet or mongo
+  root        : projectRoot
+  models      : 'workers/social/lib/social/models'
+  fetchClient : (sessionToken, context, callback)->
+
     { JUser, JAccount } = koding.models
     [callback, context] = [context, callback] unless callback
     context             ?= group: 'koding'
     callback            ?= ->
-    JUser.authenticateClient sessionToken, context, (err, account)->
-      if err
-        console.error err
-        return
+
+    JUser.authenticateClient sessionToken, context, (err, res = {})->
+
+      return console.error err  if err
+
+      { account, session } = res
 
       if account instanceof JAccount
-        callback {sessionToken, context, connection:delegate:account}
+
+        { clientIP } = session
+
+        callback {
+          sessionToken, context, clientIP
+          connection: delegate: account
+        }
+
       else
+
         callback { message: "Session error" }
-}
