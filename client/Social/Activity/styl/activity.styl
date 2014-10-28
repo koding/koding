@@ -21,6 +21,11 @@ body.activity
 
 #content-page-activity
 
+  .message-pane-scroller
+    padding-left        34px
+    > main
+      max-width         600px
+
   > .kdtabview
     height              100%
     overflow            hidden
@@ -160,10 +165,9 @@ body.activity
 
 .content-page.activity
   max-width             100%
-  margin                0 auto 0
-  padding               0 34px 0 0
-  position              static
-  overflow              visible
+  margin                0 auto
+  padding               0
+  overflow              hidden
   min-height            100vh
 
   &.group
