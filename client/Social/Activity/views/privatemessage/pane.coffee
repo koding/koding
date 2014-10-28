@@ -34,9 +34,6 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
-    @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
-    @on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
-
 
   #
   # DATA EVENTS
@@ -239,9 +236,12 @@ class PrivateMessagePane extends MessagePane
         return KD.showError err  if err
 
         items.forEach (item, i) =>
-          {scrollHeight} = body
+          {wrapper} = @scrollView
+          previousScrollHeight = wrapper.getScrollHeight()
           @prependMessage item
-          window.scrollTo 0, window.scrollY + (body.scrollHeight - scrollHeight)
+          currentScrollHeight = wrapper.getScrollHeight()
+          currentScrollTop    = wrapper.getScrollTop()
+          wrapper.setScrollTop currentScrollTop + (currentScrollHeight - previousScrollHeight)
 
         if items.length is 0
         then @listPreviousLink.hide()
@@ -336,8 +336,7 @@ class PrivateMessagePane extends MessagePane
       fields             :
         recipient        :
           itemClass      : KDView
-      submit             : (e) ->
-        e.preventDefault()
+      submit             : (e) -> e.preventDefault()
 
 
     @autoComplete = new KDAutoCompleteController
@@ -382,6 +381,10 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
+    wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
+    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+
+
 
   #
   # UI EVENTS/DIRECTIVES
@@ -415,7 +418,8 @@ class PrivateMessagePane extends MessagePane
   scrollDown: (item) ->
 
     return  unless @active
-    window.scrollTo 0, document.body.scrollHeight * 2
+    {wrapper} = @scrollView
+    wrapper.setScrollTop wrapper.getScrollHeight()
 
 
   setScrollTops: ->

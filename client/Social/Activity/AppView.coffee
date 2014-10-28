@@ -37,11 +37,6 @@ class ActivityAppView extends KDView
     @appStorage.setValue 'liveUpdates', off
 
 
-  lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
-
-  topLazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'TopLazyLoadThresholdReached'
-
-
   viewAppended: ->
 
     # @addSubView @groupHeader  unless isKoding()
