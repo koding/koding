@@ -323,7 +323,7 @@ module.exports = class HomeViewFull extends KDView
   partial: ->
 
     campaign    = KD.campaignStats?.campaign
-    endDay      = campaign.endDay      or 'Nov 16, 2014, 23:59 (PDT)'
+    endDay      = campaign.endDay      or 'Nov 16, 2014, 23:59 (PST)'
     closeDay    = campaign.closeDay    or 'Nov 16th'
     announceDay = campaign.announceDay or 'Nov 18th'
     firstDay    = campaign.firstDay    or 'Nov 22th'
@@ -437,13 +437,13 @@ module.exports = class HomeViewFull extends KDView
         <h4>What is the schedule?</h4>
         <ul>
           <li>Now - Registration open.</li>
-          <li>#{closeDay}, 1200 PDT - Applications are closed. Final notifications are sent to teams/individuals who were accepted and the
+          <li>#{closeDay}, 1200 PST - Applications are closed. Final notifications are sent to teams/individuals who were accepted and the
           Hackathon Theme is announced (on the <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a> and via email to the accepted teams).</li>
           <li>#{firstDay} - Day 1 Let the hacking begin!</li>
           <li>#{secondDay} - Day 2 of the Hackathon
             <ul>
-              <li>0000 – 2200 PDT Hacking continues</li>
-              <li>2330 – 2359 PDT Teams submit their projects to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a> (see section below on how to submit)</li>
+              <li>0000 – 2200 PST Hacking continues</li>
+              <li>2330 – 2359 PST Teams submit their projects to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a> (see section below on how to submit)</li>
             </ul>
           </li>
           <li>#{emailDay} - Winners are notified via email and winning projects are listed for public viewing.</li>
@@ -479,7 +479,7 @@ module.exports = class HomeViewFull extends KDView
               <li>How your project addresses the theme of the hackathon.</li>
               <li>What tools did you use to collaborate.</li>
             </ol>
-          <p>Your submission should have a time label less than <b>#{secondDay} 2359 PDT</b>.
+          <p>Your submission should have a time label less than <b>#{secondDay} 2359 PST</b>.
           Submissions received after the deadline will not be considered. No exceptions.
         </p>
       </article>
