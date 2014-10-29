@@ -22,9 +22,9 @@ module.exports =
   doLogin: (browser, user) ->
 
     browser
-      .waitForElementVisible  '[testpath=main-header]', 5000
+      .waitForElementVisible  '[testpath=main-header]', 50000
       .click                  '#main-header [testpath=login-link]'
-      .waitForElementVisible  '[testpath=login-container]', 5000
+      .waitForElementVisible  '[testpath=login-container]', 50000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
@@ -140,9 +140,9 @@ module.exports =
     webSelector   = "span[title='" + webPath + "']"
 
     browser
-      .waitForElementVisible   '.vm-header', 5000
+      .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
-      .waitForElementPresent   '.context-list-wrapper', 5000
+      .waitForElementPresent   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper .refresh'
       .waitForElementVisible   webSelector, 10000
       .click                   webSelector
@@ -158,11 +158,12 @@ module.exports =
     filename  = paragraph.split(' ')[0] + '.txt'
 
     browser
-      .waitForElementVisible    'li.new-file', 5000
+      .waitForElementVisible    'li.new-file', 50000
       .click                    'li.new-file'
       .waitForElementVisible    'li.selected .rename-container .hitenterview', 5000
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
+      .pause                    2000 # required
       .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 5000 # Assertion
 
     return filename
