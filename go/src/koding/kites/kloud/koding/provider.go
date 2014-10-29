@@ -471,7 +471,7 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		}
 
 		if infoResp.State == machinestate.Running {
-			_, err := p.KlientPool.Get(m.QueryString)
+			err := klient.Exists(p.Kite, m.QueryString)
 			if err == nil {
 				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
 					m.Id, m.Username)

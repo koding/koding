@@ -164,6 +164,8 @@ module.exports = [
   "providers/providerrackspace.coffee",
 
   "providers/providerview.coffee",
+  "providers/modalview.coffee"
+  "providers/machinestatemodal.coffee"
   "providers/computeplansmodal.coffee",
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
