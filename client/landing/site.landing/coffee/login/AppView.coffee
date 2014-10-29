@@ -443,7 +443,16 @@ module.exports = class LoginView extends JView
       success     : -> location.replace "/#{redirectTo}#{query}"
       error       : (xhr) =>
         {responseText} = xhr
-        new KDNotificationView title : responseText
+        if /suspended/i.test responseText
+          new KDModalView
+            title        : "You've been banned!"
+            content      : responseText
+            overlay      : yes
+            cancelable   : no
+            overlayClick : no
+        else
+          new KDNotificationView title : responseText
+
         @loginForm.button.hideLoader()
 
 
