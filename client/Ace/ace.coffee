@@ -40,6 +40,15 @@ class Ace extends KDView
 
       @emacsKeyboardHandler = 'ace/keyboard/emacs'
 
+
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+    @suppressListeners = yes  unless emitFileContentChangedEvent
+
+    @editor.setValue content, -1
+
+    @suppressListeners = no   unless emitFileContentChangedEvent
+
+
   prepareEditor:->
 
     @setTheme()
