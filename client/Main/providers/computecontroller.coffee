@@ -198,7 +198,7 @@ class ComputeController extends KDController
 
         when ComputeErrors.TimeoutError
 
-          safeToSuspend = yes
+          safeToSuspend = task is 'info'
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()
