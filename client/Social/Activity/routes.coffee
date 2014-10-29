@@ -15,7 +15,7 @@ do ->
   KD.registerRoutes 'Activity',
 
     '/:name?/Activity/Public' : ({params: {name}}) ->
-      @handleRoute "/#{if name then name else ''}/Activity/Public",
+      @handleRoute "/#{if name then name else ''}/Activity/Public/Liked",
         replaceState: yes
         shouldPushState: no
 
