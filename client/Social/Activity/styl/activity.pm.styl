@@ -288,6 +288,23 @@ timeColor2 = #5F9E5E
       max-width         475px
       padding           0
 
+      .show-more
+
+        bottom          1px
+        left            0
+        width           100%
+        display         block
+        font-size       11px
+        color           logoBg
+        text-transform  uppercase
+        bg              color #fafafa
+        padding         3px 0
+        text-align      center
+        border-top      1px solid #eaeaea
+        border-bottom   none
+        z-index         1
+
+
       .meta
         margin          8px 0 4px 0px
 
@@ -396,6 +413,9 @@ timeColor2 = #5F9E5E
         margin-top          7px
         padding-top         0
         margin-bottom       0
+        &.tall
+          &:after
+            top             calc(100% \- 17px)
 
         p:first-of-type
           padding-top       0
