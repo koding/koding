@@ -209,7 +209,7 @@ class ComputeController extends KDController
             retried = retryIfNeeded task, machine
             safeToSuspend = yes
           else
-            @eventListener.triggerState machine, status: Machine.State.Unknown
+            warn "[CC] error:", err
 
       unless safeToSuspend
         @emit "error", { task, err, machine }
