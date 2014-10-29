@@ -98,5 +98,7 @@ class PrivateMessageForm extends KDFormViewWithFields
 
     @inputs.recipient.addSubView @chatHeads
     @createUserAutoComplete()
-    @addSubView @inputWidget = new PrivateMessageInputWidget form : this
+    @addSubView @inputWidget = new PrivateMessageInputWidget
+      form     : this
+      cssClass : 'private'
     KD.utils.defer => @autoComplete.getView().setFocus()
