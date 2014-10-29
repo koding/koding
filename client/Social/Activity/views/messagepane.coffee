@@ -143,29 +143,8 @@ class MessagePane extends KDTabPaneView
 
     return scrollTop + height >= scrollHeight
 
+
   scrollDown: ->
-
-
-  scrollUp: ->
-
-    return  unless @active
-
-    window.scrollTo 0, 0
-
-
-  setScrollTops: ->
-
-    super
-
-    @lastScrollTops.window = window.scrollY
-
-
-  applyScrollTops: ->
-
-    super
-
-    KD.utils.defer =>
-      window.scrollTo 0, @lastScrollTops.window
 
 
   createChannelTitle: ->
