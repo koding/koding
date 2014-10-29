@@ -5,13 +5,14 @@ class MessageEventManager extends KDObject
     super options, data
 
     data
-      .on "InteractionAdded", @bound "addInteraction"
-      .on "InteractionRemoved", @bound "removeInteraction"
-      .on "ReplyAdded", @bound "addReply"
-      .on "ReplyRemoved", @bound "removeReply"
+      .on 'InteractionAdded', @bound 'addInteraction'
+      .on 'InteractionRemoved', @bound 'removeInteraction'
+      .on 'ReplyAdded', @bound 'addReply'
+      .on 'ReplyRemoved', @bound 'removeReply'
 
 
   addInteraction: (event) ->
+
     {accountOldId} = event
     KD.remote.cacheable "JAccount", accountOldId, (err, owner) =>
       return error err  if err
@@ -30,7 +31,9 @@ class MessageEventManager extends KDObject
     fn event
 
 
-  addLike: ({accountOldId, count}) ->
+  addLike: (options) ->
+
+    {accountOldId, count} = options
 
     message = @getData()
 
@@ -44,7 +47,10 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  removeLike: ({accountOldId, count}) ->
+  removeLike: (options) ->
+
+    {accountOldId, count} = options
+
     message = @getData()
 
     {like} = message.interactions
@@ -73,7 +79,9 @@ class MessageEventManager extends KDObject
       message.emit "update"
 
 
-  removeReply: ({replyId}) ->
+  removeReply: (options) ->
+
+    {replyId} = options
 
     message = @getData()
 
@@ -87,5 +95,4 @@ class MessageEventManager extends KDObject
 
     message.emit "RemoveReply", reply
     message.emit "update"
-
 

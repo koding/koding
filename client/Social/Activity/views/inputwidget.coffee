@@ -115,11 +115,12 @@ class ActivityInputWidget extends KDView
         KodingError  : 'Something went wrong while creating activity'
 
 
-  update: ({body, payload}, callback = noop) ->
+  update: (options = {}, callback = noop) ->
 
-    {appManager} = KD.singletons
-    {channelId}  = @getOptions()
-    activity     = @getData()
+    {body, payload} = options
+    {appManager}    = KD.singletons
+    {channelId}     = @getOptions()
+    activity        = @getData()
 
     return  @reset()  unless activity
 

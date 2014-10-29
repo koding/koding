@@ -7,6 +7,7 @@ class SocialApiController extends KDController
 
     super options, data
 
+
   getPrefetchedData: (dataPath) ->
 
     return [] unless KD.socialApiData
@@ -28,21 +29,24 @@ class SocialApiController extends KDController
   eachCached: (id, fn) ->
     fn section[id]  for own name, section of @_cache when id of section
 
+
   isAnnouncementItem: (channelId) ->
-    return no   unless channelId
+    return no  unless channelId
 
     # super admins can see/post anyting
-    return no   if KD.checkFlag "super-admin"
+    return no  if KD.checkFlag "super-admin"
 
     {socialApiAnnouncementChannelId} = KD.getGroup()
 
-    return  channelId is socialApiAnnouncementChannelId
+    return channelId is socialApiAnnouncementChannelId
+
 
   onChannelReady: (channel, callback) ->
     channelName = generateChannelName channel
     if channel = @openedChannels[channelName]?.channel
     then callback channel
     else @once "ChannelRegistered-#{channelName}", callback
+
 
   leaveChannel = (response) ->
     {first} = response
@@ -113,26 +117,30 @@ class SocialApiController extends KDController
 
     return m
 
-  mapActivities = (messages)->
+
+  mapActivities: mapActivities
+  mapActivities = (messages) ->
     # if no result, no need to do something
-    return messages unless messages
+    return messages  unless messages
     # get messagees from result set if they are not at the first level
-    messages = messages.messageList if messages.messageList
+    messages = messages.messageList  if messages.messageList
     messages = [].concat(messages)
     revivedMessages = []
     {SocialMessage} = KD.remote.api
     revivedMessages = (mapActivity message for message in messages)
     return revivedMessages
 
-  mapActivities: mapActivities
 
-  getCurrentGroup = (callback)->
+  getCurrentGroup = (callback) ->
+
     groupsController = KD.getSingleton "groupsController"
     groupsController.ready ->
       callback  KD.getSingleton("groupsController").getCurrentGroup()
 
+
   mapPrivateMessages: mapPrivateMessages
-  mapPrivateMessages = (messages)->
+  mapPrivateMessages = (messages) ->
+
     messages = [].concat(messages)
     return [] unless messages?.length > 0
 
@@ -149,7 +157,9 @@ class SocialApiController extends KDController
 
     return mappedChannels
 
-  mapAccounts = (accounts)->
+
+  mapAccounts = (accounts) ->
+
     return [] unless accounts
     mappedAccounts = []
     accounts = [].concat(accounts)
@@ -176,11 +186,15 @@ class SocialApiController extends KDController
 
     return channelInstance
 
+
   mapParticipant = (participant) ->
+
     return  unless participant
     return {_id: participant.accountOldId, constructorName: "JAccount"}
 
-  mapChannels = (channels)->
+
+  mapChannels: mapChannels
+  mapChannels = (channels) ->
 
     return channels  unless channels
 
@@ -191,9 +205,6 @@ class SocialApiController extends KDController
     registerAndOpenChannels revivedChannels
 
     return revivedChannels
-
-
-  mapChannels: mapChannels
 
 
   # this method will prevent the arrival of
@@ -214,13 +225,16 @@ class SocialApiController extends KDController
 
     return not isBlocker
 
+
+
   isFromOtherBrowser : isFromOtherBrowser
 
+
+  forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
+
     events.forEach ({event, mapperFn, validatorFn}) ->
       source.on event, (data, rest...) ->
-
-        data = mapperFn data
 
         if validatorFn
           if typeof validatorFn isnt "function"
@@ -228,13 +242,14 @@ class SocialApiController extends KDController
 
           return  unless validatorFn(data)
 
+        data = mapperFn data
+
         target.emit event, data, rest...
 
-  forwardMessageEvents : forwardMessageEvents
 
-  registerAndOpenChannels = (socialApiChannels)->
+  registerAndOpenChannels = (socialApiChannels) ->
+
     {socialapi} = KD.singletons
-
     getCurrentGroup (group)->
       socialApiChannels.forEach (socialApiChannel) ->
         channelName = generateChannelName socialApiChannel
@@ -264,23 +279,32 @@ class SocialApiController extends KDController
         # notify listener
         socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
+
   generateChannelName = ({name, typeConstant, groupName}) ->
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
-  messageRequesterFn = (options)->
+
+  messageRequesterFn = (options) ->
+
     options.apiType = "message"
     return requester options
 
-  channelRequesterFn = (options)->
+
+  channelRequesterFn = (options) ->
+
     options.apiType = "channel"
     return requester options
 
-  notificationRequesterFn = (options)->
+
+  notificationRequesterFn = (options) ->
+
     options.apiType = "notification"
     return requester options
 
   requester = (req) ->
-    (options, callback)->
+
+    (options, callback) ->
+
       {fnName, validate, mapperFn, defaults, apiType, successFn} = req
       # set default mapperFn
       mapperFn or= (value) -> return value
@@ -308,6 +332,7 @@ class SocialApiController extends KDController
         successFn result if successFn and typeof successFn is "function"
         return callback null, mapperFn result
 
+
   cacheItem: (item) ->
 
     {typeConstant, id} = item
@@ -316,6 +341,7 @@ class SocialApiController extends KDController
     @_cache[typeConstant][id]  = item
 
     return item
+
 
   retrieveCachedItem: (type, id) ->
 
