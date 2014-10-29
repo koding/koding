@@ -169,6 +169,15 @@ module.exports =
     return filename
 
 
+  openChangeTopFolderMenu: (browser) ->
+
+    browser
+      .waitForElementVisible   '.vm-header', 50000
+      .click                   '.vm-header .buttons'
+      .waitForElementVisible   'li.change-top-folder', 50000
+      .click                   'li.change-top-folder'
+
+
   getUrl: ->
     return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
