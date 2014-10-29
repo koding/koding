@@ -135,11 +135,13 @@ class MessagePane extends KDTabPaneView
 
   isPageAtBottom: ->
 
-    {innerHeight, scrollY} = window
-    {scrollHeight} = document.body
+    {wrapper}    = @scrollView
 
-    scrollY + innerHeight >= scrollHeight
+    height       = wrapper.getHeight()
+    scrollHeight = wrapper.getScrollHeight()
+    scrollTop    = wrapper.getScrollTop()
 
+    return scrollTop + height >= scrollHeight
 
   scrollDown: ->
 
