@@ -72,8 +72,8 @@ class IDE.EditorPane extends IDE.Pane
   getContent: ->
     return @getAce().getContents()
 
-  setContent: (content) ->
-    @getAce().editor.setValue content, -1
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+    @getAce().setContent content, emitFileContentChangedEvent
 
   getCursor: ->
     return @getEditor().selection.getCursor()
