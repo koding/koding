@@ -8,6 +8,7 @@ import (
 	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
@@ -118,6 +119,8 @@ func TestChannelParticipantOperations(t *testing.T) {
 
 				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerAccount.Id)
 				So(err, ShouldBeNil)
+
+				time.Sleep(500 * time.Millisecond)
 
 				testChannel := models.NewChannel()
 				err := testChannel.ById(channelContainer.Channel.Id)

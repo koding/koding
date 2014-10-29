@@ -108,9 +108,11 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 
 	// this could be moved into another worker, but i did not want to create a new worker that will be used
 	// for just a few times
-	if err := DeleteDesertedChannelMessages(query.Id); err != nil {
-		helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
-	}
+	go func() {
+		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
+			helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+		}
+	}()
 
 	return response.NewOK(participants)
 }
