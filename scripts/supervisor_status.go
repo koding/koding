@@ -23,6 +23,8 @@ var environments = map[string]string{
 	"sandbox":    "awseb-e-2-AWSEBLoa-Z9CEV6ZDEFMC",
 }
 
+var region = aws.USEast
+
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("No environment. Please pass: production, latest, sandbox")
@@ -41,7 +43,7 @@ func main() {
 	}
 
 	// get list of instances in a load balancer
-	elbClient := elb.New(auth, aws.USEast)
+	elbClient := elb.New(auth, region)
 	options := &elb.DescribeLoadBalancer{
 		Names: []string{loadBalancerName},
 	}
@@ -59,7 +61,7 @@ func main() {
 	}
 
 	// get the ipaddress of the instances
-	ec2Client := ec2.New(auth, aws.USEast)
+	ec2Client := ec2.New(auth, region)
 	resp, err := ec2Client.Instances(instances, nil)
 	if err != nil {
 		log.Fatal(err)
