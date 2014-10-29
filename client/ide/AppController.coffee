@@ -862,3 +862,10 @@ class IDEAppController extends AppController
 
     if context.paneType is 'terminal'
       @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
+
+    if context.paneType is 'editor'
+      {path}  = context.file
+      file    = FSHelper.createFileInstance path
+      content = @rtm.getFromModel(@realTimeDoc, path).getText()
+
+      @openFile file, content
