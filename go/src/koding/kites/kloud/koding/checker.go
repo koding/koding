@@ -128,12 +128,13 @@ func (p *PlanChecker) Timeout() error {
 		p.Provider.startTimer(p.Machine)
 		return err
 	}
-	defer klientRef.Close()
 
 	// return if it's something else
 	if err != nil {
 		return err
 	}
+
+	defer klientRef.Close()
 
 	// now the klient is connected again, stop the timer and remove it from the
 	// list of inactive machines if it's still there.
