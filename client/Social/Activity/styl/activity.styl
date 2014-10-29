@@ -20,8 +20,26 @@ body.activity
     background          #f0f0f0
 
 #content-page-activity
-  .message-pane-scroller > main > *
-    max-width         600px
+
+  .message-pane-scroller
+
+    &.has-vertical
+      padding-right       0
+
+    .kdview.kdscrolltrack
+      bg                  color transparent
+      overflow            visible
+      &.out
+        opacity           1
+
+      .kdscrollthumb
+        bg                color rgba(0,0,0,.15)
+        margin            0 4px
+        width             7px
+        rounded           6px
+
+    > main > *
+      max-width         600px
 
   > .kdtabview
     height              100%
@@ -90,6 +108,7 @@ body.activity
 
   main.kdscrollview
     padding-left      34px
+    borderBox()
 
   .kdtabhandle
     padding           0
