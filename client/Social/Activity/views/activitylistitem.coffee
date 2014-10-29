@@ -234,8 +234,11 @@ class ActivityListItemView extends KDListItemView
 
 
   render : ->
+
     super
+
     emojify.run @getElement()
+    @checkIfItsTooTall()
 
   viewAppended:->
 
@@ -247,10 +250,35 @@ class ActivityListItemView extends KDListItemView
 
     @setClass 'edited'  if updatedAt > createdAt
 
-    @utils.defer =>
+    KD.utils.defer =>
       if @getData().link?.link_url? isnt ''
       then @embedBox.show()
       else @embedBox.hide()
+
+      @checkIfItsTooTall()
+
+
+  checkIfItsTooTall: ->
+
+    article          = @$('article.has-markdown')[0]
+    { scrollHeight } = article
+    { height }       = article.getBoundingClientRect()
+
+    if scrollHeight > height
+
+      @showMore?.destroy()
+      @showMore = new KDCustomHTMLView
+        tagName  : 'a'
+        cssClass : 'show-more'
+        href     : '#'
+        partial  : 'Show more...'
+        click    : ->
+          article.style['max-height'] = "#{scrollHeight}px"
+          article.classList.remove 'tall'
+          @destroy()
+
+      article.classList.add 'tall'
+      @addSubView @showMore, 'article.has-markdown'
 
 
   pistachio: ->
