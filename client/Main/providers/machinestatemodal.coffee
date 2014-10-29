@@ -37,9 +37,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     computeController.on "resize-#{@machineId}",(event)=>
       @updateStatus event, 'resize'
 
-    computeController.on "error-#{@machineId}", =>
-      @hasError = yes
-      @updateStatus status: Unknown
+    computeController.on "error-#{@machineId}", => @hasError = yes
 
     @show()
 
@@ -254,7 +252,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     methodName   = 'start'
     nextState    = 'Starting'
 
-    if @state in [ NotInitialized, Terminated, Unknown ]
+    if @state in [ NotInitialized, Terminated ]
       methodName = 'build'
       nextState  = 'Building'
 
