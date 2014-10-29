@@ -272,8 +272,8 @@ class PrivateMessagePane extends MessagePane
 
     @heads.addSubView avatar = new AvatarView
       size      :
-        width   : 30
-        height  : 30
+        width   : 25
+        height  : 25
       origin    : participant
 
     @participantMap[participant._id] = avatar
