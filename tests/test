@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MAX_TRY_COUNT=3
+
 runTests() {
   a=$1
 
@@ -11,7 +13,16 @@ runTests() {
           else
             echo "running $i test"
             command="nightwatch --group $i"
-            $command
+
+            counter=0
+            until $command
+            do
+              counter=$((counter + 1))
+              if [ $counter -eq $MAX_TRY_COUNT ]
+              then
+                exit 1
+              fi
+            done
           fi
       fi
     done
