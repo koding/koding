@@ -526,7 +526,14 @@ module.exports = class HomeViewFull extends KDView
         <p>Send us an email at <a href="mailto:hackathon@koding.com">hackathon@koding.com</a></p>
         <p>(We would like to thank NASA for the awesome video.)</p>
       </article>
-      <aside class="partners"></aside>
+      <div class="sidebar">
+        <div class="twitter-wrapper">
+          <h4>Tweets</h4>
+          <a class="twitter-timeline" href="https://twitter.com/search?q=%40koding+%23hackathon" data-widget-id="527247467851423745" data-chrome="nofooter noheader transparent">Tweets about "@koding #hackathon"</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        </div>
+        <aside class="partners"></aside>
+      </div>
     </section>
     <footer>
       <a href="/">Copyright © #{(new Date).getFullYear()} Koding, Inc</a>
@@ -536,6 +543,3 @@ module.exports = class HomeViewFull extends KDView
       <a href="/Legal" target="_blank">Legal</a>
     </footer>
     """
-        # <img src="http://upload.wikimedia.org/wikipedia/en/archive/7/7d/20140812175330!Red_Bull.svg">
-        # <img src="./a/site.hackathon/images/partners/chrome.png">
-        # <img src="./a/site.hackathon/images/partners/aws.png">
