@@ -222,12 +222,17 @@ class SocialApiController extends KDController
     # tests. ~Umut
     return no  if KD.isTesting
 
-    isMyPost  = KD.isMyPost message
-    isFocused = KD.singletons.windowController.isFocused()
-    isBlocker = isMyPost and isFocused
+    {message} = message  unless message.typeConstant?
+    {_inScreenMap}  = KD.singletons.socialapi
 
-    return not isBlocker
+    {messageId, body, initialChannelId} = message
 
+    type = messageId or initialChannelId
+    token = getScreenMapToken body, type
+
+    inside = _inScreenMap[token]
+
+    return not inside
 
 
   isFromOtherBrowser : isFromOtherBrowser

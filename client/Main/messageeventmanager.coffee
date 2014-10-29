@@ -64,16 +64,21 @@ class MessageEventManager extends KDObject
 
 
   addReply: (plain) ->
-    reply = KD.singleton("socialapi").message.revive plain
+
+    reply = KD.singletons.socialapi.message.revive plain
+
     KD.getMessageOwner reply, (err, owner) =>
-      return error err if err
-      return if KD.filterTrollActivity owner
+
+      return error err  if err
+      return  if KD.filterTrollActivity owner
 
       message = @getData()
       message.replies.push reply
       message.repliesCount++
 
-      return  unless KD.singletons.socialapi.isFromOtherBrowser reply
+      plain.message.messageId = message.id
+
+      return  unless KD.singletons.socialapi.isFromOtherBrowser plain
 
       message.emit "AddReply", reply
       message.emit "update"
