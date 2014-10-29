@@ -351,7 +351,7 @@ class IDEAppController extends AppController
   createMachineStateModal: (options = {}) ->
     { state, container, machineItem, initial } = options
     modalOptions = { state, container, initial }
-    @machineStateModal = new IDE.MachineStateModal modalOptions, machineItem
+    @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady machineItem

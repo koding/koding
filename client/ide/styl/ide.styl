@@ -775,37 +775,6 @@ body.ide .kddialogview.save-as-dialog
         abs()
 
 
-
-// machine state modal
-.ide-modal-overlay
-  bg                    color, rgba(43, 43, 43, .75)
-  opacity               1
-  abs()
-
-.ide-modal
-  bg                    color, #E7E7E7
-  .kdmodal-inner
-    margin              0
-    bg                  color, #E7E7E7
-
-  .content-container
-    text-align          center
-
-  .kdbutton
-    rounded             4px !important
-    bg                  color, #4EA04C !important
-    height              40px !important
-    &:focus
-      vendor            box-shadow, none !important
-
-  .footer
-    bg                  color, #DCDCDC
-    font-size           14px
-    color               #5E5E5E
-    padding             25px 30px
-    rounded             0 0 6px 6px
-
-
 .ide-onboarding-modal
 
   .kdmodal-title
@@ -834,83 +803,6 @@ body.ide .kddialogview.save-as-dialog
       color             #6d6d6d
       text-decoration   underline
 
-
-.ide-machine-state
-  left                  50% !important
-  margin-left           -91px
-
-  .kdbutton
-   &.turn-on
-     padding            0 20px 0 14px
-     .icon
-       r-sprite         'ide', 'turn-on'
-       margin           12px 12px 0 0 !important
-       padding          0
-
-  .content-container
-    margin-bottom       30px
-
-    .error-message
-      padding           12px 0
-      margin            22px 0 -30px 0
-      background        #D95F5F
-      color             #FFF
-      p, span
-        font-size       12px
-        line-height     17px
-      span.contact-support
-        text-decoration  underline
-        cursor           pointer
-
-  .state-label
-    padding             20px
-    font-size           18px
-    color               #7D7D7D
-
-    font-weight         600
-    strong
-      color             #404040
-    .icon
-      display           inline-block
-      r-sprite          'ide', 'vm-state-stopped'
-      margin-right      11px
-      vertical-align    middle
-    &.starting
-    &.building
-      .icon
-        r-sprite        'ide', 'vm-state-starting'
-    &.running
-      .icon
-        r-sprite        'ide', 'vm-state-running'
-
-  .footer
-    .upgrade-link
-      color             #4EA04C
-      display           block
-    .info-link
-      color             #A8A8A8
-      font-size         12px
-      text-decoration   none
-      border-bottom     1px solid #A8A8A8
-    .more-icon
-      display           inline-block
-      r-sprite          'ide', 'question-mark'
-      margin-left       8px
-      top               5px
-      position          relative
-
-  .progressbar-container
-    size                268px, 20px
-    margin              14px auto
-    border              none
-    rounded             4px
-    bg                  image, none
-    bg                  color, #D8D8D8
-    .bar
-      bg                image, none
-      bg                color, #5DC45A
-      vendor            box-shadow, none
-      rounded           4px
 
 // Collaboration
 .ide
