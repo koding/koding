@@ -1,5 +1,22 @@
 class ActivityPane extends MessagePane
 
+  PANE_OPTIONS = [
+      name          : 'Most Liked'
+      closable      : no
+      route         : '/Activity/Public/Liked'
+    ,
+      name          : 'Most Recent'
+      closable      : no
+      shouldShow    : no
+      route         : '/Activity/Public/Recent'
+    ,
+      name          : 'Search'
+      closable      : no
+      shouldShow    : no
+      hiddenHandle  : yes
+  ]
+
+
   constructor: (options, data) ->
     options.type        or= ''
     options.cssClass     ?= "activity-pane #{options.type}"
@@ -12,8 +29,8 @@ class ActivityPane extends MessagePane
     @createChannelTitle()
     @createInputWidget()
     @bindInputEvents()
-    @createContentViews()
     @createTabView()
+    @createContentViews()
     @createSearchInput()
 
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -24,13 +41,16 @@ class ActivityPane extends MessagePane
     if @getData().typeConstant in ['group', 'topic']
       @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
 
-  createContentViews: ->
-    data = @getData()
-    options = @getContentOptions()
 
-    @mostLiked = @createMostLikedView options, data
-    @mostRecent = @createMostRecentView options, data
-    @searchResults = @createSearchResultsView options, data
+  createContentViews: ->
+
+    data       = @getData()
+    getOptions = (i) => $.extend PANE_OPTIONS[i], @getContentOptions()
+
+    @tabView.addPane @mostLiked     = @createMostLikedView     getOptions(0), data
+    @tabView.addPane @mostRecent    = @createMostRecentView    getOptions(1), data
+    @tabView.addPane @searchResults = @createSearchResultsView getOptions(2), data
+
 
   getContentOptions: ->
     o = @getOptions()
@@ -40,6 +60,7 @@ class ActivityPane extends MessagePane
     wrapper       : o.wrapper
     itemClass     : o.itemClass
     typeConstant  : @getData().typeConstant
+
 
   createMostLikedView: (options, data) ->
     pane = new ActivityContentPane options, data
@@ -51,6 +72,11 @@ class ActivityPane extends MessagePane
 
         @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
+      .on 'PaneDidShow', =>
+        @setSearchedState no
+        @select 'mostLiked', mostLiked: yes
+
+
   createMostRecentView: (options, data) ->
     pane = new ActivityContentPane options, data
       .on "NeedsMoreContent", =>
@@ -60,6 +86,11 @@ class ActivityPane extends MessagePane
         pane.listController.showLazyLoader()
 
         @fetch { from, skip }, @createContentAppender 'mostRecent'
+
+      .on 'PaneDidShow', =>
+        @setSearchedState no
+        @select 'mostRecent'
+
 
   createSearchResultsView: (options, data) ->
     pane = new ActivitySearchResultsPane options, data
@@ -71,53 +102,20 @@ class ActivityPane extends MessagePane
 
           @search @currentSearch, { page, dontClear: yes }
 
-  getPaneData: ->
-    [
-      {
-        name          : 'Most Liked'
-        view          : @mostLiked
-        closable      : no
-        route         : '/Activity/Public/Liked'
-      }
-      {
-        name          : 'Most Recent'
-        view          : @mostRecent
-        closable      : no
-        shouldShow    : no
-        route         : '/Activity/Public/Recent'
-      }
-      {
-        name          : 'Search'
-        view          : @searchResults
-        closable      : no
-        shouldShow    : no
-        hiddenHandle  : yes
-      }
-    ]
+      .on 'PaneDidShow', =>
+        @setSearchedState yes
+        @activeContent = @searchResults
+
 
   createTabView: ->
+
     @tabView = new KDTabView
       cssClass          : 'activity-tab-view'
       tabHandleClass    : ActivityTabHandle
       maxHandleWidth    : Infinity
-      paneData          : @getPaneData()
+
     @tabView.unsetClass 'kdscrollview'
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
-
-
-  handlePaneShown: (pane) ->
-
-    switch pane
-      when @mostLiked?.parent
-        @setSearchedState no
-        @select 'mostLiked', mostLiked: yes
-      when @mostRecent?.parent
-        @setSearchedState no
-        @select 'mostRecent'
-      when @searchResults?.parent
-        @setSearchedState yes
-        @activeContent = @searchResults
 
 
   open: (name, query) ->

@@ -1,4 +1,4 @@
-class ActivityContentPane extends KDView
+class ActivityContentPane extends KDTabPaneView
 
   constructor: (options, data) ->
     super options, data
