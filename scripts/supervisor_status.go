@@ -1,3 +1,7 @@
+// This script makes it easier to manage workers on different instances.
+// Supervisor comes with a web ui, however it's only for a single instance,
+// so we create a new html page that contains the iframe of all the
+// instances in that environment.
 package main
 
 import (
@@ -12,6 +16,7 @@ import (
 	"github.com/mitchellh/goamz/elb"
 )
 
+// elasticbeanstalk load balancer names
 var environments = map[string]string{
 	"production": "awseb-e-x-AWSEBLoa-2AG3XORA8JXC",
 	"latest":     "awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9",
@@ -20,7 +25,7 @@ var environments = map[string]string{
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatal("Please pass an environment")
+		log.Fatal("No environment. Please pass: production, latest, sandbox")
 	}
 
 	env := os.Args[1]
@@ -35,12 +40,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// get list of instances in a load balancer
 	elbClient := elb.New(auth, aws.USEast)
 	options := &elb.DescribeLoadBalancer{
 		Names: []string{loadBalancerName},
 	}
-
-	ec2Client := ec2.New(auth, aws.USEast)
 
 	elbResp, err := elbClient.DescribeLoadBalancers(options)
 	if err != nil {
@@ -54,6 +58,8 @@ func main() {
 		instances = append(instances, instance.InstanceId)
 	}
 
+	// get the ipaddress of the instances
+	ec2Client := ec2.New(auth, aws.USEast)
 	resp, err := ec2Client.Instances(instances, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -67,6 +73,7 @@ func main() {
 		}
 	}
 
+	// generate html
 	var output string
 
 	for _, ip := range ips {
