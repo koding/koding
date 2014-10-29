@@ -8,6 +8,9 @@ services:
 build:
   steps:
     - script:
+        name: say hello
+        code: echo hello
+    - script:
         name: initialize submodules
         code: git submodule update --init --recursive
     - script:
