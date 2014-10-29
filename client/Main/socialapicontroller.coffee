@@ -1,7 +1,5 @@
 class SocialApiController extends KDController
 
-  SCREEN_MAP_SIZE = 5
-
   constructor: (options = {}, data) ->
 
     @openedChannels = {}
