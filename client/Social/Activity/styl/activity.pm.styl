@@ -189,87 +189,6 @@ timeColor2 = #5F9E5E
     opacity             .01 !important
     hidden()
 
-  .chat-heads
-    height              40px
-    margin              0
-    width               100%
-    z-index             11
-    bg                  color white
-    rel()
-
-    .kdbuttonwithmenu-wrapper.activity-settings-menu
-      z-index             1
-      size                15px 10px
-      padding             0
-      cursor              pointer
-      abs                 14px 19px 0 0
-      opacity             .5
-      &:hover
-        opacity           1
-
-      button.kdbutton
-        size              15px 10px
-        bg                color transparent
-        border            none
-        padding           0
-        padding-right     0 !important
-        cursor            pointer
-      .chevron-separator
-        hidden()
-      .chevron
-        r-sprite          activity cog-icon
-
-    .description
-      margin-left           34px
-      color                 #4a4a4a
-      font-size             13px
-      line-height           22px
-      padding-top           10px
-      display               block
-      overflow              visible
-      fl()
-
-      &:before
-        content             ''
-        display             inline-block
-        r-sprite            'activity', 'lock-16'
-        vertical-align      text-top
-        margin              0 8px 0 0
-
-    .heads
-      margin                8px 0 0 14px
-      fl()
-
-      .avatarview
-        size                auto, auto
-        margin              0 6px 0 0
-        fl()
-
-        img
-          border            1px solid #d4d4d4
-          display           block
-          margin            0
-          padding           0
-
-    .kdbutton.new-participant
-      margin-top          8px
-      display             block
-      size                27px, 27px
-      border              1px dashed #b2b2b2
-      rounded             3px
-      background          transparent
-      padding             0
-      text-align          center
-      line-height         28px
-      fl()
-
-      .icon
-        display           inline-block
-        r-sprite          'activity', 'new-participant-plus'
-        -webkit-transition -webkit-transform .2s ease
-        -moz-transition    -moz-transform .2s ease
-
-
   .list-previous-link
     size                auto 34px
     border-radius       3px
@@ -631,3 +550,83 @@ timeColor2 = #5F9E5E
 .reply-like-tooltip
   p
     text-align              left
+
+.chat-heads
+  height              40px
+  margin              0
+  width               100%
+  z-index             11
+  bg                  color white
+  rel()
+
+  .kdbuttonwithmenu-wrapper.activity-settings-menu
+    z-index             1
+    size                15px 10px
+    padding             0
+    cursor              pointer
+    abs                 14px 19px 0 0
+    opacity             .5
+    &:hover
+      opacity           1
+
+    button.kdbutton
+      size              15px 10px
+      bg                color transparent
+      border            none
+      padding           0
+      padding-right     0 !important
+      cursor            pointer
+    .chevron-separator
+      hidden()
+    .chevron
+      r-sprite          activity cog-icon
+
+  .description
+    margin-left           34px
+    color                 #4a4a4a
+    font-size             13px
+    line-height           22px
+    padding-top           10px
+    display               block
+    overflow              visible
+    fl()
+
+    &:before
+      content             ''
+      display             inline-block
+      r-sprite            'activity', 'lock-16'
+      vertical-align      text-top
+      margin              0 8px 0 0
+
+  .heads
+    margin                8px 0 0 14px
+    fl()
+
+    .avatarview
+      size                auto, auto
+      margin              0 6px 0 0
+      fl()
+
+      img
+        border            1px solid #d4d4d4
+        display           block
+        margin            0
+        padding           0
+
+  .kdbutton.new-participant
+    margin-top          8px
+    display             block
+    size                27px, 27px
+    border              1px dashed #b2b2b2
+    rounded             3px
+    background          transparent
+    padding             0
+    text-align          center
+    line-height         28px
+    fl()
+
+    .icon
+      display           inline-block
+      r-sprite          'activity', 'new-participant-plus'
+      -webkit-transition -webkit-transform .2s ease
+      -moz-transition    -moz-transform .2s ease
