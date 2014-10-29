@@ -74,7 +74,7 @@ func main() {
 	}
 
 	// generate html
-	var output string
+	var output string = fmt.Sprintf("Environment: %s", env)
 
 	for _, ip := range ips {
 		output += fmt.Sprintf(template, ip)
