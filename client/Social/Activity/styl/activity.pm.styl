@@ -20,16 +20,24 @@ timeColor2 = #5F9E5E
     overflow            hidden
     max-width           600px
 
-
-
 .kdtabpaneview.privatemessage
   min-height            100vh
   background            #fff
   margin                0
 
+  &.translucent
+
+    .chat-heads:after
+      opacity             .5
+      left                50%
+
+    .kdlistview-privatemessage
+      opacity             0.01
+
+
   .message-pane-scroller
     padding             0
-    height              calc(100% \- 146px)
+    height              calc(100% \- 85px)
 
     &.has-vertical
       padding-right       0
@@ -52,9 +60,11 @@ timeColor2 = #5F9E5E
 
 
   .new-message-form
-    abs                 0px 0 0 0px
     width               100%
+    height              100%
     padding             34px
+    max-width           600px
+    abs()
     borderBox()
     &:after
       left              50% !important
@@ -64,22 +74,23 @@ timeColor2 = #5F9E5E
     &.inline
       bg                color, white
       width             100%
+      height            auto
       z-index           10
-      padding           0 34px 12px
-      abs               0px 0 0 0px
-      vendor            transition, top .3s ease \,
-                                    box-shadow .5s ease
+      padding           12px 34px
+      border-bottom     1px solid #f2f2f2
+      abs               -50px 0 0 0px
+      vendor            transition, top .3s ease
       vendor            pointer-events, none
       shadow            0 0 0 0 transparent
 
-      .formline.recipient
-        padding-left    16px
-
       &.active
-        shadow          0 2px 2px 0 rgba(0,0,0,.1)
-        top             58px
+        top             40px
         opacity         1
         vendor          pointer-events, auto
+
+      .formline.recipient
+        padding-left    16px
+        rounded         3px
 
 
     .kdautocompletewrapper
@@ -136,6 +147,9 @@ timeColor2 = #5F9E5E
       &:-moz-input-placeholder
         color           #D0D0D0
 
+    .input-view.hitenterview
+      padding           14px 14px 14px 54px
+
     .formline
       position          relative
       background        #fff
@@ -161,21 +175,6 @@ timeColor2 = #5F9E5E
       font-weight       600
       min-width         0
 
-
-  .list-previous-link
-    size                100% 47px
-    border-radius       3px
-    line-height         47px
-    font-size           14px
-    font-weight         600
-    color               logoBg
-    display             block
-    margin-bottom       0
-    margin-top          0
-    text-align          center
-    bg                  color #F6F6F6
-    noTextDeco()
-
   .new-message-form:after
   .chat-heads:after
       content           ''
@@ -191,10 +190,9 @@ timeColor2 = #5F9E5E
     hidden()
 
   .chat-heads
-    height              58px
-    line-height         58px
-    margin              0 34px
-    width               calc(100% \- 68px)
+    height              40px
+    margin              0
+    width               100%
     z-index             11
     bg                  color white
     rel()
@@ -204,7 +202,11 @@ timeColor2 = #5F9E5E
       size                15px 10px
       padding             0
       cursor              pointer
-      abs                 22px 33px 0 0
+      abs                 14px 19px 0 0
+      opacity             .5
+      &:hover
+        opacity           1
+
       button.kdbutton
         size              15px 10px
         bg                color transparent
@@ -215,12 +217,14 @@ timeColor2 = #5F9E5E
       .chevron-separator
         hidden()
       .chevron
-        r-sprite          activity chevron-icon
+        r-sprite          activity cog-icon
 
     .description
+      margin-left           34px
       color                 #4a4a4a
       font-size             13px
-      // padding               0 0 0 26px
+      line-height           22px
+      padding-top           10px
       display               block
       overflow              visible
       fl()
@@ -233,7 +237,7 @@ timeColor2 = #5F9E5E
         margin              0 8px 0 0
 
     .heads
-      margin                12px 0 0 14px
+      margin                8px 0 0 14px
       fl()
 
       .avatarview
@@ -248,11 +252,11 @@ timeColor2 = #5F9E5E
           padding           0
 
     .kdbutton.new-participant
-      margin-top          12px
+      margin-top          8px
       display             block
-      size                30px, 30px
-      border              1px dashed #9c9c9c
-      rounded             50%
+      size                27px, 27px
+      border              1px dashed #b2b2b2
+      rounded             3px
       background          transparent
       padding             0
       text-align          center
@@ -265,25 +269,34 @@ timeColor2 = #5F9E5E
         -webkit-transition -webkit-transform .2s ease
         -moz-transition    -moz-transform .2s ease
 
-  &.translucent
 
-    .chat-heads:after
-      opacity             .5
-      left                50%
-
-    .kdlistview-privatemessage
-      opacity             0.01
+  .list-previous-link
+    size                auto 34px
+    border-radius       3px
+    line-height         34px
+    font-size           12px
+    font-weight         300
+    font-style          italic
+    color               logoBg
+    display             block
+    margin              4px 0 0 34px
+    noTextDeco()
 
   .kdlistview-privatemessage
     opacity               1
     vendor                transition, opacity .177s ease-in
+    margin-top            0
+
+    &.padded
+      height            auto
+      abs               0 0 0px 0
+      kalc              width (100%\-34px)
 
 
     > section > time
-
       color               timeColor2
       display             block
-      margin              8px 0 0 0
+      margin              8px 0 0 34px
       line-height         30px
       font-size           11px
       z-index             1
@@ -292,6 +305,9 @@ timeColor2 = #5F9E5E
   .kdlistitemview-activity.privatemessage
     padding           0
     border            none
+    margin-left       34px
+    &:last-child
+      margin-bottom   16px
 
     .settings-menu-wrapper
       top             25px
@@ -430,17 +446,6 @@ timeColor2 = #5F9E5E
     .author-avatar
       abs                   10px 0 0 -56px
       border                none
-
-    .list-previous-link
-      size                100% 47px
-      line-height         47px
-      font-size           14px
-      color               logoBg
-      display             block
-      margin-bottom       10px
-      text-align          center
-      bg                  color #F6F6F6
-      noTextDeco()
 
     .activity-content-wrapper
       background            none
@@ -582,26 +587,25 @@ timeColor2 = #5F9E5E
         opacity             .5
 
 .reply-input-widget.private
-  width               calc(100% \- 68px)
+  width               calc(100% \- 69px)
   height              auto
-  min-height          45px
+  min-height          44px
   padding             0
-  margin              0 34px
-  border              2px solid #eaeaea
+  margin              0 0 0 34px
   bg                  color white
+  border-top          1px solid #f2f2f2
   rounded             0
   z-index             100
   cursor              text
   font-size           0
-  abs                 0 0 30px 0px
+  abs                 0 0 0px 0px
   borderBox()
 
   &:before
     content           ""
     r-sprite          activity widget-icon
     z-index           2
-    abs               16px 0 0 22px
-
+    abs               15px 0 0 21px
 
   .input-view.hitenterview
     bg              color transparent
@@ -611,8 +615,8 @@ timeColor2 = #5F9E5E
     width           100%
     font-size       14px
     line-height     19px
-    min-height      47px
-    padding         14px 14px 14px 54px
+    min-height      44px
+    padding         13px 14px 12px 54px
     font-weight     400
     rounded         0
     &:focus
