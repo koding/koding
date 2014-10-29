@@ -795,7 +795,28 @@ class IDEAppController extends AppController
     map        = @rtm.getFromModel @realTimeDoc, "#{nickname}Snapshot"
     changes    = @rtm.getFromModel @realTimeDoc, 'changes'
 
+
     if change.origin is nickname
+
+      if context.paneType is 'editor'
+
+        if change.type is 'NewPaneCreated'
+
+          {content, path} = context.file
+
+          string = @rtm.getFromModel @realTimeDoc, path
+
+          unless string
+            @rtm.create 'string', @realTimeDoc, path, content
+
+        else if change.type is 'ContentChange'
+          {content, path} = context.file
+          string = @rtm.getFromModel @realTimeDoc, path
+          string.setText content
+
+        delete context.file?.content?
+
+
       changes.push change
 
     switch change.type
