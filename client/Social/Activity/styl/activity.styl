@@ -20,34 +20,32 @@ body.activity
     background          #f0f0f0
 
 #content-page-activity
-
-  .message-pane-scroller
-    padding-left        34px
-    > main
-      max-width         600px
+  .message-pane-scroller > main > *
+    max-width         600px
 
   > .kdtabview
     height              100%
     overflow            hidden
 
     .search-input
-      right         0
-      bottom        15px
-      width         180px
-      height        30px
-      z-index       1
-      padding       0 25px 0 13px
-      background    #fff
-      border        1px solid #E8E8E8
-      border-radius 16px
-      font-size     12px
-      outline       0
+      right             0
+      bottom            15px
+      width             180px
+      height            30px
+      z-index           1
+      padding           0 25px 0 13px
+      background        #fff
+      border            1px solid #E8E8E8
+      border-radius     16px
+      font-size         12px
+      outline           0
       borderBox()
       abs()
 
       &::-webkit-input-placeholder
         color           #ddd
         opacity         .99
+
       &:-moz-placeholder
         color           #ddd
         opacity         .99
@@ -65,14 +63,6 @@ body.activity
 
     .message-pane > .activity-input-widget + .kdlistview
       margin-top        0
-
-    .message-pane.privatemessage > .kdlistview-privatemessage
-      margin-top        0
-
-      &.padded
-        height            auto
-        abs               0 0 0px 34px
-        kalc              width (100%\-34px)
 
     .channel-title
       font-size         18px
@@ -97,8 +87,12 @@ body.activity
     z-index     2
 
 .activity-pane
+
+  main.kdscrollview
+    padding-left      34px
+
   .kdtabhandle
-    padding   0
+    padding           0
 
   .kdtabhandlecontainer.filters
     background        none
