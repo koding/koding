@@ -120,3 +120,31 @@ module.exports =
       .end()
 
 
+  makeTopFolder: (browser) ->
+
+    user           = helpers.beginTest(browser)
+    webPath        = '/home/' + user.username + '/Web'
+    filename       = helpers.createFile(browser, user)
+    webSelector    = "span[title='" + webPath + "']"
+    fileSelector   = "span[title='" + webPath + '/' +filename + "']"
+    selectMenuItem = 'li.home'+user.username
+
+    browser
+      .waitForElementPresent   fileSelector, 20000 # Assertion
+      .waitForElementVisible   webSelector, 10000
+      .click                   webSelector
+      .click                   webSelector + ' + .chevron'
+      .waitForElementVisible   '.make-this-the-top-folder', 20000
+      .click                   '.make-this-the-top-folder'
+      .waitForElementVisible   '.vm-info', 20000
+      .assert.containsText     '.vm-info', '~/Web'
+      .waitForElementPresent   fileSelector, 20000 # Assertion
+
+    helpers.openChangeTopFolderMenu(browser)
+
+    browser
+      .waitForElementVisible   selectMenuItem, 50000
+      .click                   selectMenuItem
+      .pause                   2000 # required
+      .end()
+
