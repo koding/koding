@@ -881,6 +881,16 @@ Configuration = (options={}) ->
           eval "worker_$2"
         fi
 
+      elif [ "$1" == "supervisor_status" ]; then
+
+        SUPERVISOR_ENV=$2
+        if [ $SUPERVISOR_ENV == "" ]; then
+          SUPERVISOR_ENV="production"
+        fi
+
+        go run scripts/supervisor_status.go $SUPERVISOR_ENV
+        open supervisor.html
+
       elif [ "$#" == "0" ]; then
 
         checkrunfile
