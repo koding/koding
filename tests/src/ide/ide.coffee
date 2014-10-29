@@ -22,10 +22,10 @@ module.exports =
       .waitForElementVisible   indexSelector, 15000
       .click                   indexSelector
       .click                   indexSelector + ' + .chevron'
-      .waitForElementVisible   'li.open-file', 5000
+      .waitForElementVisible   'li.open-file', 20000
       .click                   'li.open-file'
-      .waitForElementVisible   '.indexhtml',   5000 # Assertion
-      .waitForElementVisible   '.ace_content', 5000 # Assertion
+      .waitForElementVisible   '.indexhtml',   20000 # Assertion
+      .waitForElementVisible   '.ace_content', 20000# Assertion
       .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
       .end()
 
@@ -48,9 +48,9 @@ module.exports =
       .waitForElementPresent     fileSelector, 20000
       .click                     fileSelector
       .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 5000
+      .waitForElementVisible     'li.delete', 20000
       .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 5000
+      .waitForElementVisible     '.delete-container', 20000
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 20000
       .end()
@@ -71,12 +71,12 @@ module.exports =
       .waitForElementPresent     fileSelector, 20000
       .click                     fileSelector
       .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.rename', 5000
+      .waitForElementVisible     'li.rename', 20000
       .click                     'li.rename'
-      .waitForElementVisible     'li.selected .rename-container .hitenterview', 5000
+      .waitForElementVisible     'li.selected .rename-container .hitenterview', 20000
       .clearValue                'li.selected .rename-container .hitenterview'
       .setValue                  'li.selected .rename-container .hitenterview', newFileName + '\n'
-      .waitForElementPresent     newFileSelector, 5000 # Assertion
+      .waitForElementPresent     newFileSelector, 20000 # Assertion
       .end()
 
 
@@ -93,9 +93,10 @@ module.exports =
       .waitForElementPresent     fileSelector, 20000
       .click                     fileSelector
       .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.duplicate', 5000
+      .waitForElementVisible     'li.duplicate', 20000
       .click                     'li.duplicate'
-      .waitForElementVisible     newFile, 5000 # Assertion
+      .pause                     2000
+      .waitForElementPresent     newFile, 20000 # Assertion
       .end()
 
 
@@ -143,7 +144,7 @@ module.exports =
     helpers.openChangeTopFolderMenu(browser)
 
     browser
-      .waitForElementVisible   selectMenuItem, 50000
+      .waitForElementVisible   selectMenuItem, 20000
       .click                   selectMenuItem
       .pause                   2000 # required
       .end()
