@@ -1,0 +1,232 @@
+@import "../../../Framework/src/themes/default/kdfn"
+@import "../../../Core/styl/appfn"
+
+
+@css {
+/*
+Activity Inputwidget stylesheet
+activity.inputwidget.styl
+*/
+}
+
+.kdtabpaneview.messaging
+  padding-bottom      80px
+
+  .activity-input-widget
+    width             647px
+    bottom            20px
+    z-index           10
+    fix()
+
+.new-message-form .activity-input-widget
+  abs                 0 0 30px 0
+
+.activity-input-widget
+  size                auto auto
+  margin              12px 0 13px
+  overflow            visible
+
+  .help-container
+    margin            5px
+    font-size         12px
+    line-height       1.6
+    color             footerLinkColor
+    margin-bottom     -24px
+    > a
+    > span
+      margin-left     8px
+      color           logoBg
+    > a
+      border-bottom   1px solid logoBg
+      noTextDeco()
+
+  > figure
+    top               18px
+    left              21px
+    r-sprite          activity widget-icon
+    z-index           2
+    abs()
+
+  .input-view.hitenterview
+    margin          0
+    rounded         3px 3px 0 0
+    size            100% auto
+    min-height      50px
+    max-height      60vh
+    line-height     18px
+    font-size       14px
+    color           #3c4752
+    padding         16px 16px 16px 46px
+    background      #fff
+    border          1px solid #e4e4e4
+    outline         none
+    borderBox()
+    &:hover
+      border-color  #DADADA
+
+  .widget-button-bar
+    size              100%, 43px
+    border            1px solid #d6d6d6
+    border-top        none
+    background        #f4f4f4
+    rounded           0 0 4px 4px
+    padding           8px 9px 0
+    margin            -2px 0 0
+    borderBox()
+
+    button[type=submit]
+      rounded         40px
+      fr()
+
+      &[disabled=disabled]
+        bg            color, #DDD !important
+
+    .preview-icon
+      display         block
+      r-sprite        "activity", "markdown"
+      margin          4px 9px 0 0
+      cursor          pointer
+      fr()
+
+  &.preview-active
+    .preview-icon
+      opacity         .5
+
+
+  &.edit-widget
+    padding           13px 0 0
+    margin            0
+    clear             both
+
+    .input-view
+      padding         5px
+      border          1px solid #e9e9e9
+      rounded         3px
+      font-size       14px
+      line-height     19px
+      color           #4c4c4c
+      opacity         .99
+      min-height      inherit
+      margin-bottom   12px
+      font-weight     400
+
+  .link-embed-box
+    width                   auto
+    padding                 14px
+    border-left             1px solid #d6d6d6
+    border-right            1px solid #d6d6d6
+    position                relative
+    background              #fff
+
+  .embed-link-view
+    margin                  0
+    border                  none
+    width                   auto
+    height                  100px
+
+  .preview-image
+    border                  none
+    margin-right            10px
+    fl()
+
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  96px
+    margin-top              4px
+    overflow                hidden
+    fl()
+
+    a
+      text-decoration       none
+
+    h4
+      display               inline-block
+      font-size             14px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
+
+    .description
+      display               block
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
+
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
+      abs()
+      bottom                0
+      left                  0
+
+
+  .preview-link-pager
+    width                   auto
+    height                  16px
+    bottom                  5px
+    left                    5px
+    abs()
+    borderBox()
+
+    .thumb-count
+      hidden()
+
+    .preview-link-switch
+
+      cursor                pointer
+      display               inline-block
+      font-size             10px
+      height                16px
+      width                 16px
+      border                1px solid #727272
+      bg                    color, #fff
+      borderBox()
+      -webkit-user-select none
+      -moz-user-select    none
+      user-select         none
+
+
+      &.disabled
+        &:before
+          border-left-color  #ddd !important
+          border-right-color #ddd !important
+
+      &:before
+        content             " "
+        display             block
+        margin-top          3px
+        size                0 0
+        border-top          4px solid transparent
+        border-bottom       4px solid transparent
+
+      &.next
+        &:before
+          margin-left       4px
+          border-left       7px solid #727272
+
+      &.previous
+        &:before
+          margin-left       3px
+          border-right      7px solid #727272
+
+
+  .embed-link-view
+    padding                 0
+
+  .hide-embed
+    right                   7px
+    top                     7px
+    border                  none
+    outline                 none
+    shadow                  0 0 0 4px #fff
+    z-index                 10
+    r-sprite                app "20-close-tab"
+    background-color        #fff
+    rounded                 50%
+    abs()

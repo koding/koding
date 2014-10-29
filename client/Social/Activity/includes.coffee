@@ -131,5 +131,10 @@ module.exports = [
 
   "styl/activity.styl"
   "styl/activity.pm.styl"
+  "styl/activity.innertabs.styl"
+  "styl/activity.inputwidget.styl"
+  "styl/activity.listitem.styl"
+  "styl/activity.widgetsbar.styl"
+  "styl/activity.markdown.styl"
   "styl/activity.responsive.styl"
 ]
