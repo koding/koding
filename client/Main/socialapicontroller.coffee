@@ -1,9 +1,12 @@
 class SocialApiController extends KDController
 
+  SCREEN_MAP_SIZE = 5
+
   constructor: (options = {}, data) ->
 
     @openedChannels = {}
     @_cache         = {}
+    @_inScreenMap   = {}
 
     super options, data
 
@@ -284,6 +287,23 @@ class SocialApiController extends KDController
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
 
+  getScreenMapToken = (body, type) ->
+
+    {_id} = KD.whoami()
+    md5.digest "#{type}-#{body}-#{_id}"
+
+
+  addToScreenMap = (options) ->
+
+    {messageId, body, channelId} = options
+    {_inScreenMap} = KD.singletons.socialapi
+
+    type  = messageId or channelId
+    token = getScreenMapToken body, type
+
+    _inScreenMap[token] = yes
+
+
   messageRequesterFn = (options) ->
 
     options.apiType = "message"
@@ -326,6 +346,7 @@ class SocialApiController extends KDController
           api = KD.remote.api.SocialNotification
         else
           api = KD.remote.api.SocialMessage
+          addToScreenMap options
 
       api[fnName] options, (err, result)->
         return callback err if err
