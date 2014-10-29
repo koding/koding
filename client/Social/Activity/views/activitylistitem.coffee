@@ -275,6 +275,9 @@ class ActivityListItemView extends KDListItemView
         click    : ->
           article.style['max-height'] = "#{scrollHeight}px"
           article.classList.remove 'tall'
+          # FIXME: this is a hack to cause a mutation
+          # for scrollview to readjust - SY
+          KD.utils.wait 500, -> article.innerHTML += ' '
           @destroy()
 
       article.classList.add 'tall'
