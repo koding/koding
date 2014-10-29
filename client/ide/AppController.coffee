@@ -855,6 +855,13 @@ class IDEAppController extends AppController
     if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
       log 'i need to handle this change...', change
 
+      if change.type is 'ContentChange'
+        string = @rtm.getFromModel @realTimeDoc, change.context.file.path
+
+        @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+          if editorPane.getFile().path is change.context.file.path
+            editorPane.setContent string.getText(), no
+
 
   createPaneFromChange: (change) ->
     {context} = change
