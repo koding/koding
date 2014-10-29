@@ -804,6 +804,9 @@ Configuration = (options={}) ->
 
       elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
+        trap - INT
+        trap
+
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
         else
@@ -873,6 +876,8 @@ Configuration = (options={}) ->
           echo "-------------------"
           echo '#{workerList "\n"}'
         else
+          trap - INT
+          trap
           eval "worker_$2"
         fi
 

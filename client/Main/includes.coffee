@@ -14,6 +14,7 @@ module.exports = [
   'libs/highlight.pack.js'
   'libs/jquery-timeago.js'
   'libs/emojify.js'
+  'libs/jspath.js'
 
 
   # --- Application ---
