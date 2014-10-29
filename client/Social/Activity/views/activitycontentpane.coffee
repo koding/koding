@@ -39,11 +39,9 @@ class ActivityContentPane extends KDTabPaneView
   loadMore: ->
     @emit 'NeedsMoreContent'
 
-  getContentFrom: ->
-    @listController.getListView().items.last.getData().createdAt
+  getContentFrom: -> @listController.getListView().items.last.getData().createdAt
 
-  getLoadedCount: ->
-    @listController.getListView().items.length
+  getLoadedCount: -> @listController.getListView().items.length
 
   removeMessage: MessagePane::removeMessage
 
