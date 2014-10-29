@@ -104,6 +104,7 @@ class IDE.EditorPane extends IDE.Pane
 
     ace.on 'FileContentChanged', =>
       change.type = 'ContentChange'
+      change.context.file.content = @getContent()
 
       @emit 'ChangeHappened', change
 
