@@ -271,7 +271,7 @@ class ActivityListItemView extends KDListItemView
         tagName  : 'a'
         cssClass : 'show-more'
         href     : '#'
-        partial  : 'Show more...'
+        partial  : 'Show more'
         click    : ->
           article.style['max-height'] = "#{scrollHeight}px"
           article.classList.remove 'tall'
@@ -281,7 +281,7 @@ class ActivityListItemView extends KDListItemView
           @destroy()
 
       article.classList.add 'tall'
-      @addSubView @showMore, 'article.has-markdown'
+      @addSubView @showMore, '.activity-content-wrapper'
 
 
   pistachio: ->

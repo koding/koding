@@ -27,10 +27,21 @@ activity.listitem.styl
     color         #ccc
 
   .activity-content-wrapper
-    // background              #fff
-    // rounded                 6px 6px 0 0
-    // border-top              1px solid transparent
-    position                relative
+    rel()
+
+    .show-more
+      abs                   0 25px 17px 0
+      padding               0
+      color                 #adaeb1
+      font-weight           300
+      font-size             12px
+      text-decoration       none
+
+      &:after
+        content             ''
+        height              1px
+        bg                  color #eaeaea
+        abs                 0 0px 0px 0
 
     .settings-menu-wrapper
       abs                   0 24px 0 0
@@ -98,30 +109,23 @@ activity.listitem.styl
       max-height          400px
       opacity             .99
       vendor              transition, max-height .3s ease
+      rel()
 
       &.tall
         border-bottom     1px solid #eaeaea
-        shadow            inset 0 -12px 12px -12px rgba(0,0,0,.25)
+        &:after
+          content           ''
+          display           block
+          abs               100% 0 0 1%
+          size              98% 10px
+          border-radius     50%
+          shadow            0 0 15px 0 rgba(0, 0, 0, 0.25)
 
       & > p:first-child
         padding-top       0 !important
 
       & > p:last-child
         padding-bottom    2px !important
-
-      .show-more
-        abs               0 25px 13px 0
-        padding           0
-        color             #adaeb1
-        font-weight       300
-        font-size         12px
-
-        &:after
-          content         ''
-          height          1px
-          bg              color #eaeaea
-          abs             0 0px 0px 0
-
 
       .emoji
         size              16px, 16px
