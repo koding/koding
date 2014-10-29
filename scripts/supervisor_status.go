@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"koding/tools/config"
 	"log"
 	"os"
 
@@ -23,13 +24,13 @@ func main() {
 	}
 
 	env := os.Args[1]
-
 	loadBalancerName, ok := environments[env]
 	if !ok {
 		log.Fatal("Unknown environment. Please pick: production, latest, sandbox")
 	}
 
-	auth, err := aws.EnvAuth()
+	conf := config.MustConfig("dev")
+	auth, err := aws.GetAuth(conf.Aws.Key, conf.Aws.Secret)
 	if err != nil {
 		log.Fatal(err)
 	}
