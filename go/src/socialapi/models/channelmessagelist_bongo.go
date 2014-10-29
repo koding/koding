@@ -14,8 +14,6 @@ func (c *ChannelMessageList) BeforeCreate() error {
 }
 
 func (c *ChannelMessageList) BeforeUpdate() error {
-	c.AddedAt = time.Now()
-
 	return c.MarkIfExempt()
 }
 
