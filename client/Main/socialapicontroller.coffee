@@ -100,11 +100,17 @@ class SocialApiController extends KDController
         actorsPreview : []
         isInteracted  : no
 
-    if payload?.link_url
-      m.link       =
-        link_url   : payload.link_url
-        link_embed :
-          try JSON.parse Encoder.htmlDecode payload.link_embed
+    if payload
+      if payload.link_url
+        m.link       =
+          link_url   : payload.link_url
+          link_embed :
+            try JSON.parse Encoder.htmlDecode payload.link_embed
+            catch e then null
+
+      if payload.initialParticipants
+        payload.initialParticipants =
+          try JSON.parse Encoder.htmlDecode payload.initialParticipants
           catch e then null
 
     new MessageEventManager {}, m
