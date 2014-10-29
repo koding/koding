@@ -99,6 +99,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       {appManager, router} = KD.singletons
 
+      if (KD.utils.slugify label) is ""
+        return KD.showError "Nickname cannot be empty."
+
       @machine.setLabel label, (err, newSlug)=>
 
         return if KD.showError err

@@ -48,7 +48,7 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 
 	klient, ok = k.klients[queryString]
 	if !ok {
-		klient, err = New(k.kite, queryString)
+		klient, err = Connect(k.kite, queryString)
 		if err != nil {
 			return nil, err
 		}
@@ -77,10 +77,28 @@ func (k *KlientPool) Delete(queryString string) {
 	delete(k.klients, queryString)
 }
 
-// New returns a new connected klient instance to the given queryString. The
-// klient is ready to use. It's connected and will redial if there is any
-// disconnections.
-func New(k *kite.Kite, queryString string) (*Klient, error) {
+// Exists checks whether the given queryString exists in Kontrol or not
+func Exists(k *kite.Kite, queryString string) error {
+	query, err := protocol.KiteFromString(queryString)
+	if err != nil {
+		return err
+	}
+
+	k.Log.Debug("Querying for Klient: %s", queryString)
+
+	// an error indicates a non existing klient or another error.
+	_, err = k.GetKites(query.Query())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Connect returns a new connected klient instance to the given queryString. The
+// klient is ready to use. It's connected and needs to be closed once the task
+// is finished with it.
+func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -116,7 +134,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	for {
 		select {
 		case <-time.Tick(time.Second * 2):
-			if klient, err := New(k, queryString); err == nil {
+			if klient, err := Connect(k, queryString); err == nil {
 				return klient, nil
 			}
 

@@ -10,6 +10,7 @@ import (
 	"labix.org/v2/mgo/bson"
 
 	aws "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
@@ -122,7 +123,7 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	// connect and get real time data directly from the machines klient
-	klient, err := p.Provider.KlientPool.Get(p.Machine.QueryString)
+	klientRef, err := klient.Connect(p.Kite, p.Machine.QueryString)
 	if err == kite.ErrNoKitesAvailable {
 		p.Provider.startTimer(p.Machine)
 		return err
@@ -133,12 +134,14 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
+	defer klientRef.Close()
+
 	// now the klient is connected again, stop the timer and remove it from the
 	// list of inactive machines if it's still there.
 	p.Provider.stopTimer(p.Machine)
 
 	// get the usage directly from the klient, which is the most predictable source
-	usg, err := klient.Usage()
+	usg, err := klientRef.Usage()
 	if err != nil {
 		return err
 	}
@@ -149,8 +152,8 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	// replace with the real and authenticated username
-	p.Machine.Builder["username"] = klient.Username
-	p.Username = klient.Username
+	p.Machine.Builder["username"] = klientRef.Username
+	p.Username = klientRef.Username
 
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := plan.Limits().Timeout
