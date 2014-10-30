@@ -6,7 +6,7 @@ class IDE.Pane extends JView
 
     super options, data
 
-    @hash = KD.utils.generatePassword 64, no
+    @hash = options.hash or KD.utils.generatePassword 64, no
 
 
   setFocus: (state) ->
