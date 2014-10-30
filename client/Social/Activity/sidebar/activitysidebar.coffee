@@ -537,6 +537,10 @@ class ActivitySidebar extends KDCustomHTMLView
       partial  : 'VMs'
       click    : @bound 'handleMoreVMsClick'
 
+    header.addSubView new CustomLinkView
+      cssClass : 'add-icon buy-vm'
+      title    : ' '
+
     section.addSubView @machineTree.getView()
 
     @machineTree.on 'NodeWasAdded', (machineItem) =>
@@ -574,8 +578,13 @@ class ActivitySidebar extends KDCustomHTMLView
       return
 
 
-  handleMoreVMsClick: ->
-    new MoreVMsModal {}, KD.userMachines
+  handleMoreVMsClick: (ev) ->
+
+    KD.utils.stopDOMEvent ev
+
+    if 'add-icon' in ev.target.classList
+    then KD.singletons.computeController.handleNewMachineRequest()
+    else new MoreVMsModal {}, KD.userMachines
 
 
   handleMoreWorkspacesClick: (data) ->
