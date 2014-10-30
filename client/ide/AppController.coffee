@@ -455,9 +455,13 @@ class IDEAppController extends AppController
 
   createNewBrowser: (url) ->
     url = ''  unless typeof url is 'string'
+
     @activeTabView.emit 'PreviewPaneRequested', url
 
-  createNewDrawing: -> @activeTabView.emit 'DrawingPaneRequested'
+  createNewDrawing: (paneHash) ->
+    paneHash = null unless typeof paneHash is 'string'
+
+    @activeTabView.emit 'DrawingPaneRequested', paneHash
 
   goToLeftTab: ->
     index = @activeTabView.getActivePaneIndex()
