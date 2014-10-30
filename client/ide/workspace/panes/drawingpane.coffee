@@ -98,6 +98,16 @@ class IDE.DrawingPane extends IDE.Pane
     @$canvas.setLineSize  3
     @$canvas.setLineColor colors.first
 
+    @$canvas.on 'mouseup mouseleave touchend ', =>
+      @emit 'ChangeHappened', {
+        origin     : KD.nick()
+        type       : 'DrawingBoardUpdated'
+        context    :
+          paneHash : @hash
+          paneType : 'drawing'
+          data     : @getCanvasData()
+      }
+
 
   addLayerForMenu: ->
     KD.getSingleton('windowController').addLayer @toolbarMenu
