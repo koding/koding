@@ -24,3 +24,7 @@ Koding's new IDE has been overhauled. Much more to come but in the meanwhile, yo
 We appreciate any contribution to this repo so feel free to contribute!
 
 See you on [Koding](https://koding.com)!
+
+### References
+
+IDE is written with Koding's in house developed [KD Framework](https://github.com/koding/kd), to understand the code better you may want to check it out.
