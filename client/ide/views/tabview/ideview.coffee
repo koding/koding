@@ -140,8 +140,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @emit 'ChangeHappened', change
 
 
-  createDrawingBoard: ->
-    drawingPane = new IDE.DrawingPane
+  createDrawingBoard: (paneHash) ->
+    drawingPane = new IDE.DrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
     @emitChange  drawingPane, context: {}
 
