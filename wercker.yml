@@ -8,9 +8,6 @@ services:
 build:
   steps:
     - script:
-        name: initialize submodules
-        code: git submodule update --init --recursive
-    - script:
         name: npm install
         code: |
           npm cache clean
