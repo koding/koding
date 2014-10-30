@@ -867,7 +867,7 @@ class IDEAppController extends AppController
     @changes = @rtm.getFromModel @realTimeDoc, 'changes'
     @changes?.clear()  if @amIHost
 
-    @rtm.bindRealtimeListeners @changes
+    @rtm.bindRealtimeListeners @changes, 'list'
 
     @rtm.on 'ValuesAddedToList', (list, value) =>
       @handleChange value.values[0]  if list is @changes
