@@ -38,7 +38,9 @@ class MessagePane extends KDTabPaneView
 
     @createChannelTitle()
     @createInputWidget()
+    @createScrollView()
     @createFilterLinks()
+    @bindLazyLoader()
     @bindInputEvents()
 
     @submitIsPending = no
@@ -51,10 +53,23 @@ class MessagePane extends KDTabPaneView
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    if typeConstant in ['group', 'topic', 'announcement']
-      @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
-
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
+
+
+  createScrollView: ->
+
+    @scrollView = new KDCustomScrollView
+      cssClass          : 'message-pane-scroller'
+      lazyLoadThreshold : 100
+
+    {typeConstant} = @getData()
+
+    return unless typeConstant in ['group', 'topic', 'announcement']
+
+
+  bindLazyLoader: ->
+
+    @scrollView.wrapper.on 'LazyLoadThresholdReached', => @emit 'NeedsMoreContent'
 
 
   bindInputEvents: ->
@@ -249,7 +264,7 @@ class MessagePane extends KDTabPaneView
 
   viewAppended: ->
 
-    @addSubView @scrollView = new KDCustomScrollView cssClass : 'message-pane-scroller'
+    @addSubView @scrollView
     @scrollView.wrapper.addSubView @channelTitleView  if @channelTitleView
     @scrollView.wrapper.addSubView @input             if @input
     @scrollView.wrapper.addSubView @filterLinks       if @filterLinks

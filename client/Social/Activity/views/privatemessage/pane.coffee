@@ -371,9 +371,7 @@ class PrivateMessagePane extends MessagePane
     @addSubView @participantsView
     @addSubView @autoCompleteForm
 
-    @addSubView @scrollView = new KDCustomScrollView
-      cssClass          : 'message-pane-scroller'
-      lazyLoadThreshold : 100
+    @addSubView @scrollView
 
     {wrapper} = @scrollView
     wrapper.addSubView @listPreviousLink
@@ -381,14 +379,19 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
 
-    wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
-    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
 
 
 
   #
   # UI EVENTS/DIRECTIVES
   #
+
+  bindLazyLoader: ->
+
+    {wrapper} = @scrollView
+    wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
+    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+
 
   editLastMessage: ->
 

@@ -28,6 +28,8 @@ class ActivityPane extends MessagePane
 
     @createChannelTitle()
     @createInputWidget()
+    @createScrollView()
+    @bindLazyLoader()
     @bindInputEvents()
     @createTabView()
     @createContentViews()
@@ -38,8 +40,11 @@ class ActivityPane extends MessagePane
 
     @fakeMessageMap = {}
 
-    if @getData().typeConstant in ['group', 'topic']
-      @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
+
+  bindLazyLoader: ->
+
+    @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
+      @activeContent?.emit 'NeedsMoreContent'
 
 
   createContentViews: ->
@@ -146,8 +151,6 @@ class ActivityPane extends MessagePane
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
 
-  lazyLoad: -> @activeContent?.loadMore()
-
   putMessage: (message, index = 0) ->
     {router} = KD.singletons
     router.handleRoute '/Activity/Public/Recent'
@@ -165,9 +168,7 @@ class ActivityPane extends MessagePane
 
   viewAppended: ->
 
-    @addSubView @scrollView = new KDCustomScrollView
-      cssClass          : 'message-pane-scroller'
-      lazyLoadThreshold : 100
+    @addSubView @scrollView
 
     {wrapper} = @scrollView
 

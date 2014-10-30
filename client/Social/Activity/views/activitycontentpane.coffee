@@ -36,11 +36,6 @@ class ActivityContentPane extends KDTabPaneView
     @listController.instantiateListItems content
     @listController.hideLazyLoader()
 
-  loadMore: ->
-    @emit 'NeedsMoreContent'
-
-  getContentFrom: -> @listController.getListView().items.last.getData().createdAt
-
   getLoadedCount: -> @listController.getListView().items.length
 
   removeMessage: MessagePane::removeMessage
