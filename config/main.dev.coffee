@@ -191,6 +191,7 @@ Configuration = (options={}) ->
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
+  GOPATH= "#{projectRoot}/go"
 
 
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
@@ -574,6 +575,8 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" up
+
         nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
@@ -605,6 +608,7 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
+        echo "  run migrationfile         : to create an empty postgresql migration file"
         echo ""
 
       }
@@ -892,6 +896,18 @@ Configuration = (options={}) ->
 
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
+
+      elif [ "$1" == "migrationfile" ]; then
+        check_service_dependencies
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" create "$2"
+          echo "Please edit created script files and add them to your repository."
+        fi
 
       elif [ "$#" == "0" ]; then
 
