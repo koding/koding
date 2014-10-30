@@ -27,7 +27,9 @@ class IDE.ParticipantView extends KDView
         cssClass : 'open-panes'
 
       changes = rtm.getFromModel(realTimeDoc, "#{participant.nickname}Snapshot").values()
-      terminalCounter = 1
+      terminalCounter    = 1
+      drawingPaneCounter = 1
+      browserPaneCounter = 1
 
       changes.forEach (change, i) ->
         return if not change.type or not change.context
@@ -37,8 +39,15 @@ class IDE.ParticipantView extends KDView
         if type is 'NewPaneCreated'
           if paneType is 'editor'
             partial = FSHelper.getFileNameFromPath file.path
+
           else if paneType is 'terminal'
             partial = "Terminal #{terminalCounter++}"
+
+          else if paneType is 'drawing'
+            partial = "Drawing Pane #{drawingPaneCounter++}"
+
+          else if paneType is 'browser'
+            partial = "Browser #{browserPaneCounter++}"
 
           state.addSubView new KDCustomHTMLView
             tagName: 'span'
