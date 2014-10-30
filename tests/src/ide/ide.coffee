@@ -191,27 +191,6 @@ module.exports =
 
   createWorkspaceFromVmList: (browser) ->
 
-    user          = helpers.beginTest(browser)
-    paragraph     = helpers.getFakeText()
-    workspaceName = paragraph.split(' ')[0]
+    helpers.createWorkspace(browser)
+    browser.end()
 
-    browser
-      .waitForElementVisible   '.kdscrollview li a.more-link', 20000
-      .click                   '.kdscrollview li a.more-link'
-      .waitForElementVisible   '.kdmodal-inner', 20000
-      .click                   '.kdmodal-inner button'
-      .pause 2000 # required
-      .waitForElementVisible   '.add-workspace-view', 20000
-      .setValue                '.add-workspace-view input.kdinput.text', workspaceName + '\n'
-      .waitForElementVisible   '.vm-info', 20000
-      .pause 2000, =>
-
-        browser.url (data) =>
-          url    = data.value
-          vmName = url.split('/IDE/')[1].split('/')[0]
-
-          browser
-            .assert.urlContains      workspaceName # Assertion
-            .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
-            .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 20000 # Assertion
-            .end()
