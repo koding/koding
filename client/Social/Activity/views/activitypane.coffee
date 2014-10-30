@@ -69,7 +69,7 @@ class ActivityPane extends MessagePane
 
   createMostLikedView: (options, data) ->
     pane = new ActivityContentPane options, data
-      .on "NeedsMoreContent", =>
+      .on 'NeedsMoreContent', =>
         from = null
         skip = @mostLiked.getLoadedCount()
 
@@ -84,13 +84,9 @@ class ActivityPane extends MessagePane
 
   createMostRecentView: (options, data) ->
     pane = new ActivityContentPane options, data
-      .on "NeedsMoreContent", =>
-        from = @mostRecent.getContentFrom()
-        skip = null
+      .on 'NeedsMoreContent', =>
 
-        pane.listController.showLazyLoader()
-
-        @fetch { from, skip }, @createContentAppender 'mostRecent'
+        @lazyLoad pane.listController, @createContentAppender 'mostRecent'
 
       .on 'PaneDidShow', =>
         @setSearchedState no

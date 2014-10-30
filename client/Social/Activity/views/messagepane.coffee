@@ -333,7 +333,7 @@ class MessagePane extends KDTabPaneView
 
 
 
-  fetch: (options = {}, callback)->
+  fetch: (options = {}, callback) ->
 
     {
       name
@@ -353,36 +353,40 @@ class MessagePane extends KDTabPaneView
       then KD.utils.defer -> callback null, [data]
       else appManager.tell 'Activity', 'fetch', options, callback
 
+
   lazyLoad: do ->
 
     loading = no
 
-    ->
+    (listController, callback) ->
 
       return  if loading
 
-      @listController.showLazyLoader()
+      listController ?= @listController
+
+      listController.showLazyLoader()
 
       {appManager} = KD.singletons
-      last         = @listController.getItemsOrdered().last
+      last         = listController.getItemsOrdered().last
 
-      return @listController.hideLazyLoader()  unless last
+      return listController.hideLazyLoader()  unless last
 
       loading = yes
 
       if @currentFilter is 'Most Liked'
         from = null
-        skip = @listController.getItemsOrdered().length
+        skip = listController.getItemsOrdered().length
       else
         from = last.getData().createdAt
 
-      @fetch {from, skip}, (err, items=[])=>
+      @fetch {from, skip}, (err, items = []) =>
+
         loading = no
-        @listController.hideLazyLoader()
+        listController.hideLazyLoader()
 
-        return KD.showError err  if err
+        KD.showError err  if err
 
-        items.forEach @lazyBound 'loadMessage'
+        callback err, items
 
 
   refresh: ->
