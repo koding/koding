@@ -721,7 +721,6 @@ class IDEAppController extends AppController
         else if @amIHost
           rtm.createFile title
           rtm.once 'FileCreated', (file) =>
-            @rtm.create 'list', @realTimeDoc, 'changes', []
             @loadCollaborationFile file.result.id
 
 
@@ -735,6 +734,11 @@ class IDEAppController extends AppController
       nickname     = KD.nick()
 
       @getParticipants()
+
+      @changes = @rtm.getFromModel @realTimeDoc, 'changes'
+
+      unless @changes
+        @changes = @rtm.create 'list', @realTimeDoc, 'changes', []
 
       if not @participants
         @addParticipant yes  if @amIHost
@@ -753,6 +757,7 @@ class IDEAppController extends AppController
       log 'acetz: participants:', @participants.asArray()
 
       @listenChangeEvents()
+
 
   getParticipants: ->
     @participants = @rtm.getFromModel @realTimeDoc, 'participants'
