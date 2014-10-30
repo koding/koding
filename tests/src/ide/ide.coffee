@@ -214,3 +214,16 @@ module.exports =
         .waitForElementNotVisible  workspaceSelector, 20000
         .end()
 
+
+  openTerminal: (browser) ->
+
+    helpers.beginTest(browser)
+
+    browser
+      .waitForElementVisible     '.visible-tab-handle.plus', 20000
+      .click                     '.visible-tab-handle.plus span.icon'
+      .pause 2000
+      .waitForElementVisible     '.kdlistview-contextmenu li.new-terminal', 20000
+      .click                     '.kdlistview-contextmenu li.new-terminal'
+      .waitForElementVisible     '.terminal-pane .console span.outlined', 20000
+      .end()
