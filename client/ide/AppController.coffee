@@ -914,3 +914,6 @@ class IDEAppController extends AppController
       content = @rtm.getFromModel(@realTimeDoc, path).getText()
 
       @openFile file, content
+
+    if context.paneType is 'drawing'
+      @createNewDrawing context.paneHash
