@@ -2,10 +2,14 @@
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
+Regions           = require 'koding-regions'
+
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Koding extends ProviderInterface
+
+  SUPPORTED_REGIONS    = ["us-east-1", "ap-southeast-1"]
 
   PLANS                =
     free               :
@@ -127,9 +131,11 @@ module.exports = class Koding extends ProviderInterface
           if err = checkUsage usage, userPlan, storage
             return callback err
 
+          region = Regions.findRegion client.clientIP, SUPPORTED_REGIONS
+
           meta =
             type          : "amazon"
-            region        : "us-east-1"
+            region        : region.regions[0] or "us-east-1"
             source_ami    : "ami-2651904e"
             instance_type : "t2.micro"
             storage_size  : storage
