@@ -889,11 +889,16 @@ class IDEAppController extends AppController
       return unless context
 
       if change.type is 'ContentChange'
-        string = @rtm.getFromModel @realTimeDoc, change.context.file.path
+        string = @rtm.getFromModel @realTimeDoc, context.file.path
 
         @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
-          if editorPane.getFile().path is change.context.file.path
+          if editorPane.getFile().path is context.file.path
             editorPane.setContent string.getText(), no
+
+      if change.type is 'DrawingBoardUpdated'
+        @forEachSubViewInIDEViews_ 'drawing', (drawingPane) =>
+          if drawingPane.hash is context.paneHash
+            drawingPane.setCanvasData change.context.data
 
 
   createPaneFromChange: (change) ->
