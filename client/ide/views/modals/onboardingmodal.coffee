@@ -1,4 +1,4 @@
-class IDE.OnboardingModal extends IDE.ModalView
+class IDE.OnboardingModal extends EnvironmentsModalView
 
   constructor: (options = {}, data) ->
 

@@ -31,8 +31,6 @@ module.exports = [
   "workspace/panes/settings/settingspane.coffee"
 
   # modals
-  "views/modals/modalview.coffee"
-  "views/modals/machinestatemodal.coffee"
   "views/modals/onboardingmodalcontent.coffee"
   "views/modals/onboardingmodal.coffee"
 
