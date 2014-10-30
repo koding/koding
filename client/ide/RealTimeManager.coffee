@@ -74,8 +74,8 @@ class RealTimeManager extends KDObject
 
     return throw new Error 'Missing arguments'  if not doc or not key
 
-    unless doc instanceof gapi.drive.realtime.Document
-      return throw new Error 'doc must be instanceof gapi.drive.realtime.Document'
+    unless doc.getModel
+      return throw new Error 'Invalid doc type for collaboration'
 
     data = doc.getModel().getRoot().get key
 
@@ -85,8 +85,8 @@ class RealTimeManager extends KDObject
 
     return throw new Error 'Missing arguments'  if not doc or not key or not type
 
-    unless doc instanceof gapi.drive.realtime.Document
-      return throw new Error 'doc must be instanceof gapi.drive.realtime.Document'
+    unless doc.getModel
+      return throw new Error 'Invalid doc type for collaboration'
 
     methods  =
       string : 'createString'
@@ -97,20 +97,20 @@ class RealTimeManager extends KDObject
     data   = model[methods[type]] initialValue
     model.getRoot().set key, data
 
-    @bindRealtimeListeners data
+    @bindRealtimeListeners data, 'type'
 
     return data
 
 
-  bindRealtimeListeners: (data) ->
+  bindRealtimeListeners: (data, type) ->
 
-    if data instanceof gapi.drive.realtime.CollaborativeString
+    if type is 'string'
       @bindStringListeners data
 
-    else if data instanceof gapi.drive.realtime.CollaborativeMap
+    else if type is 'map'
       @bindMapListeners data
 
-    else if data instanceof gapi.drive.realtime.CollaborativeList
+    else if type is 'list'
       @bindListListeners data
 
 
