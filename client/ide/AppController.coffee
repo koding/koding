@@ -885,6 +885,9 @@ class IDEAppController extends AppController
     if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
       log 'i need to handle this change...', change
 
+      {context} = change
+      return unless context
+
       if change.type is 'ContentChange'
         string = @rtm.getFromModel @realTimeDoc, change.context.file.path
 
