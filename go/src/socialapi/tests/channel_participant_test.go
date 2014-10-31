@@ -120,7 +120,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerAccount.Id)
 				So(err, ShouldBeNil)
 
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(1 * time.Second)
 
 				testChannel := models.NewChannel()
 				err := testChannel.ById(channelContainer.Channel.Id)
