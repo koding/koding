@@ -150,6 +150,7 @@ func (pClient *PayPalClient) SetExpressCheckoutDigitalGoods(paymentAmount float6
 	values.Add("NOSHIPPING", "1")
 
 	values.Add("L_BILLINGTYPE0", "RecurringPayments")
+	values.Add("L_BILLINGAGREEMENTDESCRIPTION0", "bane")
 
 	values.Add("RETURNURL", returnURL)
 	values.Add("CANCELURL", cancelURL)
@@ -243,11 +244,6 @@ func (pClient *PayPalClient) SetExpressCheckoutSingle(args *ExpressCheckoutSingl
 
 	values.Add("RETURNURL", args.ReturnURL)
 	values.Add("CANCELURL", args.CancelURL)
-
-	values.Add("L_PAYMENTREQUEST_0_NAME0", args.Item.Name)
-	values.Add("L_PAYMENTREQUEST_0_AMT0", fmt.Sprintf("%.2f", args.Amount))
-	values.Add("L_PAYMENTREQUEST_0_QTY0", "1")
-	values.Add("L_PAYMENTREQUEST_0_ITEMCATEGORY0", "Digital")
 
 	return pClient.PerformRequest(values)
 }
