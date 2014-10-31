@@ -144,6 +144,16 @@ createStubLocation = (env)->
 module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
 
+  event_mechanism = switch process.platform
+    when 'darwin' then 'use kqueue;'
+    when 'linux'  then 'use epoll;'
+    else ''
+
+  for path in ['/etc/nginx/mime.types', '/usr/local/etc/nginx/mime.types']
+    continue  unless fs.existsSync path
+    mime_types = "include #{path};"
+    break
+
   config = """
   worker_processes #{if environment is "dev" then 1 else 16};
   master_process #{if environment is "dev" then "off" else "on"};
@@ -158,8 +168,7 @@ module.exports.create = (KONFIG, environment)->
   events {
     worker_connections  1024;
     multi_accept on;
-    # epoll is only valid for linux environments
-    use #{if environment is 'dev' then 'kqueue' else 'epoll'};
+    #{event_mechanism}
   }
 
   # start http
@@ -179,7 +188,7 @@ module.exports.create = (KONFIG, environment)->
     sendfile on;
 
     # for proper content type setting, include mime.types
-    include #{if environment is 'dev' then '/usr/local/etc/nginx/mime.types;' else '/etc/nginx/mime.types;'}
+    #{mime_types}
 
     #{createUpstreams(workers)}
 
