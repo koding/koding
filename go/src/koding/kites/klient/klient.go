@@ -17,14 +17,12 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	kiteprotocol "github.com/koding/kite/protocol"
 )
 
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
@@ -190,20 +188,8 @@ func main() {
 	}
 
 	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if *flagProxy {
-		// Koding proxies in production only
-		proxyQuery := &kiteprotocol.KontrolQuery{
-			Username:    "koding",
-			Environment: "production",
-			Name:        "proxy",
-		}
-
-		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go k.RegisterToProxy(registerURL, proxyQuery)
-	} else {
-		if err := k.RegisterForever(registerURL); err != nil {
-			log.Panic(err)
-		}
+	if _, err := k.Register(registerURL); err != nil {
+		log.Panic(err)
 	}
 
 	k.Log.Info("Running as version %s", VERSION)
