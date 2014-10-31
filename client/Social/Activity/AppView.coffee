@@ -22,8 +22,6 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
-    @widgetsBar = new ActivityWidgetsBar cssClass : 'hidden'
-
     @tabs = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
@@ -41,7 +39,6 @@ class ActivityAppView extends KDView
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
-    @addSubView @widgetsBar
 
     @parent.on 'KDTabPaneActive', =>
 
@@ -73,7 +70,7 @@ class ActivityAppView extends KDView
 
     {socialapi, router, notificationController} = KD.singletons
 
-    if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
+    # if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
 
     kallback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
@@ -155,7 +152,7 @@ class ActivityAppView extends KDView
 
   showNewMessageForm: ->
 
-    @widgetsBar.hide()
+    # @widgetsBar.hide()
     @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
       .addSubView form = new PrivateMessageForm
       .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane

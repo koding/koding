@@ -10,9 +10,9 @@ activity.widgetsbar.styl
 }
 
 .activity-widgets-bar
-  max-width                 295px
-  margin                    45px 0 0 31px
-  fl()
+  max-width                 295px !important
+  margin                    45px 0 0 0
+  abs                       0px 0 0 663px
 
   .activity-widget
     margin-bottom           12px
@@ -89,6 +89,14 @@ activity.widgetsbar.styl
     height                  188px
     borderBox()
 
+    &.expand
+      kalc                  width, 100vw \- 914px
+      height                auto
+      max-width             564px !important
+
+      ol, li, h4
+        display             block
+
     h3
       font-weight           600
       line-height           20px
@@ -150,14 +158,6 @@ activity.widgetsbar.styl
         abs                 7px 0 0 -17px
         rounded             2px
         background          rgba(0,0,0,0.2)
-
-    &.expand
-      kalc                  width, 100vw \- 914px
-      height                auto
-      max-width             564px
-
-      ol, li, h4
-        display             block
 
     .read-more-link
       line-height           20px

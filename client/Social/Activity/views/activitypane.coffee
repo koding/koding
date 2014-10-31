@@ -32,6 +32,7 @@ class ActivityPane extends MessagePane
     @bindLazyLoader()
     @bindInputEvents()
     @createTabView()
+    @createWidgetsBar()
     @createContentViews()
     @createSearchInput()
 
@@ -45,6 +46,11 @@ class ActivityPane extends MessagePane
 
     @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
       @activeContent?.emit 'NeedsMoreContent'
+
+
+  createWidgetsBar: ->
+
+    @widgetsBar = new ActivityWidgetsBar
 
 
   createContentViews: ->
@@ -171,6 +177,7 @@ class ActivityPane extends MessagePane
     wrapper.addSubView @channelTitleView
     wrapper.addSubView @input
     wrapper.addSubView @tabView
+    wrapper.addSubView @widgetsBar
 
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]
