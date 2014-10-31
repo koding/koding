@@ -63,10 +63,6 @@ class MessagePane extends KDTabPaneView
       cssClass          : 'message-pane-scroller'
       lazyLoadThreshold : 100
 
-    {typeConstant} = @getData()
-
-    return unless typeConstant in ['group', 'topic', 'announcement']
-
 
   bindLazyLoader: ->
 
@@ -381,7 +377,7 @@ class MessagePane extends KDTabPaneView
       listController.showLazyLoader()
 
       {appManager} = KD.singletons
-      last         = listController.getItemsOrdered().last
+      last         = listController.getListItems().last
 
       return listController.hideLazyLoader()  unless last
 
@@ -389,7 +385,7 @@ class MessagePane extends KDTabPaneView
 
       if @currentFilter is 'Most Liked'
         from = null
-        skip = listController.getItemsOrdered().length
+        skip = listController.getItemsCount()
       else
         from = last.getData().createdAt
 
