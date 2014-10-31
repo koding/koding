@@ -111,7 +111,6 @@ func (pClient *PayPalClient) PerformRequest(values url.Values) (*PayPalResponse,
 
 	responseValues, err := url.ParseQuery(string(body))
 	response := &PayPalResponse{usedSandbox: pClient.usesSandbox}
-
 	if err == nil {
 		response.Ack = responseValues.Get("ACK")
 		response.CorrelationId = responseValues.Get("CORRELATIONID")
@@ -136,30 +135,23 @@ func (pClient *PayPalClient) PerformRequest(values url.Values) (*PayPalResponse,
 	return response, err
 }
 
-type ExpressCheckoutSingleArgs struct {
-	Amount                             float64
-	CurrencyCode, ReturnURL, CancelURL string
-	Recurring                          bool
-	Item                               *PayPalDigitalGood
-}
-
 func (pClient *PayPalClient) SetExpressCheckoutDigitalGoods(paymentAmount float64, currencyCode string, returnURL, cancelURL string, goods []PayPalDigitalGood) (*PayPalResponse, error) {
 	values := url.Values{}
 	values.Set("METHOD", "SetExpressCheckout")
-	values.Add("PAYMENTREQUEST_0_AMT", "0")
-	values.Add("NOSHIPPING", "1")
-
-	values.Add("L_BILLINGTYPE0", "RecurringPayments")
-	values.Add("L_BILLINGAGREEMENTDESCRIPTION0", "bane")
-
+	values.Add("PAYMENTREQUEST_0_AMT", fmt.Sprintf("%.2f", paymentAmount))
+	values.Add("PAYMENTREQUEST_0_PAYMENTACTION", "Sale")
+	values.Add("PAYMENTREQUEST_0_CURRENCYCODE", currencyCode)
 	values.Add("RETURNURL", returnURL)
 	values.Add("CANCELURL", cancelURL)
+	values.Add("REQCONFIRMSHIPPING", "0")
+	values.Add("NOSHIPPING", "1")
+	values.Add("SOLUTIONTYPE", "Sole")
 
 	for i := 0; i < len(goods); i++ {
 		good := goods[i]
 
 		values.Add(fmt.Sprintf("%s%d", "L_PAYMENTREQUEST_0_NAME", i), good.Name)
-		values.Add(fmt.Sprintf("%s%d", "L_PAYMENTREQUEST_0_AMT", i), "0")
+		values.Add(fmt.Sprintf("%s%d", "L_PAYMENTREQUEST_0_AMT", i), fmt.Sprintf("%.2f", good.Amount))
 		values.Add(fmt.Sprintf("%s%d", "L_PAYMENTREQUEST_0_QTY", i), fmt.Sprintf("%d", good.Quantity))
 		values.Add(fmt.Sprintf("%s%d", "L_PAYMENTREQUEST_0_ITEMCATEGORY", i), "Digital")
 	}
@@ -189,9 +181,12 @@ func (pClient *PayPalClient) GetExpressCheckoutDetails(token string) (*PayPalRes
 	values := url.Values{}
 	values.Add("TOKEN", token)
 	values.Set("METHOD", "GetExpressCheckoutDetails")
-
 	return pClient.PerformRequest(values)
 }
+
+//----------------------------------------------------------
+// Forked
+//----------------------------------------------------------
 
 func (pClient *PayPalClient) CreateRecurringPaymentsProfile(token string, params map[string]string) (*PayPalResponse, error) {
 	values := url.Values{}
@@ -213,16 +208,19 @@ func (pClient *PayPalClient) BillOutstandingAmount(profileId string) (*PayPalRes
 	return pClient.PerformRequest(values)
 }
 
-//----------------------------------------------------------
-// Forked
-//----------------------------------------------------------
-
 func NewDigitalGood(name string, amount float64) *PayPalDigitalGood {
 	return &PayPalDigitalGood{
 		Name:     name,
 		Amount:   amount,
 		Quantity: 1,
 	}
+}
+
+type ExpressCheckoutSingleArgs struct {
+	Amount                             float64
+	CurrencyCode, ReturnURL, CancelURL string
+	Recurring                          bool
+	Item                               *PayPalDigitalGood
 }
 
 func NewExpressCheckoutSingleArgs() *ExpressCheckoutSingleArgs {
