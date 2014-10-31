@@ -206,3 +206,19 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 
 	return nil, err
 }
+
+//----------------------------------------------------------
+// Paypal
+//----------------------------------------------------------
+
+type PaypalRequest struct {
+	Token string `json:"token"`
+}
+
+func (p *PaypalRequest) Success() (interface{}, error) {
+	return nil, nil
+}
+
+func (p *PaypalRequest) Cancel() (interface{}, error) {
+	return nil, nil
+}

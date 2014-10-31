@@ -86,5 +86,25 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 		},
 	))
 
+	//----------------------------------------------------------
+	// Paypal
+	//----------------------------------------------------------
+
+	mux.Handle("POST", "/paypal/success", handler.Wrapper(
+		handler.Request{
+			Handler: PaypalSuccess,
+			Name:    "payment-paypalsuccess",
+			Metrics: metrics,
+		},
+	))
+
+	mux.Handle("GET", "/paypal/cancel", handler.Wrapper(
+		handler.Request{
+			Handler: PaypalCancel,
+			Name:    "payment-paypalcancel",
+			Metrics: metrics,
+		},
+	))
+
 	return mux
 }

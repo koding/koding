@@ -5,13 +5,13 @@ import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 
-	"github.com/crowdmob/paypal"
+	"github.com/koding/paypal"
 )
 
 const CurrencyCode = "USD"
 
 var (
-	// get from config
+	// TODO: get from config
 	username  = "senthil+1_api1.koding.com"
 	password  = "JFH6LXW97QN588RC"
 	signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
@@ -32,6 +32,7 @@ func GetToken(planTitle, planInterval string) (string, error) {
 	args := paypal.NewExpressCheckoutSingleArgs()
 	args.ReturnURL = returnURL
 	args.CancelURL = cancelURL
+	// args.BuyerId   = "jones"
 	args.Item = item
 
 	response, err := client.SetExpressCheckoutSingle(args)
@@ -47,7 +48,7 @@ func GetToken(planTitle, planInterval string) (string, error) {
 	return token, nil
 }
 
-// move to common location
+// TODO: move to common location
 func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
 	plan := paymentmodels.NewPlan()
 
