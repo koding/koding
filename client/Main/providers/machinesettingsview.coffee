@@ -45,6 +45,16 @@ class MachineSettingsPopup extends KDModalViewWithForms
           itemClass     : KodingSwitch
           cssClass      : "tiny"
           callback      : (state) => @emit 'StateChange', state
+          nextElement   :
+            statusLoader:
+              itemClass : KDLoaderView
+              cssClass  : 'in-progress'
+              size      :
+                width   : 14
+                height  : 14
+              loaderOptions :
+                color   : '#FFFFFF'
+              showLoader: yes
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -127,14 +137,37 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
   viewAppended:->
 
+    {windowController, computeController} = KD.singletons
+
+    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
+
+    statusToggle.hide()
+
+    computeController
+      .kloud.info { machineId: @machine._id }
+      .then (response)->
+
+        if response.State is Running
+        then statusToggle.setOn no
+        else statusToggle.setOff no
+
+        statusToggle.show()
+        statusLoader.hide()
+
+      .catch (err)->
+
+        warn "Failed to fetch info for machine settings:", err
+        statusLoader.hide()
+        statusToggle.setOff no
+        statusToggle.show()
+
+
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
 
     moreLabel = moreView.getOption 'label'
     moreLabel.on 'click', =>
       moreLabel.toggleClass 'expanded'
       @moreForm.toggleClass 'hidden'
-
-    {windowController, computeController} = KD.singletons
 
     nickname.on 'click', =>
       nickname.hide()
