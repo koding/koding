@@ -34,6 +34,23 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
+    @input.input.on 'InputHeightChanged', => @_windowDidResize null, yes
+
+    @input.input.on 'blur', => @setCss 'height', 'none'
+
+    @listenWindowResize()
+
+
+  _windowDidResize: (event, scrollDown)->
+
+    headerHeight = @participantsView.getHeight()
+    inputHeight  = @input.getHeight()
+    windowHeight = window.innerHeight
+
+    @scrollView.setHeight windowHeight - inputHeight - headerHeight
+    @scrollView.verticalTrack.thumb.handleMutation()
+    @scrollDown()  if scrollDown
+
 
   #
   # DATA EVENTS
