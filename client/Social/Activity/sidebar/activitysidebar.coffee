@@ -195,19 +195,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   accountRemovedFromChannel: (update) ->
 
-    {socialapi}                     = KD.singletons
-    {id, typeConstant}              = update.channel
-    {unreadCount, participantCount} = update
+    {id} = update.channel
 
     @removeItem id
-
-    socialapi.cacheable typeConstant, id, (err, channel) =>
-      return warn err  if err
-
-      channel.isParticipant    = no
-      channel.participantCount = participantCount
-      channel.emit 'update'
-
 
 
   channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
