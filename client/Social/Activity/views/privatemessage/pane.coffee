@@ -378,6 +378,7 @@ class PrivateMessagePane extends MessagePane
     wrapper.addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+    @setScrollTops()
 
 
 
@@ -423,16 +424,6 @@ class PrivateMessagePane extends MessagePane
     return  unless @active
     {wrapper} = @scrollView
     wrapper.setScrollTop wrapper.getScrollHeight()
-
-
-  setScrollTops: ->
-
-    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
-
-
-  applyScrollTops: ->
-
-    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
 
 
   show: ->

@@ -171,6 +171,7 @@ class ActivityPane extends MessagePane
     wrapper.addSubView @channelTitleView
     wrapper.addSubView @input
     wrapper.addSubView @tabView
+    @setScrollTops()
 
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]

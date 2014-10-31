@@ -262,6 +262,16 @@ class MessagePane extends KDTabPaneView
       item.hide()
 
 
+  setScrollTops: ->
+
+    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
+
+
+  applyScrollTops: ->
+
+    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
+
+
   viewAppended: ->
 
     @addSubView @scrollView
@@ -269,6 +279,7 @@ class MessagePane extends KDTabPaneView
     @scrollView.wrapper.addSubView @input             if @input
     @scrollView.wrapper.addSubView @filterLinks       if @filterLinks
     @scrollView.wrapper.addSubView @listController.getView()
+    @setScrollTops()
 
 
   show: ->
@@ -276,6 +287,8 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
+    KD.utils.wait 50, =>
+      @scrollView.verticalTrack.thumb.handleMutation()
 
 
 

@@ -43,14 +43,21 @@ class ActivityAppView extends KDView
     @addSubView @tabs
     @addSubView @widgetsBar
 
-    @parent.on 'PaneDidShow', =>
+    @parent.on 'KDTabPaneActive', =>
 
       return  unless pane = @tabs.getActivePane()
 
       KD.utils.defer ->
         pane.applyScrollTops()
+
+      KD.utils.wait 50, ->
         pane.scrollView.verticalTrack.thumb.handleMutation()
-        pane.scrollView.horizontalTrack.thumb.handleMutation()
+
+    @parent.on 'KDTabPaneInactive', =>
+
+      return  unless pane = @tabs.getActivePane()
+
+      pane.setScrollTops()
 
 
   scroll: ->
