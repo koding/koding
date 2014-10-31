@@ -22,20 +22,14 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
-    @widgetsBar = new ActivityWidgetsBar cssClass : 'hidden'
-
     @tabs = new KDTabView
       tagName             : 'main'
-      cssClass            : 'app-content'
       hideHandleContainer : yes
+    @tabs.unsetClass 'kdscrollview'
 
-
-    @appStorage.setValue 'liveUpdates', off
-
-
-  lazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'LazyLoadThresholdReached'
-
-  topLazyLoadThresholdReached: -> @tabs.getActivePane()?.emit 'TopLazyLoadThresholdReached'
+    @tabs.on 'PaneDidShow', (pane) =>
+      if type = pane.getData()?.typeConstant
+        @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
 
 
   viewAppended: ->
@@ -45,7 +39,22 @@ class ActivityAppView extends KDView
     { mainView } = KD.singletons
     @sidebar     = mainView.activitySidebar
     @addSubView @tabs
-    @addSubView @widgetsBar
+
+    @parent.on 'KDTabPaneActive', =>
+
+      return  unless pane = @tabs.getActivePane()
+
+      KD.utils.defer ->
+        pane.applyScrollTops()
+
+      KD.utils.wait 50, ->
+        pane.scrollView.verticalTrack.thumb.handleMutation()
+
+    @parent.on 'KDTabPaneInactive', =>
+
+      return  unless pane = @tabs.getActivePane()
+
+      pane.setScrollTops()
 
 
   scroll: ->
@@ -61,7 +70,7 @@ class ActivityAppView extends KDView
 
     {socialapi, router, notificationController} = KD.singletons
 
-    if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
+    # if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
 
     kallback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
@@ -141,18 +150,9 @@ class ActivityAppView extends KDView
     return pane
 
 
-  refreshTab: (name) ->
-
-    pane = @tabs.getPaneByName name
-
-    pane?.refresh()
-
-    return pane
-
-
   showNewMessageForm: ->
 
-    @widgetsBar.hide()
+    # @widgetsBar.hide()
     @tabs.addPane pane = (new KDTabPaneView cssClass : 'privatemessage' ), yes
       .addSubView form = new PrivateMessageForm
       .once 'KDObjectWillBeDestroyed', @tabs.lazyBound 'removePane', pane

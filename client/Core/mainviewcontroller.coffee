@@ -32,8 +32,6 @@ class MainViewController extends KDViewController
       type = null
       (view) => @setBodyClass type  if type = view.getOption 'type'
 
-    windowController.on 'ScrollHappened', @bound 'handleScroll'
-
     if KD.config?.environment isnt 'production'
       window.addEventListener 'click', (event) =>
         if event.metaKey and event.altKey
@@ -49,39 +47,6 @@ class MainViewController extends KDViewController
       if KD.checkFlag 'super-admin'
       then KDView.setElementClass body, 'add', 'super'
       else KDView.setElementClass body, 'remove', 'super'
-
-
-  handleScroll: do ->
-
-    threshold     = 50
-    lastPos       = 0
-
-    (event) ->
-
-      {scrollHeight} = document.body
-      {scrollY, innerHeight} = window
-
-      # return when it pulls the page on top
-      return lastPos = innerHeight  if scrollY < 0
-
-      # return when it pulls the page at the bottom
-      return  if scrollHeight - scrollY < innerHeight
-
-      currentPos = scrollY + innerHeight
-      direction  = if currentPos > lastPos then 'down' else 'up'
-
-      appManager = KD.singleton 'appManager'
-      frontApp   = appManager.getFrontApp() or this
-
-      switch direction
-        when 'up'
-          if scrollY < threshold
-            frontApp?.emit 'TopLazyLoadThresholdReached'
-        when 'down'
-          if currentPos > scrollHeight - threshold
-            frontApp?.emit 'LazyLoadThresholdReached'
-
-      lastPos = currentPos
 
 
   setBodyClass: do ->
@@ -118,7 +83,7 @@ class MainViewController extends KDViewController
     html     = document.documentElement
     mainView = @getView()
 
-    fullSizeApps = ['Login', 'Pricing']
+    fullSizeApps = ['Login', 'Pricing', 'Activity']
     appsWithSidebar = [
       'Activity', 'Members', 'content-display', 'Apps', 'Dashboard', 'Account'
       'Environments', 'Bugs'
