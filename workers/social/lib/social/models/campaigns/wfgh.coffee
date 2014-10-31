@@ -86,15 +86,18 @@ module.exports = class JWFGH extends Model
 
         return callback err  if err
 
-        JWFGH.count approved : yes, (err, approvedApplicants)->
+        JWFGH.count approved : yes, (err, realApprovedApplicants)->
 
           return callback err  if err
 
           kallback = (err, userStats) ->
             {isApplicant, isApproved, isWinner} = userStats
 
+            approvedApplicants = campaign.content.approvedApplicants or 0
+            aac                = realApprovedApplicants
+
             callback err, {
-              totalApplicants, approvedApplicants
+              totalApplicants, approvedApplicants, aac
               isApplicant, isApproved, isWinner
               campaign: campaign.content
             }
