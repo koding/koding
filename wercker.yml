@@ -8,9 +8,9 @@ services:
 build:
   steps:
     - script:
-      name: build started
-      code: |
-        scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build started" "building" 10
+        name: build started
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build started" "building" 10
     - script:
         name: npm install
         code: |
