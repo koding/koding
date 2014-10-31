@@ -24,7 +24,7 @@ type Builder interface {
 	// configuration.
 	//
 	// Prepare should return a list of warnings along with any errors
-	// that occured while preparing.
+	// that occurred while preparing.
 	Prepare(...interface{}) ([]string, error)
 
 	// Run is where the actual build should take place. It takes a Build and a Ui.

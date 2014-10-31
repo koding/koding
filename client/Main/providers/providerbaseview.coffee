@@ -82,7 +82,7 @@ class ProviderBaseView extends KDTabPaneView
 
             warn e; log res
             return new KDNotificationView
-              title: "An error occured"
+              title: "An error occurred"
 
           new KDNotificationView
             title: "Machine instance created!"
@@ -166,7 +166,7 @@ class ProviderBaseView extends KDTabPaneView
           if err.name is "NotImplemented"
             "Listing instances for #{provider} is not implemented yet."
           else
-            "An error occured while listing instances for #{provider}."
+            "An error occurred while listing instances for #{provider}."
 
         warn err
 

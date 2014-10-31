@@ -14,7 +14,7 @@ class TroubleshootModal extends KDModalViewWithForms
             callback        : =>
               {feedback} = @modalTabs.forms.Troubleshoot.customData
               troubleshoot.sendFeedback feedback, (err) =>
-                return warn "an error occured while sending feedback"  if err
+                return warn "an error occurred while sending feedback"  if err
                 @showFeedbackSentModal()
               @destroy()
             buttons         :
