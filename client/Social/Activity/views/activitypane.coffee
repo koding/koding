@@ -19,7 +19,7 @@ class ActivityPane extends MessagePane
 
   constructor: (options, data) ->
     options.type        or= ''
-    options.cssClass     ?= "activity-pane #{options.type}"
+    options.cssClass      = KD.utils.curry "activity-pane #{options.type}", options.cssClass
     options.wrapper      ?= yes
     options.scrollView   ?= yes
     options.lastToFirst  ?= no
@@ -171,7 +171,6 @@ class ActivityPane extends MessagePane
     wrapper.addSubView @channelTitleView
     wrapper.addSubView @input
     wrapper.addSubView @tabView
-    @setScrollTops()
 
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]
