@@ -3,8 +3,8 @@ class TopicMessagePane extends MessagePane
   constructor: (options = {}, data) ->
 
     options.cssClass    = KD.utils.curry 'activity-pane', options.cssClass
-    options.wrapper    ?= yes
-    options.scrollView ?= yes
+    options.wrapper    ?= no
+    options.scrollView ?= no
 
     super options, data
 

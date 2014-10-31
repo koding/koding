@@ -11,7 +11,7 @@ class AnnouncementPane extends TopicMessagePane
 
     @addSubView @scrollView
     @scrollView.wrapper.addSubView @channelTitleView
-    @scrollView.wrapper.addSubView @input  if 'admin' in KD.checkFlag 'super-admin'
+    @scrollView.wrapper.addSubView @input  if KD.checkFlag 'super-admin'
     @scrollView.wrapper.addSubView @listController.getView()
 
 
