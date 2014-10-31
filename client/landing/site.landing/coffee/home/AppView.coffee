@@ -8,19 +8,122 @@ module.exports = class HomeView extends KDView
   IMAGEPATH = '/a/site.landing/images/slideshow'
   IMAGES    = [
     [ 'ss-terminal.png',      '18,000,000+ VMs spun up and counting.' ]
-    [ 'ss-activity.png',      '500,000+ strong global dev community.' ]
+    [ 'ss-channels.png',      '500,000+ strong global dev community.' ]
     [ 'ss-ide.png',           '1 Billion+ lines of code written.' ]
-    [ 'ss-ide-collapsed.png', '5+ Petabytes of VM space allocated.' ]
-    [ 'ss-chat.png',          '5,000+ developers write code here every day.' ]
+    [ 'ss-settings.png',      '5+ Petabytes of VM space allocated.' ]
+    [ 'ss-chats.png',         '5,000+ developers write code here every day.' ]
   ]
   ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
+  INFODOTS  = [
+    #Terminal
+    [
+      {
+        position : [49, 4] #percent
+        content  : 'Terminals can be opened vertically or horizontally. \n You can even split them!'
+      },
+      {
+        position : [49, 20] #percent
+        content  : 'Open as many terminals as you like!'
+      },
+      {
+        position : [55, 35] #percent
+        content  : 'The Koding Terminal supports many themes. \n We\'ve designed it to be beautiful and responsive.'
+      },
+      {
+        position : [10, 12] #percent
+        content  : 'Each new workspace gets its own set if IDE and Terminal tabs \n so you can easily manage different projects.'
+      }
+    ]
+    #Channels
+    [
+      {
+        position : [31, 11] #percent
+        content  : 'Share news, links, ideas etc. with a community \n of like minded developers from around the world.'
+      },
+      {
+        position : [8, 23] #percent
+        content  : 'Follow a variety of topics that are of interest to you \n and keep up with the latest conversation.'
+      },
+      {
+        position : [76, 32] #percent
+        content  : 'Easily see which topics are of interest to the Koding Community.'
+      },
+      {
+        position : [16, 32] #percent
+        content  : 'If a topic of discussion is for your team only, \n then easily take it to a private message chat.'
+      }
+    ]
+    #IDE
+    [
+      {
+        position : [10, 10] #percent
+        content  : 'Your VM is easily accesible at all times. \n Create a workspace for every project that you are working on.'
+      },
+      {
+        position : [49, 4] #percent
+        content  : 'If one IDE tab is not enough, open up more!'
+      },
+      {
+        position : [55, 32] #percent
+        content  : 'The Koding IDE supports syntax highlighting for \n all major programming languages.'
+      },
+      {
+        position : [26, 42] #percent
+        content  : 'Filetree gives you easy access to your VMs file system \n and supports easy uploads using drag and drop.'
+      }
+    ]
+    #Settings
+    [
+      {
+        position : [10, 10] #percent
+        content  : 'Koding VMs run Ubuntu 14.04 and come pre-installed with \n most of the latest developer oriented software.'
+      },
+      {
+        position : [37, 15] #percent
+        content  : 'All Koding VMs come with public IPs!'
+      },
+      {
+        position : [36, 26] #percent
+        content  : 'Easy links to helpful guides that show you how \n you can connect to your VM using ssh, ftp and much more!'
+      },
+      {
+        position : [33, 32] #percent
+        content  : 'If you want, you can keep your VM running all the time.'
+      },
+      {
+        position : [18, 35] #percent
+        content  : 'You can create custom sub-domains for your VM so you can \n easily run multiple virtual servers.'
+      }
+    ]
+    #Chats
+    [
+      {
+        position : [13, 22] #percent
+        content  : 'Get notified when there is new information \n for you to view.'
+      },
+      {
+        position : [36, 6] #percent
+        content  : 'Add as many private chat participants as you want!'
+      },
+      {
+        position : [62, 6] #percent
+        content  : 'Easily leave any chat.'
+      },
+      {
+        position : [66, 27] #percent
+        content  : 'Messages posted on Koding\'s private or public \n channels have markdown support.'
+      }
+    ]
+  ]
 
   constructor: (options = {}, data)->
 
     super
 
-    {router} = KD.singletons
+    {router}  = KD.singletons
+
+    @infoDots = []
 
     @signUpForm = new HomeRegisterForm
       cssClass    : 'login-form register no-anim'
@@ -69,6 +172,20 @@ module.exports = class HomeView extends KDView
         img      : image
         cssClass : "nav-dot#{if i is 1 then ' active' else ''}"
         click    : -> @getDelegate().emit 'click'
+
+      infoDots = INFODOTS[i]
+
+      if infoDots then for infoDot in infoDots
+        {position, content} = infoDot
+
+        slide.addSubView instance = new KDCustomHTMLView
+          cssClass          : 'info-dot'
+          attributes        :
+            style           : "left: #{position[0]}%; top: #{position[1]}%;"
+            'data-content'  : content
+
+        @infoDots.push instance
+
 
       [slide, dot]
 
@@ -131,6 +248,18 @@ module.exports = class HomeView extends KDView
 
     @unsetClass color for color in COLORS
     @setClass COLORS[INDEX]
+
+    changeInfoDotsColor = (color) =>
+
+      introduction = @getElement().getElementsByClassName('introduction')[0]
+      color        = window.getComputedStyle(introduction).backgroundColor
+
+      for dot in @infoDots
+        dot.getElement().style.backgroundColor = color
+
+    if @viewIsReady
+    then changeInfoDotsColor(color)
+    else @once 'viewAppended', => changeInfoDotsColor(color)
 
 
   partial: ->

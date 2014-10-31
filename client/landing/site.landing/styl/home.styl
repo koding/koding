@@ -171,6 +171,7 @@ body.home
       section.introduction
         bg                color, #EA4B36
 
+
     // shining effect behind the screenshots
     section.introduction > div:after
       opacity           0
@@ -242,14 +243,15 @@ body.home
   // screenshots Section
 
   section.screenshots
-    abs                   400px 0 0
-    size                  100% 477px
+    abs                   350px 0 0
+    size                  100% 527px
+    padding-top           50px
     overflow              hidden
     z-index               2
     borderBox()
 
     a.custom-link-view.ss-button
-      top                 199px
+      top                 250px
       display             block
       left                50%
       z-index             100
@@ -273,19 +275,27 @@ body.home
     > div
       height              483px
       max-height          575px
-      width               838px
-      margin              0 auto
+      width               742px
+      margin              initial !important
       padding             0 !important
+      vendor              transform-style, preserve-3d
+      vendor              perspective, 700
+      vendor              transform, translateX(-50%)
+      left                50%
       rel()
 
 
     figure
       top                 0
       opacity             0
-      height              360px
-      vendor              transform, translateX(0px) translateY(123px)
+      height              738px
       background          none !important
+      vendor              transform, translate3d(0, 0, 0)
+      -webkit-transition  -webkit-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      -moz-transition     -moz-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+      transition          transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
       contentBox()
+      abs()
 
       &:after
         content           ''
@@ -306,44 +316,64 @@ body.home
         shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
         height            450px
-        opacity           .7
         bg                color #3A3E41
         margin-top        2px
-        // vendor            transition, opacity .3s ease
+
+      .info-dot
+        size                15px, 15px
+        rounded             50%
+        vendor              transform, scale(0)
+        -webkit-transition  -webkit-transform .7s ease
+        -moz-transition     -moz-transform .7s ease
+        transition          transform .7s ease
+        cursor              pointer
+        border              2px solid #fff
+        shadow              0 0 4px rgba(0, 0, 0, .3)
+        abs()
+
+        &:after
+          content           attr(data-content)
+          display           block
+          abs               0 0 20px 50%
+          white-space       pre
+          vendor            transform, translateX(-50%)
+          text-align        center
+          line-height       19px
+          background        rgba(0, 0, 0, .8)
+          color             #fff
+          font-size         14px
+          padding           16px
+          opacity           0
+          vendor            transition, opacity .3s ease \, bottom .3s ease
+          vendor            pointer-events, none
+          rounded           4px
+          border            1px solid #000
+
+        &:hover:after
+          opacity           1
+          bottom            26px
+
 
       &.current
         opacity           1
-        height            738px
-        vendor            transform, translateX(50px) translateY(0px)
-        z-index           4
-        display           block
-        abs()
-        vendor            transition, opacity .177s ease
+        vendor            transform, translate3d(0, 12px, 20px)
 
         img
           opacity         1
 
-      &.prev
-        vendor            transform, translateX(0px) translateY(123px)
-
-      &.next
-        vendor            transform, translateX(100px) translateY(123px)
+        .info-dot
+          vendor          transform, scale(1)
 
       &.prev
       &.next
-        opacity           .7
-        display           block
-        z-index           3
+        opacity           .6
         abs()
 
-        &:after
-          size            5px 5px
-          abs             8px 0 0 13px
-          shadow          7px 0 0 rgba(255, 255, 255, .3),\
-                          14px 0 0 rgba(255, 255, 255, .3)
-        &:before
-          rounded         4px 4px 0 0
-          size            100% 20px
+      &.prev
+        vendor            transform, translate3d(-150px, 50px, 0) rotateY(-3deg) rotateZ(-1deg)
+
+      &.next
+        vendor            transform, translate3d(150px, 50px, 0) rotateY(3deg) rotateZ(1deg)
 
 
 
@@ -421,6 +451,9 @@ body.home
       section.screenshots
         height            178px
         top               559px
+
+        .info-dot
+          display         none
 
         > div
           width           100%
