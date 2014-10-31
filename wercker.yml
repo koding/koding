@@ -43,6 +43,9 @@ build:
           make configure
           make install
           make build
+    - script:
+        name: build backend finished
+        code: |
           scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build backend finished" "building" 40
     - script:
         name: testing backend started
