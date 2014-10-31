@@ -83,7 +83,7 @@ getActivityContent = (activityContent)->
           <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
           #{createdAt}
         </div>
-        <article data-paths="body" id="el-26">
+        <article class="has-markdown" data-paths="body" id="el-26">
           #{body}
         </article>
         <div class="kdview activity-actions comment-header">
