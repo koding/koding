@@ -62,9 +62,6 @@ type Kontrol struct {
 	publicKey  string // for validating tokens
 	privateKey string // for signing tokens
 
-	clients   map[string]*time.Timer
-	clientsMu sync.Mutex // protects clients
-
 	clientLocks *IdLock
 
 	// storage defines the storage of the kites.
@@ -100,7 +97,6 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 		publicKey:   publicKey,
 		privateKey:  privateKey,
 		log:         k.Log,
-		clients:     make(map[string]*time.Timer),
 		clientLocks: NewIdlock(),
 	}
 
@@ -108,8 +104,6 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 	k.HandleFunc("registerMachine", kontrol.handleMachine).DisableAuthentication()
 	k.HandleFunc("getKites", kontrol.handleGetKites)
 	k.HandleFunc("getToken", kontrol.handleGetToken)
-
-	k.HandleHTTPFunc("/heartbeat", kontrol.handleHeartbeat)
 
 	return kontrol
 }

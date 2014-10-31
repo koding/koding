@@ -129,8 +129,7 @@ type RegisterArgs struct {
 
 // RegisterResult is a response to Register request from Kite to Kontrol.
 type RegisterResult struct {
-	URL               string `json:"url"`
-	HeartbeatInterval int64  `json:"heartbeatInterval"`
+	URL string `json:"url"`
 }
 
 type GetKitesArgs struct {

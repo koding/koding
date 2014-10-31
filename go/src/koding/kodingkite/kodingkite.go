@@ -80,7 +80,9 @@ func (k *KodingKite) Run() {
 		Path: "/" + k.Kite.Kite().Name + "-" + k.Kite.Kite().Version + "/kite",
 	}
 
-	go k.Kite.Register(registerWithURL)
+	go k.Kite.RegisterForever(registerWithURL)
+	<-k.Kite.KontrolReadyNotify()
+
 	k.Kite.Run()
 }
 
