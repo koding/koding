@@ -4,7 +4,7 @@ do ->
 
   {environment} = KD.config
 
-  return  if environment isnt 'production' and KD.isTesting
+  return  if environment isnt 'production'
 
   setAttribute = KDView::setAttribute
 
