@@ -3,7 +3,7 @@ class ComputePlansModal.Paid extends ComputePlansModal
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
-    options.height   = 330
+    options.height   = 450
 
     super options, data
 
@@ -27,11 +27,27 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     title.setClass 'warn'  if usage.total >= limits.total
 
+    content.addSubView regionContainer = new KDView
+      cssClass : "regions-container"
+
+    regionContainer.addSubView new KDView
+      cssClass : "container-title"
+      partial  : "choose vms region"
+
+    regionContainer.addSubView @regionSelector = new KDSelectBox
+      name          : "region"
+      selectOptions : [
+        { title: "United States", value: "us-east-1" }
+        { title: "Singapore",     value: "ap-southeast-1" }
+      ]
+
+    regionContainer.addSubView @regionTextView = new KDView
+
     content.addSubView storageContainer = new KDView
       cssClass : "storage-container"
 
     storageContainer.addSubView new KDView
-      cssClass : "storage-title"
+      cssClass : "container-title"
       partial  : "allocate storage for your new vm"
 
     storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
@@ -60,6 +76,15 @@ class ComputePlansModal.Paid extends ComputePlansModal
     @storageSlider.on "ValueIsChanging", (val)=>
       @updateUsageText val, usage, limits
 
+    @updateRegionText()
+    @regionSelector.on "change", @bound 'updateRegionText'
+
+  updateRegionText: ->
+
+    region = @regionSelector.getValue()
+
+    @regionTextView.updatePartial "Current region is <strong>#{region}</strong>"
+
   updateUsageText: (val, usage, limits)->
 
     newUsage = usage.storage + val
@@ -81,9 +106,10 @@ class ComputePlansModal.Paid extends ComputePlansModal
 
     stack = computeController.stacks.first._id
     storage = @storageSlider.handles.first.value
+    region = @regionSelector.getValue()
 
     computeController.create {
-      provider : "koding", stack, storage
+      provider : "koding", stack, storage, region
     }, (err, machine)=>
 
       return  if KD.showError err

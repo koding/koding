@@ -99,7 +99,7 @@ class SampleApp extends KDView
 
     showError = ->
       new KDNotificationView
-        title    : "An error occured while running the command"
+        title    : "An error occurred while running the command"
         type     : "mini"
         cssClass : "error"
         duration : 3000

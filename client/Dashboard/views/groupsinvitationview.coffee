@@ -59,7 +59,7 @@ class GroupsInvitationView extends KDView
           KD.remote.api.JInvitation.createMultiuse formData,
             @modalCallback.bind this, @createInvitationCode, (err)->
               unless err.code is 11000
-                return err.message ? 'An error occured! Please try again later.'
+                return err.message ? 'An error occurred! Please try again later.'
               return 'Invitation code already exists. Please try a different one or leave empty to generate'
         submitButtonLabel : 'Create'
         fields            :
@@ -267,5 +267,5 @@ class GroupsInvitationView extends KDView
   showErrorMessage:(err, errCallback)->
     warn err
     new KDNotificationView
-      title    : msgCallback?(err) ? err.message ? 'An error occured! Please try again later.'
+      title    : msgCallback?(err) ? err.message ? 'An error occurred! Please try again later.'
       duration : 2000

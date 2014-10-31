@@ -1,0 +1,60 @@
+#!/usr/bin/env coffee
+
+fs            = require 'fs'
+{exec}        = require 'child_process'
+argv          = require('minimist')(process.argv.slice(2))
+{Deploy, AWS} = require '../../install/deploy.coffee'
+ec2           = new AWS.EC2()
+
+keys              =
+  authorized_keys : new Buffer(fs.readFileSync './install/keys/prod.ssh/authorized_keys' , 'utf8').toString 'base64'
+  config          : new Buffer(fs.readFileSync './install/keys/prod.ssh/config'          , 'utf8').toString 'base64'
+  id_rsa          : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa'          , 'utf8').toString 'base64'
+  id_rsa_pub      : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa.pub'      , 'utf8').toString 'base64'
+
+userData =
+  """
+  #cloud-config
+  disable_root: false
+  hostname: wercker-test-instance
+
+  runcmd:
+    - echo 127.0.0.1 `hostname` >> /etc/hosts
+    - echo #{keys.config}          | base64 --decode > /root/.ssh/config
+    - echo #{keys.authorized_keys} | base64 --decode > /root/.ssh/authorized_keys
+    - echo #{keys.id_rsa}          | base64 --decode > /root/.ssh/id_rsa
+    - echo #{keys.id_rsa_pub}      | base64 --decode > /root/.ssh/id_rsa.pub
+    - chmod 0600 /root/.ssh/id_rsa
+    - cd /opt/koding
+    - git fetch origin '#{argv.gitref}'
+    - git checkout FETCH_HEAD
+    - /opt/koding/scripts/wercker/init-test-instance
+  """
+
+options              =
+  params             :
+    ImageId          : 'ami-f464e69c'
+    InstanceType     : 't2.medium'
+    MinCount         : 1
+    MaxCount         : 1
+    SubnetId         : 'subnet-b47692ed'
+    SecurityGroupIds : ['sg-64126d01', 'sg-7da5a718']
+    KeyName          : 'koding-prod-deployment'
+    UserData         : new Buffer(userData).toString 'base64'
+  instanceName       : 'wercker-test-instance'
+  configName         : 'dev'
+  environment        : 'test'
+
+Deploy.createInstances options, (err, res) ->
+  instanceId = res.Instances[0].InstanceId
+
+  interval = setInterval ->
+    ec2.describeInstances InstanceIds: [instanceId], (err, res) ->
+      instance = res.Reservations[0].Instances[0]
+      return unless instance
+      return unless instance.State.Name is 'running'
+      clearInterval interval
+
+      {PublicIpAddress, PublicDnsName} = instance
+      console.log "#{instanceId}\t#{PublicIpAddress}\t#{PublicDnsName}"
+  , 5000

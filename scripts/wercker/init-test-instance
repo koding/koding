@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -e
+
+export REPOSITORY_PATH='/opt/koding'
+export DISPLAY=:99
+
+service nginx stop
+
+cd $REPOSITORY_PATH
+HOME=/root/ npm install --unsafe-perm
+./configure
+./run services
+./run &
+disown $!
+
+sleep 60
+
+Xvfb $DISPLAY -shmem -screen 0 1366x768x16 &
+sleep 10
+
+x11vnc -passwd secret -display $DISPLAY -N -forever &
+sleep 10
+
+su nightwatch -c 'start-selenium &'
+
+exit 0

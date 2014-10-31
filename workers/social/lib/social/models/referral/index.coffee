@@ -365,7 +365,7 @@ module.exports = class JReferral extends jraphical.Message
           return console.info "User already get the referrer" if me.referralUsed
           # get referrer
           JAccount.one {'profile.nickname': referrerUsername }, (err, referrer_)->
-            # if error occured than do nothing and return
+            # if error occurred than do nothing and return
             return console.error "Error while fetching referrer", err if err
             # if referrer not fonud then do nothing and return
             return console.error "Referrer couldnt found" if not referrer_

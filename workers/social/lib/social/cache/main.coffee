@@ -19,7 +19,7 @@ repeatFetchingItems = (cacheKey, fetcherFn, fetcherFnOptions)->
     cache[cacheKey].inProgress = no
 
     if err
-      return console.log "An error occured while fetching in interval", err
+      return console.log "An error occurred while fetching in interval", err
 
     cache[cacheKey].ttl  = Date.now()
     cache[cacheKey].data = data

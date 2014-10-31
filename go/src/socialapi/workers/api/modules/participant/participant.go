@@ -8,6 +8,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"socialapi/workers/helper"
 	"time"
 )
 
@@ -105,7 +106,42 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		}
 	}
 
+	// this could be moved into another worker, but i did not want to create a new worker that will be used
+	// for just a few times
+	go func() {
+		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
+			helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+		}
+	}()
+
 	return response.NewOK(participants)
+}
+
+// DeletePrivateChannelMessages deletes all channel messages from a private message channel
+// when there are no more participants
+func DeleteDesertedChannelMessages(channelId int64) error {
+	c := models.NewChannel()
+	if err := c.ById(channelId); err != nil {
+		return err
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return nil
+	}
+
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = c.Id
+	count, err := cp.FetchParticipantCount()
+	if err != nil {
+		return err
+	}
+
+	if count != 0 {
+		return nil
+	}
+
+	// no need to keep the channel any more
+	return c.Delete()
 }
 
 func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelParticipant) (int, http.Header, interface{}, error) {

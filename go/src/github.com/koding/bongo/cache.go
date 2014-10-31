@@ -91,7 +91,7 @@ func (b *Bongo) getFromCacheHelper(service Cacher, id int64) (string, error) {
 	// since we have the data, no need to handle error here
 	err = b.putHelper(service.CachePrefix(id), d)
 	if err != nil {
-		b.log.Error("Error occured while setting data to cache %v", err.Error())
+		b.log.Error("Error occurred while setting data to cache %v", err.Error())
 	}
 
 	return d, nil

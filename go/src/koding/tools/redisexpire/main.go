@@ -6,6 +6,7 @@ import (
 	"koding/tools/config"
 	"koding/tools/logger"
 	"time"
+
 	"github.com/koding/redis"
 
 	redigo "github.com/garyburd/redigo/redis"
@@ -49,7 +50,7 @@ func main() {
 
 		err := redisSess.Expire(sesssionKey, *flagDuration)
 		if err != nil {
-			log.Error("An error occured while sending expire req %v", err)
+			log.Error("An error occurred while sending expire req %v", err)
 		}
 	}
 	log.Info("Expire script finished with config: %v", *flagProfile)
