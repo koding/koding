@@ -206,29 +206,31 @@ timeColor2 = #5F9E5E
     margin-top            0
 
     &.padded
-      height            auto
-      abs               0 0 0px 0
-      kalc              width (100%\-34px)
+      height              auto
+      abs                 0 0 0px 0
+      kalc                width (100%\-34px)
 
 
-    > section > time
-      color               timeColor2
-      display             block
-      margin              8px 0 0 34px
-      line-height         30px
-      font-size           11px
-      z-index             1
-      text-transform      uppercase
+    > section
+      &:last-child
+        margin-bottom     16px
+
+      > time
+        color             timeColor2
+        display           block
+        margin            8px 0 0 34px
+        line-height       30px
+        font-size         11px
+        z-index           1
+        text-transform    uppercase
 
   .kdlistitemview-activity.privatemessage
-    padding           0
-    border            none
-    margin-left       34px
-    &:last-child
-      margin-bottom   16px
+    padding               0
+    border                none
+    margin-left           34px
 
     .settings-menu-wrapper
-      top             25px
+      top                 25px
 
     .chevron
       hidden()
