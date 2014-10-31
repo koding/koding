@@ -53,7 +53,7 @@ module.exports = class DataDog extends Base
 
     if logs?
       if logs.length < 400
-        text += " LOGS: #{logs}"
+        text += " <#{logs}|LOGS>"
       else
         text += "\n ------- \n LOGS: #{logs} \n ------- \n"
 
