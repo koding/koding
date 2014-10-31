@@ -792,18 +792,6 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	return cp.IsParticipant(accountId)
 }
 
-func getMessageBatch(channelId int64, c int) ([]ChannelMessage, error) {
-	messageIds, err := NewChannelMessageList().
-		FetchMessageIdsByChannelId(channelId, &request.Query{
-		Skip:  c * 100,
-		Limit: 100,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return NewChannelMessage().FetchByIds(messageIds)
-}
-
 func isMessageCrossIndexed(messageId int64) (error, bool) {
 	count, err := NewChannelMessageList().CountWithQuery(&bongo.Query{
 		Selector: map[string]interface{}{
@@ -813,36 +801,37 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 	if err != nil {
 		return err, false
 	}
-	return nil, count > 1
+	return nil, count > 0
 }
 
-func (c *Channel) deleteChannelMessages() error {
-	if c.Id == 0 {
-		return ErrIdIsNotSet
+func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
+	messageIds := make([]int64, 0)
+
+	for messageId, _ := range messageMap {
+		messageIds = append(messageIds, messageId)
 	}
-	for i := 0; ; i++ {
-		messages, err := getMessageBatch(c.Id, i)
+
+	messages, err := NewChannelMessage().FetchByIds(messageIds)
+	if err != nil {
+		return err
+	}
+
+	for _, message := range messages {
+		err, isCrossIndexed := isMessageCrossIndexed(message.Id)
 		if err != nil {
 			return err
 		}
-		for _, message := range messages {
-			err, isCrossIndexed := isMessageCrossIndexed(message.Id)
-			if err != nil {
-				return err
-			}
 
-			if isCrossIndexed {
-				continue
-			}
-
-			if err = message.Delete(); err != nil {
-				return err
-			}
+		if isCrossIndexed {
+			continue
 		}
-		if len(messages) < 100 {
-			return nil
+
+		if err = message.Delete(); err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
@@ -859,20 +848,24 @@ func getListingBatch(channelId int64, c int) ([]ChannelMessageList, error) {
 	return listings, nil
 }
 
-func (c *Channel) deleteChannelLists() error {
+// deleteChannelLists deletes all channel lists with given channel id
+// and returns dangling channel message id map
+func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
+	messageMap := make(map[int64]struct{})
 	for i := 0; ; i++ {
 		listings, err := getListingBatch(c.Id, i)
 		if err != nil {
-			return err
+			return messageMap, err
 		}
 
 		for _, listing := range listings {
+			messageMap[listing.MessageId] = struct{}{}
 			if err := listing.Delete(); err != nil {
-				return err
+				return messageMap, err
 			}
 		}
 		if len(listings) < 100 {
-			return nil
+			return messageMap, nil
 		}
 	}
 }
