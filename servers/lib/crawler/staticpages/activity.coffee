@@ -45,7 +45,7 @@ prepareComments = (activityContent)->
         <div class="comment-contents clearfix">
           <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
           <div class="comment-body-container">
-            <p data-paths="body" itemprop="commentText" id="el-56">#{message.body}</p>
+            <p itemprop="commentText">#{message.body}</p>
           </div>
           #{createdAt}
         </div>
@@ -83,21 +83,21 @@ getActivityContent = (activityContent)->
           <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
           #{createdAt}
         </div>
-        <article class="has-markdown" data-paths="body" id="el-26">
+        <article class="has-markdown">
           #{body}
         </article>
         <div class="kdview activity-actions comment-header">
           <span class="logged-in action-container">
             <a class="custom-link-view" href="/Register">
-              <span class="title" data-paths="title" id="el-41">Comment</span>
+              <span class="title">Comment</span>
             </a>
             <a class="custom-link-view #{if commentCount then 'count'}" href="/Register">
-              <span data-paths="repliesCount" id="el-42">#{displayCommentCount}</span>
+              <span>#{displayCommentCount}</span>
             </a>
           </span>
           <span class="optional action-container">
             <a class="custom-link-view" href="#">
-              <span class="title" data-paths="title" id="el-43">Share</span>
+              <span class="title">Share</span>
             </a>
           </span>
         </div>
