@@ -35,8 +35,8 @@ module.exports = [
   "views/widgetsbar.coffee"
 
   "views/messagepane.coffee"
-  "views/topicmessagepane.coffee"
   "views/activitypane.coffee"
+  "views/topicmessagepane.coffee"
   "views/singleactivitypane.coffee"
   "views/announcementpane.coffee"
 

@@ -3,10 +3,11 @@ class MessagePane extends KDTabPaneView
   constructor: (options = {}, data) ->
 
     options.type        or= ''
-    options.cssClass      = "message-pane #{options.type}"
     options.lastToFirst  ?= no
     options.scrollView   ?= yes
     options.itemClass   or= ActivityListItemView
+
+    options.cssClass = KD.utils.curry "message-pane #{options.type}", options.cssClass
 
     super options, data
 
