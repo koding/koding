@@ -11,7 +11,6 @@ package audit
 
 import (
 	"bytes"
-	"code.google.com/p/google-api-go-client/googleapi"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,6 +19,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"code.google.com/p/google-api-go-client/googleapi"
 )
 
 // Always reference these packages, just in case the auto-generated code
@@ -199,7 +200,7 @@ func (c *ActivitiesListCall) ContinuationToken(continuationToken string) *Activi
 }
 
 // EndTime sets the optional parameter "endTime": Return events which
-// occured at or before this time.
+// occurred at or before this time.
 func (c *ActivitiesListCall) EndTime(endTime string) *ActivitiesListCall {
 	c.opt_["endTime"] = endTime
 	return c
@@ -220,7 +221,7 @@ func (c *ActivitiesListCall) MaxResults(maxResults int64) *ActivitiesListCall {
 }
 
 // StartTime sets the optional parameter "startTime": Return events
-// which occured at or after this time.
+// which occurred at or after this time.
 func (c *ActivitiesListCall) StartTime(startTime string) *ActivitiesListCall {
 	c.opt_["startTime"] = startTime
 	return c
@@ -335,7 +336,7 @@ func (c *ActivitiesListCall) Do() (*Activities, error) {
 	//       "type": "string"
 	//     },
 	//     "endTime": {
-	//       "description": "Return events which occured at or before this time.",
+	//       "description": "Return events which occurred at or before this time.",
 	//       "location": "query",
 	//       "type": "string"
 	//     },
@@ -353,7 +354,7 @@ func (c *ActivitiesListCall) Do() (*Activities, error) {
 	//       "type": "integer"
 	//     },
 	//     "startTime": {
-	//       "description": "Return events which occured at or after this time.",
+	//       "description": "Return events which occurred at or after this time.",
 	//       "location": "query",
 	//       "type": "string"
 	//     }

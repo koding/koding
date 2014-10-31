@@ -1,0 +1,54 @@
+AA;Armed Forces Americas;us-east-1,ap-northeast-1,sa-east-1,ap-southeast-1,ap-southeast-2,us-west-2,us-west-1,eu-central-1,eu-west-1
+AE;Armed Forces Europe, Middle East, & Canada;us-east-1,ap-northeast-1,sa-east-1,ap-southeast-1,ap-southeast-2,us-west-2,us-west-1,eu-central-1,eu-west-1
+AK;Alaska;us-west-2,ap-northeast-1,us-west-1,us-east-1,eu-west-1,eu-central-1,ap-southeast-1,ap-southeast-2,sa-east-1
+AL;Alabama;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+AP;Armed Forces Pacific;us-east-1,ap-northeast-1,sa-east-1,ap-southeast-1,ap-southeast-2,us-west-2,us-west-1,eu-central-1,eu-west-1
+AR;Arkansas;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+AZ;Arizona;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+CA;California;us-west-1,us-west-2,us-east-1,eu-west-1,ap-northeast-1,eu-central-1,sa-east-1,ap-southeast-2,ap-southeast-1
+CO;Colorado;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+CT;Connecticut;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+DC;District of Columbia;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+DE;Delaware;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+FL;Florida;us-east-1,us-west-1,us-west-2,eu-west-1,sa-east-1,eu-central-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+GA;Georgia;us-east-1,us-west-1,us-west-2,eu-west-1,sa-east-1,eu-central-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+HI;Hawaii;us-west-2,us-west-1,ap-northeast-1,us-east-1,ap-southeast-2,ap-southeast-1,eu-west-1,eu-central-1,sa-east-1
+IA;Iowa;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+ID;Idaho;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,ap-northeast-1,sa-east-1,ap-southeast-2,ap-southeast-1
+IL;Illinois;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+IN;Indiana;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+KS;Kansas;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+KY;Kentucky;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+LA;Louisiana;us-east-1,us-west-1,us-west-2,eu-west-1,sa-east-1,eu-central-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+MA;Massachusetts;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+MD;Maryland;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+ME;Maine;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+MI;Michigan;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+MN;Minnesota;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+MO;Missouri;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+MS;Mississippi;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+MT;Montana;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,ap-northeast-1,sa-east-1,ap-southeast-2,ap-southeast-1
+NC;North Carolina;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+ND;North Dakota;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,ap-northeast-1,sa-east-1,ap-southeast-2,ap-southeast-1
+NE;Nebraska;us-west-1,us-east-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+NH;New Hampshire;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+NJ;New Jersey;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+NM;New Mexico;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+NV;Nevada;us-west-1,us-west-2,us-east-1,eu-west-1,ap-northeast-1,eu-central-1,sa-east-1,ap-southeast-2,ap-southeast-1
+NY;New York;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+OH;Ohio;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+OK;Oklahoma;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+OR;Oregon;us-west-2,us-west-1,us-east-1,eu-west-1,ap-northeast-1,eu-central-1,sa-east-1,ap-southeast-2,ap-southeast-1
+PA;Pennsylvania;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+RI;Rhode Island;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+SC;South Carolina;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+SD;South Dakota;us-west-1,us-east-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+TN;Tennessee;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+TX;Texas;us-east-1,us-west-1,us-west-2,eu-west-1,sa-east-1,eu-central-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+UT;Utah;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,ap-northeast-1,sa-east-1,ap-southeast-2,ap-southeast-1
+VA;Virginia;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+VT;Vermont;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+WA;Washington;us-west-2,us-west-1,us-east-1,eu-west-1,ap-northeast-1,eu-central-1,sa-east-1,ap-southeast-2,ap-southeast-1
+WI;Wisconsin;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-1,ap-southeast-2
+WV;West Virginia;us-east-1,us-west-1,us-west-2,eu-west-1,eu-central-1,sa-east-1,ap-northeast-1,ap-southeast-2,ap-southeast-1
+WY;Wyoming;us-west-1,us-west-2,us-east-1,eu-west-1,eu-central-1,ap-northeast-1,sa-east-1,ap-southeast-2,ap-southeast-1

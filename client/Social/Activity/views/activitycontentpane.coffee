@@ -1,4 +1,4 @@
-class ActivityContentPane extends KDView
+class ActivityContentPane extends KDTabPaneView
 
   constructor: (options, data) ->
     super options, data
@@ -9,6 +9,7 @@ class ActivityContentPane extends KDView
       type          : typeConstant
       viewOptions   :
         itemOptions : { channelId }
+      scrollView    : no
       wrapper
       itemClass
       lastToFirst
@@ -17,7 +18,7 @@ class ActivityContentPane extends KDView
     @isLoaded = no
 
   viewAppended: ->
-    @addSubView @listController.getView()
+    @addSubView @listController.getListView()
 
   removeItem: (item) ->
     index = @listController.getListView().getItemIndex item
@@ -35,14 +36,7 @@ class ActivityContentPane extends KDView
     @listController.instantiateListItems content
     @listController.hideLazyLoader()
 
-  loadMore: ->
-    @emit 'NeedsMoreContent'
-
-  getContentFrom: ->
-    @listController.getListView().items.last.getData().createdAt
-
-  getLoadedCount: ->
-    @listController.getListView().items.length
+  getLoadedCount: -> @listController.getItemCount()
 
   removeMessage: MessagePane::removeMessage
 

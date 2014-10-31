@@ -36,7 +36,7 @@ type Controller struct {
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	n.log.Error("an error occured: %s", err)
+	n.log.Error("an error occurred: %s", err)
 	delivery.Ack(false)
 
 	return false

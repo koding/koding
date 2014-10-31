@@ -122,5 +122,5 @@ func (c *ChannelMessage) CountWithQuery(q *bongo.Query) (int, error) {
 }
 
 func (c *ChannelMessage) Delete() error {
-	return bongo.B.Delete(c)
+	return bongo.B.DB.Unscoped().Delete(c).Error
 }
