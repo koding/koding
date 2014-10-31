@@ -18,7 +18,7 @@ __saveToDropbox = (nodeView) ->
       vmName     : nodeView.getData().vmName
     , (err, res)->
       if err or res.exitStatus > 0
-        notification.notificationSetTitle "An error occured. Please try again."
+        notification.notificationSetTitle "An error occurred. Please try again."
         notification.notificationSetTimer 4000
         notification.setClass "error"
       else
@@ -50,7 +50,7 @@ __saveToDropbox = (nodeView) ->
                 notification.setClass "success"
                 removeTempFile()
               error: ->
-                notification.notificationSetTitle "An error occured while uploading your file."
+                notification.notificationSetTitle "An error occurred while uploading your file."
                 notification.notificationSetTimer 4000
                 notification.setClass "error"
                 removeTempFile()
