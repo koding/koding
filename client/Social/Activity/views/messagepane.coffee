@@ -389,15 +389,6 @@ class MessagePane extends KDTabPaneView
         callback err, items
 
 
-  refresh: ->
-
-    window.scrollTo 0, 0
-
-    @listController.removeAllItems()
-    @listController.showLazyLoader()
-    @populate()
-
-
   setFilter: (filter) ->
 
     return  if @currentFilter is filter

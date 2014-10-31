@@ -146,15 +146,6 @@ class ActivityAppView extends KDView
     return pane
 
 
-  refreshTab: (name) ->
-
-    pane = @tabs.getPaneByName name
-
-    pane?.refresh()
-
-    return pane
-
-
   showNewMessageForm: ->
 
     @widgetsBar.hide()
