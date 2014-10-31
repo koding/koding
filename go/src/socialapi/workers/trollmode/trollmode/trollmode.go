@@ -27,7 +27,7 @@ func NewController(log logging.Logger) *Controller {
 
 // this worker is completely idempotent, so no need to cut the circuit
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	c.log.Error("an error occured putting message back to queue", err)
+	c.log.Error("an error occurred putting message back to queue", err)
 	delivery.Nack(false, true)
 	return false
 }

@@ -62,9 +62,9 @@ type ParticipantContent struct {
 	ChannelId    int64  `json:"channelId"`
 }
 
-// DefaultErrHandler controls the errors, return false if an error occured
+// DefaultErrHandler controls the errors, return false if an error occurred
 func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	r.log.Error("an error occured deleting realtime event", err)
+	r.log.Error("an error occurred deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }
@@ -86,7 +86,7 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 }
 
 // MessageUpdated controls message updated status
-// if an error occured , returns error otherwise returns nil
+// if an error occurred , returns error otherwise returns nil
 func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 	if len(cm.Token) == 0 {
 		if err := cm.ById(cm.Id); err != nil {

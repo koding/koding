@@ -55,7 +55,7 @@ func (cue *channelUpdatedEvent) notifyAllParticipants() error {
 	)
 
 	if err != nil {
-		cue.Controller.log.Error("Error occured while fetching participants %s", err.Error())
+		cue.Controller.log.Error("Error occurred while fetching participants %s", err.Error())
 		return err
 	}
 
