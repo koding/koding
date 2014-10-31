@@ -183,7 +183,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
 
-      return KD.showError err  if err
+      return warn err  if err
 
       channel.isParticipant    = yes
       channel.participantCount = participantCount
@@ -202,7 +202,7 @@ class ActivitySidebar extends KDCustomHTMLView
     @removeItem id
 
     socialapi.cacheable typeConstant, id, (err, channel) =>
-      return KD.showError err  if err
+      return warn err  if err
 
       channel.isParticipant    = no
       channel.participantCount = participantCount
