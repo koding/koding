@@ -16,10 +16,6 @@ class PrivateMessageSettingsView extends KDCustomHTMLView
 
     @addSubView @settings
 
-  viewAppended: ->
-    if KD.checkFlag('super-admin') or KD.isMyChannel @getData()
-      @addSubView @settings
-
   addMenuItem: (title, callback) -> @menu[title] = {callback}
 
   settingsMenu: ->
