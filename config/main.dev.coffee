@@ -602,6 +602,7 @@ Configuration = (options={}) ->
         echo "  run testendpoints         : to test every URL endpoint programmatically."
         echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]       : to run a single worker"
+        echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
         echo ""
 
@@ -804,6 +805,9 @@ Configuration = (options={}) ->
 
       elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
+        trap - INT
+        trap
+
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
         else
@@ -873,8 +877,20 @@ Configuration = (options={}) ->
           echo "-------------------"
           echo '#{workerList "\n"}'
         else
+          trap - INT
+          trap
           eval "worker_$2"
         fi
+
+      elif [ "$1" == "supervisor" ]; then
+
+        SUPERVISOR_ENV=$2
+        if [ $SUPERVISOR_ENV == "" ]; then
+          SUPERVISOR_ENV="production"
+        fi
+
+        go run scripts/supervisor_status.go $SUPERVISOR_ENV
+        open supervisor.html
 
       elif [ "$#" == "0" ]; then
 
