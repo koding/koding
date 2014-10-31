@@ -20,7 +20,6 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
@@ -73,7 +72,6 @@ type Config struct {
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
-	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
 
 	// Artifacts endpoint port
@@ -111,21 +109,8 @@ func main() {
 		registerURL = u
 	}
 
-	if conf.Proxy {
-		k.Log.Info("Proxy mode is enabled")
-		// Koding proxies in production only
-		proxyQuery := &protocol.KontrolQuery{
-			Username:    "koding",
-			Environment: "production",
-			Name:        "proxy",
-		}
-
-		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go k.RegisterToProxy(registerURL, proxyQuery)
-	} else {
-		if err := k.RegisterForever(registerURL); err != nil {
-			k.Log.Fatal(err.Error())
-		}
+	if _, err := k.Register(registerURL); err != nil {
+		k.Log.Fatal(err.Error())
 	}
 
 	// TODO use kite's http server instead of creating another one here
