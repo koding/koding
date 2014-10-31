@@ -1,4 +1,4 @@
-box: koding/base@0.0.11
+box: koding/base@0.0.14
 services:
   - wercker/postgresql@0.0.4
   - wercker/rabbitmq@1.0.1
@@ -7,9 +7,6 @@ services:
 
 build:
   steps:
-    - script:
-        name: initialize submodules
-        code: git submodule update --init --recursive
     - script:
         name: npm install
         code: |
@@ -49,7 +46,37 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - add-ssh-key:
+        keyname: DEPLOYMENT_KEY
+    - script:
+        name: fetch pull requests
+        code: |
+          git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
+          git fetch --quiet origin
+    - mktemp:
+        envvar: INSTANCE_DATA
+    - script:
+        name: launch test instance
+        code: |
+          REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
+          GIT_REF=$(scripts/wercker/get-gitref $REMOTE_BRANCH)
+          scripts/wercker/launch-test-instance --gitref "$GIT_REF" | tail -n1 > $INSTANCE_DATA
+          INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
+          scripts/wercker/check-connectivity $INSTANCE_IP 8090 1m 3
+          scripts/wercker/check-connectivity $INSTANCE_IP 4444 1m 2
+          sleep 120
+    - script:
+        name: run test suite
+        code: |
+          INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
+          chmod 600 $KODING_DEPLOYMENT_KEY
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $INSTANCE_IP 'sudo /opt/koding/tests/test'
   after-steps:
+    - script:
+        name: terminate test instance
+        code: |
+          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
+          scripts/wercker/terminate-test-instance $INSTANCE_ID
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
