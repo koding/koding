@@ -49,7 +49,7 @@ sendEmail = (emailContent)->
     dateAttempted = new Date()
 
     if err
-      console.warn "An error occured: #{err}"
+      console.warn "An error occurred: #{err}"
       status = 'failed'
       smtpId = null
     else

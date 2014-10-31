@@ -12,8 +12,8 @@ command="node $path"
 # echo [watch-node $$] running $command and daemonizing, watching folder $watchfolder every 2 secs.
 # echo
 
-
-pid=0
+$command
+pid=$!
 while [[ true ]]; do
     
     if [[ `uname` == "Darwin" ]]; then

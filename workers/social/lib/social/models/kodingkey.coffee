@@ -118,7 +118,7 @@ module.exports = class JKodingKey extends jraphical.Module
 
     JKodingKey.one {key}, (err, kodingKey)->
       if err
-        console.warn "Error occured while fetching koding-key username: #{username}, key: #{key}, err :#{err}"
+        console.warn "Error occurred while fetching koding-key username: #{username}, key: #{key}, err :#{err}"
         return callback new KodingError "There is a problem with your key"
 
       if kodingKey
@@ -130,6 +130,6 @@ module.exports = class JKodingKey extends jraphical.Module
       # if not created before, create here
       JKodingKey.createKeyByUser {username, hostname, key}, (err, data)->
         if err
-          console.warn "Error occured while creating koding key - Err: #{err}, "
-          return callback new KodingError "An error occured while saving your key, please try again later"
+          console.warn "Error occurred while creating koding key - Err: #{err}, "
+          return callback new KodingError "An error occurred while saving your key, please try again later"
         return callback null, "Authentication is successfull! Using id: #{data.hostname}"

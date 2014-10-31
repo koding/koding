@@ -97,7 +97,7 @@ func (mwc *Controller) migrateAllPosts() {
 	successCount := 0
 
 	handleError := func(su *mongomodels.StatusUpdate, err error) {
-		mwc.log.Error("an error occured for %s: %s", su.Id.Hex(), err)
+		mwc.log.Error("an error occurred for %s: %s", su.Id.Hex(), err)
 		errCount++
 
 		s := modelhelper.Selector{"_id": su.Id}

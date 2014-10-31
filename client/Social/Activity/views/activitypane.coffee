@@ -1,8 +1,25 @@
 class ActivityPane extends MessagePane
 
+  PANE_OPTIONS = [
+      name          : 'Most Liked'
+      closable      : no
+      route         : '/Activity/Public/Liked'
+    ,
+      name          : 'Most Recent'
+      closable      : no
+      shouldShow    : no
+      route         : '/Activity/Public/Recent'
+    ,
+      name          : 'Search'
+      closable      : no
+      shouldShow    : no
+      hiddenHandle  : yes
+  ]
+
+
   constructor: (options, data) ->
     options.type        or= ''
-    options.cssClass     ?= "activity-pane #{options.type}"
+    options.cssClass      = KD.utils.curry "activity-pane #{options.type}", options.cssClass
     options.wrapper      ?= yes
     options.scrollView   ?= yes
     options.lastToFirst  ?= no
@@ -11,9 +28,12 @@ class ActivityPane extends MessagePane
 
     @createChannelTitle()
     @createInputWidget()
+    @createScrollView()
+    @bindLazyLoader()
     @bindInputEvents()
-    @createContentViews()
     @createTabView()
+    @createWidgetsBar()
+    @createContentViews()
     @createSearchInput()
 
     @once 'ChannelReady', @bound 'bindChannelEvents'
@@ -21,16 +41,27 @@ class ActivityPane extends MessagePane
 
     @fakeMessageMap = {}
 
-    if @getData().typeConstant in ['group', 'topic']
-      @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
+
+  bindLazyLoader: ->
+
+    @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
+      @activeContent?.emit 'NeedsMoreContent'
+
+
+  createWidgetsBar: ->
+
+    @widgetsBar = new ActivityWidgetsBar
+
 
   createContentViews: ->
-    data = @getData()
-    options = @getContentOptions()
 
-    @mostLiked = @createMostLikedView options, data
-    @mostRecent = @createMostRecentView options, data
-    @searchResults = @createSearchResultsView options, data
+    data       = @getData()
+    getOptions = (i) => $.extend PANE_OPTIONS[i], @getContentOptions()
+
+    @tabView.addPane @mostLiked     = @createMostLikedView     getOptions(0), data
+    @tabView.addPane @mostRecent    = @createMostRecentView    getOptions(1), data
+    @tabView.addPane @searchResults = @createSearchResultsView getOptions(2), data
+
 
   getContentOptions: ->
     o = @getOptions()
@@ -41,9 +72,10 @@ class ActivityPane extends MessagePane
     itemClass     : o.itemClass
     typeConstant  : @getData().typeConstant
 
+
   createMostLikedView: (options, data) ->
     pane = new ActivityContentPane options, data
-      .on "NeedsMoreContent", =>
+      .on 'NeedsMoreContent', =>
         from = null
         skip = @mostLiked.getLoadedCount()
 
@@ -51,15 +83,21 @@ class ActivityPane extends MessagePane
 
         @fetch { from, skip, mostLiked:yes }, @createContentAppender 'mostLiked'
 
+      .on 'PaneDidShow', =>
+        @setSearchedState no
+        @select 'mostLiked', mostLiked: yes
+
+
   createMostRecentView: (options, data) ->
     pane = new ActivityContentPane options, data
-      .on "NeedsMoreContent", =>
-        from = @mostRecent.getContentFrom()
-        skip = null
+      .on 'NeedsMoreContent', =>
 
-        pane.listController.showLazyLoader()
+        @lazyLoad pane.listController, @createContentAppender 'mostRecent'
 
-        @fetch { from, skip }, @createContentAppender 'mostRecent'
+      .on 'PaneDidShow', =>
+        @setSearchedState no
+        @select 'mostRecent'
+
 
   createSearchResultsView: (options, data) ->
     pane = new ActivitySearchResultsPane options, data
@@ -71,52 +109,20 @@ class ActivityPane extends MessagePane
 
           @search @currentSearch, { page, dontClear: yes }
 
-  getPaneData: ->
-    [
-      {
-        name          : 'Most Liked'
-        view          : @mostLiked
-        closable      : no
-        route         : '/Activity/Public/Liked'
-      }
-      {
-        name          : 'Most Recent'
-        view          : @mostRecent
-        closable      : no
-        shouldShow    : no
-        route         : '/Activity/Public/Recent'
-      }
-      {
-        name          : 'Search'
-        view          : @searchResults
-        closable      : no
-        shouldShow    : no
-        hiddenHandle  : yes
-      }
-    ]
+      .on 'PaneDidShow', =>
+        @setSearchedState yes
+        @activeContent = @searchResults
+
 
   createTabView: ->
+
     @tabView = new KDTabView
       cssClass          : 'activity-tab-view'
       tabHandleClass    : ActivityTabHandle
       maxHandleWidth    : Infinity
-      paneData          : @getPaneData()
+
+    @tabView.unsetClass 'kdscrollview'
     @tabView.tabHandleContainer.setClass 'filters'
-    @tabView.on 'PaneDidShow', @bound 'handlePaneShown'
-
-
-  handlePaneShown: (pane) ->
-
-    switch pane
-      when @mostLiked?.parent
-        @setSearchedState no
-        @select 'mostLiked', mostLiked: yes
-      when @mostRecent?.parent
-        @setSearchedState no
-        @select 'mostRecent'
-      when @searchResults?.parent
-        @setSearchedState yes
-        @activeContent = @searchResults
 
 
   open: (name, query) ->
@@ -147,8 +153,6 @@ class ActivityPane extends MessagePane
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
 
-  lazyLoad: -> @activeContent?.loadMore()
-
   putMessage: (message, index = 0) ->
     {router} = KD.singletons
     router.handleRoute '/Activity/Public/Recent'
@@ -165,9 +169,15 @@ class ActivityPane extends MessagePane
   createContentAppender: contentMethod 'appendContent'
 
   viewAppended: ->
-    @addSubView @channelTitleView
-    @addSubView @input
-    @addSubView @tabView
+
+    @addSubView @scrollView
+
+    {wrapper} = @scrollView
+
+    wrapper.addSubView @channelTitleView
+    wrapper.addSubView @input
+    wrapper.addSubView @tabView
+    wrapper.addSubView @widgetsBar
 
   removeFakeMessage: (identifier) ->
     @mostRecent.removeItem @fakeMessageMap[identifier]

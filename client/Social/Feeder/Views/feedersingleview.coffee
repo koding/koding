@@ -1,7 +1,6 @@
 class FeederSingleView extends KDCustomHTMLView
 
   constructor:(options = {})->
-    options.cssClass  =  KD.utils.curry 'app-content', options.cssClass
 
     super options
 

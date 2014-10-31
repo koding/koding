@@ -234,7 +234,7 @@ func NewToken(iss, scope string, key []byte) *Token {
 
 // Signer is an interface that given a JWT token, returns the header &
 // claim (serialized and urlEncoded to a byte slice), along with the
-// signature and an error (if any occured).  It could modify any data
+// signature and an error (if any occurred).  It could modify any data
 // to sign (typically the KeyID).
 //
 // Example usage where a SHA256 hash of the original url-encoded token
@@ -285,7 +285,7 @@ func (t *Token) encode() (string, error) {
 }
 
 // EncodeWithoutSignature returns the url-encoded value of the Token
-// before signing has occured (typically for use by external signers).
+// before signing has occurred (typically for use by external signers).
 func (t *Token) EncodeWithoutSignature() string {
 	t.header = t.Header.encode()
 	t.claim = t.ClaimSet.encode()

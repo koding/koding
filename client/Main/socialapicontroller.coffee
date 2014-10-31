@@ -526,7 +526,7 @@ class SocialApiController extends KDController
       mapperFn           : mapChannels
 
     fetchActivities      : (options, callback)->
-      err = {message: "An error occured"}
+      err = {message: "An error occurred"}
 
       xhr = new XMLHttpRequest
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"

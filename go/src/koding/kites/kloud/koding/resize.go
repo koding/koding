@@ -123,7 +123,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// delete volume if something goes wrong in following steps
 	defer func() {
 		if resErr != nil {
-			infoLog("(an error occured) deleting new volume %s ", newVolumeId)
+			infoLog("(an error occurred) deleting new volume %s ", newVolumeId)
 			_, err := a.Client.DeleteVolume(newVolumeId)
 			if err != nil {
 				a.Log.Error(err.Error())
@@ -142,13 +142,13 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		// if something goes wrong  detach the newly attached volume and attach
 		// back the old volume  so it can be used again
 		if resErr != nil {
-			infoLog("(an error occured) detaching newly created volume volume %s ", newVolumeId)
+			infoLog("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
 			_, err := a.Client.DetachVolume(newVolumeId)
 			if err != nil {
 				a.Log.Error(err.Error())
 			}
 
-			infoLog("(an error occured) attaching back old volume %s", oldVolumeId)
+			infoLog("(an error occurred) attaching back old volume %s", oldVolumeId)
 			_, err = a.Client.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1")
 			if err != nil {
 				a.Log.Error(err.Error())
