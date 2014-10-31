@@ -14,6 +14,7 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/kite/protocol"
 	"github.com/koding/metrics"
 
 	"github.com/koding/bongo"
@@ -29,6 +30,7 @@ var (
 	flagOutputMetrics  = flag.Bool("outputMetrics", false, "Output metrics")
 	flagKiteInit       = flag.Bool("kite-init", false, "Init kite system with the worker.")
 	flagKiteLocal      = flag.Bool("kite-local", false, "Start kite system in local mode.")
+	flagKiteProxy      = flag.Bool("kite-proxy", false, "Start kite system behind a proxy")
 	flagKiteKontrolURL = flag.String("kite-kontrol-url", "", "Change kite's register URL to kontrol")
 
 	// for socialAPI worker
@@ -149,8 +151,20 @@ func (r *Runner) RegisterToKontrol() error {
 	}
 
 	r.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	_, err := r.Kite.Register(registerURL)
-	return err
+	if *flagKiteProxy {
+		// Koding proxies in production only
+		proxyQuery := &protocol.KontrolQuery{
+			Username:    "koding",
+			Environment: "production",
+			Name:        "proxy",
+		}
+
+		r.Log.Info("Seaching proxy: %#v", proxyQuery)
+		go r.Kite.RegisterToProxy(registerURL, proxyQuery)
+		return nil
+	}
+
+	return r.Kite.RegisterForever(registerURL)
 }
 
 func (r *Runner) SetContext(controller broker.ErrHandler) {

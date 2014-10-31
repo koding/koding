@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -67,6 +68,10 @@ type Kite struct {
 	// HTTP muxer
 	httpHandler *http.ServeMux
 
+	// kontrolclient is used to register to kontrol and query third party kites
+	// from kontrol
+	kontrol *kontrolClient
+
 	// Handlers to call when a new connection is received.
 	onConnectHandlers []func(*Client)
 
@@ -107,6 +112,12 @@ func New(name, version string) *Kite {
 
 	l, setlevel := newLogger(name)
 
+	kClient := &kontrolClient{
+		readyConnected:  make(chan struct{}),
+		readyRegistered: make(chan struct{}),
+		registerChan:    make(chan *url.URL, 1),
+	}
+
 	k := &Kite{
 		Config:             config.New(),
 		Log:                l,
@@ -116,6 +127,7 @@ func New(name, version string) *Kite {
 		handlers:           make(map[string]*Method),
 		preHandlers:        make([]Handler, 0),
 		postHandlers:       make([]Handler, 0),
+		kontrol:            kClient,
 		name:               name,
 		version:            version,
 		Id:                 kiteID.String(),

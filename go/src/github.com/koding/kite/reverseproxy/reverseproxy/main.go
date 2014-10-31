@@ -64,7 +64,7 @@ func main() {
 	}
 
 	r.Kite.Log.Info("Registering with register url %s", registerURL)
-	if _, err := r.Kite.Register(registerURL); err != nil {
+	if err := r.Kite.RegisterForever(registerURL); err != nil {
 		r.Kite.Log.Fatal("Registering to Kontrol: %s", err)
 	}
 
