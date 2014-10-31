@@ -20,64 +20,81 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	// Assume the klient state as running initially
 	klientState := machinestate.Running
 
+	// the final state that will be sent to the caller
+	resultState := dbState
+
+	// Get the klient state.
 	err = klient.Exists(p.Kite, m.QueryString)
 	switch err {
 	case kite.ErrNoKitesAvailable:
-		p.Log.Warning("[%s] klient is disconnected, I couldn't find it trough Kontrol. err: %s",
+		p.Log.Warning("[%s] Klient is disconnected, I couldn't find it through Kontrol. Err: %s",
 			m.Id, err)
-
 		klientState = machinestate.Stopped
-
-		// start shutdown timer, because klient is not running, don't let
-		// it be running forever
-		p.startTimer(m)
 	case nil:
-		// klient is running and there is no error. We are stopping the timer
-		// because everything seems cool.
-		p.stopTimer(m)
 	default:
 		// Any other error will fallback to here. So assume that kontrol
 		// failed or some other catastrophic failure occured. Thus, do not
 		// stop or destroy the machine because of our failure.
-		p.stopTimer(m)
 		p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
 	}
 
-	p.Log.Debug("[%s] info initials: current db state is '%s'. klient state is '%s'",
+	p.Log.Debug("[%s] Info initials: Current db state: '%s'. Klient state: '%s'",
 		m.Id, dbState, klientState)
 
-	// result state is the final state that is send back to the request
-	resultState := dbState
+	// States are in sync. Don't do anything and return early.
+	if klientState == dbState {
+		return &protocol.InfoArtifact{
+			State: resultState,
+		}, nil
+	}
+
+	// Machine states are in inconsistent state. Find out the correct state and sync them.
+	reason := ""
+	switch klientState {
+	case machinestate.Running:
+
+		// If the klient is running, then it is safe to say that the  machine
+		// is healthy.
+		reason = "Klient is active and healthy."
+		resultState = machinestate.Running
+		dbState = machinestate.Running
+
+		// Stop the shutdown timer if there is any.
+		p.stopTimer(m)
+
+	case machinestate.Stopped:
+		reason = "Klient is not active."
+
+		// Start the shutdown timer since the klient is unreachable.
+		// startTimer does not turn-off always-on machines, which is good
+		p.startTimer(m)
+
+		resultState = machinestate.Stopped
+		dbState = machinestate.Stopped
+
+		// don't mark always-on machines as stopped. ever.
+		if a, ok := m.Builder["alwaysOn"]; ok {
+			if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+				resultState = machinestate.Running
+				dbState = machinestate.Running
+				p.Log.Critical("[%s] Couldn't get klient information from an always-on machine. Treating it as in Running state", m.Id)
+			}
+		}
+	default:
+		reason = "Klient is in unknown state."
+	}
 
 	// auto-fix db state if the klient state is different than db state. This will
 	// not break existing actions like building, starting, stopping etc...
 	// because CheckAndUpdateState only update the state if there is no lock
 	// available.
-	if dbState != klientState {
-		reason := ""
-		switch klientState {
-		case machinestate.Running:
-			reason = "Klient is active and healthy."
-		case machinestate.Stopped:
-			reason = "Klient is not active."
-		default:
-			reason = "Klient is in unknown state."
-		}
-
-		// return an error anything here if the DB is locked.
-		err := p.CheckAndUpdateState(m.Id, reason, klientState)
-		if err == nil {
-			p.Log.Info("[%s] info decision : inconsistent state. using klient state '%s'",
-				m.Id, klientState)
-			// return klientState since it is the most updated one.
-			resultState = klientState
-		} else {
-			p.Log.Debug("[%s] info decision : using current db state '%s'",
-				m.Id, resultState)
-		}
+	p.Log.Info("[%s] Info decision: Inconsistent state between klient and db. Updating state to '%s'. Reason: %s", m.Id, dbState, reason)
+	err = p.CheckAndUpdateState(m.Id, reason, dbState)
+	if err != nil {
+		p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
 	}
 
-	p.Log.Debug("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
+	p.Log.Debug("[%s] Info result: '%s' username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,
