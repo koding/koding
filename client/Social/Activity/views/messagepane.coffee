@@ -385,7 +385,7 @@ class MessagePane extends KDTabPaneView
 
       if @currentFilter is 'Most Liked'
         from = null
-        skip = listController.getItemsCount()
+        skip = listController.getItemCount()
       else
         from = last.getData().createdAt
 
