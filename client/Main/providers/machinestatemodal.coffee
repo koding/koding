@@ -100,12 +100,16 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         .kloud.info { @machineId }
         .then (response)=>
 
+          info "Initial info result:", response
+
           @buildViews response
 
           if response.State is NotInitialized
             KD.utils.defer => @turnOnMachine()
 
-        .catch =>
+        .catch (err)=>
+
+          warn "Failed to fetch initial info:", err
           @hasError = yes
           @buildViews()
 

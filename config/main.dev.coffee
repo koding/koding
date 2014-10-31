@@ -629,7 +629,7 @@ Configuration = (options={}) ->
             exit 1
         fi
 
-        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h #{boot2dockerbox} social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
         if [[ $EXISTS != '1' ]]; then
           echo ""
           echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
@@ -703,10 +703,9 @@ Configuration = (options={}) ->
         cd #{projectRoot}/go/src/socialapi/db/sql
 
         # Include this to dockerfile before we continute with building
-        rm -rf kontrol
-        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
-        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/001-schema.sql
-        rm kontrol/001-schema.sql.bak
+        mkdir -p kontrol
+        cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+        sed -i -e 's/somerandompassword/kontrolapplication/' kontrol/001-schema.sql
 
         docker build -t koding/postgres .
 
@@ -842,11 +841,12 @@ Configuration = (options={}) ->
 
         check_service_dependencies
 
-        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]
-        then
+        if [ "$2" != "force" ]; then
+          read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+          echo ""
+          if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 1
+          fi
         fi
 
         build_services

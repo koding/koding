@@ -10,7 +10,7 @@ class DashboardAppView extends JView
       tagName     : 'aside'
       cssClass    : 'app-sidebar'
     @tabs   = new KDTabView
-      cssClass            : 'dashboard-tabs app-content'
+      cssClass            : 'dashboard-tabs'
       hideHandleContainer : yes
     , data
 

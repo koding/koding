@@ -138,7 +138,6 @@ validationRed = rgba(217, 58, 55, 0.65)
 
 
 .avatarview
-  background-image          url('/a/images/defaultavatar/avatar.svg')
   background-size           100% 100%
   background-repeat         no-repeat
   overflow                  hidden
@@ -146,15 +145,6 @@ validationRed = rgba(217, 58, 55, 0.65)
   vertical-align            top
   img
     rounded                 3px
-
-.content-page
-  margin                    0 auto
-  size                      auto auto
-
-  > .kdtabview
-    height              100%
-    font-size           14px
-    fl()
 
 aside.app-sidebar
   left            sidebarWidth
@@ -165,12 +155,11 @@ aside.app-sidebar
   fix()
   styleScrollBars()
 
-.app-content
+.content-page > .kdtabview
   min-height       100vh
-  padding-left     34px
   borderBox()
 
-.content-page .app-sidebar ~ .app-content
+.content-page .app-sidebar ~ .kdtabview
   kalc                  width, 100% \- 292px
   margin-left           292px
   padding-left          0
