@@ -489,6 +489,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article class='judges'>
         <h4>Judges</h4>
+        <p>Because we expect a large number of applicants, we wanted to ensure that we have a good number of awesome judges to help evaluate the incoming projects. These amazing folks have agreed to become part of our event. We cannot thank them enough.</p>
         <div class='clearfix'></div>
       </article>
       <article class='apis'>
