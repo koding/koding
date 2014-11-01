@@ -28,6 +28,7 @@ userData =
     - cd /opt/koding
     - git fetch origin '#{argv.gitref}'
     - git checkout FETCH_HEAD
+    - git submodule update --recursive
     - /opt/koding/scripts/wercker/init-test-instance
   """
 
