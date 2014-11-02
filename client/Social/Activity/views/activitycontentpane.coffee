@@ -27,15 +27,13 @@ class ActivityContentPane extends KDTabPaneView
 
   setContent: (items) ->
     @listController.removeAllItems()
-    for item in items
-      KD.utils.defer => @listController.addItem item
+    items.forEach (item) => KD.utils.defer => @listController.addItem item
     @listController.hideLazyLoader()
     @isLoaded = yes
     @emit 'ContentIsShown'
 
   appendContent: (items) ->
-    for item in items
-      KD.utils.defer => @listController.addItem item
+    items.forEach (item) => KD.utils.defer => @listController.addItem item
     @listController.hideLazyLoader()
 
   getLoadedCount: -> @listController.getItemCount()
