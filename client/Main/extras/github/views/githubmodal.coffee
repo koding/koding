@@ -61,7 +61,7 @@ class GitHub.Modal extends KDModalView
         @loader.hide()
         @refreshButton.show()
         @message.updatePartial """
-          An error occured while fetching
+          An error occurred while fetching
           repos from #{GitHub.makeLink username}...
         """
         new KDNotificationView title: err.message  if err.message?

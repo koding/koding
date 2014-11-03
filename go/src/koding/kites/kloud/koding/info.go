@@ -10,6 +10,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
@@ -63,8 +64,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
 		klientChecked = true
 
-		klientRef, err := p.KlientPool.Get(m.QueryString)
-
+		err := klient.Exists(p.Kite, m.QueryString)
 		switch err {
 		case kite.ErrNoKitesAvailable:
 			p.Log.Warning("[%s] klient is disconnected, I couldn't find it trough Kontrol. err: %s",
@@ -81,17 +81,8 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 			// stop any if any timer is available
 			p.stopTimer(m)
-
-			// ping the klient again just to see if it can respond to us
-			if err := klientRef.Ping(); err != nil {
-				p.Log.Warning("[%s] state is '%s' but I can't send a ping. Err: %s",
-					m.Id, resultState, err.Error())
-
-				// seems we can't send even a simple ping! It's not
-				// functional so we assume it's stopped
-				resultState = machinestate.Stopped
-			}
 		default:
+			p.stopTimer(m)
 			// error is something else and critical, so don't do anything until it's resolved
 			p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
 		}

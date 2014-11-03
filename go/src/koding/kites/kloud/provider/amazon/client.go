@@ -268,6 +268,10 @@ func (a *AmazonClient) Restart(withPush bool) error {
 }
 
 func (a *AmazonClient) Destroy(start, finish int) error {
+	if a.Id() == "" {
+		return errors.New("instance id is empty")
+	}
+
 	a.Push("Terminating machine", start, machinestate.Terminating)
 	_, err := a.Client.TerminateInstances([]string{a.Id()})
 	if err != nil {

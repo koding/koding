@@ -31,7 +31,6 @@ class FooterView extends JView
         <a href="/tos.html" target="_blank">TERMS AND CONDITIONS</a>
         <a href="/privacy.html" target="_blank">PRIVACY POLICY</a>
         <a href="mailto:hello@koding.com" target='_self'>CONTACT US</a>
-        <a href="http://status.koding.com" target="_blank">STATUS</a>
       </nav>
 
       <nav class="footer-block">

@@ -35,8 +35,8 @@ module.exports = [
   "views/widgetsbar.coffee"
 
   "views/messagepane.coffee"
-  "views/topicmessagepane.coffee"
   "views/activitypane.coffee"
+  "views/topicmessagepane.coffee"
   "views/singleactivitypane.coffee"
   "views/announcementpane.coffee"
 
@@ -50,7 +50,6 @@ module.exports = [
   "views/likesummaryview.coffee"
   "views/likeview.coffee"
   "views/activityactions.coffee"
-  "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
@@ -111,6 +110,7 @@ module.exports = [
   "views/comments/listviewcontroller.coffee"
   "views/comments/replylistviewcontroller.coffee"
   "views/comments/settingsbutton.coffee"
+  "views/comments/deletemodal.coffee"
   "views/comments/listitemview.coffee"
   "views/comments/replylistitemview.coffee"
   "views/comments/timeview.coffee"
@@ -130,5 +130,11 @@ module.exports = [
   "views/buymachinemodal.coffee"
 
   "styl/activity.styl"
+  "styl/activity.pm.styl"
+  "styl/activity.innertabs.styl"
+  "styl/activity.inputwidget.styl"
+  "styl/activity.listitem.styl"
+  "styl/activity.widgetsbar.styl"
+  "styl/activity.markdown.styl"
   "styl/activity.responsive.styl"
 ]

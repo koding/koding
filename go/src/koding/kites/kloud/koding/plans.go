@@ -105,6 +105,9 @@ const (
 	// Koding: 100 VMs, 100 Always On, 1000GB total Storage
 	// Internal use only
 	Koding
+
+	// Betatester: 1 VM, 1 Always On, 3GB total storage
+	Betatester
 )
 
 var plans = map[string]Plan{
@@ -114,6 +117,7 @@ var plans = map[string]Plan{
 	"professional": Professional,
 	"super":        Super,
 	"koding":       Koding,
+	"betatester":   Betatester,
 }
 
 var planLimits = map[Plan]Limits{
@@ -171,6 +175,15 @@ var planLimits = map[Plan]Limits{
 			T2Micro: {}, T2Small: {}, T2Medium: {},
 		},
 	},
+	Betatester: {
+		Total:    1,
+		AlwaysOn: 1,
+		Storage:  3,
+		Timeout:  60 * time.Minute,
+		AllowedInstances: map[InstanceType]struct{}{
+			T2Micro: {},
+		},
+	},
 }
 
 func (p Plan) Limits() Limits {
@@ -191,6 +204,8 @@ func (p Plan) String() string {
 		return "Super"
 	case Koding:
 		return "Koding"
+	case Betatester:
+		return "Betatester"
 	default:
 		return "Unknown"
 	}

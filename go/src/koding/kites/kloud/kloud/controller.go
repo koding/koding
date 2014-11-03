@@ -201,9 +201,6 @@ func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
 		}, nil
 	}
 
-	// add fake eventer to avoid errors on NewClient at provider, the info method doesn't use it
-	machine.Eventer = &eventer.Events{}
-
 	provider, ok := k.providers[machine.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderAvailable)

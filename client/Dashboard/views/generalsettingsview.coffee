@@ -71,7 +71,7 @@ class GroupGeneralSettingsView extends JView
             catch e
               warn e; log data
               return new KDNotificationView
-                title: "An error occured"
+                title: "An error occurred"
 
             new KDModalView
               content : "<pre>#{parsed}</pre>"

@@ -99,14 +99,14 @@ class DomainCreateForm extends KDCustomHTMLView
       @showSuccess domain
 
   handleDomainCreationError: (err) ->
-    warn "An error occured while creating domain:", err
+    warn "An error occurred while creating domain:", err
     switch err.name
       when "INVALIDDOMAIN"
         @showError "This is an invalid subdomain.", @subdomainForm
       when "ACCESSDENIED"
         @showError "You do not have permission to create a subdomain in this domain", @subdomainForm
       else
-        @showError err.message or "An unknown error occured. Please try again later.", @subdomainForm
+        @showError err.message or "An unknown error occurred. Please try again later.", @subdomainForm
 
   createJProposedDomain:(domain, callback) ->
 

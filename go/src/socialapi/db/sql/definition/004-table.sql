@@ -86,7 +86,7 @@ CREATE TABLE "api"."channel_message" (
     "deleted_at" TIMESTAMP (6) WITH TIME ZONE,
     "payload" hstore
 ) WITH (OIDS = FALSE);
-GRANT SELECT, INSERT, UPDATE ON "api"."channel_message" TO "social";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message" TO "social";
 
 
 -- ----------------------------

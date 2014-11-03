@@ -99,10 +99,10 @@ class CommentInputWidget extends ActivityInputWidget
 
     @input.unsetClass 'placeholder'
 
-    @input.setContent \
+    @input.setValue \
       if value.indexOf("@#{username}") >= 0 then value
-      else if value.length is 0 then "@#{username}&nbsp;"
-      else "#{value} @#{username}&nbsp;"
+      else if value.length is 0 then "@#{username} "
+      else "#{value} @#{username} "
 
     @setFocus()
 

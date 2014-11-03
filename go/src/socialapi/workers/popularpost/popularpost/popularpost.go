@@ -34,7 +34,7 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 		return true
 	}
 
-	t.log.Error("an error occured putting message back to queue", err)
+	t.log.Error("an error occurred putting message back to queue", err)
 	delivery.Nack(false, true)
 	return false
 }

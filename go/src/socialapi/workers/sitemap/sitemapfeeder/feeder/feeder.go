@@ -23,7 +23,7 @@ type Controller struct {
 var ErrIgnore = errors.New("ignore")
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	f.log.Error("an error occured deleting realtime event", err)
+	f.log.Error("an error occurred deleting realtime event", err)
 	delivery.Ack(false)
 	return false
 }

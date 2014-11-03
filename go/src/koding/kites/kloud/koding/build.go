@@ -120,13 +120,14 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
 
 	if a.Builder.InstanceType == "" {
-		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.mico")
+		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
 		a.Builder.InstanceType = T2Micro.String()
 	}
 
-	// check if the user is egligible to create a vm with this size
+	// check if the user is egligible to create a vm
 	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-		return nil, err
+		a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
+		a.Builder.InstanceType = T2Micro.String()
 	}
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
@@ -296,7 +297,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				a.Builder.SubnetId = subnet.SubnetId
 
 				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
-					m.Id, zone, a.Builder.SubnetId, err)
+					m.Id, zone, a.Builder.SubnetId)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
@@ -305,6 +306,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 				if isCapacityError(err) {
 					// if there is no capacity we are going to use the next one
+					p.Log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
+						m.Id, zone)
 					continue
 				}
 
@@ -320,6 +323,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		}
 
 		// 3. Try to use another instance
+		// TODO: do not choose an instance lower than the current user
+		// instance. Currently all we give is t2.micro, however it if the user
+		// has a t2.medium, we'll give them a t2.small if there is no capacity,
+		// which needs to be fixed in the near future.
 		instanceFunc := func() error {
 			for _, instanceType := range InstancesList {
 				a.Builder.InstanceType = instanceType

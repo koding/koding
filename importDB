@@ -15,7 +15,7 @@ exec check, (err, stdout, stderr)->
       console.error "Failed to connect Mongo server."
       console.info "You can pass different server address as first parameter."
     else
-      console.error "An error occured:", err
+      console.error "An error occurred:", err
 
     process.exit 1
 
