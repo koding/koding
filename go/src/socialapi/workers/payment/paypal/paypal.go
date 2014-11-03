@@ -1,7 +1,6 @@
 package paypal
 
 import (
-	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 
@@ -20,33 +19,6 @@ var (
 	isSandbox = true
 	client    = paypal.NewDefaultClient(username, password, signature, isSandbox)
 )
-
-func GetToken(planTitle, planInterval string) (string, error) {
-	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
-	if err != nil {
-		return "", err
-	}
-
-	item := paypal.NewDigitalGood(plan.Title, amount(plan.AmountInCents))
-
-	args := paypal.NewExpressCheckoutSingleArgs()
-	args.ReturnURL = returnURL
-	args.CancelURL = cancelURL
-	// args.BuyerId   = "jones"
-	args.Item = item
-
-	response, err := client.SetExpressCheckoutSingle(args)
-	if err != nil {
-		return "", err
-	}
-
-	token := response.Values.Get("TOKEN")
-	if token == "" {
-		return "", errors.New("token is empty")
-	}
-
-	return token, nil
-}
 
 // TODO: move to common location
 func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {

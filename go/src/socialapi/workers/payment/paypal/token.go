@@ -1,0 +1,34 @@
+package paypal
+
+import (
+	"errors"
+
+	"github.com/koding/paypal"
+)
+
+func GetToken(planTitle, planInterval string) (string, error) {
+	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+	if err != nil {
+		return "", err
+	}
+
+	item := paypal.NewDigitalGood(plan.Title, amount(plan.AmountInCents))
+
+	args := paypal.NewExpressCheckoutSingleArgs()
+	args.ReturnURL = returnURL
+	args.CancelURL = cancelURL
+	// args.BuyerId   = "jones"
+	args.Item = item
+
+	response, err := client.SetExpressCheckoutSingle(args)
+	if err != nil {
+		return "", err
+	}
+
+	token := response.Values.Get("TOKEN")
+	if token == "" {
+		return "", errors.New("token is empty")
+	}
+
+	return token, nil
+}
