@@ -88,6 +88,8 @@ module.exports = class Payment extends Base
     requiredParams = [ "planTitle" ]
 
     validateParams requiredParams, data, (err)->
+      return callback err  if err
+
       canChangePlan client, data.planTitle, callback
 
   @deleteAccount = (client, callback)->
@@ -96,7 +98,7 @@ module.exports = class Payment extends Base
 
     deleteReq url, {}, callback
 
-  @getToken = (client, data, callback)->
+  @getToken = secure (client, data, callback)->
     requiredParams = [ "planTitle", "planInterval" ]
 
     validateParams requiredParams, data, (err)->
