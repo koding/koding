@@ -7,6 +7,7 @@ import (
 	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
+	"koding/kites/klient/collaboration"
 	"koding/kites/klient/protocol"
 	"koding/kites/klient/usage"
 	"log"
@@ -42,6 +43,8 @@ var (
 	// this is our main reference to count and measure metrics for the klient
 	usg  = usage.NewUsage()
 	klog kite.Logger
+
+	collab = collaboration.New()
 
 	// we also could use an atomic boolean this is simple for now.
 	updating   = false
@@ -104,7 +107,14 @@ func main() {
 			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 
+			// Allow these users by default.
 			allowedUsers := []string{k.Config.Username, "koding"}
+
+			// Add collaboration users to the list
+			for user := range collab.AllowedUsers {
+				allowedUsers = append(allowedUsers, user)
+			}
+
 			if !userIn(r.Username, allowedUsers...) {
 				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
 			}
@@ -149,6 +159,11 @@ func main() {
 
 	// also invoke updating
 	k.Handle("klient.update", updater)
+
+	// Collaboration
+	k.HandleFunc("klient.share", collab.Share)
+	k.HandleFunc("klient.unshare", collab.Unshare)
+	k.HandleFunc("klient.shared", collab.Shared)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
