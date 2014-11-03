@@ -2,7 +2,7 @@ class ActivityListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.type               = 'activity'
     options.commentViewClass or= CommentView
@@ -33,14 +33,14 @@ class ActivityListItemView extends KDListItemView
       constructorName : data.account.constructorName
       id              : data.account._id
 
-    @avatar    = new AvatarView
+    @avatar = new AvatarView
       size     :
         width  : 37
         height : 37
       cssClass : 'author-avatar'
       origin   : origin
 
-    @author      = new ProfileLinkView { origin }
+    @author = new ProfileLinkView { origin }
 
     {commentViewClass} = options
 
@@ -56,7 +56,6 @@ class ActivityListItemView extends KDListItemView
       cssClass      : 'settings-menu-wrapper'
       itemView      : this
     , data
-
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
@@ -113,7 +112,7 @@ class ActivityListItemView extends KDListItemView
     else @unsetClass 'edited'
 
 
-  showEditWidget : ->
+  showEditWidget: ->
 
     unless @editWidget
       { editWidgetClass } = @getOptions()
@@ -148,7 +147,7 @@ class ActivityListItemView extends KDListItemView
     @editWidget = null
 
 
-  resetEditing : ->
+  resetEditing: ->
 
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
@@ -180,13 +179,12 @@ class ActivityListItemView extends KDListItemView
     @resend.show()
 
 
-
   hideResend: ->
     @unsetClass 'failed'
     @resend.destroySubViews()
 
 
-  partial:-> ''
+  partial: -> ''
 
 
   hide: ->
@@ -218,6 +216,7 @@ class ActivityListItemView extends KDListItemView
 
 
   whenSubmitted: ->
+
     new Promise (resolve) =>
       if @isBeingHidden
       then @once 'HideAnimationFinished', -> resolve()
@@ -233,14 +232,15 @@ class ActivityListItemView extends KDListItemView
       @destroy()
 
 
-  render : ->
+  render: ->
 
     super
 
     emojify.run @getElement()
     @checkIfItsTooTall()
 
-  viewAppended:->
+
+  viewAppended: ->
 
     JView::viewAppended.call this
 
