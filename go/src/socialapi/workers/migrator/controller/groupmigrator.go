@@ -18,7 +18,7 @@ func (mwc *Controller) migrateAllGroups() {
 	successCount := 0
 
 	handleError := func(g *mongomodels.Group, err error) {
-		mwc.log.Error("an error occured for group %s: %s", g.Id.Hex(), err)
+		mwc.log.Error("an error occurred for group %s: %s", g.Id.Hex(), err)
 		errCount++
 
 		s := modelhelper.Selector{"slug": g.Slug}

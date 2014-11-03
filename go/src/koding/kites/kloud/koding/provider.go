@@ -137,14 +137,19 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Starting machine", 10, machinestate.Starting)
 
-	// check if the user doesn't have t2.micro and revert back to t2.micro.
-	// This is lazy auto healing of instances that were created because there
-	// were no capacity for t2.micro
-	if infoResp.InstanceType != T2Micro.String() {
-		a.Log.Warning("[%s] instance is using t2.small. Changing back to t2.micro.", m.Id)
-		opts := &ec2.ModifyInstance{InstanceType: T2Micro.String()}
+	// check if the user has something else than their current instance type
+	// and revert back to t2.micro. This is lazy auto healing of instances that
+	// were created because there were no capacity for their specific instance
+	// type.
+	if infoResp.InstanceType != a.Builder.InstanceType {
+		a.Log.Warning("[%s] instance is using '%s'. Changing back to t2.micro.",
+			m.Id, a.Builder.InstanceType)
+
+		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
+
 		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
+			p.Log.Warning("[%s] couldn't change instance to '%s' again. err: %s",
+				a.Builder.InstanceType, err)
 		}
 
 		// wait for AWS eventually consistency state, so we wait to get the
@@ -471,7 +476,7 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		}
 
 		if infoResp.State == machinestate.Running {
-			_, err := p.KlientPool.Get(m.QueryString)
+			err := klient.Exists(p.Kite, m.QueryString)
 			if err == nil {
 				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
 					m.Id, m.Username)

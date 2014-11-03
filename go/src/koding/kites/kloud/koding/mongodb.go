@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
@@ -61,6 +62,7 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		State:       machine.State(),
 		IpAddress:   machine.IpAddress,
 		QueryString: machine.QueryString,
+		Eventer:     &eventer.Events{},
 	}
 
 	m.Domain.Name = machine.Domain

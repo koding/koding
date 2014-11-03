@@ -7,7 +7,7 @@ import (
 )
 
 // IniError contains location information on where in the ini file an error
-// occured.
+// occurred.
 type IniError struct {
 	// The error message.
 	Message string

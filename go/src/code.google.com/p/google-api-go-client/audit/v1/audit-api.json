@@ -251,7 +251,7 @@
       },
       "endTime": {
        "type": "string",
-       "description": "Return events which occured at or before this time.",
+       "description": "Return events which occurred at or before this time.",
        "location": "query"
       },
       "eventName": {
@@ -269,7 +269,7 @@
       },
       "startTime": {
        "type": "string",
-       "description": "Return events which occured at or after this time.",
+       "description": "Return events which occurred at or after this time.",
        "location": "query"
       }
      },

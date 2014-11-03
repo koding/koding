@@ -153,7 +153,7 @@ func Copy(src, dst string) error {
 }
 
 // IsFile checks wether the given file is a directory or not. It panics if an
-// error is occured. Use IsFileOk to use the returned error.
+// error is occurred. Use IsFileOk to use the returned error.
 func IsFile(file string) bool {
 	ok, err := IsFileOk(file)
 	if err != nil {
@@ -184,7 +184,7 @@ func IsFileOk(file string) (bool, error) {
 }
 
 // Exists checks whether the given file exists or not. It panics if an error
-// is occured. Use ExistsOk to use the returned error.
+// is occurred. Use ExistsOk to use the returned error.
 func Exists(file string) bool {
 	ok, err := ExistsOk(file)
 	if err != nil {

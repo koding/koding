@@ -225,7 +225,7 @@ class AccountCredentialList extends KDListView
 
           warn e; log data
           return new KDNotificationView
-            title: "An error occured"
+            title: "An error occurred"
 
         new KDModalView
           title    : credential.title

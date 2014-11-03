@@ -18,7 +18,7 @@ connection.addListener('ready', function () {
 });
 
 timeout = setTimeout(function() {
-  puts("ERROR: Timeout occured!!!!!!!");
+  puts("ERROR: Timeout occurred!!!!!!!");
   connection.end();
   assert.ok(1, 2);
 }, 5000);

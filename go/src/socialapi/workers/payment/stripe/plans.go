@@ -103,4 +103,10 @@ var DefaultPlans = map[string]*Plan{
 		Amount:        0,
 		Interval:      stripe.Month,
 	},
+	"betatester": &Plan{
+		Title:         "betatester",
+		NameForStripe: "Betatester",
+		Amount:        0,
+		Interval:      stripe.Month,
+	},
 }

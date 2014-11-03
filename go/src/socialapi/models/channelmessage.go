@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"socialapi/config"
 	"socialapi/request"
@@ -188,6 +189,11 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 
 	var err error
 	cmc.Message, err = cmc.Message.PopulateAddedBy()
+	if err != nil {
+		return nil, err
+	}
+
+	cmc.Message, err = cmc.Message.PopulateInitialParticipants()
 	if err != nil {
 		return nil, err
 	}
@@ -517,6 +523,47 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 
 	*addedByData = a.Nick
 	newCm.Payload["addedBy"] = addedByData
+
+	return newCm, nil
+}
+
+func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) {
+	newCm := NewChannelMessage()
+	*newCm = *c
+
+	initialParticipants, ok := c.Payload["initialParticipants"]
+	if !ok {
+		return c, nil
+	}
+
+	var participants []string
+	err := json.Unmarshal([]byte(*initialParticipants), &participants)
+	if err != nil {
+		return c, err
+	}
+
+	accountIds := make([]string, len(participants))
+	for i, participant := range participants {
+		accountId, err := strconv.ParseInt(participant, 10, 64)
+		if err != nil {
+			return c, err
+		}
+
+		a, err := FetchAccountFromCache(accountId)
+		if err != nil {
+			return c, err
+		}
+
+		accountIds[i] = a.Nick
+	}
+
+	participantNicks, err := json.Marshal(accountIds)
+	if err != nil {
+		return c, err
+	}
+
+	pns := string(participantNicks)
+	newCm.Payload["initialParticipants"] = &pns
 
 	return newCm, nil
 }

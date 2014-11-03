@@ -26,6 +26,11 @@ generateMainConf = (supervisorEnvironmentStr ="")->
   user=root                                       ; default user
   childlogdir=/var/log/supervisord/               ; where child log files will live
   \n
+
+  [inet_http_server]
+  port=0.0.0.0:9001
+  username=koding
+  password=1q2w3e4r
   """
 
 # becareful while editing this function, any change will affect evey worker

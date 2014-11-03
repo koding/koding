@@ -24,13 +24,16 @@ module.exports =
 
   likeActivity: (browser) ->
 
-    helpers.postActivity(browser)
-    selector = activitySelector + ' [testpath=activity-like-link]'
+    user = helpers.beginTest(browser)
+    helpers.postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
 
     browser
       .waitForElementVisible selector, 10000
       .click                 selector
-      .waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
+      .waitForElementVisible likeElement, 10000
+      .assert.containsText   likeElement, user.username + ' liked this.'
       .end()
 
 

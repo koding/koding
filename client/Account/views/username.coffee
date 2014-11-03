@@ -183,7 +183,7 @@ class AccountEditUsername extends JView
 
         JUser.fetchUser (err, user)=>
           if err
-            notify "An error occured"
+            notify "An error occurred"
             return queue.next()
 
           skipPasswordConfirmation = true  if user.passwordStatus isnt "valid"
