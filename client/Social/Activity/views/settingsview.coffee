@@ -100,7 +100,7 @@ class ActivitySettingsView extends KDCustomHTMLView
     KD.singletons.appManager.tell 'Activity', 'delete', {id}, (err) =>
 
       if err
-        KD.showErrorNotification err, { userMessage : "You are not allowed to delete this post." }
+        KD.showError err
         @emit 'ActivityDeleteFailed'
       else
         @emit 'ActivityDeleteSucceeded'
