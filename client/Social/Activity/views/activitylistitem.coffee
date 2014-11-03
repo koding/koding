@@ -5,7 +5,6 @@ class ActivityListItemView extends KDListItemView
   constructor:(options = {}, data)->
 
     options.type               = 'activity'
-    options.cssClass           = KD.utils.curry 'activity-item status', options.cssClass
     options.commentViewClass or= CommentView
     options.commentSettings  or= {}
     options.attributes       or= {}
@@ -235,8 +234,11 @@ class ActivityListItemView extends KDListItemView
 
 
   render : ->
+
     super
+
     emojify.run @getElement()
+    @checkIfItsTooTall()
 
   viewAppended:->
 
@@ -248,10 +250,38 @@ class ActivityListItemView extends KDListItemView
 
     @setClass 'edited'  if updatedAt > createdAt
 
-    @utils.defer =>
+    KD.utils.defer =>
       if @getData().link?.link_url? isnt ''
       then @embedBox.show()
       else @embedBox.hide()
+
+      @checkIfItsTooTall()
+
+
+  checkIfItsTooTall: ->
+
+    article          = @$('article.has-markdown')[0]
+    { scrollHeight } = article
+    { height }       = article.getBoundingClientRect()
+
+    if scrollHeight > height
+
+      @showMore?.destroy()
+      @showMore = new KDCustomHTMLView
+        tagName  : 'a'
+        cssClass : 'show-more'
+        href     : '#'
+        partial  : 'Show more'
+        click    : ->
+          article.style['max-height'] = "#{scrollHeight}px"
+          article.classList.remove 'tall'
+          # FIXME: this is a hack to cause a mutation
+          # for scrollview to readjust - SY
+          KD.utils.wait 500, -> article.innerHTML += ' '
+          @destroy()
+
+      article.classList.add 'tall'
+      @addSubView @showMore, '.activity-content-wrapper'
 
 
   pistachio: ->

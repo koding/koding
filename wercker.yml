@@ -85,9 +85,13 @@ build:
         name: launch test instance
         code: |
           REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
+          echo $REMOTE_BRANCH
           GIT_REF=$(scripts/wercker/get-gitref $REMOTE_BRANCH)
+          echo $GIT_REF
           scripts/wercker/launch-test-instance --gitref "$GIT_REF" | tail -n1 > $INSTANCE_DATA
+          cat $INSTANCE_DATA
           INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
+          if [ -z $INSTANCE_IP ]; then exit 1; fi
           scripts/wercker/check-connectivity $INSTANCE_IP 8090 1m 3
           scripts/wercker/check-connectivity $INSTANCE_IP 4444 1m 2
           sleep 120

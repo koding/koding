@@ -432,7 +432,7 @@ class KodingAppsController extends KDController
         modal.destroy()
       else
         new KDNotificationView
-          title   : "An error occured."
+          title   : "An error occurred."
           content : "Something went wrong while installing Koding App Compiler. Please try again."
 
   @compileAppOnServer = (path, callback)->
@@ -455,7 +455,7 @@ class KodingAppsController extends KDController
 
       if err or not response
 
-        loader.notificationSetTitle "An unknown error occured"
+        loader.notificationSetTitle "An unknown error occurred"
         loader.notificationSetTimer 2000
         callback? err, app
         warn err
@@ -478,7 +478,7 @@ class KodingAppsController extends KDController
           return
 
         new KDModalView
-          title    : "An error occured while compiling #{app.name}"
+          title    : "An error occurred while compiling #{app.name}"
           width    : 600
           overlay  : yes
           cssClass : 'compiler-modal'

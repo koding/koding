@@ -5,7 +5,7 @@ class LocalStorage extends AppStorage
   try
     storage = window.localStorage
   catch e
-    warn "#{e.name} occured while getting localStorage:", e.message
+    warn "#{e.name} occurred while getting localStorage:", e.message
     storage = {}
 
   fetchStorage:->

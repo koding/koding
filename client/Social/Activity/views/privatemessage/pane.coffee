@@ -34,8 +34,22 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
-    @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
-    @on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+    @input.input.on 'InputHeightChanged', => @_windowDidResize null, yes
+
+    @input.input.on 'blur', => @setCss 'height', 'none'
+
+    @listenWindowResize()
+
+
+  _windowDidResize: (event, scrollDown)->
+
+    headerHeight = @participantsView.getHeight()
+    inputHeight  = @input.getHeight()
+    windowHeight = window.innerHeight
+
+    @scrollView.setHeight windowHeight - inputHeight - headerHeight
+    @scrollView.verticalTrack.thumb.handleMutation()
+    @scrollDown()  if scrollDown
 
 
   #
@@ -239,9 +253,12 @@ class PrivateMessagePane extends MessagePane
         return KD.showError err  if err
 
         items.forEach (item, i) =>
-          {scrollHeight} = body
+          {wrapper} = @scrollView
+          previousScrollHeight = wrapper.getScrollHeight()
           @prependMessage item
-          window.scrollTo 0, window.scrollY + (body.scrollHeight - scrollHeight)
+          currentScrollHeight = wrapper.getScrollHeight()
+          currentScrollTop    = wrapper.getScrollTop()
+          wrapper.setScrollTop currentScrollTop + (currentScrollHeight - previousScrollHeight)
 
         if items.length is 0
         then @listPreviousLink.hide()
@@ -258,7 +275,7 @@ class PrivateMessagePane extends MessagePane
 
     channel = @getData()
 
-    @input = new ReplyInputWidget {channel}
+    @input = new ReplyInputWidget {channel, cssClass : 'private'}
 
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
@@ -272,8 +289,8 @@ class PrivateMessagePane extends MessagePane
 
     @heads.addSubView avatar = new AvatarView
       size      :
-        width   : 30
-        height  : 30
+        width   : 25
+        height  : 25
       origin    : participant
 
     @participantMap[participant._id] = avatar
@@ -336,8 +353,7 @@ class PrivateMessagePane extends MessagePane
       fields             :
         recipient        :
           itemClass      : KDView
-      submit             : (e) ->
-        e.preventDefault()
+      submit             : (e) -> e.preventDefault()
 
 
     @autoComplete = new KDAutoCompleteController
@@ -368,17 +384,32 @@ class PrivateMessagePane extends MessagePane
 
   viewAppended: ->
 
+
     @addSubView @participantsView
     @addSubView @autoCompleteForm
-    @addSubView @listPreviousLink
-    @addSubView @listController.getView()
+
+    @addSubView @scrollView
+
+    {wrapper} = @scrollView
+    wrapper.addSubView @listPreviousLink
+    wrapper.addSubView @listController.getView()
     @addSubView @input  if @input
     @populate()
+    @setScrollTops()
+
+
 
 
   #
   # UI EVENTS/DIRECTIVES
   #
+
+  bindLazyLoader: ->
+
+    {wrapper} = @scrollView
+    wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
+    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+
 
   editLastMessage: ->
 
@@ -408,18 +439,8 @@ class PrivateMessagePane extends MessagePane
   scrollDown: (item) ->
 
     return  unless @active
-    window.scrollTo 0, document.body.scrollHeight * 2
-
-
-  setScrollTops: ->
-
-    {body: {scrollHeight}} = document
-    @lastScrollTops.window = window.scrollY or scrollHeight
-
-
-  applyScrollTops: ->
-
-    window.scrollTo 0, @lastScrollTops.window
+    {wrapper} = @scrollView
+    wrapper.setScrollTop wrapper.getScrollHeight()
 
 
   show: ->

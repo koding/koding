@@ -690,7 +690,7 @@ class ComputeController extends KDController
               title   = "Installed successfully!"
               content = "You can now safely close this Terminal."
             else
-              title   = "An error occured."
+              title   = "An error occurred."
               content = """Something went wrong while running build script.
                            Please try again."""
 

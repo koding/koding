@@ -612,7 +612,7 @@ func (p *Proxy) vm(req *http.Request, target *resolver.Target) http.Handler {
 		// log.Debug("vm %s is off, going to start", hostnameAlias)
 		// target.URL might be nil, however if we start the VM, oskite sends a
 		// new IP that we can use and update the current one. It will be nil
-		// if an error is occured.
+		// if an error is occurred.
 		target.URL, err = p.checkAndStartVM(hostnameAlias, hostkite, port)
 		if err != nil {
 			log.Warning("vm %s couldn't be started [ErrVMOff]: %s", hostnameAlias, err)
