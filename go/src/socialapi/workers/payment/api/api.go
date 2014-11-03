@@ -79,6 +79,17 @@ func StripeWebhook(u *url.URL, h http.Header, req *payment.StripeWebhook) (int, 
 // Paypal
 //----------------------------------------------------------
 
+func PaypalGetToken(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.PaypalGetTokenRequest{
+		PlanTitle:    u.Query().Get("planTitle"),
+		PlanInterval: u.Query().Get("planInterval"),
+	}
+
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
+
 func PaypalSuccess(u *url.URL, h http.Header, req *payment.PaypalRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndClientError(
 		req.Success(),

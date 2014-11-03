@@ -5,6 +5,7 @@ import (
 	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 	"time"
 
@@ -221,4 +222,13 @@ func (p *PaypalRequest) Success() (interface{}, error) {
 
 func (p *PaypalRequest) Cancel() (interface{}, error) {
 	return nil, nil
+}
+
+type PaypalGetTokenRequest struct {
+	PlanTitle    string `json:"planTitle"`
+	PlanInterval string `json:"planInterval"`
+}
+
+func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
+	return paypal.GetToken(p.PlanTitle, p.PlanInterval)
 }

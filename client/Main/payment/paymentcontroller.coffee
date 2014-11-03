@@ -34,6 +34,9 @@ class PaymentController extends KDController
   canChangePlan: (planTitle, callback)->
     @api().canChangePlan {planTitle}, callback
 
+  getToken: (planTitle, planInterval, callback)->
+    @api().getToken {planTitle, planInterval}, callback
+
   logOrder: (params, callback)->
     @api().logOrder params, callback
 
