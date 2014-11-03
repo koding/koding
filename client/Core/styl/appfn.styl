@@ -58,11 +58,12 @@ fadeIn()
 fadeOut()
   opacity         1
   vendor          transition, opacity .347s ease\, margin .347s ease
+
+  &.half
+    opacity       .5 !important
+
   &.out
-    bg      color, paleRed !important
     opacity 0
-    *
-      bg    color, transparent !important
 
 leftTransition()
   transition left .3s linear
@@ -80,7 +81,7 @@ greenLink()
     text-decoration   underline
 
 noAnim()
-  vendor                transition, none!important
+  vendor                transition, none !important
 
 styleScrollBars()
   if arguments[0]
