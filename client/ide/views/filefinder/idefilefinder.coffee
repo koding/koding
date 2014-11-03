@@ -41,11 +41,11 @@ class IDE.FileFinder extends KDCustomHTMLView
       machine.getBaseKite().exec({ command })
       .then  (res) => @parseResponse machine, res
       .catch (err) =>
-        @showWarning 'An error occured, please try again.'
+        @showWarning 'An error occurred, please try again.'
         warn err
 
   parseResponse: (machine, res) =>
-    return @showWarning 'An error occured, please try again.' if res.stderr
+    return @showWarning 'An error occurred, please try again.' if res.stderr
     return @showWarning 'No files found'  unless res.stdout
 
     @machine = machine
@@ -110,7 +110,7 @@ class IDE.FileFinder extends KDCustomHTMLView
     file = FSHelper.createFileInstance { path, @machine }
 
     file.fetchContents (err, contents) =>
-      return @showWarning 'An error occured, please try again.'  if err
+      return @showWarning 'An error occurred, please try again.'  if err
 
       @destroy()
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents

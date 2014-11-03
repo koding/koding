@@ -159,6 +159,7 @@ class IDEAppController extends AppController
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
   setActiveTabView: (tabView) ->
+    return  if tabView is @activeTabView
     @setActivePaneFocus off
     @activeTabView = tabView
     @setActivePaneFocus on
