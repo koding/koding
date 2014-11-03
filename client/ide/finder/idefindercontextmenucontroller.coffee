@@ -11,6 +11,9 @@ class IDE.FinderContextMenuController extends NFinderContextMenuController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
+      'Change top folder'         :
+        separator                 : yes
+        children                  : @getTopFolderItems fileView
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
       'Workspace from here'       :
