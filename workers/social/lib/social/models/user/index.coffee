@@ -246,47 +246,72 @@ module.exports = class JUser extends jraphical.Module
                 Payment.deleteAccount client, (err)=>
                   @logout client, callback
 
-  @isRegistrationEnabled =(callback)->
+  @isRegistrationEnabled = (callback)->
+
     JRegistrationPreferences = require '../registrationpreferences'
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
-  @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)=>
+
+  @authenticateClient: (clientId, context, callback)->
+
+    error = (message, rest...)->
+      console.error "[JUser::authenticateClient] #{message}", rest...
+
+    JSession.one { clientId }, (err, session)=>
+
       if err
-        console.error "JUser.authenticateClient error finding session", {err, clientId}
+
+        error "error finding session", { err, clientId }
         callback createKodingError err
+
       else unless session?
+
         JSession.createSession (err, { session, account })->
-          return callback err  if err?
-          callback null, account
+
+          if err?
+            error "failed to create session", { err }
+            return callback err
+          else
+            callback null, { session, account }
+
       else
-        {username} = session
-        if username?
-          JUser.one {username}, (err, user)=>
-            if err
-              console.error "JUser.authenticateClient error finding user with username", {
-                err, username }
 
-              callback createKodingError err
-            else unless user?
-              console.warn "JUser#authenticateClient no user found with username", {
-                username }
+        { username } = session
 
-              @logout clientId, callback
-            else
-              user.fetchAccount context, (err, account)->
-                if err
-                  console.warn "JUser#authenticateClient error fetching account", {
-                    context }
+        unless username?
 
-                  callback createKodingError err
-                else
-                  #JAccount.emit "AccountAuthenticated", account
-                  callback null, account
-        else
-          console.warn "JUser#authenticateClient no username found", {session}
-          @logout clientId, callback
+          error "no username found", { session }
+          @logout clientId, (err)->
+
+            callback createKodingError "no username found, logged out."
+
+          return
+
+        JUser.one {username}, (err, user)=>
+
+          if err?
+
+            error "error finding user with username", { err, username }
+            callback createKodingError err
+
+          else unless user?
+
+            error "no user found with username", { username }
+            @logout clientId, callback
+
+          else
+
+            user.fetchAccount context, (err, account)->
+
+              if err?
+
+                error "error fetching account", { context }
+                callback createKodingError err
+
+              else
+
+                callback null, { session, account }
 
 
   getHash =(value)->

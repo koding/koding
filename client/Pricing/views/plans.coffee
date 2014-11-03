@@ -54,7 +54,7 @@ class PricingPlansView extends KDView
       { partial: '1 VM '          , cssClass: 'vm-count' }
       { partial: '1 Core'         , cssClass: 'cpu' }
       { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '10GB Storage'   , cssClass: 'storage' }
+      { partial: '10GB Total Disk', cssClass: 'storage' }
       { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,

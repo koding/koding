@@ -74,7 +74,6 @@ class AccountAppController extends AppController
     aside.addSubView navView = @navController.getView()
 
     mainView.addSubView @tabView = new KDTabView
-      cssClass            : 'app-content'
       hideHandleContainer : yes
 
     for own sectionKey, section of items

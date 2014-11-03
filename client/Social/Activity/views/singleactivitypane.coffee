@@ -1,7 +1,16 @@
 class SingleActivityPane extends ActivityPane
 
-  viewAppended:->
+  constructor: (options = {}, data) ->
 
-    @tabView.hideHandleContainer()
-    @addSubView @tabView
+    options.cssClass = KD.utils.curry 'single-activity', options.cssClass
+
+    super options, data
+
+
+  viewAppended: ->
+
+    @tabView.tabHandleContainer.destroy()
+
+    @addSubView @scrollView
+    @scrollView.wrapper.addSubView @tabView
 

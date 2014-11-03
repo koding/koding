@@ -224,7 +224,7 @@ write_files:
       if [[ $status -ne 200 ]]; then
         error=$(cat $archive)
         rm $archive
-        echo "An error occured: $error"
+        echo "An error occurred: $error"
         echo
         echo "Migration failed. Try again or contact support@koding.com"
         echo
