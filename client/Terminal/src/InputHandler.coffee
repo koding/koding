@@ -96,7 +96,7 @@ class WebTerm.InputHandler
         return if not @trackMouseHold or event.which is 0 or (x is @previousMouseX and y is @previousMouseY)
         eventCode |= event.which - 1
         eventCode += 32
-      when "mousewheel"
+      when "wheel"
         return not @trackMouseDown
         eventCode |= if event.originalEvent.wheelDelta > 0 then 0 else 1
         eventCode += 64
