@@ -90,15 +90,25 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	var err error
 
-	client, err := p.EC2Clients.Region("us-east-1")
+	// we pass a nil client just to fill the Builder data. The reason for that
+	// is to retrieve the `region` of a user so we can create a client based on
+	// the region below.
+	a.Amazon, err = amazonClient.New(m.Builder, nil)
+	if err != nil {
+		return nil, fmt.Errorf("koding-amazon err: %s", err)
+	}
+
+	if a.Builder.Region == "" {
+		a.Builder.Region = "us-east-1"
+		a.Log.Critical("[%s] region is not set in. Fallback to us-east-1.", m.Id)
+	}
+
+	client, err := p.EC2Clients.Region(a.Builder.Region)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Amazon, err = amazonClient.New(m.Builder, client)
-	if err != nil {
-		return nil, fmt.Errorf("koding-amazon err: %s", err)
-	}
+	a.Client = client
 
 	// needed to deploy during build
 	a.Builder.KeyPair = p.KeyName
@@ -127,18 +137,23 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Starting machine", 10, machinestate.Starting)
 
-	// check if the user doesn't have t2.micro and revert back to t2.micro.
-	// This is lazy auto healing of instances that were created because there
-	// were no capacity for t2.micro
-	if infoResp.InstanceType != T2Micro.String() {
-		a.Log.Warning("[%s] instance is using t2.small. Changing back to t2.micro.", m.Id)
-		opts := &ec2.ModifyInstance{InstanceType: T2Micro.String()}
+	// check if the user has something else than their current instance type
+	// and revert back to t2.micro. This is lazy auto healing of instances that
+	// were created because there were no capacity for their specific instance
+	// type.
+	if infoResp.InstanceType != a.Builder.InstanceType {
+		a.Log.Warning("[%s] instance is using '%s'. Changing back to t2.micro.",
+			m.Id, a.Builder.InstanceType)
+
+		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
+
 		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-			p.Log.Warning("[%s] couldn't change instance to t2.micro again. err: %s", err)
+			p.Log.Warning("[%s] couldn't change instance to '%s' again. err: %s",
+				a.Builder.InstanceType, err)
 		}
 
-		// wait for eventually consistency so Restart or Start below get the
-		// correct answer
+		// wait for AWS eventually consistency state, so we wait to get the
+		// correct answer.
 		time.Sleep(time.Second * 2)
 	}
 
@@ -161,28 +176,16 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 				return nil
 			}
 
-			if ec2Error, ok := err.(*ec2.Error); ok {
-				isFallback := false
-
-				// check wether the incoming error code is one of the fallback
-				// errors
-				for _, fbErr := range FallbackErrors {
-					if ec2Error.Code == fbErr {
-						isFallback = true
-						break
-					}
-				}
-
-				// return for non fallback errors, because we can't do much
-				// here and probably it's need a more tailored solution
-				if !isFallback {
-					return err
-				}
-
-				p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+			// check if the error is a 'InsufficientInstanceCapacity" error or
+			// "InstanceLimitExceeded, if not return back because it's not a
+			// resource or capacity problem.
+			if !isCapacityError(err) {
+				return err
 			}
 
-			for _, instanceType := range FallbackList {
+			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+
+			for _, instanceType := range InstancesList {
 				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
 					m.Id, instanceType, a.Builder.InstanceType)
 
@@ -415,9 +418,15 @@ func (p *Provider) stopTimer(m *protocol.Machine) {
 
 // startTimer starts the inactive timeout timer for the given queryString. It
 // stops the machine after 30 minutes.
-func (p *Provider) startTimer(m *protocol.Machine) {
+func (p *Provider) startTimer(curMachine *protocol.Machine) {
+	if a, ok := curMachine.Builder["alwaysOn"]; ok {
+		if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+			return // don't stop if alwaysOn is enabled
+		}
+	}
+
 	p.InactiveMachinesMu.Lock()
-	_, ok := p.InactiveMachines[m.QueryString]
+	_, ok := p.InactiveMachines[curMachine.QueryString]
 	p.InactiveMachinesMu.Unlock()
 	if ok {
 		// just return, because it's already in the map so it will be expired
@@ -425,16 +434,69 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		return
 	}
 
-	p.Log.Info("[%s] klient is not running (username: %s), adding machine to list of inactive machines.",
-		m.Id, m.Username)
-	p.InactiveMachines[m.QueryString] = time.AfterFunc(time.Minute*30, func() {
-		p.Log.Info("[%s] stopping machine (username :%s) after 30 minutes klient disconnection.", m.Id, m.Username)
+	p.Log.Info("[%s] klient is not running (username: %s), adding to list of inactive machines.",
+		curMachine.Id, curMachine.Username)
+
+	stopAfter := time.Minute * 30
+
+	// wrap it so we can return errors and log them
+	stopFunc := func(id string) error {
+		// fetch it again so we have always the latest data. This is important
+		// because another kloud instance might already stopped or we have
+		// again a connection to klient
+		m, err := p.Get(id)
+		if err != nil {
+			return err
+		}
+
+		// add fake eventer to avoid panic errors on NewClient at provider
+		m.Eventer = &eventer.Events{}
+
+		a, err := p.NewClient(m)
+		if err != nil {
+			return err
+		}
+
+		p.Log.Info("[%s] 30 minutes passed. Rechecking again before I stop the machine (username: %s)",
+			m.Id, m.Username)
+
+		infoResp, err := a.Info()
+		if err != nil {
+			return err
+		}
+
+		if infoResp.State.InProgress() {
+			return fmt.Errorf("machine is in progress of '%s'", infoResp.State)
+		}
+
+		if infoResp.State == machinestate.Stopped {
+			p.Log.Info("[%s] stop timer aborting. Machine is already stopped (username: %s)",
+				m.Id, m.Username)
+			return errors.New("machine is already stopped")
+		}
+
+		if infoResp.State == machinestate.Running {
+			err := klient.Exists(p.Kite, m.QueryString)
+			if err == nil {
+				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
+					m.Id, m.Username)
+				return errors.New("we have a klient connection")
+			}
+
+			if err != kite.ErrNoKitesAvailable {
+				return err
+			}
+		}
 
 		p.Lock(m.Id)
 		defer p.Unlock(m.Id)
 
 		// mark our state as stopping so others know what we are doing
-		p.UpdateState(m.Id, machinestate.Stopping)
+		stoppingReason := "Stopping process started due not active klient after 30 minutes waiting."
+		p.UpdateState(m.Id, stoppingReason, machinestate.Stopping)
+
+		p.Log.Info("[%s] Stopping machine (username: %s) after 30 minutes klient disconnection.",
+			m.Id, m.Username)
 
 		// Hasta la vista, baby!
 		if err := p.Stop(m); err != nil {
@@ -442,11 +504,20 @@ func (p *Provider) startTimer(m *protocol.Machine) {
 		}
 
 		// update to final state too
-		p.UpdateState(m.Id, machinestate.Stopped)
+		stopReason := "Stopping due not active and unreachable klient after 30 minutes waiting."
+		p.UpdateState(m.Id, stopReason, machinestate.Stopped)
 
 		// we don't need it anymore
 		p.InactiveMachinesMu.Lock()
 		delete(p.InactiveMachines, m.QueryString)
 		p.InactiveMachinesMu.Unlock()
+
+		return nil
+	}
+
+	p.InactiveMachines[curMachine.QueryString] = time.AfterFunc(stopAfter, func() {
+		if err := stopFunc(curMachine.Id); err != nil {
+			p.Log.Error("[%s] inactive klient stopper err: %s", curMachine.Id, err)
+		}
 	})
 }

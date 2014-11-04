@@ -24,13 +24,16 @@ module.exports =
 
   likeActivity: (browser) ->
 
-    helpers.postActivity(browser)
-    selector = activitySelector + ' [testpath=activity-like-link]'
+    user = helpers.beginTest(browser)
+    helpers.postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
 
     browser
       .waitForElementVisible selector, 10000
       .click                 selector
-      .waitForElementVisible selector + '.liked:not(.count)', 10000 # Assertion
+      .waitForElementVisible likeElement, 10000
+      .assert.containsText   likeElement, user.username + ' liked this.'
       .end()
 
 
@@ -165,16 +168,18 @@ module.exports =
 
   sendHashtagActivity: (browser) ->
 
-    helpers.beginTest(browser)
+    helpers.sendHashtagActivity(browser)
+    browser.end()
 
-    paragraph = helpers.getFakeText()
-    hashtag   = '#' + paragraph.split(' ')[0]
-    post      = paragraph + ' ' + hashtag
 
-    helpers.doPostActivity(browser, post)
+  topicFollow: (browser) ->
+
+    hashtag = helpers.sendHashtagActivity(browser)
+    selector = activitySelector + ' .has-markdown p a:first-child'
 
     browser
-      .assert.containsText activitySelector + ' .has-markdown p a:first-child', hashtag # Assertion
+      .waitForElementVisible   selector, 5000
+      .click                   selector
+      .pause                   3000 # really required
+      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
       .end()
-
-

@@ -14,6 +14,7 @@ module.exports = [
   'libs/highlight.pack.js'
   'libs/jquery-timeago.js'
   'libs/emojify.js'
+  'libs/jspath.js'
 
 
   # --- Application ---
@@ -115,6 +116,7 @@ module.exports = [
   "CommonViews/topicfollowbutton.coffee",
 
   "CommonViews/trollbutton.coffee",
+  "CommonViews/metainfobuttonview.coffee",
 
   "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
@@ -163,6 +165,8 @@ module.exports = [
   "providers/providerrackspace.coffee",
 
   "providers/providerview.coffee",
+  "providers/modalview.coffee"
+  "providers/machinestatemodal.coffee"
   "providers/computeplansmodal.coffee",
   "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",

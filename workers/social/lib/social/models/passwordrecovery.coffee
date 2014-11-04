@@ -11,7 +11,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   KodingError = require '../error'
   JUser       = require './user'
 
-  UNKNOWN_ERROR = { message: "Error occured. Please try again." }
+  UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
 
   @share()
 

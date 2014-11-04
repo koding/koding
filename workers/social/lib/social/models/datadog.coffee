@@ -15,7 +15,7 @@ module.exports = class DataDog extends Base
       static           :
         sendEvent      : (signature Object, Function)
 
-  console.log {api_key, app_key}   = KONFIG.datadog
+  {api_key, app_key}   = KONFIG.datadog
   DogApi               = new dogapi {
     api_key, app_key
   }
@@ -24,7 +24,7 @@ module.exports = class DataDog extends Base
     MachineStateFailed :
       title            : "vms.failed"
       text             : "VM start failed for user: %nickname%"
-      notify           : "@slack-_devops"
+      notify           : "@slack-alerts"
       tags             : ["user:%nickname%", "context:vms"]
 
 

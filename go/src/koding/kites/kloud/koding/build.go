@@ -29,7 +29,7 @@ var (
 	// http://www.ec2instances.info/. t2.micro is not included because it's
 	// already the default type which we start to build. Only supported types
 	// are here.
-	FallbackList = []string{
+	InstancesList = []string{
 		"t2.small",
 		"t2.medium",
 		"m3.medium",
@@ -37,8 +37,6 @@ var (
 		"m3.large",
 		"c3.xlarge",
 	}
-
-	FallbackErrors = []string{"InsufficientInstanceCapacity", "InstanceLimitExceeded"}
 )
 
 const (
@@ -82,6 +80,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
+	a.Log.Info("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
+
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
@@ -118,9 +118,16 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
 	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
-	// check if the user is egligible to create a vm with this size
+
+	if a.Builder.InstanceType == "" {
+		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
+		a.Builder.InstanceType = T2Micro.String()
+	}
+
+	// check if the user is egligible to create a vm
 	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-		return nil, err
+		a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
+		a.Builder.InstanceType = T2Micro.String()
 	}
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
@@ -249,31 +256,15 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		// check if the error is a 'InsufficientInstanceCapacity" error or
 		// "InstanceLimitExceeded, if not return back because it's not a
 		// resource or capacity problem.
-		if ec2Error, ok := err.(*ec2.Error); ok {
-			isFallback := false
-
-			// check wether the incoming error code is one of the fallback
-			// errors
-			for _, fbErr := range FallbackErrors {
-				if ec2Error.Code == fbErr {
-					isFallback = true
-					break
-				}
-			}
-
-			// return for non fallback errors, because we can't do much
-			// here and probably it's need a more tailored solution
-			if !isFallback {
-				return err
-			}
-
-			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+		if !isCapacityError(err) {
+			return err
 		}
+
+		p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
 
 		// now lets to some fallback mechanisms to avoid the capacity errors.
 		// 1. Try to use a different zone
 		zoneFunc := func() error {
-			// try the first zone, if there is no capacity we are going to use the next one
 			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
 			if err != nil {
 				return fmt.Errorf("couldn't fetch availability zones: %s", err)
@@ -305,16 +296,19 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				a.Builder.Zone = zone
 				a.Builder.SubnetId = subnet.SubnetId
 
-				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s Err: %s",
-					m.Id, zone, a.Builder.SubnetId, err)
+				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s.",
+					m.Id, zone, a.Builder.SubnetId)
 
 				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
 				if err == nil {
 					return nil
 				}
 
-				if ec2Error, ok := err.(*ec2.Error); ok && ec2Error.Code == "InsufficientInstanceCapacity" {
-					continue // pick up next zone
+				if isCapacityError(err) {
+					// if there is no capacity we are going to use the next one
+					p.Log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
+						m.Id, zone)
+					continue
 				}
 
 				return err
@@ -329,8 +323,12 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		}
 
 		// 3. Try to use another instance
+		// TODO: do not choose an instance lower than the current user
+		// instance. Currently all we give is t2.micro, however it if the user
+		// has a t2.medium, we'll give them a t2.small if there is no capacity,
+		// which needs to be fixed in the near future.
 		instanceFunc := func() error {
-			for _, instanceType := range FallbackList {
+			for _, instanceType := range InstancesList {
 				a.Builder.InstanceType = instanceType
 
 				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",

@@ -13,28 +13,4 @@ class ChatSearchModal extends SidebarSearchModal
 
     super options, data
 
-    @setSkipCount()
 
-
-  setSkipCount: ->
-
-    {mainView: {activitySidebar}} = KD.singletons
-    {sections: {messages}}        = activitySidebar
-    {listController}              = messages
-
-    @skipCount = listController.getItemCount() or 0
-
-
-  fetch: (options = {}, callback = noop) ->
-
-    options.skip ?= @skipCount
-
-    super options, callback
-
-
-  getLazyLoadOptions: ->
-
-    skip  = @listController.getItemCount()
-    skip += @skipCount  unless @searchActive
-
-    return {skip}

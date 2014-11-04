@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -16,15 +15,16 @@ import (
 	"github.com/koding/kite"
 	kontrolprotocol "github.com/koding/kite/kontrol/protocol"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/multiconfig"
 )
 
 // Postgres holds Postgresql database related configuration
 type PostgresConfig struct {
-	Host     string
-	Port     int
-	Username string
+	Host     string `default:"localhost"`
+	Port     int    `default:"5432"`
+	Username string `required:"true"`
 	Password string
-	DBName   string
+	DBName   string `required:"true" `
 }
 
 type Postgres struct {
@@ -34,76 +34,35 @@ type Postgres struct {
 
 func NewPostgres(conf *PostgresConfig, log kite.Logger) *Postgres {
 	if conf == nil {
-		conf = &PostgresConfig{}
-	}
+		conf = new(PostgresConfig)
 
-	if conf.Port == 0 {
-		conf.Port = 5432
-	}
+		envLoader := &multiconfig.EnvironmentLoader{Prefix: "kontrol_postgres"}
+		configLoader := multiconfig.MultiLoader(
+			&multiconfig.TagLoader{}, envLoader,
+		)
 
-	if conf.Host == "" {
-		conf.Host = "localhost"
-	}
+		if err := configLoader.Load(conf); err != nil {
+			fmt.Println("Valid environment variables are: ")
+			envLoader.PrintEnvs(conf)
+			panic(err)
+		}
 
-	if conf.DBName == "" {
-		conf.DBName = os.Getenv("KONTROL_POSTGRES_DBNAME")
-		if conf.DBName == "" {
-			panic("db name is not set for postgres kontrol storage")
+		err := multiconfig.MultiValidator(&multiconfig.RequiredValidator{}).Validate(conf)
+		if err != nil {
+			fmt.Println("Valid environment variables are: ")
+			envLoader.PrintEnvs(conf)
+			panic(err)
 		}
 	}
 
 	connString := fmt.Sprintf(
-		"host=%s port=%d dbname=%s sslmode=disable",
-		conf.Host, conf.Port, conf.DBName,
+		"host=%s port=%d dbname=%s user=%s password=%s sslmode=disable",
+		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password,
 	)
-
-	if conf.Password != "" {
-		connString += " password=" + conf.Password
-	}
-
-	if conf.Username == "" {
-		conf.Username = os.Getenv("KONTROL_POSTGRES_USERNAME")
-		if conf.Username == "" {
-			panic("username is not set for postgres kontrol storage")
-		}
-	}
-
-	connString += " user=" + conf.Username
 
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		panic(err)
-	}
-
-	// create our initial kite table
-	// * url is containing the kite's register url
-	// * id is going to be kites' unique id. We are adding it as a primary key
-	// so each kite with the full path can only exist once.
-	// * created_at and updated_at are updated at creation and updating (like
-	//  if the URL has changed)
-	table := `CREATE TABLE IF NOT EXISTS kite (
-		username text NOT NULL,
-		environment text NOT NULL,
-		kitename text NOT NULL,
-		version text NOT NULL,
-		region text NOT NULL,
-		hostname text NOT NULL,
-		id uuid PRIMARY KEY,
-		url text NOT NULL,
-		created_at timestamptz NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
-		updated_at timestamptz NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
-	);`
-
-	if _, err := db.Exec(table); err != nil {
-		panic(err)
-	}
-
-	// We enable index on the kite and updated_at columns. We don't return on
-	// errors because the operator `IF NOT EXISTS` doesn't work for index
-	// creation, therefore we assume the indexes might be already created.
-	enableBtreeIndex := `CREATE INDEX kite_updated_at_btree_idx ON kite USING BTREE(updated_at)`
-	if _, err := db.Exec(enableBtreeIndex); err != nil {
-		log.Warning("postgres: enable btree index: %s", err)
 	}
 
 	p := &Postgres{
@@ -111,14 +70,13 @@ func NewPostgres(conf *PostgresConfig, log kite.Logger) *Postgres {
 		Log: log,
 	}
 
-	cleanInterval := 30 * time.Second  // clean every 30 second
-	expireInterval := 20 * time.Second // clean rows that are 20 second old
-	go p.RunCleaner(cleanInterval, expireInterval)
+	cleanInterval := 120 * time.Second // clean every 120 second
+	go p.RunCleaner(cleanInterval, KeyTTL)
 
 	return p
 }
 
-// RunCleaner delets every "interval" duration rows which are older than
+// RunCleaner deletes every "interval" duration rows which are older than
 // "expire" duration based on the "updated_at" field. For more info check
 // CleanExpireRows which is used to delete old rows.
 func (p *Postgres) RunCleaner(interval, expire time.Duration) {
@@ -131,7 +89,6 @@ func (p *Postgres) RunCleaner(interval, expire time.Duration) {
 		}
 	}
 
-	cleanFunc() // run for the first time
 	for _ = range time.Tick(interval) {
 		cleanFunc()
 	}
@@ -146,7 +103,7 @@ func (p *Postgres) CleanExpiredRows(expire time.Duration) (int64, error) {
 	// cast it. However there is a more simpler way, we can multiply INTERVAL
 	// with an integer so we just declare a one second INTERVAL and multiply it
 	// with the amount we want.
-	cleanOldRows := `DELETE FROM kite WHERE updated_at < (now() at time zone 'utc') - ((INTERVAL '1 second') * $1)`
+	cleanOldRows := `DELETE FROM kite.kite WHERE updated_at < (now() at time zone 'utc') - ((INTERVAL '1 second') * $1)`
 
 	rows, err := p.DB.Exec(cleanOldRows, int64(expire/time.Second))
 	if err != nil {
@@ -292,7 +249,7 @@ func (p *Postgres) Upsert(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 		}
 	}()
 
-	res, err := tx.Exec(`UPDATE kite SET url = $1, updated_at = (now() at time zone 'utc') 
+	res, err := tx.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc') 
 	WHERE id = $2`, value.URL, kiteProt.ID)
 	if err != nil {
 		return err
@@ -342,7 +299,7 @@ func (p *Postgres) Update(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 
 	// TODO: also consider just using WHERE id = kiteProt.ID, see how it's
 	// performs out
-	_, err = p.DB.Exec(`UPDATE kite SET url = $1, updated_at = (now() at time zone 'utc') 
+	_, err = p.DB.Exec(`UPDATE kite.kite SET url = $1, updated_at = (now() at time zone 'utc') 
 	WHERE id = $2`,
 		value.URL, kiteProt.ID)
 
@@ -350,7 +307,7 @@ func (p *Postgres) Update(kiteProt *protocol.Kite, value *kontrolprotocol.Regist
 }
 
 func (p *Postgres) Delete(kiteProt *protocol.Kite) error {
-	deleteKite := `DELETE FROM kite WHERE id = $1`
+	deleteKite := `DELETE FROM kite.kite WHERE id = $1`
 	_, err := p.DB.Exec(deleteKite, kiteProt.ID)
 	return err
 }
@@ -359,7 +316,7 @@ func (p *Postgres) Delete(kiteProt *protocol.Kite) error {
 func selectQuery(query *protocol.KontrolQuery) (string, []interface{}, error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-	kites := psql.Select("*").From("kite")
+	kites := psql.Select("*").From("kite.kite")
 	fields := query.Fields()
 	andQuery := sq.And{}
 
@@ -398,7 +355,7 @@ func insertQuery(kiteProt *protocol.Kite, url string) (string, []interface{}, er
 
 	values = append(values, url)
 
-	return psql.Insert("kite").Columns(
+	return psql.Insert("kite.kite").Columns(
 		"username",
 		"environment",
 		"kitename",

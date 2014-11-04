@@ -160,7 +160,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : null
+    mainUri           : "http://koding-#{process.env.USER}.ngrok.com"
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -201,7 +201,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : ["~^/IDE/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -241,7 +241,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/broker -r koding/broker -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -251,7 +251,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/rerouting -r koding/rerouting -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -602,6 +602,7 @@ Configuration = (options={}) ->
         echo "  run testendpoints         : to test every URL endpoint programmatically."
         echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]       : to run a single worker"
+        echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
         echo ""
 
@@ -628,7 +629,7 @@ Configuration = (options={}) ->
             exit 1
         fi
 
-        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h 192.168.59.103 social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
+        EXISTS=$(PGPASSWORD=kontrolapplication psql -tA -h #{boot2dockerbox} social -U kontrolapplication -c "Select 1 from pg_tables where tablename = 'kite' AND schemaname = 'kite';")
         if [[ $EXISTS != '1' ]]; then
           echo ""
           echo "You don't have the new Kontrol Postgres. Please call ./run buildservices."
@@ -702,10 +703,9 @@ Configuration = (options={}) ->
         cd #{projectRoot}/go/src/socialapi/db/sql
 
         # Include this to dockerfile before we continute with building
-        rm -rf kontrol
-        mkdir -p kontrol && cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/database.sql kontrol/
-        sed -i.bak 's/somerandompassword/kontrolapplication/;' kontrol/database.sql
-        rm kontrol/database.sql.bak
+        mkdir -p kontrol
+        cp #{projectRoot}/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+        sed -i -e 's/somerandompassword/kontrolapplication/' kontrol/001-schema.sql
 
         docker build -t koding/postgres .
 
@@ -804,6 +804,9 @@ Configuration = (options={}) ->
 
       elif [[ "$1" == "log" || "$1" == "logs" ]]; then
 
+        trap - INT
+        trap
+
         if [ "$2" == "" ]; then
           tail -fq ./.logs/*.log
         else
@@ -838,11 +841,12 @@ Configuration = (options={}) ->
 
         check_service_dependencies
 
-        read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
-        echo ""
-        if [[ ! $REPLY =~ ^[Yy]$ ]]
-        then
+        if [ "$2" != "force" ]; then
+          read -p "This will destroy existing images, do you want to continue? (y/N)" -n 1 -r
+          echo ""
+          if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 1
+          fi
         fi
 
         build_services
@@ -873,8 +877,20 @@ Configuration = (options={}) ->
           echo "-------------------"
           echo '#{workerList "\n"}'
         else
+          trap - INT
+          trap
           eval "worker_$2"
         fi
+
+      elif [ "$1" == "supervisor" ]; then
+
+        SUPERVISOR_ENV=$2
+        if [ $SUPERVISOR_ENV == "" ]; then
+          SUPERVISOR_ENV="production"
+        fi
+
+        go run scripts/supervisor_status.go $SUPERVISOR_ENV
+        open supervisor.html
 
       elif [ "$#" == "0" ]; then
 

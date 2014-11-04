@@ -57,6 +57,7 @@ kite query : %s
 				"domainName":   artifact.DomainName,
 				"instanceId":   artifact.InstanceId,
 				"instanceName": artifact.InstanceName,
+				"instanceType": artifact.InstanceType,
 				"queryString":  artifact.KiteQuery,
 			},
 		}), nil

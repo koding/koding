@@ -138,7 +138,6 @@ validationRed = rgba(217, 58, 55, 0.65)
 
 
 .avatarview
-  background-image          url('/a/images/defaultavatar/avatar.svg')
   background-size           100% 100%
   background-repeat         no-repeat
   overflow                  hidden
@@ -147,30 +146,20 @@ validationRed = rgba(217, 58, 55, 0.65)
   img
     rounded                 3px
 
-.content-page
-  margin                    0 auto
-  size                      auto auto
-
-  > .kdtabview
-    height              100%
-    font-size           14px
-    fl()
-
 aside.app-sidebar
-  left            258px
+  left            sidebarWidth
   top             0
-  size            258px 100%
+  size            sidebarWidth 100%
   z-index         10
   borderBox()
   fix()
   styleScrollBars()
 
-.app-content
+.content-page > .kdtabview
   min-height       100vh
-  padding-left     34px
   borderBox()
 
-.content-page .app-sidebar ~ .app-content
+.content-page .app-sidebar ~ .kdtabview
   kalc                  width, 100% \- 292px
   margin-left           292px
   padding-left          0
@@ -209,6 +198,14 @@ a.custom-link-view.border-only-green
 
     .title
       color           #fff
+
+.kdmodal.meta-info-modal
+  .kdmodal-inner
+    margin            10px
+  .kdmodal-title
+    margin-bottom     0 !important
+  .kdmodal-content
+    margin            0 !important
 
 /* Activity item menu */
 
@@ -662,6 +659,93 @@ button.app-settings-menu
 
 
 /*  */
+
+
+/* More vms modal  */
+
+.kdmodal.more-modal
+  background           #E7E7E7
+  font-family          adelleFamily
+
+  .kdmodal-title
+    border-bottom      1px solid #D0D0D0 !important
+    size               100%, 58px
+    line-height        63px !important
+    padding            0 16px 0 27px !important
+    margin             0 !important
+    borderBox()
+
+    span.title
+      display          inline
+      font-size        16px !important
+      color            #585858 !important
+      font-weight      400 !important
+
+    .kdbutton
+      font-family      inherit
+      background       #52A840
+      rounded          4px
+      height           29px
+      margin-top       15px
+      fr()
+
+      .button-title
+        font-family    inherit
+        font-size      12px
+        text-shadow    1px 1px 1px rgba(0,0,0,.22)
+
+  .close-icon
+    display            none
+
+  .kdmodal-inner
+    margin             0
+    background         transparent
+
+  .kdmodal-content
+    background         transparent
+    padding            24px !important
+    margin             0 !important
+    borderBox()
+
+    .kdlistitemview-sidebar-item
+      display          block
+      width            auto
+      height           35px
+      line-height      35px
+      padding-left     46px
+      color            #5E5E5E
+      font-size        14px
+
+      & ~ .kdlistitemview-sidebar-item
+        margin-top     8px
+
+      &:before
+        display        block
+        text-align     center
+        abs            0px 0 0 0px
+        size           35px, 35px
+        line-height    38px
+        background     #52A840
+        rounded        5px
+        color          #fff
+        font-size      14px
+
+      .kdbutton.clean-gray
+        font-size      0
+        background     none
+        border         none
+        shadow         none
+        outline        none
+        padding        0
+        r-sprite       'app', '16-cog'
+        margin-top     8px
+        fr()
+
+.more-vms .kdlistitemview-sidebar-item:before
+  content              'K'
+
+.more-workspaces .kdlistitemview-sidebar-item:before
+  content              'W'
 
 
 /* editor-advanced-settings-menu-button

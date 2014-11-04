@@ -8,6 +8,8 @@ module.exports = [
   "sidebar/morelink.coffee"
   "sidebar/searchmodal.coffee"
   "sidebar/morechannelsmodal.coffee"
+  "sidebar/morevmsmodal.coffee"
+  "sidebar/moreworkspacesmodal.coffee"
   "sidebar/conversationsmodal.coffee"
   "sidebar/topicsearchmodal.coffee"
   "sidebar/chatsearchmodal.coffee"
@@ -15,6 +17,8 @@ module.exports = [
   "sidebar/activitysidebar.coffee"
   "sidebar/activitysideview.coffee"
   "sidebar/sidebaritem.coffee"
+  "sidebar/vmitem.coffee"
+  "sidebar/modalworkspaceitem.coffee"
   "sidebar/messageitem.coffee"
   "sidebar/memberitem.coffee"
   "sidebar/messageitemtext.coffee"
@@ -31,8 +35,8 @@ module.exports = [
   "views/widgetsbar.coffee"
 
   "views/messagepane.coffee"
-  "views/topicmessagepane.coffee"
   "views/activitypane.coffee"
+  "views/topicmessagepane.coffee"
   "views/singleactivitypane.coffee"
   "views/announcementpane.coffee"
 
@@ -46,7 +50,6 @@ module.exports = [
   "views/likesummaryview.coffee"
   "views/likeview.coffee"
   "views/activityactions.coffee"
-  "views/activitylistheader.coffee"
   "views/sharepopup.coffee"
   "views/activitymenuitem.coffee"
   "views/chatheadautocompleteitem.coffee"
@@ -122,11 +125,16 @@ module.exports = [
   "views/privatemessage/replyinputeditwidget.coffee"
   "views/privatemessage/inputwidget.coffee"
   "views/privatemessage/loadtest.coffee"
-  "views/privatemessage/deletemodal.coffee"
   "views/privatemessage/settingsview.coffee"
 
   "views/buymachinemodal.coffee"
 
   "styl/activity.styl"
+  "styl/activity.pm.styl"
+  "styl/activity.innertabs.styl"
+  "styl/activity.inputwidget.styl"
+  "styl/activity.listitem.styl"
+  "styl/activity.widgetsbar.styl"
+  "styl/activity.markdown.styl"
   "styl/activity.responsive.styl"
 ]

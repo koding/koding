@@ -90,6 +90,7 @@ module.exports = class JMachine extends Module
       status            :
 
         modifiedAt      : Date
+        reason          : String
 
         state           :
           type          : String
@@ -362,6 +363,9 @@ module.exports = class JMachine extends Module
         else callback null, slug
 
       slug = slugify label
+
+      if slug is ""
+        return callback new KodingError "Nickname cannot be empty"
 
       if slug isnt @slug
         generateSlugFromLabel { user, group, label }, (err, slug)=>

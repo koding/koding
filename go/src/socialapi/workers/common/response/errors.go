@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	genericError = errors.New("an error occured")
+	genericError = errors.New("an error occurred")
 )
 
 type BadRequest struct {

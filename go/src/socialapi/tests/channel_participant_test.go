@@ -1,27 +1,140 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
+	"math/rand"
+	"socialapi/models"
+	"socialapi/rest"
+	"socialapi/workers/common/runner"
+	"strconv"
 	"testing"
+	"time"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChannelParticipantOperations(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
 	Convey("while testing channel participants", t, func() {
 
-		Convey("first we should be able to create dummy channel", func() {
+		Convey("First Create Users and initiate conversation", func() {
+			var err error
+			ownerAccount := models.NewAccount()
+			ownerAccount.OldId = AccountOldId.Hex()
+			ownerAccount, err = rest.CreateAccount(ownerAccount)
+			So(err, ShouldBeNil)
+			So(ownerAccount, ShouldNotBeNil)
 
-			Convey("anyone can add user to it", nil)
+			secondAccount := models.NewAccount()
+			secondAccount.OldId = AccountOldId2.Hex()
+			secondAccount, err = rest.CreateAccount(secondAccount)
+			So(err, ShouldBeNil)
+			So(secondAccount, ShouldNotBeNil)
 
-			Convey("creator can remove any account", nil)
+			thirdAccount := models.NewAccount()
+			thirdAccount.OldId = AccountOldId3.Hex()
+			thirdAccount, err = rest.CreateAccount(thirdAccount)
+			So(err, ShouldBeNil)
+			So(thirdAccount, ShouldNotBeNil)
 
-			Convey("creator can not do self-remove", nil)
+			forthAccount := models.NewAccount()
+			forthAccount.OldId = AccountOldId4.Hex()
+			forthAccount, err = rest.CreateAccount(forthAccount)
+			So(err, ShouldBeNil)
+			So(forthAccount, ShouldNotBeNil)
 
-			Convey("account can remove itself", nil)
+			CreatePrivateMessageUser("devrim")
 
-			Convey("3rd user can not remove any other account", nil)
+			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			Convey("do not allow duplicate participation", nil)
+			pmr := models.PrivateMessageRequest{}
+
+			pmr.AccountId = ownerAccount.Id
+
+			pmr.Body = "new conversation"
+			pmr.GroupName = groupName
+			pmr.Recipients = []string{"devrim"}
+
+			channelContainer, err := rest.SendPrivateMessage(pmr)
+			So(err, ShouldBeNil)
+			So(channelContainer, ShouldNotBeNil)
+
+			Convey("First user should be able to add second and third users to conversation", func() {
+				_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id, thirdAccount.Id)
+				So(err, ShouldBeNil)
+				participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+				So(err, ShouldBeNil)
+				So(participants, ShouldNotBeNil)
+				// it is four because first user is "devrim" here
+				So(len(participants), ShouldEqual, 4)
+
+				Convey("First user should not be able to re-add second participant", func() {
+					_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					So(err, ShouldBeNil)
+
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(participants, ShouldNotBeNil)
+					So(len(participants), ShouldEqual, 4)
+				})
+
+				Convey("Second user should be able to leave conversation", func() {
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					So(err, ShouldBeNil)
+
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(participants, ShouldNotBeNil)
+					So(len(participants), ShouldEqual, 3)
+
+					Convey("A user who is not participant of a conversation should not be able to add another user to the conversation", func() {
+						_, err = rest.AddChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, forthAccount.Id)
+						So(err, ShouldNotBeNil)
+
+						participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+						So(err, ShouldBeNil)
+						So(participants, ShouldNotBeNil)
+						So(len(participants), ShouldEqual, 3)
+					})
+				})
+
+			})
+
+			Convey("All private messages must be deleted when all participant users leave the channel", func() {
+				account := models.NewAccount()
+				err = account.ByNick("devrim")
+				So(err, ShouldBeNil)
+
+				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, account.Id, account.Id)
+				So(err, ShouldBeNil)
+
+				_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, ownerAccount.Id)
+				So(err, ShouldBeNil)
+
+				time.Sleep(1 * time.Second)
+
+				testChannel := models.NewChannel()
+				err := testChannel.ById(channelContainer.Channel.Id)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+
+				testChannelList := models.NewChannelMessageList()
+				err = bongo.B.Unscoped().Where("channel_id = ?", channelContainer.Channel.Id).Find(testChannelList).Error
+				So(err, ShouldEqual, bongo.RecordNotFound)
+
+				testMessage := models.NewChannelMessage()
+				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
+				So(err, ShouldEqual, bongo.RecordNotFound)
+
+			})
 
 		})
 

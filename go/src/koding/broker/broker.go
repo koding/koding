@@ -373,7 +373,7 @@ func (b *Broker) sockjsSession(session *sockjs.Session) {
 	select {
 	case client = <-clientChan:
 	case err := <-errChan:
-		log.Critical("An error occured while creating client %v", err)
+		log.Critical("An error occurred while creating client %v", err)
 		return
 	case <-time.After(*flagDuration):
 		log.Critical("Client coulnt created in %s exiting ", flagDuration.String())

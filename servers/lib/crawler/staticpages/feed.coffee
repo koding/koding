@@ -194,8 +194,8 @@ getSidebar = ->
         <div class="activity-sidebar">
           <section class="followed topics">
             <h3 class="sidebar-title">Channels</h3>
-            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag" data-paths="name">#public</span></a>
-            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/koding"><span class="ttag" data-paths="name">#koding</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag">#public</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/changelog"><span class="ttag">#changelog</span></a>
           </section>
           <section class='sidebar-join'>
             Join our growing community of developers from all over the world who
@@ -241,7 +241,7 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
       #{getSidebar()}
       <section id="main-panel-wrapper" class="kdview">
         <div class="kdview kdtabpaneview activity clearfix content-area-pane active">
-          <div id="content-page-activity" class="kdview content-page activity clearfix">
+          <div id="content-page-activity" class="kdview content-page activity activity-pane clearfix">
             <main class="kdview kdscrollview kdtabview app-content">
               #{content}
             </main>
@@ -250,6 +250,15 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
       </section>
     </div>
     #{analytics()}
+    <script>
+      (function(d) {
+        var config = {
+          kitId: 'rbd0tum',
+          scriptTimeout: 3000
+        },
+        h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+      })(document);
+    </script>
   </body>
   </html>
   """

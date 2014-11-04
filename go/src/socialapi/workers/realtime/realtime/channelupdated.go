@@ -55,7 +55,7 @@ func (cue *channelUpdatedEvent) notifyAllParticipants() error {
 	)
 
 	if err != nil {
-		cue.Controller.log.Error("Error occured while fetching participants %s", err.Error())
+		cue.Controller.log.Error("Error occurred while fetching participants %s", err.Error())
 		return err
 	}
 
@@ -141,7 +141,8 @@ func (cue *channelUpdatedEvent) isValidNotifyAllParticipantsEvent() bool {
 	// filter evets according to their TypeConstants
 	if cue.Channel.TypeConstant != models.Channel_TYPE_PINNED_ACTIVITY &&
 		cue.Channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
-		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC {
+		cue.Channel.TypeConstant != models.Channel_TYPE_TOPIC &&
+		cue.Channel.TypeConstant != models.Channel_TYPE_ANNOUNCEMENT {
 
 		cue.Controller.log.Debug(
 			"Not sending channelUpdatedEvent for  (%s)",

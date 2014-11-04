@@ -124,7 +124,7 @@ class KiteController extends KDController
     if command
       options.withArgs.command = command
     else
-      #related to this this empty object kite response returns "An error occured: Invalid argument,
+      #related to this this empty object kite response returns "An error occurred: Invalid argument,
       # [string] expected." error
       options.withArgs ?= {}
 
@@ -198,7 +198,7 @@ class KiteController extends KDController
           @run _tempOptions, _tempCallback
       else if err.message?
         callback? err
-        warn "An error occured:", err.message
+        warn "An error occurred:", err.message
       else
         callback? err
         warn "parsing kite response: we dont handle this yet", err

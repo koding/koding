@@ -11,14 +11,11 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
-    {typeConstant, payload, body} = data
-
-    {addedBy} = payload if payload
+    {typeConstant} = @getData()
 
     if typeConstant in ['join', 'leave']
-      data.body = "has #{@prepareActivity()} the chat"
-
-    data.body = "#{data.body} from an invitation by @#{addedBy}" if addedBy
+      data.body = @prepareActivityMessage()
+      @setClass 'join-leave'
 
     {createdAt, deletedAt, updatedAt} = data
 
@@ -29,15 +26,36 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
 
-  prepareActivity: ->
-    {typeConstant} = @getData()
+
+  prepareDefaultBody: (type) -> "has #{type} the chat"
+
+
+  prepareActivityMessage: ->
+
+    {typeConstant, payload} = @getData()
+    {addedBy, initialParticipants} = payload if payload
+
+    # get default join/leave message body
     switch typeConstant
       when 'join'
-        return 'joined'
+        body = @prepareDefaultBody 'joined'  unless initialParticipants
       when 'leave'
-        return 'left'
+        body = @prepareDefaultBody 'left'
 
-    return ''
+    # append who added the user
+    body = "#{body} from an invitation by @#{addedBy}" if addedBy
+
+    # when it contains initial participants it contains all the accounts
+    # initially added to the conversation
+    if initialParticipants?.length
+      if initialParticipants.length is 1
+        body = "started this conversation"
+      else
+        body = "started the conversation and invited "
+        body = "#{body} @#{participant}," for participant in initialParticipants
+        body = body.slice 0, body.length - 1
+
+    return body
 
   decorate: ->
 

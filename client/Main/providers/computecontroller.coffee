@@ -198,7 +198,7 @@ class ComputeController extends KDController
 
         when ComputeErrors.TimeoutError
 
-          safeToSuspend = yes
+          safeToSuspend = task is 'info'
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()
@@ -209,7 +209,7 @@ class ComputeController extends KDController
             retried = retryIfNeeded task, machine
             safeToSuspend = yes
           else
-            @eventListener.triggerState machine, status: Machine.State.Unknown
+            warn "[CC] error:", err
 
       unless safeToSuspend
         @emit "error", { task, err, machine }
@@ -507,52 +507,60 @@ class ComputeController extends KDController
       else callback @lastKnownUserPlan = subscription.planTitle
 
 
-  handleNewMachineRequest: ->
+  handleNewMachineRequest: (callback = noop)->
 
     return  if @_inprogress
     @_inprogress = yes
 
-    @fetchUserPlan (plan)=>
+    @fetchUserPlan (plan)=> @fetchPlans (plans)=>
 
-      @fetchPlans (plans)=>
+      @fetchUsage provider: "koding", (err, usage)=>
 
-        @fetchUsage provider: "koding", (err, usage)=>
+        if KD.showError err
+          return @_inprogress = no
 
-          if KD.showError err
-            return @_inprogress = no
+        limits  = plans[plan]
+        options = { plan, limits, usage }
 
-          limits  = plans[plan]
-          options = { plan, limits, usage }
+        if limits.total > 1
 
-          if limits.total > 1
+          new ComputePlansModal.Paid options
+          @_inprogress = no
 
-            new ComputePlansModal.Paid options
+          callback()
+          return
+
+        @fetchMachines (err, machines)=>
+
+          warn err  if err?
+
+          if err? or machines.length > 0
+            new ComputePlansModal.Free options
             @_inprogress = no
 
-          else
+            callback()
 
-            @fetchMachines (err, machines)=>
+          else if machines.length is 0
 
-              warn err  if err?
+            stack   = @stacks.first._id
+            storage = plans[plan]?.storage or 3
 
-              if err? or machines.length > 0
-                new ComputePlansModal.Free options
+            KD.utils.getLocationInfo (err, location)=>
+
+              if not err? and location
+                regionIp = location.ip
+
+              @create {
+                provider : "koding"
+                regionIp, stack, storage
+              }, (err, machine)=>
+
                 @_inprogress = no
 
-              else if machines.length is 0
+                callback()
 
-                stack   = @stacks.first._id
-                storage = plans[plan]?.storage or 3
-
-                @create {
-                  provider : "koding",
-                  stack, storage
-                }, (err, machine)=>
-
-                  @_inprogress = no
-
-                  unless KD.showError err
-                    KD.userMachines.push machine
+                unless KD.showError err
+                  KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->
@@ -684,7 +692,7 @@ class ComputeController extends KDController
               title   = "Installed successfully!"
               content = "You can now safely close this Terminal."
             else
-              title   = "An error occured."
+              title   = "An error occurred."
               content = """Something went wrong while running build script.
                            Please try again."""
 

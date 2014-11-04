@@ -5,13 +5,14 @@ class MessageEventManager extends KDObject
     super options, data
 
     data
-      .on "InteractionAdded", @bound "addInteraction"
-      .on "InteractionRemoved", @bound "removeInteraction"
-      .on "ReplyAdded", @bound "addReply"
-      .on "ReplyRemoved", @bound "removeReply"
+      .on 'InteractionAdded', @bound 'addInteraction'
+      .on 'InteractionRemoved', @bound 'removeInteraction'
+      .on 'ReplyAdded', @bound 'addReply'
+      .on 'ReplyRemoved', @bound 'removeReply'
 
 
   addInteraction: (event) ->
+
     {accountOldId} = event
     KD.remote.cacheable "JAccount", accountOldId, (err, owner) =>
       return error err  if err
@@ -30,7 +31,9 @@ class MessageEventManager extends KDObject
     fn event
 
 
-  addLike: ({accountOldId, count}) ->
+  addLike: (options) ->
+
+    {accountOldId, count} = options
 
     message = @getData()
 
@@ -44,7 +47,10 @@ class MessageEventManager extends KDObject
     message.emit "update"
 
 
-  removeLike: ({accountOldId, count}) ->
+  removeLike: (options) ->
+
+    {accountOldId, count} = options
+
     message = @getData()
 
     {like} = message.interactions
@@ -58,22 +64,29 @@ class MessageEventManager extends KDObject
 
 
   addReply: (plain) ->
-    reply = KD.singleton("socialapi").message.revive plain
+
+    reply = KD.singletons.socialapi.message.revive plain
+
     KD.getMessageOwner reply, (err, owner) =>
-      return error err if err
-      return if KD.filterTrollActivity owner
+
+      return error err  if err
+      return  if KD.filterTrollActivity owner
 
       message = @getData()
       message.replies.push reply
       message.repliesCount++
 
-      return  unless KD.singletons.socialapi.isFromOtherBrowser reply
+      plain.message.messageId = message.id
+
+      return  unless KD.singletons.socialapi.isFromOtherBrowser plain
 
       message.emit "AddReply", reply
       message.emit "update"
 
 
-  removeReply: ({replyId}) ->
+  removeReply: (options) ->
+
+    {replyId} = options
 
     message = @getData()
 
@@ -87,5 +100,4 @@ class MessageEventManager extends KDObject
 
     message.emit "RemoveReply", reply
     message.emit "update"
-
 

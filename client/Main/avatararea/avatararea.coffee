@@ -16,8 +16,8 @@ class AvatarArea extends KDCustomHTMLView
       attributes :
         title    : 'View your public profile'
       size       :
-        width    : 35
-        height   : 35
+        width    : 25
+        height   : 25
     , account
 
     @groupSwitcherPopup = new AvatarPopupGroupSwitcher

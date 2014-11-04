@@ -16,8 +16,9 @@ type Storage interface {
 	// Update updates the fields in the data for the given id
 	Update(id string, data *StorageData) error
 
-	// UpdateState updates the machine state for the given machine id
-	UpdateState(id string, state machinestate.State) error
+	// UpdateState updates the machine state for the given machine id with the
+	// given reason
+	UpdateState(id, reason string, state machinestate.State) error
 }
 
 type StorageData struct {

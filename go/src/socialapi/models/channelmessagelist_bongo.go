@@ -14,8 +14,6 @@ func (c *ChannelMessageList) BeforeCreate() error {
 }
 
 func (c *ChannelMessageList) BeforeUpdate() error {
-	c.AddedAt = time.Now()
-
 	return c.MarkIfExempt()
 }
 
@@ -68,7 +66,7 @@ func (c *ChannelMessageList) Create() error {
 }
 
 func (c *ChannelMessageList) Delete() error {
-	return bongo.B.Delete(c)
+	return bongo.B.DB.Unscoped().Delete(c).Error
 }
 
 func (c *ChannelMessageList) Emit(eventName string, data interface{}) error {

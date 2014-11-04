@@ -3,10 +3,11 @@ class MessagePane extends KDTabPaneView
   constructor: (options = {}, data) ->
 
     options.type        or= ''
-    options.cssClass      = "message-pane #{options.type}"
     options.lastToFirst  ?= no
     options.scrollView   ?= yes
     options.itemClass   or= ActivityListItemView
+
+    options.cssClass = KD.utils.curry "message-pane #{options.type}", options.cssClass
 
     super options, data
 
@@ -38,7 +39,9 @@ class MessagePane extends KDTabPaneView
 
     @createChannelTitle()
     @createInputWidget()
+    @createScrollView()
     @createFilterLinks()
+    @bindLazyLoader()
     @bindInputEvents()
 
     @submitIsPending = no
@@ -51,10 +54,19 @@ class MessagePane extends KDTabPaneView
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
-    if typeConstant in ['group', 'topic', 'announcement']
-      @on 'LazyLoadThresholdReached', @bound 'lazyLoad'
-
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
+
+
+  createScrollView: ->
+
+    @scrollView = new KDCustomScrollView
+      cssClass          : 'message-pane-scroller'
+      lazyLoadThreshold : 100
+
+
+  bindLazyLoader: ->
+
+    @scrollView.wrapper.on 'LazyLoadThresholdReached', => @emit 'NeedsMoreContent'
 
 
   bindInputEvents: ->
@@ -135,35 +147,16 @@ class MessagePane extends KDTabPaneView
 
   isPageAtBottom: ->
 
-    {innerHeight, scrollY} = window
-    {scrollHeight} = document.body
+    {wrapper}    = @scrollView
 
-    scrollY + innerHeight >= scrollHeight
+    height       = wrapper.getHeight()
+    scrollHeight = wrapper.getScrollHeight()
+    scrollTop    = wrapper.getScrollTop()
+
+    return scrollTop + height >= scrollHeight
 
 
   scrollDown: ->
-
-
-  scrollUp: ->
-
-    return  unless @active
-
-    window.scrollTo 0, 0
-
-
-  setScrollTops: ->
-
-    super
-
-    @lastScrollTops.window = window.scrollY
-
-
-  applyScrollTops: ->
-
-    super
-
-    KD.utils.defer =>
-      window.scrollTo 0, @lastScrollTops.window
 
 
   createChannelTitle: ->
@@ -175,8 +168,10 @@ class MessagePane extends KDTabPaneView
     {name, isParticipant, typeConstant} = @getData()
 
     @channelTitleView = new KDCustomHTMLView
-      partial   : "##{name}"
-      cssClass  : "channel-title #{if isParticipant then 'participant' else ''}"
+      partial    : "##{name}"
+      cssClass   : "channel-title #{if isParticipant then 'participant' else ''}"
+      attributes :
+        testpath : 'channel-title'
 
     if typeConstant not in ['group', 'announcement']
       @channelTitleView.addSubView new TopicFollowButton null, @getData()
@@ -264,12 +259,24 @@ class MessagePane extends KDTabPaneView
       item.hide()
 
 
+  setScrollTops: ->
+
+    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
+
+
+  applyScrollTops: ->
+
+    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
+
+
   viewAppended: ->
 
-    @addSubView @channelTitleView  if @channelTitleView
-    @addSubView @input             if @input
-    @addSubView @filterLinks       if @filterLinks
-    @addSubView @listController.getView()
+    @addSubView @scrollView
+    @scrollView.wrapper.addSubView @channelTitleView  if @channelTitleView
+    @scrollView.wrapper.addSubView @input             if @input
+    @scrollView.wrapper.addSubView @filterLinks       if @filterLinks
+    @scrollView.wrapper.addSubView @listController.getView()
+    @setScrollTops()
 
 
   show: ->
@@ -277,6 +284,8 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
+    KD.utils.wait 50, =>
+      @scrollView.verticalTrack.thumb.handleMutation()
 
 
 
@@ -334,7 +343,7 @@ class MessagePane extends KDTabPaneView
 
 
 
-  fetch: (options = {}, callback)->
+  fetch: (options = {}, callback) ->
 
     {
       name
@@ -354,45 +363,40 @@ class MessagePane extends KDTabPaneView
       then KD.utils.defer -> callback null, [data]
       else appManager.tell 'Activity', 'fetch', options, callback
 
+
   lazyLoad: do ->
 
     loading = no
 
-    ->
+    (listController, callback) ->
 
       return  if loading
 
-      @listController.showLazyLoader()
+      listController ?= @listController
+
+      listController.showLazyLoader()
 
       {appManager} = KD.singletons
-      last         = @listController.getItemsOrdered().last
+      last         = listController.getListItems().last
 
-      return @listController.hideLazyLoader()  unless last
+      return listController.hideLazyLoader()  unless last
 
       loading = yes
 
       if @currentFilter is 'Most Liked'
         from = null
-        skip = @listController.getItemsOrdered().length
+        skip = listController.getItemCount()
       else
         from = last.getData().createdAt
 
-      @fetch {from, skip}, (err, items=[])=>
+      @fetch {from, skip}, (err, items = []) =>
+
         loading = no
-        @listController.hideLazyLoader()
+        listController.hideLazyLoader()
 
-        return KD.showError err  if err
+        KD.showError err  if err
 
-        items.forEach @lazyBound 'loadMessage'
-
-
-  refresh: ->
-
-    window.scrollTo 0, 0
-
-    @listController.removeAllItems()
-    @listController.showLazyLoader()
-    @populate()
+        callback err, items
 
 
   setFilter: (filter) ->

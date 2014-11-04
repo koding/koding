@@ -823,16 +823,71 @@ utils.extend utils,
 
   sendDataDogEvent: (eventName)->
 
-    KD.utils.s3upload
-      name    : "logs_#{new Date().toISOString()}.txt"
-      content : KD.parseLogs()
-    , (err, publicUrl)->
-
-      logs = if err? and not publicUrl
-      then KD.parseLogs()
-      else publicUrl
-
+    sendEvent = (logs)->
       KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+    kdlogs = KD.parseLogs()
+
+    # If there is enough log to send, no more checks required
+    # just send them away, first to s3 then datadog
+    if kdlogs.length > 100
+
+      KD.utils.s3upload
+        name    : "logs_#{new Date().toISOString()}.txt"
+        content : kdlogs
+      , (err, publicUrl)->
+
+        logs = if err? and not publicUrl
+        then KD.parseLogs()
+        else publicUrl
+
+        sendEvent logs
+
+    else
+
+      # Send only events when hostname is koding.com
+      # and user enabled logs somehow
+      sendEvent()  if location.hostname is "koding.com"
+
+
+  getLocationInfo: do (queue=[])->
+
+    ip      = null
+    country = null
+    region  = null
+
+    fail = ->
+
+      for cb in queue
+        cb { message: "Failed to fetch IP info." }
+
+      queue = []
+
+    (callback = noop)->
+
+      if ip? and country? and region?
+        callback null, { ip, country, region }
+        return
+
+      return  if (queue.push callback) > 1
+
+      $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
+
+        if status is "success"
+
+          { ip, country_code, region_code } = data
+
+          country = country_code
+          region  = region_code
+
+          for cb in queue
+            cb null, { ip, country, region }
+
+          queue = []
+
+        else do fail
+
+      .fail -> do fail
 
 
   s3upload: (options, callback = noop)->

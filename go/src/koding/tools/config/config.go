@@ -22,6 +22,10 @@ type Broker struct {
 }
 
 type Config struct {
+	Aws struct {
+		Key    string
+		Secret string
+	}
 	BuildNumber int
 	Environment string
 	Regions     struct {

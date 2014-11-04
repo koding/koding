@@ -7,6 +7,7 @@ import (
 	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
+	"koding/kites/klient/collaboration"
 	"koding/kites/klient/protocol"
 	"koding/kites/klient/usage"
 	"log"
@@ -43,6 +44,8 @@ var (
 	usg  = usage.NewUsage()
 	klog kite.Logger
 
+	collab = collaboration.New()
+
 	// we also could use an atomic boolean this is simple for now.
 	updating   = false
 	updatingMu sync.Mutex // protects updating
@@ -74,13 +77,49 @@ func main() {
 		Interval: *flagUpdateInterval,
 	}
 
+	// before we register check for latest update and re-update itself before
+	// we continue
+	k.Log.Info("Checking for new updates")
+	if err := updater.checkAndUpdate(); err != nil {
+		klog.Warning("Self-update: %s", err)
+	}
+
 	go updater.Run()
 
 	// always boot up with the same id in the kite.key
 	k.Id = conf.Id
 
-	// dont' allow anyone to call a method if we are during an update
+	userIn := func(user string, users ...string) bool {
+		for _, u := range users {
+			if u == user {
+				return true
+			}
+		}
+		return false
+	}
+
+	// don't pass any request if the caller is outside of our scope.
+	// don't allow anyone to call a method if we are during an update.
 	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
+		// only authenticated methods have correct username. For example
+		// kite.ping has authentication disabled so username can be empty.
+		if r.Auth != nil {
+			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
+				r.Username, r.Client.Environment, r.Client.Name, r.Method)
+
+			// Allow these users by default.
+			allowedUsers := []string{k.Config.Username, "koding"}
+
+			// Add collaboration users to the list
+			for user := range collab.AllowedUsers {
+				allowedUsers = append(allowedUsers, user)
+			}
+
+			if !userIn(r.Username, allowedUsers...) {
+				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
+			}
+		}
+
 		updatingMu.Lock()
 		defer updatingMu.Unlock()
 
@@ -120,6 +159,11 @@ func main() {
 
 	// also invoke updating
 	k.Handle("klient.update", updater)
+
+	// Collaboration
+	k.HandleFunc("klient.share", collab.Share)
+	k.HandleFunc("klient.unshare", collab.Unshare)
+	k.HandleFunc("klient.shared", collab.Shared)
 
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)

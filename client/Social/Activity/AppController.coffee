@@ -27,9 +27,6 @@ class ActivityAppController extends AppController
 
     @appStorage = appStorageController.storage 'Activity', '2.0'
 
-    @on 'LazyLoadThresholdReached',    KD.utils.throttle 200, @getView().bound 'lazyLoadThresholdReached'
-    @on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @getView().bound 'topLazyLoadThresholdReached'
-
 
   post: (options = {}, callback = noop) ->
 
@@ -46,7 +43,9 @@ class ActivityAppController extends AppController
     socialapi.message.edit {id, body}, callback
 
 
-  reply: ({activity, body, clientRequestId}, callback = noop) ->
+  reply: (options = {}, callback = noop) ->
+
+    {activity, body, clientRequestId} = options
 
     messageId = activity.id
 
