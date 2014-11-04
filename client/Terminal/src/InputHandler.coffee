@@ -30,7 +30,7 @@ class WebTerm.InputHandler
     121: CSI + "21~"            # F10
     122: CSI + "23~"            # F11
     123: CSI + "24~"            # F12
-  
+
   constructor: (@terminal) ->
     @applicationKeypad = false
     @trackMouseDown = false
@@ -38,25 +38,25 @@ class WebTerm.InputHandler
     @trackMouseHold = false
     @previousMouseX = -1
     @previousMouseY = -1
-    
+
   keyDown: (event) ->
     @terminal.scrollToBottom()
     @terminal.cursor.resetBlink()
-    
+
     if event.ctrlKey
       unless event.shiftKey or event.altKey or event.keyCode < 64
         @terminal.server.controlSequence String.fromCharCode(event.keyCode - 64)
         event.preventDefault()
       return
-    
+
     seq = @KEY_SEQUENCES[event.keyCode]
     if Array.isArray seq
       seq = seq[if @applicationKeypad then 1 else 0]
-    
+
     if seq?
       @terminal.server.controlSequence seq
       event.preventDefault()
-  
+
   keyPress: (event) ->
     if event.metaKey
       switch event.charCode
@@ -69,13 +69,13 @@ class WebTerm.InputHandler
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
     event.preventDefault()
-  
+
   keyUp: (event) ->
     # nothing to do
 
   setMouseMode: (@trackMouseDown, @trackMouseUp, @trackMouseHold) ->
     @terminal.outputbox.css "cursor", if @trackMouseDown then "pointer" else "text"
-  
+
   mouseEvent: (event) ->
     offset = @terminal.container.offset()
     x = Math.floor((event.originalEvent.clientX - offset.left + @terminal.container.scrollLeft()) * @terminal.sizeX / @terminal.container.prop("scrollWidth"))
@@ -106,7 +106,7 @@ class WebTerm.InputHandler
     @previousMouseY = y
     @terminal.server.controlSequence CSI + "M" + String.fromCharCode(eventCode + 32) + String.fromCharCode(x + 33) + String.fromCharCode(y + 33)
     event.preventDefault()
-  
+
   useApplicationKeypad: (value) ->
     @applicationKeypad = value
 
