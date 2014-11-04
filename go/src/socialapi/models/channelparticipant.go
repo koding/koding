@@ -83,12 +83,6 @@ func (c *ChannelParticipant) Create() error {
 		}
 	}
 
-	if err := bongo.B.PublishEvent(
-		ChannelParticipant_Added_To_Channel_Event, c,
-	); err != nil {
-		// log here
-	}
-
 	return nil
 }
 
@@ -167,14 +161,7 @@ func (c *ChannelParticipant) Delete() error {
 		return err
 	}
 
-	if err := bongo.B.PublishEvent(
-		ChannelParticipant_Removed_From_Channel_Event, c,
-	); err != nil {
-		// log here
-	}
-
 	return nil
-
 }
 
 func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error) {
