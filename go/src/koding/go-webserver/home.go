@@ -50,7 +50,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	go fetchWorkspaces(userInfo.AccountId, outputter)
 
 	// return if timeout reached and let client get what it wants
-	timeout := time.NewTimer(time.Millisecond * TimeoutTime)
+	timeout := time.NewTimer(TimeoutTime)
 
 	select {
 	case err := <-onError:
