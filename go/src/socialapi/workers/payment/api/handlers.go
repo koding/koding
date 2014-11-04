@@ -90,7 +90,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 	// Paypal
 	//----------------------------------------------------------
 
-	mux.Handle("POST", "/payments/paypal/success", handler.Wrapper(
+	mux.Handle("POST", "/payments/paypal/return", handler.Wrapper(
 		handler.Request{
 			Handler: PaypalSuccess,
 			Name:    "payment-paypalsuccess",

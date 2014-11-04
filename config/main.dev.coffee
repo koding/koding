@@ -186,6 +186,7 @@ Configuration = (options={}) ->
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
+    paypal            : {returnURL : '/-/payments/paypal/return', cancelURL: '/-/payments/paypal/cancel'}
 
 
 
