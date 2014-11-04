@@ -80,13 +80,6 @@ module.exports = class JLog extends Module
 
     daisy queue = [
       ->
-        return queue.next() unless ip
-        # do we have 5 failed login attempts from this ip...
-        JLog.some {ip : ip}, {limit : TRY_LIMIT_FOR_BLOCKING, sort: createdAt: -1}, (err, results)->
-          checkRestrictions err, results, (res)->
-            unless res then return callback res
-            queue.next()
-      ->
         return queue.next() unless username
         JLog.some {username : username}, {limit : TRY_LIMIT_FOR_BLOCKING, sort: createdAt: -1}, (err, results)->
           checkRestrictions err, results, (res)->
