@@ -49,7 +49,7 @@ utils.extend utils,
       username        : uniqueness
 
 
-  getPublicIP: do (queue=[])->
+  getLocationInfo: do (queue=[])->
 
     ip      = null
     country = null

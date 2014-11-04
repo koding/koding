@@ -57,7 +57,7 @@ utils.extend utils,
     KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
 
-  getPublicIP: do (queue=[])->
+  getLocationInfo: do (queue=[])->
 
     ip      = null
     country = null
