@@ -57,6 +57,45 @@ utils.extend utils,
     KD.remote.api.JUser.register u.generateDummyUserData(), => location.reload yes
 
 
+  getLocationInfo: do (queue=[])->
+
+    ip      = null
+    country = null
+    region  = null
+
+    fail = ->
+
+      for cb in queue
+        cb { message: "Failed to fetch IP info." }
+
+      queue = []
+
+    (callback = noop)->
+
+      if ip? and country? and region?
+        callback null, { ip, country, region }
+        return
+
+      return  if (queue.push callback) > 1
+
+      $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
+
+        if status is "success"
+
+          { ip, country_code, region_code } = data
+
+          country = country_code
+          region  = region_code
+
+          for cb in queue
+            cb null, { ip, country, region }
+
+          queue = []
+
+        else do fail
+
+      .fail -> do fail
+
 
   # Chrome apps open links in a new browser window. OAuth authentication
   # relies on `window.opener` to be present to communicate back to the

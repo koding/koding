@@ -291,8 +291,11 @@ module.exports = class LoginView extends JView
               formData.password        = passwordForm.password
               formData.passwordConfirm = passwordForm.passwordConfirm
 
-              @doRegister formData, form
-              modal.destroy()
+              KD.utils.getLocationInfo (err, locationData)=>
+                unless err?
+                  formData.locationData = JSON.stringify locationData
+                @doRegister formData, form
+                modal.destroy()
 
             fields                    :
               password                :
