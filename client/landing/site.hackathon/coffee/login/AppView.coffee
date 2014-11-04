@@ -380,7 +380,7 @@ module.exports = class LoginView extends JView
 
                 KD.utils.getLocationInfo (err, locationData)=>
                   unless err?
-                    try formData.locationData = JSON.stringify locationData
+                    formData.locationData = JSON.stringify locationData
                   @doRegister formData, @registerForm
                   modal.destroy()
 
