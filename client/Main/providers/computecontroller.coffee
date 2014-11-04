@@ -512,53 +512,55 @@ class ComputeController extends KDController
     return  if @_inprogress
     @_inprogress = yes
 
-    @fetchUserPlan (plan)=>
+    @fetchUserPlan (plan)=> @fetchPlans (plans)=>
 
-      @fetchPlans (plans)=>
+      @fetchUsage provider: "koding", (err, usage)=>
 
-        @fetchUsage provider: "koding", (err, usage)=>
+        if KD.showError err
+          return @_inprogress = no
 
-          if KD.showError err
-            return @_inprogress = no
+        limits  = plans[plan]
+        options = { plan, limits, usage }
 
-          limits  = plans[plan]
-          options = { plan, limits, usage }
+        if limits.total > 1
 
-          if limits.total > 1
+          new ComputePlansModal.Paid options
+          @_inprogress = no
 
-            new ComputePlansModal.Paid options
+          callback()
+          return
+
+        @fetchMachines (err, machines)=>
+
+          warn err  if err?
+
+          if err? or machines.length > 0
+            new ComputePlansModal.Free options
             @_inprogress = no
 
             callback()
 
-          else
+          else if machines.length is 0
 
-            @fetchMachines (err, machines)=>
+            stack   = @stacks.first._id
+            storage = plans[plan]?.storage or 3
 
-              warn err  if err?
+            KD.utils.getLocationInfo (err, location)=>
 
-              if err? or machines.length > 0
-                new ComputePlansModal.Free options
+              if not err? and location
+                regionIp = location.ip
+
+              @create {
+                provider : "koding"
+                regionIp, stack, storage
+              }, (err, machine)=>
+
                 @_inprogress = no
 
                 callback()
 
-              else if machines.length is 0
-
-                stack   = @stacks.first._id
-                storage = plans[plan]?.storage or 3
-
-                @create {
-                  provider : "koding",
-                  stack, storage
-                }, (err, machine)=>
-
-                  @_inprogress = no
-
-                  callback()
-
-                  unless KD.showError err
-                    KD.userMachines.push machine
+                unless KD.showError err
+                  KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->
