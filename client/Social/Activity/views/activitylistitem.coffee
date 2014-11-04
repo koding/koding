@@ -2,7 +2,7 @@ class ActivityListItemView extends KDListItemView
 
   JView.mixin @prototype
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.type               = 'activity'
     options.commentViewClass or= CommentView
@@ -33,14 +33,14 @@ class ActivityListItemView extends KDListItemView
       constructorName : data.account.constructorName
       id              : data.account._id
 
-    @avatar    = new AvatarView
+    @avatar = new AvatarView
       size     :
         width  : 37
         height : 37
       cssClass : 'author-avatar'
       origin   : origin
 
-    @author      = new ProfileLinkView { origin }
+    @author = new ProfileLinkView { origin }
 
     {commentViewClass} = options
 
@@ -56,7 +56,6 @@ class ActivityListItemView extends KDListItemView
       cssClass      : 'settings-menu-wrapper'
       itemView      : this
     , data
-
 
     {_id, constructorName} = data.account
     KD.remote.cacheable constructorName, _id, (err, account)=>
@@ -113,7 +112,7 @@ class ActivityListItemView extends KDListItemView
     else @unsetClass 'edited'
 
 
-  showEditWidget : ->
+  showEditWidget: ->
 
     unless @editWidget
       { editWidgetClass } = @getOptions()
@@ -148,7 +147,7 @@ class ActivityListItemView extends KDListItemView
     @editWidget = null
 
 
-  resetEditing : ->
+  resetEditing: ->
 
     @editWidgetWrapper.hide()
     @unsetClass 'editing'
@@ -180,67 +179,70 @@ class ActivityListItemView extends KDListItemView
     @resend.show()
 
 
-
   hideResend: ->
     @unsetClass 'failed'
     @resend.destroySubViews()
 
 
-  partial:-> ''
+  partial: -> ''
 
 
   hide: ->
 
     @isBeingHidden = yes
 
-    @once 'transitionend', =>
+    @setClass 'half no-anim'
+    @isBeingHidden = no
 
+
+  delete: ->
+
+    @whenSubmitted().then =>
+
+      @unsetClass 'half no-anim'
       @once 'transitionend', =>
-        @emit 'HideAnimationFinished'
-        @setClass 'hidden'
-        @isBeingHidden = no
+        @once 'transitionend', =>
+          @emit 'HideAnimationFinished'
+          @setClass 'hidden'
 
-      height  = @getHeight()
-      element = @getElement()
-      style   = window.getComputedStyle element
-      margins = ['margin-top', 'margin-bottom'].reduce (old, property) ->
-        calculated = parseInt (style.getPropertyValue property), 10
-        calculated = 0  if isNaN calculated
-        return old + calculated
-      , 0
+        height  = @getHeight()
+        element = @getElement()
+        style   = window.getComputedStyle element
+        margins = ['margin-top', 'margin-bottom'].reduce (old, property) ->
+          calculated = parseInt (style.getPropertyValue property), 10
+          calculated = 0  if isNaN calculated
+          return old + calculated
+        , 0
 
-      @setCss 'margin-top', "-#{height + margins}px"
+        @setCss 'margin-top', "-#{height + margins}px"
 
-    @setClass 'out'
+      @setClass 'out'
 
 
-  show: -> @whenSubmitted().then => @unsetClass 'hidden out'
+  show: ->
+
+    @unsetClass 'half no-anim out'
+
+    super
 
 
   whenSubmitted: ->
+
     new Promise (resolve) =>
       if @isBeingHidden
       then @once 'HideAnimationFinished', -> resolve()
       else resolve()
 
 
-  delete: ->
-
-    @whenSubmitted().then =>
-      list = @getDelegate()
-      @emit 'ActivityIsDeleted'
-      list.removeItem this
-      @destroy()
-
-
-  render : ->
+  render: ->
 
     super
 
     emojify.run @getElement()
     @checkIfItsTooTall()
 
-  viewAppended:->
+
+  viewAppended: ->
 
     JView::viewAppended.call this
 

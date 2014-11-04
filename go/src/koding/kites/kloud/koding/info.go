@@ -1,8 +1,6 @@
 package koding
 
 import (
-	"fmt"
-	"sync"
 	"time"
 
 	"github.com/koding/kite"
@@ -11,133 +9,106 @@ import (
 	"labix.org/v2/mgo/bson"
 
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 )
 
-// invalidChanges is a list of exceptions that applies when we fix the DB state
-// with the state coming from Amazon. For example if the db state is "stopped"
-// there is no need to change it with the Amazon state "stopping"
-var invalidChanges = map[machinestate.State]machinestate.State{
-	machinestate.Stopped:    machinestate.Stopping,
-	machinestate.Running:    machinestate.Starting,
-	machinestate.Terminated: machinestate.Terminating,
-}
-
-// protects invalidChanges
-var rwLock sync.RWMutex
-
-// validChange returns true if the given db state is a valid to change with the
-// aws state
-func validChange(db, aws machinestate.State) bool {
-	rwLock.Lock()
-	defer rwLock.Unlock()
-
-	return invalidChanges[db] != aws
-}
-
 func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
-	a, err := p.NewClient(m)
-	if err != nil {
-		return nil, err
-	}
-
-	// otherwise ask AWS to get an machine state
-	infoResp, err := a.Info()
-	if err != nil {
-		return nil, err
-	}
-
+	// initial machine state is the state that the storage has
 	dbState := m.State
-	awsState := infoResp.State
 
-	// result state is the final state that is send back to the request
-	resultState := dbState
+	// Assume the klient state as unknown initially
+	klientState := machinestate.Unknown
 
-	p.Log.Debug("[%s] info initials: current db state is '%s'. amazon ec2 state is '%s'",
-		m.Id, dbState, awsState)
+	// the final state that will be sent to the caller
+	var resultState machinestate.State
 
-	// we don't check if the state is something else. Klient is only available
-	// when the machine is running
-	klientChecked := false
-	if dbState.In(machinestate.Running, machinestate.Stopped) && awsState == machinestate.Running {
-		klientChecked = true
-
-		err := klient.Exists(p.Kite, m.QueryString)
-		switch err {
-		case kite.ErrNoKitesAvailable:
-			p.Log.Warning("[%s] klient is disconnected, I couldn't find it trough Kontrol. err: %s",
-				m.Id, err)
-
-			resultState = machinestate.Stopped
-
-			// start shutdown timer, because klient is not running, don't let
-			// it be running forever
-			p.startTimer(m)
-		case nil:
-			// now assume it's running
-			resultState = machinestate.Running
-
-			// stop any if any timer is available
-			p.stopTimer(m)
-		default:
-			p.stopTimer(m)
-			// error is something else and critical, so don't do anything until it's resolved
-			p.Log.Critical("[%s] couldn't get klient information to check the status: %s ", m.Id, err)
-		}
-
-		if resultState != dbState {
-
-			reason := ""
-			switch resultState {
-			case machinestate.Running:
-				reason = "Klient is active and healthy."
-			case machinestate.Stopped:
-				reason = "Klient is not active."
-			default:
-				reason = "Klient is in unknown state."
-			}
-
-			// return an error anything here if the DB is locked.
-			if err := p.CheckAndUpdateState(m.Id, reason, resultState); err == mgo.ErrNotFound {
-				return nil, kloud.ErrLockAcquired
-			}
-		}
-
-		p.Log.Debug("[%s] info decision: based on klient interaction: '%s'",
-			m.Id, resultState)
+	// Get the klient state.
+	err = klient.Exists(p.Kite, m.QueryString)
+	switch err {
+	case nil:
+		klientState = machinestate.Running
+	case kite.ErrNoKitesAvailable:
+		p.Log.Warning("[%s] Klient is disconnected, I couldn't find it through Kontrol. Err: %s",
+			m.Id, err)
+	default:
+		// Any other error will fallback to here. So assume that kontrol
+		// failed or some other catastrophic failure occured. Thus, do not
+		// stop or destroy the machine because of our failure.
+		p.Log.Critical("[%s] couldn't get klient information to check machine status: %s ", m.Id, err)
 	}
 
-	// fix db state if the aws state is different than dbState. This will not
-	// break existing actions like building,starting,stopping etc.. because
-	// CheckAndUpdateState only update the state if there is no lock available.
-	// however only fix when it's there was no klient checking and the state
-	// changing is a valid transformation (for example prevent if it's
-	// "Stopped" -> "Stopping"
-	if dbState != awsState && !klientChecked && validChange(dbState, awsState) {
-		// this is only set if the lock is unlocked. Thefore it will not
-		// change the db state if there is an ongoing process. If there is no
-		// error than it means there is no lock so we could update it with the
-		// state from amazon. Therefore send it back!
-		reason := fmt.Sprintf("State is inconsistent. Have '%s' in DB, updating to AWS state: '%s'",
-			dbState, awsState)
-		err := p.CheckAndUpdateState(m.Id, reason, awsState)
-		if err == nil {
-			p.Log.Info("[%s] info decision : inconsistent state. using amazon state '%s'",
-				m.Id, awsState)
-			resultState = awsState
-		} else {
-			p.Log.Debug("[%s] info decision : using current db state '%s'",
-				m.Id, resultState)
+	p.Log.Debug("[%s] Info initials: Current db state: '%s'. Klient state: '%s'",
+		m.Id, dbState, klientState)
+
+	reason := ""
+	switch klientState {
+	case machinestate.Running:
+		p.Log.Debug("[%s] Info log: klient is running", m.Id)
+
+		// Stop the shutdown timer if there is any.
+		p.stopTimer(m)
+
+		// If the klient is running, then it is safe to say that the  machine
+		// is healthy.
+		reason = "Klient is active and healthy."
+
+		if dbState == machinestate.Running {
+			p.Log.Debug("[%s] Info log: klient is running and dbstate is running too. Doing nothing but returning", m.Id)
+			return &protocol.InfoArtifact{
+				State: machinestate.Running,
+			}, nil
 		}
+		resultState = machinestate.Running
+		dbState = machinestate.Running
+		p.Log.Debug("[%s] Info log: klient is running and dbstate is not running. Setting dbstate to running.", m.Id)
+
+	case machinestate.Unknown:
+		p.Log.Debug("[%s] Info log: klient is not reachable. Asking to AWS about the machine state. Also started the shutdown-timer.", m.Id)
+
+		// Start the shutdown timer since the klient is unreachable.
+		// startTimer does not turn-off always-on machines, which is good
+		p.startTimer(m)
+
+		reason = "Klient is not reachable."
+
+		// Since klient is not registered, we have to ask for AWS about the machine state.
+		a, err := p.NewClient(m)
+		if err != nil {
+			return nil, err
+		}
+		infoResp, err := a.Info()
+		if err != nil {
+			return nil, err
+		}
+
+		awsState := infoResp.State
+
+		if dbState == awsState {
+			p.Log.Debug("[%s] Info log: dbState(%s) and awsState(%s) are the same. Not gonna update the db", m.Id, dbState, awsState)
+			return &protocol.InfoArtifact{
+				State: awsState,
+			}, nil
+		}
+
+		dbState = awsState
+		resultState = awsState
 	}
 
-	p.Log.Debug("[%s] info result: '%s' username: %s", m.Id, resultState, m.Username)
+	// auto-fix db state if the klient state is different than db state. This will
+	// not break existing actions like building, starting, stopping etc...
+	// because CheckAndUpdateState only update the state if there is no lock
+	// available.
+	p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s", m.Id, dbState, reason)
+	err = p.CheckAndUpdateState(m.Id, reason, dbState)
+	if err != nil {
+		p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+	}
+
+	p.Log.Debug("[%s] Info result: '%s'. Username: %s", m.Id, resultState, m.Username)
 
 	return &protocol.InfoArtifact{
 		State: resultState,
-		Name:  infoResp.Name,
 	}, nil
 
 }
