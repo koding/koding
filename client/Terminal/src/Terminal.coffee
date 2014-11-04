@@ -68,6 +68,7 @@ class WebTerm.Terminal extends KDObject
     @outputbox.attr "spellcheck", off
     @outputbox.css "cursor", "text"
     @outputbox.append @measurebox.getDomElement()
+
     @container.append @outputbox
 
     outputboxElement.addEventListener "keydown", do =>
@@ -103,7 +104,7 @@ class WebTerm.Terminal extends KDObject
 
     @updateSize()
 
-    @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
+    @container.on "mousedown mousemove mouseup wheel contextmenu", (event) =>
       @inputHandler.mouseEvent event
 
     @clientInterface =
@@ -169,10 +170,14 @@ class WebTerm.Terminal extends KDObject
 
     return sizes
 
-  updateSize: (force=no) ->
+
+  updateSize: (force = no) ->
+
 
     [swidth, sheight] = [@parent.getWidth()  or @currentWidth,\
                          @parent.getHeight() or @currentHeight]
+
+    @updateAppSize()
 
     return  if not force and \
                swidth is @currentWidth and sheight is @currentHeight
@@ -185,9 +190,22 @@ class WebTerm.Terminal extends KDObject
     newCols = Math.max 1, Math.floor swidth  / charWidth
     newRows = Math.max 1, Math.floor sheight / charHeight
 
+
     @setSize newCols, newRows
 
-  windowDidResize: _.throttle (-> @updateSize()), 500
+
+  updateAppSize: ->
+
+    { appView } = @getOptions()
+
+    height = appView.parent.getHeight() - 24 # padding
+
+    newHeight = Math.floor(height / @_mbHeight) * @_mbHeight
+
+    appView.setHeight newHeight
+
+
+  windowDidResize: _.debounce (-> @updateSize()), 100
 
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
@@ -271,20 +289,23 @@ class WebTerm.Terminal extends KDObject
 
   changeScreenBuffer: (index) ->
 
-  isScrolledToBottom: ->
-    @container.scrollTop() + @parent.getHeight() >= @container.prop("scrollHeight") - 3
+  isScrolledToBottom: -> @parent.isAtBottom()
 
-  scrollToBottom: (animate=no) ->
-    return if @isScrolledToBottom()
+  scrollToBottom: (animate = no) ->
+
+    return  if @isScrolledToBottom()
+
     @container.stop()
+
     if animate
-      @container.animate { scrollTop: @container.prop("scrollHeight") - @parent.getHeight() }, duration: 200
-    else
-      @container.scrollTop(@container.prop("scrollHeight") - @parent.getHeight())
+    then @container.animate { scrollTop : @parent.getScrollHeight() - @parent.getHeight() }, duration : 200
+    else @parent.scrollToBottom()
+
 
   setScrollbackLimit: (limit) ->
     @screenBuffer.scrollbackLimit = limit
     @screenBuffer.flush()
+
 
   inspectString: (string) ->
     escaped = string.replace /[\x00-\x1f\\]/g, (character) ->
@@ -295,7 +316,9 @@ class WebTerm.Terminal extends KDObject
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
 
+
   paste: (event) =>
+
     KD.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"
     @setKeyFocus()
