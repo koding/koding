@@ -34,7 +34,7 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/guestcleanerworker
-  github.com/skelterjohn/rerun
+  github.com/canthefason/goldorf
   koding/go-webserver
 
   socialapi/workers/api
