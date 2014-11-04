@@ -62,6 +62,7 @@ type SubscriptionsResponse struct {
 	PlanTitle          string    `json:"planTitle"`
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
+	Provider           string    `json:"provider"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
@@ -79,6 +80,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		PlanTitle:    "free",
 		PlanInterval: "month",
 		State:        "active",
+		Provider:     "koding",
 	}
 
 	customer, err := stripe.FindCustomerByOldId(a.AccountId)
@@ -110,6 +112,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
 		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
 		State:              currentSubscription.State,
+		Provider:           currentSubscription.Provider,
 	}
 
 	return resp, nil
