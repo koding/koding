@@ -94,10 +94,7 @@ class IDE.ShortcutsView extends KDView
       'Move lines down'        : 'Alt-Down'
       'Move lines up'          : 'Alt-Up'
       'Duplicate selection'    : 'Meta-Shift-D'
-      'Fold all'               : { Others: 'Alt-0',          Apple: 'Meta-Alt-0' }
-      'Fold selection'         : { Others: 'Alt-L',          Apple: 'Meta-Alt-L' }
-      'Unfold'                 : { Others: 'Alt-Shift-L',    Apple: 'Meta-Alt-Shift-L' }
-      'Unfold all'             : { Others: 'Alt-Shift-0',    Apple: 'Meta-Alt-Shift-0' }
+      'Toggle folding'         : { Others: 'Alt-L',          Apple: 'Meta-Alt-L' }
       'Move multicursor from current line to the line above': 'Ctrl-Alt-Shift-Up'
       'Move multicursor from current line to the line below': 'Ctrl-Alt-Shift-Down'
       'Indent'                 : 'Tab'
