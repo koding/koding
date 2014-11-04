@@ -160,7 +160,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "http://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
