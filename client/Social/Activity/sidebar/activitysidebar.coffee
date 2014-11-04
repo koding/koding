@@ -191,7 +191,11 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, 2
+      index = if typeConstant is 'privatemessage'
+      then 0
+      else null
+
+      item = @addItem channel, index
       @setUnreadCount item, channel, unreadCount
 
 
