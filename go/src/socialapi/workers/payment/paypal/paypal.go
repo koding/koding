@@ -1,13 +1,17 @@
 package paypal
 
 import (
-	"socialapi/workers/payment/paymenterrors"
-	"socialapi/workers/payment/paymentmodels"
+	"errors"
+	"strconv"
 
+	"github.com/koding/logging"
 	"github.com/koding/paypal"
 )
 
-const CurrencyCode = "USD"
+const (
+	CurrencyCode = "USD"
+	ProviderName = "paypal"
+)
 
 var (
 	// TODO: get from config
@@ -18,24 +22,36 @@ var (
 	cancelURL = "http://localhost:4567"
 	isSandbox = true
 	client    = paypal.NewDefaultClient(username, password, signature, isSandbox)
+	Log       = logging.NewLogger("payment")
 )
-
-// TODO: move to common location
-func FindPlanByTitleAndInterval(title, interval string) (*paymentmodels.Plan, error) {
-	plan := paymentmodels.NewPlan()
-
-	err := plan.ByTitleAndInterval(title, interval)
-	if err != nil {
-		if paymenterrors.IsPlanNotFoundErr(err) {
-			return nil, paymenterrors.ErrPlanNotFound
-		}
-
-		return nil, err
-	}
-
-	return plan, nil
-}
 
 func amount(cents uint64) float64 {
 	return float64(cents)
+}
+
+func normalizeAmount(amount uint64) string {
+	return strconv.Itoa(int(amount))
+}
+
+func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if response.Ack != "SUCCESS" {
+		return errors.New("paypal request failed")
+	}
+
+	return nil
+}
+
+func getInterval(interval string) string {
+	switch interval {
+	case "monthly":
+		return "Month"
+	case "yearly":
+		return "Year"
+	default:
+		return "Month"
+	}
 }

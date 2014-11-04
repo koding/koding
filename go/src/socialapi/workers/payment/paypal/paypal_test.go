@@ -6,6 +6,9 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -25,4 +28,39 @@ func init() {
 	stripe.CreateDefaultPlans()
 
 	rand.Seed(time.Now().UTC().UnixNano())
+}
+
+func generateFakeUserInfo() (string, string, string) {
+	token, accId := "token", bson.NewObjectId().Hex()
+	email := accId + "@koding.com"
+
+	return token, accId, email
+}
+
+func subscribeFn(fn func(string, string, string)) func() {
+	return func() {
+		token, accId, email := generateFakeUserInfo()
+		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
+
+		So(err, ShouldBeNil)
+
+		fn(token, accId, email)
+	}
+}
+
+func checkCustomerIsSaved(accId string) bool {
+	customerModel, err := FindCustomerByOldId(accId)
+	if err != nil {
+		return false
+	}
+
+	if customerModel == nil {
+		return false
+	}
+
+	if customerModel.OldId != accId {
+		return false
+	}
+
+	return true
 }
