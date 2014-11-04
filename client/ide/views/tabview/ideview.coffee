@@ -232,7 +232,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     items =
       'New File'          : callback : => @createEditor()
       'New Terminal'      : callback : => @createTerminal()
-      'New Browser'       : callback : => @createPreview()
+      # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
         separator         : yes
