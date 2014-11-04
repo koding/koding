@@ -1,7 +1,6 @@
 package paypal
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/koding/logging"
@@ -18,8 +17,8 @@ var (
 	username  = "senthil+1_api1.koding.com"
 	password  = "JFH6LXW97QN588RC"
 	signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
-	returnURL = "http://localhost:4567"
-	cancelURL = "http://localhost:4567"
+	returnURL = "http://lvh.me:8090/-/payments/paypal/return"
+	cancelURL = "http://lvh.me:8090/-/payments/paypal/cancel"
 	isSandbox = true
 	client    = paypal.NewDefaultClient(username, password, signature, isSandbox)
 	Log       = logging.NewLogger("payment")
@@ -38,9 +37,9 @@ func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
 		return err
 	}
 
-	if response.Ack != "SUCCESS" {
-		return errors.New("paypal request failed")
-	}
+	// if response.Ack != "SUCCESS" || response.Ack != "Success {
+	//   return errors.New("paypal request failed")
+	// }
 
 	return nil
 }
