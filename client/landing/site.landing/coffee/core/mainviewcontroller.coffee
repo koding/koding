@@ -30,6 +30,14 @@ module.exports = class MainViewController extends KDViewController
           logViewByElement event.target
       , yes
 
+    KD.utils.getPublicIP (err, data)->
+
+      return  if err?
+
+      document.cookie = "clientIP=#{data.ip}"
+      document.cookie = "clientCountry=#{data.country}"
+      document.cookie = "clientRegion=#{data.region}"
+
 
   setBodyClass: do ->
 
