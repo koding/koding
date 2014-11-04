@@ -20,6 +20,7 @@ type PayPalClient struct {
 	username    string
 	password    string
 	signature   string
+	endpoint    string
 	usesSandbox bool
 	client      *http.Client
 }
@@ -80,11 +81,35 @@ func SumPayPalDigitalGoodAmounts(goods *[]PayPalDigitalGood) (sum float64) {
 }
 
 func NewDefaultClient(username, password, signature string, usesSandbox bool) *PayPalClient {
-	return &PayPalClient{username, password, signature, usesSandbox, new(http.Client)}
+	var endpoint = NVP_PRODUCTION_URL
+	if usesSandbox {
+		endpoint = NVP_SANDBOX_URL
+	}
+
+	return &PayPalClient{
+		username:    username,
+		password:    password,
+		signature:   signature,
+		endpoint:    endpoint,
+		usesSandbox: usesSandbox,
+		client:      new(http.Client),
+	}
 }
 
 func NewClient(username, password, signature string, usesSandbox bool, client *http.Client) *PayPalClient {
-	return &PayPalClient{username, password, signature, usesSandbox, client}
+	var endpoint = NVP_PRODUCTION_URL
+	if usesSandbox {
+		endpoint = NVP_SANDBOX_URL
+	}
+
+	return &PayPalClient{
+		username:    username,
+		password:    password,
+		signature:   signature,
+		endpoint:    endpoint,
+		usesSandbox: usesSandbox,
+		client:      client,
+	}
 }
 
 func (pClient *PayPalClient) PerformRequest(values url.Values) (*PayPalResponse, error) {
@@ -93,12 +118,7 @@ func (pClient *PayPalClient) PerformRequest(values url.Values) (*PayPalResponse,
 	values.Add("SIGNATURE", pClient.signature)
 	values.Add("VERSION", NVP_VERSION)
 
-	endpoint := NVP_PRODUCTION_URL
-	if pClient.usesSandbox {
-		endpoint = NVP_SANDBOX_URL
-	}
-
-	formResponse, err := pClient.client.PostForm(endpoint, values)
+	formResponse, err := pClient.client.PostForm(pClient.endpoint, values)
 	if err != nil {
 		return nil, err
 	}
@@ -193,8 +213,10 @@ func (pClient *PayPalClient) CreateRecurringPaymentsProfile(token string, params
 	values.Add("TOKEN", token)
 	values.Set("METHOD", "CreateRecurringPaymentsProfile")
 
-	for key, value := range params {
-		values.Add(key, value)
+	if params != nil {
+		for key, value := range params {
+			values.Add(key, value)
+		}
 	}
 
 	return pClient.PerformRequest(values)
