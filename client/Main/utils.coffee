@@ -850,6 +850,46 @@ utils.extend utils,
       sendEvent()  if location.hostname is "koding.com"
 
 
+  getLocationInfo: do (queue=[])->
+
+    ip      = null
+    country = null
+    region  = null
+
+    fail = ->
+
+      for cb in queue
+        cb { message: "Failed to fetch IP info." }
+
+      queue = []
+
+    (callback = noop)->
+
+      if ip? and country? and region?
+        callback null, { ip, country, region }
+        return
+
+      return  if (queue.push callback) > 1
+
+      $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
+
+        if status is "success"
+
+          { ip, country_code, region_code } = data
+
+          country = country_code
+          region  = region_code
+
+          for cb in queue
+            cb null, { ip, country, region }
+
+          queue = []
+
+        else do fail
+
+      .fail -> do fail
+
+
   s3upload: (options, callback = noop)->
 
     {name, content} = options

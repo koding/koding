@@ -163,6 +163,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
+      @appStorage.setValue 'blinkingCursor', yes if not @appStorage.getValue('blinkingCursor')?
       @updateSettings()
 
       {mode} = @getOptions()
@@ -276,6 +277,7 @@ class WebTermView extends KDView
     @terminal.scrollToBottom(no)
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
+    @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
 
   setKeyView: ->
     KD.getSingleton('windowController').addLayer this
