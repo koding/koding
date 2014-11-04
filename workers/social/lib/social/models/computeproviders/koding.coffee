@@ -111,10 +111,11 @@ module.exports = class Koding extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { instanceType, label, storage, region } = options
+    { instanceType, label, storage, region, regionIp } = options
     { r: { group, user, account } } = client
 
     storage ?= 3
+    userIp   = regionIp or user.registeredFrom?.ip
 
     guessNextLabel user, group, label, (err, label)=>
 
@@ -131,10 +132,8 @@ module.exports = class Koding extends ProviderInterface
           if err = checkUsage usage, userPlan, storage
             return callback err
 
-          region = null  unless region in SUPPORTED_REGIONS
-          region = region ? (
-            Regions.findRegion client.clientIP, SUPPORTED_REGIONS
-          ).regions[0]
+          region  = null  unless region in SUPPORTED_REGIONS
+          region ?= (Regions.findRegion userIp, SUPPORTED_REGIONS).regions[0]
 
           meta =
             type          : "amazon"
