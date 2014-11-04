@@ -221,7 +221,7 @@ class IDEAppController extends AppController
       {tabView} = view
 
       for p in tabView.panes by -1
-        {pane} = tabView.removePane p, yes
+        {pane} = tabView.removePane p, yes, (yes if pane instanceof AceApplicationTabView)
         panes.push pane
 
       view.destroy()
