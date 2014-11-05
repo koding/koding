@@ -423,7 +423,10 @@ class ComputeController extends KDController
       status      : machine.status.state
       percentage  : 0
 
-    call = @kloud.info { machineId: machine._id }
+    machineId = machine._id
+    currentState = machine.status.state
+
+    call = @kloud.info { machineId, currentState }
 
     .then (response)=>
 
