@@ -25,16 +25,21 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 		return err
 	}
 
+	profileId := response.Values.Get("PROFILEID")
+
 	subModel := &paymentmodels.Subscription{
 		PlanId:                 plan.Id,
 		CustomerId:             customer.Id,
-		ProviderSubscriptionId: response.Values.Get("PROFILEID"),
+		ProviderSubscriptionId: profileId,
 		Provider:               ProviderName,
 		State:                  "active",
 		CurrentPeriodStart:     time.Now(),
 		AmountInCents:          plan.AmountInCents,
 	}
 	err = subModel.Create()
+	if err != nil {
+		return err
+	}
 
-	return err
+	return customer.UpdateProviderCustomerId(profileId)
 }

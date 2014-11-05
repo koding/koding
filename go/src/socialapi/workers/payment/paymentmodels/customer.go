@@ -1,6 +1,7 @@
 package paymentmodels
 
 import (
+	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -45,4 +46,16 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 	err := subscription.ByCustomerIdAndState(c.Id, "active")
 
 	return subscription, err
+}
+
+var ErrorProviderCustomerIdIsSame = errors.New("provider customer id is the same")
+
+func (c *Customer) UpdateProviderCustomerId(id string) error {
+	if c.ProviderCustomerId == id {
+		return ErrorProviderCustomerIdIsSame
+	}
+
+	c.ProviderCustomerId = id
+
+	return bongo.B.Update(c)
 }
