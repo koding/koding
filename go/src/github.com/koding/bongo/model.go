@@ -56,7 +56,7 @@ func (b *Bongo) UnscopedById(i Modellable, id int64) error {
 
 // Creates a new record with the given struct and its fields
 func (b *Bongo) Create(i Modellable) error {
-	if err := b.DB.Save(i).Error; err != nil {
+	if err := b.DB.Table(i.BongoName()).Save(i).Error; err != nil {
 		return err
 	}
 
@@ -82,7 +82,7 @@ func (b *Bongo) Delete(i Modellable) error {
 		return IdIsNotSet
 	}
 
-	if err := b.DB.Delete(i).Error; err != nil {
+	if err := b.DB.Table(i.BongoName()).Delete(i).Error; err != nil {
 		return err
 	}
 
@@ -91,7 +91,7 @@ func (b *Bongo) Delete(i Modellable) error {
 
 // Purge deletes all data, and must be used with care.
 func (b *Bongo) Purge(i Modellable) error {
-	return b.DB.Delete(i).Error
+	return b.DB.Table(i.BongoName()).Delete(i).Error
 }
 
 // FetchByIds fetches records by their ids and returns results in the same order
