@@ -174,12 +174,9 @@ class WebTerm.Terminal extends KDObject
 
   updateSize: (force = no) ->
 
-
-    [swidth, sheight] = [@parent.getWidth()  or @currentWidth,\
-                         @parent.getHeight() or @currentHeight]
-
     @updateAppSize()
 
+    [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
 
     return  if not force and swidth is @currentWidth and sheight is @currentHeight
 
