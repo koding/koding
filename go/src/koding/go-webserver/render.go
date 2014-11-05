@@ -16,6 +16,9 @@ type HomeContent struct {
 	Title         string
 	Description   string
 	ShareUrl      string
+	GpImage       string
+	FbImage       string
+	TwImage       string
 	Impersonating bool
 }
 
@@ -67,6 +70,9 @@ func buildHomeContent() HomeContent {
 		ShareUrl:    conf.Client.RuntimeOptions.MainUri,
 		Title:       kodingTitle,
 		Description: kodingDescription,
+		GpImage:     kodingGpImage,
+		FbImage:     kodingFbImage,
+		TwImage:     kodingTwImage,
 	}
 
 	return hc
