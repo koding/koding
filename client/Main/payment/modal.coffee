@@ -66,8 +66,9 @@ class PaymentModal extends PaymentBaseModal
 
       # return KD.showError err  if err
 
-      @form.showSuccess yes
+      @state = KD.utils.extend @state, subscription
 
+      @handleSuccess()
 
 
   handleStripeFail: (error) ->
