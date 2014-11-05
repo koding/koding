@@ -128,3 +128,16 @@ class IDE.EditorPane extends IDE.Pane
       hash     : @hash
 
     return data
+
+
+  handleChange: (change, rtm, realTimeDoc) ->
+    {context, type} = change
+
+    if type is 'ContentChange'
+      string = rtm.getFromModel realTimeDoc, context.file.path
+      cursor = @getCursor()
+      @setContent string.getText(), no
+      @setCursor cursor
+
+    if type is 'CursorActivity'
+      console.log 'cursor activity'
