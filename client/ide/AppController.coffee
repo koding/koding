@@ -878,28 +878,30 @@ class IDEAppController extends AppController
 
 
   handleChange: (change) ->
+    {context, origin} = change
     myWatchMap = @rtm.getFromModel @realTimeDoc, "#{KD.nick()}WatchMap"
-    {origin}   = change
 
-    return if origin is KD.nick()
+    return if not context or not origin or origin is KD.nick()
 
     if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
-      log 'i need to handle this change...', change
+      @getPaneByChange(change)?.handleChange? change
 
-      {context} = change
-      return unless context
 
-      if change.type is 'ContentChange'
-        string = @rtm.getFromModel @realTimeDoc, context.file.path
+  getPaneByChange: (change) ->
+    return unless change.context
 
-        @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
-          if editorPane.getFile().path is context.file.path
-            editorPane.setContent string.getText(), no
+    targetPane = null
+    {context}  = change
+    {paneType} = context
 
-      if change.type is 'DrawingBoardUpdated'
-        @forEachSubViewInIDEViews_ 'drawing', (drawingPane) =>
-          if drawingPane.hash is context.paneHash
-            drawingPane.setCanvasData change.context.data
+    @forEachSubViewInIDEViews_ paneType, (pane) =>
+      if paneType is 'editor'
+        if pane.getFile()?.path is context.file?.path
+          targetPane = pane
+      else
+        targetPane = pane  if pane.hash is context.paneHash
+
+    return targetPane
 
 
   createPaneFromChange: (change) ->
