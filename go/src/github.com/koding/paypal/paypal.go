@@ -280,3 +280,20 @@ func (pClient *PayPalClient) SetExpressCheckoutSingle(args *ExpressCheckoutSingl
 
 	return pClient.PerformRequest(values)
 }
+
+type Action string
+
+const (
+	Cancel     Action = "Cancel"
+	Suspend    Action = "Suspend"
+	Reactivate Action = "Reactivate"
+)
+
+func (pClient *PayPalClient) ManageRecurringPaymentsProfileStatus(profileId string, action Action) (*PayPalResponse, error) {
+	values := url.Values{}
+	values.Set("METHOD", "ManageRecurringPaymentsProfileStatus")
+	values.Set("PROFILEID", profileId)
+	values.Set("ACTION", string(action))
+
+	return pClient.PerformRequest(values)
+}
