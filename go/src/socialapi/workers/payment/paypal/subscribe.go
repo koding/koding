@@ -5,6 +5,8 @@ import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"strings"
+
+	"github.com/koding/paypal"
 )
 
 func Subscribe(token, accId string) error {
@@ -29,7 +31,7 @@ func Subscribe(token, accId string) error {
 	case NewSubscription:
 		err = handleNewSubscription(token, accId, plan)
 	case DowngradeToFreePlan:
-		err = handleCancelation(token, customer, plan)
+		err = handleCancelation(customer)
 	case Downgrade:
 		err = handleDowngrade(token, customer, plan)
 	case Upgrade:
@@ -50,8 +52,13 @@ func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error 
 	return CreateSubscription(token, plan, customer)
 }
 
-func handleCancelation(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
-	return nil
+func handleCancelation(customer *paymentmodels.Customer) error {
+	response, err := client.ManageRecurringPaymentsProfileStatus(
+		customer.ProviderCustomerId, paypal.Cancel,
+	)
+	err = handlePaypalErr(response, err)
+
+	return err
 }
 
 func handleDowngrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
