@@ -316,8 +316,7 @@ class WebTermView extends KDCustomScrollView
   keyUp: (event) ->
     @terminal.keyUp event
 
-  _windowDidResize: (event) ->
-    @terminal.windowDidResize()
+  _windowDidResize: (event) -> @terminal.windowDidResize()
 
   getAdvancedSettingsMenuItems: ->
     settings     :
