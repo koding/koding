@@ -37,8 +37,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     computeController.on "resize-#{@machineId}",(event)=>
       @updateStatus event, 'resize'
 
-    computeController.on "error-#{@machineId}", => @hasError = yes
-
     @show()
 
     computeController.followUpcomingEvents @machine
@@ -97,7 +95,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     if @getOption 'initial'
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId }
+        .kloud.info { @machineId, currentState: @machine.status.state }
         .then (response)=>
 
           info "Initial info result:", response
@@ -140,7 +138,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if @machine.status.state is Terminated
         KD.getSingleton 'computeController'
-          .kloud.info { @machineId }
+          .kloud.info { @machineId, currentState: @machine.status.state }
           .then (response)=>
             if response.State is Terminated
               @createStateButton()
@@ -251,6 +249,9 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   turnOnMachine: ->
 
+    computeController = KD.getSingleton 'computeController'
+    computeController.off  "error-#{@machineId}"
+
     @emit 'MachineTurnOnStarted'
 
     methodName   = 'start'
@@ -260,7 +261,12 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
+    computeController.once "error-#{@machineId}", (err)=>
+      @hasError = yes
+      @buildViews State: @machine.status.state
+
     KD.singletons.computeController[methodName] @machine
+
     @state = nextState
     @buildViews()
 
