@@ -223,6 +223,20 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         <a href="/Pricing" class="upgrade-link">Upgrade to make your VMs always-on.</a>
       """
 
+    # "Your VM was automatically turned off after 60 minutes of inactivity as
+    # it is not 'Always-on' enabled. You are using 1 of 2 allowed always on VMs.
+    # Upgrade to get more."
+
+
+    # "Running"   "Machine is 'Running' due user command: 'start'"
+    # "Stopping"  "Machine is 'Stopping' due user command: 'stop'"
+    # "Stopping"  "Stopping process started due inactivity of N minutes"
+    # "Stopped"   "Machine is 'Stopped' due user command: 'stop'"
+    # "Stopped"   "Stopped due inactivity of N minutes"
+    # "Stopped"   "Klient is not reachable"
+    # "Starting"  "Machine is 'Starting' due user command: 'start'"
+    # "Running"   "Klient is active and healthy."
+
     @addSubView @footer
 
 
