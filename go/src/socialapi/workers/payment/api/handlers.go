@@ -98,7 +98,7 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 		},
 	))
 
-	mux.Handle("GET", "/payments/paypal/cancel", handler.Wrapper(
+	mux.Handle("POST", "/payments/paypal/cancel", handler.Wrapper(
 		handler.Request{
 			Handler: PaypalCancel,
 			Name:    "payment-paypalcancel",
