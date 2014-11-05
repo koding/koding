@@ -160,7 +160,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "http://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -450,6 +450,7 @@ Configuration = (options={}) ->
 
         nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        ps | grep koding- | awk '{print $1}' | xargs kill -9
 
         # do not change the order.
         # killist comes last - it kills itself thus nothing can run after.

@@ -1,8 +1,9 @@
-class WebTermView extends KDView
+class WebTermView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'webterm', options.cssClass
+    options.cssClass     = KD.utils.curry 'webterm', options.cssClass
+    options.wrapperClass = TerminalWrapper
 
     super options, data
 
@@ -10,19 +11,21 @@ class WebTermView extends KDView
 
     KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
 
+
   viewAppended: ->
 
-    @container = new KDView
-      cssClass : "console ubuntu-mono green-on-black"
-      bind     : "scroll"
+    super
 
-    @container.on "scroll", => @container.$().scrollLeft 0
+    @container = @wrapper
 
-    @addSubView @container
+    @container.setClass 'console ubuntu-mono green-on-black'
+
+    @container.on 'scroll', -> @setScrollLeft 0
 
     { readOnly } = @getOptions()
     @terminal = new WebTerm.Terminal
       containerView : @container
+      appView       : this
       readOnly      : readOnly ? no
 
     @options.advancedSettings ?= no

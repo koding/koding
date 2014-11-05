@@ -8,6 +8,7 @@ module.exports = [
   "vmitem.coffee",
   "terminalstarttab.coffee",
   "webtermview.coffee",
+  "terminalwrapper.coffee",
   "webtermsettingsview.coffee",
   "webtermsettings.coffee",
   "sessionstackview.coffee",
