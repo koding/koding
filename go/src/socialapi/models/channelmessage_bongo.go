@@ -6,7 +6,7 @@ import (
 	"github.com/koding/bongo"
 )
 
-const ChannelMessageTableName = "api.channel_message"
+const ChannelMessageBongoName = "api.channel_message"
 
 func (c *ChannelMessage) BeforeCreate() error {
 	c.CreatedAt = time.Now().UTC()
@@ -39,8 +39,8 @@ func (c ChannelMessage) GetId() int64 {
 	return c.Id
 }
 
-func (c ChannelMessage) TableName() string {
-	return ChannelMessageTableName
+func (c ChannelMessage) BongoName() string {
+	return ChannelMessageBongoName
 }
 
 func NewChannelMessage() *ChannelMessage {

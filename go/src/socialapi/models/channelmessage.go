@@ -142,7 +142,7 @@ func bodyLenCheck(body string) error {
 // and updatedAt values
 func (c *ChannelMessage) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("body","slug","type_constant","account_id","initial_channel_id",` +
 		`"created_at","updated_at","deleted_at","payload") ` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
@@ -155,7 +155,7 @@ func (c *ChannelMessage) CreateRaw() error {
 // UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
 // timestamps
 func (c *ChannelMessage) UpdateBodyRaw() error {
-	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.BongoName())
 
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }

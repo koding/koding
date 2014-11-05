@@ -31,7 +31,7 @@ func (n Notification) GetId() int64 {
 	return n.Id
 }
 
-func (n Notification) TableName() string {
+func (n Notification) BongoName() string {
 	return "notification.notification"
 }
 

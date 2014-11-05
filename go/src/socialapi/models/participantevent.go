@@ -13,6 +13,6 @@ func (pe ParticipantEvent) GetId() int64 {
 	return pe.Id
 }
 
-func (pe ParticipantEvent) TableName() string {
+func (pe ParticipantEvent) BongoName() string {
 	return "event.channel_participant"
 }

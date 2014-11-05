@@ -27,7 +27,7 @@ func (b *Bongo) Fetch(i Modellable, id int64) error {
 // ById Fetches data from db by it's id
 func (b *Bongo) ById(i Modellable, id int64) error {
 	if err := b.DB.
-		Table(i.TableName()).
+		Table(i.BongoName()).
 		Where("id = ?", id).
 		Find(i).
 		Error; err != nil {
@@ -44,7 +44,7 @@ func (b *Bongo) Unscoped() *gorm.DB {
 func (b *Bongo) UnscopedById(i Modellable, id int64) error {
 	if err := b.DB.
 		Unscoped().
-		Table(i.TableName()).
+		Table(i.BongoName()).
 		Where("id = ?", id).
 		Find(i).
 		Error; err != nil {
@@ -112,7 +112,7 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 	query := b.DB.Model(i)
 
 	// add table name
-	query = query.Table(i.TableName())
+	query = query.Table(i.BongoName())
 
 	query = query.Order(orderByQuery)
 
@@ -135,7 +135,7 @@ func (b *Bongo) FetchByIds(i Modellable, data interface{}, ids []int64) error {
 // 	query := b.DB
 
 // 	query = query.Model(i)
-// 	// query = query.Table(i.TableName())
+// 	// query = query.Table(i.BongoName())
 
 // 	query = query.Where("id = ? ", i.GetId())
 // 	fmt.Println("query-->", query)
@@ -170,7 +170,7 @@ func (b *Bongo) UpdateMulti(i Modellable, rest ...map[string]interface{}) error 
 		return WrongParameter
 	}
 
-	query := b.DB.Table(i.TableName())
+	query := b.DB.Table(i.BongoName())
 
 	//add selector
 	query = addWhere(query, selector)
@@ -189,7 +189,7 @@ func (b *Bongo) Count(i Modellable, where ...interface{}) (int, error) {
 	query := b.DB.Model(i)
 
 	// add table name
-	query = query.Table(i.TableName())
+	query = query.Table(i.BongoName())
 
 	// add query
 	query = query.Where(where[0], where[1:len(where)]...)
@@ -258,7 +258,7 @@ func (b *Bongo) BuildQuery(i Modellable, q *Query) *gorm.DB {
 	query := b.DB.Model(i)
 
 	// add table name
-	query = query.Table(i.TableName())
+	query = query.Table(i.BongoName())
 
 	// add sort options
 	query = addSort(query, q.Sort)
@@ -303,7 +303,7 @@ func (b *Bongo) executeQuery(i Modellable, data interface{}, q *Query) error {
 }
 
 func (b *Bongo) PublishEvent(eventName string, i Modellable) error {
-	return b.Emit(i.TableName()+"_"+eventName, i)
+	return b.Emit(i.BongoName()+"_"+eventName, i)
 }
 
 func (b *Bongo) Emit(eventName string, i interface{}) error {

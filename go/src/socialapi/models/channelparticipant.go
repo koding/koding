@@ -88,7 +88,7 @@ func (c *ChannelParticipant) Create() error {
 
 func (c *ChannelParticipant) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("channel_id","account_id", "status_constant", "last_seen_at","created_at", "updated_at") ` +
 		"VALUES ($1,$2,$3,$4,$5,$6) " +
 		"RETURNING ID"
@@ -224,7 +224,7 @@ func getParticipatedChannelsQuery(a *Account, q *request.Query) *gorm.DB {
 
 	return bongo.B.DB.
 		Model(c).
-		Table(c.TableName()).
+		Table(c.BongoName()).
 		Select("api.channel_participant.channel_id").
 		Joins(
 		`left join api.channel on
@@ -327,7 +327,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 	channel := NewChannel()
 	res := bongo.B.DB.
 		Model(channel).
-		Table(channel.TableName()).
+		Table(channel.BongoName()).
 		Where(
 		"group_name = ? AND type_constant IN (?)",
 		q.GroupName,
@@ -469,6 +469,6 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 		return ErrIdIsNotSet
 	}
 
-	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", c.TableName())
+	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", c.BongoName())
 	return bongo.B.DB.Exec(query, t, c.Id).Error
 }

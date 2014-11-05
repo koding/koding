@@ -10,7 +10,7 @@ func (c Customer) GetId() int64 {
 	return c.Id
 }
 
-func (Customer) TableName() string {
+func (Customer) BongoName() string {
 	return "payment.customer"
 }
 

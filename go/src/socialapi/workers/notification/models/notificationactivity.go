@@ -64,7 +64,7 @@ func (a *NotificationActivity) Create() error {
 
 func (a *NotificationActivity) FetchByContentIds(ids []int64) ([]NotificationActivity, error) {
 	activities := make([]NotificationActivity, 0)
-	err := bongo.B.DB.Table(a.TableName()).
+	err := bongo.B.DB.Table(a.BongoName()).
 		Where("notification_content_id IN (?)", ids).
 		Order("id asc").
 		Find(&activities).Error

@@ -116,7 +116,7 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 	subscriptions := []Subscription{}
 
 	err := bongo.B.DB.
-		Table(s.TableName()).
+		Table(s.BongoName()).
 		Where(
 		"canceled_at > ?", t,
 	).Find(&subscriptions).Error
