@@ -139,50 +139,32 @@ func (f *Controller) ChannelParticipantsAdded(pe *models.ParticipantEvent) error
 	return f.sendChannelParticipantEvent(pe, AddedToChannelEventName)
 }
 
-// sendChannelParticipantEvent sends the required info(data) about channel participant
+// sendChannelParticipantEvent sends update message with newly added/removed participant
+// information
+// TODO we can send this information with just a single message
 func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, eventName string) error {
-	// all channel participants must be notified
-	go f.notifyParticipants(pe, eventName)
 
 	// channel must be notified with newly added/removed participants
-	go f.updateChannelParticipants(pe, eventName)
-
-	return nil
-}
-
-// notifyParticipants fetches all channel participants and notifies them
-// with latest update information. (used for updating sidebar)
-func (f *Controller) notifyParticipants(pe *models.ParticipantEvent, eventName string) {
-	c := models.NewChannel()
-	if err := c.ById(pe.Id); err != nil {
-		f.log.Error("Could not fetch channel: %s", err)
-		return
-	}
-
-	participantIds, err := f.fetchNotifiedUsers(pe, eventName, c)
-	if err != nil {
-		f.log.Error("Could not fetch notified users: %s", err)
-		return
-	}
-
-	for _, participantId := range participantIds {
-		cc := models.NewChannelContainer()
-		err = cc.PopulateWith(*c, participantId)
+	for _, participant := range pe.Participants {
+		accountOldId, err := models.FetchAccountOldIdByIdFromCache(participant.AccountId)
 		if err != nil {
-			f.log.Error("Could not populate channel container: %s", err)
+			f.log.Error("Could update fetch participant old id: %s", err)
 			continue
 		}
 
-		// send notification to the user(added user)
-		if err := f.sendNotification(
-			participantId,
-			c.GroupName,
-			eventName,
-			cc,
-		); err != nil {
-			f.log.Error("Ignoring err %s ", err.Error())
+		pc := &ParticipantContent{
+			AccountId:    participant.AccountId,
+			AccountOldId: accountOldId,
+			ChannelId:    pe.Id,
+		}
+
+		// send this event to the channel itself- this must happen just for newly added accounts
+		if err := f.publishToChannel(pe.Id, eventName, pc); err != nil {
+			f.log.Error("Could update channel with participant information: %s", err)
 		}
 	}
+
+	return nil
 }
 
 func (f *Controller) fetchNotifiedUsers(pe *models.ParticipantEvent, eventName string, c *models.Channel) ([]int64, error) {
@@ -202,30 +184,6 @@ func (f *Controller) fetchNotifiedUsers(pe *models.ParticipantEvent, eventName s
 	}
 
 	return participantIds, nil
-}
-
-// updateChannelParticipants sends update message with newly added/remove participant
-// information
-// TODO we can send this information with just a single message
-func (f *Controller) updateChannelParticipants(pe *models.ParticipantEvent, eventName string) {
-	for _, participant := range pe.Participants {
-		accountOldId, err := models.FetchAccountOldIdByIdFromCache(participant.AccountId)
-		if err != nil {
-			f.log.Error("Could update fetch participant old id: %s", err)
-			continue
-		}
-
-		pc := &ParticipantContent{
-			AccountId:    participant.AccountId,
-			AccountOldId: accountOldId,
-			ChannelId:    pe.Id,
-		}
-
-		// send this event to the channel itself- this must happen just for newly added accounts
-		if err := f.publishToChannel(pe.Id, eventName, pc); err != nil {
-			f.log.Error("Could update channel with participant information: %s", err)
-		}
-	}
 }
 
 // InteractionSaved runs when interaction is added
