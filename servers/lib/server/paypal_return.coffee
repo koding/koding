@@ -16,10 +16,11 @@ module.exports = (req, res) ->
   findUsernameFromSession req, res, (err, username)->
     # if err or !username
 
-    koding.models.JAccount.one {"profile.nickname" : username }, (err, username)->
+    koding.models.JAccount.one {"profile.nickname" : username }, (err, account)->
       # if err
 
-      post "/payments/paypal/return", {token, accId:"", email:""}, (err, response)->
+      params = { token, accountId : account._id }
+      post "/payments/paypal/return", params, (err, response)->
         err = if err? then "\"#{err.message or err}\"" else null
         template = """
           <!DOCTYPE html>
