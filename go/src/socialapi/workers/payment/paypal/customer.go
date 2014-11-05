@@ -2,7 +2,7 @@ package paypal
 
 import "socialapi/workers/payment/paymentmodels"
 
-func CreateCustomer(accId, email string) (*paymentmodels.Customer, error) {
+func CreateCustomer(accId string) (*paymentmodels.Customer, error) {
 	// var username string
 
 	// account, err := modelhelper.GetAccountById(accId)

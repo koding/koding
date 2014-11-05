@@ -216,11 +216,12 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 //----------------------------------------------------------
 
 type PaypalRequest struct {
-	Token string `json:"token"`
+	Token     string `json:"token"`
+	AccountId string `json:accountId`
 }
 
 func (p *PaypalRequest) Success() (interface{}, error) {
-	return nil, nil
+	return nil, paypal.Subscribe(p.Token, p.AccountId)
 }
 
 func (p *PaypalRequest) Cancel() (interface{}, error) {

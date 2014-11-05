@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Subscribe(token, accId, email string) error {
+func Subscribe(token, accId string) error {
 	resp, err := client.GetExpressCheckoutDetails(token)
 	if err != nil {
 		return err
@@ -31,15 +31,15 @@ func Subscribe(token, accId, email string) error {
 	}
 
 	if err == paymenterrors.ErrCustomerNotFound {
-		err = handlNewSubscription(token, accId, email, plan)
+		err = handlNewSubscription(token, accId, plan)
 		return err
 	}
 
 	return nil
 }
 
-func handlNewSubscription(token, accId, email string, plan *paymentmodels.Plan) error {
-	customer, err := CreateCustomer(accId, email)
+func handlNewSubscription(token, accId string, plan *paymentmodels.Plan) error {
+	customer, err := CreateCustomer(accId)
 	if err != nil {
 		return err
 	}
