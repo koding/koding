@@ -1,4 +1,4 @@
-class PayPalFormView extends KDFormViewWithFields
+class PaypalFormView extends KDFormViewWithFields
 
   getInitialState: -> KD.utils.dict()
 
@@ -22,7 +22,7 @@ class PayPalFormView extends KDFormViewWithFields
 
     { paymentController } = KD.singletons
 
-    paymentController.getPayPalToken planTitle, planInterval, (err, token) =>
+    paymentController.getPaypalToken planTitle, planInterval, (err, token) =>
 
       @state.token = token
 
@@ -30,7 +30,7 @@ class PayPalFormView extends KDFormViewWithFields
       @setAttribute 'action', actionUrl
       @setAttribute 'method', 'post'
 
-      @emit 'PayPalTokenLoaded'
+      @emit 'PaypalTokenLoaded'
 
 
   getFields: -> {
