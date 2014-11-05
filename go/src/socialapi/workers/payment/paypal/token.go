@@ -3,12 +3,13 @@ package paypal
 import (
 	"errors"
 	"fmt"
+	"socialapi/workers/payment/stripe"
 
 	"github.com/koding/paypal"
 )
 
 func GetToken(planTitle, planInterval string) (string, error) {
-	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+	plan, err := stripe.FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return "", err
 	}
