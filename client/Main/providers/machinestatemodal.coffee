@@ -97,7 +97,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     if @getOption 'initial'
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId }
+        .kloud.info { @machineId, currentState: @machine.status.state }
         .then (response)=>
 
           info "Initial info result:", response
@@ -140,7 +140,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if @machine.status.state is Terminated
         KD.getSingleton 'computeController'
-          .kloud.info { @machineId }
+          .kloud.info { @machineId, currentState: @machine.status.state }
           .then (response)=>
             if response.State is Terminated
               @createStateButton()
