@@ -22,6 +22,4 @@ class TerminalWrapper extends KDCustomScrollViewWrapper
 
       @setScrollTop lastPosition = newPosition
 
-      log newPosition/scrollStep
-
       return shouldStop
