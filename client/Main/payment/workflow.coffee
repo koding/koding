@@ -22,6 +22,11 @@ class PaymentWorkflow extends KDController
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
+  @provider =
+    STRIPE : 'stripe'
+    PAYPAL : 'paypal'
+    KODING : 'koding'
+
   FAILED_ATTEMPT_LIMIT = 3
 
   @isUpgrade = (current, selected) ->
