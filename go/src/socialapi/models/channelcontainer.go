@@ -261,8 +261,9 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 	var onChannel = make(chan *ChannelContainer, len(channelList))
 
 	for i, _ := range channelList {
+		wg.Add(1)
+
 		go func(i int) {
-			wg.Add(1)
 			defer wg.Done()
 
 			cc := NewChannelContainer()

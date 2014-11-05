@@ -45,8 +45,9 @@ func fetchSocial(socialApiId string, outputter *Outputter) {
 	onSocialItem := make(chan *Item, len(urls))
 
 	for name, url := range urls {
+		wg.Add(1)
+
 		go func(name, url string) {
-			wg.Add(1)
 			defer wg.Done()
 
 			item, err := fetchSocialItem(url)
