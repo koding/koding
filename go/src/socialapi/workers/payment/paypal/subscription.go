@@ -31,6 +31,21 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 	}
 
 	response, err = client.CreateRecurringPaymentsProfile(token, params)
+	err = handlePaypalErr(response, err)
+	if err != nil {
+		return err
+	}
 
-	return handlePaypalErr(response, err)
+	subModel := &paymentmodels.Subscription{
+		PlanId:                 plan.Id,
+		CustomerId:             customer.Id,
+		ProviderSubscriptionId: response.Values.Get("PROFILEID"),
+		Provider:               ProviderName,
+		State:                  "active",
+		CurrentPeriodStart:     time.Now(),
+		AmountInCents:          plan.AmountInCents,
+	}
+	err = subModel.Create()
+
+	return err
 }

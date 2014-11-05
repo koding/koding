@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
+	"strconv"
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -31,7 +32,7 @@ func init() {
 }
 
 func generateFakeUserInfo() (string, string, string) {
-	token, accId := "token", bson.NewObjectId().Hex()
+	token, accId := strconv.Itoa(rand.Int()), bson.NewObjectId().Hex()
 	email := accId + "@koding.com"
 
 	return token, accId, email

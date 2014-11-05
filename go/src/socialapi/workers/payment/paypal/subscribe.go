@@ -1,21 +1,31 @@
 package paypal
 
-import "socialapi/workers/payment/paymenterrors"
+import (
+	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
+)
 
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
-	customer, err := FindCustomerByOldId(accId)
+	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+	if err != nil {
+		return err
+	}
+
+	_, err = FindCustomerByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
 
 	if err == paymenterrors.ErrCustomerNotFound {
-		customer, err = CreateCustomer(accId, email)
-		if err != nil {
-			return err
-		}
+		err = handlNewSubscription(token, accId, email, plan)
+		return err
 	}
 
-	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
+	return nil
+}
+
+func handlNewSubscription(token, accId, email string, plan *paymentmodels.Plan) error {
+	customer, err := CreateCustomer(accId, email)
 	if err != nil {
 		return err
 	}

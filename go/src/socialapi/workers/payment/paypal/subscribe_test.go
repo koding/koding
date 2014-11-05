@@ -1,10 +1,12 @@
 package paypal
 
 import (
-	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"socialapi/workers/payment/paymenterrors"
+	"strconv"
 	"testing"
 
 	"github.com/koding/paypal"
@@ -22,26 +24,25 @@ func TestSubscribe1(t *testing.T) {
 	})
 }
 
+func subscribeResponse() []byte {
+	profileId := strconv.Itoa(rand.Int())
+
+	values := url.Values{}
+	values.Set("ACK", "Success")
+	values.Set("BUILD", "13630372")
+	values.Set("CORRELATIONID", "7f7363b7c00fa")
+	values.Set("PROFILEID", profileId)
+	values.Set("PROFILESTATUS", "ActiveProfile")
+	values.Set("TIMESTAMP", "2014-11-04T23:18:28Z")
+	values.Set("VERSION", "84")
+
+	return []byte(values.Encode())
+}
+
 func TestSubscribe2(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintln(w, `&paypal.PayPalResponse{
-    Ack:           "Success",
-    CorrelationId: "9d9643d288fd8",
-    Timestamp:     "2014-10-30T17:55:11Z",
-    Version:       "84",
-    Build:         "",
-    Values:        {
-        "VERSION":       {"84"},
-        "BUILD":         {"13562569"},
-        "PROFILEID":     {"I-M6HJ6NGU8TWH"},
-        "PROFILESTATUS": {"ActiveProfile"},
-        "TIMESTAMP":     {"2014-10-30T17:55:11Z"},
-        "CORRELATIONID": {"9d9643d288fd8"},
-        "ACK":           {"Success"},
-    },
-    usedSandbox: true,
-}`)
+			w.Write(subscribeResponse())
 		},
 	))
 
@@ -53,13 +54,20 @@ func TestSubscribe2(t *testing.T) {
 
 	Convey("Given nonexistent customer, plan", t,
 		subscribeFn(func(token, accId, email string) {
-			customerModel, err := FindCustomerByOldId(accId)
+			customer, err := FindCustomerByOldId(accId)
 
 			So(err, ShouldBeNil)
-			So(customerModel, ShouldNotBeNil)
+			So(customer, ShouldNotBeNil)
 
 			Convey("Then it should save customer", func() {
 				So(checkCustomerIsSaved(accId), ShouldBeTrue)
+			})
+
+			Convey("Then it should save subscription", func() {
+				sub, err := customer.FindActiveSubscription()
+
+				So(err, ShouldBeNil)
+				So(sub, ShouldNotBeNil)
 			})
 		}),
 	)
