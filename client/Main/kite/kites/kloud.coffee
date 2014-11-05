@@ -39,7 +39,6 @@ class KodingKite_KloudKite extends KodingKite
           @requestingInfo[machineId].forEach ({ resolve }) ->
             resolve State: currentState
           @requestingInfo[machineId] = null
-        .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!
         .finally => @needsRequest[machineId] = yes
 
     new Promise (resolve, reject) =>
