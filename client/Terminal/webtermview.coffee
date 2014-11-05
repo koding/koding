@@ -60,11 +60,6 @@ class WebTermView extends KDCustomScrollView
 
     @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
 
-
-    window.addEventListener "blur",  => @terminal.setFocused no
-    window.addEventListener "focus", => @setFocus @focused
-
-
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
     , yes
