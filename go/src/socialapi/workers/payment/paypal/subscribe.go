@@ -12,26 +12,48 @@ func Subscribe(token, accId string) error {
 		return err
 	}
 
-	_, err = FindCustomerByOldId(accId)
+	customer, err := FindCustomerByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
 
-	if err == paymenterrors.ErrCustomerNotFound {
-		err = handlNewSubscription(token, accId, plan)
-		return err
+	switch checkStatus(customer, err, plan) {
+	case AlreadySubscribedToPlan:
+		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
+	case NewSubscription:
+		err = handleNewSubscription(token, accId, plan)
+	case DowngradeToFreePlan:
+		err = handleCancelation(token, customer, plan)
+	case Downgrade:
+		err = handleDowngrade(token, customer, plan)
+	case Upgrade:
+		err = handleUpgrade(token, customer, plan)
+	default:
+		// user should never come here
 	}
 
-	return nil
+	return err
 }
 
-func handlNewSubscription(token, accId string, plan *paymentmodels.Plan) error {
+func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error {
 	customer, err := CreateCustomer(accId)
 	if err != nil {
 		return err
 	}
 
 	return CreateSubscription(token, plan, customer)
+}
+
+func handleCancelation(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+	return nil
+}
+
+func handleDowngrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+	return nil
+}
+
+func handleUpgrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+	return nil
 }
 
 func parsePlanInfo(str string) (string, string) {
