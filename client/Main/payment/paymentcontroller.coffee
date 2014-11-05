@@ -37,6 +37,15 @@ class PaymentController extends KDController
   getToken: (planTitle, planInterval, callback)->
     @api().getToken {planTitle, planInterval}, callback
 
+  getPaypalToken: (planTitle, planInterval, callback) ->
+    @api().getToken {planTitle, planInterval}, callback
+
+  paypalReturn: (err) ->
+
+    @emit 'PaypalRequestFinished', err
+
+  paypalCancel: ->
+
   logOrder: (params, callback)->
     @api().logOrder params, callback
 
