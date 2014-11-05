@@ -172,6 +172,10 @@ class IDE.DrawingPane extends IDE.Pane
     return data
 
 
+  handleChange: (change) ->
+    @setCanvasData change.context.data
+
+
   viewAppended: ->
     super
 
