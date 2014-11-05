@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"socialapi/workers/payment/paymenterrors"
 	"strconv"
 	"testing"
 
@@ -13,16 +12,16 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSubscribe1(t *testing.T) {
-	Convey("Given nonexistent plan", t, func() {
-		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email, "random_plans", "random_interval")
+// func TestSubscribe1(t *testing.T) {
+//   Convey("Given nonexistent plan", t, func() {
+//     token, accId, email := generateFakeUserInfo()
+//     err := Subscribe(token, accId, email, "random_plans", "random_interval")
 
-		Convey("Then it should throw error", func() {
-			So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
-		})
-	})
-}
+//     Convey("Then it should throw error", func() {
+//       So(err, ShouldEqual, paymenterrors.ErrPlanNotFound)
+//     })
+//   })
+// }
 
 func subscribeResponse() []byte {
 	profileId := strconv.Itoa(rand.Int())

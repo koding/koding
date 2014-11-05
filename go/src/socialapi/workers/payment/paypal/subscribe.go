@@ -1,11 +1,25 @@
 package paypal
 
 import (
+	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"strings"
 )
 
-func Subscribe(token, accId, email, planTitle, planInterval string) error {
+func Subscribe(token, accId, email string) error {
+	resp, err := client.GetExpressCheckoutDetails(token)
+	if err != nil {
+		return err
+	}
+
+	planTitleAndInterval := resp.Values.Get("L_PAYMENTREQUEST_0_NAME0")
+	if planTitleAndInterval == "" {
+		return errors.New("no plan title or interval in paypal token")
+	}
+
+	planTitle, planInterval := parsePlanInfo(planTitleAndInterval)
+
 	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return err
@@ -31,4 +45,11 @@ func handlNewSubscription(token, accId, email string, plan *paymentmodels.Plan) 
 	}
 
 	return CreateSubscription(token, plan, customer)
+}
+
+func parsePlanInfo(str string) (string, string) {
+	split := strings.Split(str, "-")
+	planTitle, planInterval := split[0], split[1]
+
+	return planTitle, planInterval
 }
