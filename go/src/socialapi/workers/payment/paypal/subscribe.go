@@ -1,6 +1,7 @@
 package paypal
 
 import (
+	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"strings"
@@ -17,7 +18,12 @@ func Subscribe(token, accId string) error {
 		return err
 	}
 
-	switch checkStatus(customer, err, plan) {
+	status, err := checkStatus(customer, err, plan)
+	if err != nil {
+		return err
+	}
+
+	switch status {
 	case AlreadySubscribedToPlan:
 		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
 	case NewSubscription:
@@ -53,7 +59,7 @@ func handleDowngrade(token string, customer *paymentmodels.Customer, plan *payme
 }
 
 func handleUpgrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
-	return nil
+	return errors.New("upgrades are disabled for paypal")
 }
 
 func parsePlanInfo(str string) (string, string) {

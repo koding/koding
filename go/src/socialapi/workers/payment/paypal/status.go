@@ -3,12 +3,14 @@ package paypal
 import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/stripe"
 )
 
 type status int
 
 const (
 	Default                 status = iota
+	Error                   status = iota
 	AlreadySubscribedToPlan status = iota
 	NewSubscription         status = iota
 	DowngradeToFreePlan     status = iota
@@ -16,12 +18,39 @@ const (
 	Upgrade                 status = iota
 )
 
-func checkStatus(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan) status {
+func checkStatus(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan) (status, error) {
 	if IsNewSubscription(customer, err) {
-		return NewSubscription
+		return NewSubscription, nil
 	}
 
-	return Default
+	currentSubscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return Error, err
+	}
+
+	oldPlan := paymentmodels.NewPlan()
+	err = oldPlan.ById(currentSubscription.PlanId)
+	if err != nil {
+		return Error, err
+	}
+
+	if IsAlreadySubscribedToPlan(oldPlan, plan) {
+		return AlreadySubscribedToPlan, nil
+	}
+
+	if IsDowngradeToFreePlan(plan) {
+		return DowngradeToFreePlan, nil
+	}
+
+	if IsDowngrade(oldPlan, plan) {
+		return Downgrade, nil
+	}
+
+	if IsUpgrade(oldPlan, plan) {
+		return Upgrade, nil
+	}
+
+	return Default, nil
 }
 
 func IsNewSubscription(customer *paymentmodels.Customer, err error) bool {
@@ -32,18 +61,29 @@ func IsNewSubscription(customer *paymentmodels.Customer, err error) bool {
 	return false
 }
 
-func IsSubscribedToPlan(customer *paymentmodels.Customer, plan *paymentmodels.Plan) bool {
-	return false
+func IsAlreadySubscribedToPlan(oldPlan, plan *paymentmodels.Plan) bool {
+	if oldPlan.Id == 0 || plan.Id == 0 {
+		// LOG
+		return false
+	}
+
+	return oldPlan.Id == plan.Id
 }
 
-func IsDowngradeToFreePlan(customer *paymentmodels.Customer, plan *paymentmodels.Plan) bool {
-	return false
+func IsDowngradeToFreePlan(plan *paymentmodels.Plan) bool {
+	return plan.Title == "free"
 }
 
-func IsDowngrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan) bool {
-	return false
+func IsDowngrade(oldPlan, plan *paymentmodels.Plan) bool {
+	oldPlanValue := stripe.GetPlanValue(
+		oldPlan.Title, oldPlan.Interval,
+	)
+
+	newPlanValue := stripe.GetPlanValue(plan.Title, plan.Interval)
+
+	return newPlanValue < oldPlanValue
 }
 
-func IsUgrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan) bool {
-	return false
+func IsUpgrade(oldPlan, plan *paymentmodels.Plan) bool {
+	return !IsDowngrade(oldPlan, plan)
 }
