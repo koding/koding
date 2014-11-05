@@ -94,6 +94,7 @@ class ActivityAppView extends KDView
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
+          # put after #koding #changelog
           @sidebar.addItem data, 2
           kallback data
     else
