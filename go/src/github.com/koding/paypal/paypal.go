@@ -80,6 +80,17 @@ func SumPayPalDigitalGoodAmounts(goods *[]PayPalDigitalGood) (sum float64) {
 	return
 }
 
+func NewDefaultClientEndpoint(username, password, signature, endpoint string, usesSandbox bool) *PayPalClient {
+	return &PayPalClient{
+		username:    username,
+		password:    password,
+		signature:   signature,
+		endpoint:    endpoint,
+		usesSandbox: usesSandbox,
+		client:      new(http.Client),
+	}
+}
+
 func NewDefaultClient(username, password, signature string, usesSandbox bool) *PayPalClient {
 	var endpoint = NVP_PRODUCTION_URL
 	if usesSandbox {
