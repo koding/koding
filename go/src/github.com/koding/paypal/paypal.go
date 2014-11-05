@@ -270,8 +270,10 @@ func (pClient *PayPalClient) SetExpressCheckoutSingle(args *ExpressCheckoutSingl
 	values.Add("PAYMENTREQUEST_0_AMT", fmt.Sprintf("%.2f", args.Amount))
 	values.Add("NOSHIPPING", "1")
 
+	values.Add("L_PAYMENTREQUEST_0_NAME0", args.Item.Name)
 	values.Add("L_BILLINGTYPE0", "RecurringPayments")
 	values.Add("L_BILLINGAGREEMENTDESCRIPTION0", args.Item.Name)
+	values.Add("L_PAYMENTTYPE0", "InstantOnly")
 
 	values.Add("RETURNURL", args.ReturnURL)
 	values.Add("CANCELURL", args.CancelURL)
