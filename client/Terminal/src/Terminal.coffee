@@ -152,6 +152,7 @@ class WebTerm.Terminal extends KDObject
     if value then KD.utils.defer => @setKeyFocus()
 
   setSize: (x, y) ->
+
     return if x is @sizeX and y is @sizeY
 
     cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
@@ -179,8 +180,8 @@ class WebTerm.Terminal extends KDObject
 
     @updateAppSize()
 
-    return  if not force and \
-               swidth is @currentWidth and sheight is @currentHeight
+
+    return  if not force and swidth is @currentWidth and sheight is @currentHeight
 
     @scrollToBottom()
 
@@ -189,7 +190,6 @@ class WebTerm.Terminal extends KDObject
 
     newCols = Math.max 1, Math.floor swidth  / charWidth
     newRows = Math.max 1, Math.floor sheight / charHeight
-
 
     @setSize newCols, newRows
 
