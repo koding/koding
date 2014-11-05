@@ -277,7 +277,7 @@ class WebTermView extends KDCustomScrollView
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
     @terminal.updateSize true
-    @terminal.scrollToBottom(no)
+    @terminal.scrollToBottom()
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
     @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
