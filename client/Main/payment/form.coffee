@@ -72,7 +72,9 @@ class PaymentForm extends JView
       title     : buttonPartial
       loader    : yes
       cssClass  : 'submit-btn'
-      callback  : => @emit "PaymentSubmitted", @form.getFormData()
+      callback  : => @emit 'PaymentSubmitted', @form.getFormData()
+
+    @paypalForm = @initPaypalForm()
 
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
@@ -94,7 +96,7 @@ class PaymentForm extends JView
 
     { FREE }  = PaymentWorkflow.planTitle
     { MONTH } = PaymentWorkflow.planInterval
-    { currentPlan, planTitle, planInterval } = @state
+    { currentPlan, planTitle, planInterval, provider } = @state
 
     @yearPriceMessage.hide()  if planInterval is MONTH
 
@@ -113,6 +115,10 @@ class PaymentForm extends JView
       @form.show()
       @existingCreditCardMessage.hide()
 
+    switch provider
+      when 'stripe' then @paypalButton.hide()
+      when 'paypal' then @submitButton.hide()
+
 
   initForm: ->
 
@@ -125,12 +131,38 @@ class PaymentForm extends JView
       callback : @lazyBound 'emit', 'PaymentSubmitted'
 
 
+  initPaypalForm: ->
+
+    new PaypalFormView
+      state: @state
+      buttons:
+        paypal:
+          type: 'submit'
+          domId: 'paypal-submit'
+          style: 'solid medium green submit-btn paypal'
+          title: 'Checkout using Paypal'
+          loader: yes
+          callback: => @emit 'PaypalButtonClicked'
+
+
+  initPaypalClient: ->
+
+    dg = new PAYPAL.apps.DGFlow
+      expType : 'mini'
+      trigger : 'paypal-submit'
+      # stage   : 'sandbox'
+
+    # @on 'PaypalButtonClicked', -> dg.startFlow()
+
+
   initEvents: ->
 
     { cardNumber } = @form.inputs
 
     cardNumber.on "CreditCardTypeIdentified", (type) ->
       cardNumber.setClass type.toLowerCase()
+
+    @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
 
 
   showValidationErrorsOnInputs: (error) ->
@@ -145,7 +177,10 @@ class PaymentForm extends JView
       @existingCreditCardMessage
       @securityNote
       @yearPriceMessage
+      @paypalForm
     ].forEach (view) -> view.destroy()
+
+    @$('hr').hide()
 
     if isUpgrade
       @successMessage.updatePartial "
@@ -163,6 +198,7 @@ class PaymentForm extends JView
 
 
   showMaximumAttemptFailed: ->
+
     [
       @form
       @existingCreditCardMessage
@@ -173,6 +209,7 @@ class PaymentForm extends JView
 
     [
       @$('h3')
+      @$('hr')
       @$('.summary')
     ].forEach (element) -> element.hide()
 
@@ -189,6 +226,7 @@ class PaymentForm extends JView
 
 
   getPricePartial: (planInterval) ->
+
     { monthPrice, reducedMonth } = @state
 
     map =
@@ -209,6 +247,8 @@ class PaymentForm extends JView
     {{> @successMessage}}
     {{> @yearPriceMessage}}
     {{> @submitButton}}
+    #{ if @state.provider is 'koding' then '<hr>' else '' }
+    {{> @paypalForm}}
     {{> @securityNote}}
     """
 

@@ -54,6 +54,8 @@ class PaymentWorkflow extends KDController
 
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
+    @state.isUpgrade = isUpgrade
+
     if isUpgrade
     then @startRegularFlow()
     else @startDowngradeFlow()
@@ -135,6 +137,7 @@ class PaymentWorkflow extends KDController
 
 
   subscribeToPlan: (planTitle, planInterval, token, options) ->
+
     { paymentController } = KD.singletons
 
     me = KD.whoami()

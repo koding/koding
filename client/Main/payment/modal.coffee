@@ -6,6 +6,8 @@ class PaymentModal extends PaymentBaseModal
   getInitialState: -> {
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+    isUpgrade    : yes
+    provider     : 'koding'
   }
 
 
@@ -28,6 +30,7 @@ class PaymentModal extends PaymentBaseModal
 
 
   initViews: ->
+
     @addSubView @errors = new KDCustomHTMLView
       cssClass : 'errors hidden'
 
@@ -38,12 +41,33 @@ class PaymentModal extends PaymentBaseModal
 
     @forwardEvent @form, 'PaymentSubmitted'
     @forwardEvent @form, 'PaymentWorkflowFinished'
+    @forwardEvent @form, 'PaypalButtonClicked'
     @form.forwardEvent this, 'PaymentProviderLoaded'
 
     @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
     @on 'FailedAttemptLimitReached',     @bound 'handleLimitReached'
     @on 'PaymentFailed',                 @bound 'handleError'
     @on 'PaymentSucceeded',              @bound 'handleSuccess'
+
+    { paymentController } = KD.singletons
+
+    paymentController.on 'PaypalRequestFinished', @bound 'handlePaypalResponse'
+
+
+  handlePaypalResponse: (err) ->
+
+    @form.paypalForm.buttons['paypal'].hideLoader()
+
+    return KD.showError err  if err
+
+    { paymentController } = KD.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+
+      # return KD.showError err  if err
+
+      @form.showSuccess yes
+
 
 
   handleStripeFail: (error) ->
@@ -87,5 +111,4 @@ class PaymentModal extends PaymentBaseModal
 
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinished', @state
-
 
