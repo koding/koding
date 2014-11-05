@@ -19,9 +19,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	onItem := make(chan *Item, 0)  // individual prefetched items come here
-	onDone := make(chan bool, 1)   // signals when done prefetching items
-	onError := make(chan error, 1) // when there's an error, return right away
+	onItem := make(chan *Item, 0)    // individual prefetched items come here
+	onDone := make(chan struct{}, 1) // signals when done prefetching items
+	onError := make(chan error, 1)   // when there's an error, return right away
 
 	collectItemCount := 3
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
@@ -64,13 +64,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func collectItems(resp *LoggedInUser, onItem <-chan *Item, onDone chan<- bool, max int) {
+func collectItems(resp *LoggedInUser, onItem <-chan *Item, onDone chan<- struct{}, max int) {
 	for i := 1; i <= max; i++ {
 		item := <-onItem
 		resp.Set(item.Name, item.Data)
 	}
 
-	onDone <- true
+	onDone <- struct{}{}
 }
 
 func isSocialIdEmpty(id string) bool {
