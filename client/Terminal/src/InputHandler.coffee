@@ -1,4 +1,5 @@
 class WebTerm.InputHandler
+
   ESC = "\x1B";
   CSI = ESC + "[";
   OSC = ESC + "]";
@@ -32,6 +33,7 @@ class WebTerm.InputHandler
     123: CSI + "24~"            # F12
 
   constructor: (@terminal) ->
+
     @applicationKeypad = false
     @trackMouseDown = false
     @trackMouseUp = false
@@ -39,7 +41,9 @@ class WebTerm.InputHandler
     @previousMouseX = -1
     @previousMouseY = -1
 
+
   keyDown: (event) ->
+
     @terminal.scrollToBottom()
     @terminal.cursor.resetBlink()
 
@@ -58,6 +62,7 @@ class WebTerm.InputHandler
       event.preventDefault()
 
   keyPress: (event) ->
+
     if event.metaKey
       switch event.charCode
         when 97, 114, 118, 119
@@ -66,25 +71,33 @@ class WebTerm.InputHandler
           # meta-V is paste
           # meta-W is window.close
           return
+
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
       @terminal.server.input String.fromCharCode(event.charCode)
+
     event.preventDefault()
 
+
   keyUp: (event) ->
-    # nothing to do
 
   setMouseMode: (@trackMouseDown, @trackMouseUp, @trackMouseHold) ->
+
     @terminal.outputbox.css "cursor", if @trackMouseDown then "pointer" else "text"
 
+
   mouseEvent: (event) ->
+
     offset = @terminal.container.offset()
     x = Math.floor((event.originalEvent.clientX - offset.left + @terminal.container.scrollLeft()) * @terminal.sizeX / @terminal.container.prop("scrollWidth"))
     y = Math.floor((event.originalEvent.clientY - offset.top + @terminal.container.scrollTop()) * @terminal.screenBuffer.lineDivs.length / @terminal.container.prop("scrollHeight") - @terminal.screenBuffer.lineDivs.length + @terminal.sizeY)
+
     return if x < 0 or x >= @terminal.sizeX or y < 0 or y >= @terminal.sizeY
+
     eventCode = 0
-    eventCode |= 4 if event.shiftKey
-    eventCode |= 8 if event.altKey
-    eventCode |= 16 if event.ctrlKey
+    eventCode |= 4   if event.shiftKey
+    eventCode |= 8   if event.altKey
+    eventCode |= 16  if event.ctrlKey
+
     switch event.type
       when "mousedown"
         return if not @trackMouseDown
@@ -107,6 +120,6 @@ class WebTerm.InputHandler
     @terminal.server.controlSequence CSI + "M" + String.fromCharCode(eventCode + 32) + String.fromCharCode(x + 33) + String.fromCharCode(y + 33)
     event.preventDefault()
 
-  useApplicationKeypad: (value) ->
-    @applicationKeypad = value
+
+  useApplicationKeypad: (value) -> @applicationKeypad = value
 
