@@ -134,7 +134,10 @@ fetchContent = (models, options, callback) ->
       fetchPostContent models, options, callback
     else
       return fetchProfileContent models, options, callback  if options.isProfile
-      return callback notFoundError "section"
+      # this is added for redirecting old crawled data which was formed as "/Activity/[post-slug]"
+      options.entrySlug = section
+      options.section = "Post"
+      return fetchPostContent models, options, callback
 
 
 getPage = (query) ->
