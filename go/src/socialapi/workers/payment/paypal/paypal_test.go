@@ -3,11 +3,15 @@ package paypal
 import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
 	"strconv"
 	"time"
 
+	"github.com/koding/paypal"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -31,8 +35,12 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func generateToken() string {
+	return strconv.Itoa(rand.Int())
+}
+
 func generateFakeUserInfo() (string, string, string) {
-	token, accId := strconv.Itoa(rand.Int()), bson.NewObjectId().Hex()
+	token, accId := generateToken(), bson.NewObjectId().Hex()
 	email := accId + "@koding.com"
 
 	return token, accId, email
@@ -41,7 +49,7 @@ func generateFakeUserInfo() (string, string, string) {
 func subscribeFn(fn func(string, string, string)) func() {
 	return func() {
 		token, accId, email := generateFakeUserInfo()
-		err := Subscribe(token, accId, email)
+		err := Subscribe(token, accId)
 
 		So(err, ShouldBeNil)
 
@@ -64,4 +72,61 @@ func checkCustomerIsSaved(accId string) bool {
 	}
 
 	return true
+}
+
+func startTestServer() *httptest.Server {
+	server := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			_ = r.ParseForm()
+
+			var resp []byte
+			switch r.Form.Get("METHOD") {
+			case "SetExpressCheckout":
+				resp = tokenResponse()
+			case "GetExpressCheckoutDetails":
+				resp = checkoutResponse()
+			case "CreateRecurringPaymentsProfile":
+				resp = subscribeResponse()
+			}
+
+			w.Write(resp)
+		},
+	))
+
+	client = paypal.NewDefaultClientEndpoint(
+		username, password, signature, server.URL, isSandbox,
+	)
+
+	return server
+}
+
+func subscribeResponse() []byte {
+	profileId := strconv.Itoa(rand.Int())
+
+	values := url.Values{}
+	values.Set("ACK", "Success")
+	values.Set("BUILD", "13630372")
+	values.Set("CORRELATIONID", "7f7363b7c00fa")
+	values.Set("PROFILEID", profileId)
+	values.Set("PROFILESTATUS", "ActiveProfile")
+	values.Set("TIMESTAMP", "2014-11-04T23:18:28Z")
+	values.Set("VERSION", "84")
+
+	return []byte(values.Encode())
+}
+
+func checkoutResponse() []byte {
+	values := url.Values{}
+	values.Set("ACK", "Success")
+	values.Set("L_PAYMENTREQUEST_0_NAME0", "hobbyist-month")
+
+	return []byte(values.Encode())
+}
+
+func tokenResponse() []byte {
+	values := url.Values{}
+	values.Set("ACK", "Success")
+	values.Set("TOKEN", generateToken())
+
+	return []byte(values.Encode())
 }

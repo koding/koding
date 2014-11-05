@@ -8,6 +8,9 @@ import (
 )
 
 func TestGetToken1(t *testing.T) {
+	server := startTestServer()
+	defer server.Close()
+
 	Convey("Given nonexistent plan", t, func() {
 		_, err := GetToken("random_plans", "random_interval")
 
@@ -18,6 +21,9 @@ func TestGetToken1(t *testing.T) {
 }
 
 func TestGetToken2(t *testing.T) {
+	server := startTestServer()
+	defer server.Close()
+
 	Convey("Given nonexistent customer, plan", t, func() {
 		token, err := GetToken(StartingPlan, StartingInterval)
 

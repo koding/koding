@@ -9,6 +9,7 @@ import (
 
 func Subscribe(token, accId string) error {
 	resp, err := client.GetExpressCheckoutDetails(token)
+	err = handlePaypalErr(resp, err)
 	if err != nil {
 		return err
 	}
@@ -19,7 +20,6 @@ func Subscribe(token, accId string) error {
 	}
 
 	planTitle, planInterval := parsePlanInfo(planTitleAndInterval)
-
 	plan, err := FindPlanByTitleAndInterval(planTitle, planInterval)
 	if err != nil {
 		return err
