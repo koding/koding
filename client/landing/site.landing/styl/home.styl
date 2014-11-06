@@ -29,7 +29,6 @@ body.home
       vendor              transition, none!important
       position            absolute
 
-
     section
 
       a.octo
@@ -130,6 +129,20 @@ body.home
       position              relative
       borderBox()
 
+    // shining effect behind the screenshots
+    section.introduction > div:after
+      opacity           0
+      content           ''
+      abs               0 0 -12% 50%
+      vendor            transform, translateX(-50%)
+      size              120%, 0
+      padding-bottom    65%
+      z-index           0
+      vendor            transition, opacity 2s 2s ease
+
+    section.introduction.shine > div:after
+      opacity           1
+
     &.anim
       &:before
         vendor            transition, box-shadow .5s ease
@@ -139,6 +152,9 @@ body.home
     &.green
       section.introduction
         bg                color, #1AAF5E
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(255, 253, 112, 0.65) 0%, rgba(255, 253, 112, 0) 65%);
 
     &.gray
       section.introduction
@@ -150,12 +166,15 @@ body.home
       section.introduction
         bg                color, #2E97DE
 
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(236, 240, 241, 0.65) 0%, rgba(236, 240, 241, 0) 65%);
+
     &.dark-blue
       section.introduction
         bg                color, #2C3E51
         div.submit:after
-          color           rgba(255,255,255,.6)
-          border-right    1px solid rgba(255,255,255,.1)
+          color           rgba(255, 255, 255, .6)
+          border-right    1px solid rgba(255, 255, 255, .1)
         &:before
           opacity         .3
         a.octo
@@ -163,31 +182,22 @@ body.home
           &:hover
             opacity         1
 
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(66, 88, 110, 0.65) 0%, rgba(66, 88, 110, 0) 65%);
+
     &.orange
       section.introduction
         bg                color, #F59D00
+
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(241, 196, 15, 0.65) 0%,rgba(241, 196, 15, 0) 65%);
 
     &.red
       section.introduction
         bg                color, #EA4B36
 
-
-    // shining effect behind the screenshots
-    section.introduction > div:after
-      opacity           0
-      content           ''
-      abs               0 0 0px 50%
-      vendor            transform, translateX(-50%)
-      size              170%, 0
-      padding-bottom    50%
-      background        radial-gradient(ellipse at bottom, rgba(255,253,112,0.65) 0%,rgba(255,253,112,0) 65%);
-      z-index           0
-      vendor            transition, opacity 2s 2s ease
-
-    section.introduction.shine > div:after
-      opacity           1
-
-
+        > div:after
+          background      radial-gradient(ellipse at center, rgba(230, 126, 34,0.65) 0%,rgba(230, 126, 34,0) 65%);
 
   section.introduction
     height                877px
