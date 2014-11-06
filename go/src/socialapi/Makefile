@@ -121,7 +121,7 @@ createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
 
-configure: install installwatcher
+configure: install installwatcher install-migrate
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
 
 install-postgres:
@@ -131,6 +131,10 @@ install-postgres:
 installwatcher:
 	@`which go` get github.com/canthefason/goldorf
 	@`which go` install github.com/canthefason/goldorf
+
+install-migrate:
+	@`which go` get github.com/mattes/migrate
+	@`which go` install github.com/mattes/migrate
 
 install:
 	@echo $(CONFIG)
