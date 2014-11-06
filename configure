@@ -29,6 +29,7 @@ options = o =
   onlyconfigure    : argv.onlyconfigure  or no
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
+  hostdomain       : argv.hostdomain
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
