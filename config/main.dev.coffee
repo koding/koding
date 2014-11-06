@@ -191,6 +191,7 @@ Configuration = (options={}) ->
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
+  GOPATH= "#{projectRoot}/go"
 
 
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
@@ -574,6 +575,8 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
+        migrate up
+
         nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
@@ -605,8 +608,24 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
+        echo "  run migrationfile         : to create an empty postgresql migration file"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [up|down|version|reset|redo|to])"
         echo ""
 
+      }
+
+      function migrate () {
+        if [ "$1" == "" ]; then
+          echo "You have to select a command [up|down|version|reset|redo|to]"
+          exit 1
+        fi
+
+        param=$1
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        fi
+
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
       }
 
       function check (){
@@ -639,6 +658,10 @@ Configuration = (options={}) ->
 
       }
 
+      function check_psql () {
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+      }
+
       function check_service_dependencies () {
         echo "checking required services: nginx, docker, mongo, graphicsmagick..."
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
@@ -650,7 +673,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
-        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+        check_psql
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -892,6 +915,30 @@ Configuration = (options={}) ->
 
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
+
+      elif [ "$1" == "migrationfile" ]; then
+        check_psql
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" create "$2"
+          echo "Please edit created script files and add them to your repository."
+        fi
+
+      elif [ "$1" == "migrate" ]; then
+        check_psql
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migrate command [up|down|version|reset|redo|to]"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          migrate $2 $3
+        fi
+
 
       elif [ "$#" == "0" ]; then
 

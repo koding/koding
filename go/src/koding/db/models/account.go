@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strconv"
 	"time"
 
 	"labix.org/v2/mgo/bson"
@@ -9,7 +10,7 @@ import (
 type Account struct {
 	Id          bson.ObjectId `bson:"_id" json:"_id"`
 	GlobalFlags []string      `bson:"globalFlags" json:"globalFlags"`
-	SocialApiId int64         `bson:"socialApiId" json:"socialApiId"`
+	SocialApiId string        `bson:"socialApiId" json:"socialApiId"`
 	Profile     struct {
 		Nickname  string `bson:"nickname"`
 		FirstName string `bson:"firstName"`
@@ -28,4 +29,8 @@ type Account struct {
 		Likes      int       `json:"likes" bson:"likes"`
 	} `bson:"meta" json:"meta"`
 	IsExempt bool `json:"isExempt" bson:"isExempt"`
+}
+
+func (a *Account) GetSocialApiId() (int64, error) {
+	return strconv.ParseInt(a.SocialApiId, 10, 64)
 }

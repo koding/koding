@@ -26,7 +26,7 @@ class KodingKite_KloudKite extends KodingKite
   # subsequent info requests while the first request is pending
   # will be queued up and resolved by the pending request
 
-  info: ({ machineId }) ->
+  info: ({ machineId, currentState }) ->
     if @needsRequest[machineId] in [undefined, yes]
       @needsRequest[machineId] = no
       @tell 'info', { machineId }
@@ -35,9 +35,10 @@ class KodingKite_KloudKite extends KodingKite
           @requestingInfo[machineId] = null
         .timeout ComputeController.timeout
         .catch (err) =>
-          @requestingInfo[machineId].forEach ({ reject }) -> reject err
+          warn "kloud.info failed, sending current state back:", { currentState, err }
+          @requestingInfo[machineId].forEach ({ resolve }) ->
+            resolve State: currentState
           @requestingInfo[machineId] = null
-        .catch(require('kite').Error.codeIs "107", (err) => ) # SILENCE THIS ERROR!
         .finally => @needsRequest[machineId] = yes
 
     new Promise (resolve, reject) =>

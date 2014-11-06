@@ -26,7 +26,7 @@ func createAccount() (*models.Account, error) {
 
 func updateCreatedAt(id int64, ti time.Time) error {
 	msg := models.NewChannelMessage()
-	updateSql := fmt.Sprintf("UPDATE %s SET created_at=? WHERE id=?", msg.TableName())
+	updateSql := fmt.Sprintf("UPDATE %s SET created_at=? WHERE id=?", msg.BongoName())
 
 	return bongo.B.DB.Exec(updateSql, ti, id).Error
 }

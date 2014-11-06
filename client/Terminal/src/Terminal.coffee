@@ -1,14 +1,23 @@
 class WebTerm.Terminal extends KDObject
-  LINE_DRAWING_CHARSET = [0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0x0020, 0x25c6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0, 0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c, 0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534, 0x252c, 0x2502, 0x2264, 0x2265, 0x03c0, 0x2260, 0x00a3, 0x00b7]
+
+  LINE_DRAWING_CHARSET = [
+    0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603
+    null, null, null, null, null, null, null, null, null, null, null, null
+    null, null, null, null, null, null, null, null, null, null, null
+    0x0020, 0x25c6, 0x2592, 0x2409, 0x240c, 0x240d, 0x240a, 0x00b0
+    0x00b1, 0x2424, 0x240b, 0x2518, 0x2510, 0x250c, 0x2514, 0x253c
+    0x23ba, 0x23bb, 0x2500, 0x23bc, 0x23bd, 0x251c, 0x2524, 0x2534
+    0x252c, 0x2502, 0x2264, 0x2265, 0x03c0, 0x2260, 0x00a3, 0x00b7
+  ]
 
   SPECIAL_CHARS =
-    '\b': '\\b'
-    '\t': '\\t'
-    '\n': '\\n'
-    '\f': '\\f'
-    '\r': '\\r'
-    '\\': '\\\\'
-    '\u001b': '\\e'
+    '\b'     : '\\b'
+    '\t'     : '\\t'
+    '\n'     : '\\n'
+    '\f'     : '\\f'
+    '\r'     : '\\r'
+    '\\'     : '\\\\'
+    '\u001b' : '\\e'
 
   constructor: (options)->
 
@@ -152,6 +161,7 @@ class WebTerm.Terminal extends KDObject
     if value then KD.utils.defer => @setKeyFocus()
 
   setSize: (x, y) ->
+
     return if x is @sizeX and y is @sizeY
 
     cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
@@ -173,14 +183,11 @@ class WebTerm.Terminal extends KDObject
 
   updateSize: (force = no) ->
 
-
-    [swidth, sheight] = [@parent.getWidth()  or @currentWidth,\
-                         @parent.getHeight() or @currentHeight]
-
     @updateAppSize()
 
-    return  if not force and \
-               swidth is @currentWidth and sheight is @currentHeight
+    [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
+
+    return  if not force and swidth is @currentWidth and sheight is @currentHeight
 
     @scrollToBottom()
 
@@ -189,7 +196,6 @@ class WebTerm.Terminal extends KDObject
 
     newCols = Math.max 1, Math.floor swidth  / charWidth
     newRows = Math.max 1, Math.floor sheight / charHeight
-
 
     @setSize newCols, newRows
 

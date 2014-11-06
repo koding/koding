@@ -272,7 +272,9 @@ func (p *PrivateMessageRequest) obtainParticipantIds() ([]int64, error) {
 		}
 
 		a := NewAccount()
-		a.Id = account.SocialApiId
+		socialApiId, _ := account.GetSocialApiId()
+
+		a.Id = socialApiId
 		a.OldId = account.Id.Hex()
 		a.Nick = account.Profile.Nickname
 		// fetch or create social api id

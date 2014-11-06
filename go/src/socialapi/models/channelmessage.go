@@ -6,6 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/request"
 	"strconv"
+	"sync"
 	"time"
 
 	ve "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -142,7 +143,7 @@ func bodyLenCheck(body string) error {
 // and updatedAt values
 func (c *ChannelMessage) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("body","slug","type_constant","account_id","initial_channel_id",` +
 		`"created_at","updated_at","deleted_at","payload") ` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
@@ -155,26 +156,55 @@ func (c *ChannelMessage) CreateRaw() error {
 // UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
 // timestamps
 func (c *ChannelMessage) UpdateBodyRaw() error {
-	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.BongoName())
 
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
+type messageResponseStruct struct {
+	Index   int
+	Message *ChannelMessageContainer
+}
+
 // TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+	var wg sync.WaitGroup
+
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
 	}
 
+	var onMessage = make(chan *messageResponseStruct, len(messages))
+	var onError = make(chan error, 1)
+
 	for i, message := range messages {
-		d := NewChannelMessage()
-		*d = message
-		data, err := d.BuildMessage(query)
-		if err != nil {
+		wg.Add(1)
+
+		go func(i int, message ChannelMessage) {
+			defer wg.Done()
+
+			d := NewChannelMessage()
+			*d = message
+			data, err := d.BuildMessage(query)
+			if err != nil {
+				onError <- err
+				return
+			}
+
+			onMessage <- &messageResponseStruct{Index: i, Message: data}
+		}(i, message)
+	}
+
+	wg.Wait()
+
+	for i := 1; i <= len(messages); i++ {
+		select {
+		case messageResp := <-onMessage:
+			containers[messageResp.Index] = messageResp.Message
+		case err := <-onError:
 			return containers, err
 		}
-		containers[i] = data
 	}
 
 	return containers, nil
