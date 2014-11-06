@@ -151,6 +151,8 @@ class PaymentWorkflow extends KDController
       return KD.showError err  if err
 
       options.email = email
+      options.provider = @state.provider
+
 
       paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
         @modal.form.submitButton.hideLoader()

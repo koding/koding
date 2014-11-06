@@ -115,9 +115,9 @@ class PaymentForm extends JView
       @form.show()
       @existingCreditCardMessage.hide()
 
-    switch provider
-      when 'stripe' then @paypalButton.hide()
-      when 'paypal' then @submitButton.hide()
+    # switch provider
+    #   when 'stripe' then @paypalButton.hide()
+    #   when 'paypal' then @submitButton.hide()
 
 
   initForm: ->
