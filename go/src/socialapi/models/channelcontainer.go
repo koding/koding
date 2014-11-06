@@ -25,7 +25,7 @@ func NewChannelContainer() *ChannelContainer {
 }
 
 // Tests are done
-func (c *ChannelContainer) TableName() string {
+func (c *ChannelContainer) BongoName() string {
 	return "api.channel"
 }
 
