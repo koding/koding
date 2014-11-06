@@ -34,9 +34,12 @@ func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
 		return err
 	}
 
-	subscription, err := customer.FindActiveSubscription()
-	if err != nil {
-		return err
+	var subscription *paymentmodels.Subscription
+	if customer != nil {
+		subscription, err = customer.FindActiveSubscription()
+		if err != nil {
+			return err
+		}
 	}
 
 	status, err := checkStatus(customer, err, plan)
