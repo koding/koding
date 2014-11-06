@@ -575,7 +575,7 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
-        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" up
+        migrate up
 
         nginxrun
 
@@ -609,8 +609,23 @@ Configuration = (options={}) ->
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
         echo "  run migrationfile         : to create an empty postgresql migration file"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [up|down|version|reset|redo|to])"
         echo ""
 
+      }
+
+      function migrate () {
+        if [ "$1" == "" ]; then
+          echo "You have to select a command [up|down|version|reset|redo|to]"
+          exit 1
+        fi
+
+        param=$1
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        fi
+
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
       }
 
       function check (){
@@ -912,6 +927,18 @@ Configuration = (options={}) ->
           #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" create "$2"
           echo "Please edit created script files and add them to your repository."
         fi
+
+      elif [ "$1" == "migrate" ]; then
+        check_psql
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migrate command [up|down|version|reset|redo|to]"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          migrate $2 $3
+        fi
+
 
       elif [ "$#" == "0" ]; then
 
