@@ -43,7 +43,7 @@ const (
 
 func (i *Interaction) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		i.TableName() +
+		i.BongoName() +
 		` ("message_id","account_id","type_constant","created_at") VALUES ($1,$2,$3,$4) ` +
 		"RETURNING ID"
 

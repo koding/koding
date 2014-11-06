@@ -71,15 +71,16 @@ class ComputeStateChecker extends KDObject
     @machines.forEach (machine)=>
 
       machineId = machine._id
+      currentState = machine.status.state
 
       if machineId in @ignoredMachines
         log "csc: ignoring check for machine:", machineId
         return
 
-      unless machine.status.state is Machine.State.Running
+      unless currentState is Machine.State.Running
         return  if not checkAll
 
-      call = @kloud.info { machineId }
+      call = @kloud.info { machineId, currentState }
 
       .then (response)=>
 

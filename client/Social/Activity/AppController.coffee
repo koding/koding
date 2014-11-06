@@ -14,7 +14,7 @@ class ActivityAppController extends AppController
       { command: 'previous tab',  binding: 'alt+[',    global: yes }
     ]
 
-  firstFetch = yes
+  FIRST_FETCH = yes
 
   constructor: (options = {}) ->
 
@@ -73,31 +73,35 @@ class ActivityAppController extends AppController
     socialapi.message.sendPrivateMessage options, callback
 
 
+  isCorrectPath = (key)->
+    return true  unless key is "navigated"
+
+    {router} = KD.singletons
+    {section, name, slug} = KD.socialApiData.navigated
+    routeToLookUp  = "#{name}/#{section}"
+    routeToLookUp += "/#{slug}"  if slug and slug isnt '/'
+
+    return router.getCurrentPath().search(routeToLookUp) > 0
+
 
   fetch: ({channelId, from, limit, skip, mostLiked}, callback = noop) ->
 
     prefetchedKey = if mostLiked then "popularPosts" else "navigated"
     id = channelId
-    {socialapi, router} = KD.singletons
+    {socialapi} = KD.singletons
     {socialApiChannelId} = KD.getGroup()
     id ?= socialApiChannelId
     prefetchedItems = socialapi.getPrefetchedData prefetchedKey
 
-    isCorrectPath = ->
-      {section, name, slug} = KD.socialApiData.navigated
-      routeToLookUp  = "#{name}/#{section}"
-      routeToLookUp += "/#{slug}"  if slug and slug isnt '/'
-
-      return router.getCurrentPath().search(routeToLookUp) > 0
-
-    if firstFetch and prefetchedItems.length > 0 and isCorrectPath()
+    if FIRST_FETCH and prefetchedItems.length > 0 and isCorrectPath(prefetchedKey)
       messages = socialapi.getPrefetchedData prefetchedKey
       KD.utils.defer ->  callback null, messages
     else
       if mostLiked then @fetchMostLikedPosts({skip, limit}, callback)
       else socialapi.channel.fetchActivities {id, from, limit}, callback
 
-    firstFetch = no
+    FIRST_FETCH = no
+
 
   fetchMostLikedPosts : (options, callback)->
     options.group       = KD.getGroup().slug

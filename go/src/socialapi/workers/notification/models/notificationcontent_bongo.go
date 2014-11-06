@@ -22,7 +22,7 @@ func (n *NotificationContent) GetId() int64 {
 	return n.Id
 }
 
-func (n NotificationContent) TableName() string {
+func (n NotificationContent) BongoName() string {
 	return "notification.notification_content"
 }
 

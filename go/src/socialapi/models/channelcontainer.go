@@ -2,6 +2,7 @@ package models
 
 import (
 	"socialapi/request"
+	"sync"
 
 	"github.com/koding/bongo"
 )
@@ -24,7 +25,7 @@ func NewChannelContainer() *ChannelContainer {
 }
 
 // Tests are done
-func (c *ChannelContainer) TableName() string {
+func (c *ChannelContainer) BongoName() string {
 	return "api.channel"
 }
 
@@ -256,10 +257,25 @@ func NewChannelContainers() *ChannelContainers {
 }
 
 func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
+	var wg sync.WaitGroup
+	var onChannel = make(chan *ChannelContainer, len(channelList))
+
 	for i, _ := range channelList {
-		cc := NewChannelContainer()
-		cc.PopulateWith(channelList[i], accountId)
-		c.Add(cc)
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+
+			cc := NewChannelContainer()
+			cc.PopulateWith(channelList[i], accountId)
+			onChannel <- cc
+		}(i)
+	}
+
+	wg.Wait()
+
+	for i := 1; i <= len(channelList); i++ {
+		c.Add(<-onChannel)
 	}
 
 	return c

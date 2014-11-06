@@ -22,7 +22,7 @@ func NewNotificationActivity() *NotificationActivity {
 	return &NotificationActivity{}
 }
 
-func (a NotificationActivity) TableName() string {
+func (a NotificationActivity) BongoName() string {
 	return "notification.notification_activity"
 }
 
