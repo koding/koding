@@ -643,6 +643,10 @@ Configuration = (options={}) ->
 
       }
 
+      function check_psql () {
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+      }
+
       function check_service_dependencies () {
         echo "checking required services: nginx, docker, mongo, graphicsmagick..."
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
@@ -654,7 +658,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
-        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+        check_psql
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -898,7 +902,7 @@ Configuration = (options={}) ->
         open supervisor.html
 
       elif [ "$1" == "migrationfile" ]; then
-        check_service_dependencies
+        check_psql
 
         if [ "$2" == "" ]; then
           echo "Please choose a migration file name. (ex. add_created_at_column_account)"
