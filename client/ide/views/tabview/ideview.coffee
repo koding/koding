@@ -22,7 +22,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
-    @tabView.on 'CollaborationDataUpdated', @bound 'checkCollaborationData'
 
     @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
       @closeUntitledFileIfNotChanged()
@@ -317,7 +316,3 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu = new KDContextMenu options, @getPlusMenuItems()
 
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
-
-
-  checkCollaborationData: (data) ->
-    log 'acetz: is the data', data
