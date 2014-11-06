@@ -52,7 +52,7 @@ func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	case DowngradeToFreePlan:
 		err = handleCancelation(customer, subscription)
 	case Downgrade:
-		err = handleDowngrade(token, customer, plan)
+		err = handleDowngrade(customer, plan, subscription)
 	case Upgrade:
 		err = handleUpgrade(token, customer, plan)
 	default:
@@ -83,8 +83,19 @@ func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmo
 	return subscription.UpdateState(stripe.SubscriptionStateCanceled)
 }
 
-func handleDowngrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
-	return nil
+func handleDowngrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan, subscription *paymentmodels.Subscription) error {
+	params := map[string]string{
+		"AMT":              normalizeAmount(plan.AmountInCents),
+		"PROFILESTARTDATE": subscription.CurrentPeriodEnd.String(),
+	}
+
+	resp, err := client.UpdateRecurringPaymentsProfile(customer.ProviderCustomerId, params)
+	err = handlePaypalErr(resp, err)
+	if err != nil {
+		return err
+	}
+
+	return subscription.UpdatePlan(plan.Id, plan.AmountInCents)
 }
 
 func handleUpgrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
