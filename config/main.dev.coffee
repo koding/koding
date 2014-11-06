@@ -26,7 +26,11 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
+
+  host                = options.hostname or "koding-#{process.env.USER}.ngrok.com"
+  customDomainOrigin  = "#{host}#{if publicPort is '80' then '' else ':' + publicPort}"
+  customDomain        = { public: "http://#{customDomainOrigin}", public_: customDomainOrigin, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510        }
@@ -191,6 +195,7 @@ Configuration = (options={}) ->
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
+  GOPATH= "#{projectRoot}/go"
 
 
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
@@ -574,6 +579,8 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
+        migrate up
+
         nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
@@ -605,8 +612,24 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
+        echo "  run migrationfile         : to create an empty postgresql migration file"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [up|down|version|reset|redo|to])"
         echo ""
 
+      }
+
+      function migrate () {
+        if [ "$1" == "" ]; then
+          echo "You have to select a command [up|down|version|reset|redo|to]"
+          exit 1
+        fi
+
+        param=$1
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        fi
+
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
       }
 
       function check (){
@@ -639,6 +662,10 @@ Configuration = (options={}) ->
 
       }
 
+      function check_psql () {
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+      }
+
       function check_service_dependencies () {
         echo "checking required services: nginx, docker, mongo, graphicsmagick..."
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
@@ -650,7 +677,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
-        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+        check_psql
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -892,6 +919,30 @@ Configuration = (options={}) ->
 
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
+
+      elif [ "$1" == "migrationfile" ]; then
+        check_psql
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" create "$2"
+          echo "Please edit created script files and add them to your repository."
+        fi
+
+      elif [ "$1" == "migrate" ]; then
+        check_psql
+
+        if [ "$2" == "" ]; then
+          echo "Please choose a migrate command [up|down|version|reset|redo|to]"
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          migrate $2 $3
+        fi
+
 
       elif [ "$#" == "0" ]; then
 
