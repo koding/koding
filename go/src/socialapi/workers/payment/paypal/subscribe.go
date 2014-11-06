@@ -34,6 +34,11 @@ func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
 		return err
 	}
 
+	subscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return err
+	}
+
 	status, err := checkStatus(customer, err, plan)
 	if err != nil {
 		return err
@@ -45,7 +50,7 @@ func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	case NewSubscription:
 		err = handleNewSubscription(token, accId, plan)
 	case DowngradeToFreePlan:
-		err = handleCancelation(customer)
+		err = handleCancelation(customer, subscription)
 	case Downgrade:
 		err = handleDowngrade(token, customer, plan)
 	case Upgrade:
@@ -66,13 +71,16 @@ func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error 
 	return CreateSubscription(token, plan, customer)
 }
 
-func handleCancelation(customer *paymentmodels.Customer) error {
+func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) error {
 	response, err := client.ManageRecurringPaymentsProfileStatus(
 		customer.ProviderCustomerId, paypal.Cancel,
 	)
 	err = handlePaypalErr(response, err)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return subscription.UpdateState(stripe.SubscriptionStateCanceled)
 }
 
 func handleDowngrade(token string, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
