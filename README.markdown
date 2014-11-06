@@ -133,4 +133,81 @@ services are located.
 
 When you feel something is wrong, first of all just notify others that you realized a problem and started working on it. Then check the aggregated logs. If you see an error there you  can find the server name from the logs [e.g.](http://note.io/1oNcu6Z) There can be options about fixing the problem, even one of them can be `destroying` the machine, auto scaling will create a new one for us.
 
+## Database Migration
 
+We have chosen [migrate](https://github.com/mattes/migrate) package as database migrator. Instead of adding new sql scripts manually under db/sql/definitions, we are versioning database updates via this package. Whenever you initialize your development environment via `./run` command, changes in migration files are applied automatically, and you do not need to worry about them.
+
+### Creating new migration file
+
+For creating a new empty version file, you should call:
+
+```./run migrationfile [filename]```
+
+If everything goes ok, you are going to receive this output, and migration file is created under go/src/socialapi/db/sql/migrations folder:
+
+```
+Version [x] migration files created in [project-root]/go/src/socialapi/db/sql/migrations:
+000x_[filename].up.sql
+000x_[filename].down.sql
+Please edit created script files and add them to your repository.
+```
+
+These two up and down files are consecutively used for creating and reverting your database changes.
+
+For instance if you are going to add a new type, you should add the script to up file as:
+
+```
+CREATE TYPE "api"."channel_privacy_constant_enum" AS ENUM (
+    'public',
+    'private'
+);
+```
+
+And for reverting this change, down file must contain opposite operation:
+
+```
+DROP TYPE "api"."channel_privacy_constant_enum";
+```
+
+For applying all changes under migrations folder to your development database you should call:
+
+```
+./run migrate up
+```
+
+### Commands
+
+```
+# roll back all migrations
+./run migrate down
+
+# roll back the most recently applied migration, then run it again.
+./run migrate redo
+
+# run down and then up command
+./run migrate reset
+
+# show the current migration version
+./run migrate version
+
+# apply the next n migrations
+./run migrate to +1
+./run migrate to +2
+./run migrate to +n
+
+# roll back the previous n migrations
+./run migrate to -1
+./run migrate to -2
+./run migrate to -n
+
+# go to specific migration
+./run migrate goto v
+```
+
+### Applying changes to external databases
+
+For applying changes to external databases you should call the migrate command with full path:
+
+```
+migrate -url "postgres://[hostname]:[port]/[dbname]?user=[user]&password=[password]" -path "[projectRoot]/go/src/socialapi/db/sql/migrations" up
+```
