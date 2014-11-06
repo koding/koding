@@ -297,3 +297,17 @@ func (pClient *PayPalClient) ManageRecurringPaymentsProfileStatus(profileId stri
 
 	return pClient.PerformRequest(values)
 }
+
+func (pClient *PayPalClient) UpdateRecurringPaymentsProfile(profileId string, params map[string]string) (*PayPalResponse, error) {
+	values := url.Values{}
+	values.Set("METHOD", "UpdateRecurringPaymentsProfile")
+	values.Set("PROFILEID", profileId)
+
+	if params != nil {
+		for key, value := range params {
+			values.Add(key, value)
+		}
+	}
+
+	return pClient.PerformRequest(values)
+}
