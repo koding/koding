@@ -27,7 +27,7 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
-  host                = options.hostname or "koding-#{process.env.USER}.ngrok.com"
+  host                = options.hostdomain or "koding-#{process.env.USER}.ngrok.com"
   customDomainOrigin  = "#{host}#{if publicPort is '80' then '' else ':' + publicPort}"
   customDomain        = { public: "http://#{customDomainOrigin}", public_: customDomainOrigin, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
 
