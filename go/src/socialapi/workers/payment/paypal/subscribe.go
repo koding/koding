@@ -88,8 +88,8 @@ func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmo
 
 func handleDowngrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan, subscription *paymentmodels.Subscription) error {
 	params := map[string]string{
-		"AMT":              normalizeAmount(plan.AmountInCents),
-		"PROFILESTARTDATE": subscription.CurrentPeriodEnd.String(),
+		"AMT": normalizeAmount(plan.AmountInCents),
+		"L_PAYMENTREQUEST_0_NAME0": goodName(plan),
 	}
 
 	resp, err := client.UpdateRecurringPaymentsProfile(customer.ProviderCustomerId, params)

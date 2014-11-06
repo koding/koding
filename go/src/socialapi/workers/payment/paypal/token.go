@@ -2,7 +2,6 @@ package paypal
 
 import (
 	"errors"
-	"fmt"
 	"socialapi/workers/payment/stripe"
 
 	"github.com/koding/paypal"
@@ -14,8 +13,7 @@ func GetToken(planTitle, planInterval string) (string, error) {
 		return "", err
 	}
 
-	digitalGoodName := fmt.Sprintf("%s-%s", plan.Title, plan.Interval)
-	item := paypal.NewDigitalGood(digitalGoodName, amount(plan.AmountInCents))
+	item := paypal.NewDigitalGood(goodName(plan), amount(plan.AmountInCents))
 
 	args := paypal.NewExpressCheckoutSingleArgs()
 	args.ReturnURL = returnURL

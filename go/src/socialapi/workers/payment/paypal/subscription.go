@@ -1,13 +1,11 @@
 package paypal
 
 import (
-	"fmt"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
 )
 
 func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymentmodels.Customer) error {
-	digitalGoodName := fmt.Sprintf("%s-%s", plan.Title, plan.Interval)
 	params := map[string]string{
 		"PROFILESTARTDATE": time.Now().String(),
 		"SUBSCRIBERNAME":   customer.OldId,
@@ -15,7 +13,7 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 		"AMT":              normalizeAmount(plan.AmountInCents),
 		"BILLINGFREQUENCY": "1",
 		"CURRENCYCODE":     CurrencyCode,
-		"DESC":             digitalGoodName,
+		"DESC":             goodName(plan),
 		"AUTOBILLOUTAMT":   "AddToNextBilling",
 	}
 

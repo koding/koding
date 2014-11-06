@@ -1,6 +1,8 @@
 package paypal
 
 import (
+	"fmt"
+	"socialapi/workers/payment/paymentmodels"
 	"strconv"
 
 	"github.com/koding/logging"
@@ -53,4 +55,8 @@ func getInterval(interval string) string {
 	default:
 		return "Month"
 	}
+}
+
+func goodName(plan *paymentmodels.Plan) string {
+	return fmt.Sprintf("%s-%s", plan.Title, plan.Interval)
 }
