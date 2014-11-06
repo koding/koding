@@ -35,7 +35,7 @@ func (l *ListenerHandler) On(e string) *ListenerHandler {
 
 func (l *ListenerHandler) Handle(h interface{}) {
 	l.runner.ListenFor(
-		l.model.TableName()+"_"+l.eventName,
+		l.model.BongoName()+"_"+l.eventName,
 		h,
 	)
 }

@@ -28,7 +28,7 @@ func (i Interaction) GetId() int64 {
 	return i.Id
 }
 
-func (i Interaction) TableName() string {
+func (i Interaction) BongoName() string {
 	return "api.interaction"
 }
 

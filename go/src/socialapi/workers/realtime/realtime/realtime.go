@@ -130,51 +130,60 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 }
 
 // ChannelParticipantRemoved is fired when we remove any info of channel participant
-func (f *Controller) ChannelParticipantRemoved(cp *models.ChannelParticipant) error {
-	return f.sendChannelParticipantEvent(cp, RemovedFromChannelEventName)
+func (f *Controller) ChannelParticipantRemoved(pe *models.ParticipantEvent) error {
+	return f.sendChannelParticipantEvent(pe, RemovedFromChannelEventName)
 }
 
 // ChannelParticipantAdded is fired when we add any info of channel participant
-func (f *Controller) ChannelParticipantAdded(cp *models.ChannelParticipant) error {
-	return f.sendChannelParticipantEvent(cp, AddedToChannelEventName)
+func (f *Controller) ChannelParticipantsAdded(pe *models.ParticipantEvent) error {
+	return f.sendChannelParticipantEvent(pe, AddedToChannelEventName)
 }
 
-// sendChannelParticipantEvent sends the required info(data) about channel participant
-func (f *Controller) sendChannelParticipantEvent(cp *models.ChannelParticipant, eventName string) error {
-	c, err := models.ChannelById(cp.ChannelId)
-	if err != nil {
-		return err
+// sendChannelParticipantEvent sends update message with newly added/removed participant
+// information
+// TODO we can send this information with just a single message
+func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, eventName string) error {
+
+	// channel must be notified with newly added/removed participants
+	for _, participant := range pe.Participants {
+		accountOldId, err := models.FetchAccountOldIdByIdFromCache(participant.AccountId)
+		if err != nil {
+			f.log.Error("Could update fetch participant old id: %s", err)
+			continue
+		}
+
+		pc := &ParticipantContent{
+			AccountId:    participant.AccountId,
+			AccountOldId: accountOldId,
+			ChannelId:    pe.Id,
+		}
+
+		// send this event to the channel itself- this must happen just for newly added accounts
+		if err := f.publishToChannel(pe.Id, eventName, pc); err != nil {
+			f.log.Error("Could update channel with participant information: %s", err)
+		}
 	}
 
-	cc := models.NewChannelContainer()
-	err = cc.PopulateWith(*c, cp.AccountId)
-	if err != nil {
-		return err
+	return nil
+}
+
+func (f *Controller) fetchNotifiedUsers(pe *models.ParticipantEvent, eventName string, c *models.Channel) ([]int64, error) {
+	var participantIds []int64
+	var err error
+	switch eventName {
+	case AddedToChannelEventName:
+		participantIds, err = c.FetchParticipantIds(&request.Query{})
+		if err != nil {
+			return nil, err
+		}
+	case RemovedFromChannelEventName:
+		participantIds = make([]int64, 0)
+		for _, participant := range pe.Participants {
+			participantIds = append(participantIds, participant.AccountId)
+		}
 	}
 
-	accountOldId, err := models.FetchAccountOldIdByIdFromCache(cp.AccountId)
-	if err != nil {
-		return err
-	}
-
-	pc := &ParticipantContent{
-		AccountId:    cp.AccountId,
-		AccountOldId: accountOldId,
-		ChannelId:    c.Id,
-	}
-
-	// send notification to the user(added user)
-	if err := f.sendNotification(
-		cp.AccountId,
-		c.GroupName,
-		eventName,
-		cc,
-	); err != nil {
-		f.log.Error("Ignoring err %s ", err.Error())
-	}
-
-	// send this event to the channel itself
-	return f.publishToChannel(c.Id, eventName, pc)
+	return participantIds, nil
 }
 
 // InteractionSaved runs when interaction is added

@@ -143,8 +143,11 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     statusToggle.hide()
 
+    machineId = @machine._id
+    currentState = @machine.status.state
+
     computeController
-      .kloud.info { machineId: @machine._id }
+      .kloud.info { machineId, currentState }
       .then (response)->
 
         if response.State is Running

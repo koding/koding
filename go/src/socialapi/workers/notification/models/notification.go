@@ -99,7 +99,7 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
 	var notifications []Notification
 
-	err := bongo.B.DB.Table(n.TableName()).
+	err := bongo.B.DB.Table(n.BongoName()).
 		Where("NOT (activated_at IS NULL OR activated_at <= '0001-01-02') AND account_id = ?", q.AccountId).
 		Order("activated_at desc").
 		Limit(q.Limit).
@@ -203,7 +203,7 @@ func (n *Notification) FetchContent() (*NotificationContent, error) {
 func (n *Notification) Glance() error {
 	// TODO bongo.B.DB.Updates() did not work here lately. I have replaced it with this raw sql.
 	// If possible change it
-	updateSql := "UPDATE " + n.TableName() + ` set "glanced"=? WHERE "glanced"=? AND "account_id"=?`
+	updateSql := "UPDATE " + n.BongoName() + ` set "glanced"=? WHERE "glanced"=? AND "account_id"=?`
 
 	return bongo.B.DB.Exec(updateSql, true, false, n.AccountId).Error
 }
@@ -249,7 +249,7 @@ func (n *Notification) HideByContentIds(ids []int64) error {
 		return ErrContentIdsNotSet
 	}
 
-	updateSql := "UPDATE " + n.TableName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
+	updateSql := "UPDATE " + n.BongoName() + ` set "activated_at" = ? WHERE "notification_content_id" in (?)`
 
 	return bongo.B.DB.Exec(updateSql, time.Time{}, ids).Error
 }

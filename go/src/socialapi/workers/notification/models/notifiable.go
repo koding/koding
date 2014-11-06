@@ -30,7 +30,7 @@ type Notifiable interface {
 func fetchNotifiedUsers(contentId int64) ([]int64, error) {
 	var notifiees []int64
 	n := NewNotification()
-	query := bongo.B.DB.Table(n.TableName())
+	query := bongo.B.DB.Table(n.BongoName())
 	query = query.Where("notification_content_id = ?", contentId)
 	query = query.Where("subscribed_at > ?", ZeroDate())
 	query = query.Where("unsubscribed_at = ?", ZeroDate())

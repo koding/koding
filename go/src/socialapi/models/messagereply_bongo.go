@@ -6,7 +6,7 @@ func (m MessageReply) GetId() int64 {
 	return m.Id
 }
 
-func (m MessageReply) TableName() string {
+func (m MessageReply) BongoName() string {
 	return "api.message_reply"
 }
 
