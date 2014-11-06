@@ -28,10 +28,23 @@ class KodingKite_KloudKite extends KodingKite
   # will be queued up and resolved by the pending request
 
   info: ({ machineId, currentState }) ->
+
     if @needsRequest[machineId] in [undefined, yes]
+
       @needsRequest[machineId] = no
+
+      @askInfoFromKlient machineId, (klientInfo)=>
+
+        if klientInfo?
+
           @requestingInfo[machineId].forEach ({ resolve }) ->
+            resolve klientInfo
+
           @requestingInfo[machineId] = null
+          @needsRequest[machineId]   = yes
+
+        else
+
           @askInfoFromKloud machineId, currentState
 
     new Promise (resolve, reject) =>
