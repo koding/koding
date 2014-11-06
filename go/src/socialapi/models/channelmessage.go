@@ -6,6 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/request"
 	"strconv"
+	"sync"
 	"time"
 
 	ve "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -160,21 +161,50 @@ func (c *ChannelMessage) UpdateBodyRaw() error {
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
+type messageResponseStruct struct {
+	Index   int
+	Message *ChannelMessageContainer
+}
+
 // TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+	var wg sync.WaitGroup
+
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
 	}
 
+	var onMessage = make(chan *messageResponseStruct, len(messages))
+	var onError = make(chan error, 1)
+
 	for i, message := range messages {
-		d := NewChannelMessage()
-		*d = message
-		data, err := d.BuildMessage(query)
-		if err != nil {
+		wg.Add(1)
+
+		go func(i int, message ChannelMessage) {
+			defer wg.Done()
+
+			d := NewChannelMessage()
+			*d = message
+			data, err := d.BuildMessage(query)
+			if err != nil {
+				onError <- err
+				return
+			}
+
+			onMessage <- &messageResponseStruct{Index: i, Message: data}
+		}(i, message)
+	}
+
+	wg.Wait()
+
+	for i := 1; i <= len(messages); i++ {
+		select {
+		case messageResp := <-onMessage:
+			containers[messageResp.Index] = messageResp.Message
+		case err := <-onError:
 			return containers, err
 		}
-		containers[i] = data
 	}
 
 	return containers, nil
