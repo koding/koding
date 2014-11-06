@@ -41,17 +41,12 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	p.Log.Debug("[%s] Info initials: Current db state: '%s'. Klient state: '%s'",
 		m.Id, dbState, klientState)
 
-	reason := ""
 	switch klientState {
 	case machinestate.Running:
 		p.Log.Debug("[%s] Info log: klient is running", m.Id)
 
 		// Stop the shutdown timer if there is any.
 		p.stopTimer(m)
-
-		// If the klient is running, then it is safe to say that the  machine
-		// is healthy.
-		reason = "Klient is active and healthy."
 
 		if dbState == machinestate.Running {
 			p.Log.Debug("[%s] Info log: klient is running and dbstate is running too. Doing nothing but returning", m.Id)
@@ -69,8 +64,6 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		// Start the shutdown timer since the klient is unreachable.
 		// startTimer does not turn-off always-on machines, which is good
 		p.startTimer(m)
-
-		reason = "Klient is not reachable."
 
 		// Since klient is not registered, we have to ask for AWS about the machine state.
 		a, err := p.NewClient(m)
@@ -99,8 +92,8 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	// not break existing actions like building, starting, stopping etc...
 	// because CheckAndUpdateState only update the state if there is no lock
 	// available.
-	p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s", m.Id, dbState, reason)
-	err = p.CheckAndUpdateState(m.Id, reason, dbState)
+	p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'.", m.Id, dbState)
+	err = p.CheckAndUpdateState(m.Id, dbState)
 	if err != nil {
 		p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
 	}
@@ -115,7 +108,7 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 // CheckAndUpdate state updates only if the given machine id is not used by
 // anyone else
-func (p *Provider) CheckAndUpdateState(id, reason string, state machinestate.State) error {
+func (p *Provider) CheckAndUpdateState(id string, state machinestate.State) error {
 	p.Log.Info("[%s] storage state update request to state %v", id, state)
 	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
@@ -127,7 +120,6 @@ func (p *Provider) CheckAndUpdateState(id, reason string, state machinestate.Sta
 				"$set": bson.M{
 					"status.state":      state.String(),
 					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     reason,
 				},
 			},
 		)
