@@ -721,3 +721,9 @@ class ComputeController extends KDController
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
       @fetchUsage { provider }, (err, usage)->
         callback err, { plan, plans, usage }
+
+
+  findUidFromMachineId: (machineId)->
+
+    for machine in @machines
+      return machine.uid  if machine._id is machineId
