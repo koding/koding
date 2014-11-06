@@ -43,6 +43,10 @@ func (c ChannelMessage) BongoName() string {
 	return ChannelMessageBongoName
 }
 
+func (c ChannelMessage) TableName() string {
+	return c.BongoName()
+}
+
 func NewChannelMessage() *ChannelMessage {
 	return &ChannelMessage{
 		TypeConstant: ChannelMessage_TYPE_POST,
