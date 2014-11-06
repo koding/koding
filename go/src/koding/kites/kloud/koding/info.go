@@ -25,13 +25,16 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	switch err {
 	case nil:
 		if err = klientRef.Ping(); err != nil {
-			p.Log.Info("[%s] Klient is not responding to ping request. Err: %v", m.Id, err)
+			p.Log.Info("[%s] Klient is not responding to 'ping' request. Err: %v", m.Id, err)
 		}
 		klientRef.Close()
 		klientState = machinestate.Running
 	case kite.ErrNoKitesAvailable:
 		// klient state is still machinestate.Unknown.
 		p.Log.Debug("[%s] Klient is not registered to Kontrol. Err: %s", m.Id, err)
+	case klient.ErrDialingKlientFailed:
+		// klient state is still machinestate.Unknown.
+		p.Log.Debug("[%s] %s", m.Id, err)
 	default:
 		// Any other error will fallback to here. So assume that kontrol
 		// failed or some other catastrophic failure occured. So, do not
