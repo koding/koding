@@ -179,8 +179,9 @@ func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelM
 	var onError = make(chan error, 1)
 
 	for i, message := range messages {
+		wg.Add(1)
+
 		go func(i int, message ChannelMessage) {
-			wg.Add(1)
 			defer wg.Done()
 
 			d := NewChannelMessage()
