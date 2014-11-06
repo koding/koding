@@ -13,97 +13,94 @@ import (
 	"koding/kites/kloud/protocol"
 )
 
+// Info checks the machine state based on the klient and AWS states.
 func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
-	// initial machine state is the state that the storage has
-	dbState := m.State
 
-	// Assume the klient state as unknown initially
+	dbState := m.State
+	resultState := dbState
 	klientState := machinestate.Unknown
 
-	// the final state that will be sent to the caller
-	var resultState machinestate.State
-
-	// Get the klient state.
-	err = klient.Exists(p.Kite, m.QueryString)
+	// Check if klient is running first.
+	klientRef, err := klient.Connect(p.Kite, m.QueryString)
 	switch err {
 	case nil:
+		if err = klientRef.Ping(); err != nil {
+			p.Log.Info("[%s] Klient is not responding to 'ping' request. Err: %v", m.Id, err)
+		}
+		klientRef.Close()
 		klientState = machinestate.Running
 	case kite.ErrNoKitesAvailable:
-		p.Log.Warning("[%s] Klient is disconnected, I couldn't find it through Kontrol. Err: %s",
-			m.Id, err)
+		// klient state is still machinestate.Unknown.
+		p.Log.Debug("[%s] Klient is not registered to Kontrol. Err: %s", m.Id, err)
+	case klient.ErrDialingKlientFailed:
+		// klient state is still machinestate.Unknown.
+		p.Log.Debug("[%s] %s", m.Id, err)
 	default:
 		// Any other error will fallback to here. So assume that kontrol
-		// failed or some other catastrophic failure occured. Thus, do not
+		// failed or some other catastrophic failure occured. So, do not
 		// stop or destroy the machine because of our failure.
-		p.Log.Critical("[%s] couldn't get klient information to check machine status: %s ", m.Id, err)
+		klientState = machinestate.Running
+		p.Log.Critical("[%s] couldn't get klient information to check machine status. Probably couldn't connect to Kontrol. Err: %s ", m.Id, err)
 	}
 
-	p.Log.Debug("[%s] Info initials: Current db state: '%s'. Klient state: '%s'",
-		m.Id, dbState, klientState)
-
+	reason := ""
 	switch klientState {
 	case machinestate.Running:
-		p.Log.Debug("[%s] Info log: klient is running", m.Id)
+		reason = "Klient is active and healthy."
 
-		// Stop the shutdown timer if there is any.
 		p.stopTimer(m)
-
-		if dbState == machinestate.Running {
-			p.Log.Debug("[%s] Info log: klient is running and dbstate is running too. Doing nothing but returning", m.Id)
-			return &protocol.InfoArtifact{
-				State: machinestate.Running,
-			}, nil
-		}
 		resultState = machinestate.Running
-		dbState = machinestate.Running
-		p.Log.Debug("[%s] Info log: klient is running and dbstate is not running. Setting dbstate to running.", m.Id)
-
 	case machinestate.Unknown:
-		p.Log.Debug("[%s] Info log: klient is not reachable. Asking to AWS about the machine state. Also started the shutdown-timer.", m.Id)
+		reason = "Klient is not reachable."
 
-		// Start the shutdown timer since the klient is unreachable.
-		// startTimer does not turn-off always-on machines, which is good
-		p.startTimer(m)
-
-		// Since klient is not registered, we have to ask for AWS about the machine state.
-		a, err := p.NewClient(m)
+		amz, err := p.NewClient(m)
 		if err != nil {
 			return nil, err
 		}
-		infoResp, err := a.Info()
+		infoResp, err := amz.Info()
 		if err != nil {
 			return nil, err
 		}
 
-		awsState := infoResp.State
+		switch infoResp.State {
+		case machinestate.Running:
+			// this is a case where: 1) klient is unreachable 2) machine is running
+			// we don't want to give away our machines without a klient is running on it,
+			// so mark and return as stopped.
+			resultState = machinestate.Stopped
 
-		if dbState == awsState {
-			p.Log.Debug("[%s] Info log: dbState(%s) and awsState(%s) are the same. Not gonna update the db", m.Id, dbState, awsState)
-			return &protocol.InfoArtifact{
-				State: awsState,
-			}, nil
+			// startTimer does not start a timer on always-on machines. no worries.
+			p.startTimer(m)
+
+			// Check if the machine is always-on and don't send a stopped state.
+			if a, ok := m.Builder["alwaysOn"]; ok {
+				if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+					// machine is always-on. return as running
+					resultState = machinestate.Running
+				}
+			}
+		default:
+			// This is the place where a state transition is in place or simply
+			// the machine is stopped/terminated. So we don't expect the klient
+			// to be run. Return as is.
+			resultState = infoResp.State
 		}
-
-		dbState = awsState
-		resultState = awsState
 	}
 
-	// auto-fix db state if the klient state is different than db state. This will
-	// not break existing actions like building, starting, stopping etc...
-	// because CheckAndUpdateState only update the state if there is no lock
-	// available.
-	p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'.", m.Id, dbState)
-	err = p.CheckAndUpdateState(m.Id, dbState)
-	if err != nil {
-		p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+	// Update db state if the up-to-date state is different than the db.
+	if resultState != dbState {
+		p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s", m.Id, resultState, reason)
+		err = p.CheckAndUpdateState(m.Id, resultState)
+		if err != nil {
+			p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+		}
+
 	}
 
 	p.Log.Debug("[%s] Info result: '%s'. Username: %s", m.Id, resultState, m.Username)
-
 	return &protocol.InfoArtifact{
 		State: resultState,
 	}, nil
-
 }
 
 // CheckAndUpdate state updates only if the given machine id is not used by
