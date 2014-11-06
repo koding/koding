@@ -81,6 +81,21 @@ func (s *Subscription) UpdateState(state string) error {
 	return err
 }
 
+func (s *Subscription) Cancel() error {
+	err := s.Delete()
+	if err != nil {
+		return err
+	}
+
+	customer := NewCustomer()
+	err = customer.ById(s.CustomerId)
+	if err != nil {
+		return err
+	}
+
+	return customer.Delete()
+}
+
 func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 	s.CanceledAt = t
 	err := bongo.B.Update(s)

@@ -83,7 +83,7 @@ func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmo
 		return err
 	}
 
-	return subscription.UpdateState(stripe.SubscriptionStateCanceled)
+	return subscription.Cancel()
 }
 
 func handleDowngrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan, subscription *paymentmodels.Subscription) error {
