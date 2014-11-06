@@ -28,25 +28,27 @@ type SubscribeRequest struct {
 }
 
 func (s *SubscribeRequest) Do() (interface{}, error) {
+	var err error
+
 	switch s.Provider {
 	case "stripe":
-		err := stripe.Subscribe(
+		err = stripe.Subscribe(
 			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
 		)
-
-		if err != nil {
-			Log.Error(
-				"Subscribing account: %s to plan: %s failed. %s",
-				s.AccountId, s.PlanTitle, err,
-			)
-		}
-
-		return nil, err
 	case "paypal":
-		return nil, ProviderNotImplemented
+		err = paypal.SubscribeWithPlan(s.Token, s.AccountId, s.PlanTitle, s.PlanInterval)
 	default:
-		return nil, ProviderNotFound
+		err = ProviderNotFound
 	}
+
+	if err != nil {
+		Log.Error(
+			"Subscribing account: %s to plan: %s failed. %s",
+			s.AccountId, s.PlanTitle, err,
+		)
+	}
+
+	return nil, err
 }
 
 //----------------------------------------------------------

@@ -4,10 +4,20 @@ import (
 	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/stripe"
 	"strings"
 
 	"github.com/koding/paypal"
 )
+
+func SubscribeWithPlan(token, accId, planTitle, planInterval string) error {
+	plan, err := stripe.FindPlanByTitleAndInterval(planTitle, planInterval)
+	if err != nil {
+		return err
+	}
+
+	return _subscribe(token, accId, plan)
+}
 
 func Subscribe(token, accId string) error {
 	plan, err := FindPlanFromToken(token)
@@ -15,6 +25,10 @@ func Subscribe(token, accId string) error {
 		return err
 	}
 
+	return _subscribe(token, accId, plan)
+}
+
+func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	customer, err := FindCustomerByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
