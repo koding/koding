@@ -1,15 +1,5 @@
 package main
 
-// type LoggedInUser struct {
-//   Account       *models.Account
-//   Machines      []*modelhelper.MachineContainer
-//   Workspaces    []*models.Workspace
-//   Group         *models.Group
-//   Username      string
-//   SessionId     string
-//   Impersonating bool
-// }
-
 type LoggedInUser struct {
 	Data map[string]interface{}
 }
