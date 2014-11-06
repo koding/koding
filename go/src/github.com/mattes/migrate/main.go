@@ -6,14 +6,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/fatih/color"
 	"github.com/mattes/migrate/file"
 	"github.com/mattes/migrate/migrate"
 	"github.com/mattes/migrate/migrate/direction"
 	pipep "github.com/mattes/migrate/pipe"
-	"os"
-	"strconv"
-	"time"
 )
 
 var url = flag.String("url", "", "")
@@ -48,7 +49,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Version %v migration files created in %v:\n", migrationFile.Version, migrationsPath)
+		fmt.Printf("Version %v migration files created in %v:\n", migrationFile.Version, *migrationsPath)
 		fmt.Println(migrationFile.UpFile.FileName)
 		fmt.Println(migrationFile.DownFile.FileName)
 
