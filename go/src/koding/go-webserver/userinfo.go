@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/go-webserver/utils"
 	"net/http"
 
 	"labix.org/v2/mgo/bson"
@@ -34,6 +35,8 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 		expireClientId(w, r)
 		return nil, err
 	}
+
+	modelhelper.UpdateSessionIP(clientId, utils.GetIpAddress(r))
 
 	username := session.Username
 
