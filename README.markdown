@@ -141,7 +141,7 @@ We have chosen [migrate](https://github.com/mattes/migrate) package as database 
 
 For creating a new empty version file, you should call:
 
-```./run migrationfile [filename]```
+```./run migrate create [filename]```
 
 If everything goes ok, you are going to receive this output, and migration file is created under go/src/socialapi/db/sql/migrations folder:
 
@@ -178,6 +178,9 @@ For applying all changes under migrations folder to your development database yo
 ### Commands
 
 ```
+# create new migration file in path
+./run migrate create [filename]
+
 # roll back all migrations
 ./run migrate down
 
