@@ -311,3 +311,11 @@ func (pClient *PayPalClient) UpdateRecurringPaymentsProfile(profileId string, pa
 
 	return pClient.PerformRequest(values)
 }
+
+func (pClient *PayPalClient) GetRecurringPaymentsProfileDetails(profileId string) (*PayPalResponse, error) {
+	values := url.Values{}
+	values.Set("METHOD", "GetRecurringPaymentsProfileDetails")
+	values.Set("PROFILEID", profileId)
+
+	return pClient.PerformRequest(values)
+}
