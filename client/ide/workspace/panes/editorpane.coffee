@@ -16,6 +16,7 @@ class IDE.EditorPane extends IDE.Pane
 
     @on 'SaveRequested', @bound 'save'
 
+    @lineWidgets = {}
     @createEditor()
 
     file.once 'fs.delete.finished', =>
@@ -54,8 +55,11 @@ class IDE.EditorPane extends IDE.Pane
   getEditor: ->
     return @getAce().editor
 
+  getEditorSession: ->
+    return @getEditor().getSession()
+
   getValue: ->
-    return  @getEditor().getSession().getValue()
+    return  @getEditorSession().getValue()
 
   goToLine: (lineNumber) ->
     @getAce().gotoLine lineNumber
@@ -130,14 +134,39 @@ class IDE.EditorPane extends IDE.Pane
     return data
 
 
+  addLineWidget: (rowNumber, username) ->
+    oldWidget    = @lineWidgets[username]
+    lineHeight   = @getEditor().renderer.lineHeight + 2
+    color        = KD.utils.getColorFromString username
+    style        = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight}px;"
+    cssClass     = 'ace-line-widget'
+
+    if oldWidget
+      @removeLineWidget username
+
+    options      =
+      row        : rowNumber
+      rowCount   : 0
+      fixedWidth : yes
+      editor     : @getEditor()
+      html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
+
+    @getAce().lineWidgetManager.addLineWidget options
+
+    @lineWidgets[username] = options
+
+
+  removeLineWidget: (username) ->
+    @getAce().lineWidgetManager.removeLineWidget @lineWidgets[username]
+
+
   handleChange: (change, rtm, realTimeDoc) ->
-    {context, type} = change
+    {context, type, origin} = change
 
     if type is 'ContentChange'
       string = rtm.getFromModel realTimeDoc, context.file.path
-      cursor = @getCursor()
       @setContent string.getText(), no
-      @setCursor cursor
 
     if type is 'CursorActivity'
-      console.log 'cursor activity'
+      @addLineWidget context.cursor.row, origin
+
