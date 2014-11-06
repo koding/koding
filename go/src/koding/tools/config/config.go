@@ -159,6 +159,9 @@ type Config struct {
 	Rerouting struct {
 		Port int
 	}
+	SocialApi struct {
+		ProxyUrl string
+	}
 }
 
 type RuntimeOptions struct {

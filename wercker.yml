@@ -8,13 +8,22 @@ services:
 build:
   steps:
     - script:
+        name: build started
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build started" "building" 10
+    - script:
         name: npm install
         code: |
           npm cache clean
           npm set registry https://registry.npmjs.org/
           npm install || :
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "npm install finished" "building" 25
+    - script:
+        name: build submodules
+        code: |
           cd client/Framework && npm install && cd ../../
           cd client/landing && npm install && cd ../../
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build submodules finished" "building" 30
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot /opt/koding
@@ -23,6 +32,7 @@ build:
         code: |
           sudo chown -R $USER ~/.npm
           ./run
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
@@ -34,9 +44,19 @@ build:
           make install
           make build
     - script:
+        name: build backend finished
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build backend finished" "building" 40
+    - script:
+        name: testing backend started
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend started" "testing" 41
+    - script:
         name: create postgresql tables
-        cwd: go/src/socialapi/db/sql
-        code: definition/create-wercker.sh .
+        cwd: go
+        code: |
+          src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
+          bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
     - script:
         name: test social api
         code: |
@@ -46,6 +66,14 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - script:
+        name: testing backend finished
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend finished" "testing" 45
+    - script:
+        name: testing client started
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client started" "testing" 46
     # - add-ssh-key:
     #     keyname: DEPLOYMENT_KEY
     # - script:
@@ -69,12 +97,17 @@ build:
     #       scripts/wercker/check-connectivity $INSTANCE_IP 8090 1m 3
     #       scripts/wercker/check-connectivity $INSTANCE_IP 4444 1m 2
     #       sleep 120
+    #       scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     # - script:
     #     name: run test suite
     #     code: |
     #       INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
     #       chmod 600 $KODING_DEPLOYMENT_KEY
     #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $INSTANCE_IP 'sudo /opt/koding/tests/test'
+    - script:
+        name: testing client finished
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend finished" "testing" 85
   after-steps:
     # - script:
     #     name: terminate test instance
@@ -87,6 +120,10 @@ build:
         channel: announce
         username: wercker
         icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+    - script:
+        name: build finished
+        code: |
+          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build finished" "build" 100
 deploy:
   steps:
     - create-file:

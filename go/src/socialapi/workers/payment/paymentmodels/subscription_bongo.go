@@ -10,7 +10,7 @@ func (s Subscription) GetId() int64 {
 	return s.Id
 }
 
-func (Subscription) TableName() string {
+func (Subscription) BongoName() string {
 	return "payment.subscription"
 }
 

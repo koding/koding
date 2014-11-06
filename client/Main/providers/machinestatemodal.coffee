@@ -37,8 +37,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     computeController.on "resize-#{@machineId}",(event)=>
       @updateStatus event, 'resize'
 
-    computeController.on "error-#{@machineId}", => @hasError = yes
-
     @show()
 
     computeController.followUpcomingEvents @machine
@@ -265,6 +263,9 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   turnOnMachine: ->
 
+    computeController = KD.getSingleton 'computeController'
+    computeController.off  "error-#{@machineId}"
+
     @emit 'MachineTurnOnStarted'
 
     methodName   = 'start'
@@ -274,7 +275,12 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
+    computeController.once "error-#{@machineId}", (err)=>
+      @hasError = yes
+      @buildViews State: @machine.status.state
+
     KD.singletons.computeController[methodName] @machine
+
     @state = nextState
     @buildViews()
 

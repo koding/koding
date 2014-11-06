@@ -7,13 +7,11 @@
 
 class ActivitySidebar extends KDCustomHTMLView
 
-
   typeMap =
     privatemessage : 'Message'
     topic          : 'Topic'
     post           : 'Post'
     chat           : 'Chat'
-
 
   slugProps =
     SocialMessage : 'slug'
@@ -67,7 +65,6 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineDataModified',       @bound 'updateMachineTree'
       .on 'RenderMachines',            @bound 'renderMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
-
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
 
@@ -145,17 +142,10 @@ class ActivitySidebar extends KDCustomHTMLView
   # when a comment is added to a post
   replyAdded: (update) ->
 
-    {socialapi}        = KD.singletons
-    {unreadCount}      = update
-    {id, typeConstant} = update.channelMessage
-    type               = 'post'
-
-    # if the reply is added to a private message
-    # we need to get the channel instead of the post
-    # the other case of reply being added is followed post
-    if typeConstant is 'privatemessage'
-      type    = 'channel'
-      id      = update.channel.id
+    {socialapi}   = KD.singletons
+    {unreadCount} = update
+    {id}          = update.channelMessage
+    type          = 'post'
 
     # so we fetch respectively
     socialapi.cacheable type, id, (err, data) =>
@@ -191,7 +181,9 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      item = @addItem channel, 2
+      index = 0  if typeConstant is 'privatemessage'
+
+      item = @addItem channel, index
       @setUnreadCount item, channel, unreadCount
 
 

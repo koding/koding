@@ -33,8 +33,12 @@ func (c ChannelMessageList) GetId() int64 {
 	return c.Id
 }
 
-func (c ChannelMessageList) TableName() string {
+func (c ChannelMessageList) BongoName() string {
 	return "api.channel_message_list"
+}
+
+func (c ChannelMessageList) TableName() string {
+	return c.BongoName()
 }
 
 func NewChannelMessageList() *ChannelMessageList {
@@ -66,9 +70,9 @@ func (c *ChannelMessageList) Create() error {
 }
 
 func (c *ChannelMessageList) Delete() error {
-	return bongo.B.DB.Unscoped().Delete(c).Error
+	return bongo.B.DB.Model(c).Unscoped().Delete(c).Error
 }
 
 func (c *ChannelMessageList) Emit(eventName string, data interface{}) error {
-	return bongo.B.Emit(c.TableName()+"_"+eventName, data)
+	return bongo.B.Emit(c.BongoName()+"_"+eventName, data)
 }

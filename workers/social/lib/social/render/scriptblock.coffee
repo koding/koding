@@ -60,18 +60,6 @@ module.exports = (options = {}, callback)->
       });
     </script>
 
-    <!-- Google Analytics -->
-    <script>
-      (function(k,o,d,i,n,g){k['GoogleAnalyticsObject']=i;k[i]=k[i]||function(){
-      (k[i].q=k[i].q||[]).push(arguments)},k[i].l=1*new Date();g=o.createElement(d),
-      n=o.getElementsByTagName(d)[0];g.async=1;g.src='//www.google-analytics.com/analytics.js';
-      n.parentNode.insertBefore(g,n)})(window,document,'script','ga');
-      ga('create', 'UA-6520910-8', 'koding.com');ga('send', 'pageview');
-
-      // we hook onto KD router 'RouteInfoHandled' to send page views instead,
-      // see analytic.coffee - SA
-      // ga('send', 'pageview');
-    </script>
     <script>
       (function(d) {
         var config = {

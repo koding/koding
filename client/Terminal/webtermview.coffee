@@ -60,11 +60,6 @@ class WebTermView extends KDCustomScrollView
 
     @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
 
-
-    window.addEventListener "blur",  => @terminal.setFocused no
-    window.addEventListener "focus", => @setFocus @focused
-
-
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
     , yes
@@ -277,7 +272,7 @@ class WebTermView extends KDCustomScrollView
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
     @terminal.updateSize true
-    @terminal.scrollToBottom(no)
+    @terminal.scrollToBottom()
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
     @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
@@ -316,8 +311,7 @@ class WebTermView extends KDCustomScrollView
   keyUp: (event) ->
     @terminal.keyUp event
 
-  _windowDidResize: (event) ->
-    @terminal.windowDidResize()
+  _windowDidResize: (event) -> @terminal.windowDidResize()
 
   getAdvancedSettingsMenuItems: ->
     settings     :

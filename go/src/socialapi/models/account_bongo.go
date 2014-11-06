@@ -14,7 +14,7 @@ func (a Account) GetId() int64 {
 	return a.Id
 }
 
-func (a Account) TableName() string {
+func (a Account) BongoName() string {
 	return "api.account"
 }
 

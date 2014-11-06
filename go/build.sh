@@ -35,6 +35,7 @@ services=(
   koding/kontrol/kontrolclient
   koding/workers/guestcleanerworker
   github.com/canthefason/goldorf
+  github.com/mattes/migrate
   koding/go-webserver
 
   socialapi/workers/api
