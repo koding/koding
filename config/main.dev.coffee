@@ -608,24 +608,51 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
-        echo "  run migrationfile         : to create an empty postgresql migration file"
-        echo "  run migrate [command]     : to apply/revert database changes (command: [up|down|version|reset|redo|to])"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
         echo ""
 
       }
 
       function migrate () {
-        if [ "$1" == "" ]; then
-          echo "You have to select a command [up|down|version|reset|redo|to]"
+        params=(create up down version reset redo to goto)
+        param=$1
+
+        case "${params[@]}" in  *"$param"*)
+          ;;
+        *)
+          echo "Error: Command not found: $param"
+          echo "Usage: run migrate COMMAND [arg]"
+          echo ""
+          echo "Commands:  "
+          echo "  create [filename] : create new migration file in path"
+          echo "  up                : apply all available migrations"
+          echo "  down              : roll back all migrations"
+          echo "  redo              : roll back the most recently applied migration, then run it again"
+          echo "  reset             : run down and then up command"
+          echo "  version           : show the current migration version"
+          echo "  to   [n]          : (+n) apply the next n / (-n) roll back the previous n migrations"
+          echo "  goto [n]          : go to specific migration"
+
+          echo ""
+          exit 1
+        ;;
+        esac
+
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        elif [ "$param" == "create" ] && [ -z "$2" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+          echo "Usage: run migrate create [filename]"
+          echo ""
           exit 1
         fi
 
-        param=$1
-        if [ "$param" == "to" ]; then
-          param="migrate"
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
+
+        if [ "$param" == "create" ]; then
+          echo "Please edit created script files and add them to your repository."
         fi
 
-        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
       }
 
       function check (){
@@ -916,23 +943,12 @@ Configuration = (options={}) ->
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
 
-      elif [ "$1" == "migrationfile" ]; then
-        check_psql
-
-        if [ "$2" == "" ]; then
-          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
-        else
-          cd "#{GOPATH}/src/socialapi"
-          make install-migrate
-          #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" create "$2"
-          echo "Please edit created script files and add them to your repository."
-        fi
-
       elif [ "$1" == "migrate" ]; then
         check_psql
 
-        if [ "$2" == "" ]; then
-          echo "Please choose a migrate command [up|down|version|reset|redo|to]"
+        if [ -z "$2" ]; then
+          echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
+          echo ""
         else
           cd "#{GOPATH}/src/socialapi"
           make install-migrate
