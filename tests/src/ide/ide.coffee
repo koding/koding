@@ -320,13 +320,16 @@ module.exports =
       .end()
 
 
+  enterFullScreen: (browser) ->
+
     helpers.beginTest(browser)
 
     browser
-      .waitForElementVisible     '.visible-tab-handle.plus', 20000
-      .click                     '.visible-tab-handle.plus span.icon'
-      .pause 2000
-      .waitForElementVisible     '.kdlistview-contextmenu li.new-terminal', 20000
-      .click                     '.kdlistview-contextmenu li.new-terminal'
-      .waitForElementVisible     '.terminal-pane .console span.outlined', 20000
+      .waitForElementVisible     '.application-tab-handle-holder', 20000
+      .click                     '.application-tab-handle-holder .plus'
+      .waitForElementVisible     '.context-list-wrapper', 20000
+      .click                     '.context-list-wrapper li.enter-fullscreen'
+      .waitForElementNotPresent  '.terminal-pane span.inverse', 20000 # Assertion
       .end()
+
+
