@@ -298,6 +298,10 @@ class MessagePane extends KDTabPaneView
     item = app.getView().sidebar.selectedItem
 
     return  unless item?.count
+
+    # do not wait for response to set it as 0
+    item.setUnreadCount 0
+
     # no need to send updatelastSeenTime or glance when checking publicfeeds
     return  if name in ['public', 'announcement']
 
