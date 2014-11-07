@@ -107,7 +107,8 @@ class Ace extends KDView
 
   setEditorListeners:->
 
-    @editor.getSession().selection.on 'changeCursor', (cursor)=>
+    @editor.getSession().selection.on 'changeCursor', (cursor) =>
+      return if @suppressListeners
       @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
 
     @editor.commands.on 'afterExec', (e) =>
