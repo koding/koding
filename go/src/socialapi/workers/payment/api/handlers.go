@@ -114,5 +114,13 @@ func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tiger
 		},
 	))
 
+	mux.Handle("POST", "/payments/paypal/webhook", handler.Wrapper(
+		handler.Request{
+			Handler: PaypalWebhook,
+			Name:    "payment-paypalwebhook",
+			Metrics: metrics,
+		},
+	))
+
 	return mux
 }

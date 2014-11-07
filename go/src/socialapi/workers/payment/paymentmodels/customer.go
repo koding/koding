@@ -59,3 +59,14 @@ func (c *Customer) UpdateProviderCustomerId(id string) error {
 
 	return bongo.B.Update(c)
 }
+
+func (c *Customer) ByProviderCustomerId(id string) error {
+	selector := map[string]interface{}{"provider_customer_id": id}
+
+	err := c.One(bongo.NewQS(selector))
+	if err == gorm.RecordNotFound {
+		return paymenterrors.ErrCustomerNotFound
+	}
+
+	return err
+}

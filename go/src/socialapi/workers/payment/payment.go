@@ -238,3 +238,38 @@ type PaypalGetTokenRequest struct {
 func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
 	return paypal.GetToken(p.PlanTitle, p.PlanInterval)
 }
+
+//----------------------------------------------------------
+// Webhook
+//----------------------------------------------------------
+
+type PaypalWebhook struct {
+	Status  string `json:"payment_status"`
+	PayerId string `json:"payer_id"`
+}
+
+var PaypalActionCancel = "cancel"
+
+var PaypalStatusActionMap = map[string]string{
+	"Denied":   PaypalActionCancel,
+	"Expired":  PaypalActionCancel,
+	"Failed":   PaypalActionCancel,
+	"Reversed": PaypalActionCancel,
+	"Voided":   PaypalActionCancel,
+}
+
+func (p *PaypalWebhook) Do() (interface{}, error) {
+	action, ok := PaypalStatusActionMap[p.Status]
+	if !ok {
+		return nil, nil
+	}
+
+	var err error
+
+	switch action {
+	case PaypalActionCancel:
+		err = paypal.CancelSubscription(p.PayerId)
+	}
+
+	return nil, err
+}

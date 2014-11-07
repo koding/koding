@@ -101,3 +101,9 @@ func PaypalCancel(u *url.URL, h http.Header, req *payment.PaypalRequest) (int, h
 		req.Cancel(),
 	)
 }
+
+func PaypalWebhook(u *url.URL, h http.Header, req *payment.PaypalWebhook) (int, http.Header, interface{}, error) {
+	return response.HandleResultAndClientError(
+		req.Do(),
+	)
+}
