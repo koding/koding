@@ -369,19 +369,25 @@ module.exports = class HomeViewFull extends KDView
       <article>
         <h4>How does it work? </h4>
 
-        <p> First, sign up using the simple form above. We will send you a short questionnaire
-        that will help us understand a little bit more about you and your team’s background.
-        We promise to keep it short and sweet.
+        <p>First, sign up using the simple form above. Every day (up until we stop accepting
+        applications) between 4-5pm PST, we send you a short questionnaire that will help us
+        understand a little bit more about you and your team’s background. We promise to keep
+        it short and sweet.
         </p>
 
-        <p>Applications can come from individuals or teams of up to 5, however each team member
-        needs to be a contributing team member (writing code or designing). If you are an
-        individual who is selected and are looking for team members, post a message on the
-        <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>#hackathon channel on Koding</a>.
-        Your post should clearly articulate what type of skill set you are looking for and what
-        type of skill set you have. e.g.: <i>I am a nodeJS developer looking for a backend
-        database team member.</i> Once you get a response, jump into private chats on Koding
-        itself to discuss your ideas and start recruiting!
+        <p>Applications can come from individuals or teams of up to 5. Only one member per team
+        needs to apply for the entire team to be accepted but all members need to have Koding
+        accounts. Additionally, each team member needs to be a contributing team member
+        (writing code or designing).
+        </p>
+
+        <p>If you are an individual who is selected and are looking for team members, post a
+        message on the <a href="https://koding.com/Activity/Topic/hackathon" target=_blank>
+        #hackathon channel on Koding</a>. Your post should clearly articulate what type
+        of skill set you are looking for and what type of skill set you have. e.g.: <i>I am a nodeJS
+        developer looking for a backend database team member.</i> Once you get a response, jump into
+        private chats on Koding itself to discuss your ideas and start recruiting!
+        </p>
       </article>
       <article>
         <h4>How do I get accepted? </h4>
@@ -406,23 +412,6 @@ module.exports = class HomeViewFull extends KDView
         accepted into the event.</p>
       </article>
       <article>
-        <h4> What are the rules?</h4>
-        <p>Our goal is to ensure that all teams have a level playing field; therefore it is
-        imperative that all code, design, assets, etc… must be created during the duration
-        of the event. No exceptions. You can brainstorm ideas prior to the event, however
-        any assets or code used as part of your submission must have been created during the event.
-        The only exception to this rule is the usage of publicly available material. This includes:
-        public code snippets, images, open source libraries and projects, public APIs, etc. You
-        get the picture.
-        </p>
-
-        <p>We will request a review of all the code you submit as part of your hackathon project
-        to ensure that it has been created during the hackathon period (Dec 6th - Dec 7th).
-        Being engineers ourselves we are savvy to what can and can't be created in 48 hours. :)</p>
-
-        <p>Play fair!</p>
-      </article>
-      <article>
         <h4>What are the prizes?</h4>
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
@@ -430,12 +419,6 @@ module.exports = class HomeViewFull extends KDView
           <li>Winners will be offered interviews with investors on our judging panel.</li>
         </ol>
       </article>
-      <article>
-        <h4>Who will eventually own the projects created?</h4>
-
-        <p>You will retain full ownership and rights to your creation. Be super awesome and have fun! Get
-        creative, meet new people, make new friends and problem solve with them.
-        </p>
       <article class='additional-prizes'>
         <h4>Additional Prizes</h4>
         <ul>
@@ -469,6 +452,11 @@ module.exports = class HomeViewFull extends KDView
           <li>#{emailDay} - Winners are notified via email and winning projects are listed for public viewing.</li>
         </ul>
       </article>
+      <article class='judges'>
+        <h4>Judges</h4>
+        <p>Because we expect a large number of applicants, we wanted to ensure that we have a good number of awesome judges to help evaluate the incoming projects. These amazing folks have agreed to become part of our event. We cannot thank them enough.</p>
+        <div class='clearfix'></div>
+      </article>
       <article>
         <h4>What is the judging process?</h4>
         <p>Due to the large number of teams and potential hosting pitfalls that can come with, we request that
@@ -488,7 +476,31 @@ module.exports = class HomeViewFull extends KDView
           <Li>Round 3: Judges meet (virtually of course) for a live call to discuss and pick the final 3.
           </li>
         </ol>
-        </article>
+      </article>
+      <article>
+        <h4> What are the rules?</h4>
+        <p>Our goal is to ensure that all teams have a level playing field; therefore it is
+        imperative that all code, design, assets, etc… must be created during the duration
+        of the event. No exceptions. You can brainstorm ideas prior to the event, however
+        any assets or code used as part of your submission must have been created during the event.
+        The only exception to this rule is the usage of publicly available material. This includes:
+        public code snippets, images, open source libraries and projects, public APIs, etc. You
+        get the picture.
+        </p>
+
+        <p>We will request a review of all the code you submit as part of your hackathon project
+        to ensure that it has been created during the hackathon period (Dec 6th - Dec 7th).
+        Being engineers ourselves we are savvy to what can and can't be created in 48 hours. :)</p>
+
+        <p>Play fair!</p>
+      </article>
+      <article>
+        <h4>Who will eventually own the projects created?</h4>
+
+        <p>You will retain full ownership and rights to your creation. Be super awesome and have fun! Get
+        creative, meet new people, make new friends and problem solve with them.
+        </p>
+      </article>
       <article class="schedule">
         <h4>How to submit your project</h4>
           <p>Send the following details to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a>
@@ -502,11 +514,6 @@ module.exports = class HomeViewFull extends KDView
           <p>Your submission should have a time label less than <b>#{secondDay} 2359 PST</b>.
           Submissions received after the deadline will not be considered. No exceptions.
         </p>
-      </article>
-      <article class='judges'>
-        <h4>Judges</h4>
-        <p>Because we expect a large number of applicants, we wanted to ensure that we have a good number of awesome judges to help evaluate the incoming projects. These amazing folks have agreed to become part of our event. We cannot thank them enough.</p>
-        <div class='clearfix'></div>
       </article>
       <article class='apis'>
         <h4>Awesome API's for you to check out</h4>
