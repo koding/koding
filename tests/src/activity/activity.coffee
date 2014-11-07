@@ -184,3 +184,17 @@ module.exports =
       .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
       .end()
 
+
+  postLongMessage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post = ''
+
+    for i in [1..6]
+
+      post += helpers.getFakeText()
+
+    helpers.doPostActivity(browser, post)
+    browser.end()
+
