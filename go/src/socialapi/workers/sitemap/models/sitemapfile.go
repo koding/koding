@@ -34,7 +34,7 @@ func (f SitemapFile) GetId() int64 {
 	return f.Id
 }
 
-func (f SitemapFile) TableName() string {
+func (f SitemapFile) BongoName() string {
 	return "sitemap.file"
 }
 

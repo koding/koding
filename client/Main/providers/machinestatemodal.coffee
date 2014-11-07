@@ -37,8 +37,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     computeController.on "resize-#{@machineId}",(event)=>
       @updateStatus event, 'resize'
 
-    computeController.on "error-#{@machineId}", => @hasError = yes
-
     @show()
 
     computeController.followUpcomingEvents @machine
@@ -97,7 +95,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     if @getOption 'initial'
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId }
+        .kloud.info { @machineId, currentState: @machine.status.state }
         .then (response)=>
 
           info "Initial info result:", response
@@ -140,7 +138,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if @machine.status.state is Terminated
         KD.getSingleton 'computeController'
-          .kloud.info { @machineId }
+          .kloud.info { @machineId, currentState: @machine.status.state }
           .then (response)=>
             if response.State is Terminated
               @createStateButton()
@@ -216,14 +214,44 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   createFooter: ->
 
-    @footer    = new KDCustomHTMLView
-      cssClass : 'footer'
-      partial  : """
-        <p>Free account VMs are turned off automatically after 60 minutes of inactivity.</p>
-        <a href="/Pricing" class="upgrade-link">Upgrade to make your VMs always-on.</a>
-      """
+    return  unless @state is Stopped
 
-    @addSubView @footer
+    computeController = KD.getSingleton 'computeController'
+    computeController.fetchUserPlan (plan)=>
+
+      reason  = @machine.status.reason
+      message = null
+
+      if /^Stopped due inactivity/.test reason
+        if plan is "free"
+          message = "
+            Your VM was automatically turned off after 60 minutes
+            of inactivity as you are in <strong>Free</strong> plan."
+          upgradeMessage = """
+            <a href="/Pricing" class="upgrade-link">
+              Upgrade to make your VMs always-on.
+            </a>
+          """
+        else
+          message = "
+            Your VM was automatically turned off after 60 minutes
+            of inactivity as it is not 'Always-on' enabled."
+          upgradeMessage = """
+            <a href="/Pricing" class="upgrade-link">
+              Upgrade to get more always-on VMs.
+            </a>
+          """
+
+      upgradeMessage = ""  if plan is "professional"
+
+      return  unless message
+
+      @addSubView @footer = new KDCustomHTMLView
+        cssClass : 'footer'
+        partial  : """
+          <p>#{message}</p>
+          #{upgradeMessage}
+        """
 
 
   createError: ->
@@ -251,6 +279,9 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   turnOnMachine: ->
 
+    computeController = KD.getSingleton 'computeController'
+    computeController.off  "error-#{@machineId}"
+
     @emit 'MachineTurnOnStarted'
 
     methodName   = 'start'
@@ -260,7 +291,12 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
+    computeController.once "error-#{@machineId}", (err)=>
+      @hasError = yes
+      @buildViews State: @machine.status.state
+
     KD.singletons.computeController[methodName] @machine
+
     @state = nextState
     @buildViews()
 

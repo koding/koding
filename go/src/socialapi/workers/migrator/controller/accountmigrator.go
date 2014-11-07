@@ -36,12 +36,13 @@ func (mwc *Controller) migrateAllAccounts() {
 
 	migrateAccount := func(account interface{}) error {
 		oldAccount := account.(*mongomodels.Account)
-		if oldAccount.SocialApiId != 0 {
+		socialApiId, err := oldAccount.GetSocialApiId()
+		if err != nil || socialApiId != 0 {
 			return nil
 		}
 
 		s := modelhelper.Selector{"_id": oldAccount.Id}
-		if oldAccount.SocialApiId > 0 {
+		if socialApiId > 0 {
 			o := modelhelper.Selector{"$set": modelhelper.Selector{
 				"migration": MigrationCompleted,
 			}}

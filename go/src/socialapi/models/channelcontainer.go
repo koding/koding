@@ -2,6 +2,7 @@ package models
 
 import (
 	"socialapi/request"
+	"sync"
 
 	"github.com/koding/bongo"
 )
@@ -24,7 +25,7 @@ func NewChannelContainer() *ChannelContainer {
 }
 
 // Tests are done
-func (c *ChannelContainer) TableName() string {
+func (c *ChannelContainer) BongoName() string {
 	return "api.channel"
 }
 
@@ -255,11 +256,44 @@ func NewChannelContainers() *ChannelContainers {
 	return &ChannelContainers{}
 }
 
+type PopularChannelContainerResp struct {
+	Index int
+	Data  *ChannelContainer
+}
+
 func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
+	var wg sync.WaitGroup
+	var channelListLen = len(channelList)
+
+	var onChannel = make(chan *PopularChannelContainerResp, channelListLen)
+
 	for i, _ := range channelList {
-		cc := NewChannelContainer()
-		cc.PopulateWith(channelList[i], accountId)
-		c.Add(cc)
+		wg.Add(1)
+
+		go func(i int) {
+			defer wg.Done()
+
+			cc := NewChannelContainer()
+			cc.PopulateWith(channelList[i], accountId)
+
+			onChannel <- &PopularChannelContainerResp{Index: i, Data: cc}
+		}(i)
+	}
+
+	wg.Wait()
+
+	var temporaryChannelContainer = make([]*ChannelContainer, channelListLen)
+
+	// the order of channels matters, however since the results are fetched in
+	// parallel above we keep track of the original index and insert them in the
+	// right place
+	for i := 1; i <= channelListLen; i++ {
+		resp := <-onChannel
+		temporaryChannelContainer[resp.Index] = resp.Data
+	}
+
+	for _, channel := range temporaryChannelContainer {
+		c.Add(channel)
 	}
 
 	return c

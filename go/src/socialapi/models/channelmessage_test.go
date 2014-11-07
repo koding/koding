@@ -335,9 +335,9 @@ func TestChannelMessageUpdate(t *testing.T) {
 	})
 }
 
-func TestChannelMessageGetTableName(t *testing.T) {
-	Convey("while testing TableName()", t, func() {
-		So(NewChannelMessage().TableName(), ShouldEqual, ChannelMessageTableName)
+func TestChannelMessageGetBongoName(t *testing.T) {
+	Convey("while testing BongoName()", t, func() {
+		So(NewChannelMessage().BongoName(), ShouldEqual, ChannelMessageBongoName)
 	})
 }
 

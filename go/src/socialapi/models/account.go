@@ -262,7 +262,7 @@ func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 	cp := NewChannelParticipant()
 	var channelIds []int64
 	res := bongo.B.DB.
-		Table(cp.TableName()).
+		Table(cp.BongoName()).
 		Where(
 		"creator_id IN (?) and type_constant = ?",
 		followerIds,
@@ -323,7 +323,7 @@ func FetchAccountsByNicks(nicks []string) ([]Account, error) {
 
 	a := NewAccount()
 	res := bongo.B.DB.
-		Table(a.TableName()).
+		Table(a.BongoName()).
 		Where("nick in (?)", nicks).Find(&accounts)
 
 	if err := bongo.CheckErr(res); err != nil {

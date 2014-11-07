@@ -6,6 +6,8 @@ class SingleActivityPane extends ActivityPane
 
     super options, data
 
+    @scrollView.wrapper.off 'LazyLoadThresholdReached'
+
 
   viewAppended: ->
 
