@@ -409,12 +409,15 @@ body.home
         white-space       nowrap
 
     aside.partners
-      margin-top          48px
+      margin-top          0
       borderBox()
 
       img
-        width             100%
+        width             70%
         margin            0 0 30px
+
+    .twitter-wrapper
+      margin-top        48px
 
   footer
     text-align            center
@@ -434,7 +437,8 @@ body.home
 article.judges
 
   margin-top        32px
-  padding           0 53px
+  padding           0 53px !important
+
 
   > div
     margin-top      32px
@@ -484,14 +488,14 @@ article.apis
     text-transform  uppercase
     line-height     2em
     bg              color rgba(0,0,0,.05)
-    color           #313131
+    color           #313131 !important
     padding         0 13px// 0 53px
     white-space     nowrap
-    border-bottom   1px solid rgba(0,0,0,.1)
+    border-bottom   1px solid rgba(0,0,0,.1) !important
     &:hover
-      color         white
-      border-bottom 1px solid #ccc
-      bg            color rgba(0,0,0,.8)
+      color         white !important
+      border-bottom 1px solid #ccc !important
+      bg            color rgba(0,0,0,.8) !important
 
   p
     padding-top     10px
@@ -499,19 +503,24 @@ article.apis
 
 article.additional-prizes
 
+  ul
+    list-style       disc
+    list-style-position       inside
+
   figure
-    margin-bottom   30px
-    cf()
+    // margin-bottom   30px
+    // cf()
 
     img
-      max-width     150px
-      fl()
+      // max-width     150px
+      // fl()
+      hidden()
 
-    figcaption
-      padding       15px
-      width         calc(100% \- 180px)
-      borderBox()
-      fl()
+    // figcaption
+    //   padding       15px
+    //   width         calc(100% \- 180px)
+    //   borderBox()
+    //   fl()
 
 
 

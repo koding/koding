@@ -192,7 +192,7 @@ module.exports = class HomeViewFull extends KDView
       unless header
         header = new KDCustomHTMLView
           tagName : 'h4'
-          partial : 'Event Partners'
+          partial : 'Awesome Prizes'
         @addSubView header, 'aside.partners'
 
       image = new KDCustomHTMLView
@@ -431,7 +431,12 @@ module.exports = class HomeViewFull extends KDView
           <li>
             <figure>
               <img src='./a/site.hackathon/images/partners/paypal.jpg' alt='PayPal logo'/>
-              <figcaption>Paypal is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
+              <figcaption><a href='http://www.paypal.com'>PayPal</a> is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <figcaption><a href='http://www.datadoghq.com'>DATADOG</a> is adding <strong>$2,500</strong> in grand prize money and an additional <strong>$1,000</strong> for the team that makes the best use of their service and their API.</figcaption>
             </figure>
           </li>
         </ul>
@@ -551,12 +556,12 @@ module.exports = class HomeViewFull extends KDView
         <p>(We would like to thank NASA for the awesome video.)</p>
       </article>
       <div class="sidebar">
+        <aside class="partners"></aside>
         <div class="twitter-wrapper">
           <h4>Tweets</h4>
           <a class="twitter-timeline" href="https://twitter.com/search?q=%40koding+%23hackathon" data-widget-id="527247467851423745" data-chrome="nofooter noheader transparent">Tweets about "@koding #hackathon"</a>
           <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
         </div>
-        <aside class="partners"></aside>
       </div>
     </section>
     <footer>
