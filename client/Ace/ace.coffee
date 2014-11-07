@@ -50,6 +50,10 @@ class Ace extends KDView
         @once 'ace.ready', =>
           {@Range} = range
 
+      requirejs [ 'ace/line_widgets' ], (lineWidgets) =>
+        @once 'ace.ready', =>
+          @lineWidgetManager = new lineWidgets.LineWidgets @editor.getSession()
+          @lineWidgetManager.attach @editor
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
     @suppressListeners = yes  unless emitFileContentChangedEvent
