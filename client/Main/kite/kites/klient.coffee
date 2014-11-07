@@ -5,6 +5,7 @@ class KodingKite_KlientKite extends KodingKite
   @createApiMapping
 
     exec               : 'exec'
+    ping               : 'kite.ping'
 
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'

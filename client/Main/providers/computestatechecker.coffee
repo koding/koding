@@ -74,7 +74,6 @@ class ComputeStateChecker extends KDObject
       currentState = machine.status.state
 
       if machineId in @ignoredMachines
-        log "csc: ignoring check for machine:", machineId
         return
 
       unless currentState is Machine.State.Running
@@ -84,10 +83,8 @@ class ComputeStateChecker extends KDObject
 
       .then (response)=>
 
-        log "csc: info: ", response.State
-
         if machineId in @ignoredMachines
-          log "csc: ignoring check for machine:", machineId
+          info "csc: ignoring check for machine:", machineId
           return
 
         computeController.eventListener
@@ -98,6 +95,7 @@ class ComputeStateChecker extends KDObject
         }
 
         unless machine.status.state is response.State
+          info "csc: machine (#{machineId}) state changed: ", response.State
           computeController.triggerReviveFor machineId
 
       .timeout ComputeController.timeout
