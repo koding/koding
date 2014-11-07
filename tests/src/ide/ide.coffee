@@ -230,6 +230,16 @@ module.exports =
       .end()
 
 
+  openEditorSettings: (browser) ->
+
+    helpers.beginTest(browser)
+
+    browser
+      .waitForElementVisible    '.kdtabhandle-tabs .settings', 20000
+      .click                    '.kdtabhandle-tabs .settings'
+      .waitForElementVisible    '.settings-pane .settings-header',20000 # Assertion
+      .end()
+
     helpers.beginTest(browser)
 
     browser
