@@ -436,6 +436,22 @@ module.exports = class HomeViewFull extends KDView
         <p>You will retain full ownership and rights to your creation. Be super awesome and have fun! Get
         creative, meet new people, make new friends and problem solve with them.
         </p>
+      <article class='additional-prizes'>
+        <h4>Additional Prizes</h4>
+        <ul>
+          <li>
+            <figure>
+              <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
+              <figcaption>Teams with an account on <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> get a chance to win an extra <strong>$2,500</strong>.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img src='./a/site.hackathon/images/partners/paypal.jpg' alt='PayPal logo'/>
+              <figcaption>Paypal is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
+            </figure>
+          </li>
+        </ul>
       </article>
       <article>
         <h4>What is the schedule?</h4>
