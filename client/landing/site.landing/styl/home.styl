@@ -332,10 +332,8 @@ body.home
       .info-dot
         size                15px, 15px
         rounded             50%
-        vendor              transform, scale(0)
-        -webkit-transition  -webkit-transform .7s ease
-        -moz-transition     -moz-transform .7s ease
-        transition          transform .7s ease
+        opacity             0
+        vendor              transition, opacity .7s ease
         cursor              pointer
         border              2px solid #fff
         shadow              0 0 4px rgba(0, 0, 0, .3)
@@ -359,11 +357,6 @@ body.home
           rounded           4px
           border            1px solid #000
 
-        &:hover:after
-          opacity           1
-          bottom            26px
-
-
       &.current
         opacity           1
         vendor            transform, translate3d(0, 12px, 20px)
@@ -372,7 +365,15 @@ body.home
           opacity         1
 
         .info-dot
-          vendor          transform, scale(1)
+          opacity         1
+          vendor          animation, throbberAnim 1s infinite ease forwards
+
+          &:hover
+            vendor        animation, none
+
+            &:after
+              opacity     1
+              bottom      26px
 
       &.prev
       &.next
@@ -742,3 +743,12 @@ body.home
 
         figure
           display         none
+
+
+@-webkit-keyframes throbberAnim
+  50%
+    -webkit-transform     scale(1.2)
+
+@-moz-keyframes throbberAnim
+  50%
+    -webkit-transform     scale(1.2)
