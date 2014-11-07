@@ -4,44 +4,27 @@ import (
 	// _ "expvar"
 
 	"fmt"
-	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"net/http"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 
 	"socialapi/config"
-	"socialapi/models"
 	"socialapi/workers/api/handlers"
+	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
-	sitemapapi "socialapi/workers/sitemap/api"
-	trollmodeapi "socialapi/workers/trollmode/api"
-
-	"github.com/rcrowley/go-tigertonic"
 )
 
 var (
-	mux, nsMux *tigertonic.TrieServeMux
-
 	Name = "SocialAPI"
 )
 
 func init() {
-	mux = tigertonic.NewTrieServeMux()
-	mux = notificationapi.InitHandlers(mux)
-	mux = trollmodeapi.InitHandlers(mux)
-	mux = sitemapapi.InitHandlers(mux)
 
-	// add namespace support into
-	// all handlers
-	nsMux = tigertonic.NewTrieServeMux()
-	nsMux.HandleNamespace("", mux)
-	nsMux.HandleNamespace("/1.0", mux)
-	tigertonic.SnakeCaseHTTPEquivErrors = true
-
+	// mux = notificationapi.InitHandlers(mux)
+	// mux = trollmodeapi.InitHandlers(mux)
+	// mux = sitemapapi.InitHandlers(mux)
 }
 
 func main() {
@@ -51,18 +34,17 @@ func main() {
 		return
 	}
 
-	server := newServer(r)
+	m := mux.NewMux(Name, r.Conf, r.Log)
+	m.Metrics = r.Metrics
+	handlers.AddHandlers(m)
+	m.Listen()
+
 	// shutdown server
-	defer server.Close()
-
-	mux = handlers.Inject(mux, r.Metrics)
-
-	mux = injectDefaultHandlers(mux)
+	defer m.Close()
 
 	// init payment handlers, this done here instead of in `init()`
 	// like others so we can've access to `metrics`
-	mux = paymentapi.InitHandlers(mux, r.Metrics)
-
+	paymentapi.AddHandlers(m)
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
@@ -79,45 +61,4 @@ func main() {
 
 	r.Listen()
 	r.Wait()
-}
-
-func newServer(r *runner.Runner) *tigertonic.Server {
-	// go metrics.Log(
-	// 	metrics.DefaultRegistry,
-	// 	60e9,
-	// 	stdlog.New(os.Stderr, "metrics ", stdlog.Lmicroseconds),
-	// )
-
-	conf := r.Conf
-
-	var handler http.Handler
-	handler = tigertonic.WithContext(nsMux, models.Context{})
-	if conf.Debug {
-		h := tigertonic.Logged(handler, nil)
-		h.Logger = NewTigerTonicLogger(r.Log)
-		handler = h
-	}
-
-	addr := conf.Host + ":" + conf.Port
-	server := tigertonic.NewServer(addr, handler)
-
-	go listener(server)
-	return server
-}
-
-func listener(server *tigertonic.Server) {
-	if err := server.ListenAndServe(); nil != err {
-		panic(err)
-	}
-}
-
-func injectDefaultHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-	mux.HandleFunc("GET", "/version", artifact.VersionHandler())
-	mux.HandleFunc("GET", "/healthCheck", artifact.HealthCheckHandler(Name))
-
-	mux.HandleFunc("GET", "/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from socialapi")
-	})
-
-	return mux
 }
