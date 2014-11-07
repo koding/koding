@@ -76,10 +76,10 @@ class IDE.ShortcutsView extends KDView
       'Go to left'             : 'Ctrl-B'
       'Go to right'            : 'Ctrl-F'
       'Go to line'             : 'Meta-G'
+      'Go to line start'       : { Others: 'Alt-Left',       Apple: 'Meta-Left' }
+      'Go to line start'       : { Others: 'Home',           Apple: 'Ctrl-A'    }
       'Go to line end'         : { Others: 'Alt-Right',      Apple: 'Meta-Right'}
       'Go to line end'         : { Others: 'End',            Apple: 'Ctrl-E'    }
-      'Go to line start'       : { Others: 'Alt-Left',       Apple: 'Meta-Left' }
-      'Go to line start'       : { Others: 'End',            Apple: 'Ctrl-A'    }
       'Go to page down'        : 'Ctrl-V'
       'Go to word left'        : { Others: 'Ctrl-Left',      Apple: 'Alt-Left'  }
       'Go to word right'       : { Others: 'Ctrl-Right',    Apple: 'Alt-Right' }
@@ -94,10 +94,7 @@ class IDE.ShortcutsView extends KDView
       'Move lines down'        : 'Alt-Down'
       'Move lines up'          : 'Alt-Up'
       'Duplicate selection'    : 'Meta-Shift-D'
-      'Fold all'               : { Others: 'Alt-0',          Apple: 'Meta-Alt-0' }
-      'Fold selection'         : { Others: 'Alt-L',          Apple: 'Meta-Alt-L' }
-      'Unfold'                 : { Others: 'Alt-Shift-L',    Apple: 'Meta-Alt-Shift-L' }
-      'Unfold all'             : { Others: 'Alt-Shift-0',    Apple: 'Meta-Alt-Shift-0' }
+      'Toggle folding'         : { Others: 'Alt-L',          Apple: 'Meta-Alt-L' }
       'Move multicursor from current line to the line above': 'Ctrl-Alt-Shift-Up'
       'Move multicursor from current line to the line below': 'Ctrl-Alt-Shift-Down'
       'Indent'                 : 'Tab'

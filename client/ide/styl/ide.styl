@@ -149,8 +149,15 @@ body.ide.dark
     height              100%
 
   .terminal-pane
-    padding             12px
+    padding             12px 0 12px 12px
     box-sizing          border-box
+
+    > .kdcustomscrollview
+      styleScrollBars rgba(255,255,255,.25)
+      .kdview.kdscrolltrack.horizontal
+        hidden()
+      .kdview.kdscrolltrack &.out
+        opacity           1 !important
 
   .kdtabhandle.dummy
   .kdview.dummy
