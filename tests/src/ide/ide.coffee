@@ -309,6 +309,17 @@ module.exports =
     browser.end()
 
 
+  undoSplitPanesNotShowOnList: (browser) ->
+
+    helpers.splitPanesUndo(browser)
+
+    browser
+      .waitForElementVisible     '.application-tab-handle-holder', 20000
+      .click                     '.application-tab-handle-holder .plus'
+      .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
+      .end()
+
+
     helpers.beginTest(browser)
 
     browser
