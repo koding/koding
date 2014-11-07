@@ -154,9 +154,9 @@ class IDE.EditorPane extends IDE.Pane
       editor     : @getEditor()
       html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
 
-    manager.addLineWidget options
-
-    @lineWidgets[username] = options
+    KD.utils.defer =>
+      manager.addLineWidget options
+      @lineWidgets[username] = options
 
 
   setParticipantCursor: (row, column, username) ->
