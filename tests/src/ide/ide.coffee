@@ -303,6 +303,12 @@ module.exports =
         .end()
 
 
+  splitPanesUndo: (browser) ->
+
+    helpers.splitPanesUndo(browser)
+    browser.end()
+
+
     helpers.beginTest(browser)
 
     browser
