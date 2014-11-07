@@ -66,8 +66,8 @@ class MainViewController extends KDViewController
     appManager      = KD.getSingleton 'appManager'
     app             = appManager.getFrontApp()
     {mainTabView}   = mainView
-    warn 'set active nav item by route change, not by maintabpane change'
 
+    # warn 'set active nav item by route change, not by maintabpane change'
     # KD.singleton('display').emit "ContentDisplaysShouldBeHidden"
     # temp fix
     # until fixing the original issue w/ the dnd this should be kept here
