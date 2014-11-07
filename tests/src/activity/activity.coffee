@@ -198,3 +198,23 @@ module.exports =
     helpers.doPostActivity(browser, post)
     browser.end()
 
+
+  postMessageWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    timestamp = Date.now()
+    code = "console.log(#{timestamp})"
+
+    browser
+      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]','```' + code + '```'
+      .click                  '[testpath=post-activity-button]'
+      .pause                  6000 # required
+
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child .has-markdown pre code', code # Assertion
+    browser.end()
+
