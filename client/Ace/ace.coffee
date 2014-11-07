@@ -23,11 +23,9 @@ class Ace extends KDView
           return  unless document.getElementById id
           @editor = ace.edit id
           @prepareEditor()
-          @utils.defer => @emit 'ace.ready'
           if contents
             @setContents contents
             @lastSavedContents = contents
-
 
           @editor.on 'change', =>
             if @isCurrentContentChanged()
@@ -35,10 +33,11 @@ class Ace extends KDView
             else
               @emit 'FileContentSynced'
 
-
           @editor.gotoLine 0
           @focus()
           @show()
+
+          @utils.defer => @emit 'ace.ready'
 
           KD.mixpanel 'Open Ace, success'
 
