@@ -256,9 +256,16 @@ func NewChannelContainers() *ChannelContainers {
 	return &ChannelContainers{}
 }
 
+type PopularChannelContainerResp struct {
+	Index int
+	Data  *ChannelContainer
+}
+
 func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64) *ChannelContainers {
 	var wg sync.WaitGroup
-	var onChannel = make(chan *ChannelContainer, len(channelList))
+	var channelListLen = len(channelList)
+
+	var onChannel = make(chan *PopularChannelContainerResp, channelListLen)
 
 	for i, _ := range channelList {
 		wg.Add(1)
@@ -268,14 +275,25 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 
 			cc := NewChannelContainer()
 			cc.PopulateWith(channelList[i], accountId)
-			onChannel <- cc
+
+			onChannel <- &PopularChannelContainerResp{Index: i, Data: cc}
 		}(i)
 	}
 
 	wg.Wait()
 
-	for i := 1; i <= len(channelList); i++ {
-		c.Add(<-onChannel)
+	var temporaryChannelContainer = make([]*ChannelContainer, channelListLen)
+
+	// the order of channels matters, however since the results are fetched in
+	// parallel above we keep track of the original index and insert them in the
+	// right place
+	for i := 1; i <= channelListLen; i++ {
+		resp := <-onChannel
+		temporaryChannelContainer[resp.Index] = resp.Data
+	}
+
+	for _, channel := range temporaryChannelContainer {
+		c.Add(channel)
 	}
 
 	return c
