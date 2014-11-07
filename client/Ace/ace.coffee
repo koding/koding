@@ -46,6 +46,10 @@ class Ace extends KDView
 
       @emacsKeyboardHandler = 'ace/keyboard/emacs'
 
+      requirejs ['ace/range'], (range) =>
+        @once 'ace.ready', =>
+          {@Range} = range
+
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
     @suppressListeners = yes  unless emitFileContentChangedEvent
