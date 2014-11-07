@@ -3,16 +3,20 @@
 package klient
 
 import (
+	"errors"
 	"fmt"
-	"koding/kite-handler/command"
-	"koding/kites/klient/usage"
 	"sync"
 	"time"
+
+	"koding/kite-handler/command"
+	"koding/kites/klient/usage"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
+
+var ErrDialingKlientFailed = errors.New("Dialing klient failed.")
 
 // KlientPool represents a pool of connected klients
 type KlientPool struct {
@@ -113,7 +117,7 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 
 	remoteKite := kites[0]
 	if err := remoteKite.Dial(); err != nil {
-		return nil, err
+		return nil, ErrDialingKlientFailed
 	}
 
 	// klient connection is ready now
@@ -187,7 +191,7 @@ func (k *Klient) Exec(cmd string) (*command.Output, error) {
 // Ping checks if the given klient response with "pong" to the "ping" we send.
 // A nil error means a successfull pong result.
 func (k *Klient) Ping() error {
-	resp, err := k.client.Tell("kite.ping")
+	resp, err := k.client.TellWithTimeout("kite.ping", 10*time.Second)
 	if err != nil {
 		return err
 	}
