@@ -452,7 +452,6 @@ Configuration = (options={}) ->
 
       function kill_all () {
 
-        nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
         ps | grep koding- | awk '{print $1}' | xargs kill -9
 
@@ -579,8 +578,6 @@ Configuration = (options={}) ->
         cd #{projectRoot}
 
         migrate up
-
-        nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
