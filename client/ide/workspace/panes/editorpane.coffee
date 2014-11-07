@@ -17,6 +17,8 @@ class IDE.EditorPane extends IDE.Pane
     @on 'SaveRequested', @bound 'save'
 
     @lineWidgets = {}
+    @cursors     = {}
+
     @createEditor()
 
     file.once 'fs.delete.finished', =>
@@ -134,15 +136,16 @@ class IDE.EditorPane extends IDE.Pane
     return data
 
 
-  addLineWidget: (rowNumber, username) ->
+  setLineWidget: (rowNumber, username) ->
     oldWidget    = @lineWidgets[username]
     lineHeight   = @getEditor().renderer.lineHeight + 2
     color        = KD.utils.getColorFromString username
     style        = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight}px;"
     cssClass     = 'ace-line-widget'
+    manager      = @getAce().lineWidgetManager
 
     if oldWidget
-      @removeLineWidget username
+      manager.removeLineWidget oldWidget
 
     options      =
       row        : rowNumber
@@ -151,13 +154,27 @@ class IDE.EditorPane extends IDE.Pane
       editor     : @getEditor()
       html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
 
-    @getAce().lineWidgetManager.addLineWidget options
+    manager.addLineWidget options
 
     @lineWidgets[username] = options
 
 
-  removeLineWidget: (username) ->
-    @getAce().lineWidgetManager.removeLineWidget @lineWidgets[username]
+  setParticipantCursor: (row, column, username) ->
+    oldCursor = @cursors[username]
+    session   = @getEditorSession()
+    AceRange  = @getAce().Range
+    color     = KD.utils.getColorFromString username
+    cssClass  = "ace-participant-cursor ace-cursor-#{username}"
+
+    return unless AceRange
+
+    if oldCursor
+      session.removeMarker oldCursor.id
+
+    range = new AceRange row, column, row, column + 1
+    id    = session.addMarker range, cssClass, 'text', yes
+
+    @cursors[username] = { id, row, column }
 
 
   handleChange: (change, rtm, realTimeDoc) ->
@@ -168,5 +185,8 @@ class IDE.EditorPane extends IDE.Pane
       @setContent string.getText(), no
 
     if type is 'CursorActivity'
-      @addLineWidget context.cursor.row, origin
+      {row, column} = context.cursor
+      @setLineWidget row, origin
+      @setParticipantCursor row, column, origin
+
 
