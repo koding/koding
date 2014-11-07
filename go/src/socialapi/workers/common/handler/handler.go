@@ -14,6 +14,12 @@ import (
 	gometrics "github.com/rcrowley/go-metrics"
 )
 
+const (
+	PostRequest   = "POST"
+	GetRequest    = "GET"
+	DeleteRequest = "DELETE"
+)
+
 var (
 	// TODO allowed origins must be configurable
 	cors     = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
@@ -23,6 +29,8 @@ var (
 
 type Request struct {
 	Handler        interface{}
+	Endpoint       string
+	Type           string
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
