@@ -44,6 +44,7 @@ func main() {
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*realtime.Controller).MessageListDeleted)
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Removed_From_Channel_Event).Handle((*realtime.Controller).ChannelParticipantRemoved)
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Added_To_Channel_Event).Handle((*realtime.Controller).ChannelParticipantsAdded)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)
 	r.Register(models.Channel{}).OnDelete().Handle((*realtime.Controller).ChannelDeletedEvent)
 	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*realtime.Controller).NotifyUser)
 	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*realtime.Controller).NotifyUser)
