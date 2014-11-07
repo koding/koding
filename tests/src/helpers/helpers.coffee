@@ -1,6 +1,7 @@
 utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
+assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -207,6 +208,27 @@ module.exports =
             .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 20000 # Assertion
 
     return workspaceName
+
+
+  splitPanesUndo: (browser) ->
+
+    @beginTest(browser)
+
+    browser
+      .waitForElementVisible '.panel-1', 20000
+      .elements 'css selector', '.panel-1', (result) =>
+        assert.equal result.value.length, 2
+
+        browser
+          .waitForElementVisible   '.application-tab-handle-holder', 20000
+          .click                   '.application-tab-handle-holder .plus'
+          .waitForElementVisible   '.context-list-wrapper', 20000
+          .click                   '.context-list-wrapper li.undo-split'
+          .pause                   2000
+
+        .elements 'css selector', '.panel-1', (result) =>
+          assert.equal result.value.length, 1
+
 
 
   getUrl: ->
