@@ -1,8 +1,9 @@
-class WebTermView extends KDView
+class WebTermView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'webterm', options.cssClass
+    options.cssClass     = KD.utils.curry 'webterm', options.cssClass
+    options.wrapperClass = TerminalWrapper
 
     super options, data
 
@@ -10,19 +11,21 @@ class WebTermView extends KDView
 
     KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
 
+
   viewAppended: ->
 
-    @container = new KDView
-      cssClass : "console ubuntu-mono green-on-black"
-      bind     : "scroll"
+    super
 
-    @container.on "scroll", => @container.$().scrollLeft 0
+    @container = @wrapper
 
-    @addSubView @container
+    @container.setClass 'console ubuntu-mono green-on-black'
+
+    @container.on 'scroll', -> @setScrollLeft 0
 
     { readOnly } = @getOptions()
     @terminal = new WebTerm.Terminal
       containerView : @container
+      appView       : this
       readOnly      : readOnly ? no
 
     @options.advancedSettings ?= no
@@ -56,11 +59,6 @@ class WebTermView extends KDView
       KD.getSingleton('windowController').removeLayer this
 
     @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
-
-
-    window.addEventListener "blur",  => @terminal.setFocused no
-    window.addEventListener "focus", => @setFocus @focused
-
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
@@ -163,6 +161,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
+      @appStorage.setValue 'blinkingCursor', yes if not @appStorage.getValue('blinkingCursor')?
       @updateSettings()
 
       {mode} = @getOptions()
@@ -273,9 +272,10 @@ class WebTermView extends KDView
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
     @terminal.updateSize true
-    @terminal.scrollToBottom(no)
+    @terminal.scrollToBottom()
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
     @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
+    @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
 
   setKeyView: ->
     KD.getSingleton('windowController').addLayer this
@@ -311,8 +311,7 @@ class WebTermView extends KDView
   keyUp: (event) ->
     @terminal.keyUp event
 
-  _windowDidResize: (event) ->
-    @terminal.windowDidResize()
+  _windowDidResize: (event) -> @terminal.windowDidResize()
 
   getAdvancedSettingsMenuItems: ->
     settings     :

@@ -34,11 +34,11 @@ func TestChannelparticipantGetId(t *testing.T) {
 	})
 }
 
-func TestChannelParticipantTableName(t *testing.T) {
+func TestChannelParticipantBongoName(t *testing.T) {
 	Convey("While getting table name", t, func() {
 		Convey("table names should match", func() {
 			c := ChannelParticipant{}
-			So(c.TableName(), ShouldEqual, "api.channel_participant")
+			So(c.BongoName(), ShouldEqual, "api.channel_participant")
 		})
 	})
 }

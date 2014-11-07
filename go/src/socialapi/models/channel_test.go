@@ -198,9 +198,9 @@ func TestChannelCreate(t *testing.T) {
 
 }
 
-func TestChannelTableName(t *testing.T) {
-	Convey("while testing TableName()", t, func() {
-		So(NewChannel().TableName(), ShouldEqual, ChannelTableName)
+func TestChannelBongoName(t *testing.T) {
+	Convey("while testing BongoName()", t, func() {
+		So(NewChannel().BongoName(), ShouldEqual, ChannelBongoName)
 	})
 }
 

@@ -25,7 +25,7 @@ class ComputeStateChecker extends KDObject
 
     # info "ComputeState checker started."
 
-    @tick()
+    @tick yes
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
@@ -60,7 +60,7 @@ class ComputeStateChecker extends KDObject
     @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
 
 
-  tick:->
+  tick: (checkAll = no)->
 
     return  unless @machines.length
     return  if @tickInProgress
@@ -71,19 +71,20 @@ class ComputeStateChecker extends KDObject
     @machines.forEach (machine)=>
 
       machineId = machine._id
+      currentState = machine.status.state
 
       if machineId in @ignoredMachines
-        log "csc: ignoring check for machine:", machineId
         return
 
-      call = @kloud.info { machineId }
+      unless currentState is Machine.State.Running
+        return  if not checkAll
+
+      call = @kloud.info { machineId, currentState }
 
       .then (response)=>
 
-        log "csc: info: ", response.State
-
         if machineId in @ignoredMachines
-          log "csc: ignoring check for machine:", machineId
+          info "csc: ignoring check for machine:", machineId
           return
 
         computeController.eventListener
@@ -94,6 +95,7 @@ class ComputeStateChecker extends KDObject
         }
 
         unless machine.status.state is response.State
+          info "csc: machine (#{machineId}) state changed: ", response.State
           computeController.triggerReviveFor machineId
 
       .timeout ComputeController.timeout

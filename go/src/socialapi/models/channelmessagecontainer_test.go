@@ -59,16 +59,16 @@ func TestChannelMessageContainerwithChannelMessageContainerChecks(t *testing.T) 
 }
 */
 
-func TestChannelMessageContainerTableName(t *testing.T) {
+func TestChannelMessageContainerBongoName(t *testing.T) {
 	Convey("while testing table name", t, func() {
 		Convey("it should not be empty", func() {
 			cmc := NewChannelMessageContainer()
-			So(cmc.TableName(), ShouldNotBeEmpty)
+			So(cmc.BongoName(), ShouldNotBeEmpty)
 		})
 
 		Convey("it should be api.channel_message", func() {
 			cmc := NewChannelMessageContainer()
-			So(cmc.TableName(), ShouldEqual, "api.channel_message")
+			So(cmc.BongoName(), ShouldEqual, "api.channel_message")
 		})
 	})
 }

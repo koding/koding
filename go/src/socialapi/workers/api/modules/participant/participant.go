@@ -10,6 +10,8 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
 	"time"
+
+	"github.com/koding/bongo"
 )
 
 var ErrSkipActivity = errors.New("skip activity")
@@ -81,7 +83,20 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 
 	}
 
+	go notifyParticipants(query.Id, models.ChannelParticipant_Added_To_Channel_Event, participants)
+
 	return response.NewOK(participants)
+}
+
+func notifyParticipants(channelId int64, event string, participants []*models.ChannelParticipant) {
+	pe := models.NewParticipantEvent()
+	pe.Id = channelId
+	pe.Participants = participants
+
+	if err := bongo.B.PublishEvent(event, pe); err != nil {
+		helper.MustGetLogger().Error("Could not notify channel participants: %s", err.Error())
+	}
+
 }
 
 func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
@@ -113,6 +128,8 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 			helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
 		}
 	}()
+
+	go notifyParticipants(query.Id, models.ChannelParticipant_Removed_From_Channel_Event, participants)
 
 	return response.NewOK(participants)
 }

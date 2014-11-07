@@ -111,6 +111,11 @@ class Ace extends KDView
       return if @suppressListeners
       @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
 
+    @editor.commands.on 'afterExec', (e) =>
+      if e.command.name is 'insertstring' and /^[\w.]$/.test e.args
+        @editor.completer and @editor.completer.autoInsert = off
+        @editor.execCommand 'startAutocomplete'
+
     {enableShortcuts, createFindAndReplaceView} = @getOptions()
 
     if enableShortcuts

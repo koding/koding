@@ -71,7 +71,7 @@ func (c *ChannelMessageList) UnreadCount(cp *ChannelParticipant) (int, error) {
 
 func (c *ChannelMessageList) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("channel_id","message_id","added_at","revised_at") VALUES ($1,$2,$3,$4) ` +
 		"RETURNING ID"
 

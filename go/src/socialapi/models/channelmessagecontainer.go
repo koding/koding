@@ -86,7 +86,7 @@ func (c *ChannelMessageContainer) Fetch(id int64, q *request.Query) error {
 }
 
 // Tests are done.
-func (c *ChannelMessageContainer) TableName() string {
+func (c *ChannelMessageContainer) BongoName() string {
 	return "api.channel_message"
 }
 

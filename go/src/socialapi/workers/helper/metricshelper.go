@@ -2,7 +2,9 @@ package helper
 
 import (
 	slog "log"
+	"log/syslog"
 	"os"
+	"runtime"
 
 	"github.com/koding/logging"
 	kodingmetrics "github.com/koding/metrics"
@@ -22,25 +24,25 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 	}
 
 	// Left here for future reference
-	//
-	// // for Mac
-	// syslogPath := "/var/run/syslog"
-	// if runtime.GOOS != "darwin" {
-	// 	// for linux
-	// 	syslogPath = "/dev/log"
-	// }
 
-	// w, err := syslog.Dial("unixgram", syslogPath, syslog.LOG_INFO, "socialapi-metrics")
-	// if err != nil {
-	// 	log.Error("Err while initing syslog for metrics, metrics wont be in the syslog %s", err.Error())
-	// } else {
-	// 	go metrics.Syslog(metric.Registry, 6e10, w)
-	// }
-
-	statsd, err := kodingmetrics.NewDogStatsD(appName)
-	if err == nil {
-		go kodingmetrics.Collect(metric.Registry, statsd, 6e10)
+	// for Mac
+	syslogPath := "/var/run/syslog"
+	if runtime.GOOS != "darwin" {
+		// for linux
+		syslogPath = "/dev/log"
 	}
+
+	w, err := syslog.Dial("unixgram", syslogPath, syslog.LOG_INFO, "socialapi-metrics")
+	if err != nil {
+		log.Error("Err while initing syslog for metrics, metrics wont be in the syslog %s", err.Error())
+	} else {
+		go metrics.Syslog(metric.Registry, 30e10, w)
+	}
+
+	// statsd, err := kodingmetrics.NewDogStatsD(appName)
+	// if err == nil {
+	// 	go kodingmetrics.Collect(metric.Registry, statsd, 24e10)
+	// }
 
 	return metric
 }
