@@ -123,7 +123,7 @@ build:
     - script:
         name: build finished
         code: |
-          scripts/notify-cebeci.sh "BUILD_FINISHED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is completed with $WERCKER_RESULT" $WERCKER_RESULT 100
+          scripts/notify-cebeci.sh "BUILD_FINISHED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
 deploy:
   steps:
     - script:
