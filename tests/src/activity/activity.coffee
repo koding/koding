@@ -162,7 +162,7 @@ module.exports =
 
     browser
       .refresh()
-      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 5000
+      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 10000
       .end()
 
 
@@ -183,3 +183,4 @@ module.exports =
       .pause                   3000 # really required
       .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
       .end()
+
