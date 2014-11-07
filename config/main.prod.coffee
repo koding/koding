@@ -139,7 +139,8 @@ Configuration = (options={}) ->
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'e6c3413236e08107'
-    paypal                         : {returnURL : '/-/payments/paypal/return', cancelURL: '/-/payments/paypal/cancel'}
+    paypal                         : {username       : 'senthil+1_api1.koding.com'                   , password      : 'JFH6LXW97QN588RC'                            , signature : 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z'               , returnUrl: '/-/payments/paypal/return'                             , cancelUrl: '/-/payments/paypal/cancel'                             , isSandbox: true }
+
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
