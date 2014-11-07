@@ -160,7 +160,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "http://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -191,6 +191,7 @@ Configuration = (options={}) ->
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
+  GOPATH= "#{projectRoot}/go"
 
 
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
@@ -450,6 +451,7 @@ Configuration = (options={}) ->
 
         nginxstop
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        ps | grep koding- | awk '{print $1}' | xargs kill -9
 
         # do not change the order.
         # killist comes last - it kills itself thus nothing can run after.
@@ -573,6 +575,8 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
+        migrate up
+
         nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
@@ -604,7 +608,50 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
         echo ""
+
+      }
+
+      function migrate () {
+        params=(create up down version reset redo to goto)
+        param=$1
+
+        case "${params[@]}" in  *"$param"*)
+          ;;
+        *)
+          echo "Error: Command not found: $param"
+          echo "Usage: run migrate COMMAND [arg]"
+          echo ""
+          echo "Commands:  "
+          echo "  create [filename] : create new migration file in path"
+          echo "  up                : apply all available migrations"
+          echo "  down              : roll back all migrations"
+          echo "  redo              : roll back the most recently applied migration, then run it again"
+          echo "  reset             : run down and then up command"
+          echo "  version           : show the current migration version"
+          echo "  to   [n]          : (+n) apply the next n / (-n) roll back the previous n migrations"
+          echo "  goto [n]          : go to specific migration"
+
+          echo ""
+          exit 1
+        ;;
+        esac
+
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        elif [ "$param" == "create" ] && [ -z "$2" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+          echo "Usage: run migrate create [filename]"
+          echo ""
+          exit 1
+        fi
+
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
+
+        if [ "$param" == "create" ]; then
+          echo "Please edit created script files and add them to your repository."
+        fi
 
       }
 
@@ -638,6 +685,10 @@ Configuration = (options={}) ->
 
       }
 
+      function check_psql () {
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+      }
+
       function check_service_dependencies () {
         echo "checking required services: nginx, docker, mongo, graphicsmagick..."
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
@@ -649,7 +700,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
-        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+        check_psql
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -891,6 +942,19 @@ Configuration = (options={}) ->
 
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
+
+      elif [ "$1" == "migrate" ]; then
+        check_psql
+
+        if [ -z "$2" ]; then
+          echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
+          echo ""
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          migrate $2 $3
+        fi
+
 
       elif [ "$#" == "0" ]; then
 

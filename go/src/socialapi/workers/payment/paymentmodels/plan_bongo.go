@@ -10,7 +10,7 @@ func (p Plan) GetId() int64 {
 	return p.Id
 }
 
-func (Plan) TableName() string {
+func (Plan) BongoName() string {
 	return "payment.plan"
 }
 
