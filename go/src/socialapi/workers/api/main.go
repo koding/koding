@@ -12,20 +12,16 @@ import (
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
+	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
+	sitemapapi "socialapi/workers/sitemap/api"
+	trollmodeapi "socialapi/workers/trollmode/api"
 )
 
 var (
 	Name = "SocialAPI"
 )
-
-func init() {
-
-	// mux = notificationapi.InitHandlers(mux)
-	// mux = trollmodeapi.InitHandlers(mux)
-	// mux = sitemapapi.InitHandlers(mux)
-}
 
 func main() {
 	r := runner.New(Name)
@@ -42,9 +38,11 @@ func main() {
 	// shutdown server
 	defer m.Close()
 
-	// init payment handlers, this done here instead of in `init()`
-	// like others so we can've access to `metrics`
 	paymentapi.AddHandlers(m)
+	notificationapi.AddHandlers(m)
+	trollmodeapi.AddHandlers(m)
+	sitemapapi.AddHandlers(m)
+
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
