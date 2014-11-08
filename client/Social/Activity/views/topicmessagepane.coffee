@@ -14,6 +14,15 @@ class TopicMessagePane extends MessagePane
 
     @filterLinks = null
 
+    @on 'NeedsMoreContent', =>
+      @listController.showLazyLoader()
+
+      @lazyLoad null, (err, items) =>
+
+        return err  if err
+
+        @addItems items
+
 
   addMessage: (message) ->
 
