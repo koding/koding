@@ -67,7 +67,7 @@ module.exports = class HomeView extends KDView
 
       slide
 
-    INDEX = KD.utils.getRandomNumber(COLORS.length - 1)
+    INDEX = KD.utils.getRandomNumber(COLORS.length) - 1
     @changeColor()
 
     @once 'viewAppended', ->
