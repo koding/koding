@@ -70,8 +70,9 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	// payment:
+	// payment
 	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
+	paypal.InitializeClientKey(config.MustGet().Paypal)
 
 	go func() {
 		err := stripe.CreateDefaultPlans()

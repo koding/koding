@@ -6,6 +6,11 @@ import (
 )
 
 func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymentmodels.Customer) error {
+	client, err := Client()
+	if err != nil {
+		return err
+	}
+
 	params := map[string]string{
 		"PROFILESTARTDATE": time.Now().String(),
 		"SUBSCRIBERNAME":   customer.OldId,

@@ -6,6 +6,11 @@ import (
 )
 
 func FindPlanFromToken(token string) (*paymentmodels.Plan, error) {
+	client, err := Client()
+	if err != nil {
+		return nil, err
+	}
+
 	resp, err := client.GetExpressCheckoutDetails(token)
 	err = handlePaypalErr(resp, err)
 	if err != nil {

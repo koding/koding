@@ -21,6 +21,11 @@ func GetToken(planTitle, planInterval string) (string, error) {
 	// args.BuyerId   = "jones"
 	args.Item = item
 
+	client, err := Client()
+	if err != nil {
+		return "", err
+	}
+
 	response, err := client.SetExpressCheckoutSingle(args)
 	if err != nil {
 		return "", err

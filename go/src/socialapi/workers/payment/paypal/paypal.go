@@ -1,7 +1,9 @@
 package paypal
 
 import (
+	"errors"
 	"fmt"
+	"socialapi/config"
 	"socialapi/workers/payment/paymentmodels"
 	"strconv"
 
@@ -15,16 +17,44 @@ const (
 )
 
 var (
-	// TODO: get from config
-	username  = "senthil+1_api1.koding.com"
-	password  = "JFH6LXW97QN588RC"
-	signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
-	returnURL = "http://lvh.me:8090/-/payments/paypal/return"
-	cancelURL = "http://lvh.me:8090/-/payments/paypal/cancel"
-	isSandbox = true
-	client    = paypal.NewDefaultClient(username, password, signature, isSandbox)
-	Log       = logging.NewLogger("payment")
+	Log                  = logging.NewLogger("payment")
+	client               *paypal.PayPalClient
+	returnURL, cancelURL string
 )
+
+func InitializeClientKey(creds *config.Paypal) {
+	returnURL = creds.ReturnUrl
+	cancelURL = creds.CancelUrl
+
+	client = paypal.NewDefaultClient(
+		creds.Username, creds.Password, creds.Signature, creds.IsSandbox,
+	)
+}
+
+func Client() (*paypal.PayPalClient, error) {
+	err := isClientInitialized()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func isClientInitialized() error {
+	if client == nil {
+		return errors.New("paypal client unitialized")
+	}
+
+	if returnURL == "" {
+		return errors.New("return url is empty")
+	}
+
+	if cancelURL == "" {
+		return errors.New("cancel url is empty")
+	}
+
+	return nil
+}
 
 func amount(cents uint64) float64 {
 	return float64(cents)
@@ -39,9 +69,9 @@ func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
 		return err
 	}
 
-	// if response.Ack != "SUCCESS" || response.Ack != "Success {
-	//   return errors.New("paypal request failed")
-	// }
+	if response.Ack != "SUCCESS" || response.Ack != "Success" {
+		return errors.New("paypal request failed")
+	}
 
 	return nil
 }

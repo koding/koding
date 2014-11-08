@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
 	"strconv"
 	"time"
 
 	"github.com/koding/paypal"
+	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -19,6 +21,7 @@ import (
 var (
 	StartingPlan     = "developer"
 	StartingInterval = "month"
+	Creds            *config.Paypal
 )
 
 func init() {
@@ -29,6 +32,11 @@ func init() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+
+	Creds = &r.Conf.Paypal
+	InitializeClientKey(&r.Conf.Paypal)
+
+	pretty.Println(Creds)
 
 	stripe.CreateDefaultPlans()
 
@@ -93,8 +101,11 @@ func startTestServer() *httptest.Server {
 		},
 	))
 
+	returnURL = Creds.ReturnUrl
+	cancelURL = Creds.CancelUrl
+
 	client = paypal.NewDefaultClientEndpoint(
-		username, password, signature, server.URL, isSandbox,
+		Creds.Username, Creds.Password, Creds.Signature, server.URL, true,
 	)
 
 	return server

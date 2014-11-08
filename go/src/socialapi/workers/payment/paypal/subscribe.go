@@ -75,6 +75,11 @@ func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error 
 }
 
 func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) error {
+	client, err := Client()
+	if err != nil {
+		return err
+	}
+
 	response, err := client.ManageRecurringPaymentsProfileStatus(
 		customer.ProviderCustomerId, paypal.Cancel,
 	)
@@ -90,6 +95,11 @@ func handleDowngrade(customer *paymentmodels.Customer, plan *paymentmodels.Plan,
 	params := map[string]string{
 		"AMT": normalizeAmount(plan.AmountInCents),
 		"L_PAYMENTREQUEST_0_NAME0": goodName(plan),
+	}
+
+	client, err := Client()
+	if err != nil {
+		return err
 	}
 
 	resp, err := client.UpdateRecurringPaymentsProfile(customer.ProviderCustomerId, params)
