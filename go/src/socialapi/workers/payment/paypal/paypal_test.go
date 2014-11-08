@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/koding/paypal"
-	"github.com/kr/pretty"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -21,7 +20,7 @@ import (
 var (
 	StartingPlan     = "developer"
 	StartingInterval = "month"
-	Creds            *config.Paypal
+	Creds            config.Paypal
 )
 
 func init() {
@@ -33,10 +32,8 @@ func init() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	Creds = &r.Conf.Paypal
-	InitializeClientKey(&r.Conf.Paypal)
-
-	pretty.Println(Creds)
+	Creds = r.Conf.Paypal
+	InitializeClientKey(r.Conf.Paypal)
 
 	stripe.CreateDefaultPlans()
 

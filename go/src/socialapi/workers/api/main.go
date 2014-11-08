@@ -16,6 +16,7 @@ import (
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	paymentapi "socialapi/workers/payment/api"
+	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"

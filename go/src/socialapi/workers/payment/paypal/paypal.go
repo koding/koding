@@ -22,7 +22,7 @@ var (
 	returnURL, cancelURL string
 )
 
-func InitializeClientKey(creds *config.Paypal) {
+func InitializeClientKey(creds config.Paypal) {
 	returnURL = creds.ReturnUrl
 	cancelURL = creds.CancelUrl
 
