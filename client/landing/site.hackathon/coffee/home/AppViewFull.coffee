@@ -426,7 +426,8 @@ module.exports = class HomeViewFull extends KDView
           <li>
             <figure>
               <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
-              <figcaption>Teams with an account on <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> get a chance to win an extra <strong>$2,500</strong>.</figcaption>
+              <figcaption>The top-performing team that has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account will receive an extra <strong>$2,500</strong>. 
+              Be sure to add your oDesk or Elance userID to the questionnaire that we send you."</figcaption>
             </figure>
           </li>
           <li>
