@@ -172,7 +172,7 @@ class IDE.EditorPane extends IDE.Pane
       session.removeMarker oldCursor.id
 
     range = new AceRange row, column, row, column + 1
-    id    = session.addMarker range, cssClass, 'text', yes
+    id    = session.addMarker range, cssClass, 'text'
 
     @cursors[username] = { id, row, column }
 
@@ -181,8 +181,18 @@ class IDE.EditorPane extends IDE.Pane
     {context, type, origin} = change
 
     if type is 'ContentChange'
-      string = rtm.getFromModel realTimeDoc, context.file.path
-      @setContent string.getText(), no
+      oldContent = @getValue()
+      string     = rtm.getFromModel realTimeDoc, context.file.path
+      newContent = string.getText()
+      cursor     = @getCursor()
+
+      @setContent newContent, no
+
+      row = @getNewCursorPosition oldContent, newContent, cursor.row
+      col = cursor.column
+
+      KD.utils.defer =>
+        @setCursor { row, column: col }
 
     if type is 'CursorActivity'
       {row, column} = context.cursor
@@ -190,3 +200,16 @@ class IDE.EditorPane extends IDE.Pane
       @setParticipantCursor row, column, origin
 
 
+  getNewCursorPosition: (oldContent, newContent, oldRowNumber) ->
+    return if not oldContent or not newContent
+
+    oldContentLines = oldContent.split '\n'
+    newContentLines = newContent.split '\n'
+    oldLinesAbove   = oldContentLines.slice 0, oldRowNumber
+    newLinesAbove   = newContentLines.slice 0, oldRowNumber
+    oldLinesBelow   = oldContentLines.slice oldRowNumber, oldContentLines.length
+
+    unless oldLinesAbove is newLinesAbove
+      newCursorPosition = newContentLines.length - oldLinesBelow.length
+
+    return newCursorPosition ? 0
