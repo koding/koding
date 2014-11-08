@@ -4,7 +4,7 @@ CustomLinkView   = require './../core/customlinkview'
 
 module.exports = class HomeView extends KDView
 
-  COLORS    = [ 'gray', 'blue', 'green', 'dark-blue' ]
+  COLORS    = [ 'red', 'gray', 'blue', 'green', 'dark-blue' ]
   IMAGEPATH = '/a/site.landing/images/slideshow'
   IMAGES    = [ 'ss-terminal.png', 'ss-activity.png', 'ss-ide.png', 'ss-ide-collapsed.png', 'ss-chat.png' ]
   ORDER     = [ 'prev', 'current', 'next']

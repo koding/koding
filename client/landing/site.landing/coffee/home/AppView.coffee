@@ -4,7 +4,7 @@ CustomLinkView   = require './../core/customlinkview'
 
 module.exports = class HomeView extends KDView
 
-  COLORS    = [ 'gray', 'blue', 'green', 'dark-blue' ]
+  COLORS    = [ 'orange', 'gray', 'blue', 'green', 'dark-blue' ]
   IMAGEPATH = '/a/site.landing/images/slideshow'
   IMAGES    = [
     [ 'ss-terminal.png',      '18,000,000+ VMs spun up and counting.' ]
