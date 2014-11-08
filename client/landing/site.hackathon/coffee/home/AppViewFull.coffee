@@ -187,7 +187,7 @@ module.exports = class HomeViewFull extends KDView
 
     header = null
 
-    for name, img of PARTNERS
+    for name, {img, url, prize} of PARTNERS
 
       unless header
         header = new KDCustomHTMLView
@@ -196,10 +196,11 @@ module.exports = class HomeViewFull extends KDView
         @addSubView header, 'aside.partners'
 
       image = new KDCustomHTMLView
-        tagName    : 'img'
+        tagName    : 'a'
         attributes :
-          src      : img
-          alt      : name
+          href     : url
+          target   : '_blank'
+        partial    : "<img src='#{img}' alt='#{name}' \>"
 
       @addSubView image, 'aside.partners'
 
@@ -431,12 +432,22 @@ module.exports = class HomeViewFull extends KDView
           <li>
             <figure>
               <img src='./a/site.hackathon/images/partners/paypal.jpg' alt='PayPal logo'/>
-              <figcaption><a href='http://www.paypal.com'>PayPal</a> is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
+              <figcaption><a href='http://www.paypal.com' target='_blank'>PayPal</a> is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
             </figure>
           </li>
           <li>
             <figure>
-              <figcaption><a href='http://www.datadoghq.com'>DATADOG</a> is adding <strong>$2,500</strong> in grand prize money and an additional <strong>$1,000</strong> for the team that makes the best use of their service and their API.</figcaption>
+              <figcaption><a href='http://www.datadoghq.com' target='_blank'>DATADOG</a> is adding <strong>$2,500</strong> in grand prize money and an additional <strong>$1,000</strong> for the team that makes the best use of their service and their API.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <figcaption><a href='http://www.mashape.com' target='_blank'>Mashape</a> will reward an additional <strong>$1,000</strong> to the team that makes the best use of their API.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <figcaption><a href='http://www.sprint.ly'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
             </figure>
           </li>
         </ul>
