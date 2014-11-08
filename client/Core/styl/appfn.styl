@@ -98,12 +98,18 @@ styleScrollBars()
   .kdview.kdscrolltrack
     bg                  color transparent
     overflow            visible
+
     &.vertical .kdscrollthumb
       margin            0 4px
       width             7px
+
     &.horizontal .kdscrollthumb
       margin            4px 0
       height            7px
+
+    &:hover
+      bg                color clr
+
 
     .kdscrollthumb
       bg                color clr

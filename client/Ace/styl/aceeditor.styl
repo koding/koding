@@ -195,6 +195,33 @@ body.ace
         &:nth-child(2n)
           background        #f7f7f7
 
+.ace_editor.ace_autocomplete
+  border-radius  3px
+  border-color   #383838
+
+  .ace_text-layer
+    padding      0
+
+  .ace_marker-layer
+    hidden()
+
+  .ace_line
+    height       26px
+    color        white
+    background   #121212
+    padding-left 12px
+
+    &.ace_selected
+      background #202020
+
+    .ace_rightAlignedText
+      right      12px
+      color      #A2A2A2
+      z-index    1
+
+    .ace_completion-highlight
+      color      lightblue
+
 .ace-find-replace-view
   display                 block
   bottom                  20px
