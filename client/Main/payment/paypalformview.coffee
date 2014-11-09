@@ -6,6 +6,8 @@ class PaypalFormView extends KDFormViewWithFields
 
     @state = KD.utils.extend @getInitialState(), options.state
 
+    options.cssClass = KD.utils.curry 'paypal-form', options.cssClass
+
     options.fields = @getFields()
 
     super options, data
