@@ -51,7 +51,7 @@ class PaymentForm extends JView
     @existingCreditCardMessage = new KDCustomHTMLView
       cssClass : 'existing-cc-msg'
       partial  : '
-        We will use the credit card saved on your account for this purchase.
+        We will use the payment method saved on your account for this purchase.
       '
 
     @successMessage = new KDCustomHTMLView
@@ -73,14 +73,14 @@ class PaymentForm extends JView
 
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
-      partial   : "(You will be billed $#{yearPrice} for 12 months)"
+      partial   : "You will be billed $#{yearPrice} for 12 months"
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
-      partial   : "
+      partial   : '
         <span>Secure credit card payments</span>
         Koding.com uses 128 Bit SSL Encrypted Transactions
-      "
+      '
 
     # for some cases, we need to show/hide
     # some of the subviews.
@@ -134,8 +134,8 @@ class PaymentForm extends JView
           type: 'submit'
           domId: 'paypal-submit'
           style: 'solid medium green submit-btn paypal'
-          title: 'Checkout using Paypal'
-          loader: yes
+          title: 'CHECKOUT USING <figure></figure>'
+          loader: {color: '#a7a7a7'}
           callback: => @emit 'PaypalButtonClicked'
 
 
@@ -198,7 +198,10 @@ class PaymentForm extends JView
       @successMessage.updatePartial "
         Depending on the plan upgraded to, you now have access to more computing
         and storage resources.
-        <a href='http://learn.koding.com/upgrade'>Learn more</a>
+        <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
+           target='_blank'>
+         Learn more
+        </a>
         about how to use your new resources.
       "
       @successMessage.show()
