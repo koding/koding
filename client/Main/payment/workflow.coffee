@@ -73,6 +73,9 @@ class PaymentWorkflow extends KDController
     @modal.on 'PaymentSubmitted',                 @bound 'handlePaymentSubmit'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
+    @modal.on 'PaypalButtonClicked', =>
+      @state.provider = PaymentWorkflow.provider.PAYPAL
+
 
   startDowngradeFlow: ->
 
