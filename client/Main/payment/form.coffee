@@ -192,7 +192,7 @@ class PaymentForm extends JView
       @paypalForm
     ].forEach (view) -> view.destroy()
 
-    @$('hr').hide()
+    @$('.divider').detach()
 
     if isUpgrade
       @successMessage.updatePartial "
@@ -220,10 +220,9 @@ class PaymentForm extends JView
     ].forEach (view) -> view.destroy()
 
     [
-      @$('h3')
-      @$('hr')
+      @$('.divider')
       @$('.summary')
-    ].forEach (element) -> element.hide()
+    ].forEach (element) -> element.detach()
 
     @successMessage.updatePartial "
       We are sorry that you are having trouble upgrading.
@@ -250,7 +249,6 @@ class PaymentForm extends JView
 
   pistachio: ->
     """
-    <h3>You have selected</h3>
     <div class='summary clearfix'>
       {{> @plan}}{{> @price}}
     </div>
@@ -259,7 +257,11 @@ class PaymentForm extends JView
     {{> @successMessage}}
     {{> @yearPriceMessage}}
     {{> @submitButton}}
-    #{ if @state.provider is 'koding' then '<hr>' else '' }
+    #{
+      if @state.provider is PaymentWorkflow.provider.KODING
+      then '<div class="divider">OR</div>'
+      else ''
+    }
     {{> @paypalForm}}
     {{> @securityNote}}
     """
