@@ -6,8 +6,8 @@ class PaymentModal extends PaymentBaseModal
   getInitialState: -> {
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+    provider     : PaymentWorkflow.provider.KODING
     isUpgrade    : yes
-    provider     : 'koding'
   }
 
 
