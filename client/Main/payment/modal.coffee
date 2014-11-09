@@ -31,13 +31,13 @@ class PaymentModal extends PaymentBaseModal
 
   initViews: ->
 
-    @addSubView @errors = new KDCustomHTMLView
-      cssClass : 'errors hidden'
     { provider, isUpgrade, planTitle } = @state
     { PAYPAL } = PaymentWorkflow.provider
     { FREE }   = PaymentWorkflow.planTitle
 
-    @addSubView @form = new PaymentForm { @state }
+    @addSubView @errors = new KDCustomHTMLView {cssClass : 'errors hidden'}
+    @addSubView @form   = new PaymentForm {@state}
+
     @handlePaypalNotAllowed()  if provider is PAYPAL and planTitle isnt FREE
 
 
@@ -46,6 +46,7 @@ class PaymentModal extends PaymentBaseModal
     @forwardEvent @form, 'PaymentSubmitted'
     @forwardEvent @form, 'PaymentWorkflowFinished'
     @forwardEvent @form, 'PaypalButtonClicked'
+
     @form.forwardEvent this, 'PaymentProviderLoaded'
 
     @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
@@ -63,11 +64,6 @@ class PaymentModal extends PaymentBaseModal
     @setTitle 'Contact support'
     @form.showPaypalNotAllowedStage()
 
-
-  handlePaypalUpgradeFinished: ->
-
-    @once 'KDModalViewDestroyed', =>
-      @emit 'PaymentWorkflowFinishedWithError', @state
 
   handlePaypalResponse: (err) ->
 
