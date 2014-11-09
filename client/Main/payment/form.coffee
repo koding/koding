@@ -34,7 +34,7 @@ class PaymentForm extends JView
 
     {
       planTitle, planInterval, reducedMonth
-      currentPlan, yearPrice
+      currentPlan, yearPrice, isUpgrade
     } = @state
 
     planIntervalPartial = if planInterval is 'month'
@@ -61,8 +61,6 @@ class PaymentForm extends JView
     @successMessage = new KDCustomHTMLView
       cssClass : 'success-msg hidden'
       partial  : ''
-
-    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     buttonPartial = if isUpgrade
     then 'UPGRADE YOUR PLAN'
