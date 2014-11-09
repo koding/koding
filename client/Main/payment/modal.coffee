@@ -33,8 +33,12 @@ class PaymentModal extends PaymentBaseModal
 
     @addSubView @errors = new KDCustomHTMLView
       cssClass : 'errors hidden'
+    { provider, isUpgrade, planTitle } = @state
+    { PAYPAL } = PaymentWorkflow.provider
+    { FREE }   = PaymentWorkflow.planTitle
 
     @addSubView @form = new PaymentForm { @state }
+    @handlePaypalNotAllowed()  if provider is PAYPAL and planTitle isnt FREE
 
 
   initEvents: ->
@@ -54,6 +58,17 @@ class PaymentModal extends PaymentBaseModal
     paymentController.on 'PaypalRequestFinished', @bound 'handlePaypalResponse'
 
 
+  handlePaypalNotAllowed: ->
+
+    @setTitle 'Contact support'
+    @form.showPaypalNotAllowedStage()
+
+
+  handlePaypalUpgradeFinished: ->
+
+    @once 'KDModalViewDestroyed', =>
+      @emit 'PaymentWorkflowFinishedWithError', @state
+
   handlePaypalResponse: (err) ->
 
     @form.paypalForm.buttons['paypal'].hideLoader()
@@ -64,7 +79,7 @@ class PaymentModal extends PaymentBaseModal
 
     paymentController.subscriptions (err, subscription) =>
 
-      # return KD.showError err  if err
+      return KD.showError err  if err
 
       @state = KD.utils.extend @state, subscription
 
@@ -91,6 +106,7 @@ class PaymentModal extends PaymentBaseModal
 
 
   handleError: (error) ->
+
     msg = error?.description or error?.message or "Something went wrong."
     KD.showError msg
 
