@@ -37,13 +37,9 @@ class PaymentForm extends JView
       currentPlan, yearPrice, isUpgrade
     } = @state
 
-    planIntervalPartial = if planInterval is 'month'
-    then 'Monthly'
-    else 'Yearly'
-
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
-      partial : "#{planTitle.capitalize()} Plan (#{planIntervalPartial})"
+      partial : "#{planTitle.capitalize()} Plan"
 
     pricePartial = @getPricePartial planInterval
     @price = new KDCustomHTMLView
