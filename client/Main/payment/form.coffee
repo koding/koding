@@ -89,15 +89,16 @@ class PaymentForm extends JView
 
   filterViews: ->
 
-    { FREE }  = PaymentWorkflow.planTitle
-    { MONTH } = PaymentWorkflow.planInterval
+    { FREE }   = PaymentWorkflow.planTitle
+    { MONTH }  = PaymentWorkflow.planInterval
+    { KODING } = PaymentWorkflow.provider
     { currentPlan, planTitle, planInterval, provider } = @state
 
     @yearPriceMessage.hide()  if planInterval is MONTH
 
     # no need to show those views when they are
     # downgrading to free account.
-    if selectedPlan = planTitle is FREE
+    if planTitle is FREE
       @securityNote.hide()
       @existingCreditCardMessage.hide()
       @yearPriceMessage.hide()
@@ -110,9 +111,7 @@ class PaymentForm extends JView
       @form.show()
       @existingCreditCardMessage.hide()
 
-    # switch provider
-    #   when 'stripe' then @paypalButton.hide()
-    #   when 'paypal' then @submitButton.hide()
+    @paypalForm.destroy()  unless provider is KODING
 
 
   initForm: ->
