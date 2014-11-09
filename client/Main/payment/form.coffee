@@ -141,12 +141,9 @@ class PaymentForm extends JView
 
   initPaypalClient: ->
 
-    dg = new PAYPAL.apps.DGFlow
-      expType : 'mini'
+    new PAYPAL.apps.DGFlow
+      expType : 'popup'
       trigger : 'paypal-submit'
-      # stage   : 'sandbox'
-
-    # @on 'PaypalButtonClicked', -> dg.startFlow()
 
 
   initEvents: ->
