@@ -161,6 +161,27 @@ class PaymentForm extends JView
     @form.showValidationErrorsOnInputs error
 
 
+  showPaypalNotAllowedStage: ->
+
+    [
+      @form
+      @securityNote
+      @yearPriceMessage
+      @paypalForm
+      @submitButton
+    ].forEach (view) -> view.destroy()
+
+    [
+      @$('.divider')
+      @$('.summary')
+    ].forEach (view) -> view.detach()
+
+    @existingCreditCardMessage.updatePartial "
+      It's not possible to upgrade with PayPal.
+      Please contact support.
+    "
+
+
   showSuccess: (isUpgrade) ->
 
     [
