@@ -116,6 +116,10 @@ class PaymentWorkflow extends KDController
         planTitle, planAmount, binNumber, lastFour, cardName
       }, noop
 
+    { KODING, STRIPE } = PaymentWorkflow.provider
+
+    @state.provider = STRIPE  if @state.provider is KODING
+
     if currentPlan is PaymentWorkflow.planTitle.FREE
 
       Stripe.card.createToken {
