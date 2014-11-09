@@ -11,8 +11,9 @@
 class PaymentForm extends JView
 
   getInitialState: -> {
-    planInterval   : PaymentWorkflow.planInterval.MONTH
-    planTitle      : PaymentWorkflow.planTitle.HOBBYIST
+    planInterval : PaymentWorkflow.planInterval.MONTH
+    planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+    provider     : PaymentWorkflow.provider.KODING
   }
 
   constructor: (options = {}, data) ->
