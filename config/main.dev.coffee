@@ -69,6 +69,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    paypal            : {username       : 'senthil+1_api1.koding.com'                   , password      : 'JFH6LXW97QN588RC'                            , signature : 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z'               , returnUrl: '/-/payments/paypal/return'                             , cancelUrl: '/-/payments/paypal/cancel'                             , isSandbox: true }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -142,7 +143,6 @@ Configuration = (options={}) ->
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'a41deacd57929378'
-    paypal                         : {username       : 'senthil+1_api1.koding.com'                   , password      : 'JFH6LXW97QN588RC'                            , signature : 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z'               , returnUrl: '/-/payments/paypal/return'                             , cancelUrl: '/-/payments/paypal/cancel'                             , isSandbox: true }
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
