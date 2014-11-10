@@ -18,6 +18,7 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -72,6 +73,8 @@ type Provider struct {
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
 	PlanFetcher func(*protocol.Machine) (Plan, error)
+
+	stats *metrics.DogStatsD
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -86,6 +89,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 				Percentage: percentage,
 			})
 		},
+		Metrics: p.stats,
 	}
 
 	var err error
