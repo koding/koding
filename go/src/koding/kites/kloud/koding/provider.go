@@ -74,7 +74,7 @@ type Provider struct {
 	PlanChecker func(*protocol.Machine) (Checker, error)
 	PlanFetcher func(*protocol.Machine) (Plan, error)
 
-	stats *metrics.DogStatsD
+	Stats *metrics.DogStatsD
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -89,7 +89,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 				Percentage: percentage,
 			})
 		},
-		Metrics: p.stats,
+		Metrics: p.Stats,
 	}
 
 	var err error
