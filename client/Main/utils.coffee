@@ -871,6 +871,8 @@ utils.extend utils,
 
       return  if (queue.push callback) > 1
 
+      KD.utils.wait 5000, fail
+
       $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
 
         if status is "success"

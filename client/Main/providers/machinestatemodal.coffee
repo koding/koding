@@ -9,7 +9,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     options.cssClass or= 'env-machine-state'
     options.width      = 440
-    # options.height   = 270
 
     super options, data
 
