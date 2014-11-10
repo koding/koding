@@ -8,7 +8,7 @@ import (
 )
 
 type SitemapSet struct {
-	XMLName  xml.Name         `xml:"http://www.sitemaps.org/schemas/sitemap/0.9 urlset,name"`
+	XMLName  xml.Name         `xml:"http://www.sitemaps.org/schemas/sitemap/0.9 sitemapindex,name"`
 	Sitemaps []ItemDefinition `xml:"sitemap"`
 }
 
