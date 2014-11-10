@@ -135,7 +135,6 @@ class PaymentForm extends JView
           domId: 'paypal-submit'
           style: 'solid medium green submit-btn paypal'
           title: 'CHECKOUT USING <figure></figure>'
-          loader: {color: '#a7a7a7'}
           callback: => @emit 'PaypalButtonClicked'
 
 
