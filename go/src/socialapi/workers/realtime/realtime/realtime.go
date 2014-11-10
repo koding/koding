@@ -133,7 +133,7 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 func (f *Controller) ChannelParticipantRemoved(pe *models.ParticipantEvent) error {
 	// send notification to the user(added user)
 	go f.notifyChannelParticipants(pe)
-	
+
 	return f.sendChannelParticipantEvent(pe, RemovedFromChannelEventName)
 }
 
@@ -170,12 +170,17 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 	return nil
 }
 
-// notifyParticipants notifies current channel participants and removed participants
+// notifyParticipants notifies current private channel participants and
+// removed participants included in ParticipantEvent.Participants about removed users
 // this is used for updating sidebar.
 func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent) {
 	c, err := models.ChannelById(pe.Id)
 	if err != nil {
 		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
+		return
+	}
+
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
 		return
 	}
 
