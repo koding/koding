@@ -69,7 +69,7 @@ func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
 		return err
 	}
 
-	if response.Ack != "SUCCESS" || response.Ack != "Success" {
+	if response.Ack != "Success" {
 		return errors.New("paypal request failed")
 	}
 
