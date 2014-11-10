@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/waitstate"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -21,6 +22,7 @@ type AmazonClient struct {
 
 	// Used for customization
 	InfoLog func(string, ...interface{})
+	Metrics *metrics.DogStatsD
 }
 
 func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
