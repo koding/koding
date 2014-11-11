@@ -93,11 +93,27 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       @remove callback
 
-  REGISTER_CAMPAIGN = "register"
 
-  isCampaignValid = (campaignName, callback)->
-    [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
+  DEFAULT_CAMPAIGN = "register"
+
+
+  @fetchCampaign = fetchCampaign = (campaignName, callback)->
+
+    unless callback
+      [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
+
+    JReferralCampaign.one name: campaignName, (err, campaign) ->
+      return callback err  if err
+      callback null, campaign
+
+
+  @isCampaignValid = isCampaignValid = (campaignName, callback)->
+
+    unless callback
+      [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
+
     fetchCampaign campaignName, (err, campaign)->
+
       return callback err  if err
       return callback null, isValid: no  unless campaign
 
@@ -106,12 +122,12 @@ module.exports = class JReferralCampaign extends jraphical.Module
         endDate, startDate } = campaign
 
       if Date.now() < startDate.getTime()
-        console.info "campaign is not started yet"
+        console.info "campaign #{campaignName} is not started yet"
         return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
-        console.info "date is not valid for campaign"
+        console.info "date is not valid for campaign #{campaignName}"
         return callback null, isValid: no
 
       # if campaign initial amount is 0
@@ -125,21 +141,12 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       return callback null, { isValid: yes, campaign }
 
-  @isCampaignValid = isCampaignValid
 
-  @fetchCampaignDiskSize = (callback)->
-    @isCampaignValid (err, { isValid, campaign })->
-      return callback err if err
-      return callback null, campaign?.campaignPerEventAmount or 256
+  increaseGivenAmountSpace:(size, callback)->
 
-  @fetchCampaign = fetchCampaign = (campaignName, callback)->
-    [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
-    JReferralCampaign.one {name: campaignName}, (err, campaign) ->
-      return callback err if err
-      return callback null, no  unless campaign
-      return callback null, campaign
+    unless callback
+      [size, callback] = [@campaignPerEventAmount, size]
 
-   increaseGivenAmountSpace:(size, callback)->
-    [size, callback] = [@campaignPerEventAmount, size] unless callback
     size = size * 4
-    @update $inc : campaignGivenAmount: size , callback
+
+    @update $inc: campaignGivenAmount: size , callback
