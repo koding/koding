@@ -883,7 +883,9 @@ class IDEAppController extends AppController
 
     return if not context or not origin or origin is KD.nick()
 
-    if not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
+    amIWatchingChangeOwner = not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
+
+    if amIWatchingChangeOwner
       @getPaneByChange(change)?.handleChange? change, @rtm, @realTimeDoc
 
 
