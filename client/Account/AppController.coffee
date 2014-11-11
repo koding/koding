@@ -223,7 +223,7 @@ class AccountAppController extends AppController
 
     handler = (modal, route)->
       modal.destroy()
-      KD.utils.wait 5000, KD.getSingleton("router").handleRoute route
+      KD.utils.wait 1000, -> KD.getSingleton("router").handleRoute route
 
     @modal = new KDBlockingModalView
       title           : "Please Login or Register"
