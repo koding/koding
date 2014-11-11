@@ -28,8 +28,8 @@ func SubscriptionDeletedWebhook(raw []byte) error {
 		return err
 	}
 
-	if subscription.State == SubscriptionStateActive {
-		err = subscription.UpdateState(SubscriptionStateExpired)
+	if subscription.State == paymentmodels.SubscriptionStateActive {
+		err = subscription.UpdateState(paymentmodels.SubscriptionStateExpired)
 	}
 
 	return err

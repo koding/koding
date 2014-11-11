@@ -43,6 +43,16 @@ type Subscription struct {
 	CurrentPeriodEnd   time.Time `json:"current_period_end"`
 }
 
+var (
+	SubscriptionStateActive = "active"
+
+	// this is when user manually cancels
+	SubscriptionStateCanceled = "canceled"
+
+	// this is when user fails to pay
+	SubscriptionStateExpired = "expired"
+)
+
 func (s *Subscription) UpdateInvoiceCreated(amountInCents uint64, planId, periodStart, periodEnd int64) error {
 	if s.PlanId == planId {
 		return ErrUpdatingToSamePlan

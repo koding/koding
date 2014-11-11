@@ -11,16 +11,6 @@ import (
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
-var (
-	SubscriptionStateActive = "active"
-
-	// this is when user manually cancels
-	SubscriptionStateCanceled = "canceled"
-
-	// this is when user fails to pay
-	SubscriptionStateExpired = "expired"
-)
-
 func CreateSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Plan) (*paymentmodels.Subscription, error) {
 	subParams := &stripe.SubParams{
 		Plan:     plan.ProviderPlanId,
@@ -81,7 +71,7 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 		return handleStripeError(err)
 	}
 
-	err = subscription.UpdateState(SubscriptionStateCanceled)
+	err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
 
 	return err
 }

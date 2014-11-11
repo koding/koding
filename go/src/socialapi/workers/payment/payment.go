@@ -90,7 +90,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		return defaultResp, nil
 	}
 
-	subscriptions, err := stripe.FindCustomerActiveSubscriptions(customer)
+	subscriptions, err := stripe.FindCustomerSubscriptions(customer)
 	if err != nil {
 		return defaultResp, nil
 	}
@@ -100,6 +100,10 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	}
 
 	currentSubscription := subscriptions[0]
+
+	if currentSubscription.State == SubscriptionStateCanceled {
+		return defaultResp, nil
+	}
 
 	plan := &paymentmodels.Plan{}
 	err = plan.ById(currentSubscription.PlanId)
