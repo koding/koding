@@ -83,7 +83,7 @@ func TestCancelSubscription(t *testing.T) {
 					So(len(subscriptions), ShouldEqual, 1)
 
 					currentSubscription := subscriptions[0]
-					So(currentSubscription.State, ShouldEqual, SubscriptionStateCanceled)
+					So(currentSubscription.State, ShouldEqual, paymentmodels.SubscriptionStateCanceled)
 				})
 			})
 		}),

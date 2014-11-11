@@ -50,3 +50,7 @@ func (s *Subscription) Find(selector map[string]interface{}) error {
 	err := s.One(bongo.NewQS(selector))
 	return err
 }
+
+func (s *Subscription) Delete() error {
+	return bongo.B.Delete(s)
+}
