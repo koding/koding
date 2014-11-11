@@ -116,8 +116,10 @@ func handleUpgrade(token string, customer *paymentmodels.Customer, plan *payment
 }
 
 func parsePlanInfo(str string) (string, string) {
-	split := strings.Split(str, "-")
-	planTitle, planInterval := split[0], split[1]
+	split := strings.Split(str, " ")
+
+	planTitle := strings.ToLower(split[0])
+	planInterval := strings.ToLower(split[1])
 
 	return planTitle, planInterval
 }

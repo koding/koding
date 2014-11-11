@@ -6,6 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/workers/payment/paymentmodels"
 	"strconv"
+	"strings"
 
 	"github.com/koding/logging"
 	"github.com/koding/paypal"
@@ -90,5 +91,7 @@ func getInterval(interval string) string {
 }
 
 func goodName(plan *paymentmodels.Plan) string {
-	return fmt.Sprintf("%s-%s", plan.Title, plan.Interval)
+	return fmt.Sprintf("%s %s",
+		strings.ToTitle(plan.Title), strings.ToTitle(plan.Interval),
+	)
 }
