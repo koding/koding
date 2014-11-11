@@ -15,10 +15,18 @@ import (
 
 type Securer struct {
 	v              reflect.Value
-	securer        reflect.Value
-	permissionName string
+	securer        reflect.Value // this holds the securer handler, customized
+	permissionName string        // this holds the permision name for securer function
 }
 
+// this function is copied from https://github.com/rcrowley/go-
+// tigertonic/blob/master/marshaler.go#L25 while it is working with json data,
+// it is also providing secure request mechanism i tried to keep the changeset
+// as small as possible.
+//
+// Changes:
+// 		function signature, added "securer interface{}, permissionName string"
+//  	struct initialization, "added two new fields"
 func Secure(i interface{}, securer interface{}, permissionName string) *Securer {
 	t := reflect.TypeOf(i)
 	if reflect.Func != t.Kind() {
@@ -76,6 +84,8 @@ func Secure(i interface{}, securer interface{}, permissionName string) *Securer 
 	}
 }
 
+// createSecurerSignature checks and creates securer for processing
+// panics if signature is not correct
 func createSecurerSignature(securer interface{}) reflect.Value {
 	t := reflect.TypeOf(securer)
 	if reflect.Func != t.Kind() {
@@ -110,7 +120,12 @@ func createSecurerSignature(securer interface{}) reflect.Value {
 }
 
 // ServeHTTP unmarshals JSON input, handles the request via the function, and
-// marshals JSON output.
+// marshals JSON output. Before processing the request it checks if the context
+// is allowed to operate
+//
+// This function is also shamelessly copied fromhttps://github.com/rcrowley/go-
+// tigertonic/blob/master/marshaler.go#L25 Only addition to that function is
+// "securer.Call"
 func (m *Securer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wHeader := w.Header()
 	if !acceptJSON(r) {
@@ -250,6 +265,8 @@ func (m *Securer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+// Below this line is from tigertonic package, Error name is changed
 
 // SecurerError is the response body for some 500 responses and panics
 // when a handler function is not suitable.
