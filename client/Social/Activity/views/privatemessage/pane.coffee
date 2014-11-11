@@ -34,22 +34,27 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
-    @input.input.on 'InputHeightChanged', => @_windowDidResize null, yes
+    @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
 
     @input.input.on 'blur', => @setCss 'height', 'none'
 
     @listenWindowResize()
 
 
-  _windowDidResize: (event, scrollDown)->
+
+  handleAutoGrow: ->
 
     headerHeight = @participantsView.getHeight()
     inputHeight  = @input.getHeight()
     windowHeight = window.innerHeight
-
     @scrollView.setHeight windowHeight - inputHeight - headerHeight
-    @scrollView.verticalTrack.thumb.handleMutation()
-    @scrollDown()  if scrollDown
+    @scrollDown()
+    @_windowDidResize()
+
+
+  _windowDidResize: (event) ->
+
+    KD.utils.defer => @scrollView.wrapper.emit 'MutationHappened'
 
 
   #
@@ -446,6 +451,8 @@ class PrivateMessagePane extends MessagePane
   show: ->
 
     super
+
+    @_windowDidResize()
 
     KD.utils.defer @bound 'focus'
 

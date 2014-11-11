@@ -63,7 +63,7 @@ module.exports = class JWFGH extends Model
 
   getUserStats = (username, callback) ->
 
-    JWFGH.one {username}, (err, applied)->
+    JWFGH.one { username }, (err, applied)->
 
       return callback err  if err
 
@@ -71,41 +71,32 @@ module.exports = class JWFGH extends Model
       isApproved  = applied?.approved
       isWinner    = applied?.winner
 
-      callback null, {isApplicant, isApproved, isWinner}
+      callback null, { isApplicant, isApproved, isWinner }
 
 
   @getStats = (account, callback) ->
 
-    JCampaign.get 'WFGH', (err, campaign) ->
+    JCampaign.get 'WFGH', (err, _campaign) ->
 
-      if err or not campaign or not campaign.content.active
+      if err or not _campaign or not _campaign.content.active
 
         return callback message : 'expired'
 
-      JWFGH.count {}, (err, totalApplicants)->
+      kallback = (err, userStats) ->
+        {isApplicant, isApproved, isWinner} = userStats
 
-        return callback err  if err
+        campaign           = _campaign.content
+        totalApplicants    = campaign.totalApplicants or 0
+        approvedApplicants = campaign.approvedApplicants or 0
 
-        JWFGH.count approved : yes, (err, realApprovedApplicants)->
+        res = { approvedApplicants, totalApplicants, isApplicant, isApproved, isWinner, campaign }
 
-          return callback err  if err
+        callback err, res
 
-          kallback = (err, userStats) ->
-            {isApplicant, isApproved, isWinner} = userStats
-
-            approvedApplicants = campaign.content.approvedApplicants or 0
-            aac                = realApprovedApplicants
-
-            callback err, {
-              totalApplicants, approvedApplicants, aac
-              isApplicant, isApproved, isWinner
-              campaign: campaign.content
-            }
-
-          if username = account?.profile?.nickname
-          then getUserStats username, kallback
-          else kallback null, {
-            isWinner      : no
-            isApproved    : no
-            isApplication : no
-          }
+      if username = account?.profile?.nickname
+      then getUserStats username, kallback
+      else kallback null, {
+        isWinner      : no
+        isApproved    : no
+        isApplication : no
+      }

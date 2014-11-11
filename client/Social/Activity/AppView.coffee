@@ -47,8 +47,7 @@ class ActivityAppView extends KDView
       KD.utils.defer ->
         pane.applyScrollTops()
 
-      KD.utils.wait 50, ->
-        pane.scrollView.verticalTrack.thumb.handleMutation()
+      KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
 
