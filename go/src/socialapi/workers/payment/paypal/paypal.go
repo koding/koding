@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/workers/payment/paymentmodels"
-	"strconv"
 	"strings"
 
 	"github.com/koding/logging"
@@ -64,7 +63,7 @@ func amount(cents uint64) float64 {
 }
 
 func normalizeAmount(amount uint64) string {
-	return strconv.Itoa(int(amount))
+	return fmt.Sprintf("%G", float64(amount)/100)
 }
 
 func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
