@@ -14,6 +14,8 @@ type Customer struct {
 
 	OldId string `json:"oldId"`
 
+	Username string `json:"username"`
+
 	// Id of customer in 3rd payment provider like Stripe.
 	ProviderCustomerId string `json:"providerCustomerId"`
 
