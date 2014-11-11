@@ -66,14 +66,16 @@ class SidebarSearchModal extends KDModalView
 
     @addSubView @listController.getView()
 
-    @listController.on 'LazyLoadThresholdReached', @bound 'handleLazyLoad'
+    debouncedLazyLoad = KD.utils.debounce 300, @bound 'handleLazyLoad'
+
+    @listController.on 'LazyLoadThresholdReached', debouncedLazyLoad
 
     @fetch {}, @bound 'populate'
 
 
   populate: (items) ->
 
-    return unless items?.length?
+    return  unless items?.length?
 
     @listController.addItem itemData for itemData in items
 
