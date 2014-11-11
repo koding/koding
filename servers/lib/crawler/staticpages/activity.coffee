@@ -31,8 +31,6 @@ prepareComments = (activityContent)->
     {replier, message}                 = comment
     {createdAt}                        = message
     {hash, avatar, nickname, fullName} = replier
-    date                               = new Date createdAt
-    createdAt                          = "#{date.getDate()}. #{date.getMonth()}. #{date.getFullYear()} - #{date.getHours()}:#{date.getMinutes()}"
     createdAt                          = createCreationDate createdAt
     avatarImage                        = createAvatarImage hash, avatar, 30
 

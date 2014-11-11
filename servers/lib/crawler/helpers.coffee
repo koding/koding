@@ -75,7 +75,8 @@ prepareComments = (models, activity, callback) ->
         console.error "Could not fetch replier information #{reply.accountOldId}"
         return queue.next()
 
-      reply.replier = getProfile account
+      reply.replier   = getProfile account
+      reply.message.createdAt = renderCreatedAt reply
       queue.next()
 
   queue.push ->
