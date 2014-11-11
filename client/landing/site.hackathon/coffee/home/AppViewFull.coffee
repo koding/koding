@@ -425,9 +425,15 @@ module.exports = class HomeViewFull extends KDView
         <ul>
           <li>
             <figure>
+              <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
+              <figcaption>The top winning team will receive <strong>$5,000</strong> in account credit from <a href='http://www.digitalocean.com' target='_blank'>Digital Ocean</a>.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
               <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
               <figcaption>The top-performing team that has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account will receive an extra <strong>$2,500</strong>. 
-              Be sure to add your oDesk or Elance userID to the questionnaire that we send you."</figcaption>
+              Be sure to add your oDesk or Elance userID to the questionnaire that we send you.</figcaption>
             </figure>
           </li>
           <li>
