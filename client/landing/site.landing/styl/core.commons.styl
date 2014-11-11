@@ -666,8 +666,28 @@ footer.main-footer
   a.social
     display             inline-block
     margin-right        8px
+    size                32px, 32px
+    background          #cacaca
+    rounded             50%
+    text-align          center
+    padding             7px 0 0 0
+    borderBox()
+
+    &:after
+      content           ''
+      display           inline-block
+
     &.tw
-      r-sprite          home 'social-tw'
+      &:hover
+        background      #55acee
+
+      &:after
+        r-sprite        home 'social-tw'
+
     &.fb
-      r-sprite          home 'social-fb'
+      &:hover
+        background      #3b5998
+
+      &:after
+        r-sprite        home 'social-fb'
 
