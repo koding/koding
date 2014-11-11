@@ -5,6 +5,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     Starting, Building, Stopping, Rebooting, Terminating, Updating
   } = Machine.State
 
+  EVENT_TIMEOUT = 2 * 60 * 1000 # 2 minutes.
+
   constructor: (options = {}, data) ->
 
     options.cssClass or= 'env-machine-state'
@@ -40,12 +42,36 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     computeController.followUpcomingEvents @machine
 
+    @eventTimer = null
+    @_lastPercentage = 0
+
+
+  triggerEventTimer: (percentage)->
+
+    if percentage isnt @_lastPercentage
+      clearTimeout @eventTimer
+    else unless @eventTimer
+      @eventTimer = KD.utils.wait EVENT_TIMEOUT, @bound 'createRetry'
+
+    @_lastPercentage = percentage
+
+
+  clearEventTimer: ->
+
+    @retryView?.destroy()
+    @eventTimer = clearTimeout @eventTimer
+
+
   updateStatus: (event, task) ->
 
     {status, percentage, error} = event
 
     if status is @state
+
       if percentage?
+
+        @triggerEventTimer percentage
+
         @progressBar?.updateBar Math.max percentage, 10
         @progressBar?.show()
 
@@ -57,6 +83,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       if percentage?
 
         if percentage is 100
+
+          @clearEventTimer()
 
           if status is Running
             @prepareIDE()
@@ -74,7 +102,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
           @progressBar?.show()
           @label?.updatePartial @getStateLabel()
 
+          @triggerEventTimer percentage
+
         else
+
+          @clearEventTimer()
           @buildViews()
 
       else
@@ -120,13 +152,16 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @state = response.State
 
     @container.destroySubViews()
+    @progressBar = null
 
     @createStateLabel()
 
     if @state in [ Stopped, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping, Terminating, Updating, Rebooting ]
-      @createProgressBar response?.percentage
+      {percentage} = response?
+      @createProgressBar percentage
+      @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
 
@@ -211,6 +246,19 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @container.addSubView @progressBar
 
 
+  createRetry: ->
+
+    @retryView?.destroy()
+
+    return  unless @progressBar?
+
+    @container.addSubView @retryView = new KDCustomHTMLView
+      cssClass : 'error-message warning'
+      partial  : """
+        <p>It takes longer than expected, you can try to reload page.</p>
+      """
+
+
   createFooter: ->
 
     return  unless @state is Stopped
@@ -263,7 +311,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       cssClass    : 'error-message'
       partial     : """
         <p>There was an error when initializing your VM.</p>
-        <span>Please try again or <span
+        <span>Please try reloading this page or <span
         class="contact-support">contact support</span> for further
         assistance.</span>
       """
