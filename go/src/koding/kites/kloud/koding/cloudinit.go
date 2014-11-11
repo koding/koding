@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-
-	"koding/db/mongodb/modelhelper"
-	"koding/migrators/useroverlay/token"
 )
 
 var (
@@ -160,90 +157,6 @@ write_files:
       or send us an email at support@koding.com
     path: /home/{{.Username}}/README.md
 
-
-{{if .ShouldMigrate }}
-  # User migration script (~/migrate.sh)
-  - content: |
-      #!/bin/bash
-      username={{.Username}}
-      credentials=({{.Passwords}})
-      vm_names=({{.VmNames}})
-      vm_ids=({{.VmIds}})
-      count=$((${#credentials[@]} - 1))
-      counter=0
-      clear
-      if [ -f /etc/koding/.kodingart.txt ]; then
-        cat /etc/koding/.kodingart.txt
-      fi
-      echo
-      echo 'This migration assistant will help you move your VMs from the old Koding'
-      echo 'environment to the new one. For each VM that you have, we will copy your'
-      echo 'home directory from the old VM into a Backup directory on the new one.'
-      echo
-      echo 'Please note:'
-      echo '  - This script will copy changed files on the old VM and place them in '
-      echo '    the Backup directory of the new VM'
-      echo '  - This script will NOT install or configure any software'
-      echo '  - This script will NOT place any files outside your home directory.'
-      echo '    You will need to move those files yourself.'
-      echo '  - This script will NOT start any servers or configure any ports.'
-      echo
-      if [[ ${#vm_names[@]} -eq 1 ]]; then
-        index=0
-        confirm=''
-        while true; do
-          read -p "Do you wish to continue?" yn
-          case $yn in
-            [Yy]* ) break;;
-            [Nn]* ) exit;;
-            * ) echo "Please answer yes or no.";;
-          esac
-        done
-      else
-        echo "Your VMs:"
-        echo
-        for vm in "${vm_names[@]}"; do
-          echo " - [$counter] $vm"
-          let counter=counter+1
-        done
-        echo
-        index=''
-        while [[ ! $index =~ ^[0-9]+$ || $index -ge $counter ]]; do
-          echo -n "Which vm would you like to migrate? (0-$count) "
-          read index
-        done
-      fi
-      vm_name="${vm_names[$index]}"
-      echo
-      echo "Downloading files from $vm_name (this could take a while)..."
-      echo
-      archive="$vm_name.tgz"
-      status=$(echo "-XPOST -u $username:${credentials[$index]} -d vm=${vm_ids[$index]} -w %{http_code} --progress-bar --insecure https://migrate.sj.koding.com:3000/export-files" -o $archive | xargs curl)
-      echo "HTTP status: $status"
-      echo
-      if [[ $status -ne 200 ]]; then
-        error=$(cat $archive)
-        rm $archive
-        echo "An error occurred: $error"
-        echo
-        echo "Migration failed. Try again or contact support@koding.com"
-        echo
-        exit 1
-      fi
-      echo "Extracting your files to directory $(pwd)/Backup/$vm_name..."
-      mkdir -p Backup/$vm_name
-      tar -xzvf $archive -C Backup/$vm_name --strip-components=1 > /dev/null
-      rm $archive
-      echo
-      echo "You have successfully migrated $vm_name to the new Koding environment."
-      echo "The files have been placed in /home/$username/Backup/$vm_name. Please use"
-      echo 'the unzip command to access the files and then move or copy them into the'
-      echo 'appropriate directories in your new VM.'
-      echo
-    path: /home/{{.Username}}/migrate.sh
-    permissions: '0755'
-{{end}}
-
 runcmd:
   # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
   - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
@@ -287,44 +200,4 @@ type CloudInitConfig struct {
 	LatestKlientURL string // URL of the latest version of the Klient package
 	ApachePort      int    // Defines the base apache running port, should be 80 or 443
 	KitePort        int    // Defines the running kite port, like 3000
-
-	// Needed for migrate.sh script
-	Passwords     string
-	VmNames       string
-	VmIds         string
-	ShouldMigrate bool
-
-	Test bool
-}
-
-func (c *CloudInitConfig) setupMigrateScript() {
-	// FIXME: Hack. Revise here.
-	if c.Test {
-		c.ShouldMigrate = true
-		return
-	}
-	vms, err := modelhelper.GetUserVMs(c.Username)
-	if err != nil {
-		return
-	}
-	if len(vms) == 0 {
-		return
-	}
-
-	passwords := make([]string, len(vms))
-	vmIds := make([]string, len(vms))
-	vmNames := make([]string, len(vms))
-
-	for _, vm := range vms {
-		id := vm.Id.Hex()
-		passwords = append(passwords, token.StringToken(c.Username, id))
-		vmIds = append(vmIds, id)
-		vmNames = append(vmNames, vm.HostnameAlias)
-	}
-
-	c.Passwords = strings.Join(passwords, " ")
-	c.VmIds = strings.Join(vmIds, " ")
-	c.VmNames = strings.Join(vmNames, " ")
-
-	c.ShouldMigrate = true
 }

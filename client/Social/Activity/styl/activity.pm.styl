@@ -36,8 +36,9 @@ timeColor2 = #5F9E5E
 
 
   .message-pane-scroller
-    padding             0
-    height              calc(100% \- 85px)
+    vendor                transition, opacity .3s .3s ease\, background-color .177s ease
+    padding               0
+    height                calc(100% \- 85px)
 
     &.has-vertical
       padding-right       0
@@ -45,8 +46,12 @@ timeColor2 = #5F9E5E
     .kdview.kdscrolltrack
       bg                  color transparent
       overflow            visible
+
       &.out
         opacity           1
+
+      &:hover
+        background-color  rgba(0,0,0,.02) !important
 
       .kdscrollthumb
         bg                color rgba(0,0,0,.15)

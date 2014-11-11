@@ -57,13 +57,6 @@ class ActivityAppView extends KDView
       pane.setScrollTops()
 
 
-  scroll: ->
-
-    if window.scrollY > 316
-    then @setClass 'fixed'
-    else @unsetClass 'fixed'
-
-
   # type: [topic|post|message|chat|null]
   # slug: [slug|id|name]
   open: (type, slug) ->
