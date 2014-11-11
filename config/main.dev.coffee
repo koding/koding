@@ -340,7 +340,6 @@ Configuration = (options={}) ->
     killlist = ->
       str = "kill -KILL "
       str += "$#{key}pid " for key,val of KONFIG.workers
-      str += " $$" #kill self
 
       return str
 
@@ -451,13 +450,16 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-        ps | grep koding- | awk '{print $1}' | xargs kill -9
-
-        # do not change the order.
-        # killist comes last - it kills itself thus nothing can run after.
         #{killlist()}
+
+        echo "killing hanged processes"
+        # there is race condition, that killlist() can not kill all process
+        sleep 3
+
+
+        # both of them are  required
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        pkill -9 koding-
       }
 
       function nginxstop () {
