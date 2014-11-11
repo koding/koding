@@ -101,3 +101,28 @@ func InvoiceCreatedWebhook(raw []byte) error {
 
 	return err
 }
+
+//----------------------------------------------------------
+// CustomerDeleted
+//----------------------------------------------------------
+
+type CustomerDeletedWebhookRequest struct {
+	ID string `json:"id"`
+}
+
+func CustomerDeletedWebhook(raw []byte) error {
+	var req *CustomerDeletedWebhookRequest
+
+	err := json.Unmarshal(raw, &req)
+	if err != nil {
+		return err
+	}
+
+	customer := paymentmodels.NewCustomer()
+	err = customer.ByProviderCustomerId(req.ID)
+	if err != nil {
+		return err
+	}
+
+	return customer.DeleteSubscriptionsAndItself()
+}
