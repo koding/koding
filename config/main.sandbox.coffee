@@ -183,6 +183,7 @@ Configuration = (options={}) ->
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
+    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
 
       # END: PROPERTIES SHARED WITH BROWSER #
 

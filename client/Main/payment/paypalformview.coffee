@@ -28,7 +28,7 @@ class PaypalFormView extends KDFormViewWithFields
 
       @state.token = token
 
-      actionUrl = "https://www.sandbox.paypal.com/incontext?token=#{token}"
+      actionUrl = "#{KD.config.paypal.formUrl}?token=#{token}"
       @setAttribute 'action', actionUrl
       @setAttribute 'method', 'post'
 
