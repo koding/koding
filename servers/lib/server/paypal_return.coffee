@@ -9,9 +9,9 @@ koding  = require './bongo'
   "../../../workers/social/lib/social/models/socialapi/requests.coffee"
 )
 
-templateFn = (err)->
+templateFn = (err, res)->
   err = if err? then "\"#{err.message or err}\"" else null
-  tempalte = """
+  template = """
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -36,4 +36,4 @@ module.exports = (req, res) ->
       return templateFn err  if err
 
       params = { token, accountId : account._id }
-      post "/payments/paypal/return", params, (err)-> templateFn err
+      post "/payments/paypal/return", params, (err)-> templateFn err, res
