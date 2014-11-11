@@ -14,6 +14,8 @@ import (
 const (
 	CurrencyCode = "USD"
 	ProviderName = "paypal"
+	Month        = "Month"
+	Year         = "Year"
 )
 
 var (
@@ -79,11 +81,11 @@ func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
 func getInterval(interval string) string {
 	switch interval {
 	case "monthly":
-		return "Month"
+		return Month
 	case "yearly":
-		return "Year"
+		return Year
 	default:
-		return "Month"
+		return Month
 	}
 }
 
