@@ -101,7 +101,9 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 
 	currentSubscription := subscriptions[0]
 
-	if currentSubscription.State == SubscriptionStateCanceled {
+	// cancel implies user took the action after satisfying provider limits,
+	// therefore we return `free` plan for them
+	if currentSubscription.State == paymentmodels.SubscriptionStateCanceled {
 		return defaultResp, nil
 	}
 
