@@ -39,7 +39,7 @@ func TestCustomer2(t *testing.T) {
 			sub := subscriptions[0]
 
 			Convey("Then it should unsubscribe user", func() {
-				So(sub.State, ShouldEqual, SubscriptionStateCanceled)
+				So(sub.State, ShouldEqual, paymentmodels.SubscriptionStateCanceled)
 			})
 
 			Convey("Then it should delete customer in Stripe", func() {
