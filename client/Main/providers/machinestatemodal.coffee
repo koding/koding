@@ -159,7 +159,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     if @state in [ Stopped, NotInitialized, Unknown ]
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping, Terminating, Updating, Rebooting ]
-      {percentage} = response?
+      percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
     else if @state is Terminated
