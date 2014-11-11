@@ -876,9 +876,12 @@ utils.extend utils,
 
       return  if (queue.push callback) > 1
 
-      $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
-
-        if status is "success"
+      $.ajax
+        url      : '//freegeoip.net/json/?callback=?'
+        error    : fail
+        timeout  : 3000
+        dataType : 'json'
+        success  : (data)->
 
           { ip, country_code, region_code } = data
 
@@ -889,10 +892,6 @@ utils.extend utils,
             cb null, { ip, country, region }
 
           queue = []
-
-        else do fail
-
-      .fail -> do fail
 
 
   s3upload: (options, callback = noop)->

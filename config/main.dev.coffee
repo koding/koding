@@ -26,7 +26,10 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
+
+  host                = options.host or "koding-#{process.env.USER}.ngrok.com"
+  customDomain        = { public: "http://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510        }
@@ -337,7 +340,6 @@ Configuration = (options={}) ->
     killlist = ->
       str = "kill -KILL "
       str += "$#{key}pid " for key,val of KONFIG.workers
-      str += " $$" #kill self
 
       return str
 
@@ -448,14 +450,16 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-
-        nginxstop
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-        ps | grep koding- | awk '{print $1}' | xargs kill -9
-
-        # do not change the order.
-        # killist comes last - it kills itself thus nothing can run after.
         #{killlist()}
+
+        echo "killing hanged processes"
+        # there is race condition, that killlist() can not kill all process
+        sleep 3
+
+
+        # both of them are  required
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        pkill -9 koding-
       }
 
       function nginxstop () {
@@ -576,8 +580,6 @@ Configuration = (options={}) ->
         cd #{projectRoot}
 
         migrate up
-
-        nginxrun
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
