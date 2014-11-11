@@ -263,6 +263,10 @@ type RuntimeOptions struct {
 	} `json:"entryPoint"`
 	Roles       []string      `json:"roles"`
 	Permissions []interface{} `json:"permissions"`
+	SiftScience string        `json:"siftScience"`
+	Paypal      struct {
+		FormUrl string `json:"formUrl"`
+	}
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

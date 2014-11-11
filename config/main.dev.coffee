@@ -144,6 +144,9 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'a41deacd57929378'
 
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
+
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
     client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
