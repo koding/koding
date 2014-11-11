@@ -23,9 +23,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
-    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
+    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange) =>
       @closeUntitledFileIfNotChanged()
-      @openFile file, contents, callback
+      @openFile file, contents, callback, emitChange
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -61,7 +61,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     return pane
 
-  createEditor: (file, content, callback = noop) ->
+  createEditor: (file, content, callback = noop, emitChange = yes) ->
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
     editorPane  = new IDE.EditorPane { file, content, delegate: this }
@@ -87,15 +87,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @createPane_ editorPane, paneOptions, file
 
-    change        =
-      context     :
-        file      :
-          content : content
-          path    : file.path
-          machine :
-            uid   : file.machine.uid
+    if emitChange
+      change        =
+        context     :
+          file      :
+            content : content
+            path    : file.path
+            machine :
+              uid   : file.machine.uid
 
-    @emitChange editorPane, change
+      @emitChange editorPane, change
 
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
@@ -223,12 +224,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
 
-  openFile: (file, content, callback = noop) ->
+  openFile: (file, content, callback = noop, emitChange) ->
     if @openFiles.indexOf(file) > -1
       editorPane = @switchToEditorTabByFile file
       callback editorPane
     else
-      @createEditor file, content, callback
+      @createEditor file, content, callback, emitChange
       @openFiles.push file
 
   switchToEditorTabByFile: (file) ->

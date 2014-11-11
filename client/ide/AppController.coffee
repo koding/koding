@@ -238,8 +238,8 @@ class IDEAppController extends AppController
       parentSplitView.options.views[panelIndexInParent] = ideView
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
-  openFile: (file, contents, callback = noop) ->
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback
+  openFile: (file, contents, callback = noop, emitChange) ->
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
 
   openMachineTerminal: (machineData) ->
     @activeTabView.emit 'MachineTerminalRequested', machineData
@@ -918,7 +918,7 @@ class IDEAppController extends AppController
       file    = FSHelper.createFileInstance path
       content = @rtm.getFromModel(@realTimeDoc, path).getText()
 
-      @openFile file, content
+      @openFile file, content, noop, no
 
     if context.paneType is 'drawing'
       @createNewDrawing context.paneHash
