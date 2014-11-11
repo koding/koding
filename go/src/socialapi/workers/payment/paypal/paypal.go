@@ -91,6 +91,6 @@ func getInterval(interval string) string {
 
 func goodName(plan *paymentmodels.Plan) string {
 	return fmt.Sprintf("%s %s",
-		strings.ToTitle(plan.Title), strings.ToTitle(plan.Interval),
+		strings.Title(plan.Title), strings.Title(plan.Interval),
 	)
 }
