@@ -118,6 +118,10 @@ func handleUpgrade(token string, customer *paymentmodels.Customer, plan *payment
 func parsePlanInfo(str string) (string, string) {
 	split := strings.Split(str, " ")
 
+	if len(split) < 2 {
+		Log.Error("PlanInfo from paypal is wrong: %s", str)
+	}
+
 	planTitle := strings.ToLower(split[0])
 	planInterval := strings.ToLower(split[1])
 

@@ -126,7 +126,7 @@ func subscribeResponse() []byte {
 func checkoutResponse() []byte {
 	values := url.Values{}
 	values.Set("ACK", "Success")
-	values.Set("L_PAYMENTREQUEST_0_NAME0", "hobbyist-month")
+	values.Set("L_PAYMENTREQUEST_0_NAME0", "Hobbyist Month")
 
 	return []byte(values.Encode())
 }
