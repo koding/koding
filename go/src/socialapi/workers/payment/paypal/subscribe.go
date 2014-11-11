@@ -37,13 +37,14 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	var subscription *paymentmodels.Subscription
 	if customer != nil {
 		subscription, err = customer.FindActiveSubscription()
-		if err != nil {
+		if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 			return err
 		}
 	}
 
 	status, err := checkStatus(customer, err, plan)
 	if err != nil {
+		Log.Error("Subscribing to %s failed for user: %s", plan.Title, customer.Username)
 		return err
 	}
 
@@ -52,6 +53,8 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
 	case NewSubscription:
 		err = handleNewSubscription(token, accId, plan)
+	case ExistingUserHasNoSubscription:
+		err = handleExistingUser(token, accId, plan)
 	case DowngradeToFreePlan:
 		err = handleCancelation(customer, subscription)
 	case Downgrade:
@@ -59,6 +62,7 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	case Upgrade:
 		err = handleUpgrade(token, customer, plan)
 	default:
+		Log.Error("User: %s fell into default case when subscribing: %s", customer.Username, plan.Title)
 		// user should never come here
 	}
 
@@ -67,6 +71,15 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 
 func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error {
 	customer, err := CreateCustomer(accId)
+	if err != nil {
+		return err
+	}
+
+	return CreateSubscription(token, plan, customer)
+}
+
+func handleExistingUser(token, accId string, plan *paymentmodels.Plan) error {
+	customer, err := FindCustomerByOldId(accId)
 	if err != nil {
 		return err
 	}

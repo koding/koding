@@ -9,13 +9,14 @@ import (
 type status int
 
 const (
-	Default                 status = iota
-	Error                   status = iota
-	AlreadySubscribedToPlan status = iota
-	NewSubscription         status = iota
-	DowngradeToFreePlan     status = iota
-	Downgrade               status = iota
-	Upgrade                 status = iota
+	Default                       status = iota
+	Error                         status = iota
+	AlreadySubscribedToPlan       status = iota
+	NewSubscription               status = iota
+	ExistingUserHasNoSubscription status = iota
+	DowngradeToFreePlan           status = iota
+	Downgrade                     status = iota
+	Upgrade                       status = iota
 )
 
 func checkStatus(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan) (status, error) {
@@ -24,8 +25,12 @@ func checkStatus(customer *paymentmodels.Customer, err error, plan *paymentmodel
 	}
 
 	currentSubscription, err := customer.FindActiveSubscription()
-	if err != nil {
+	if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 		return Error, err
+	}
+
+	if err == paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
+		return ExistingUserHasNoSubscription, nil
 	}
 
 	oldPlan := paymentmodels.NewPlan()

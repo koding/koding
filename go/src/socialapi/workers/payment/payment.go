@@ -225,7 +225,7 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 
 type PaypalRequest struct {
 	Token     string `json:"token"`
-	AccountId string `json:accountId`
+	AccountId string `json:"accountId"`
 }
 
 func (p *PaypalRequest) Success() (interface{}, error) {
