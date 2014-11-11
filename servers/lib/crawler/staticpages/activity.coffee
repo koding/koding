@@ -95,11 +95,6 @@ getActivityContent = (activityContent)->
               <span>#{displayCommentCount}</span>
             </a>
           </span>
-          <span class="optional action-container">
-            <a class="custom-link-view" href="#">
-              <span class="title">Share</span>
-            </a>
-          </span>
         </div>
       </div>
       <div class="kdview comment-container static #{hasComments}">
