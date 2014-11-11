@@ -72,3 +72,24 @@ func (c *Customer) ByProviderCustomerId(id string) error {
 
 	return err
 }
+
+func (c *Customer) FindSubscriptions() ([]Subscription, error) {
+	if c.Id == 0 {
+		return nil, ErrIdNotSet
+	}
+
+	query := &bongo.Query{
+		Selector: map[string]interface{}{"customer_id": c.Id},
+		Sort:     map[string]string{"created_at": "DESC"},
+	}
+
+	var subscriptions = []Subscription{}
+
+	s := Subscription{}
+	err := s.Some(&subscriptions, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return subscriptions, nil
+}

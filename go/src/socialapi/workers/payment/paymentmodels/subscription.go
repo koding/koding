@@ -1,6 +1,7 @@
 package paymentmodels
 
 import (
+	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -101,6 +102,18 @@ func (s *Subscription) Cancel() error {
 	err = customer.ById(s.CustomerId)
 	if err != nil {
 		return err
+	}
+
+	subscriptions, err := customer.FindSubscriptions()
+	if err != nil {
+		return err
+	}
+
+	for _, subscription := range subscriptions {
+		err := subscription.Delete()
+		if err != nil {
+			fmt.Println("Deleting user: %s subscription: %s failed: %v", customer.Username, subscription.Id, err)
+		}
 	}
 
 	return customer.Delete()
