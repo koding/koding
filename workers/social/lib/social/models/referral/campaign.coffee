@@ -1,16 +1,28 @@
 {Model}   = require 'bongo'
 jraphical = require 'jraphical'
+
 module.exports = class JReferralCampaign extends jraphical.Module
 
   {signature, secure} = require 'bongo'
+
+  @trait __dirname, '../../traits/protected'
+
+  {permit} = require '../group/permissionset'
+
   @share()
 
   @set
+
+    permissions              :
+      'manage campaign'      : []
+
     sharedEvents             :
       static                 : []
       instance               : []
+
     indexes                  :
       name                   : 'unique'
+
     schema                   :
       name                   : String
       slug                   : String
@@ -58,33 +70,27 @@ module.exports = class JReferralCampaign extends jraphical.Module
           (signature Object, Function)
         ]
 
-  @create = secure (client, data, callback) ->
-    checkPermission client, (err, res)=>
-      return callback err if err
+  @create = permit 'manage campaign',
+
+    success: (client, data, callback) ->
+
       campaign = new JReferralCampaign data
       campaign.save (err)->
-        return callback err if err
-        return callback null, campaign
+        return callback err  if err
+        callback null, campaign
 
-  checkPermission: checkPermission = (client, callback)->
-    {context:{group}} = client
-    JGroup = require "../group"
-    JGroup.one {slug:group}, (err, group)=>
-      return callback err if err
-      return callback new Error "group not found" unless group
-      group.canEditGroup client, (err, hasPermission)=>
-        return callback err if err
-        return callback new Error "Can not edit group" unless hasPermission
-        return callback null, yes
 
-  update$: secure (client, data, callback)->
-    @checkPermission client, (err, res)=>
-      return callback err if err
-      @update {$set:data}, callback
+  update$: permit 'manage campaign',
 
-  remove$: secure (client, callback)->
-    @checkPermission client, (err, res)=>
-      return callback err if err
+    success: (client, data, callback)->
+
+      @update $set: data, callback
+
+
+  remove$: permit 'manage campaign',
+
+    success: (client, data, callback)->
+
       @remove callback
 
   REGISTER_CAMPAIGN = "register"
