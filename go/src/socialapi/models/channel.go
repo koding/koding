@@ -460,7 +460,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	query := bongo.B.BuildQuery(c, bongoQuery)
-	query = query.Where("name like ?", "%"+q.Name+"%")
+
+	// use 'ilike' for case-insensitive search
+	query = query.Where("name ilike ?", "%"+q.Name+"%")
 
 	if err := bongo.CheckErr(
 		query.Find(&channels),
