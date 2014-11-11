@@ -447,21 +447,18 @@ Configuration = (options={}) ->
       function ctrl_c () {
         echo "ctrl_c detected. killing all processes..."
         kill_all
+      }
+
+      function kill_all () {
+        #{killlist()}
 
         echo "killing hanged processes"
         # there is race condition, that first kill_all can not kill all process
         sleep 3
 
-        kill_all
-      }
 
-      function kill_all () {
         # both of them are  required
-
         ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-
-        #{killlist()}
-
         pkill -9 koding-
       }
 
