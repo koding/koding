@@ -7,7 +7,6 @@ class PaypalFormView extends KDFormViewWithFields
     @state = KD.utils.extend @getInitialState(), options.state
 
     options.cssClass = KD.utils.curry 'paypal-form', options.cssClass
-
     options.fields = @getFields()
 
     super options, data
@@ -35,7 +34,8 @@ class PaypalFormView extends KDFormViewWithFields
       @emit 'PaypalTokenLoaded'
 
 
-  getFields: -> {
+  getFields: ->
+
     planTitle:
       defaultValue: @state.planTitle
       type: 'hidden'
@@ -44,12 +44,4 @@ class PaypalFormView extends KDFormViewWithFields
       defaultValue: @state.planInterval
       type: 'hidden'
       cssClass: 'hidden'
-    # success_url:
-    #   defaultValue: 'http://lvh.me:8090/-/payments/paypal/return'
-    #   type: 'hidden'
-    #   cssClass: 'hidden'
-    # cancel_url:
-    #   defaultValue: 'http://lvh.me:8090/-/payments/paypal/cancel'
-    #   type: 'hidden'
-    #   cssClass: 'hidden'
-  }
+

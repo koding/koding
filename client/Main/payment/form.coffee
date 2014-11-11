@@ -10,11 +10,11 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  getInitialState: -> {
+  getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
     provider     : PaymentWorkflow.provider.KODING
-  }
+
 
   constructor: (options = {}, data) ->
 
@@ -128,14 +128,14 @@ class PaymentForm extends JView
   initPaypalForm: ->
 
     new PaypalFormView
-      state: @state
-      buttons:
-        paypal:
-          type: 'submit'
-          domId: 'paypal-submit'
-          style: 'solid medium green submit-btn paypal'
-          title: 'CHECKOUT USING <figure></figure>'
-          callback: => @emit 'PaypalButtonClicked'
+      state        : @state
+      buttons      :
+        paypal     :
+          type     : 'submit'
+          domId    : 'paypal-submit'
+          style    : 'solid medium green submit-btn paypal'
+          title    : 'CHECKOUT USING <figure></figure>'
+          callback : => @emit 'PaypalButtonClicked'
 
 
   initPaypalClient: ->

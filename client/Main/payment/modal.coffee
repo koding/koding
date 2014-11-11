@@ -3,12 +3,11 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
-  getInitialState: -> {
+  getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
     provider     : PaymentWorkflow.provider.KODING
     isUpgrade    : yes
-  }
 
 
   constructor: (options = {}, data) ->
