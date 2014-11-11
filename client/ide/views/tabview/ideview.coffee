@@ -142,7 +142,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createDrawingBoard: (paneHash) ->
     drawingPane = new IDE.DrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
-    @emitChange  drawingPane, context: {}
+
+    unless paneHash
+      @emitChange  drawingPane, context: {}
 
   createPreview: (url) ->
     previewPane = new IDE.PreviewPane { url }
