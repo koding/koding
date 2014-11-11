@@ -12,9 +12,13 @@ import (
 )
 
 var (
-	SubscriptionStateActive   = "active"
+	SubscriptionStateActive = "active"
+
+	// this is when user manually cancels
 	SubscriptionStateCanceled = "canceled"
-	SubscriptionStateExpired  = "expired"
+
+	// this is when user fails to pay
+	SubscriptionStateExpired = "expired"
 )
 
 func CreateSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Plan) (*paymentmodels.Subscription, error) {
