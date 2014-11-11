@@ -16,7 +16,7 @@ func SubscribeWithPlan(token, accId, planTitle, planInterval string) error {
 		return err
 	}
 
-	return _subscribe(token, accId, plan)
+	return subscribe(token, accId, plan)
 }
 
 func Subscribe(token, accId string) error {
@@ -25,10 +25,10 @@ func Subscribe(token, accId string) error {
 		return err
 	}
 
-	return _subscribe(token, accId, plan)
+	return subscribe(token, accId, plan)
 }
 
-func _subscribe(token, accId string, plan *paymentmodels.Plan) error {
+func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	customer, err := FindCustomerByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
