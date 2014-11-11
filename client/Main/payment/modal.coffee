@@ -60,7 +60,7 @@ class PaymentModal extends PaymentBaseModal
 
   handlePaypalNotAllowed: ->
 
-    @setTitle 'Contact support'
+    @setTitle 'Not allowed'
     @form.showPaypalNotAllowedStage()
 
 

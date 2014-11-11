@@ -175,9 +175,11 @@ class PaymentForm extends JView
       @$('.summary')
     ].forEach (view) -> view.detach()
 
+    {isUpgrade} = @state
+
     @existingCreditCardMessage.updatePartial "
-      It's not possible to upgrade with PayPal.
-      Please contact support.
+      We are sorry #{if isUpgrade then 'upgrades' else 'downgrades'} are disabled for Paypal.
+      Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
     "
 
 
