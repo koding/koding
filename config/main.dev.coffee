@@ -453,7 +453,7 @@ Configuration = (options={}) ->
         #{killlist()}
 
         echo "killing hanged processes"
-        # there is race condition, that first kill_all can not kill all process
+        # there is race condition, that killlist() can not kill all process
         sleep 3
 
 
