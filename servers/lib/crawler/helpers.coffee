@@ -76,6 +76,8 @@ prepareComments = (models, activity, callback) ->
         return queue.next()
 
       reply.replier   = getProfile account
+      {formatBody} = require './staticpages/bodyrenderer'
+      reply.message.body = formatBody reply.message.body
       reply.message.createdAt = renderCreatedAt reply
       queue.next()
 
