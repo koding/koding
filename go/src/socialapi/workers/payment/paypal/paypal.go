@@ -80,9 +80,9 @@ func handlePaypalErr(response *paypal.PayPalResponse, err error) error {
 
 func getInterval(interval string) string {
 	switch interval {
-	case "monthly":
+	case "month":
 		return Month
-	case "yearly":
+	case "year":
 		return Year
 	default:
 		return Month
