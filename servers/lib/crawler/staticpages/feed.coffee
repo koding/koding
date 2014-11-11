@@ -244,6 +244,9 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
           <div id="content-page-activity" class="kdview content-page activity activity-pane clearfix">
             <main class="kdview kdscrollview kdtabview app-content">
               #{content}
+              <nav class="crawler-pagination clearfix">
+                #{pagination}
+              </nav>
             </main>
           </div>
         </div>
