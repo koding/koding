@@ -283,16 +283,16 @@ body.home
           r-sprite        home 'slideshow-prev'
 
     > div
+      position            absolute !important
       height              483px
       max-height          575px
       width               742px
       margin              initial !important
       padding             0 !important
+      left                50%
       vendor              transform-style, preserve-3d
       vendor              perspective, 700
       vendor              transform, translateX(-50%)
-      left                50%
-      rel()
 
 
     figure
@@ -300,7 +300,7 @@ body.home
       opacity             0
       height              738px
       background          none !important
-      vendor              transform, translate3d(0, 0, 0)
+      vendor              transform, translateX(0) translateY(0) translateZ(0)
       -webkit-transition  -webkit-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
       -moz-transition     -moz-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
       transition          transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
@@ -359,7 +359,8 @@ body.home
 
       &.current
         opacity           1
-        vendor            transform, translate3d(0, 12px, 20px)
+        vendor            transform, translateX(0) translateY(12px) translateZ(20px)
+        z-index           20
 
         img
           opacity         1
@@ -378,13 +379,14 @@ body.home
       &.prev
       &.next
         opacity           .6
+        z-index           10
         abs()
 
       &.prev
-        vendor            transform, translate3d(-150px, 50px, 0) rotateY(-3deg) rotateZ(-1deg)
+        vendor            transform, translateX(-150px) translateY(50px) translateZ(0) rotateY(-3deg) rotateZ(-1deg)
 
       &.next
-        vendor            transform, translate3d(150px, 50px, 0) rotateY(3deg) rotateZ(1deg)
+        vendor            transform, translateX(150px) translateY(50px) translateZ(0) rotateY(3deg) rotateZ(1deg)
 
 
 
