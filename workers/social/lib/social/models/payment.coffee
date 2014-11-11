@@ -98,7 +98,7 @@ module.exports = class Payment extends Base
 
     deleteReq url, {}, callback
 
-  @getToken = secure (client, data, callback)->
+  @getToken = (data, callback)->
     requiredParams = [ "planTitle", "planInterval" ]
 
     validateParams requiredParams, data, (err)->
