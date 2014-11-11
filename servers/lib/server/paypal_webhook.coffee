@@ -5,4 +5,4 @@
 module.exports = (req, res) ->
   post "/payments/paypal/webhook", req.body, (err, response)->
     console.log "Payments ERROR: ", err  if err
-    res.send 'ok'
+    res.status(200).send 'ok'

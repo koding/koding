@@ -9,29 +9,31 @@ koding  = require './bongo'
   "../../../workers/social/lib/social/models/socialapi/requests.coffee"
 )
 
+templateFn = (err)->
+  err = if err? then "\"#{err.message or err}\"" else null
+  tempalte = """
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <script>
+          window.opener.KD.singletons.paymentController.paypalReturn(#{err});
+          window.close();
+        </script>
+      </head>
+    </html>
+  """
+
+  serve template, res
+
 module.exports = (req, res) ->
   {token}    = req.query
   {clientId} = req.cookies
 
   findUsernameFromSession req, res, (err, username)->
-    # if err or !username
+    return templateFn err  if err
 
     koding.models.JAccount.one {"profile.nickname" : username }, (err, account)->
-      # if err
+      return templateFn err  if err
 
       params = { token, accountId : account._id }
-      post "/payments/paypal/return", params, (err, response)->
-        err = if err? then "\"#{err.message or err}\"" else null
-        template = """
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <script>
-                window.opener.KD.singletons.paymentController.paypalReturn(#{err});
-                window.close();
-              </script>
-            </head>
-          </html>
-        """
-
-        serve template, res
+      post "/payments/paypal/return", params, (err)-> templateFn err
