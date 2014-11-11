@@ -209,8 +209,8 @@ getSidebar = ->
             <a href="/Login" class='login-link'>Login</a>
           </section>
           <section class='sidebar-bottom-links'>
-            <a href='http://koding.com'>Features</a>
-            <a href='http://koding.com/About'>About Koding</a>
+            <a href='http://koding.com/Features'>Features</a>
+            <a href='http://learn.koding.com/'>Koding University</a>
           </section>
         </div>
       </main>
