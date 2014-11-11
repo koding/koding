@@ -255,7 +255,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @container.addSubView @retryView = new KDCustomHTMLView
       cssClass : 'error-message warning'
       partial  : """
-        <p>It takes longer than expected, you can try to reload page.</p>
+        <p>It's taking longer than expected, please reload the page.</p>
       """
 
 
