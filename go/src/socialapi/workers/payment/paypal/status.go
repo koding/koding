@@ -54,11 +54,7 @@ func checkStatus(customer *paymentmodels.Customer, err error, plan *paymentmodel
 }
 
 func IsNewSubscription(customer *paymentmodels.Customer, err error) bool {
-	if customer == nil && err == paymenterrors.ErrCustomerNotFound {
-		return true
-	}
-
-	return false
+	return customer == nil && err == paymenterrors.ErrCustomerNotFound
 }
 
 func IsAlreadySubscribedToPlan(oldPlan, plan *paymentmodels.Plan) bool {

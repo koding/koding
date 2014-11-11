@@ -48,11 +48,11 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 	return subscription, err
 }
 
-var ErrorProviderCustomerIdIsSame = errors.New("provider customer id is the same")
+var ErrProviderCustomerIdIsSame = errors.New("provider customer id is the same")
 
 func (c *Customer) UpdateProviderCustomerId(id string) error {
 	if c.ProviderCustomerId == id {
-		return ErrorProviderCustomerIdIsSame
+		return ErrProviderCustomerIdIsSame
 	}
 
 	c.ProviderCustomerId = id
