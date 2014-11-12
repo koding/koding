@@ -53,6 +53,13 @@ func (m *Mux) AddHandler(request handler.Request) {
 	m.mux.Handle(request.Type, request.Endpoint, hHandler)
 }
 
+func (m *Mux) AddSessionlessHandler(request handler.Request) {
+	request.Metrics = m.Metrics
+	hHandler := handler.Wrapper(request)
+
+	m.mux.Handle(request.Type, request.Endpoint, hHandler)
+}
+
 func (m *Mux) AddUnscopedHandler(request handler.Request) {
 	m.mux.HandleFunc(request.Type, request.Endpoint, request.Handler.(func(http.ResponseWriter, *http.Request)))
 }
