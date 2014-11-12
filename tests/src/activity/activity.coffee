@@ -278,3 +278,22 @@ module.exports =
 
     browser.end()
 
+
+  commentWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post      = helpers.getFakeText()
+    timestamp = Date.now()
+    code      = "console.log(#{timestamp})"
+    comment   = '```' + code + '```'
+    selector  = '[testpath=ActivityListItemView]:first-child .comment-contents .has-markdown code'
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, comment, no)
+
+    browser
+      .pause 2000
+      .assert.containsText selector, code # Assertion
+      .end()
+
