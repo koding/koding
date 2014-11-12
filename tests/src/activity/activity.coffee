@@ -245,8 +245,11 @@ module.exports =
       .click                  '[testpath=post-activity-button]'
       .pause                  6000 # required
 
-    browser.waitForElementVisible activitySelector' + .activity-content-wrapper .embed-image-view img', image # Assertion
-    browser.end()
+    selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
+
+    browser
+      .waitForElementVisible selector, image # Assertion
+      .end()
 
 
   postMessageWithLink: (browser) ->
@@ -302,12 +305,13 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    post = helpers.getFakeText()
-    image = 'http://placehold.it/200x100'
+    post     = helpers.getFakeText()
+    image    = 'http://placehold.it/200x100'
+    selector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
     helpers.doPostComment(browser, image)
 
     browser
-      .assert.containsText activitySelector' + .comment-contents .comment-body-container .has-markdown a', image # Assertion
+      .assert.containsText selector, image # Assertion
       .end()
