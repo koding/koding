@@ -113,7 +113,8 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 	query := getUserChannelsQuery(q)
 
 	if q.Name != "" {
-		query = query.Where("api.channel.purpose like ?", "%"+q.Name+"%")
+		// use 'ilike' for case-insensitive search
+		query = query.Where("api.channel.purpose ilike ?", "%"+q.Name+"%")
 	}
 
 	// add exempt clause if needed

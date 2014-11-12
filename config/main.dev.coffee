@@ -69,6 +69,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -143,6 +144,9 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'a41deacd57929378'
 
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
+
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
     client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
@@ -186,7 +190,7 @@ Configuration = (options={}) ->
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
-
+    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
 
 
       # END: PROPERTIES SHARED WITH BROWSER #

@@ -15,8 +15,8 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
+	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
-	"socialapi/workers/payment/stripe"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
@@ -70,23 +70,12 @@ func main() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	// payment:
-	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
-
-	go func() {
-		err := stripe.CreateDefaultPlans()
-		if err != nil {
-			fmt.Println(err)
-			panic(err)
-		}
-	}()
-
-	go paymentapi.InitCheckers()
-
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {
 		go setDefaults(r.Log)
 	}
+
+	payment.Initialize(config.MustGet())
 
 	r.Listen()
 	r.Wait()

@@ -5,17 +5,23 @@ class PricingAppController extends KDViewController
     route : '/Pricing'
 
   constructor: (options = {}, data) ->
+
     options.appInfo = title: "Pricing"
     options.view    = new PricingAppView params: options.params
     super options, data
 
-    options =
+    stripeOptions =
       identifier : 'stripe'
       url        : 'https://js.stripe.com/v2/'
 
-    KodingAppsController.appendHeadElement 'script', options, =>
+    paypalOptions =
+      identifier : 'paypal'
+      url        : 'https://www.paypalobjects.com/js/external/dg.js'
+
+    KodingAppsController.appendHeadElement 'script', stripeOptions, =>
       Stripe.setPublishableKey KD.config.stripe.token
-      @emit 'ready'
+      KodingAppsController.appendHeadElement 'script', paypalOptions, =>
+        @emit 'ready'
 
 
   loadPaymentProvider: (callback) -> @ready callback

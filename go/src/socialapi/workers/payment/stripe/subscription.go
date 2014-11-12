@@ -11,12 +11,6 @@ import (
 	stripeSub "github.com/stripe/stripe-go/sub"
 )
 
-var (
-	SubscriptionStateActive   = "active"
-	SubscriptionStateCanceled = "canceled"
-	SubscriptionStateExpired  = "expired"
-)
-
 func CreateSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Plan) (*paymentmodels.Subscription, error) {
 	subParams := &stripe.SubParams{
 		Plan:     plan.ProviderPlanId,
@@ -51,9 +45,12 @@ func FindCustomerSubscriptions(customer *paymentmodels.Customer) ([]paymentmodel
 		Selector: map[string]interface{}{
 			"customer_id": customer.Id,
 		},
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
 	}
 
-	return _findCustomerSubscriptions(customer, query)
+	return findCustomerSubscriptions(customer, query)
 }
 
 func FindCustomerActiveSubscriptions(customer *paymentmodels.Customer) ([]paymentmodels.Subscription, error) {
@@ -62,9 +59,12 @@ func FindCustomerActiveSubscriptions(customer *paymentmodels.Customer) ([]paymen
 			"customer_id": customer.Id,
 			"state":       "active",
 		},
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
 	}
 
-	return _findCustomerSubscriptions(customer, query)
+	return findCustomerSubscriptions(customer, query)
 }
 
 func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) error {
@@ -77,12 +77,12 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 		return handleStripeError(err)
 	}
 
-	err = subscription.UpdateState(SubscriptionStateCanceled)
+	err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
 
 	return err
 }
 
-func _findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Query) ([]paymentmodels.Subscription, error) {
+func findCustomerSubscriptions(customer *paymentmodels.Customer, query *bongo.Query) ([]paymentmodels.Subscription, error) {
 	var subscriptions = []paymentmodels.Subscription{}
 
 	if customer.Id == 0 {

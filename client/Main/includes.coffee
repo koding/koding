@@ -212,6 +212,7 @@ module.exports = [
   "payment/workflow.coffee",
   "payment/updatecreditcardworkflow.coffee",
   "payment/stripeformview.coffee",
+  "payment/paypalformview.coffee",
   "payment/form.coffee",
   "payment/basemodal.coffee",
   "payment/downgradeerrormodal.coffee",

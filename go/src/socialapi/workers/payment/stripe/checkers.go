@@ -15,7 +15,15 @@ func IsFreePlan(plan *paymentmodels.Plan) bool {
 }
 
 func IsOverSubscribed(subscriptions []paymentmodels.Subscription) bool {
-	return len(subscriptions) > 1
+	var active = 0
+
+	for _, subscription := range subscriptions {
+		if subscription.State == paymentmodels.SubscriptionStateActive {
+			active += 1
+		}
+	}
+
+	return active > 1
 }
 
 func IsNoSubscriptions(subscriptions []paymentmodels.Subscription) bool {

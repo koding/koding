@@ -106,12 +106,16 @@ process.on 'uncaughtException', (err) ->
 app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
+
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, { session })->
-    return next() if err or not session
-    updateCookie req, res, session
+  JSession.fetchSession clientId, (err, result)->
+
+    return next()  if err
+    return next()  unless result?.session
+
+    updateCookie req, res, result.session
 
     next()
 
@@ -530,7 +534,11 @@ app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
 app.post "/:name?/OAuth"              , require  "./oauth"
 app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
-app.get  '/-/subscriptions'  , require "./subscriptions"
+# Handlers for Payment
+app.get  '/-/subscriptions'          , require "./subscriptions"
+app.get  '/-/payments/paypal/return' , require "./paypal_return"
+app.get  '/-/payments/paypal/cancel' , require "./paypal_cancel"
+app.post '/-/payments/paypal/webhook' , require "./paypal_webhook"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->

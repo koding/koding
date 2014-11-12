@@ -21,6 +21,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         logOrder          :
           (signature Object, Function)
+        getToken          :
+          (signature Object, Function)
 
 
   { get, post, deleteReq } = require "./socialapi/requests"
@@ -86,6 +88,8 @@ module.exports = class Payment extends Base
     requiredParams = [ "planTitle" ]
 
     validateParams requiredParams, data, (err)->
+      return callback err  if err
+
       canChangePlan client, data.planTitle, callback
 
   @deleteAccount = (client, callback)->
@@ -93,6 +97,15 @@ module.exports = class Payment extends Base
     url = "/payments/customers/#{accountId}"
 
     deleteReq url, {}, callback
+
+  @getToken = (data, callback)->
+    requiredParams = [ "planTitle", "planInterval" ]
+
+    validateParams requiredParams, data, (err)->
+      return callback err  if err
+
+      url = "/payments/paypal/token"
+      get url, data, callback
 
 
   @logOrder = secure (client, raw, callback)->

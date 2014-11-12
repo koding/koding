@@ -64,6 +64,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : yes
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -182,6 +183,7 @@ Configuration = (options={}) ->
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
+    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
