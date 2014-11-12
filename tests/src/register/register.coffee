@@ -21,3 +21,13 @@ module.exports =
       .waitForElementVisible    '.validation-error', 20000 # Assertion
       .end()
 
+  registerWithInvalidEmail: (browser) ->
+
+    user = utils.getUser()
+    user.email = 'r2d2.kd.io'
+
+    helpers.attemptEnterEmailAndUsernameOnRegister(browser, user)
+    browser
+      .waitForElementVisible    '.validation-error', 20000 # Assertion
+      .end()
+
