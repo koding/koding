@@ -16,7 +16,7 @@ build:
         code: |
           npm cache clean
           npm set registry https://registry.npmjs.org/
-          npm install || :
+          npm install
           scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install finished" "building" 50
     - script:
         name: npm install (submodules)
