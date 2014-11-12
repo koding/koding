@@ -72,7 +72,7 @@ class ComputeController extends KDController
           @machines = machines
 
           @stateChecker.machines = machines
-          @stateChecker.start()
+          @stateChecker.start yes
 
           KD.userMachines = machines
           @emit "MachineDataUpdated"
