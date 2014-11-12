@@ -561,7 +561,8 @@ module.exports = class HomeViewFull extends KDView
         <a href="https://developer.linkedin.com/apis">LinkedIn</a>
         <a href="https://developers.google.com/freebase/">Freebase</a>
         <a href="http://products.wolframalpha.com/api/">Wolfram Alpha</a>
-        <a href="https://api.import.io/">Import.io</a>
+        <a href="https://import.io/docs/">Import.io</a>
+        <a href="https://www.kimonolabs.com/">Kimono</a>
         <a href="https://api.imgur.com//">Imgur</a>
         <p>
         ...to name a few. And any mention of APIs would be incomplete without a hat tip
