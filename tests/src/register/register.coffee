@@ -1,12 +1,11 @@
 utils = require '../utils/utils.js'
+helpers = require '../helpers/helpers.js'
 
 
 module.exports =
 
-  registerUser: (browser, user) ->
+  registerUser: (browser) ->
 
-    helpers = require '../helpers/helpers.js'
-
-    helpers.doRegister(browser, user)
+    helpers.doRegister(browser)
 
     browser.end()
