@@ -264,3 +264,17 @@ module.exports =
 
     browser.end()
 
+
+  postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
+
+    post = helpers.getFakeText()
+
+    helpers.postActivity(browser)
+
+    secondPostSelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:nth-of-type(2) article'
+    secondPost = browser.getText secondPostSelector
+
+    assert.notEqual(post, secondPost)
+
+    browser.end()
+
