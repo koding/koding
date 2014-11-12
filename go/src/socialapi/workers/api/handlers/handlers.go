@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -28,7 +27,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "message-update",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 
@@ -38,7 +37,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "message-delete",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 
@@ -48,7 +47,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 		handler.Request{
 			Handler: message.Get,
 			Name:    "message-get",
-			Securer: models.MessageSecurer,
+			// Securer: models.MessageSecurer,
 			Metrics: metrics,
 		},
 	))
@@ -60,7 +59,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: message.GetBySlug,
 			Name:    "message-get-by-slug",
 			Metrics: metrics,
-			Securer: models.MessageSecurer,
+			// Securer: models.MessageSecurer,
 		},
 	))
 
@@ -71,7 +70,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: message.GetWithRelated,
 			Name:    "message-get-with-related",
 			Metrics: metrics,
-			Securer: models.MessageSecurer,
+			// Securer: models.MessageSecurer,
 		},
 	))
 
@@ -84,7 +83,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "reply-create",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 	// exempt contents are filtered
@@ -93,7 +92,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: reply.List,
 			Name:    "reply-list",
 			Metrics: metrics,
-			Securer: models.MessageSecurer,
+			// Securer: models.MessageSecurer,
 		},
 	))
 
@@ -106,7 +105,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "interactions-add",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 
@@ -116,7 +115,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "interactions-delete",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 
@@ -127,7 +126,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: interaction.List,
 			Name:    "interactions-list-typed",
 			Metrics: metrics,
-			Securer: models.MessageSecurer,
+			// Securer: models.MessageSecurer,
 		},
 	))
 
@@ -307,7 +306,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "account-create",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.MessageSecurer,
+			// Securer:        models.MessageSecurer,
 		},
 	))
 
@@ -346,7 +345,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Handler: account.ListPosts,
 			Name:    "account-post-list",
 			Metrics: metrics,
-			Securer: models.AccountSecurer,
+			// Securer: models.AccountSecurer,
 		},
 	))
 
@@ -357,7 +356,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 			Name:           "account-follow",
 			CollectMetrics: true,
 			Metrics:        metrics,
-			Securer:        models.AccountSecurer,
+			// Securer:        models.AccountSecurer,
 		},
 	))
 
