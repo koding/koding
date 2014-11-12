@@ -23,4 +23,13 @@ module.exports =
     browser.end()
 
 
+  loginWithInvalidUsername: (browser) ->
+    user = {
+      username: 'r2d2'
+      password: 'WEEyoh'
+    }
+
+    helpers.assertNotLoggedIn(browser, user)
+    browser.end()
+
 
