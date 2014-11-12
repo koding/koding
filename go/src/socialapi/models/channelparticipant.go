@@ -24,6 +24,9 @@ type ChannelParticipant struct {
 	// Status of the participant in the channel
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
+	// Role of the participant in the channel
+	RoleConstant string `json:"roleConstant"`
+
 	// holds troll, unsafe, etc
 	MetaBits MetaBits `json:"metaBits"`
 
