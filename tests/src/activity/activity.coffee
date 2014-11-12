@@ -72,18 +72,18 @@ module.exports =
       .end()
 
 
-  # likeComment: (browser) ->
+  likeComment: (browser) ->
 
-  #   helpers.postComment(browser)
+    helpers.postComment(browser)
 
-  #   comment         = helpers.getFakeText()
-  #   commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
+    comment         = helpers.getFakeText()
+    commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
-  #   browser
-  #     .waitForElementVisible    commentSelector, 3000
-  #     .click                    commentSelector + ' [testpath=activity-like-link]'
-  #     .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
-  #     .end()
+    browser
+      .waitForElementVisible    commentSelector, 3000
+      .click                    commentSelector + ' [testpath=activity-like-link]'
+      .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
+      .end()
 
 
   editComment: (browser) ->
@@ -141,16 +141,16 @@ module.exports =
       .end()
 
 
-  # searchActivity: (browser) ->
+  searchActivity: (browser) ->
 
-  #   post     = helpers.postActivity(browser)
-  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+    post     = helpers.postActivity(browser)
+    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
 
-  #   browser
-  #     .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
-  #     .pause                    5000
-  #     .assert.containsText      selector , post # Assertion
-  #     .end()
+    browser
+      .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
+      .pause                    5000
+      .assert.containsText      selector , post # Assertion
+      .end()
 
 
   showMoreCommentLink: (browser) ->
@@ -172,14 +172,146 @@ module.exports =
     browser.end()
 
 
-  # topicFollow: (browser) ->
+  topicFollow: (browser) ->
 
-  #   hashtag = helpers.sendHashtagActivity(browser)
-  #   selector = activitySelector + ' .has-markdown p a:first-child'
+    hashtag = helpers.sendHashtagActivity(browser)
+    selector = activitySelector + ' .has-markdown p a:first-child'
 
-  #   browser
-  #     .waitForElementVisible   selector, 5000
-  #     .click                   selector
-  #     .pause                   3000 # really required
-  #     .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
-  #     .end()
+    browser
+      .waitForElementVisible   selector, 5000
+      .click                   selector
+      .pause                   3000 # really required
+      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
+      .end()
+
+
+  postLongMessage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post = ''
+
+    for i in [1..6]
+
+      post += helpers.getFakeText()
+
+    helpers.doPostActivity(browser, post)
+    browser.end()
+
+
+  postLongComment: (browser) ->
+
+    helpers.beginTest(browser)
+    post = helpers.getFakeText()
+    helpers.doPostActivity(browser, post)
+    comment = ''
+
+    for i in [1..6]
+
+      comment += helpers.getFakeText()
+
+    helpers.doPostComment(browser, comment)
+    browser.end()
+
+
+  postMessageWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    timestamp = Date.now()
+    code      = "console.log(#{timestamp})"
+    post      = '```' + code + '```'
+    selector  = '[testpath=ActivityListItemView]:first-child .has-markdown code'
+
+    helpers.doPostActivity(browser, post, no)
+
+    browser
+      .assert.containsText selector, code # Assertion
+      .end()
+
+
+  postMessageWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    image = 'http://placehold.it/200x100'
+
+    browser
+      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath=ActivityInputView]'
+      .setValue               '[testpath=ActivityInputView]', image
+      .click                  '[testpath=post-activity-button]'
+      .pause                  6000 # required
+
+    selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
+
+    browser
+      .waitForElementVisible selector, image # Assertion
+      .end()
+
+
+  postMessageWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    linkSelector = activitySelector + ' .activity-content-wrapper article a'
+
+    helpers.doPostActivity(browser, link)
+
+    browser.getAttribute linkSelector, 'href', (result) ->
+      href = result.value
+      assert.equal(link, href)
+
+    browser.end()
+
+
+  postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
+
+    post = helpers.getFakeText()
+
+    helpers.postActivity(browser)
+
+    secondPostSelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:nth-of-type(2) article'
+    secondPost = browser.getText secondPostSelector
+
+    assert.notEqual(post, secondPost)
+
+    browser.end()
+
+
+  postCommentWithCode: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post      = helpers.getFakeText()
+    timestamp = Date.now()
+    code      = "console.log(#{timestamp})"
+    comment   = '```' + code + '```'
+    selector  = '[testpath=ActivityListItemView]:first-child .comment-contents .has-markdown code'
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, comment, no)
+
+    browser
+      .pause 2000
+      .assert.containsText selector, code # Assertion
+      .end()
+
+
+  postCommentWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post     = helpers.getFakeText()
+    image    = 'http://placehold.it/200x100'
+    selector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, image)
+
+    browser
+      .assert.containsText selector, image # Assertion
+      .end()
