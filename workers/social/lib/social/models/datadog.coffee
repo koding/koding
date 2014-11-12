@@ -14,6 +14,7 @@ module.exports = class DataDog extends Base
     sharedMethods      :
       static           :
         sendEvent      : (signature Object, Function)
+        increment      : (signature Object, Function)
 
   {api_key, app_key}   = KONFIG.datadog
   DogApi               = new dogapi {
@@ -26,6 +27,13 @@ module.exports = class DataDog extends Base
       text             : "VM start failed for user: %nickname%"
       notify           : "@slack-alerts"
       tags             : ["user:%nickname%", "context:vms"]
+
+  Metrics     =
+    KloudInfo :
+      metric  : "kloud.info"
+      tags    : ["user:%nickname%", "context:kloud"]
+      type    : "gauge"
+
 
   tagReplace = (sourceTag, nickname)->
 
@@ -67,6 +75,35 @@ module.exports = class DataDog extends Base
       text += "\n #{ev.notify}"
 
     DogApi.add_event {title, text, tags}, (err, res, status)->
+
+      if err?
+        console.error "[DataDog] Failed to create event:", err
+        err = new KodingError "Failed"
+
+      callback err
+
+
+  @increment = secure (client, data, callback = ->)->
+
+    {connection:{delegate}} = client
+
+    unless delegate.type is 'registered'
+      return callback new KodingError "Not allowed"
+
+    {metric, logs, points} = data
+
+    metric = Metrics[metric]
+
+    unless metric
+      return callback new KodingError "Unknown metric"
+
+    {nickname} = delegate.profile
+    points    ?= 1
+
+    metric.points = [[Date.now()/1000, points]]
+    metric.tags   = tagReplace metric.tags, nickname
+
+    DogApi.add_metrics series:[metric], (err)->
 
       if err?
         console.error "[DataDog] Failed to create event:", err
