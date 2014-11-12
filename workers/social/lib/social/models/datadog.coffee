@@ -27,6 +27,15 @@ module.exports = class DataDog extends Base
       notify           : "@slack-alerts"
       tags             : ["user:%nickname%", "context:vms"]
 
+  tagReplace = (sourceTag, nickname)->
+
+    tags = []
+
+    for tag in sourceTag
+      tags.push tag.replace '%nickname%', nickname
+
+    return tags
+
 
   @sendEvent = secure (client, data, callback = ->)->
 
@@ -46,10 +55,7 @@ module.exports = class DataDog extends Base
 
     title = ev.title
     text  = ev.text.replace '%nickname%', nickname
-    tags  = []
-
-    for tag in ev.tags
-      tags.push tag.replace '%nickname%', nickname
+    tags  = tagReplace ev.tags, nickname
 
     if logs?
       if logs.length < 400
