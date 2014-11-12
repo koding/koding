@@ -199,6 +199,21 @@ module.exports =
     browser.end()
 
 
+  postLongComment: (browser) ->
+
+    helpers.beginTest(browser)
+    post = helpers.getFakeText()
+    helpers.doPostActivity(browser, post)
+    comment = ''
+
+    for i in [1..6]
+
+      comment += helpers.getFakeText()
+
+    helpers.doPostComment(browser, comment)
+    browser.end()
+
+
   postMessageWithCode: (browser) ->
 
     helpers.beginTest(browser)
