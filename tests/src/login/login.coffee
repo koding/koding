@@ -33,3 +33,12 @@ module.exports =
     browser.end()
 
 
+  loginWithInvalidPassword: (browser) ->
+    ourUser = utils.getUser()
+    user    = {
+      username: ourUser.username
+      password: '12312312'
+    }
+
+    helpers.assertNotLoggedIn(browser, user)
+    browser.end()
