@@ -836,90 +836,92 @@ body.account
   .kdoverlay
     background          rgba(255, 255, 255, .75)
 
+
+paymentGreen       = #00b156
+
+paymentGrayDarker   = #6f6f6f
+paymentGrayDark     = #a7a7a7
+paymentGraySoftDark = #d5d5d5
+paymentGray         = #e5e5e5
+paymentGrayLight    = #e8e8e8
+paymentGrayLighter  = #f8f8f8
+
 .payment-modal
+
+  .paypal-form .formline.button-field
+    margin-top          0 !important
+    height              50px !important
 
   &.has-problem .kdmodal-title .title
     color               #D95F5F !important
   &.has-problem .success-msg
     text-align          left !important
 
-  .kdmodal-content
-    // max-height          389px !important
+  &.kdmodal .kdmodal-content
+    margin              -10px 0 0 !important
 
   .kdmodal-inner
-    margin              36px 51px 51px
+    margin              36px 41px !important
 
     h3
-      text-align          center
-      margin-bottom       10px
-      color               #6f6f6f
+      text-align        center
+      margin-bottom     10px
+      color             #6f6f6f
 
     .kdmodal-title
       text-align        center
-      margin            0 0 30px !important
 
       span.title
-        font-weight     500
-        color           #00B156
+        font-weight     600
+        color           paymentGreen
         line-height     34px
         margin          0 0 6px
 
-      span.subtitle
-        color           #848484
-        font-size       14px
-        line-height     19px
-        font-weight     400
-        opacity         .99
-
     .summary
-      margin            0 0 30px
       line-height       24px
-      border            1px solid #E5E5E5
       border-radius     3px
-      padding           15px 25px
+      padding           0 10px
+      margin-bottom     25px
+      text-align        center
+      font-size         18px
 
       .plan-name
-        font-size       16px
-        color           #6F6F6F
-        fl()
+        color           paymentGrayDarker
+        display         inline
+        padding-right   10px
 
       .plan-price
-        color           #01B05A
-        font-size       16px
-        fr()
+        color           paymentGreen
+        display         inline
+        font-weight     600
 
         span
-          color         #A7A7A7
+          color         paymentGrayDark
           font-size     14px
+          font-weight   normal
 
         &:before
           content       '$'
 
-        &:after
-          content       '@'
-          left          263px
-          color         #6F6F6F
-          abs()
-
     .payment-method-entry-form
-      background        #F8F8F8
-      border            1px solid #E5E5E5
+      background        paymentGrayLighter
+      border            1px solid paymentGray
       padding           0 31px 31px 17px
-      rounded           3px
+      rounded           4px
 
       .kdlabel
         display         block
         float           none
         margin-top      19px
-        margin-bottom   11px
+        margin-bottom   3px
         font-size       14px
-        color           #616161
+        color           paymentGrayDarker
         opacity         .99
 
       .kdinput
         background      #fff
         rounded         3px
-        border          1px solid #D7D7D7
+        border          1px solid paymentGray
         margin          0
         height          36px
         transition      border-color .3s linear
@@ -978,30 +980,21 @@ body.account
           width         215px
 
     .existing-cc-msg
-      color             #7f7f7f
-      font-size         16px
-      line-height       24px
-      text-align        center
-      padding           40px
-      border-radius     3px
-      background        #f8f8f8
-      border            1px solid #e5e5e5
-
     .success-msg
-      color             #7f7f7f
+      color             paymentGrayDarker
       font-size         16px
       line-height       24px
       text-align        center
       padding           40px
-      border-radius     3px
-      background        #f8f8f8
-      border            1px solid #e5e5e5
+      border-radius     4px
+      background        paymentGrayLighter
+      border            1px solid paymentGray
 
       a
         color           #01B05A
 
     .downgrade-error-msg
-      color             #7f7f7f
+      color             paymentGrayDarker
       font-size         16px
       line-height       24px
       text-align        left
@@ -1015,12 +1008,18 @@ body.account
     .submit-btn
       width             100% !important
       height            50px !important
-      background        #01B05A
+      background-color  paymentGreen !important
       margin            20px 0 0 !important
-      shadow            0 2px 0 0 #008E48
       color             #fff
       font-size         14px
       font-weight       300
+      border-radius     4px
+
+      &:focus
+        box-shadow      none !important
+
+      &:hover
+        bg              color, lighten(paymentGreen, 4%) !important
 
       span.button-title
         font-size       inherit
@@ -1040,37 +1039,67 @@ body.account
           font-size     12px
           opacity       .99
 
+    .divider
+      font-size         12px
+      margin            18px auto
+      dividerWithText()
+
+    .submit-btn.paypal
+      bg              color, paymentGrayLighter !important
+      border          1px solid paymentGraySoftDark
+      margin-top      0 !important
+
+      &:focus
+        span.button-title
+          color       paymentGrayDarker
+
+      &:hover
+        bg            color, #fafafa !important
+
+        span.button-title
+          color         paymentGrayDarker
+
+      span.button-title
+        color           paymentGrayDarker
+
+      figure
+        display       inline-block
+        r-sprite      'pricing', 'paypal'
+        vertical-align middle
+        margin-left    10px
+
     .year-price-msg
       display           block
-      font-size         16px
-      color             #6f6f6f
+      font-size         14px
+      color             paymentGrayDarker
       line-height       19px
-      margin            25px 0 0px
+      margin            20px 0 0px
       opacity           .99
       text-align        center
 
 
     .security-note
       font-size         12px
-      color             #A7A7A7
+      color             paymentGrayDark
       text-align        center
       line-height       17px
-      margin            80px 0 10px
+      margin-top        20px
       opacity           .99
 
       span
         display         block
-        font-size       14px
-        color           #7F7F7F
+        font-size       12px
+        color           paymentGrayDarker
         line-height     19px
         margin          0 0 4px
         opacity         .99
 
-      &:before
-        content         ''
-        display         block
-        r-sprite        'pricing', 'lock'
-        margin          0 auto 10px
+        &:before
+          content         ''
+          display         inline-block
+          r-sprite        'pricing', 'lock'
+          position        absolute
+          margin          2px 0 0 -20px
 
 
 .kdmodal.help-support-modal
@@ -1328,6 +1357,8 @@ body.account
       span.contact-support
         text-decoration  underline
         cursor           pointer
+      &.warning
+        background      #999 !important
 
   .state-label
     padding             20px

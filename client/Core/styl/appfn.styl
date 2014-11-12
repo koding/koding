@@ -38,6 +38,26 @@ r-sprite(folder, name)
     sprite(folder+"@2x", name, false)
     background-size sprite-dimensions(folder+"@2x", name)
 
+dividerWithText()
+  color             #a8a8a8
+  width             80%
+  overflow          hidden
+  text-align        center
+  line-height       20px
+
+  &:before, &:after
+    content         ''
+    vertical-align  top
+    display         inline-block
+    width           50%
+    height          10px
+    border-bottom   1px solid #e8e8e8
+    margin          0 2% 0 -55%
+
+  &:after
+    margin          0 -55% 0 2%
+
+
 borderize(color)
   noTextDeco()
   color           color
