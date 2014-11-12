@@ -1,15 +1,18 @@
 utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
-assert  = require 'assert'
+assert   = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
 
-  beginTest: (browser) ->
+  beginTest: (browser, user) ->
     url  = @getUrl()
-    user = utils.getUser()
+
+    if not user
+      user = utils.getUser()
+
     browser.url(url)
     browser.maximizeWindow()
 
