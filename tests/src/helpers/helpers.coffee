@@ -23,8 +23,8 @@ module.exports =
     return user
 
 
-  doLogin: (browser, user) ->
 
+  attemptLogin: (browser, user) ->
     browser
       .waitForElementVisible  '[testpath=main-header]', 50000
       .click                  '#main-header [testpath=login-link]'
@@ -33,6 +33,12 @@ module.exports =
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
       .pause                  5000
+
+
+  doLogin: (browser, user) ->
+    @attemptLogin(browser, user)
+
+    browser
       .element                'css selector', '[testpath=main-sidebar]', (result) =>
         if result.status is 0
           console.log 'log in success'
