@@ -31,3 +31,16 @@ module.exports =
       .waitForElementVisible    '.validation-error', 20000 # Assertion
       .end()
 
+
+  registerWithInvalidPassword: (browser) ->
+
+    user = utils.getUser()
+    user.password = '123456'
+
+    helpers.attemptEnterEmailAndUsernameOnRegister(browser, user)
+    helpers.attemptEnterPasswordOnRegister(browser, user)
+
+    browser
+      .waitForElementVisible    '.kdmodal-inner', 20000 # Assertion
+      .end()
+
