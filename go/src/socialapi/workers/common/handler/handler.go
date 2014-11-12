@@ -26,6 +26,7 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+	Securer        interface{}
 }
 
 // todo add prooper logging
@@ -65,10 +66,14 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
+	if r.Securer != nil {
+		hHandler = Secure(handler, r.Securer, r.Name)
+	} else {
+		hHandler = tigertonic.Marshaled(handler)
+	}
+
 	// count the statuses of the requests
-	hHandler = CountedByStatus(
-		tigertonic.Marshaled(handler), logName, collectMetrics,
-	)
+	hHandler = CountedByStatus(hHandler, logName, collectMetrics)
 
 	// add context
 	hHandler = tigertonic.If(
