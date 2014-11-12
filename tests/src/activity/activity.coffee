@@ -297,3 +297,17 @@ module.exports =
       .assert.containsText selector, code # Assertion
       .end()
 
+
+  postMessageWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post = helpers.getFakeText()
+    image = 'http://placehold.it/200x100'
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, image)
+
+    browser
+      .assert.containsText activitySelector' + .comment-contents .comment-body-container .has-markdown a', image # Assertion
+      .end()
