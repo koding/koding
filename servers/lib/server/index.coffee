@@ -106,12 +106,16 @@ process.on 'uncaughtException', (err) ->
 app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
+
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, { session })->
-    return next() if err or not session
-    updateCookie req, res, session
+  JSession.fetchSession clientId, (err, result)->
+
+    return next()  if err
+    return next()  unless result?.session
+
+    updateCookie req, res, result.session
 
     next()
 
