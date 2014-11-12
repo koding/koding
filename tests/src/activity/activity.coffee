@@ -72,18 +72,18 @@ module.exports =
       .end()
 
 
-  likeComment: (browser) ->
+  # likeComment: (browser) ->
 
-    helpers.postComment(browser)
+  #   helpers.postComment(browser)
 
-    comment         = helpers.getFakeText()
-    commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
+  #   comment         = helpers.getFakeText()
+  #   commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
-    browser
-      .waitForElementVisible    commentSelector, 3000
-      .click                    commentSelector + ' [testpath=activity-like-link]'
-      .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible    commentSelector, 3000
+  #     .click                    commentSelector + ' [testpath=activity-like-link]'
+  #     .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
+  #     .end()
 
 
   editComment: (browser) ->
