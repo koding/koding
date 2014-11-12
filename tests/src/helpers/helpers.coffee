@@ -125,16 +125,19 @@ module.exports =
 
   doPostActivity: (browser, post) ->
 
+  doPostActivity: (browser, post, shouldAssert = yes) ->
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
+      .click                  '.channel-title'
       .click                  '[testpath=post-activity-button]'
       .pause                  6000 # required
 
-    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+    if shouldAssert
+      browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
 
   sendHashtagActivity: (browser) ->
