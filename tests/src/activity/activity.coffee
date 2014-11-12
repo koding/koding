@@ -219,7 +219,16 @@ module.exports =
     helpers.beginTest(browser)
 
     timestamp = Date.now()
-    code = "console.log(#{timestamp})"
+    code      = "console.log(#{timestamp})"
+    post      = '```' + code + '```'
+    selector  = '[testpath=ActivityListItemView]:first-child .has-markdown code'
+
+    helpers.doPostActivity(browser, post, no)
+
+    browser
+      .assert.containsText selector, code # Assertion
+      .end()
+
 
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
