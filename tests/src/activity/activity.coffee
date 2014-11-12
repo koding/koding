@@ -282,7 +282,7 @@ module.exports =
     browser.end()
 
 
-  commentWithCode: (browser) ->
+  postCommentWithCode: (browser) ->
 
     helpers.beginTest(browser)
 
@@ -301,7 +301,7 @@ module.exports =
       .end()
 
 
-  postMessageWithImage: (browser) ->
+  postCommentWithImage: (browser) ->
 
     helpers.beginTest(browser)
 
