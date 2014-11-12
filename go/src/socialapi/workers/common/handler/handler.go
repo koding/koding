@@ -68,18 +68,43 @@ func getAccount(r *http.Request) *models.Account {
 
 func Wrapper(r Request) http.Handler {
 	handler := r.Handler
-	logName := r.Name
-	collectMetrics := r.CollectMetrics
 
 	var hHandler http.Handler
 
 	// count the statuses of the requests
-	hHandler = CountedByStatus(
-		tigertonic.Marshaled(handler), logName, collectMetrics,
-	)
+	hHandler = buildHandlerWithStatusCount(handler, r)
 
+	hHandler = buildHandlerWithTimeTracking(hHandler, r)
+
+	// create the final handler
+	return cors.Build(hHandler)
+}
+
+// count the statuses of the requests
+func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
+	return CountedByStatus(
+		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
+	)
+}
+
+// add request time tracking
+func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler {
+	var registry gometrics.Registry
+
+	if r.Metrics != nil {
+		registry = r.Metrics.Registry
+	}
+
+	return tigertonic.Timed(
+		handler,
+		r.Name,
+		registry,
+	)
+}
+
+func BuildHandlerWithContext(handler http.Handler, r Request) http.Handler {
 	// add context
-	hHandler = tigertonic.If(
+	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
 			// this is an example
 			// set group name to context
@@ -94,24 +119,8 @@ func Wrapper(r Request) http.Handler {
 			*(tigertonic.Context(r).(*models.Context)) = *context
 			return nil, nil
 		},
-		hHandler,
+		handler,
 	)
-
-	var registry gometrics.Registry
-
-	if r.Metrics != nil {
-		registry = r.Metrics.Registry
-	}
-
-	// add request time tracking
-	hHandler = tigertonic.Timed(
-		hHandler,
-		logName,
-		registry,
-	)
-
-	// create the final handler
-	return cors.Build(hHandler)
 }
 
 //----------------------------------------------------------

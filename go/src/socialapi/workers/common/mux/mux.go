@@ -47,8 +47,10 @@ func NewMux(name string, conf *config.Config, log logging.Logger) *Mux {
 
 func (m *Mux) AddHandler(request handler.Request) {
 	request.Metrics = m.Metrics
+	hHandler := handler.Wrapper(request)
+	hHandler = handler.BuildHandlerWithContext(hHandler, request)
 
-	m.mux.Handle(request.Type, request.Endpoint, handler.Wrapper(request))
+	m.mux.Handle(request.Type, request.Endpoint, hHandler)
 }
 
 func (m *Mux) AddUnscopedHandler(request handler.Request) {
