@@ -248,5 +248,19 @@ module.exports =
     browser.waitForElementVisible activitySelector' + .activity-content-wrapper .embed-image-view img', image # Assertion
     browser.end()
 
+
+  postMessageWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    linkSelector = activitySelector + ' .activity-content-wrapper article a'
+
+    helpers.doPostActivity(browser, link)
+
+    browser.getAttribute linkSelector, 'href', (result) ->
+      href = result.value
+      assert.equal(link, href)
+
     browser.end()
 
