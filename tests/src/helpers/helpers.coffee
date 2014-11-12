@@ -23,6 +23,18 @@ module.exports =
     return user
 
 
+  assertNotLoggedIn: (browser, user) ->
+    url = @getUrl()
+    browser.url(url)
+    browser.maximizeWindow()
+
+    browser.execute 'KD.isTesting = true;'
+
+    @attemptLogin(browser, user)
+
+    browser
+      .waitForElementVisible   '.flex-wrapper', 20000 # Assertion
+
 
   attemptLogin: (browser, user) ->
     browser
