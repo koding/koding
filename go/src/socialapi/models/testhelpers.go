@@ -32,7 +32,7 @@ func createAccount() (*Account, error) {
 	return author, nil
 }
 
-func createAccountWithTest() *Account {
+func CreateAccountWithTest() *Account {
 	account, err := createAccount()
 	So(err, ShouldBeNil)
 	So(account, ShouldNotBeNil)
