@@ -25,3 +25,9 @@ func (c *Customer) One(q *bongo.Query) error {
 func (c *Customer) Delete() error {
 	return bongo.B.Delete(c)
 }
+
+func (c *Customer) ById(id int64) error {
+	selector := map[string]interface{}{"id": id}
+
+	return c.One(bongo.NewQS(selector))
+}

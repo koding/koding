@@ -307,11 +307,12 @@ class Builder
       else if changedCSS.length > 0
         cprojects = changedCSS.join " "
       if cprojects
-        spawn.apply null, ["osascript", [
-          "-e", """
-            display notification "#{cprojects}" with title "Koding projects compiled"
-          """]
-        ]
+        if fs.existsSync '/usr/bin/osascript'
+          spawn.apply null, ["osascript", [
+            "-e", """
+              display notification "#{cprojects}" with title "Koding projects compiled"
+            """]
+          ]
 
     if args.watch is yes
       if initial
@@ -427,7 +428,8 @@ class Builder
 
           catch error
             log.error "CoffeeScript Error in #{file.includePath}: #{(error.stack.split "\n")[0]}"
-            spawn.apply null, ["say", ["coffeescript error"]]
+            if fs.existsSync '/usr/bin/say'
+              spawn.apply null, ["say", ["coffeescript error"]]
             file.cacheTime = sourceTime # avoid repeated error
             return
         else

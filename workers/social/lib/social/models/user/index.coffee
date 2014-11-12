@@ -183,20 +183,24 @@ module.exports = class JUser extends jraphical.Module
   users     = {}
   guests    = {}
 
-  @unregister = secure (client, confirmUsername, callback) ->
+  @unregister = secure (client, toBeDeletedUsername, callback) ->
     {delegate} = client.connection
+
+    # deleter should be registered one
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
-    unless confirmUsername is delegate.profile.nickname or
+
+    # only owner and the dummy admins can delete a user
+    unless toBeDeletedUsername is delegate.profile.nickname or
            delegate.can 'administer accounts'
       return callback createKodingError "You must confirm this action!"
 
     @createGuestUsername (err, username) =>
       return callback err  if err?
       email = "#{username}@koding.com"
-      @fetchUser client, (err, user) =>
+      @one { username: toBeDeletedUsername }, (err, user) =>
         return callback err  if err?
-        return callback createKodingError "User not found #{username}"  unless user
+        return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
 
         userValues = {
           username
@@ -212,8 +216,10 @@ module.exports = class JUser extends jraphical.Module
           foreignAuth     : {}
         }
         modifier = { $set: userValues, $unset: { oldUsername: 1 }}
+        # update the user with empty data
         user.update modifier, (err, docs) =>
           return callback err  if err?
+
           accountValues = {
             'profile.nickname'    : username
             'profile.firstName'   : 'a former'
@@ -231,24 +237,35 @@ module.exports = class JUser extends jraphical.Module
             globalFlags           : ['deleted']
             onlineStatus          : 'offline'
           }
-          delegate.update $set: accountValues, (err)=>
+
+          JAccount.one {"profile.nickname": toBeDeletedUsername}, (err, account)=>
             return callback err  if err?
-            JName.release confirmUsername, (err)=>
+            return callback createKodingError "Account not found #{toBeDeletedUsername}"  unless account
+
+            # update the account to be deleted with empty data
+            account.update $set: accountValues, (err)=>
               return callback err  if err?
-              JAccount.emit "UsernameChanged", {
-                oldUsername    : confirmUsername
-                isRegistration : false
-                username
-              }
-              ((require 'koding-counter') {
-                db          : JAccount.getClient()
-                counterName : "koding~#{confirmUsername}~"
-                offset      : 0
-              }).reinitialize ->
-              user.unlinkOAuths =>
-                Payment = require "../payment"
-                Payment.deleteAccount client, (err)=>
-                  @logout client, callback
+              JName.release toBeDeletedUsername, (err)=>
+                return callback err  if err?
+                JAccount.emit "UsernameChanged", {
+                  oldUsername    : toBeDeletedUsername
+                  isRegistration : false
+                  username
+                }
+                ((require 'koding-counter') {
+                  db          : JAccount.getClient()
+                  counterName : "koding~#{toBeDeletedUsername}~"
+                  offset      : 0
+                }).reinitialize ->
+                user.unlinkOAuths =>
+                  Payment = require "../payment"
+                  deletedClient = {
+                    connection: {
+                      delegate: account
+                    }
+                  }
+                  Payment.deleteAccount deletedClient, (err)=>
+                    @logout deletedClient, callback
 
   @isRegistrationEnabled = (callback)->
 
@@ -502,7 +519,9 @@ Team Koding
       delete client.connection.delegate
       delete client.sessionToken
 
-    console.log "JUser.logout JSession#remove", {sessionToken}
+    # if sessionToken doesnt exist, safe to return
+    return callback null unless sessionToken
+
     JSession.remove { clientId: sessionToken }, callback
 
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->

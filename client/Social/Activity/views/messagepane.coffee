@@ -284,8 +284,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-    KD.utils.wait 50, =>
-      @scrollView.verticalTrack.thumb.handleMutation()
+    KD.utils.wait 50, => @scrollView.wrapper.emit 'MutationHappened'
 
 
 
@@ -298,6 +297,10 @@ class MessagePane extends KDTabPaneView
     item = app.getView().sidebar.selectedItem
 
     return  unless item?.count
+
+    # do not wait for response to set it as 0
+    item.setUnreadCount 0
+
     # no need to send updatelastSeenTime or glance when checking publicfeeds
     return  if name in ['public', 'announcement']
 
@@ -325,11 +328,7 @@ class MessagePane extends KDTabPaneView
 
       return  if @currentFilter isnt filter
 
-      @listController.hideLazyLoader()
-      items.forEach (item, i) =>
-        @addMessageDeferred item, i, items.length
-
-      KD.utils.defer @bound 'focus'
+      @addItems items
 
       callback()
 
@@ -341,6 +340,13 @@ class MessagePane extends KDTabPaneView
       if i is total - 1
         KD.utils.wait 50, => @emit 'ListPopulated'
 
+
+  addItems: (items) ->
+    @listController.hideLazyLoader()
+    items.forEach (item, i) =>
+      @addMessageDeferred item, i, items.length
+
+    KD.utils.defer @bound 'focus'
 
 
   fetch: (options = {}, callback) ->

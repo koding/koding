@@ -18,6 +18,8 @@ import (
 	"koding/kites/kloud/kloud"
 	kloudprotocol "koding/kites/kloud/protocol"
 
+	"github.com/koding/metrics"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
@@ -173,6 +175,11 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "6Oswp4QJvJ8EgoHtVWsdVrtnnmwxGA/kvBB3R81D",
 	}
 
+	stats, err := metrics.NewDogStatsD("kloud.aws")
+	if err != nil {
+		panic(err)
+	}
+
 	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
@@ -193,6 +200,7 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
+		Stats:             stats,
 	}
 
 	// be sure it satisfies the provider interface
@@ -229,7 +237,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
