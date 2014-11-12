@@ -72,24 +72,31 @@ module.exports =
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
 
-  doRegister: (browser, user) ->
-
-    user    = utils.getUser(yes) unless user
-    url     = @getUrl()
-
+  attemptEnterEmailAndUsernameOnRegister: (browser, user) ->
     browser
       .url                    @getUrl()
       .waitForElementVisible  '[testpath=main-header]', 10000
       .setValue               '[testpath=register-form-email]', user.email
       .setValue               '[testpath=register-form-username]', user.username
       .click                  '[testpath=signup-button]'
-      .setValue               '[testpath=password-input]', user.password
-      .setValue               '[testpath=confirm-password-input]', user.password
-      .click                  '[testpath=register-submit-button]'
 
-    @doLogout browser
+  attemptEnterPasswordOnRegister: (browser, user) ->
+    browser
+      .setValue  '[testpath=password-input]', user.password
+      .setValue  '[testpath=confirm-password-input]', user.password
+      .click     '[testpath=register-submit-button]'
 
-    @doLogin browser, user
+  doRegister: (browser, user) ->
+
+    user = utils.getUser(yes) unless user
+
+    @attemptEnterEmailAndUsernameOnRegister(browser, user)
+
+    @attemptEnterPasswordOnRegister(browser, user)
+
+    @doLogout(browser)
+
+    @doLogin(browser, user)
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -111,6 +118,12 @@ module.exports =
 
     comment = @getFakeText()
 
+    @doPostComment(browser, comment)
+
+    return comment
+
+
+  doPostComment: (browser, comment, shouldAssert = yes) ->
     browser
       .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
       .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
@@ -120,10 +133,6 @@ module.exports =
         .pause               6000 # required
         .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
-    return comment
-
-
-  doPostActivity: (browser, post) ->
 
   doPostActivity: (browser, post, shouldAssert = yes) ->
     browser
