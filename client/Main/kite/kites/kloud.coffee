@@ -50,7 +50,7 @@ class KodingKite_KloudKite extends KodingKite
 
   resolveRequestingInfos: (machineId, info)->
 
-    @requestingInfo?[machineId].forEach ({ resolve }) ->
+    @requestingInfo?[machineId]?.forEach ({ resolve }) ->
       resolve info
 
     @requestingInfo[machineId] = null
