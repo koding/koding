@@ -77,33 +77,46 @@ build:
     - add-ssh-key:
         keyname: DEPLOYMENT_KEY
     - script:
+        name: set up koding deployment key
+        code: |
+          chmod 600 $KODING_DEPLOYMENT_KEY
+    - script:
         name: fetch pull requests
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --quiet origin
     - mktemp:
-        envvar: INSTANCE_DATA
+        envvar: GIT_REF
     - script:
-        name: launch test instance
+        name: get git ref
         code: |
           REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
           echo $REMOTE_BRANCH
-          GIT_REF=$(scripts/wercker/get-gitref $REMOTE_BRANCH)
-          echo $GIT_REF
-          scripts/wercker/launch-test-instance --gitref "$GIT_REF" | tail -n1 > $INSTANCE_DATA
+          scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
+    - mktemp:
+        envvar: INSTANCE_DATA
+    - mktemp:
+        envvar: INSTANCE_IP
+    - script:
+        name: launch test instance
+        code: |
+          scripts/wercker/launch-test-instance --gitref "$(cat $GIT_REF)" | tail -n1 > $INSTANCE_DATA
           cat $INSTANCE_DATA
-          INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
-          if [ -z $INSTANCE_IP ]; then exit 1; fi
-          scripts/wercker/check-connectivity $INSTANCE_IP 8090 1m 3
-          scripts/wercker/check-connectivity $INSTANCE_IP 4444 1m 2
+          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          echo $HOST > $INSTANCE_IP
+          if [ -z "$HOST)" ]; then exit 1; fi
+          scripts/wercker/check-connectivity $HOST 8090 1m 3
+          scripts/wercker/check-connectivity $HOST 4444 1m 2
           sleep 120
           scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     - script:
-        name: run test suite
+        name: run login test suite
         code: |
-          INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
-          chmod 600 $KODING_DEPLOYMENT_KEY
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $INSTANCE_IP 'sudo /opt/koding/tests/test'
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
+    - script:
+        name: run activity test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
     - script:
         name: testing client finished
         code: |
