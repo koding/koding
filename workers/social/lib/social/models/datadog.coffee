@@ -14,12 +14,14 @@ module.exports = class DataDog extends Base
     sharedMethods      :
       static           :
         sendEvent      : (signature Object, Function)
-        increment      : (signature Object, Function)
+        increment      : (signature String, Function)
+
 
   {api_key, app_key}   = KONFIG.datadog
   DogApi               = new dogapi {
     api_key, app_key
   }
+
 
   Events               =
     MachineStateFailed :
@@ -28,11 +30,14 @@ module.exports = class DataDog extends Base
       notify           : "@slack-alerts"
       tags             : ["user:%nickname%", "context:vms"]
 
-  Metrics     =
-    KloudInfo :
-      metric  : "kloud.info"
-      tags    : ["user:%nickname%", "context:kloud"]
-      type    : "gauge"
+
+  Metrics      =
+    KloudInfo  :
+      metric   : "kloud.info.gauge"
+      tags     : ["user:%nickname%"]
+    KlientInfo :
+      metric   : "klient.info.gauge"
+      tags     : ["user:%nickname%"]
 
 
   tagReplace = (sourceTag, nickname)->
@@ -83,14 +88,12 @@ module.exports = class DataDog extends Base
       callback err
 
 
-  @increment = secure (client, data, callback = ->)->
+  @increment = secure (client, metric, callback = ->)->
 
-    {connection:{delegate}} = client
+    { connection: { delegate } } = client
 
     unless delegate.type is 'registered'
       return callback new KodingError "Not allowed"
-
-    {metric, logs, points} = data
 
     metric = Metrics[metric]
 
@@ -98,12 +101,11 @@ module.exports = class DataDog extends Base
       return callback new KodingError "Unknown metric"
 
     {nickname} = delegate.profile
-    points    ?= 1
 
-    metric.points = [[Date.now()/1000, points]]
+    metric.points = [[Date.now()/1000, 1]]
     metric.tags   = tagReplace metric.tags, nickname
 
-    DogApi.add_metrics series:[metric], (err)->
+    DogApi.add_metrics series: [metric], (err)->
 
       if err?
         console.error "[DataDog] Failed to create event:", err
