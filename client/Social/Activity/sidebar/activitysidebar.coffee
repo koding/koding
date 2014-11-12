@@ -191,13 +191,16 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {id} = update.channel
 
-    @removeItem id
+    return @removeItem id  unless update.isParticipant
+
+    # TODO update participants in sidebar
 
 
   channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
 
 
   setPostUnreadCount: (data) ->
+
     {unreadCount, channelMessage} = data
     return  unless channelMessage
 
