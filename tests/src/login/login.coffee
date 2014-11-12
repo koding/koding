@@ -8,3 +8,19 @@ module.exports =
     helpers.beginTest(browser)
 
     browser.end()
+
+
+  loginWithEmail: (browser) ->
+    ourUser = utils.getUser()
+
+    user = {
+      username: ourUser.email
+      password: ourUser.password
+      email   : ourUser.email
+    }
+
+    helpers.beginTest(browser, user)
+    browser.end()
+
+
+
