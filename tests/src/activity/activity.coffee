@@ -230,15 +230,23 @@ module.exports =
       .end()
 
 
+  postMessageWithImage: (browser) ->
+
+    helpers.beginTest(browser)
+
+    image = 'http://placehold.it/200x100'
+
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]','```' + code + '```'
+      .setValue               '[testpath=ActivityInputView]', image
       .click                  '[testpath=post-activity-button]'
       .pause                  6000 # required
 
-    browser.assert.containsText '[testpath=ActivityListItemView]:first-child .has-markdown pre code', code # Assertion
+    browser.waitForElementVisible activitySelector' + .activity-content-wrapper .embed-image-view img', image # Assertion
+    browser.end()
+
     browser.end()
 
