@@ -3,7 +3,7 @@ helpers  = require '../helpers/helpers.js'
 
 module.exports =
 
-  login: (browser) ->
+  loginWithUsername: (browser) ->
 
     helpers.beginTest(browser)
 
