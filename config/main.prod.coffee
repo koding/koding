@@ -65,7 +65,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
     stripe            : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
-    paypal            : { username: 'kodingpaypal_api1.koding.com', password: 'P6FCAXAVSLZGMLG2', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AWdUhFbklVEIzx29fcKDqYO0tbzM', returnUrl: "#{customDomain.host}:#{customDomain.port}/-/payments/paypal/return", cancelUrl: "#{customDomain.host}:#{customDomain.port}/-/payments/paypal/cancel", isSandbox: no }
+    paypal            : { username: 'kodingpaypal_api1.koding.com', password: 'P6FCAXAVSLZGMLG2', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AWdUhFbklVEIzx29fcKDqYO0tbzM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: no }
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
