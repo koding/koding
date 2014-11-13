@@ -138,6 +138,7 @@ CREATE TABLE "api"."channel_participant" (
     "channel_id" BIGINT NOT NULL DEFAULT 0,
     "account_id" BIGINT NOT NULL DEFAULT 0,
     "status_constant" "api"."channel_participant_status_constant_enum",
+    "role_constant" "api"."role_constant_enum",
     "meta_bits" SMALLINT NOT NULL DEFAULT 0 :: SMALLINT,
     "last_seen_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
