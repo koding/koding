@@ -346,7 +346,7 @@ module.exports = class HomeViewFull extends KDView
       <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, wherever we are!</h3>
-      <h4>Apply today with your Koding account to get a chance <strong>to win up to $#{prize.toLocaleString()} in cash prizes.</strong></h4>
+      <h4>Apply today with your Koding account to get a chance <strong>to win up to <b>$#{prize.toLocaleString()}</b> in cash prizes.</strong></h4>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
