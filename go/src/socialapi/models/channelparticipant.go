@@ -53,6 +53,7 @@ const (
 func NewChannelParticipant() *ChannelParticipant {
 	return &ChannelParticipant{
 		StatusConstant: ChannelParticipant_STATUS_ACTIVE,
+		RoleConstant:   Permission_ROLE_MEMBER,
 		LastSeenAt:     time.Now().UTC(),
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
