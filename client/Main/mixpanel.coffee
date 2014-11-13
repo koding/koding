@@ -5,6 +5,9 @@ if KD.config.logToExternal then do ->
     return  unless KD.isLoggedIn() and account and analytics
 
     {type, meta, profile} = account
+
+    return  unless profile
+
     {createdAt} = meta
     {firstName, lastName, nickname} = profile
 
@@ -29,7 +32,7 @@ KD.mixpanel = (args...)->
 
   KD.gaEvent args[0]
 
-  args[1]["username"] = me.profile.nickname
+  args[1]["username"] = me?.profile?.nickname
 
   analytics.track args...
 
