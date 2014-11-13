@@ -1,8 +1,10 @@
 class NFinderTreeController extends JTreeViewController
 
-  constructor:->
+  constructor: (options, data) ->
 
-    super
+    options.view or= new KDCustomHTMLView cssClass : 'jtreeview-wrapper'
+
+    super options, data
 
     if @getOptions().contextMenu
       {contextMenuClass} = @getOptions()

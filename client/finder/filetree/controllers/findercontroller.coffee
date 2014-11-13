@@ -2,9 +2,9 @@ class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.view = new KDView
       cssClass   : "nfinder file-container"
       bind       : "dragenter dragover dragleave dragend drop"
+    options.view = new KDCustomScrollView
 
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
@@ -73,8 +73,8 @@ class NFinderController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.addSubView @treeController.getView()
-    mainView.addSubView @noMachineFoundWidget
+    mainView.wrapper.addSubView @treeController.getView()
+    mainView.wrapper.addSubView @noMachineFoundWidget
 
     if @getOption 'loadFilesOnInit' then do @reset
 
