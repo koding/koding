@@ -144,3 +144,7 @@ class RealTimeManager extends KDObject
   fetchFileByTitle: (title) ->
     gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
       @emit 'FileQueryFinished', file
+
+
+  getCollaborators: (realTimeDoc) ->
+    return realTimeDoc.getCollaborators()
