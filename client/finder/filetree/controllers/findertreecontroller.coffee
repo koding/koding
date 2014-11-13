@@ -28,16 +28,21 @@ class NFinderTreeController extends JTreeViewController
     return if nodeData.isHidden() and fc.isNodesHiddenFor nodeData.machine.uid
     item = super nodeData, index
 
+
   highlightFile:(view)->
 
     @selectNode @nodes[view.data.path], null, no
 
-    if view.ace?
-      if view.ace.editor?
-        view.ace.editor.focus()
-      else
-        view.ace.on "ace.ready", ->
-          view.ace.editor.focus()
+    { ace } = view
+
+    return  unless ace
+
+    { editor } = ace
+
+    if editor
+    then editor.focus()
+    else ace.on 'ace.ready', -> editor.focus()
+
 
   navigateToNewFile:(newFile)->
 

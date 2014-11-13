@@ -2,9 +2,9 @@ class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
 
-      cssClass   : "nfinder file-container"
-      bind       : "dragenter dragover dragleave dragend drop"
     options.view = new KDCustomScrollView
+      cssClass   : 'nfinder file-container'
+      bind       : 'dragenter dragover dragleave dragend drop'
 
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
@@ -71,7 +71,7 @@ class NFinderController extends KDViewController
           @mountMachine machine  unless err
 
 
-  loadView:(mainView)->
+  loadView: (mainView) ->
 
     mainView.wrapper.addSubView @treeController.getView()
     mainView.wrapper.addSubView @noMachineFoundWidget
