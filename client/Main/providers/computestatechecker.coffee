@@ -18,13 +18,12 @@ class ComputeStateChecker extends KDObject
     KD.singletons.windowController.addFocusListener (state)=>
       if state then @start() else @stop()
 
-  start: (tickOnStart = no)->
+  start:->
 
     return  if @running
     @running = yes
 
-    @tick yes  if tickOnStart
-
+    @tick yes
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
