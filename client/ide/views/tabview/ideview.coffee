@@ -90,20 +90,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createShortcutsView: ->
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-  createTerminal: (machine, path) ->
-    ideApp = KD.getSingleton('appManager').getFrontApp()
+  createTerminal: (machine, path, session) ->
 
-    unless machine
-      {machines} = KD.getSingleton 'computeController'
-      machineId  = ideApp.mountedMachineUId
+    machine ?= @getCurrentMachine()
+    path    ?= @getCurrentWorkspacePath()
 
-      machine = m for m in machines when m.uid is machineId
-
-    unless path
-      if ideApp.workspaceData?.rootPath
-        path = ideApp.workspaceData.rootPath
-
-    terminalPane = new IDE.TerminalPane { machine, path }
+    terminalPane = new IDE.TerminalPane { machine, path, session }
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
@@ -268,6 +260,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         delete @menu
 
   createPlusContextMenu: ->
+
     offset      = @holderView.plusHandle.$().offset()
     offsetLeft  = offset.left - 133
     margin      = if offsetLeft >= -1 then -20 else 12
@@ -281,3 +274,20 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu = new KDContextMenu options, @getPlusMenuItems()
 
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
+
+
+  getCurrentWorkspacePath:->
+
+    ideApp = KD.singletons.appManager.getFrontApp()
+
+    if ideApp.workspaceData?.rootPath
+      return ideApp.workspaceData.rootPath
+
+
+  getCurrentMachine:->
+
+    {appManager, computeController} = KD.singletons
+    machineId = appManager.getFrontApp().mountedMachineUId
+    machine = m for m in computeController.machines when m.uid is machineId
+
+    return machine
