@@ -1,6 +1,17 @@
 -- SET ROLE social;
 
 -- ----------------------------
+--  General types
+-- ----------------------------
+CREATE TYPE "api"."role_constant_enum" AS ENUM (
+    -- 'superadmin', this will be a property of the account
+    'admin',
+    'moderator',
+    'member',
+    'guest'
+);
+
+-- ----------------------------
 --  Table structure for channel
 -- ----------------------------
 CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
