@@ -328,6 +328,7 @@ module.exports = class HomeViewFull extends KDView
   partial: ->
 
     campaign    = KD.campaignStats?.campaign
+    { prize }   = campaign
     endDay      = campaign.endDay      or 'Nov 16, 2014, 23:59 (PST)'
     closeDay    = campaign.closeDay    or 'Nov 16th'
     announceDay = campaign.announceDay or 'Nov 18th'
