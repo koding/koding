@@ -193,3 +193,24 @@ CREATE TABLE "api"."message_reply" (
 -- ALTER TABLE "api"."message_reply" OWNER TO "social";
 GRANT SELECT, UPDATE, INSERT, DELETE ON "api"."message_reply" TO "social";
 
+-- ----------------------------
+--  Table structure for permission
+-- ----------------------------
+CREATE TYPE "api"."permission_status_constant_enum" AS ENUM (
+    'allowed',
+    'disallowed'
+);
+
+DROP TABLE IF EXISTS "api"."permission";
+CREATE TABLE "api"."permission" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.permission_id_seq' :: regclass
+    ),
+    "name" VARCHAR(200) NOT NULL COLLATE "default",
+    "channel_id" BIGINT NOT NULL,
+    "role_constant" "api"."role_constant_enum",
+    "status_constant" "api"."permission_status_constant_enum",
+    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL,
+    "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+) WITH (OIDS=FALSE);
+GRANT SELECT, INSERT, UPDATE ON "api"."permission" TO "social";
