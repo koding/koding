@@ -77,20 +77,24 @@ class ComputeStateChecker extends KDObject
         machineUid = computeController.findUidFromMachineId machineId
         return  if not (machineUid? and klient? and klient[machineUid])
 
+      info "Checking all machine states..."  if checkAll
+
       call = @kloud.info { machineId, currentState }
 
       .then (response)=>
+
+        if response.via is 'klient'
+          log "Machine #{machineId} is running according to klient."
 
         if machineId in @ignoredMachines
           info "csc: ignoring check for machine:", machineId
           return
 
         computeController.eventListener
-          .triggerState machine, status : response.State
+          .triggerState machine, status: response.State
 
-        computeController.followUpcomingEvents {
+        computeController.followUpcomingEvents
           _id: machineId, status: state: response.State
-        }
 
         unless machine.status.state is response.State
           info "csc: machine (#{machineId}) state changed: ", response.State
