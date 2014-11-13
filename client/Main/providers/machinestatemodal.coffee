@@ -125,8 +125,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @createFooter()
 
     if @getOption 'initial'
+
+      currentState = @machine.status.state
+
+      if currentState is NotInitialized
+        @buildViews State: currentState
+        return
+
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId, currentState: @machine.status.state }
+        .kloud.info { @machineId, currentState }
         .then (response)=>
 
           info "Initial info result:", response
