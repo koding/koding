@@ -447,6 +447,12 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
+              <img src='http://medya.turkcell.com.tr/gorsel/Turkcell_Mavi.jpg' alt='Turkcell logo'/>
+              <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
               <img src='http://www.pubnub.com/static/images/structure/pubnub.png' alt='PubNub logo'/>
               <figcaption><a href='http://pubnub.com' target=_blank>PubNub</a> will award an additional <strong>$1,000</strong> to the team that makes the best use of their API.</figcaption>
             </figure>
