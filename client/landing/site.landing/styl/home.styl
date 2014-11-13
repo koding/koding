@@ -253,8 +253,8 @@ body.home
   // screenshots Section
 
   section.screenshots
-    abs                   350px 0 0
-    size                  100% 527px
+    abs                   415px 0 0
+    size                  100% 462px
     padding-top           50px
     overflow              hidden
     z-index               2
@@ -284,21 +284,19 @@ body.home
 
     > div
       position            absolute !important
-      height              483px
+      height              417px
       max-height          575px
-      width               742px
+      width               683px
       margin              initial !important
       padding             0 !important
-      left                50%
+      left                calc(50vw \- 341px)
       vendor              transform-style, preserve-3d
       vendor              perspective, 700
-      vendor              transform, translateX(-50%)
-
 
     figure
       top                 0
       opacity             0
-      height              738px
+      height              653px
       background          none !important
       vendor              transform, translateX(0) translateY(0) translateZ(0)
       -webkit-transition  -webkit-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
@@ -325,7 +323,7 @@ body.home
       img
         shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
-        height            450px
+        height            384px
         bg                color #3A3E41
         margin-top        2px
 
@@ -359,7 +357,7 @@ body.home
 
       &.current
         opacity           1
-        vendor            transform, translateX(0) translateY(12px) translateZ(20px)
+        vendor            transform, translateX(0) translateY(12px) translateZ(0px)
         z-index           20
 
         img
@@ -383,10 +381,10 @@ body.home
         abs()
 
       &.prev
-        vendor            transform, translateX(-150px) translateY(50px) translateZ(0) rotateY(-3deg) rotateZ(-1deg)
+        vendor            transform, translateX(-150px) translateY(50px) translateZ(-20px) rotateY(-3deg) rotateZ(-1deg)
 
       &.next
-        vendor            transform, translateX(150px) translateY(50px) translateZ(0) rotateY(3deg) rotateZ(1deg)
+        vendor            transform, translateX(150px) translateY(50px) translateZ(-20px) rotateY(3deg) rotateZ(1deg)
 
 
 
