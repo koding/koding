@@ -32,15 +32,36 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 	case kite.ErrNoKitesAvailable:
 		// klient state is still machinestate.Unknown.
 		p.Log.Debug("[%s] Klient is not registered to Kontrol. Err: %s", m.Id, err)
+
+		// XXX: AWS call reduction workaround.
+		if dbState == machinestate.Stopped {
+			p.Log.Debug("[%s] Info result: Returning db state '%s' because the klient is not registered. Username: %s", m.Id, dbState, m.Username)
+			return &protocol.InfoArtifact{
+				State: machinestate.Stopped,
+			}, nil
+		}
 	case klient.ErrDialingKlientFailed:
 		// klient state is still machinestate.Unknown.
 		p.Log.Debug("[%s] %s", m.Id, err)
+
+		// XXX: AWS call reduction workaround.
+		if dbState == machinestate.Stopped {
+			p.Log.Debug("[%s] Info result: Returning db state '%s' because dialing klient failed. Username: %s", m.Id, dbState, m.Username)
+			return &protocol.InfoArtifact{
+				State: machinestate.Stopped,
+			}, nil
+		}
 	default:
 		// Any other error will fallback to here. So assume that kontrol
 		// failed or some other catastrophic failure occured. So, do not
 		// stop or destroy the machine because of our failure.
-		klientState = machinestate.Running
 		p.Log.Critical("[%s] couldn't get klient information to check machine status. Probably couldn't connect to Kontrol. Err: %s ", m.Id, err)
+
+		// XXX: AWS call reduction workaround.
+		p.Log.Debug("[%s] Info result: Returning db state '%s' because kontrol is unreachable. Username: %s", m.Id, dbState, m.Username)
+		return &protocol.InfoArtifact{
+			State: dbState,
+		}, nil
 	}
 
 	reason := ""
