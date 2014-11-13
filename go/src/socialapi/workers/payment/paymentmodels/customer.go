@@ -2,6 +2,7 @@ package paymentmodels
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -92,4 +93,28 @@ func (c *Customer) FindSubscriptions() ([]Subscription, error) {
 	}
 
 	return subscriptions, nil
+}
+
+func (c *Customer) DeleteSubscriptionsAndItself() error {
+	subscriptions, err := c.FindSubscriptions()
+	if err != nil {
+		return err
+	}
+
+	if len(subscriptions) > 1 {
+		fmt.Printf("User %s has too man (%v) subscriptions\n", c.Username, len(subscriptions))
+	}
+
+	for _, subscription := range subscriptions {
+		if subscription.State != SubscriptionStateActive {
+			err := subscription.Delete()
+			if err != nil {
+				fmt.Printf("Deleting user: %s subscription: %s failed: %v\n", c.Username, subscription.Id, err)
+			}
+		} else {
+			fmt.Printf("Tried to delete user: %s with active subscription: %s\n", c.Username, subscription.Id)
+		}
+	}
+
+	return c.Delete()
 }
