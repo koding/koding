@@ -103,7 +103,8 @@ class AccountEditUsername extends JView
 
     @uploadAvatarBtn.showLoader()
 
-    file = @uploadAvatarInput.getElement().files[0]
+    file          = @uploadAvatarInput.getElement().files[0]
+    mimeType      = file.type
 
     return @uploadAvatarBtn.hideLoader()  unless file
 
@@ -112,19 +113,30 @@ class AccountEditUsername extends JView
       dataURL     = event.target.result
       [_, base64] = dataURL.split ","
 
-      @uploadAvatar base64, =>
+      @uploadAvatar
+        mimeType : mimeType
+        content  : file
+      , =>
         @uploadAvatarBtn.hideLoader()
 
     reader.readAsDataURL file
 
 
-  uploadAvatar: (avatarData, callback) ->
+  uploadAvatar: (avatar, callback)->
 
-    FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
-      resized = KD.utils.proxifyUrl url,
-        crop: true, width: 300, height: 300
+    {mimeType, content} = avatar
 
-      @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
+    KD.utils.s3upload
+      name    : 'avatar'
+      content : content
+      mimeType: mimeType
+      timeout : 30000
+
+    , (err, url) =>
+
+      @uploadAvatarBtn.hideLoader()
+      unless err
+        @account.modify "profile.avatar": "#{url}?#{Date.now()}"
 
 
   update: (formData) ->
@@ -298,6 +310,11 @@ class AccountEditUsername extends JView
     """
     <div class='account-avatar-area clearfix'>
       {{> @avatar}}
+      <div class="avatar-buttons">
+        {{> @uploadAvatarBtn}}
+        {{> @uploadAvatarInput}}
+        {{> @useGravatarBtn}}
+      </div>
       <section>
         {{> @emailForm}}
       </section>
