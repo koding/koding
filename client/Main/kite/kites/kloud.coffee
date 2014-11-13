@@ -78,7 +78,7 @@ class KodingKite_KloudKite extends KodingKite
       .then (res)->
 
         if res is "pong"
-        then callback State: Machine.State.Running
+        then callback State: Machine.State.Running, via: "klient"
         else callback null
 
       .timeout 5000
