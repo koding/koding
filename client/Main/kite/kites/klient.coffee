@@ -21,13 +21,24 @@ class KodingKite_KlientKite extends KodingKite
     fsCreateDirectory  : 'fs.createDirectory'
 
     webtermGetSessions : 'webterm.getSessions'
-    webtermConnect     : 'webterm.connect'
+    # webtermConnect     : 'webterm.connect'
     webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
+  constructor:->
+    super
+
+    @terminalSessions = []
+
+
   init: ->
+
     @connect()
     Promise.resolve()
+
+    unless @terminalSessions.length
+      @fetchTerminalSessions()
+
 
   # setTransport is used to override the setTransport method in KodingKite
   # prior to connection so we can have a custom URL. This is used so Klient
@@ -54,7 +65,25 @@ class KodingKite_KlientKite extends KodingKite
 
 
   disconnect: ->
-
     super
 
     KD.singletons.kontrol.kites?.klient?[@getOption 'correlationName'] = null
+
+
+  webtermConnect: (options)->
+
+    @tell 'webterm.connect', options
+
+      .then (remote) =>
+
+        unless remote.session in @terminalSessions
+          @terminalSessions.push remote.session
+
+        return remote
+
+
+  fetchTerminalSessions: ->
+
+    @webtermGetSessions().then (sessions)=>
+      info "[#{@getOption 'correlationName'}] Sessions fetched."
+      @terminalSessions = sessions
