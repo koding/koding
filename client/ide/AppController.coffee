@@ -755,6 +755,14 @@ class IDEAppController extends AppController
 
       log 'acetz: participants:', @participants.asArray()
 
+
+      @rtm.on 'CollaboratorJoined', (doc, participant) =>
+        @handleParticipantAction 'join', participant
+
+      @rtm.on 'CollaboratorLeft', (doc, participant) =>
+        @handleParticipantAction 'left', participant
+
+
       @registerSessionId()
       @listenChangeEvents()
 
@@ -952,3 +960,34 @@ class IDEAppController extends AppController
 
     if context.paneType is 'drawing'
       @createNewDrawing context.paneHash
+
+
+  handleParticipantAction: (actionType, changeData) ->
+    KD.utils.wait 2000, =>
+      participants  = @participants.asArray()
+      {sessionId}   = changeData.collaborator
+      targetUser    = null
+      targetIndex   = null
+
+      for participant, index in participants when participant.sessionId is sessionId
+        targetUser  = participant.nickname
+        targetIndex = index
+
+
+      unless targetUser
+        return warn 'Unknown user in collaboration, we should handle this case...'
+
+      if actionType is 'join'
+        log targetUser, 'joined'
+      else
+        log targetUser, 'left'
+
+        # check the user is still at same index, so we won't remove someone else.
+        user = @participants.get targetIndex
+
+        if user.nickname is targetUser
+          @participants.remove targetIndex
+        else
+          participants = @participants.asArray()
+          for participant, index in participants when participant.nickname is targetUser
+            @participants.remove index
