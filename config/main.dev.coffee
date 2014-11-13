@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
@@ -27,7 +27,9 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
-  host                = options.host or "koding-#{process.env.USER}.ngrok.com"
+  _port               = if publicPort is '80' then '' else publicPort
+  host                = options.host or "#{options.hostname}:#{_port}" or "koding-#{process.env.USER}.ngrok.com"
+
   customDomain        = { public: "http://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
@@ -58,7 +60,7 @@ Configuration = (options={}) ->
     mongo             : mongo
     environment       : environment
     region            : region
-    hostname          : hostname
+    hostname          : host
     protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
@@ -80,7 +82,7 @@ Configuration = (options={}) ->
     environment                    : environment
     regions                        : regions
     region                         : region
-    hostname                       : hostname
+    hostname                       : host
     protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
@@ -167,7 +169,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
