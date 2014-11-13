@@ -37,6 +37,22 @@ module.exports =
       .end()
 
 
+  unlikePost: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
+
+    browser
+      .waitForElementVisible    selector, 10000
+      .click                    selector
+      .waitForElementVisible    selector, 10000
+      .click                    selector
+      .waitForElementNotVisible likeElement, 10000
+      .end()
+
+
   editPost: (browser) ->
 
     helpers.postActivity(browser)
