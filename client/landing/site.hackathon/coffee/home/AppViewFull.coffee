@@ -424,6 +424,12 @@ module.exports = class HomeViewFull extends KDView
       <article class='additional-prizes'>
         <h4>Additional Prizes</h4>
         <ul>
+          <li>
+            <figure>
+              <img src='http://medya.turkcell.com.tr/gorsel/Turkcell_Mavi.jpg' alt='Turkcell logo'/>
+              <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
+            </figure>
+          </li>        
         <!-- 
           <li>
             <figure>
@@ -443,12 +449,6 @@ module.exports = class HomeViewFull extends KDView
               <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
               <figcaption>The top-performing team that has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account will receive an extra <strong>$2,500</strong>. 
               Be sure to add your oDesk or Elance userID to the questionnaire that we send you.</figcaption>
-            </figure>
-          </li>
-          <li>
-            <figure>
-              <img src='http://medya.turkcell.com.tr/gorsel/Turkcell_Mavi.jpg' alt='Turkcell logo'/>
-              <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
             </figure>
           </li>
           <li>
