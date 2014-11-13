@@ -183,7 +183,6 @@ body.ide.dark
       top               8px
 
 
-  .nfinder.file-container
   .ide-files-tab .kdtabhandle-tabs
     min-width           234px
     noTextSelection()
@@ -321,7 +320,11 @@ body.ide.dark
 .settings-pane
   line-height           20px
   font-size             12px
-  min-width             250px
+  > .kdcustomscrollview
+    styleScrollBars     rgba(255,255,255,.25)
+    > .kdscrollview > *
+      min-width         250px
+
   .settings-header
     color               text-color-green
     padding             25px 20px 10px
