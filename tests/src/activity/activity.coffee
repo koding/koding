@@ -22,7 +22,7 @@ module.exports =
     browser.end()
 
 
-  likeActivity: (browser) ->
+  likePost: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.postActivity(browser, no)
@@ -172,7 +172,7 @@ module.exports =
     browser.end()
 
 
-  topicFollow: (browser) ->
+  followTopic: (browser) ->
 
     hashtag = helpers.sendHashtagActivity(browser)
     selector = activitySelector + ' .has-markdown p a:first-child'
