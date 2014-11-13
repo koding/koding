@@ -28,11 +28,11 @@ KD.mixpanel = (args...)->
     args.push {}
 
   me = KD.whoami()
-  return  unless me
+  return  unless me.profile
 
   KD.gaEvent args[0]
 
-  args[1]["username"] = me?.profile?.nickname
+  args[1]["username"] = me.profile.nickname
 
   analytics.track args...
 
