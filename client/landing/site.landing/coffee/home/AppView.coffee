@@ -16,6 +16,25 @@ module.exports = class HomeView extends KDView
   ORDER     = [ 'prev', 'current', 'next']
   INDEX     = 0
   INFODOTS  = [
+    #IDE
+    [
+      {
+        position : [10, 10] #percent
+        content  : 'Your VM is easily accesible at all times. \n Create a workspace for every project that you are working on.'
+      },
+      {
+        position : [49, 4] #percent
+        content  : 'If one IDE tab is not enough, open up more!'
+      },
+      {
+        position : [55, 32] #percent
+        content  : 'The Koding IDE supports syntax highlighting for \n all major programming languages.'
+      },
+      {
+        position : [26, 42] #percent
+        content  : 'Filetree gives you easy access to your VMs file system \n and supports easy uploads using drag and drop.'
+      }
+    ]
     #Terminal
     [
       {
@@ -52,25 +71,6 @@ module.exports = class HomeView extends KDView
       {
         position : [16, 32] #percent
         content  : 'If a topic of discussion is for your team only, \n then easily take it to a private message chat.'
-      }
-    ]
-    #IDE
-    [
-      {
-        position : [10, 10] #percent
-        content  : 'Your VM is easily accesible at all times. \n Create a workspace for every project that you are working on.'
-      },
-      {
-        position : [49, 4] #percent
-        content  : 'If one IDE tab is not enough, open up more!'
-      },
-      {
-        position : [55, 32] #percent
-        content  : 'The Koding IDE supports syntax highlighting for \n all major programming languages.'
-      },
-      {
-        position : [26, 42] #percent
-        content  : 'Filetree gives you easy access to your VMs file system \n and supports easy uploads using drag and drop.'
       }
     ]
     #Settings
@@ -157,11 +157,15 @@ module.exports = class HomeView extends KDView
     view = this
     @imageSets = for [image, slogan], i in IMAGES
 
+      imgUrl   = if window.devicePixelRatio > 1
+      then "#{IMAGEPATH}/2x/#{image}"
+      else "#{IMAGEPATH}/#{image}"
+
       @slideShow.addSubView slide = new KDCustomHTMLView
         tagName  : 'figure'
         cssClass : ORDER[i]
         slogan   : slogan
-        partial  : "<img src='#{IMAGEPATH}/#{image}' />"
+        partial  : "<img src='#{imgUrl}' />"
         click    : ->
           for [_slide, _dot], _i in view.imageSets when _slide is this
             view.rotateImagesBy _i - 1
