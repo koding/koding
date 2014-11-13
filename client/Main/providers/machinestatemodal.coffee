@@ -132,6 +132,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         @buildViews State: currentState
         return
 
+      @triggerEventTimer 0
+
       KD.getSingleton 'computeController'
         .kloud.info { @machineId, currentState }
         .then (response)=>
