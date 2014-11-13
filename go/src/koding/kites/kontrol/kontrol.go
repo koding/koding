@@ -33,9 +33,8 @@ func main() {
 
 	k := kontrol.New(conf)
 
-	// TODO use kite's http server instead of creating another one here
-	// this is used for application lifecycle management
-	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
+	k.Kite.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.Kite.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	k.Run()
 }
