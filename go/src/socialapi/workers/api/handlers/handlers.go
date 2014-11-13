@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -24,7 +25,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 	mux.Handle("POST", "/message/{id}", handler.Wrapper(
 		handler.Request{
 			Handler:        message.Update,
-			Name:           "message-update",
+			Name:           models.REQUEST_NAME_MESSAGE_UPDATE,
 			CollectMetrics: true,
 			Metrics:        metrics,
 			// Securer:        models.MessageSecurer,
@@ -34,7 +35,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(
 		handler.Request{
 			Handler:        message.Delete,
-			Name:           "message-delete",
+			Name:           models.REQUEST_NAME_MESSAGE_DELETE,
 			CollectMetrics: true,
 			Metrics:        metrics,
 			// Securer:        models.MessageSecurer,
@@ -46,7 +47,7 @@ func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.
 	mux.Handle("GET", "/message/{id}", handler.Wrapper(
 		handler.Request{
 			Handler: message.Get,
-			Name:    "message-get",
+			Name:    models.REQUEST_NAME_MESSAGE_GET,
 			// Securer: models.MessageSecurer,
 			Metrics: metrics,
 		},
