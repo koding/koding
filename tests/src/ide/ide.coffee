@@ -241,7 +241,7 @@ module.exports =
       .end()
 
 
-  openNewFileFromMachineHeader: (browser) ->
+  createNewFileFromMachineHeader: (browser) ->
 
     user          = helpers.beginTest(browser)
     filePath      = '/home/' + user.username
