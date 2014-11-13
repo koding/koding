@@ -424,12 +424,14 @@ module.exports = class HomeViewFull extends KDView
       <article class='additional-prizes'>
         <h4>Additional Prizes</h4>
         <ul>
+        <!-- 
           <li>
             <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
               <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money.</figcaption>
             </figure>
-          </li>        
+          </li>
+        -->  
           <li>
             <figure>
               <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
