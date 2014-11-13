@@ -210,6 +210,8 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 		err = stripe.SubscriptionDeletedWebhook(raw)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
+	case "customer.deleted":
+		err = stripe.CustomerDeletedWebhook(raw)
 	}
 
 	if err != nil {

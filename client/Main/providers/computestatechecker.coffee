@@ -18,14 +18,13 @@ class ComputeStateChecker extends KDObject
     KD.singletons.windowController.addFocusListener (state)=>
       if state then @start() else @stop()
 
-  start:->
+  start: (tickOnStart = no)->
 
     return  if @running
     @running = yes
 
-    # info "ComputeState checker started."
+    @tick yes  if tickOnStart
 
-    @tick yes
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
@@ -33,8 +32,6 @@ class ComputeStateChecker extends KDObject
 
     return  unless @running
     @running = no
-
-    # info "ComputeState checker stopped."
 
     KD.utils.killWait @timer
 
@@ -50,12 +47,10 @@ class ComputeStateChecker extends KDObject
   ignore: (machineId)->
 
     unless machineId in @ignoredMachines
-      log "IGNORING: ", {machineId}
       @ignoredMachines.push machineId
 
-  watch: (machineId)->
 
-    log "WATCHING: ", {machineId}
+  watch: (machineId)->
 
     @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
 
@@ -100,7 +95,7 @@ class ComputeStateChecker extends KDObject
 
       .timeout ComputeController.timeout
 
-      .catch (err)=>
+      .catch (err)->
 
         # Ignore pending event and timeout errors but log others
         unless (err?.code is "107") or (err?.name is "TimeoutError")

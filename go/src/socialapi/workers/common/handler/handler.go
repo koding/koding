@@ -14,6 +14,12 @@ import (
 	gometrics "github.com/rcrowley/go-metrics"
 )
 
+const (
+	PostRequest   = "POST"
+	GetRequest    = "GET"
+	DeleteRequest = "DELETE"
+)
+
 var (
 	// TODO allowed origins must be configurable
 	cors     = tigertonic.NewCORSBuilder().AddAllowedOrigins("*")
@@ -23,6 +29,8 @@ var (
 
 type Request struct {
 	Handler        interface{}
+	Endpoint       string
+	Type           string
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
@@ -61,8 +69,6 @@ func getAccount(r *http.Request) *models.Account {
 
 func Wrapper(r Request) http.Handler {
 	handler := r.Handler
-	logName := r.Name
-	collectMetrics := r.CollectMetrics
 
 	var hHandler http.Handler
 
@@ -72,11 +78,39 @@ func Wrapper(r Request) http.Handler {
 		hHandler = tigertonic.Marshaled(handler)
 	}
 
-	// count the statuses of the requests
-	hHandler = CountedByStatus(hHandler, logName, collectMetrics)
+	hHandler = buildHandlerWithStatusCount(handler, r)
 
+	hHandler = buildHandlerWithTimeTracking(hHandler, r)
+
+	// create the final handler
+	return cors.Build(hHandler)
+}
+
+// count the statuses of the requests
+func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
+	return CountedByStatus(
+		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
+	)
+}
+
+// add request time tracking
+func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler {
+	var registry gometrics.Registry
+
+	if r.Metrics != nil {
+		registry = r.Metrics.Registry
+	}
+
+	return tigertonic.Timed(
+		handler,
+		r.Name,
+		registry,
+	)
+}
+
+func BuildHandlerWithContext(handler http.Handler, r Request) http.Handler {
 	// add context
-	hHandler = tigertonic.If(
+	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
 			// this is an example
 			// set group name to context
@@ -91,24 +125,8 @@ func Wrapper(r Request) http.Handler {
 			*(tigertonic.Context(r).(*models.Context)) = *context
 			return nil, nil
 		},
-		hHandler,
+		handler,
 	)
-
-	var registry gometrics.Registry
-
-	if r.Metrics != nil {
-		registry = r.Metrics.Registry
-	}
-
-	// add request time tracking
-	hHandler = tigertonic.Timed(
-		hHandler,
-		logName,
-		registry,
-	)
-
-	// create the final handler
-	return cors.Build(hHandler)
 }
 
 //----------------------------------------------------------

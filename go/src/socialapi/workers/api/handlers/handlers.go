@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -13,510 +12,455 @@ import (
 	"socialapi/workers/api/modules/privatemessage"
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
-
-	"github.com/koding/metrics"
-	tigertonic "github.com/rcrowley/go-tigertonic"
+	"socialapi/workers/common/mux"
 )
 
-func Inject(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
+func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	// Message Operations
 	//----------------------------------------------------------
-	mux.Handle("POST", "/message/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        message.Update,
-			Name:           models.REQUEST_NAME_MESSAGE_UPDATE,
+			Name:           "message-update",
+			Type:           handler.PostRequest,
+			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 
-	mux.Handle("DELETE", "/message/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        message.Delete,
-			Name:           models.REQUEST_NAME_MESSAGE_DELETE,
+			Name:           "message-delete",
+			Type:           handler.DeleteRequest,
+			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/message/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: message.Get,
-			Name:    models.REQUEST_NAME_MESSAGE_GET,
-			// Securer: models.MessageSecurer,
-			Metrics: metrics,
-		},
-	))
+			Handler:  message.Get,
+			Name:     "message-get",
+			Type:     handler.GetRequest,
+			Endpoint: "/message/{id}",
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/message/slug/{slug}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: message.GetBySlug,
-			Name:    "message-get-by-slug",
-			Metrics: metrics,
-			// Securer: models.MessageSecurer,
-		},
-	))
+			Handler:  message.GetBySlug,
+			Name:     "message-get-by-slug",
+			Type:     handler.GetRequest,
+			Endpoint: "/message/slug/{slug}",
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/message/{id}/related", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: message.GetWithRelated,
-			Name:    "message-get-with-related",
-			Metrics: metrics,
-			// Securer: models.MessageSecurer,
-		},
-	))
+			Handler:  message.GetWithRelated,
+			Name:     "message-get-with-related",
+			Type:     handler.GetRequest,
+			Endpoint: "/message/{id}/related",
+		})
 
 	//----------------------------------------------------------
 	// Message Reply Operations
 	//----------------------------------------------------------
-	mux.Handle("POST", "/message/{id}/reply", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        reply.Create,
 			Name:           "reply-create",
+			Type:           handler.PostRequest,
+			Endpoint:       "/message/{id}/reply",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 	// exempt contents are filtered
-	mux.Handle("GET", "/message/{id}/reply", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: reply.List,
-			Name:    "reply-list",
-			Metrics: metrics,
-			// Securer: models.MessageSecurer,
-		},
-	))
+			Handler:  reply.List,
+			Name:     "reply-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/message/{id}/reply",
+		})
 
 	//----------------------------------------------------------
 	// Message Interaction
 	//----------------------------------------------------------
-	mux.Handle("POST", "/message/{id}/interaction/{type}/add", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        interaction.Add,
 			Name:           "interactions-add",
+			Type:           handler.PostRequest,
+			Endpoint:       "/message/{id}/interaction/{type}/add",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/message/{id}/interaction/{type}/delete", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        interaction.Delete,
 			Name:           "interactions-delete",
+			Type:           handler.PostRequest,
+			Endpoint:       "/message/{id}/interaction/{type}/delete",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 
 	// get all the interactions for message
 	// exempt contents are filtered
-	mux.Handle("GET", "/message/{id}/interaction/{type}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: interaction.List,
-			Name:    "interactions-list-typed",
-			Metrics: metrics,
-			// Securer: models.MessageSecurer,
-		},
-	))
+			Handler:  interaction.List,
+			Name:     "interactions-list-typed",
+			Type:     handler.GetRequest,
+			Endpoint: "/message/{id}/interaction/{type}",
+		})
 
 	// Channel Operations
 	//----------------------------------------------------------
-	mux.Handle("POST", "/channel", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        channel.Create,
 			Name:           "channel-create",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/channel", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: channel.List,
-			Name:    "channel-list",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  channel.List,
+			Name:     "channel-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel",
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/channel/search", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: channel.Search,
-			Name:    "channel-search",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  channel.Search,
+			Name:     "channel-search",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/search",
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/channel/name/{name}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: channel.ByName,
-			Name:    "channel-get-byname",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
-
-	mux.Handle("GET", "/channel/checkparticipation", handler.Wrapper(
+			Handler:  channel.ByName,
+			Name:     "channel-get-byname",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/name/{name}",
+		})
+	m.AddHandler(
 		handler.Request{
-			Handler: channel.CheckParticipation,
-			Name:    "channel-check-participation",
-			Metrics: metrics,
-			Securer: nil, // we dont need to secure this function
-		},
-	))
+			Handler:  channel.CheckParticipation,
+			Name:     "channel-check-participation",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/checkparticipation",
+		})
 
 	// deprecated, here for socialworker
-	mux.Handle("POST", "/channel/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        channel.Update,
 			Name:           "channel-update-old",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/channel/{id}/update", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        channel.Update,
 			Name:           "channel-update",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/update",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/channel/{id}/delete", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        channel.Delete,
 			Name:           "channel-delete",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/delete",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/channel/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: channel.Get,
-			Name:    "channel-get",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  channel.Get,
+			Name:     "channel-get",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/{id}",
+		})
 
 	// add a new messages to the channel
-	mux.Handle("POST", "/channel/{id}/message", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        message.Create,
 			Name:           "channel-message-create",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/message",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
 	// exempt contents are filtered
-	mux.Handle("GET", "/channel/{id}/participants", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: participant.List,
-			Name:    "participant-list",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  participant.List,
+			Name:     "participant-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/{id}/participants",
+		})
 
-	mux.Handle("POST", "/channel/{id}/participants/add", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        participant.AddMulti,
 			Name:           "participant-multi-add",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/participants/add",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/channel/{id}/participants/remove", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        participant.RemoveMulti,
 			Name:           "participant-multi-remove",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/participants/remove",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/channel/{id}/participant/{accountId}/presence", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        participant.UpdatePresence,
 			Name:           "participant-presence-update",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/participant/{accountId}/presence",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.ChannelSecurer,
-		},
-	))
+		})
 
 	// list messages of the channel
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/channel/{id}/history", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: messagelist.List,
-			Name:    "channel-history-list",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  messagelist.List,
+			Name:     "channel-history-list",
+			Endpoint: "/channel/{id}/history",
+			Type:     handler.GetRequest,
+		})
 
 	// message count of the channel
-	mux.Handle("GET", "/channel/{id}/history/count", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: messagelist.Count,
-			Name:    "channel-history-count",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  messagelist.Count,
+			Name:     "channel-history-count",
+			Endpoint: "/channel/{id}/history/count",
+			Type:     handler.GetRequest,
+		})
 
 	// register an account
-	mux.Handle("POST", "/account", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        account.Register,
 			Name:           "account-create",
+			Type:           handler.PostRequest,
+			Endpoint:       "/account",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.MessageSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/account/{id}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: account.Update,
-			Name:    "account-update",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  account.Update,
+			Name:     "account-update",
+			Type:     handler.PostRequest,
+			Endpoint: "/account/{id}",
+		})
 
 	// added troll mode protection
 	// list channels of the account
-	mux.Handle("GET", "/account/{id}/channels", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: account.ListChannels,
-			Name:    "account-channel-list",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  account.ListChannels,
+			Name:     "account-channel-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/channels",
+		})
 
-	mux.Handle("GET", "/account/{id}/channels/count", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: account.ParticipatedChannelCount,
-			Name:    "account-channel-list-count",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  account.ParticipatedChannelCount,
+			Name:     "account-channel-list-count",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/channels/count",
+		})
 
 	// list posts of the account
-	mux.Handle("GET", "/account/{id}/posts", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: account.ListPosts,
-			Name:    "account-post-list",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  account.ListPosts,
+			Name:     "account-post-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/posts",
+		})
 
 	// follow the account
-	mux.Handle("POST", "/account/{id}/follow", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        account.Follow,
 			Name:           "account-follow",
+			Type:           handler.PostRequest,
+			Endpoint:       "/account/{id}/follow",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
 	// un-follow the account
-	mux.Handle("POST", "/account/{id}/unfollow", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        account.Unfollow,
 			Name:           "account-unfollow",
+			Type:           handler.PostRequest,
+			Endpoint:       "/account/{id}/unfollow",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
 	// check ownership of an object
-	mux.Handle("GET", "/account/{id}/owns", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: account.CheckOwnership,
-			Name:    "account-owns",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  account.CheckOwnership,
+			Name:     "account-owns",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/owns",
+		})
 
 	// fetch profile feed
-	// mux.Handle("GET", "/account/{id}/profile/feed", handler.Wrapper(
+	// m.AddHandler("GET", "/account/{id}/profile/feed"
 	//   handler.Request{
 	//     Handler: account.ListProfileFeed,
 	//     Name:    "list-profile-feed",
 	//   },
-	// ))
+	// )
 
 	// get pinning channel of the account
-	mux.Handle("GET", "/activity/pin/channel", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: activity.GetPinnedActivityChannel,
-			Name:    "activity-pin-get-channel",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  activity.GetPinnedActivityChannel,
+			Name:     "activity-pin-get-channel",
+			Type:     handler.GetRequest,
+			Endpoint: "/activity/pin/channel",
+		})
 
 	// exempt contents are filtered
 	// caching enabled
-	mux.Handle("GET", "/activity/pin/list", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: activity.List,
-			Name:    "activity-pin-list-message",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  activity.List,
+			Name:     "activity-pin-list-message",
+			Type:     handler.GetRequest,
+			Endpoint: "/activity/pin/list",
+		})
 
 	// pin a new status update
-	mux.Handle("POST", "/activity/pin/add", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        activity.PinMessage,
 			Name:           "activity-add-pinned-message",
+			Type:           handler.PostRequest,
+			Endpoint:       "/activity/pin/add",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 	// unpin a status update
-	mux.Handle("POST", "/activity/pin/remove", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        activity.UnpinMessage,
 			Name:           "activity-remove-pinned-message",
+			Type:           handler.PostRequest,
+			Endpoint:       "/activity/pin/remove",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
 	// @todo add tests
-	mux.Handle("POST", "/activity/pin/glance", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        activity.Glance,
 			Name:           "activity-pinned-message-glance",
+			Type:           handler.PostRequest,
+			Endpoint:       "/activity/pin/glance",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
 	// get popular topics
 	// exempt contents are filtered
 	// TODO add caching
-	mux.Handle("GET", "/popular/topics/{statisticName}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: popular.ListTopics,
-			Name:    "list-popular-topics",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  popular.ListTopics,
+			Name:     "list-popular-topics",
+			Type:     handler.GetRequest,
+			Endpoint: "/popular/topics/{statisticName}",
+		})
 
 	// exempt contents are filtered
 	// TODO add caching
-	mux.Handle("GET", "/popular/posts/{channelName}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: popular.ListPosts,
-			Name:    "list-popular-posts",
-			Metrics: metrics,
-			// Securer: models.ChannelSecurer,
-		},
-	))
+			Handler:  popular.ListPosts,
+			Name:     "list-popular-posts",
+			Type:     handler.GetRequest,
+			Endpoint: "/popular/posts/{channelName}",
+		})
 
-	mux.Handle("POST", "/privatemessage/init", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        privatemessage.Init,
 			Name:           "privatemessage-init",
+			Type:           handler.PostRequest,
+			Endpoint:       "/privatemessage/init",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/privatemessage/send", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        privatemessage.Send,
 			Name:           "privatemessage-send",
+			Type:           handler.PostRequest,
+			Endpoint:       "/privatemessage/send",
 			CollectMetrics: true,
-			Metrics:        metrics,
-			// Securer:        models.AccountSecurer,
-		},
-	))
+		})
 
 	// exempt contents are filtered
-	mux.Handle("GET", "/privatemessage/list", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: privatemessage.List,
-			Name:    "privatemessage-list",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  privatemessage.List,
+			Name:     "privatemessage-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/privatemessage/list",
+		})
 
-	mux.Handle("GET", "/privatemessage/search", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: privatemessage.Search,
-			Name:    "privatemessage-search",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
+			Handler:  privatemessage.Search,
+			Name:     "privatemessage-search",
+			Type:     handler.GetRequest,
+			Endpoint: "/privatemessage/search",
+		})
 
-	mux.Handle("GET", "/privatemessage/count", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: privatemessage.Count,
-			Name:    "privatemessage-count",
-			Metrics: metrics,
-			// Securer: models.AccountSecurer,
-		},
-	))
-
-	return mux
+			Handler:  privatemessage.Count,
+			Name:     "privatemessage-count",
+			Type:     handler.GetRequest,
+			Endpoint: "/privatemessage/count",
+		})
 }
-
-// to-do list
-// get current account from context for future
-// like client.connection.delegate
