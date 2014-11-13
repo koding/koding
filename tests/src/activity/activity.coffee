@@ -209,8 +209,22 @@ module.exports =
     browser.end()
 
 
+  unfollowTopic: (browser) ->
+
+    hashtag = helpers.doFollowTopic(browser)
+    selector = '.activity-sidebar .followed.topics'
 
     browser
+      .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000
+      .click                   '[testpath=channel-title]' + ' .following'
+      .waitForElementVisible   '[testpath="public-feed-link/Activity/Topic/public"]', 2000
+      .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
+      .refresh()
+      .pause 2000 # reguired
+
+    browser.getText selector
+    assert.notEqual(hashtag)
+    browser.end()
 
 
   postLongMessage: (browser) ->
