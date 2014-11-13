@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/koding/bongo"
+)
+
 var (
 	Permission_ROLE_SUPERADMIN = "superadmin"
 	Permission_ROLE_ADMIN      = "admin"
@@ -21,11 +26,11 @@ type Permission struct {
 	// name of the permission
 	Name string `json:"name"`
 
-	// admin, moderator, member, guest
-	RoleConstant string `json:"roleConstant"`
-
 	// Id of the channel
 	ChannelId int64 `json:"channelId,string"       sql:"NOT NULL"`
+
+	// admin, moderator, member, guest
+	RoleConstant string `json:"roleConstant"`
 
 	// Status of the permission in the channel
 	// Allowed/Disallowed
@@ -36,4 +41,49 @@ type Permission struct {
 
 	// Modification date of the permission
 	UpdatedAt time.Time `json:"updatedAt"          sql:"NOT NULL"`
+}
+
+func NewPermission() *Permission {
+	return &Permission{}
+}
+
+func (p *Permission) FetchStatus() (string, error) {
+	if p.ChannelId == 0 {
+		return "", ErrChannelIdIsNotSet
+	}
+
+	if p.RoleConstant == "" {
+		// implicitly set role as guest, if not set
+		p.RoleConstant = Permission_ROLE_GUEST
+	}
+
+	selector := map[string]interface{}{
+		"channel_id":    p.ChannelId,
+		"role_constant": p.RoleConstant,
+	}
+
+	err := p.One(bongo.NewQS(selector))
+	if err != nil && err != bongo.RecordNotFound {
+		return "", err
+	}
+
+	if err == bongo.RecordNotFound {
+		// todo return default permission
+		return Permission_STATUS_ALLOWED, nil
+	}
+
+	return p.StatusConstant, nil
+}
+
+func (p *Permission) EnsureAllowance() error {
+	status, err := p.FetchStatus()
+	if err != nil {
+		return err
+	}
+
+	if status == Permission_STATUS_ALLOWED {
+		return nil
+	}
+
+	return ErrAccessDenied
 }
