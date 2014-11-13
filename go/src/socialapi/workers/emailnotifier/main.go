@@ -31,13 +31,7 @@ func main() {
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
 
-	es := &models.EmailSettings{
-		Username:        r.Conf.Email.Username,
-		Password:        r.Conf.Email.Password,
-		DefaultFromMail: r.Conf.Email.DefaultFromMail,
-		DefaultFromName: r.Conf.Email.DefaultFromName,
-		ForcedRecipient: r.Conf.Email.ForcedRecipient,
-	}
+	es := models.NewEmailSettings(r.Conf)
 
 	handler, err := emailnotifier.New(
 		rmq,

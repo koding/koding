@@ -25,13 +25,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := &models.EmailSettings{
-		Username:        r.Conf.Email.Username,
-		Password:        r.Conf.Email.Password,
-		DefaultFromMail: r.Conf.Email.DefaultFromMail,
-		DefaultFromName: r.Conf.Email.DefaultFromName,
-		ForcedRecipient: r.Conf.Email.ForcedRecipient,
-	}
+	es := models.NewEmailSettings(r.Conf)
 
 	handler, err := controller.New(r.Log, es)
 	if err != nil {
