@@ -755,9 +755,19 @@ class IDEAppController extends AppController
 
       log 'acetz: participants:', @participants.asArray()
 
+      @registerSessionId()
       @listenChangeEvents()
 
+  registerSessionId: ->
+    collaborators = @rtm.getCollaborators @realTimeDoc
 
+    for collaborator in collaborators when collaborator.isMe
+      participants = @participants.asArray()
+
+      for user, index in participants when user.nickname is KD.nick()
+        user.sessionId = collaborator.sessionId
+        @participants.remove index
+        @participants.insert index, user
 
 
   addParticipant: (initalizeList = no) ->
