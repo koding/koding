@@ -114,11 +114,6 @@ class IDE.EditorPane extends IDE.Pane
 
       @emit 'ChangeHappened', change
 
-    ace.on 'FileContentSynced', =>
-      change.type = 'FileSave'
-
-      @emit 'ChangeHappened', change
-
   serialize: ->
     file       = @getFile()
     {paneType} = @getOptions()
