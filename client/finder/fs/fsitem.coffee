@@ -19,7 +19,7 @@ class FSItem extends KDObject
   #
   # If requested path already exists, it generates new paths
   # eg, if /tmp/foo then /tmp/foo_1 will be created, and so on.
-  @create = ({ path, type, machine, recursive }, callback = noop)->
+  @create = ({ path, type, machine, recursive, samePathOnly }, callback = noop)->
 
     unless path or machine
       warn message = "pass a path and machine to create a file"
@@ -51,14 +51,27 @@ class FSItem extends KDObject
 
       .then (actualPath) ->
 
-        options.path = actualPath
+        if samePathOnly and actualPath isnt plainPath
+          actualPath = plainPath
 
-        kite[method](options).then (stat) ->
+        createFileInstance = ->
 
           FSHelper.createFileInstance {
             path: actualPath
             type, machine
           }
+
+        createFile = ->
+          options.path = actualPath
+          kite[method](options).then createFileInstance
+
+        if samePathOnly
+          if actualPath is plainPath
+            createFile()
+          else
+            createFileInstance()
+        else
+          createFile()
 
       .nodeify callback
 
