@@ -23,6 +23,23 @@ type UserContact struct {
 }
 
 // fetchUserContact gets user and account details with given account id
+func FetchUserContactWithToken(accountId int64) (*UserContact, error) {
+
+	uc, err := FetchUserContact(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := NewTokenGenerator().GenerateToken()
+	if err != nil {
+		return nil, err
+	}
+
+	uc.Token = token
+
+	return uc, nil
+}
+
 func FetchUserContact(accountId int64) (*UserContact, error) {
 	a := models.NewAccount()
 	if err := a.ById(accountId); err != nil {
@@ -47,11 +64,6 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 		return nil, err
 	}
 
-	token, err := NewTokenGenerator().GenerateToken()
-	if err != nil {
-		return nil, err
-	}
-
 	return &UserContact{
 		AccountId:     accountId,
 		UserOldId:     user.ObjectId,
@@ -61,6 +73,5 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 		Username:      account.Profile.Nickname,
 		Hash:          account.Profile.Hash,
 		EmailSettings: &user.EmailFrequency,
-		Token:         token,
 	}, nil
 }

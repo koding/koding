@@ -87,7 +87,7 @@ func (n *Controller) sendDailyMails() {
 }
 
 func (n *Controller) prepareDailyEmail(accountId int64) error {
-	uc, err := models.FetchUserContact(accountId)
+	uc, err := models.FetchUserContactWithToken(accountId)
 	if err != nil {
 		return err
 	}

@@ -74,7 +74,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		return nil
 	}
 
-	uc, err := models.FetchUserContact(notification.AccountId)
+	uc, err := models.FetchUserContactWithToken(notification.AccountId)
 	if err != nil {
 		return fmt.Errorf("an error occurred while fetching user contact: %s", err)
 	}

@@ -129,7 +129,7 @@ func buildEventContent(mc *MailerContainer) (*EventContent, error) {
 		Size:         20,
 	}
 
-	actor, err := FetchUserContact(mc.Activity.ActorId)
+	actor, err := FetchUserContactWithToken(mc.Activity.ActorId)
 	if err != nil {
 		return nil, fmt.Errorf("an error occurred while retrieving actor details", err)
 	}
