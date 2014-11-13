@@ -221,9 +221,28 @@ class IDE.IDEView extends IDE.WorkspaceTabView
           @tabView.removePane pane
 
   getPlusMenuItems: ->
+
+    machine = @getCurrentMachine()
+
+    terminalSessions =
+      "New Session"  :
+        callback     : => @createTerminal machine
+        separator    : yes
+      "Existing Sessions":
+        disabled     : yes
+
+    sessions = machine?.getBaseKite().terminalSessions or []
+
+    unless sessions.length
+      delete terminalSessions["Existing Sessions"]
+
+    sessions.forEach (session, i) =>
+      terminalSessions["Session #{i+1}"] =
+        callback : => @createTerminal machine, null, session
+
     items =
       'New File'          : callback : => @createEditor()
-      'New Terminal'      : callback : => @createTerminal()
+      'New Terminal'      : children : terminalSessions
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
