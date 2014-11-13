@@ -6,7 +6,7 @@ class WelcomeModal extends KDModalView
     options.overlay       = yes
     options.overlayClick  = no
     options.width         = 766
-    options.height        = 450
+    options.height        = 519
 
     super options, data
 
