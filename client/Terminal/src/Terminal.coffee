@@ -144,7 +144,11 @@ class WebTerm.Terminal extends KDObject
     @keyInput?.destroy()
     super()
 
+  ignoreKeyDownEvent = (event) ->
+    (event.ctrlKey or event.metaKey) and event.shiftKey and event.keyCode is 13
+
   keyDown: (event) ->
+    return  if ignoreKeyDownEvent event
     @inputHandler.keyDown event
 
   keyPress: (event) ->

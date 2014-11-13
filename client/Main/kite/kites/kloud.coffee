@@ -50,7 +50,7 @@ class KodingKite_KloudKite extends KodingKite
 
   resolveRequestingInfos: (machineId, info)->
 
-    @requestingInfo?[machineId].forEach ({ resolve }) ->
+    @requestingInfo?[machineId]?.forEach ({ resolve }) ->
       resolve info
 
     @requestingInfo[machineId] = null
@@ -70,6 +70,8 @@ class KodingKite_KloudKite extends KodingKite
 
     if not klientKite?
       return callback null
+
+    KD.remote.api.DataDog.increment "KlientInfo", noop
 
     klientKite.ping()
 
@@ -92,6 +94,8 @@ class KodingKite_KloudKite extends KodingKite
     @kloudCalls[machineId]++
 
     info "[kloud:info] call count for [#{machineId}] is #{@kloudCalls[machineId]}"
+
+    KD.remote.api.DataDog.increment "KloudInfo", noop
 
     @tell 'info', { machineId }
 
