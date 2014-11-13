@@ -472,3 +472,15 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 	query := fmt.Sprintf("UPDATE %s SET last_seen_at = ? WHERE id = ?", c.BongoName())
 	return bongo.B.DB.Exec(query, t, c.Id).Error
 }
+
+func (c *ChannelParticipant) Glance() error {
+	c.LastSeenAt = time.Now().UTC()
+
+	if err := c.Update(); err != nil {
+		return err
+	}
+
+	go bongo.B.PublishEvent("channel_glanced", c)
+
+	return nil
+}
