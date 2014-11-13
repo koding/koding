@@ -149,6 +149,22 @@ module.exports =
       browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
 
+  doFollowTopic: (browser) ->
+
+    hashtag  = @sendHashtagActivity(browser)
+    selector = activitySelector + ' .has-markdown p a:first-child'
+
+    browser
+      .waitForElementVisible   selector, 5000
+      .click                   selector
+      .pause                   3000 # really required
+      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
+      .waitForElementVisible   '[testpath=channel-title]' + ' .follow', 2000
+      .click                   '[testpath=channel-title]' + ' .follow'
+      .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000 # Assertion
+
+    return hashtag
+
   sendHashtagActivity: (browser) ->
 
     @beginTest(browser)
