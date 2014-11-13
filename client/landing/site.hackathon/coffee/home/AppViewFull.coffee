@@ -345,7 +345,7 @@ module.exports = class HomeViewFull extends KDView
       <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, wherever we are!</h3>
-      <h4>Apply today with your Koding account to get a chance <strong>to win up to $10,000 in cash prizes.</strong></h4>
+      <h4>Apply today with your Koding account to get a chance <strong>to win up to $#{prize.toLocaleString()} in cash prizes.</strong></h4>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
@@ -414,6 +414,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4>What are the prizes?</h4>
+        Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
           <li>Winners will be offered credits for services like DigitalOcean, Tutum and many more!</li>
@@ -425,6 +426,20 @@ module.exports = class HomeViewFull extends KDView
         <ul>
           <li>
             <figure>
+              <img src='http://medya.turkcell.com.tr/gorsel/Turkcell_Mavi.jpg' alt='Turkcell logo'/>
+              <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
+            </figure>
+          </li>        
+        <!-- 
+          <li>
+            <figure>
+              <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
+              <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money.</figcaption>
+            </figure>
+          </li>
+        -->  
+          <li>
+            <figure>
               <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
               <figcaption>The top winning team will receive <strong>$5,000</strong> in account credit from <a href='http://www.digitalocean.com' target='_blank'>Digital Ocean</a>.</figcaption>
             </figure>
@@ -434,6 +449,12 @@ module.exports = class HomeViewFull extends KDView
               <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
               <figcaption>The top-performing team that has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account will receive an extra <strong>$2,500</strong>. 
               Be sure to add your oDesk or Elance userID to the questionnaire that we send you.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <img src='http://www.pubnub.com/static/images/structure/pubnub.png' alt='PubNub logo'/>
+              <figcaption><a href='http://pubnub.com' target=_blank>PubNub</a> will award an additional <strong>$1,000</strong> to the team that makes the best use of their API.</figcaption>
             </figure>
           </li>
           <li>
@@ -454,7 +475,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <figcaption><a href='http://www.sprint.ly'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
+              <figcaption><a href='https://sprint.ly/landing/koding'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
             </figure>
           </li>
         </ul>
