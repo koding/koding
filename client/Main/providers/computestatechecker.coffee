@@ -60,7 +60,7 @@ class ComputeStateChecker extends KDObject
     return  if @tickInProgress
     @tickInProgress = yes
 
-    {computeController} = KD.singletons
+    {computeController, kontrol} = KD.singletons
 
     @machines.forEach (machine)=>
 
@@ -72,6 +72,10 @@ class ComputeStateChecker extends KDObject
 
       unless currentState is Machine.State.Running
         return  if not checkAll
+      else
+        {klient}   = kontrol.kites
+        machineUid = computeController.findUidFromMachineId machineId
+        return  if not (machineUid? and klient? and klient[machineUid])
 
       call = @kloud.info { machineId, currentState }
 
