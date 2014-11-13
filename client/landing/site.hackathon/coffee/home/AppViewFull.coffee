@@ -469,7 +469,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <figcaption><a href='http://www.sprint.ly'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
+              <figcaption><a href='https://sprint.ly/landing/koding'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
             </figure>
           </li>
         </ul>
