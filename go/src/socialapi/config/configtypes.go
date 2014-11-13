@@ -44,6 +44,8 @@ type (
 
 		Stripe Stripe
 
+		Paypal Paypal
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
@@ -118,5 +120,14 @@ type (
 
 	Stripe struct {
 		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
+	}
+
+	Paypal struct {
+		Username  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_USERNAME"`
+		Password  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_PASSWORD"`
+		Signature string `env:"key=KONFIG_SOCIALAPI_PAYPAL_SIGNATURE"`
+		ReturnUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_RETURNURL"`
+		CancelUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_CANCELURL"`
+		IsSandbox bool   `env:"key=KONFIG_SOCIALAPI_PAYPAL_ISANDBOX"`
 	}
 )

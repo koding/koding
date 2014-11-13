@@ -77,9 +77,6 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
-
-	// Artifacts endpoint port
-	ArtifactPort int
 }
 
 func main() {
@@ -129,10 +126,6 @@ func main() {
 			k.Log.Fatal(err.Error())
 		}
 	}
-
-	// TODO use kite's http server instead of creating another one here
-	// this is used for application lifecycle management
-	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
 
 	k.Run()
 }
@@ -286,6 +279,9 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("domain.unset", kld.DomainUnset)
 	k.HandleFunc("domain.add", kld.DomainAdd)
 	k.HandleFunc("domain.remove", kld.DomainRemove)
+
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	return k
 }

@@ -2,25 +2,23 @@ package api
 
 import (
 	"socialapi/workers/common/handler"
-
-	"github.com/rcrowley/go-tigertonic"
+	"socialapi/workers/common/mux"
 )
 
-// TODO wrap this TrieServeMux
-func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-	mux.Handle("POST", "/trollmode/{accountId}", handler.Wrapper(
+func AddHandlers(m *mux.Mux) {
+	m.AddHandler(
 		handler.Request{
-			Handler: Mark,
-			Name:    "trollmode-mark",
-		},
-	))
+			Handler:  Mark,
+			Name:     "trollmode-mark",
+			Type:     handler.PostRequest,
+			Endpoint: "/trollmode/{accountId}",
+		})
 
-	mux.Handle("DELETE", "/trollmode/{accountId}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: UnMark,
-			Name:    "trollmode-unmark",
-		},
-	))
-
-	return mux
+			Handler:  UnMark,
+			Name:     "trollmode-unmark",
+			Type:     handler.DeleteRequest,
+			Endpoint: "/trollmode/{accountId}",
+		})
 }
