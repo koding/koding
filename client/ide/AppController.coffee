@@ -731,12 +731,10 @@ class IDEAppController extends AppController
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
-      @realTimeDoc = doc
-      nickname     = KD.nick()
-
-      @getParticipants()
-
-      @changes = @rtm.getFromModel @realTimeDoc, 'changes'
+      @realTimeDoc  = doc
+      nickname      = KD.nick()
+      @participants = @rtm.getFromModel @realTimeDoc, 'participants'
+      @changes      = @rtm.getFromModel @realTimeDoc, 'changes'
 
       unless @changes
         @changes = @rtm.create 'list', @realTimeDoc, 'changes', []
@@ -760,8 +758,6 @@ class IDEAppController extends AppController
       @listenChangeEvents()
 
 
-  getParticipants: ->
-    @participants = @rtm.getFromModel @realTimeDoc, 'participants'
 
 
   addParticipant: (initalizeList = no) ->
