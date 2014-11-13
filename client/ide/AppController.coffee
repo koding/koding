@@ -35,31 +35,32 @@ class IDEAppController extends AppController
       'go to right tab'     : 'goToRightTab'
       'go to tab number'    : 'goToTabNumber'
       'fullscren ideview'   : 'toggleFullscreenIDEView'
+
     keyBindings: [
-      { command: 'find file by name',   binding: 'ctrl+alt+o', global: yes }
-      { command: 'search all files',    binding: 'ctrl+alt+f', global: yes }
-      { command: 'split vertically',    binding: 'ctrl+alt+v', global: yes }
-      { command: 'split horizontally',  binding: 'ctrl+alt+h', global: yes }
-      { command: 'merge splitview',     binding: 'ctrl+alt+m', global: yes }
-      { command: 'preview file',        binding: 'ctrl+alt+p', global: yes }
-      { command: 'save all files',      binding: 'ctrl+alt+s', global: yes }
-      { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
-      { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
-      { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
-      { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
-      { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
-      { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
-      { command: 'go to left tab',      binding: 'ctrl+alt+[', global: yes }
-      { command: 'go to right tab',     binding: 'ctrl+alt+]', global: yes }
-      { command: 'go to tab number',    binding: 'mod+1',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+2',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+3',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+4',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+5',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+6',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+7',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+8',      global: yes }
-      { command: 'go to tab number',    binding: 'mod+9',      global: yes }
+      { command: 'find file by name',   binding: 'ctrl+alt+o',       global: yes }
+      { command: 'search all files',    binding: 'ctrl+alt+f',       global: yes }
+      { command: 'split vertically',    binding: 'ctrl+alt+v',       global: yes }
+      { command: 'split horizontally',  binding: 'ctrl+alt+h',       global: yes }
+      { command: 'merge splitview',     binding: 'ctrl+alt+m',       global: yes }
+      { command: 'preview file',        binding: 'ctrl+alt+p',       global: yes }
+      { command: 'save all files',      binding: 'ctrl+alt+s',       global: yes }
+      { command: 'create new file',     binding: 'ctrl+alt+n',       global: yes }
+      { command: 'create new terminal', binding: 'ctrl+alt+t',       global: yes }
+      { command: 'create new browser',  binding: 'ctrl+alt+b',       global: yes }
+      { command: 'create new drawing',  binding: 'ctrl+alt+d',       global: yes }
+      { command: 'toggle sidebar',      binding: 'ctrl+alt+k',       global: yes }
+      { command: 'close tab',           binding: 'ctrl+alt+w',       global: yes }
+      { command: 'go to left tab',      binding: 'ctrl+alt+[',       global: yes }
+      { command: 'go to right tab',     binding: 'ctrl+alt+]',       global: yes }
+      { command: 'go to tab number',    binding: 'mod+1',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+2',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+3',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+4',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+5',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+6',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+7',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+8',            global: yes }
+      { command: 'go to tab number',    binding: 'mod+9',            global: yes }
       { command: 'fullscren ideview',   binding: 'mod+shift+enter', global: yes }
     ]
 
