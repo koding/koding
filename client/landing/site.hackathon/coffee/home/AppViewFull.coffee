@@ -447,6 +447,12 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
+              <img src='http://www.pubnub.com/static/images/structure/pubnub.png' alt='PubNub logo'/>
+              <figcaption><a href='http://pubnub.com' target=_blank>PubNub</a> will award an additional <strong>$1,000</strong> to the team that makes the best use of their API.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
               <img src='./a/site.hackathon/images/partners/paypal.jpg' alt='PayPal logo'/>
               <figcaption><a href='http://www.paypal.com' target='_blank'>PayPal</a> is sponsoring an additional <strong>$2,500</strong> in prize money. Details on how to win this additional amount are coming soon.</figcaption>
             </figure>
