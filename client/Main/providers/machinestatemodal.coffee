@@ -67,53 +67,58 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     {status, percentage, error} = event
 
     if status is @state
-
-      if percentage?
-
-        @triggerEventTimer percentage
-
-        @progressBar?.updateBar Math.max percentage, 10
-        @progressBar?.show()
+      @updatePercentage percentage  if percentage?
 
     else
-
-      @state = status
+      @state    = status
       @hasError = error?.length > 0
 
-      if percentage?
+      unless percentage?
+        return @switchToIDEIfNeeded()
 
-        if percentage is 100
+      if percentage is 100
+        @completeCurrentProcess status
 
-          @clearEventTimer()
-
-          if status is Running
-            @prepareIDE()
-            @destroy()
-
-          else
-            @progressBar?.updateBar 100
-            @progressBar?.show()
-
-            KD.utils.wait 500, => @buildViews()
-
-        else if task is 'reinit'
-
-          @progressBar?.updateBar Math.max percentage, 10
-          @progressBar?.show()
-          @label?.updatePartial @getStateLabel()
-
-          @triggerEventTimer percentage
-
-        else
-
-          @clearEventTimer()
-          @buildViews()
+      else if task is 'reinit'
+        @updatePercentage percentage
+        @updateReinitState()
 
       else
+        @clearEventTimer()
+        @buildViews()
 
-        if status is Running
-          @prepareIDE()
-          @destroy()
+
+  switchToIDEIfNeeded: (status = @state)->
+
+    return no  unless status is Running
+    @prepareIDE()
+    @destroy()
+    return yes
+
+
+  updatePercentage: (percentage)->
+
+    @triggerEventTimer percentage
+
+    @progressBar?.updateBar Math.max percentage, 10
+    @progressBar?.show()
+
+
+  updateReinitState: ->
+
+    @label?.updatePartial @getStateLabel()
+
+
+  completeCurrentProcess: (status)->
+
+    @clearEventTimer()
+
+    return  if @switchToIDEIfNeeded status
+
+    @progressBar?.updateBar 100
+    @progressBar?.show()
+
+    KD.utils.wait 500, => @buildViews()
 
 
   buildInitial:->
