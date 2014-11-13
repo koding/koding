@@ -316,6 +316,30 @@ func (r *RedisSession) HashGetAll(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("HGETALL", r.AddPrefix(key)))
 }
 
+// HashSetIfNotExists adds the item to given field, when the field
+// does not exist. Returns the result of set operation
+func (r *RedisSession) HashSetIfNotExists(key, field string, item interface{}) (bool, error) {
+	reply, err := redis.Int(r.Do("HSETNX", r.AddPrefix(key), field, item))
+	if err != nil {
+		return false, err
+	}
+
+	return reply == 1, nil
+}
+
+// GetHashLength returns the item count of a hash set.
+func (r *RedisSession) GetHashLength(key string) (int, error) {
+	return redis.Int(r.Do("HLEN", r.AddPrefix(key)))
+}
+
+// DeleteHashSetField deletes a given field from hash set and returns number
+// of deleted fields count
+func (r *RedisSession) DeleteHashSetField(key string, rest ...interface{}) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+
+	return redis.Int(r.Do("HDEL", prefixedReq...))
+}
+
 // AddSetMembers adds given elements to the set stored at key. Given elements
 // that are already included in set are ignored.
 // Returns successfully added key count and error state
