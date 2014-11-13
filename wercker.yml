@@ -126,7 +126,7 @@ build:
         name: output social api logs if fails
         code: |
           if [ "$WERCKER_RESULT" = "failed" ]; then
-            cat /var/log/koding/social-api.log
+            tail -n 10000 /var/log/koding/social-api.log
           fi
     - script:
         name: terminate test instance
