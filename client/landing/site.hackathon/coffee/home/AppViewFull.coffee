@@ -414,7 +414,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4>What are the prizes?</h4>
-        Total prizes over <strong>$25,000</strong>! Here are the details.
+        Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
           <li>Winners will be offered credits for services like DigitalOcean, Tutum and many more!</li>
