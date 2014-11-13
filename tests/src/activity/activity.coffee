@@ -357,3 +357,21 @@ module.exports =
     browser
       .assert.containsText selector, image # Assertion
       .end()
+
+
+  postCommentWithLink: (browser) ->
+
+    helpers.beginTest(browser)
+
+    post     = helpers.getFakeText()
+    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    linkSelector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
+
+    helpers.doPostActivity(browser, post)
+    helpers.doPostComment(browser, link)
+
+    browser.getAttribute linkSelector, 'href', (result) ->
+      href = result.value
+      assert.equal(link, href)
+
+    browser.end()
