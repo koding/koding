@@ -73,10 +73,10 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @state    = status
       @hasError = error?.length > 0
 
-      unless percentage?
-        return @switchToIDEIfNeeded()
+      if not percentage?
+        @switchToIDEIfNeeded()
 
-      if percentage is 100
+      else if percentage is 100
         @completeCurrentProcess status
 
       else if task is 'reinit'
