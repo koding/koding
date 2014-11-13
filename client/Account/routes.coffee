@@ -8,7 +8,7 @@ do ->
     new KDNotificationView title: "Verification failed!"
     @clear()
 
-  handler = (callback)->
+  handler = (callback) -> KD.singletons.mainController.ready ->
     if KD.isLoggedIn()
       appManager = KD.singleton('appManager')
       if appManager.getFrontApp()?.getOption('name') is 'Account'
@@ -19,7 +19,7 @@ do ->
 
   KD.registerRoutes 'Account',
     "/:name?/Account"          : -> KD.singletons.router.handleRoute '/Account/Profile'
-    "/:name?/Account/:section" : ({params:{section}})-> handler (app)-> app.openSection section
+    "/:name?/Account/:section" : ({params:{section}}) -> handler (app) -> app.openSection section
     "/:name?/Account/Referrer" : -> KD.singletons.router.handleRoute '/'
     "/Verified": handleVerified
     "/VerificationFailed": handleVerificationFailed
