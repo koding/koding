@@ -345,7 +345,7 @@ module.exports = class HomeViewFull extends KDView
       <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, wherever we are!</h3>
-      <h4>Apply today with your Koding account to get a chance <strong>to win up to $10,000 in cash prizes.</strong></h4>
+      <h4>Apply today with your Koding account to get a chance <strong>to win up to $#{prize.toLocaleString()} in cash prizes.</strong></h4>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
@@ -414,6 +414,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4>What are the prizes?</h4>
+        Total prizes over <strong>$25,000</strong>! Here are the details.
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
           <li>Winners will be offered credits for services like DigitalOcean, Tutum and many more!</li>
@@ -423,6 +424,12 @@ module.exports = class HomeViewFull extends KDView
       <article class='additional-prizes'>
         <h4>Additional Prizes</h4>
         <ul>
+          <li>
+            <figure>
+              <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
+              <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money.</figcaption>
+            </figure>
+          </li>        
           <li>
             <figure>
               <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
