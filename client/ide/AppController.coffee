@@ -886,10 +886,24 @@ class IDEAppController extends AppController
     amIWatchingChangeOwner = not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
 
     if amIWatchingChangeOwner
-      if type is 'NewPaneCreated'
-        @createPaneFromChange change
+      targetPane = @getPaneByChange change
 
-      @getPaneByChange(change)?.handleChange? change, @rtm, @realTimeDoc
+      switch type
+
+        when 'NewPaneCreated'
+          @createPaneFromChange change
+
+        when 'TabChanged'
+          paneView = targetPane.parent
+          tabView  = paneView.parent
+          ideView  = tabView.parent
+
+          ideView.suppressChangeHandlers = yes
+          tabView.showPane paneView
+          ideView.suppressChangeHandlers = no
+
+
+      targetPane?.handleChange? change, @rtm, @realTimeDoc
 
 
   getPaneByChange: (change) ->

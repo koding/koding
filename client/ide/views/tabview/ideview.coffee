@@ -138,6 +138,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     change.type   = type
     change.origin = KD.nick()
 
+    if type in [ 'PaneRemoved', 'TabChanged' ] and pane.file
+      change.context.file = path: pane.file.path
+
     @emit 'ChangeHappened', change
 
 
@@ -212,7 +215,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
-      @emitChange pane, context: {}, 'TabChanged'
+      unless @suppressChangeHandlers
+        @emitChange pane, context: {}, 'TabChanged'
 
   goToLine: ->
     @getActivePaneView().aceView.ace.showGotoLine()
