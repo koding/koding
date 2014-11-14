@@ -15,7 +15,7 @@ class RealTimeManager extends KDObject
     unless @realtimeDoc
       throw new Error 'RealtimeDoc is not set yet for RealTimeManager'
 
-    return @realTimeDoc
+    return @realtimeDoc
 
   auth: ->
 

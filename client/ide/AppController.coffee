@@ -813,7 +813,7 @@ class IDEAppController extends AppController
   syncChange: (change) ->
     {context} = change
 
-    return  if not @rtm.isReady or not context
+    return  if not @rtm or not @rtm.isReady or not context
 
     {paneHash} = context
     nickname   = KD.nick()
