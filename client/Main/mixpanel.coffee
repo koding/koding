@@ -5,6 +5,9 @@ if KD.config.logToExternal then do ->
     return  unless KD.isLoggedIn() and account and analytics
 
     {type, meta, profile} = account
+
+    return  unless profile
+
     {createdAt} = meta
     {firstName, lastName, nickname} = profile
 
@@ -25,7 +28,7 @@ KD.mixpanel = (args...)->
     args.push {}
 
   me = KD.whoami()
-  return  unless me
+  return  unless me.profile
 
   KD.gaEvent args[0]
 
