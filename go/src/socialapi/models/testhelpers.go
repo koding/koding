@@ -94,10 +94,10 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	oldAcc := &kodingmodels.Account{
 		Id: accId,
 		Profile: struct {
-			Nickname  string `bson:"nickname"`
-			FirstName string `bson:"firstName"`
-			LastName  string `bson:"lastName"`
-			Hash      string `bson:"hash"`
+			Nickname  string `bson:"nickname" json:"nickname"`
+			FirstName string `bson:"firstName" json:"firstName"`
+			LastName  string `bson:"lastName" json:"lastName"`
+			Hash      string `bson:"hash" json:"hash"`
 		}{
 			Nickname: accHex,
 		},
