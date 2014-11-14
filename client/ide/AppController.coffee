@@ -731,13 +731,13 @@ class IDEAppController extends AppController
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
-      @realTimeDoc  = doc
+      @rtm.setRealtimeDoc doc
       nickname      = KD.nick()
-      @participants = @rtm.getFromModel @realTimeDoc, 'participants'
-      @changes      = @rtm.getFromModel @realTimeDoc, 'changes'
+      @participants = @rtm.getFromModel 'participants'
+      @changes      = @rtm.getFromModel 'changes'
 
       unless @changes
-        @changes = @rtm.create 'list', @realTimeDoc, 'changes', []
+        @changes = @rtm.create 'list', 'changes', []
 
       if not @participants
         @addParticipant yes  if @amIHost
@@ -765,9 +765,10 @@ class IDEAppController extends AppController
 
       @registerSessionId()
       @listenChangeEvents()
+      @rtm.isReady = yes
 
   registerSessionId: ->
-    collaborators = @rtm.getCollaborators @realTimeDoc
+    collaborators = @rtm.getCollaborators()
 
     for collaborator in collaborators when collaborator.isMe
       participants = @participants.asArray()
@@ -782,12 +783,12 @@ class IDEAppController extends AppController
     {hash, nickname} = KD.whoami().profile
 
     if initalizeList
-      @rtm.create 'list', @realTimeDoc, 'participants', []
+      @rtm.create 'list', 'participants', []
 
-    @participants = @rtm.getFromModel @realTimeDoc, 'participants'
+    @participants = @rtm.getFromModel 'participants'
     @participants.push { nickname, hash }
 
-    @rtm.create 'map', @realTimeDoc, "#{nickname}Snapshot", @createWorkspaceSnapshot()
+    @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
 
     log 'acetz: participant added:', @participants.asArray()
 
@@ -812,12 +813,12 @@ class IDEAppController extends AppController
   syncChange: (change) ->
     {context} = change
 
-    return  if not @realTimeDoc or not context
+    return  if not @rtm.isReady or not context
 
     {paneHash} = context
     nickname   = KD.nick()
-    map        = @rtm.getFromModel @realTimeDoc, "#{nickname}Snapshot"
-    changes    = @rtm.getFromModel @realTimeDoc, 'changes'
+    map        = @rtm.getFromModel "#{nickname}Snapshot"
+    changes    = @rtm.getFromModel 'changes'
 
 
     if change.origin is nickname
@@ -828,14 +829,14 @@ class IDEAppController extends AppController
 
           {content, path} = context.file
 
-          string = @rtm.getFromModel @realTimeDoc, path
+          string = @rtm.getFromModel path
 
           unless string
-            @rtm.create 'string', @realTimeDoc, path, content
+            @rtm.create 'string', path, content
 
         else if change.type is 'ContentChange'
           {content, path} = context.file
-          string = @rtm.getFromModel @realTimeDoc, path
+          string = @rtm.getFromModel path
           string.setText content
 
         delete context.file?.content?
@@ -858,7 +859,7 @@ class IDEAppController extends AppController
     nickname = KD.nick()
     mapName  = "#{nickname}WatchMap"
 
-    map = @rtm.getFromModel @realTimeDoc, mapName
+    map = @rtm.getFromModel mapName
 
     if map
       if map.get target
@@ -866,20 +867,20 @@ class IDEAppController extends AppController
       else
         map.set target, target
     else
-      map = @rtm.create 'map', @realTimeDoc, mapName
+      map = @rtm.create 'map', mapName
       map.set target, target
 
 
   showParticipantsModal: ->
     host  = @collaborationHost or KD.nick()
-    modal = new IDE.ParticipantsModal { @participants, @realTimeDoc, @rtm, host }
+    modal = new IDE.ParticipantsModal { @participants, @rtm, host }
 
     modal.on 'ParticipantWatchRequested', (participant) =>
       @watchParticipant participant
 
 
   listenChangeEvents: ->
-    @changes = @rtm.getFromModel @realTimeDoc, 'changes'
+    @changes = @rtm.getFromModel 'changes'
     @changes?.clear()  if @amIHost
 
     @rtm.bindRealtimeListeners @changes, 'list'
@@ -893,7 +894,7 @@ class IDEAppController extends AppController
 
   handleChange: (change) ->
     {context, origin, type} = change
-    myWatchMap = @rtm.getFromModel @realTimeDoc, "#{KD.nick()}WatchMap"
+    myWatchMap = @rtm.getFromModel "#{KD.nick()}WatchMap"
 
     return if not context or not origin or origin is KD.nick()
 
@@ -924,7 +925,7 @@ class IDEAppController extends AppController
         ideView.suppressChangeHandlers = no
 
 
-      targetPane?.handleChange? change, @rtm, @realTimeDoc
+      targetPane?.handleChange? change, @rtm
 
 
   getPaneByChange: (change) ->
@@ -954,7 +955,7 @@ class IDEAppController extends AppController
     if context.paneType is 'editor'
       {path}  = context.file
       file    = FSHelper.createFileInstance path
-      content = @rtm.getFromModel(@realTimeDoc, path).getText()
+      content = @rtm.getFromModel(path).getText()
 
       @openFile file, content, noop, no
 

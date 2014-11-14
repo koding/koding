@@ -8,7 +8,7 @@ class IDE.ParticipantsModal extends KDModalView
 
     super options, data
 
-    { @participants, @realTimeDoc, @rtm, @host } = options
+    { @participants, @rtm, @host } = options
 
     @participantViews = []
 
@@ -19,7 +19,7 @@ class IDE.ParticipantsModal extends KDModalView
   createParticipantsList: ->
 
     @participants.asArray().forEach (participant) =>
-      view = new IDE.ParticipantView { participant, @realTimeDoc, @rtm, @host }
+      view = new IDE.ParticipantView { participant, @rtm, @host }
 
       @participantViews.push view
       @addSubView view
@@ -31,7 +31,7 @@ class IDE.ParticipantsModal extends KDModalView
     # TODO: Presence check before marking participant
 
     nick = KD.nick()
-    map  = @rtm.getFromModel @realTimeDoc, "#{nick}WatchMap"
+    map  = @rtm.getFromModel "#{nick}WatchMap"
 
     return unless map
 

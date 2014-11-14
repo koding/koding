@@ -7,6 +7,16 @@ class RealTimeManager extends KDObject
     @isAuthenticated = no
 
 
+  setRealtimeDoc: (realtimeDoc) ->
+    @realtimeDoc = realtimeDoc
+
+
+  getRealtimeDoc: ->
+    unless @realtimeDoc
+      throw new Error 'RealtimeDoc is not set yet for RealTimeManager'
+
+    return @realTimeDoc
+
   auth: ->
 
     $.ajax
@@ -70,7 +80,8 @@ class RealTimeManager extends KDObject
     gapi.drive.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
 
 
-  getFromModel: (doc, key) ->
+  getFromModel: (key) ->
+    doc = @getRealtimeDoc()
 
     return throw new Error 'Missing arguments'  if not doc or not key
 
@@ -81,7 +92,9 @@ class RealTimeManager extends KDObject
 
     return data
 
-  create: (type, doc, key, initialValue) ->
+  create: (type, key, initialValue) ->
+
+    doc = @getRealtimeDoc()
 
     return throw new Error 'Missing arguments'  if not doc or not key or not type
 
@@ -146,5 +159,5 @@ class RealTimeManager extends KDObject
       @emit 'FileQueryFinished', file
 
 
-  getCollaborators: (realTimeDoc) ->
-    return realTimeDoc.getCollaborators()
+  getCollaborators: ->
+    return @getRealtimeDoc().getCollaborators()

@@ -6,7 +6,7 @@ class IDE.ParticipantView extends KDView
 
     super options, data
 
-    {participant, realTimeDoc, rtm, host} = options
+    {participant, rtm, host} = options
 
     isHost   = host is participant.nickname
     isMe     = participant.nickname is KD.nick()
@@ -26,7 +26,7 @@ class IDE.ParticipantView extends KDView
         partial  : 'Working on: '
         cssClass : 'open-panes'
 
-      changes = rtm.getFromModel(realTimeDoc, "#{participant.nickname}Snapshot").values()
+      changes = rtm.getFromModel("#{participant.nickname}Snapshot").values()
       terminalCounter    = 1
       drawingPaneCounter = 1
       browserPaneCounter = 1
