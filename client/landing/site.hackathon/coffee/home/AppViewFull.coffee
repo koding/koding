@@ -584,6 +584,7 @@ module.exports = class HomeViewFull extends KDView
         <a href="https://developers.google.com/freebase/">Freebase</a>
         <a href="http://products.wolframalpha.com/api/">Wolfram Alpha</a>
         <a href="https://import.io/docs/">Import.io</a>
+        <a href="http://respoke.github.io/koding-hackathon/">Respoke</a>
         <a href="https://www.kimonolabs.com/">Kimono</a>
         <a href="https://api.imgur.com//">Imgur</a>
         <p>
