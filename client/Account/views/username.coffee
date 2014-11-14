@@ -127,17 +127,17 @@ class AccountEditUsername extends JView
     {mimeType, content} = avatar
 
     KD.utils.s3upload
-      name    : 'avatar'
+      name    : "avatar-#{Date.now()}"
       content : content
       mimeType: mimeType
       timeout : 30000
-
     , (err, url) =>
 
       @uploadAvatarBtn.hideLoader()
-      unless err
-        @account.modify "profile.avatar": "#{url}?#{Date.now()}"
 
+      return KD.showError err  if err
+
+      @account.modify "profile.avatar": "#{url}"
 
   update: (formData) ->
 
