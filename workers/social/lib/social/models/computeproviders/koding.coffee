@@ -9,7 +9,7 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Koding extends ProviderInterface
 
-  SUPPORTED_REGIONS    = ["us-east-1", "ap-southeast-1"]
+  SUPPORTED_REGIONS    = ['ap-southeast-1', 'us-east-1']
 
   PLANS                =
     free               :
@@ -88,7 +88,7 @@ module.exports = class Koding extends ProviderInterface
     JMachine   = require './machine'
 
     selector   =
-      provider : "koding"
+      provider : 'koding'
       users    : $elemMatch: id: user.getId()
       groups   : $elemMatch: id: group.getId()
       label    : /^koding-vm-[0-9]*$/
@@ -101,7 +101,7 @@ module.exports = class Koding extends ProviderInterface
 
       return callback err  if err?
       unless machine?
-        callback null, "koding-vm-0"
+        callback null, 'koding-vm-0'
       else
 
         index = +(machine.label.split 'koding-vm-')[1]
@@ -121,10 +121,6 @@ module.exports = class Koding extends ProviderInterface
 
       @fetchUserPlan client, (err, userPlan)=>
 
-        # Commented-out this since if it fails to fetch
-        # plan it uses 'free' as default. ~ GG
-        # return callback err  if err?
-
         @fetchUsage client, options, (err, usage)->
 
           return callback err  if err?
@@ -136,10 +132,10 @@ module.exports = class Koding extends ProviderInterface
           region ?= (Regions.findRegion userIp, SUPPORTED_REGIONS).regions[0]
 
           meta =
-            type          : "amazon"
-            region        : region ? "us-east-1"
-            source_ami    : "ami-2651904e"
-            instance_type : "t2.micro"
+            type          : 'amazon'
+            region        : region ? SUPPORTED_REGIONS[0]
+            source_ami    : 'ami-2651904e'
+            instance_type : 't2.micro'
             storage_size  : storage
             alwaysOn      : no
 
@@ -212,7 +208,7 @@ module.exports = class Koding extends ProviderInterface
           fieldsToUpdate = {}
 
           if alwaysOn?
-            fieldsToUpdate["meta.alwaysOn"] = alwaysOn
+            fieldsToUpdate['meta.alwaysOn'] = alwaysOn
           if resize?
 
             storageSize = machine.meta?.storage_size ? 3
@@ -222,7 +218,7 @@ module.exports = class Koding extends ProviderInterface
               """Requested new size exceeds allowed
                  limit of #{userPlan.storage}GB.""", "UsageLimitReached"
 
-            fieldsToUpdate["meta.storage_size"] = resize
+            fieldsToUpdate['meta.storage_size'] = resize
 
           machine.update
 
@@ -237,7 +233,7 @@ module.exports = class Koding extends ProviderInterface
 
     { r: { group, user } } = client
 
-    selector        = { provider: "koding" }
+    selector        = { provider: 'koding' }
     selector.users  = $elemMatch: id: user.getId()
     selector.groups = $elemMatch: id: group.getId()
 
@@ -260,8 +256,8 @@ module.exports = class Koding extends ProviderInterface
 
     callback null, [
       {
-        name  : "t2.micro"
-        title : "Small 1x"
+        name  : 't2.micro'
+        title : 'Small 1x'
         spec  : {
           cpu : 1, ram: 1, storage: 4
         }

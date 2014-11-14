@@ -10,7 +10,6 @@ class PrivateMessagePane extends MessagePane
 
     super options, data
 
-
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
     # on page even if events from backend come more than
@@ -39,7 +38,6 @@ class PrivateMessagePane extends MessagePane
     @input.input.on 'blur', => @setCss 'height', 'none'
 
     @listenWindowResize()
-
 
 
   handleAutoGrow: ->
@@ -103,8 +101,10 @@ class PrivateMessagePane extends MessagePane
 
 
   replaceFakeItemView: (message) ->
+
     index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
     item  = @putMessage message, index
+
     @removeFakeMessage message.clientRequestId
     @scrollDown item
 
@@ -139,7 +139,6 @@ class PrivateMessagePane extends MessagePane
     if data.clientRequestId and not data.isFake
       fakeItem = @fakeMessageMap[data.clientRequestId]
       applyConsequency fakeItem.hasClass('consequent'), item
-
       return
 
     @applyDayMark item, index
@@ -279,8 +278,7 @@ class PrivateMessagePane extends MessagePane
   createInputWidget: ->
 
     channel = @getData()
-
-    @input = new ReplyInputWidget {channel, cssClass : 'private'}
+    @input  = new ReplyInputWidget {channel, cssClass : 'private'}
 
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
@@ -302,6 +300,7 @@ class PrivateMessagePane extends MessagePane
 
 
   removeParticipant: (participant) ->
+
     return  unless participant
     return  unless @participantMap[participant._id]?
 
@@ -360,7 +359,6 @@ class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-
     @autoComplete = new KDAutoCompleteController
       name                : 'userController'
       placeholder         : 'Type a username...'
@@ -389,7 +387,6 @@ class PrivateMessagePane extends MessagePane
 
   viewAppended: ->
 
-
     @addSubView @participantsView
     @addSubView @autoCompleteForm
 
@@ -401,8 +398,6 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
     @setScrollTops()
-
-
 
 
   #
@@ -504,7 +499,4 @@ class PrivateMessagePane extends MessagePane
           datetime : date.toUTCString()
 
     parse : (args...) -> args.map (item) -> parseInt item
-
-
-
 

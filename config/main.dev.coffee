@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
@@ -27,12 +27,14 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
-  host                = options.host or "koding-#{process.env.USER}.ngrok.com"
+  _port               = if publicPort is '80' then '' else publicPort
+  host                = options.host or "#{options.hostname}:#{_port}" or "koding-#{process.env.USER}.ngrok.com"
+
   customDomain        = { public: "http://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510        }
+  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
@@ -58,7 +60,7 @@ Configuration = (options={}) ->
     mongo             : mongo
     environment       : environment
     region            : region
-    hostname          : hostname
+    hostname          : host
     protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
@@ -80,7 +82,7 @@ Configuration = (options={}) ->
     environment                    : environment
     regions                        : regions
     region                         : region
-    hostname                       : hostname
+    hostname                       : host
     protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
@@ -112,7 +114,7 @@ Configuration = (options={}) ->
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite" , artifactPort : 9520 }
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite"}
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -167,7 +169,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -220,24 +222,24 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
-      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
-      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
     ngrokProxy          :
       group             : "environment"

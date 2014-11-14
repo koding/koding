@@ -1,12 +1,14 @@
 class WelcomeModal extends KDModalView
-  constructor : (options = {}) ->
+
+  constructor: (options = {}, data) ->
+
     options.cssClass      = 'welcome-modal'
     options.overlay       = yes
     options.overlayClick  = no
     options.width         = 766
     options.height        = 519
 
-    super options
+    super options, data
 
     @addSubView new KDCustomHTMLView
       cssClass    : 'decoration-image'
@@ -29,10 +31,7 @@ class WelcomeModal extends KDModalView
         Robust VMs, a new IDE/Terminal and awesome new social
         features... all that is just a click away. You are about to
         experience a whole new Koding and you will fall in love all
-        over again. <span>(Please note, you will need to migrate data
-        from your old VM to the new one. We recommend you bookmark the
-        migrate VM link below as this message will not appear
-        again.)<span>
+        over again.
       "
 
     content.addSubView new CustomLinkView
