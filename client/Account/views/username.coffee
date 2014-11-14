@@ -122,7 +122,7 @@ class AccountEditUsername extends JView
     reader.readAsDataURL file
 
 
-  uploadAvatar: (avatar, callback)->
+  uploadAvatar: (avatar, callback) ->
 
     {mimeType, content} = avatar
 
@@ -138,6 +138,7 @@ class AccountEditUsername extends JView
       return KD.showError err  if err
 
       @account.modify "profile.avatar": "#{url}"
+
 
   update: (formData) ->
 
