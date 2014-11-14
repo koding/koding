@@ -107,7 +107,7 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 // We are updating status_constant while removing user from the channel
 // but regarding operation has another event, so we are gonna ignore it
 func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
-	// if status of the participant is left, then ignore the message
+	// if status of the participant is left, then just notify the current user
 	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
 		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
 		return nil
@@ -131,6 +131,9 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 
 // ChannelParticipantRemoved is fired when we remove any info of channel participant
 func (f *Controller) ChannelParticipantRemoved(pe *models.ParticipantEvent) error {
+	// send notification to the user(added user)
+	go f.notifyChannelParticipants(pe)
+
 	return f.sendChannelParticipantEvent(pe, RemovedFromChannelEventName)
 }
 
@@ -167,23 +170,49 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 	return nil
 }
 
-func (f *Controller) fetchNotifiedUsers(pe *models.ParticipantEvent, eventName string, c *models.Channel) ([]int64, error) {
-	var participantIds []int64
-	var err error
-	switch eventName {
-	case AddedToChannelEventName:
-		participantIds, err = c.FetchParticipantIds(&request.Query{})
-		if err != nil {
-			return nil, err
-		}
-	case RemovedFromChannelEventName:
-		participantIds = make([]int64, 0)
-		for _, participant := range pe.Participants {
-			participantIds = append(participantIds, participant.AccountId)
-		}
+// notifyParticipants notifies current private channel participants and
+// removed participants included in ParticipantEvent.Participants about removed users
+// this is used for updating sidebar.
+func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent) {
+	c, err := models.ChannelById(pe.Id)
+	if err != nil {
+		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
+		return
 	}
 
-	return participantIds, nil
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return
+	}
+
+	// fetch current participants
+	participantIds, err := c.FetchParticipantIds(&request.Query{})
+	if err != nil {
+		f.log.Error("Could not fetch participants: %s", err)
+		return
+	}
+
+	// append removed participants
+	for _, removedParticipant := range pe.Participants {
+		participantIds = append(participantIds, removedParticipant.AccountId)
+	}
+
+	for _, participant := range participantIds {
+		cc := models.NewChannelContainer()
+		err = cc.PopulateWith(*c, participant)
+		if err != nil {
+			f.log.Error("Could not create channel container for participant %d: %s", pe.Id, err)
+			continue
+		}
+
+		if err = f.sendNotification(
+			participant,
+			c.GroupName,
+			RemovedFromChannelEventName,
+			cc,
+		); err != nil {
+			f.log.Error("Ignoring err %s ", err.Error())
+		}
+	}
 }
 
 // InteractionSaved runs when interaction is added

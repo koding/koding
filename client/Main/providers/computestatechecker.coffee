@@ -23,8 +23,6 @@ class ComputeStateChecker extends KDObject
     return  if @running
     @running = yes
 
-    # info "ComputeState checker started."
-
     @tick yes
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
@@ -33,8 +31,6 @@ class ComputeStateChecker extends KDObject
 
     return  unless @running
     @running = no
-
-    # info "ComputeState checker stopped."
 
     KD.utils.killWait @timer
 
@@ -50,12 +46,10 @@ class ComputeStateChecker extends KDObject
   ignore: (machineId)->
 
     unless machineId in @ignoredMachines
-      log "IGNORING: ", {machineId}
       @ignoredMachines.push machineId
 
-  watch: (machineId)->
 
-    log "WATCHING: ", {machineId}
+  watch: (machineId)->
 
     @ignoredMachines = (m for m in @ignoredMachines when m isnt machineId)
 
@@ -66,7 +60,7 @@ class ComputeStateChecker extends KDObject
     return  if @tickInProgress
     @tickInProgress = yes
 
-    {computeController} = KD.singletons
+    {computeController, kontrol} = KD.singletons
 
     @machines.forEach (machine)=>
 
@@ -78,21 +72,29 @@ class ComputeStateChecker extends KDObject
 
       unless currentState is Machine.State.Running
         return  if not checkAll
+      else
+        {klient}   = kontrol.kites
+        machineUid = computeController.findUidFromMachineId machineId
+        return  if not (machineUid? and klient? and klient[machineUid])
+
+      info "Checking all machine states..."  if checkAll
 
       call = @kloud.info { machineId, currentState }
 
       .then (response)=>
+
+        if response.via is 'klient'
+          log "Machine #{machineId} is running according to klient."
 
         if machineId in @ignoredMachines
           info "csc: ignoring check for machine:", machineId
           return
 
         computeController.eventListener
-          .triggerState machine, status : response.State
+          .triggerState machine, status: response.State
 
-        computeController.followUpcomingEvents {
+        computeController.followUpcomingEvents
           _id: machineId, status: state: response.State
-        }
 
         unless machine.status.state is response.State
           info "csc: machine (#{machineId}) state changed: ", response.State
@@ -100,7 +102,7 @@ class ComputeStateChecker extends KDObject
 
       .timeout ComputeController.timeout
 
-      .catch (err)=>
+      .catch (err)->
 
         # Ignore pending event and timeout errors but log others
         unless (err?.code is "107") or (err?.name is "TimeoutError")

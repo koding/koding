@@ -18,6 +18,8 @@ import (
 	"koding/kites/kloud/kloud"
 	kloudprotocol "koding/kites/kloud/protocol"
 
+	"github.com/koding/metrics"
+
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
@@ -75,9 +77,6 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
-
-	// Artifacts endpoint port
-	ArtifactPort int
 }
 
 func main() {
@@ -128,10 +127,6 @@ func main() {
 		}
 	}
 
-	// TODO use kite's http server instead of creating another one here
-	// this is used for application lifecycle management
-	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
-
 	k.Run()
 }
 
@@ -173,6 +168,11 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "6Oswp4QJvJ8EgoHtVWsdVrtnnmwxGA/kvBB3R81D",
 	}
 
+	stats, err := metrics.NewDogStatsD("kloud.aws")
+	if err != nil {
+		panic(err)
+	}
+
 	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
@@ -193,6 +193,7 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
+		Stats:             stats,
 	}
 
 	// be sure it satisfies the provider interface
@@ -229,7 +230,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -278,6 +279,9 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("domain.unset", kld.DomainUnset)
 	k.HandleFunc("domain.add", kld.DomainAdd)
 	k.HandleFunc("domain.remove", kld.DomainRemove)
+
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	return k
 }

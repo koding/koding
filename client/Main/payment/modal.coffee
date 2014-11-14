@@ -3,10 +3,11 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
-  getInitialState: -> {
+  getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
-  }
+    provider     : PaymentWorkflow.provider.KODING
+    isUpgrade    : yes
 
 
   constructor: (options = {}, data) ->
@@ -28,22 +29,56 @@ class PaymentModal extends PaymentBaseModal
 
 
   initViews: ->
-    @addSubView @errors = new KDCustomHTMLView
-      cssClass : 'errors hidden'
 
-    @addSubView @form = new PaymentForm { @state }
+    { provider, isUpgrade, planTitle } = @state
+    { PAYPAL } = PaymentWorkflow.provider
+    { FREE }   = PaymentWorkflow.planTitle
+
+    @addSubView @errors = new KDCustomHTMLView {cssClass : 'errors hidden'}
+    @addSubView @form   = new PaymentForm {@state}
+
+    @handlePaypalNotAllowed()  if provider is PAYPAL and planTitle isnt FREE
 
 
   initEvents: ->
 
     @forwardEvent @form, 'PaymentSubmitted'
     @forwardEvent @form, 'PaymentWorkflowFinished'
+    @forwardEvent @form, 'PaypalButtonClicked'
+
     @form.forwardEvent this, 'PaymentProviderLoaded'
 
     @on 'StripeRequestValidationFailed', @bound 'handleStripeFail'
     @on 'FailedAttemptLimitReached',     @bound 'handleLimitReached'
     @on 'PaymentFailed',                 @bound 'handleError'
     @on 'PaymentSucceeded',              @bound 'handleSuccess'
+
+    { paymentController } = KD.singletons
+
+    paymentController.on 'PaypalRequestFinished', @bound 'handlePaypalResponse'
+
+
+  handlePaypalNotAllowed: ->
+
+    @setTitle 'Not allowed'
+    @form.showPaypalNotAllowedStage()
+
+
+  handlePaypalResponse: (err) ->
+
+    @form.paypalForm.buttons['paypal'].hideLoader()
+
+    return KD.showError err  if err
+
+    { paymentController } = KD.singletons
+
+    paymentController.subscriptions (err, subscription) =>
+
+      return KD.showError err  if err
+
+      @state = KD.utils.extend @state, subscription
+
+      @handleSuccess()
 
 
   handleStripeFail: (error) ->
@@ -66,6 +101,7 @@ class PaymentModal extends PaymentBaseModal
 
 
   handleError: (error) ->
+
     msg = error?.description or error?.message or "Something went wrong."
     KD.showError msg
 
@@ -87,5 +123,4 @@ class PaymentModal extends PaymentBaseModal
 
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinished', @state
-
 

@@ -47,21 +47,13 @@ class ActivityAppView extends KDView
       KD.utils.defer ->
         pane.applyScrollTops()
 
-      KD.utils.wait 50, ->
-        pane.scrollView.verticalTrack.thumb.handleMutation()
+      KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
 
       return  unless pane = @tabs.getActivePane()
 
       pane.setScrollTops()
-
-
-  scroll: ->
-
-    if window.scrollY > 316
-    then @setClass 'fixed'
-    else @unsetClass 'fixed'
 
 
   # type: [topic|post|message|chat|null]

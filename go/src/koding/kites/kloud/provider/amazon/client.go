@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/waitstate"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/mitchellh/goamz/ec2"
 )
 
@@ -21,6 +22,7 @@ type AmazonClient struct {
 
 	// Used for customization
 	InfoLog func(string, ...interface{})
+	Metrics *metrics.DogStatsD
 }
 
 func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
@@ -89,6 +91,8 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 	}()
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		a.track(instance.InstanceId, "Build")
+
 		instance, err = a.Instance(instance.InstanceId)
 		if err != nil {
 			return 0, err
@@ -153,6 +157,25 @@ func (a *AmazonClient) DeployKey() (string, error) {
 	return key.KeyName, nil
 }
 
+func (a *AmazonClient) track(id string, call string) {
+	tags := []string{"action:" + call}
+
+	if id != "" {
+		tags = append(tags, "instanceId:"+id)
+	}
+
+	if a.Metrics == nil {
+		return
+	}
+
+	a.Metrics.Count(
+		"call_to_describe_instance.counter", // metric name
+		1,    // count
+		tags, // tags for metric call
+		1.0,  // rate
+	)
+}
+
 func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 	if withPush {
 		a.Push("Starting machine", 10, machinestate.Starting)
@@ -165,6 +188,9 @@ func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 
 	var instance ec2.Instance
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+
+		a.track(a.Id(), "Start")
+
 		instance, err = a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -208,6 +234,8 @@ func (a *AmazonClient) Stop(withPush bool) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		a.track(a.Id(), "Stop")
+
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -243,6 +271,8 @@ func (a *AmazonClient) Restart(withPush bool) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		a.track(a.Id(), "Restart")
+
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -279,6 +309,8 @@ func (a *AmazonClient) Destroy(start, finish int) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		a.track(a.Id(), "Destroy")
+
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -308,6 +340,8 @@ func (a *AmazonClient) Info() (*protocol.InfoArtifact, error) {
 			Name:  "not-existing-instance",
 		}, nil
 	}
+
+	a.track(a.Id(), "Info")
 
 	instance, err := a.Instance(a.Id())
 	if err == aws.ErrNoInstances {

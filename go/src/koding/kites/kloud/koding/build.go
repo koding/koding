@@ -194,7 +194,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		LatestKlientURL: latestKlientUrl,
 		ApachePort:      DefaultApachePort,
 		KitePort:        DefaultKitePort,
-		Test:            p.Test,
 	}
 
 	// check if the user has some keys
@@ -213,8 +212,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			}
 		}
 	}
-
-	cloudInitConfig.setupMigrateScript()
 
 	var userdata bytes.Buffer
 	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)

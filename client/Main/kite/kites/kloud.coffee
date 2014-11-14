@@ -37,11 +37,7 @@ class KodingKite_KloudKite extends KodingKite
 
         if klientInfo?
 
-          @requestingInfo[machineId].forEach ({ resolve }) ->
-            resolve klientInfo
-
-          @requestingInfo[machineId] = null
-          @needsRequest[machineId]   = yes
+          @resolveRequestingInfos machineId, klientInfo
 
         else
 
@@ -50,6 +46,15 @@ class KodingKite_KloudKite extends KodingKite
     new Promise (resolve, reject) =>
       @requestingInfo[machineId] ?= []
       @requestingInfo[machineId].push { resolve, reject }
+
+
+  resolveRequestingInfos: (machineId, info)->
+
+    @requestingInfo?[machineId]?.forEach ({ resolve }) ->
+      resolve info
+
+    @requestingInfo[machineId] = null
+    @needsRequest[machineId]   = yes
 
 
   askInfoFromKlient: (machineId, callback) ->
@@ -66,12 +71,14 @@ class KodingKite_KloudKite extends KodingKite
     if not klientKite?
       return callback null
 
+    KD.remote.api.DataDog.increment "KlientInfo", noop
+
     klientKite.ping()
 
       .then (res)->
 
         if res is "pong"
-        then callback State: Machine.State.Running
+        then callback State: Machine.State.Running, via: "klient"
         else callback null
 
       .timeout 5000
@@ -88,20 +95,17 @@ class KodingKite_KloudKite extends KodingKite
 
     info "[kloud:info] call count for [#{machineId}] is #{@kloudCalls[machineId]}"
 
+    KD.remote.api.DataDog.increment "KloudInfo", noop
+
     @tell 'info', { machineId }
 
       .then (info) =>
-        @requestingInfo[machineId].forEach ({ resolve }) -> resolve info
-        @requestingInfo[machineId] = null
+
+        @resolveRequestingInfos machineId, info
 
       .timeout ComputeController.timeout
 
       .catch (err) =>
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
-
-        @requestingInfo[machineId].forEach ({ resolve }) ->
-          resolve State: currentState
-        @requestingInfo[machineId] = null
-
-      .finally => @needsRequest[machineId] = yes
+        @resolveRequestingInfos machineId, State: currentState
