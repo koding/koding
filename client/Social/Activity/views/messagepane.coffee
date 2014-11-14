@@ -254,9 +254,9 @@ class MessagePane extends KDTabPaneView
     if item?
       item.once 'HideAnimationFinished', =>
         @listController.removeItem item
-        @listController.showNoItemWidget() if @listController.getListItems().length is 0
+        @listController.showNoItemWidget()  if @listController.getListItems().length is 0
 
-      item.hide()
+      item.delete()
 
 
   setScrollTops: ->
@@ -284,8 +284,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-    KD.utils.wait 50, =>
-      @scrollView.verticalTrack.thumb.handleMutation()
+    KD.utils.wait 50, => @scrollView.wrapper.emit 'MutationHappened'
 
 
 

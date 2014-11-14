@@ -7,13 +7,33 @@ class LeaveChannelButton extends KDButtonView
 
     super options, data
 
-    @setCallback @bound 'delete'
+    @setCallback @bound 'showModal'
+
+
+  showModal: (event) ->
+
+    KD.utils.stopDOMEvent event
+
+    @deleteModal = KDModalView.confirm
+      title : 'Are you sure'
+      content : 'Delete this message?'
+      ok :
+        title: 'Remove'
+        callback : @bound 'delete'
 
 
   delete: (event) ->
 
-    KD.utils.stopDOMEvent event
+    { id } = @getData()
+    removeButton = @deleteModal.buttons['OK']
+    removeButton.showLoader()
 
-    PrivateMessageDeleteModal.create @getData()
+    { SocialChannel } = KD.remote.api
 
+    SocialChannel.delete { channelId: id }
+      .then =>
+        @deleteModal.destroy()
+        KD.singletons.router.handleRoute '/Activity/Public'
+      .catch (args...) =>
+        KD.showError args...
 

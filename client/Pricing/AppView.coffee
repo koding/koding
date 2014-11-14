@@ -136,9 +136,11 @@ class PricingAppView extends KDView
 
       return KD.showError err  if err?
 
-      { planTitle } = subscription
+      { planTitle, provider } = subscription
 
       @state.currentPlan = planTitle
+      @state.provider    = provider
+
       @plans.planViews[planTitle].disable()
 
       if planTitle is 'free'

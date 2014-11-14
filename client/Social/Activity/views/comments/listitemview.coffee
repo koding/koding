@@ -30,6 +30,8 @@ class CommentListItemView extends KDListItemView
     then @setClass 'edited'
     else @unsetClass 'edited'
 
+    KD.utils.defer => emojify.run @getElement()
+
 
   handleInternalLink: (event) ->
 

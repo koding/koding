@@ -1,13 +1,18 @@
 class AccountEditUsername extends JView
 
-  notify  = (msg)->
+  notify = (msg, duration = 2000) ->
     new KDNotificationView
       title    : msg
-      duration : 2000
+      duration : duration
 
-  constructor:->
 
-    super
+  constructor: (options = {}, data) ->
+
+    super options, data
+    @initViews()
+
+
+  initViews: ->
 
     @account = KD.whoami()
 
@@ -93,17 +98,16 @@ class AccountEditUsername extends JView
           loader           : yes
       callback             : @bound 'update'
 
-  uploadInputChange : ->
+
+  uploadInputChange: ->
+
     @uploadAvatarBtn.showLoader()
 
-    file          = @uploadAvatarInput.getElement().files[0]
+    file = @uploadAvatarInput.getElement().files[0]
 
-    unless file
-      @uploadAvatarBtn.hideLoader()
-      return
+    return @uploadAvatarBtn.hideLoader()  unless file
 
     reader        = new FileReader
-
     reader.onload = (event) =>
       dataURL     = event.target.result
       [_, base64] = dataURL.split ","
@@ -114,12 +118,14 @@ class AccountEditUsername extends JView
     reader.readAsDataURL file
 
 
-  uploadAvatar: (avatarData, callback)->
+  uploadAvatar: (avatarData, callback) ->
+
     FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
       resized = KD.utils.proxifyUrl url,
         crop: true, width: 300, height: 300
 
       @account.modify "profile.avatar": "#{url}?#{Date.now()}", callback
+
 
   update: (formData) ->
 
@@ -206,16 +212,25 @@ class AccountEditUsername extends JView
     ]
     daisy queue
 
-  confirmCurrentPassword = ({skipPasswordConfirmation, email}, callback) ->
-    return callback null if skipPasswordConfirmation
-    new VerifyPasswordModal "Confirm", (currentPassword) ->
+
+  confirmCurrentPassword = (opts, callback) ->
+
+    {skipPasswordConfirmation, email} = opts
+
+    return callback null  if skipPasswordConfirmation
+
+    new VerifyPasswordModal 'Confirm', (currentPassword) ->
       options = {password: currentPassword, email}
       KD.remote.api.JUser.verifyPassword options, (err, confirmed) ->
+
         return callback err.message  if err
-        return callback "Current password cannot be confirmed" unless confirmed
+        return callback 'Current password cannot be confirmed'  unless confirmed
+
         callback null
 
-  viewAppended:->
+
+  viewAppended: ->
+
     {JPasswordRecovery, JUser} = KD.remote.api
     {token} = KD.utils.parseQuery()
     if token
@@ -225,7 +240,10 @@ class AccountEditUsername extends JView
         else if isValid
           notify "Thanks for confirming your email address"
 
-    KD.whoami().fetchEmailAndStatus (err, userInfo)=>
+    KD.whoami().fetchEmailAndStatus (err, userInfo) =>
+
+      return warn err  if err
+
       @userInfo = userInfo
 
       super
@@ -233,7 +251,7 @@ class AccountEditUsername extends JView
       @putDefaults()
 
 
-  putDefaults:->
+  putDefaults: ->
 
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
@@ -252,31 +270,31 @@ class AccountEditUsername extends JView
         duration : 3500
 
     if @userInfo.status is "unconfirmed"
-      o =
+      opts =
         tagName      : "a"
         partial      : "You didn't verify your email yet <span>Verify now</span>"
         cssClass     : "action-link verify-email"
         testPath     : "account-email-edit"
         click        : =>
-          KD.whoami().fetchFromUser "email", (err, email)=>
-            return notify err.message if err
+          KD.whoami().fetchFromUser "email", (err, email) =>
+            return notify err.message, 3500  if err
 
-            KD.remote.api.JPasswordRecovery.resendVerification nickname, (err)=>
+            KD.remote.api.JPasswordRecovery.resendVerification nickname, (err) =>
               @verifyEmail.hide()
               return KD.showError err if err
-              notify "We've sent you a confirmation mail."
+              notify "We've sent you a confirmation mail.", 3500
 
-    @addSubView @verifyEmail = new KDCustomHTMLView o
+    @addSubView @verifyEmail = new KDCustomHTMLView opts
 
 
-  getAvatarOptions:->
+  getAvatarOptions: ->
     tagName       : 'figure'
     size          :
       width       : 150
       height      : 150
 
-  pistachio:->
 
+  pistachio: ->
     """
     <div class='account-avatar-area clearfix'>
       {{> @avatar}}
@@ -285,3 +303,4 @@ class AccountEditUsername extends JView
       </section>
     </div>
     """
+
