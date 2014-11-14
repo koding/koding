@@ -10,14 +10,27 @@ import (
 
 var ErrWaitTimeout = errors.New("timeout while waiting for state")
 
+var MetaState = map[string]struct{ Desired, OnGoing machinestate.State }{
+	"build":           {machinestate.Running, machinestate.Building},
+	"destroy":         {machinestate.Terminated, machinestate.Terminating},
+	"start":           {machinestate.Running, machinestate.Starting},
+	"stop":            {machinestate.Stopped, machinestate.Stopping},
+	"restart":         {machinestate.Running, machinestate.Rebooting},
+	"create-snapshot": {machinestate.Stopped, machinestate.Pending},
+	"create-volume":   {machinestate.Stopped, machinestate.Pending},
+	"detach-volume":   {machinestate.Stopped, machinestate.Pending},
+	"attach-volume":   {machinestate.Stopped, machinestate.Pending},
+}
+
 // WaitState is used to track the state of a given process.
 type WaitState struct {
-	StateFunc       func(int) (machinestate.State, error)
-	DesiredState    machinestate.State
-	Timeout         time.Duration
-	EventerInterval time.Duration
-	PollerInterval  time.Duration
-	Start, Finish   int
+	StateFunc       func(int) (machinestate.State, error) // State checker function
+	PushFunc        func(string, int, machinestate.State) // Event pusher function
+	Action          string                                // Request of action to change states
+	Timeout         time.Duration                         // Global timeout to cancel the waiting
+	EventerInterval time.Duration                         // Ticker interval to push events
+	PollerInterval  time.Duration                         // Ticker interval to poll state changes
+	Start, Finish   int                                   // Eventer progress bounds
 }
 
 // Wait calls the StateFunc with the specified interval and waits until it
@@ -49,24 +62,32 @@ func (w *WaitState) Wait() error {
 
 	var err error
 	var state machinestate.State
+	metaState := MetaState[w.Action]
 
 	for {
 		select {
+		// Poll less, push more.
 		case <-eventTicker.C:
 			if w.Start < w.Finish {
 				w.Start += 2
 			}
-			if state == w.DesiredState {
+
+			if w.PushFunc != nil {
+				w.PushFunc(fmt.Sprintf("%s called. Desired state: %s. Current state: %s", w.Action, metaState.Desired, state),
+					w.Start, metaState.OnGoing)
+			}
+
+			if state == metaState.Desired {
 				return nil
 			}
-		// Poll less, send events more.
+		// Poll less, push more.
 		case <-pollTicker.C:
 			state, err = w.StateFunc(w.Start)
 			if err != nil {
 				return err
 			}
 		case <-time.After(time.Second * 40):
-			// cancel the current ongoing process if it takes to long
+			// cancel the current ongoing process if it takes too long
 			fmt.Println("Canceling current event asking")
 			continue
 		case <-timeout:
