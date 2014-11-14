@@ -15,7 +15,7 @@ imagePath = "embedly_cache"
 fs.mkdir imagePath, null, ->
 
 module.exports = (req, res) ->
-  {endpoint, grow, width, height, url, rebuild} = req.query
+  {endpoint, grow, width, height, url} = req.query
 
   fullUrl = "https://i.embed.ly/1/display/#{endpoint}?" +
              "width=#{width}&" +
@@ -54,8 +54,7 @@ module.exports = (req, res) ->
 
     res.writeHead(200, { 'Content-Type': mimeType })
 
-  # rebuild param forces cache to fetch image from embedly
-  if fs.existsSync filename and rebuild?
+  if fs.existsSync filename
     return serveFile filename, res
 
   http.get fullUrl, (response)->
