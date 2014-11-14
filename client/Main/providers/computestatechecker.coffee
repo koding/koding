@@ -83,12 +83,7 @@ class ComputeStateChecker extends KDObject
 
       .then (response)=>
 
-        if response.via is 'klient'
-          log "Machine #{machineId} is running according to klient."
-
-        if machineId in @ignoredMachines
-          info "csc: ignoring check for machine:", machineId
-          return
+        return  if machineId in @ignoredMachines
 
         computeController.eventListener
           .triggerState machine, status: response.State
