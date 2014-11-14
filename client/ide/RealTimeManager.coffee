@@ -31,6 +31,13 @@ class RealTimeManager extends KDObject
               @emit 'ClientAuthenticated'
               @isAuthenticated = yes
 
+  reauth: ->
+    $.ajax
+      url: '/-/google-api'
+      dataType: 'JSON'
+      success: (authToken) ->
+        gapi.auth.setToken authToken
+
 
   createFile: (title) ->
 
