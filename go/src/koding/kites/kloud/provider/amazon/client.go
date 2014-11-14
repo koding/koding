@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	aws "koding/kites/kloud/api/amazon"
