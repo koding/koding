@@ -431,14 +431,12 @@ module.exports = class HomeViewFull extends KDView
               <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
             </figure>
           </li>
-        <!--
           <li>
             <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
-              <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money.</figcaption>
+              <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money for teams that use their web server as part of their final project  .</figcaption>
             </figure>
           </li>
-        -->
           <li>
             <figure>
               <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
