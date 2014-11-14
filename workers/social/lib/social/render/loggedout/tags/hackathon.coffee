@@ -2,9 +2,9 @@ origin      = 'koding.com'
 title       = 'World\'s First Virtual Global Hackathon | Koding'
 shareUrl    = "https://#{origin}/Hackathon"
 description = 'This event is intended to connect developers across the globe and get them to  code together irrespective of their locations. You will problem solve and build with old or new team members and try to win!'
-gpImage     = "#{origin}/a/site.hackathon/images/share.hackathon.g+.jpg"
-fbImage     = "#{origin}/a/site.hackathon/images/share.hackathon.fb.jpg"
-twImage     = "#{origin}/a/site.hackathon/images/share.hackathon.tw.jpg"
+gpImage     = "#{origin}/a/site.hackathon/images/share.hackathon.g+.jpg?version=#{KONFIG.version}"
+fbImage     = "#{origin}/a/site.hackathon/images/share.hackathon.fb.jpg?version=#{KONFIG.version}"
+twImage     = "#{origin}/a/site.hackathon/images/share.hackathon.tw.jpg?version=#{KONFIG.version}"
 
 module.exports =
 
