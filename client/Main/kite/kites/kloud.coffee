@@ -21,7 +21,6 @@ class KodingKite_KloudKite extends KodingKite
     super options
     @requestingInfo = KD.utils.dict()
     @needsRequest   = KD.utils.dict()
-    @kloudCalls     = KD.utils.dict()
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
@@ -89,11 +88,6 @@ class KodingKite_KloudKite extends KodingKite
 
 
   askInfoFromKloud: (machineId, currentState) ->
-
-    @kloudCalls[machineId] ?= 0
-    @kloudCalls[machineId]++
-
-    info "[kloud:info] call count for [#{machineId}] is #{@kloudCalls[machineId]}"
 
     KD.remote.api.DataDog.increment "KloudInfo", noop
 
