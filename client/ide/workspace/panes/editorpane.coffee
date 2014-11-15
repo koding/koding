@@ -177,7 +177,7 @@ class IDE.EditorPane extends IDE.Pane
 
     if type is 'ContentChange'
       oldContent = @getValue()
-      string     = rtm.getFromModel realTimeDoc, context.file.path
+      string     = rtm.getFromModel context.file.path
       newContent = string.getText()
       cursor     = @getCursor()
 
