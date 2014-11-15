@@ -2,9 +2,9 @@ origin      = 'koding.com'
 title       = 'Koding | Say goodbye to your localhost and write code in the cloud'
 shareUrl    = "https://#{origin}/"
 description = 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
-gpImage     = "#{origin}/a/site.landing/images/share.g+.jpg?version=#{KONFIG.version}"
-fbImage     = "#{origin}/a/site.landing/images/share.fb.jpg?version=#{KONFIG.version}"
-twImage     = "#{origin}/a/site.landing/images/share.tw.jpg?version=#{KONFIG.version}"
+gpImage     = "#{origin}/a/site.landing/images/share.g+.jpg?#{KONFIG.version}"
+fbImage     = "#{origin}/a/site.landing/images/share.fb.jpg?#{KONFIG.version}"
+twImage     = "#{origin}/a/site.landing/images/share.tw.jpg?#{KONFIG.version}"
 
 
 

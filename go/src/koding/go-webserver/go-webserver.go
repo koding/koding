@@ -65,7 +65,7 @@ func main() {
 }
 
 func addVersionToShareUrls(version string) {
-	kodingGpImage = fmt.Sprintf("%s?version=%s", kodingGpImage, version)
-	kodingFbImage = fmt.Sprintf("%s?version=%s", kodingFbImage, version)
-	kodingTwImage = fmt.Sprintf("%s?version=%s", kodingTwImage, version)
+	kodingGpImage = fmt.Sprintf("%s?%s", kodingGpImage, version)
+	kodingFbImage = fmt.Sprintf("%s?%s", kodingFbImage, version)
+	kodingTwImage = fmt.Sprintf("%s?%s", kodingTwImage, version)
 }
