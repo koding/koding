@@ -90,7 +90,10 @@ class AvatarView extends LinkView
     height          = width unless height
     avatarURI       = @getGravatarUri()
 
-    if profile.avatar?.match /^((http(s)?\:)?\/\/)/
+    width  = width * @dpr
+    height = height * @dpr
+
+    if profile.avatar?.match KD.utils.webProtocolRegExp
       resizedAvatar = KD.utils.proxifyUrl profile.avatar, {crop: yes, width, height}
       avatarURI     = resizedAvatar
 
