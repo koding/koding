@@ -18,13 +18,12 @@ class ComputeStateChecker extends KDObject
     KD.singletons.windowController.addFocusListener (state)=>
       if state then @start() else @stop()
 
-  start: (tickOnStart = no)->
+  start:->
 
     return  if @running
     @running = yes
 
-    @tick yes  if tickOnStart
-
+    @tick yes
     @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
@@ -61,7 +60,7 @@ class ComputeStateChecker extends KDObject
     return  if @tickInProgress
     @tickInProgress = yes
 
-    {computeController} = KD.singletons
+    {computeController, kontrol} = KD.singletons
 
     @machines.forEach (machine)=>
 
@@ -73,21 +72,24 @@ class ComputeStateChecker extends KDObject
 
       unless currentState is Machine.State.Running
         return  if not checkAll
+      else
+        {klient}   = kontrol.kites
+        machineUid = computeController.findUidFromMachineId machineId
+        return  if not (machineUid? and klient? and klient[machineUid])
+
+      info "Checking all machine states..."  if checkAll
 
       call = @kloud.info { machineId, currentState }
 
       .then (response)=>
 
-        if machineId in @ignoredMachines
-          info "csc: ignoring check for machine:", machineId
-          return
+        return  if machineId in @ignoredMachines
 
         computeController.eventListener
-          .triggerState machine, status : response.State
+          .triggerState machine, status: response.State
 
-        computeController.followUpcomingEvents {
+        computeController.followUpcomingEvents
           _id: machineId, status: state: response.State
-        }
 
         unless machine.status.state is response.State
           info "csc: machine (#{machineId}) state changed: ", response.State

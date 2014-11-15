@@ -254,9 +254,9 @@ class MessagePane extends KDTabPaneView
     if item?
       item.once 'HideAnimationFinished', =>
         @listController.removeItem item
-        @listController.showNoItemWidget() if @listController.getListItems().length is 0
+        @listController.showNoItemWidget()  if @listController.getListItems().length is 0
 
-      item.hide()
+      item.delete()
 
 
   setScrollTops: ->
