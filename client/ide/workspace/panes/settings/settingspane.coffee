@@ -6,11 +6,7 @@ class IDE.SettingsPane extends IDE.Pane
 
     super options, data
 
-    @addSubView new IDE.EditorSettingsView
-    @addSubView new IDE.TerminalSettingsView
+    @addSubView scrollView = new KDCustomScrollView
 
-    # TODO: reimplement these settings
-    # <p class='hidden'>Highlight selected word {{> @highlightWord}}</p>
-    # <p class='hidden'>             {{> @shortcuts}}</p>
-    # <p class="with-select">Syntax  {{> @syntax}}</p>
-    # <p>Open Recent Files           {{> @openRecentFiles}}</p>
+    scrollView.wrapper.addSubView new IDE.EditorSettingsView
+    scrollView.wrapper.addSubView new IDE.TerminalSettingsView
