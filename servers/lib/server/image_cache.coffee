@@ -2,6 +2,7 @@ fs     = require "fs"
 http   = require "https"
 mime   = require "mime"
 crypto = require "crypto"
+parser = require "url"
 
 {
   embedly : {
@@ -16,17 +17,15 @@ fs.mkdir imagePath, null, ->
 module.exports = (req, res) ->
   {endpoint, grow, width, height, url} = req.query
 
-  fullUrl  = "https://i.embed.ly/1/display/#{endpoint}?" +
+  fullUrl = "https://i.embed.ly/1/display/#{endpoint}?" +
              "width=#{width}&" +
              "height=#{height}&" +
              "key=#{apiKey}&" +
-             "url=#{url}"
+             "url=#{encodeURIComponent(url)}"
 
-  # split the ext, md5 just the url and write md5+ext to disk
-  # md5 since some urls are too big and cause 'ENAMETOOLONG' error
-  splitUrl = url.split(".")
-  ext      = splitUrl.pop()
-  noExt    = splitUrl.join(".")
+  url   = parser.parse url
+  ext   = url.pathname.split(".")[-1] or "jpeg"
+  noExt = "#{url.host}#{url.pathname}"
 
   # arbitary limit to prevent ENAMETOOLONG errors
   if ext.length > 20
@@ -35,7 +34,7 @@ module.exports = (req, res) ->
   # deal with extensions like:
   #   'com/LbobbpWTGJSa45Mhrb6g_y3YjLn5OthdnugrHZJQqom1eduFCnFmqdmOOZmUttP8hLg=h310'
   if ext.indexOf("com") > -1
-    ext = "com"
+    ext = "jpeg"
 
   # replace nonalphanumeric characters
   ext = ext.replace(/\W+/g, "")
@@ -44,8 +43,7 @@ module.exports = (req, res) ->
   for i in [noExt, width, height]
     md5.update(i)
 
-  digest = md5.digest("hex")
-
+  digest   = md5.digest("hex")
   filename = "#{imagePath}/#{digest}.#{ext}"
 
   serveFile = (filename, res)->
@@ -54,7 +52,7 @@ module.exports = (req, res) ->
 
     mimeType = mime.lookup filename
 
-    res.writeHead(200, { 'Content-Type': mimeType });
+    res.writeHead(200, { 'Content-Type': mimeType })
 
   if fs.existsSync filename
     return serveFile filename, res
