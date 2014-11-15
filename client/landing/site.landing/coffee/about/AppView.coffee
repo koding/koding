@@ -31,7 +31,7 @@ module.exports = class AboutView extends JView
       </ul>
       <p class='bottom-note'>
         So if you have a project that you are thinking of starting or if you want to learn
-        a new technology or if you just want to tinker, Koding is right place to do it.
+        a new technology or if you just want to tinker, Koding is the right place to do it.
         Say goodbye to your localhost and develop in the cloud.
       </p>
     </section>
