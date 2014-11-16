@@ -177,6 +177,18 @@ body.account
     &.linked-accounts
     &.email-notifications
       max-width                   800px
+      ul.off
+        li:not(:first-child):before
+          size                  100% 100%
+
+      li:not(:first-child)
+        &:before
+          bg                    color rgba(255,255,255,.8)
+          content               ''
+          size                  100% 0%
+          z-index               101
+          abs()
+
       li
         size                      100%, 65px
         line-height               65px
