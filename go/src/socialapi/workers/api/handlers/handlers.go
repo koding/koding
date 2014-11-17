@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -27,7 +28,8 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
 			Securer:        models.MessageSecurer,
-		})
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -37,7 +39,8 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
 			Securer:        models.MessageSecurer,
-		})
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -47,7 +50,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}",
-		})
+			Securer:  models.MessageReadSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -57,7 +62,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-by-slug",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/slug/{slug}",
-		})
+			Securer:  models.MessageReadSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -67,7 +74,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-with-related",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/related",
-		})
+			Securer:  models.MessageReadSecurer,
+		},
+	)
 
 	//----------------------------------------------------------
 	// Message Reply Operations
@@ -79,7 +88,10 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/reply",
 			CollectMetrics: true,
-		})
+			Securer:        models.MessageSecurer,
+		},
+	)
+
 	// exempt contents are filtered
 	m.AddHandler(
 		handler.Request{
@@ -87,7 +99,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "reply-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/reply",
-		})
+			Securer:  models.MessageReadSecurer,
+		},
+	)
 
 	//----------------------------------------------------------
 	// Message Interaction
@@ -99,7 +113,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/interaction/{type}/add",
 			CollectMetrics: true,
-		})
+			Securer:        models.InteractionSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -108,7 +124,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/interaction/{type}/delete",
 			CollectMetrics: true,
-		})
+			Securer:        models.InteractionSecurer,
+		},
+	)
 
 	// get all the interactions for message
 	// exempt contents are filtered
@@ -118,7 +136,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "interactions-list-typed",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/interaction/{type}",
-		})
+			Securer:  models.InteractionReadSecurer,
+		},
+	)
 
 	// Channel Operations
 	//----------------------------------------------------------
@@ -129,7 +149,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel",
 			CollectMetrics: true,
-		})
+			Securer:        models.ChannelSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -139,7 +161,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel",
-		})
+			Securer:  models.ChannelReadSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -149,7 +173,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-search",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/search",
-		})
+			Securer:  models.ChannelReadSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -159,14 +185,19 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get-byname",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/name/{name}",
-		})
+			Securer:  models.ChannelReadSecurer,
+		},
+	)
+
 	m.AddHandler(
 		handler.Request{
 			Handler:  channel.CheckParticipation,
 			Name:     "channel-check-participation",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/checkparticipation",
-		})
+			Securer:  models.ChannelReadSecurer,
+		},
+	)
 
 	// deprecated, here for socialworker
 	m.AddHandler(
@@ -176,7 +207,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}",
 			CollectMetrics: true,
-		})
+			Securer:        models.ChannelSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -185,7 +218,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/update",
 			CollectMetrics: true,
-		})
+			Securer:        models.ChannelSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -194,7 +229,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/delete",
 			CollectMetrics: true,
-		})
+			Securer:        models.ChannelSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -204,7 +241,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}",
-		})
+			Securer:  models.ChannelReadSecurer,
+		},
+	)
 
 	// add a new messages to the channel
 	m.AddHandler(
@@ -215,7 +254,8 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint:       "/channel/{id}/message",
 			CollectMetrics: true,
 			Securer:        models.MessageSecurer,
-		})
+		},
+	)
 
 	// exempt contents are filtered
 	m.AddHandler(
@@ -224,7 +264,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}/participants",
-		})
+			Securer:  models.ParticipantReadSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -233,7 +275,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participants/add",
 			CollectMetrics: true,
-		})
+			Securer:        models.ParticipantMultiSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -242,7 +286,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participants/remove",
 			CollectMetrics: true,
-		})
+			Securer:        models.ParticipantMultiSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -251,7 +297,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participant/{accountId}/presence",
 			CollectMetrics: true,
-		})
+			Securer:        models.ParticipantSecurer,
+		},
+	)
 
 	// list messages of the channel
 	// exempt contents are filtered
@@ -262,7 +310,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-list",
 			Endpoint: "/channel/{id}/history",
 			Type:     handler.GetRequest,
-		})
+			Securer:  models.MessageListReadSecurer,
+		},
+	)
 
 	// message count of the channel
 	m.AddHandler(
@@ -271,7 +321,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-count",
 			Endpoint: "/channel/{id}/history/count",
 			Type:     handler.GetRequest,
-		})
+			Securer:  models.MessageListReadSecurer,
+		},
+	)
 
 	// register an account
 	m.AddHandler(
@@ -281,7 +333,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account",
 			CollectMetrics: true,
-		})
+			Securer:        models.AccountReadSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -289,7 +343,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/account/{id}",
-		})
+			Securer:  models.AccountSecurer,
+		},
+	)
 
 	// added troll mode protection
 	// list channels of the account
@@ -299,7 +355,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels",
-		})
+			Securer:  models.AccountReadSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -307,7 +365,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels/count",
-		})
+			Securer:  models.AccountReadSecurer,
+		},
+	)
 
 	// list posts of the account
 	m.AddHandler(
@@ -316,7 +376,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-post-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/posts",
-		})
+			Securer:  models.AccountReadSecurer,
+		},
+	)
 
 	// follow the account
 	m.AddHandler(
@@ -326,7 +388,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account/{id}/follow",
 			CollectMetrics: true,
-		})
+			Securer:        models.AccountSecurer,
+		},
+	)
 
 	// un-follow the account
 	m.AddHandler(
@@ -336,7 +400,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account/{id}/unfollow",
 			CollectMetrics: true,
-		})
+			Securer:        models.AccountSecurer,
+		},
+	)
 
 	// check ownership of an object
 	m.AddHandler(
@@ -345,7 +411,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-owns",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/owns",
-		})
+			Securer:  models.AccountReadSecurer,
+		},
+	)
 
 	// fetch profile feed
 	// m.AddHandler("GET", "/account/{id}/profile/feed"
@@ -362,7 +430,10 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "activity-pin-get-channel",
 			Type:     handler.GetRequest,
 			Endpoint: "/activity/pin/channel",
-		})
+			// this is
+			Securer: models.PinnedActivityReadSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	// caching enabled
@@ -372,7 +443,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "activity-pin-list-message",
 			Type:     handler.GetRequest,
 			Endpoint: "/activity/pin/list",
-		})
+			Securer:  models.PinnedActivityReadSecurer,
+		},
+	)
 
 	// pin a new status update
 	m.AddHandler(
@@ -382,7 +455,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/add",
 			CollectMetrics: true,
-		})
+			Securer:        models.PinnedActivitySecurer,
+		},
+	)
 	// unpin a status update
 	m.AddHandler(
 		handler.Request{
@@ -391,7 +466,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/remove",
 			CollectMetrics: true,
-		})
+			Securer:        models.PinnedActivitySecurer,
+		},
+	)
 
 	// @todo add tests
 	m.AddHandler(
@@ -401,7 +478,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/glance",
 			CollectMetrics: true,
-		})
+			Securer:        models.PinnedActivitySecurer,
+		},
+	)
 
 	// get popular topics
 	// exempt contents are filtered
@@ -412,7 +491,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "list-popular-topics",
 			Type:     handler.GetRequest,
 			Endpoint: "/popular/topics/{statisticName}",
-		})
+			// Securer: #no need for securer
+		},
+	)
 
 	// exempt contents are filtered
 	// TODO add caching
@@ -422,7 +503,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "list-popular-posts",
 			Type:     handler.GetRequest,
 			Endpoint: "/popular/posts/{channelName}",
-		})
+			// Securer: #no need for securer
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -431,7 +514,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/privatemessage/init",
 			CollectMetrics: true,
-		})
+			Securer:        models.PrivateMessageSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -440,7 +525,9 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/privatemessage/send",
 			CollectMetrics: true,
-		})
+			Securer:        models.PrivateMessageSecurer,
+		},
+	)
 
 	// exempt contents are filtered
 	m.AddHandler(
@@ -449,7 +536,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatemessage-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatemessage/list",
-		})
+			Securer:  models.PrivateMessageReadSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -457,7 +546,9 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatemessage-search",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatemessage/search",
-		})
+			Securer:  models.PrivateMessageReadSecurer,
+		},
+	)
 
 	m.AddHandler(
 		handler.Request{
@@ -465,5 +556,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatemessage-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatemessage/count",
-		})
+			Securer:  models.PrivateMessageReadSecurer,
+		},
+	)
 }
