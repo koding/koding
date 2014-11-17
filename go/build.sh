@@ -39,8 +39,8 @@ services=(
   koding/go-webserver
 
   socialapi/workers/api
-  socialapi/workers/emailnotifier
   socialapi/workers/dailyemailnotifier
+  socialapi/workers/email/activityemail
   socialapi/workers/notification
   socialapi/workers/pinnedpost
   socialapi/workers/popularpost

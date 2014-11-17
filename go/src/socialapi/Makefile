@@ -80,10 +80,11 @@ algoliaconnectordev:
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
-emailnotifierdev:
+
+activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/emailnotifier -c $(CONFIG) $(DBG) $(METRICS)
-dailyemailnotifierdev:
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
+
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DBG) $(METRICS)
 popularpostdev:
