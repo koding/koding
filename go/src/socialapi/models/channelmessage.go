@@ -590,3 +590,26 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 
 	return newCm, nil
 }
+
+// FetchLatestChannelMessages fetches latest messages of a channel received after a given period
+// excluding the account itself.
+func (c *ChannelMessage) FetchLatestChannelMessages(limit int) ([]ChannelMessage, error) {
+	var cms []ChannelMessage
+	if c.InitialChannelId == 0 {
+		return cms, ErrChannelIdIsNotSet
+	}
+
+	db := bongo.B.DB.Table(c.BongoName()).Where("initial_channel_id = ?", c.InitialChannelId)
+
+	if c.AccountId != 0 {
+		db = db.Where("account_id <> ?", c.AccountId)
+	}
+
+	if !c.CreatedAt.IsZero() {
+		db = db.Where("created_at >= ?", c.CreatedAt)
+	}
+
+	err := db.Limit(limit).Order("created_at desc").Find(&cms).Error
+
+	return cms, err
+}

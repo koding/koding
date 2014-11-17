@@ -434,3 +434,72 @@ func TestChannelMessageBuildEmptyMessageContainer(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageFetchLatestMessages(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching latest messages of a channel with three participants and four messages", t, func() {
+		channel, accounts := CreateChannelWithParticipants()
+		cm1 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm2 := CreateMessage(channel.Id, accounts[1].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm3 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm4 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+
+		Convey("it should have channel id", func() {
+			c := NewChannelMessage()
+			_, err := c.FetchLatestChannelMessages(3)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("first user should see last three messages when no parameters are set", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			cms, err := c.FetchLatestChannelMessages(3)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 3)
+			So(cms[2].Id, ShouldEqual, cm2.Id)
+		})
+
+		Convey("first user should see one message when their account id is excluded", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			c.AccountId = cm1.AccountId
+			cms, err := c.FetchLatestChannelMessages(3)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 1)
+			So(cms[0].Id, ShouldEqual, cm2.Id)
+		})
+
+		Convey("second user should see two messages starting with their own message", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			c.AccountId = cm2.AccountId
+			c.CreatedAt = cm2.CreatedAt
+			cms, err := c.FetchLatestChannelMessages(3)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 2)
+			So(cms[0].Id, ShouldEqual, cm4.Id)
+			So(cms[1].Id, ShouldEqual, cm3.Id)
+		})
+
+		Convey("third user should see three messages when all parameters are set", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			c.AccountId = accounts[2].Id
+			c.CreatedAt = cm1.CreatedAt
+
+			cms, err := c.FetchLatestChannelMessages(3)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 3)
+			So(cms[0].Id, ShouldEqual, cm4.Id)
+			So(cms[1].Id, ShouldEqual, cm3.Id)
+			So(cms[2].Id, ShouldEqual, cm2.Id)
+		})
+	})
+}
+	})
+}
