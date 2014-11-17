@@ -193,8 +193,9 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
+	// glance the channel
 	if err := participant.Glance(); err != nil {
-		return err
+		return response.NewBadRequest(err)
 	}
 
 	return response.NewOK(participant)
