@@ -135,6 +135,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if currentState is NotInitialized
         @buildViews State: currentState
+        KD.utils.defer => @turnOnMachine()
         return
 
       @triggerEventTimer 0

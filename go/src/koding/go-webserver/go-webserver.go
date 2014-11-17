@@ -51,6 +51,9 @@ func initialize() {
 func main() {
 	initialize()
 
+	version := conf.Version
+	addVersionToShareUrls(version)
+
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(Name))
@@ -59,4 +62,10 @@ func main() {
 	Log.Info("Starting gowebserver on: %v", url)
 
 	http.ListenAndServe(url, nil)
+}
+
+func addVersionToShareUrls(version string) {
+	kodingGpImage = fmt.Sprintf("%s?%s", kodingGpImage, version)
+	kodingFbImage = fmt.Sprintf("%s?%s", kodingFbImage, version)
+	kodingTwImage = fmt.Sprintf("%s?%s", kodingTwImage, version)
 }
