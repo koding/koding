@@ -87,10 +87,8 @@ func Wrapper(r Request) http.Handler {
 }
 
 // count the statuses of the requests
-func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
-	return CountedByStatus(
-		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
-	)
+func buildHandlerWithStatusCount(handler http.Handler, r Request) http.Handler {
+	return CountedByStatus(handler, r.Name, r.CollectMetrics)
 }
 
 // add request time tracking
