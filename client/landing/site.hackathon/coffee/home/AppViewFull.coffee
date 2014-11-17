@@ -299,7 +299,7 @@ module.exports = class HomeViewFull extends KDView
     { cap, prize } = campaign
 
     return """
-      PRIZE: <span>$#{prize.toLocaleString()}</span>
+      PRIZES WORTH: <span>$#{prize.toLocaleString()}</span>
       TOTAL SLOTS: <span>#{cap.toLocaleString()}</span>
       APPLICATIONS: <span>#{totalApplicants.toLocaleString()}</span>
       APPROVED APPLICANTS: <span>#{approvedApplicants.toLocaleString()}</span>
