@@ -18,7 +18,6 @@ class RealTimeManager extends KDObject
     return @realtimeDoc
 
   auth: ->
-
     $.ajax
       url: '/-/google-api',
       dataType: 'JSON'
@@ -35,8 +34,9 @@ class RealTimeManager extends KDObject
     $.ajax
       url: '/-/google-api'
       dataType: 'JSON'
-      success: (authToken) ->
+      success: (authToken) =>
         gapi.auth.setToken authToken
+        @emit 'ReauthSucceed', authToken
 
 
   createFile: (title) ->
