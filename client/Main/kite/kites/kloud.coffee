@@ -21,7 +21,6 @@ class KodingKite_KloudKite extends KodingKite
     super options
     @requestingInfo = KD.utils.dict()
     @needsRequest   = KD.utils.dict()
-    @kloudCalls     = KD.utils.dict()
 
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
@@ -50,7 +49,7 @@ class KodingKite_KloudKite extends KodingKite
 
   resolveRequestingInfos: (machineId, info)->
 
-    @requestingInfo?[machineId].forEach ({ resolve }) ->
+    @requestingInfo?[machineId]?.forEach ({ resolve }) ->
       resolve info
 
     @requestingInfo[machineId] = null
@@ -71,12 +70,14 @@ class KodingKite_KloudKite extends KodingKite
     if not klientKite?
       return callback null
 
+    KD.remote.api.DataDog.increment "KlientInfo", noop
+
     klientKite.ping()
 
       .then (res)->
 
         if res is "pong"
-        then callback State: Machine.State.Running
+        then callback State: Machine.State.Running, via: "klient"
         else callback null
 
       .timeout 5000
@@ -88,10 +89,7 @@ class KodingKite_KloudKite extends KodingKite
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    @kloudCalls[machineId] ?= 0
-    @kloudCalls[machineId]++
-
-    info "[kloud:info] call count for [#{machineId}] is #{@kloudCalls[machineId]}"
+    KD.remote.api.DataDog.increment "KloudInfo", noop
 
     @tell 'info', { machineId }
 

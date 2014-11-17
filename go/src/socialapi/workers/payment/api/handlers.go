@@ -2,125 +2,126 @@ package api
 
 import (
 	"socialapi/workers/common/handler"
-
-	"github.com/koding/metrics"
-	"github.com/rcrowley/go-tigertonic"
+	"socialapi/workers/common/mux"
 )
 
-func InitHandlers(mux *tigertonic.TrieServeMux, metrics *metrics.Metrics) *tigertonic.TrieServeMux {
+func AddHandlers(m *mux.Mux) {
 	//----------------------------------------------------------
 	// Subscriptions
 	//----------------------------------------------------------
 
-	mux.Handle("POST", "/payments/subscribe", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        Subscribe,
 			Name:           "payment-subsrcibe",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/subscribe",
 			CollectMetrics: true,
-			Metrics:        metrics,
-		},
-	))
+		})
 
-	mux.Handle("GET", "/payments/subscriptions", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: SubscriptionRequest,
-			Name:    "payment-subscriptions",
-			Metrics: metrics,
-		},
-	))
+			Handler:  SubscriptionRequest,
+			Name:     "payment-subscriptions",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/subscriptions",
+		})
 
 	//----------------------------------------------------------
 	// Customers
 	//----------------------------------------------------------
 
-	mux.Handle("DELETE", "/payments/customers/{accountId}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: DeleteCustomerRequest,
-			Name:    "payment-deletecustomer",
-			Metrics: metrics,
-		},
-	))
+			Handler:  DeleteCustomerRequest,
+			Name:     "payment-deletecustomer",
+			Type:     handler.DeleteRequest,
+			Endpoint: "/payments/customers/{accountId}",
+		})
 
 	//----------------------------------------------------------
 	// Invoices
 	//----------------------------------------------------------
 
-	mux.Handle("GET", "/payments/invoices/{accountId}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: InvoiceRequest,
-			Name:    "payment-invoices",
-			Metrics: metrics,
-		},
-	))
+			Handler:  InvoiceRequest,
+			Name:     "payment-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/invoices/{accountId}",
+		})
 
 	//----------------------------------------------------------
 	// CreditCard
 	//----------------------------------------------------------
 
-	mux.Handle("GET", "/payments/creditcard/{accountId}", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        CreditCardRequest,
 			Name:           "payment-creditcard",
+			Type:           handler.GetRequest,
+			Endpoint:       "/payments/creditcard/{accountId}",
 			CollectMetrics: true,
-			Metrics:        metrics,
-		},
-	))
+		})
 
-	mux.Handle("POST", "/payments/creditcard/update", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
 			Handler:        UpdateCreditCardRequest,
 			Name:           "payment-updatecreditcard",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/creditcard/update",
 			CollectMetrics: true,
-			Metrics:        metrics,
-		},
-	))
+		})
 
 	//----------------------------------------------------------
 	// Stripe webhook
 	//----------------------------------------------------------
-	mux.Handle("POST", "/payments/stripe/webhook", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: StripeWebhook,
-			Name:    "payment-stripewebhook",
-			Metrics: metrics,
-		},
-	))
+			Handler:        StripeWebhook,
+			Name:           "payment-stripewebhook",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/stripe/webhook",
+			CollectMetrics: true,
+		})
 
 	//----------------------------------------------------------
 	// Paypal
 	//----------------------------------------------------------
 
-	mux.Handle("POST", "/payments/paypal/return", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: PaypalSuccess,
-			Name:    "payment-paypalsuccess",
-			Metrics: metrics,
-		},
-	))
+			Handler:        PaypalSuccess,
+			Name:           "payment-paypalsuccess",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/paypal/return",
+			CollectMetrics: true,
+		})
 
-	mux.Handle("POST", "/payments/paypal/cancel", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: PaypalCancel,
-			Name:    "payment-paypalcancel",
-			Metrics: metrics,
-		},
-	))
+			Handler:        PaypalCancel,
+			Name:           "payment-paypalcancel",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/paypal/cancel",
+			CollectMetrics: true,
+		})
 
-	mux.Handle("GET", "/payments/paypal/token", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: PaypalGetToken,
-			Name:    "payment-paypalgettoken",
-			Metrics: metrics,
-		},
-	))
+			Handler:        PaypalGetToken,
+			Name:           "payment-paypalgettoken",
+			Type:           handler.GetRequest,
+			Endpoint:       "/payments/paypal/token",
+			CollectMetrics: true,
+		})
 
-	mux.Handle("POST", "/payments/paypal/webhook", handler.Wrapper(
+	m.AddHandler(
 		handler.Request{
-			Handler: PaypalWebhook,
-			Name:    "payment-paypalwebhook",
-			Metrics: metrics,
-		},
-	))
-
-	return mux
+			Handler:        PaypalWebhook,
+			Name:           "payment-paypalwebhook",
+			Type:           handler.PostRequest,
+			Endpoint:       "/payments/paypal/webhook",
+			CollectMetrics: true,
+		})
 }

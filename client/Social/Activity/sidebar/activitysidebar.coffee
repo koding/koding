@@ -191,13 +191,16 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {id} = update.channel
 
-    @removeItem id
+    return @removeItem id  unless update.isParticipant
+
+    # TODO update participants in sidebar
 
 
   channelUpdateHappened: (update) -> warn 'dont use this, :::educational purposes only!:::', update
 
 
   setPostUnreadCount: (data) ->
+
     {unreadCount, channelMessage} = data
     return  unless channelMessage
 
@@ -694,10 +697,11 @@ class ActivitySidebar extends KDCustomHTMLView
         @emit 'WorkspaceCreateFailed'
         return KD.showError "Couldn't create your new workspace"
 
-      folderOptions =
-        type        : 'folder'
-        path        : workspace.rootPath
-        recursive   : yes
+      folderOptions  =
+        type         : 'folder'
+        path         : workspace.rootPath
+        recursive    : yes
+        samePathOnly : yes
 
       machine.fs.create folderOptions, (err, folder) =>
         if err
