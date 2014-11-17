@@ -6,7 +6,6 @@ import (
 	"socialapi/workers/email/chatemail/common"
 
 	"github.com/koding/redis"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func deleteKeys(redisConn *redis.RedisSession, pattern string) {

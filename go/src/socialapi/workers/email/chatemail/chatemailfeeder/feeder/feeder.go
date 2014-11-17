@@ -11,7 +11,6 @@ package feeder
 
 import (
 	"errors"
-	"fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/email/chatemail/common"
@@ -89,7 +88,6 @@ func (c *Controller) AddMessageToQueue(cm *models.ChannelMessage) error {
 // GlanceChannel removes a channel from awaiting notification channel hash set and
 // when none other channels are awaiting resets Account information from AccountPeriod hash
 func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
-	fmt.Printf("glanceli geldi: %d \n", cp.AccountId)
 	a := models.NewAccount()
 	a.Id = cp.AccountId
 

@@ -225,6 +225,19 @@ testapi:
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
+	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/chatemail/chatemailfeeder/feeder/*.go
+	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./feeder.test
+
+	@`which go` test -c workers/email/chatemail/chatemailsender/sender/*.go
+	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./sender.test
+
+	@`which go` test -c workers/email/emailmodels/*.go
+	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./emailmodels.test
+
 doc:
 	@for package in $(PACKAGES); \
 	do \

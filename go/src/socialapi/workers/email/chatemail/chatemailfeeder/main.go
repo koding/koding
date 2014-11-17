@@ -9,7 +9,7 @@ import (
 	"socialapi/workers/helper"
 )
 
-var Name = "ChatEmailNotifier"
+var Name = "ChatEmailFeeder"
 
 func main() {
 	r := runner.New(Name)

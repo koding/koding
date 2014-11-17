@@ -1,10 +1,10 @@
 package sender
 
 import (
-	"socialapi/workers/chatnotifier/common"
-	"socialapi/workers/chatnotifier/testhelper"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/emailnotifier/models"
+	"socialapi/workers/email/chatemail/common"
+	"socialapi/workers/email/chatemail/testhelper"
+	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/helper"
 	"testing"
 

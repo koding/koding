@@ -25,14 +25,14 @@ func TestNewMessageCreation(t *testing.T) {
 	controller := New(r.Log, redisConn)
 
 	Convey("while adding a new message to queue", t, func() {
-		channel, accounts := testhelper.CreateChannelWithParticipants()
+		channel, accounts := models.CreateChannelWithParticipants()
 		// test
 		eligibleToNotify = func(accountId int64) (bool, error) {
 			return true, nil
 		}
 
 		Convey("do not add any future notifier if message type is not private message", func() {
-			cm := testhelper.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
+			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
 			cm.TypeConstant = models.ChannelMessage_TYPE_JOIN
 			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
@@ -47,7 +47,7 @@ func TestNewMessageCreation(t *testing.T) {
 				return false, nil
 			}
 
-			cm := testhelper.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
+			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
 			cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
 			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
@@ -58,7 +58,7 @@ func TestNewMessageCreation(t *testing.T) {
 		})
 
 		Convey("when a message is sent to a channel with 3 participants two of them must be notified", func() {
-			cm := testhelper.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
+			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
 
 			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
@@ -67,7 +67,7 @@ func TestNewMessageCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(length, ShouldEqual, 2)
 
-			period := controller.getNextMailPeriod()
+			period := common.GetNextMailPeriod()
 
 			// for next period two accounts must be inserted to the queue
 			length, err = redisConn.Scard(common.PeriodAccountSetKey(period))
