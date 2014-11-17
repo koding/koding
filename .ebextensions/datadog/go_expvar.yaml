@@ -1,0 +1,61 @@
+init_config:
+
+instances:
+    # Most memstats metrics are exported by default
+    # See http://godoc.org/runtime#MemStats for their explanation
+
+    - expvar_url: http://localhost:6060/debug/vars
+      tags:
+        - "application:kloud"
+      metrics:
+        - path: memstats/PauseTotalNs
+          alias: go_expvar.gc.pause_time_in_ns
+          type: rate
+
+        - path: memstats/Alloc
+          alias: go_expvar.mem.alloc
+          type: rate
+
+        - path: memstats/Sys
+          alias: go_expvar.mem.sys
+          type: rate
+
+        - path: memstats/TotalAlloc
+          alias: go_expvar.mem.total_alloc
+          type: rate
+
+        - path: memstats/Lookups
+          alias: go_expvar.mem.lookups
+          type: rate
+
+        - path: memstats/Mallocs
+          alias: go_expvar.mem.mallocs
+          type: rate
+
+        - path: memstats/Frees
+          alias: go_expvar.mem.frees
+          type: rate
+
+        - path: memstats/HeapAlloc
+          alias: go_expvar.mem.heap_allocs
+          type: rate
+
+        - path: memstats/HeapSys
+          alias: go_expvar.mem.heap_sys
+          type: rate
+
+        - path: memstats/HeapIdle
+          alias: go_expvar.mem.heap_idle
+          type: rate
+
+        - path: memstats/HeapInuse
+          alias: go_expvar.mem.heap_inuse
+          type: rate
+
+        - path: memstats/HeapReleased
+          alias: go_expvar.mem.heap_released
+          type: rate
+
+        - path: memstats/HeapObjects
+          alias: go_expvar.mem.heap_object
+          type: rate
