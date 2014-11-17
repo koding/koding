@@ -60,12 +60,15 @@ apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c config/dev.toml $(PORT) $(DBG) $(METRICS)
+
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
+
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
+
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
@@ -77,6 +80,7 @@ pinnedpostdev:
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
@@ -85,8 +89,10 @@ activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
 
+dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)

@@ -1,8 +1,9 @@
-package models
+package emailmodels
 
 import (
 	"errors"
 	"fmt"
+	"socialapi/models"
 
 	"github.com/sendgrid/sendgrid-go"
 )
@@ -14,14 +15,36 @@ type Mailer struct {
 	EmailSettings *EmailSettings
 }
 
-func NewMailer() *Mailer {
-	return &Mailer{}
+func NewMailer(a *models.Account, body, subject string, es *EmailSettings) (*Mailer, error) {
+	// Fetch user contact
+	uc, err := FetchUserContactWithToken(a.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Mailer{
+		UserContact:   uc,
+		Body:          body,
+		Subject:       subject,
+		EmailSettings: es,
+	}, nil
 }
 
-func (m *Mailer) SendMail() error {
+func (m *Mailer) SendMail(contentType string) error {
 	if err := m.validateMailer(); err != nil {
 		return err
 	}
+
+	if err := m.UserContact.GenerateToken(contentType); err != nil {
+		return err
+	}
+
+	content, err := m.prepareContentWithLayout(contentType)
+	if err != nil {
+		return err
+	}
+
+	m.Body = content
 
 	sg := sendgrid.NewSendGridClient(m.EmailSettings.Username, m.EmailSettings.Password)
 	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
@@ -39,6 +62,12 @@ func (m *Mailer) SendMail() error {
 	}
 
 	return nil
+}
+
+func (m *Mailer) prepareContentWithLayout(contentType string) (string, error) {
+	lc := NewLayoutContent(m.UserContact, contentType, m.Body)
+
+	return lc.Render()
 }
 
 func (m *Mailer) getRecipient() string {

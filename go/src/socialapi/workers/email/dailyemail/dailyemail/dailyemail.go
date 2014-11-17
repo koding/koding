@@ -1,10 +1,11 @@
-package controller
+package dailyemail
 
 import (
 	"errors"
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/emailnotifier/models"
+	"socialapi/workers/email/activityemail/models"
+	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
@@ -21,12 +22,14 @@ const (
 	DATEFORMAT    = "Jan 02"
 	CACHEPREFIX   = "dailymail"
 	RECIPIENTSKEY = "recipients"
-	SCHEDULE      = "0 0 0 * * *"
+	SCHEDULE      = "0 * * * * *"
+
+	Subject = "[Koding] Your Koding Activity for today: %s"
 )
 
 type Controller struct {
 	log      logging.Logger
-	settings *models.EmailSettings
+	settings *emailmodels.EmailSettings
 }
 
 var ObsoleteActivity = errors.New("obsolete activity")
@@ -35,7 +38,7 @@ var (
 	cronJob *cron.Cron
 )
 
-func New(log logging.Logger, es *models.EmailSettings) (*Controller, error) {
+func New(log logging.Logger, es *emailmodels.EmailSettings) (*Controller, error) {
 
 	c := &Controller{
 		log:      log,
@@ -87,7 +90,7 @@ func (n *Controller) sendDailyMails() {
 }
 
 func (n *Controller) prepareDailyEmail(accountId int64) error {
-	uc, err := models.FetchUserContactWithToken(accountId)
+	uc, err := emailmodels.FetchUserContactWithToken(accountId)
 	if err != nil {
 		return err
 	}
@@ -130,25 +133,14 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
 	}
 
-	tg := models.NewTokenGenerator()
-	tg.UserContact = uc
-	tg.NotificationType = "daily"
-	if err := tg.CreateToken(); err != nil {
-		return fmt.Errorf("an error occurred: %s", err)
+	mailer := emailmodels.Mailer{
+		EmailSettings: n.settings,
+		UserContact:   uc,
+		Body:          body,
+		Subject:       fmt.Sprintf(Subject, time.Now().Format(DATEFORMAT)),
 	}
 
-	mailer := models.NewMailer()
-	mailer.EmailSettings = n.settings
-	mailer.UserContact = uc
-	mailer.Body = body
-	mailer.Subject = fmt.Sprintf("Your Koding Activity for today: %s",
-		time.Now().Format(DATEFORMAT))
-
-	if err := mailer.SendMail(); err != nil {
-		return fmt.Errorf("an error occurred: %s", err)
-	}
-
-	return nil
+	return mailer.SendMail("daily")
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
@@ -168,6 +160,8 @@ func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
 
 		activityIds[i] = activityId
 	}
+
+	redisConn.Del(prepareDailyActivitiesCacheKey(accountId))
 
 	return activityIds, nil
 }
