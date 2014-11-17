@@ -93,12 +93,24 @@ dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
 
+chatemaildev: chatemailfeederdev chatemailsenderdev
+
+chatemailfeederdev:
+	@echo "$(OK_COLOR)==> Running Chat Email Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/chatemail/chatemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+
+chatemailsenderdev:
+	@echo "$(OK_COLOR)==> Running Chat Email Sender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/chatemail/chatemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
+
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
+
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -114,9 +126,11 @@ sitemapdev: sitemapfeederdev sitemapgeneratordev
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
+
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
+
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
