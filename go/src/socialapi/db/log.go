@@ -26,7 +26,7 @@ func (g *gormLogger) Print(v ...interface{}) {
 
 	// taken from gorm log file
 	if len(v) > 4 {
-		messages = append(messages, fmt.Sprintf(" [%.2fms] ", float64(v[2].(time.Duration).Nanoseconds()/1e4)/100.0))
+		messages = append(messages, fmt.Sprintf("[%.2fms] ", float64(v[2].(time.Duration).Nanoseconds()/1e4)/100.0))
 		messages = append(messages, fmt.Sprintf(sqlRegexp.ReplaceAllString(v[3].(string), "'%v'"), v[4].([]interface{})...))
 	} else {
 		for _, message := range v {
