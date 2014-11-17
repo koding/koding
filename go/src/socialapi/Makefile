@@ -134,9 +134,7 @@ sitemapgeneratordev:
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
-sitemaprootgeneratordev:
-	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DBG) $(METRICS)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
