@@ -78,7 +78,7 @@ func Wrapper(r Request) http.Handler {
 		hHandler = tigertonic.Marshaled(handler)
 	}
 
-	hHandler = buildHandlerWithStatusCount(handler, r)
+	hHandler = buildHandlerWithStatusCount(hHandler, r)
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
