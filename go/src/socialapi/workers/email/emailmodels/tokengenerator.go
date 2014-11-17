@@ -1,4 +1,4 @@
-package models
+package emailmodels
 
 import (
 	"fmt"

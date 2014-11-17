@@ -1,10 +1,11 @@
-package models
+package emailmodels
 
 import (
 	"errors"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	notificationmodels "socialapi/workers/notification/models"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -20,6 +21,13 @@ type UserContact struct {
 	Hash          string
 	Token         string
 	EmailSettings *mongomodels.EmailFrequency
+}
+
+var emailConfig = map[string]string{
+	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
+	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
+	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
+	notificationmodels.NotificationContent_TYPE_PM:      "privateMessage",
 }
 
 // fetchUserContact gets user and account details with given account id
@@ -74,4 +82,13 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 		Hash:          account.Profile.Hash,
 		EmailSettings: &user.EmailFrequency,
 	}, nil
+}
+
+func (uc *UserContact) GenerateToken(notificationType string) error {
+	tg := &TokenGenerator{
+		UserContact:      uc,
+		NotificationType: emailConfig[notificationType],
+	}
+
+	return tg.CreateToken()
 }

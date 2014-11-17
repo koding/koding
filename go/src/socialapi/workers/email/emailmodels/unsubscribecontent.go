@@ -1,4 +1,4 @@
-package models
+package emailmodels
 
 type UnsubscribeContent struct {
 	Token       string
