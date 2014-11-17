@@ -1,9 +1,12 @@
 package main
 
 import (
+	_ "expvar"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"time"
@@ -126,6 +129,12 @@ func main() {
 			k.Log.Fatal(err.Error())
 		}
 	}
+
+	go func() {
+		// TODO ~ parameterize this
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		k.Log.Error(err.Error())
+	}()
 
 	k.Run()
 }
