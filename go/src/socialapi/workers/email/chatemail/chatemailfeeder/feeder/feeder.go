@@ -11,12 +11,11 @@ package feeder
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/chatnotifier/common"
-	emailnotifiermodels "socialapi/workers/emailnotifier/models"
-
-	"socialapi/workers/common/utils"
+	"socialapi/workers/email/chatemail/common"
+	"socialapi/workers/email/emailmodels"
 	"strconv"
 
 	"github.com/koding/logging"
@@ -49,9 +48,13 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 var eligibleToNotify = func(accountId int64) (bool, error) {
-	uc, err := emailnotifiermodels.FetchUserContact(accountId)
+	uc, err := emailmodels.FetchUserContact(accountId)
 	if err != nil {
 		return false, err
+	}
+
+	if !uc.EmailSettings.Global {
+		return false, nil
 	}
 
 	return uc.EmailSettings.PrivateMessage, nil
@@ -86,7 +89,7 @@ func (c *Controller) AddMessageToQueue(cm *models.ChannelMessage) error {
 // GlanceChannel removes a channel from awaiting notification channel hash set and
 // when none other channels are awaiting resets Account information from AccountPeriod hash
 func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
-
+	fmt.Printf("glanceli geldi: %d \n", cp.AccountId)
 	a := models.NewAccount()
 	a.Id = cp.AccountId
 
@@ -123,7 +126,7 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 	}
 
 	// when there is not any pending notifications, just delete the account next period value
-	return c.deleteAccountNextPeriod(a)
+	return common.DeleteAccountNextPeriod(c.redis, a)
 }
 
 func (c *Controller) deletePendingNotification(a *models.Account, ch *models.Channel, nextPeriod string) (int, error) {
@@ -132,12 +135,6 @@ func (c *Controller) deletePendingNotification(a *models.Account, ch *models.Cha
 
 func (c *Controller) getPendingNotificationCount(a *models.Account, nextPeriod string) (int, error) {
 	return c.redis.GetHashLength(common.AccountChannelHashSetKey(a.Id, nextPeriod))
-}
-
-func (c *Controller) deleteAccountNextPeriod(a *models.Account) error {
-	_, err := c.redis.DeleteHashSetField(common.AccountNextPeriodHashSetKey(), strconv.FormatInt(a.Id, 10))
-
-	return err
 }
 
 func (c *Controller) fetchParticipantIds(cm *models.ChannelMessage) ([]int64, error) {
@@ -180,7 +177,7 @@ func (c *Controller) updateAccountNextPeriodSet(a *models.Account) (string, erro
 	nextPeriod, err := c.getAccountNextNotificationPeriod(a)
 	// if not exist get new mailing period for the account
 	if err == ErrPeriodNotFound {
-		nextPeriod = c.getNextMailPeriod()
+		nextPeriod = common.GetNextMailPeriod()
 		err := c.redis.HashMultipleSet(common.AccountNextPeriodHashSetKey(), map[string]interface{}{field: nextPeriod})
 		if err != nil {
 			return "", err
@@ -226,21 +223,12 @@ func (c *Controller) updateNextPeriodSet(period string, accountId int64) error {
 func (c *Controller) updateAccountChannelHashSet(period string, accountId int64, cm *models.ChannelMessage) error {
 	key := common.AccountChannelHashSetKey(accountId, period)
 	channelId := strconv.FormatInt(cm.InitialChannelId, 10)
+	awaySince := strconv.FormatInt(cm.CreatedAt.UnixNano(), 10)
 	// add the first received message for channel
-	_, err := c.redis.HashSetIfNotExists(key, channelId, cm.CreatedAt.String())
+	_, err := c.redis.HashSetIfNotExists(key, channelId, awaySince)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-// getNextMailPeriod returns the segment number for the account
-func (c *Controller) getNextMailPeriod() string {
-	ts := utils.NewTimeSegmentor(common.MailPeriod)
-
-	nextPeriod, _ := strconv.Atoi(ts.GetNextSegment())
-	segment := (nextPeriod + common.MailDelay) % (60 / common.MailPeriod)
-
-	return strconv.Itoa(segment)
 }
