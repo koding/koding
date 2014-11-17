@@ -415,7 +415,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4>What are the prizes?</h4>
-        Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.
+        <p>Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.</p>
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
           <li>Winners will be offered credits for services like DigitalOcean, Tutum and many more!</li>
@@ -433,7 +433,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <img src='http://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Intuit_Logo.svg/1000px-Intuit_Logo.svg.png' alt='Intuit logo'/>
+              <img src='http://i.imgur.com/H9vYUd8.png' alt='Intuit logo'/>
               <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of their API.</figcaption>
             </figure>
           </li>          
