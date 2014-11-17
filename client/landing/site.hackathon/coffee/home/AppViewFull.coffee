@@ -415,7 +415,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4>What are the prizes?</h4>
-        Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.
+        <p>Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.</p>
         <ol>
           <li>$10,000 cash prize from Koding, split amongst the top 3 teams ($5k, $3k, $2k each).</li>
           <li>Winners will be offered credits for services like DigitalOcean, Tutum and many more!</li>
@@ -431,6 +431,12 @@ module.exports = class HomeViewFull extends KDView
               <figcaption><a href='http://www.turkcell.com.tr/' target='_blank'>Turkcell</a> is contributing <strong>$5,000</strong> to the total prize money!</figcaption>
             </figure>
           </li>
+          <li>
+            <figure>
+              <img src='http://i.imgur.com/H9vYUd8.png' alt='Intuit logo'/>
+              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of their API.</figcaption>
+            </figure>
+          </li>          
           <li>
             <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
@@ -563,6 +569,7 @@ module.exports = class HomeViewFull extends KDView
         <br />
         <a href="http://developer.factual.com/">Factual</a>
         <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>
+        <a href="https://developer.intuit.com/">Intuit</a>
         <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>
         <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding</a>
         <a href="https://developers.google.com/books/">Google Books</a>
