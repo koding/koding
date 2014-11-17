@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	aws "koding/kites/kloud/api/amazon"
@@ -98,20 +97,15 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
-				instance.InstanceId, instance.State.Name),
-				currentPercentage, machinestate.Building)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        start,
-		Finish:       finish,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "build",
+		Start:     start,
+		Finish:    finish,
 	}
 	if err := ws.Wait(); err != nil {
 		return nil, err
@@ -196,20 +190,15 @@ func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Starting instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Starting)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "start",
+		Start:     25,
+		Finish:    60,
 	}
 
 	if err := ws.Wait(); err != nil {
@@ -241,20 +230,15 @@ func (a *AmazonClient) Stop(withPush bool) error {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Stopping instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Stopping)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Stopped,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "stop",
+		Start:     25,
+		Finish:    60,
 	}
 
 	return ws.Wait()
@@ -278,20 +262,15 @@ func (a *AmazonClient) Restart(withPush bool) error {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Rebooting)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "restart",
+		Start:     25,
+		Finish:    60,
 	}
 
 	return ws.Wait()
@@ -316,18 +295,15 @@ func (a *AmazonClient) Destroy(start, finish int) error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Terminating instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Terminating)
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Terminated,
-		Start:        start,
-		Finish:       finish,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "destroy",
+		Start:     start,
+		Finish:    finish,
 	}
 
 	return ws.Wait()

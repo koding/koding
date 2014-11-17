@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
 	"koding/db/mongodb"
 	"strconv"
@@ -20,8 +19,9 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
-// Checker checks various aspects of a machine. It used to limit certain
-// aspects of a machine, such a the total machine or total storage.
+// Checker checks various aspects of a machine. It is used for limiting certain
+// aspects of a machine, such as the total allowed machine count, storage size
+// and etc.
 type Checker interface {
 	// Total checks whether the user has reached the current plan's limit of
 	// having a total number numbers of machines. It returns an error if the
@@ -112,17 +112,7 @@ func (p *PlanChecker) AlwaysOn() error {
 }
 
 func (p *PlanChecker) Timeout() error {
-	// check aws to see if it's still running
-	infoResp, err := p.Provider.Info(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	if infoResp.State != machinestate.Running {
-		return errors.New("machine is not running")
-	}
-
-	// connect and get real time data directly from the machines klient
+	// Check klient state before rushing to AWS.
 	klientRef, err := klient.Connect(p.Kite, p.Machine.QueryString)
 	if err == kite.ErrNoKitesAvailable {
 		p.Provider.startTimer(p.Machine)
@@ -136,8 +126,12 @@ func (p *PlanChecker) Timeout() error {
 
 	defer klientRef.Close()
 
-	// now the klient is connected again, stop the timer and remove it from the
-	// list of inactive machines if it's still there.
+	if err = klientRef.Ping(); err != nil {
+		return err
+	}
+
+	// now the klient is connected and we can ping it, stop the timer and
+	// remove it from the list of inactive machines if it's still there.
 	p.Provider.stopTimer(p.Machine)
 
 	// get the usage directly from the klient, which is the most predictable source

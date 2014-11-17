@@ -40,7 +40,7 @@ func (a *AmazonClient) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, err
 		return machinestate.Stopped, nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: checkSnapshot, DesiredState: machinestate.Stopped}
+	ws := waitstate.WaitState{StateFunc: checkSnapshot, Action: "create-snapshot"}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (a *AmazonClient) CreateVolume(snapshotId, availZone, volumeType string, si
 		return machinestate.Stopped, nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: checkVolume, DesiredState: machinestate.Stopped}
+	ws := waitstate.WaitState{StateFunc: checkVolume, Action: "create-volume"}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (a *AmazonClient) DetachVolume(volumeId string) error {
 
 	ws := waitstate.WaitState{
 		StateFunc:    checkDetaching,
-		DesiredState: machinestate.Stopped,
+		Action: "detach-volume",
 	}
 
 	return ws.Wait()
@@ -154,7 +154,7 @@ func (a *AmazonClient) AttachVolume(volumeId, instanceId, devicePath string) err
 
 	ws := waitstate.WaitState{
 		StateFunc:    checkAttaching,
-		DesiredState: machinestate.Stopped,
+		Action: "attach-volume",
 	}
 
 	return ws.Wait()

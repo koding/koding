@@ -66,7 +66,7 @@ func (o *OpenstackClient) Build(instanceName, imageId, flavorId string) (*protoc
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Running, Start: 25, Finish: 60}
+	ws := waitstate.WaitState{StateFunc: stateFunc, Action: "build", Start: 25, Finish: 60}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (o *OpenstackClient) Start() (*protocol.Artifact, error) {
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Running, Start: 35, Finish: 60}
+	ws := waitstate.WaitState{StateFunc: stateFunc, Action: "start", Start: 35, Finish: 60}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}
@@ -201,7 +201,7 @@ func (o *OpenstackClient) Stop() error {
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Stopping, Start: 30, Finish: 50}
+	ws := waitstate.WaitState{StateFunc: stateFunc, Action: "stop", Start: 30, Finish: 50}
 	if err := ws.Wait(); err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func (o *OpenstackClient) Stop() error {
 		return statusToState(server.Status), nil
 	}
 
-	ws = waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Stopped, Start: 60, Finish: 80}
+	ws = waitstate.WaitState{StateFunc: stateFunc, Action: "stop", Start: 60, Finish: 80}
 	return ws.Wait()
 }
 
@@ -244,7 +244,7 @@ func (o *OpenstackClient) Restart() error {
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Running, Start: 30, Finish: 70}
+	ws := waitstate.WaitState{StateFunc: stateFunc, Action: "restart", Start: 30, Finish: 70}
 	return ws.Wait()
 }
 
@@ -271,7 +271,7 @@ func (o *OpenstackClient) Destroy() error {
 		return statusToState(server.Status), nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: stateFunc, DesiredState: machinestate.Terminated, Start: 30, Finish: 70}
+	ws := waitstate.WaitState{StateFunc: stateFunc, Action: "destroy", Start: 30, Finish: 70}
 	return ws.Wait()
 }
 
