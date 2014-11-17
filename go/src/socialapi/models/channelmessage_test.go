@@ -518,7 +518,7 @@ func TestChannelMessageFetchMessageCount(t *testing.T) {
 
 		Convey("it should have channel id", func() {
 			c := NewChannelMessage()
-			_, err := c.FetchChannelMessageCount(cm1.CreatedAt)
+			_, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
 
