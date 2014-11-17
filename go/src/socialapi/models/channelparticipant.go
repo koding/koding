@@ -483,6 +483,10 @@ func (c *ChannelParticipant) FetchRole() (string, error) {
 		return Permission_ROLE_GUEST, nil
 	}
 
+	if c.ChannelId == 0 {
+		return Permission_ROLE_GUEST, nil
+	}
+
 	// fetch participant
 	err := c.FetchParticipant()
 	if err != nil && err != bongo.RecordNotFound {
