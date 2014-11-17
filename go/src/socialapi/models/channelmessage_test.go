@@ -501,5 +501,42 @@ func TestChannelMessageFetchLatestMessages(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelMessageFetchMessageCount(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching message count since the given time", t, func() {
+		channel, accounts := CreateChannelWithParticipants()
+		cm1 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[1].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+
+		Convey("it should have channel id", func() {
+			c := NewChannelMessage()
+			_, err := c.FetchChannelMessageCount(cm1.CreatedAt)
+			So(err, ShouldEqual, ErrChannelIdIsNotSet)
+		})
+
+		Convey("first user should see 4 messages when their account is not excluded", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			count, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 4)
+		})
+
+		Convey("second user should see 3 messages then their account is excluded", func() {
+			c := NewChannelMessage()
+			c.InitialChannelId = channel.Id
+			c.AccountId = accounts[1].Id
+			count, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 3)
+		})
 	})
 }

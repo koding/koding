@@ -613,3 +613,22 @@ func (c *ChannelMessage) FetchLatestChannelMessages(limit int) ([]ChannelMessage
 
 	return cms, err
 }
+
+// FetchChannelMessageCount fetches message count beginning from the given time.
+// When a user's messages wanted to be excluded it must be given as AccountId parameter
+func (c *ChannelMessage) FetchChannelMessageCountSince(since time.Time) (int, error) {
+	if c.InitialChannelId == 0 {
+		return 0, ErrChannelIdIsNotSet
+	}
+
+	db := bongo.B.DB.Table(c.BongoName()).Where("initial_channel_id = ?", c.InitialChannelId)
+
+	if c.AccountId != 0 {
+		db = db.Where("account_id <> ?", c.AccountId)
+	}
+
+	var count int
+	err := db.Where("created_at >= ?", since).Count(&count).Error
+
+	return count, err
+}
