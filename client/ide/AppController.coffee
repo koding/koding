@@ -768,6 +768,10 @@ class IDEAppController extends AppController
       @listenChangeEvents()
       @rtm.isReady = yes
 
+      KD.utils.repeat 60 * 55, => @rtm.reauth()
+      @rtm.on 'ReauthSucceed', (token) =>
+        log 'reauth succeed, replace existing token with', token
+
   registerSessionId: ->
     collaborators = @rtm.getCollaborators()
 
