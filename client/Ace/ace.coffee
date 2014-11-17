@@ -55,6 +55,9 @@ class Ace extends KDView
           @lineWidgetManager = new lineWidgets.LineWidgets @editor.getSession()
           @lineWidgetManager.attach @editor
 
+      requirejs ['ace/anchor'], (anchor) =>
+        {@Anchor} = anchor
+
   setContent: (content, emitFileContentChangedEvent = yes) ->
     @suppressListeners = yes  unless emitFileContentChangedEvent
 
