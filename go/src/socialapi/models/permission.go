@@ -49,7 +49,8 @@ func NewPermission() *Permission {
 
 func (p *Permission) FetchStatus() (string, error) {
 	if p.ChannelId == 0 {
-		return "", ErrChannelIdIsNotSet
+		// todo return default permission
+		return Permission_STATUS_ALLOWED, nil
 	}
 
 	if p.RoleConstant == "" {
