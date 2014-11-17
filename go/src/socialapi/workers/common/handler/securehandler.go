@@ -79,29 +79,38 @@ func Secure(i interface{}, securer interface{}, permissionName string) *Securer 
 	}
 	return &Securer{
 		v:              reflect.ValueOf(i),
-		securer:        createSecurerSignature(securer),
+		securer:        createSecurerSignature(t, securer),
 		permissionName: permissionName,
 	}
 }
 
 // createSecurerSignature checks and creates securer for processing
 // panics if signature is not correct
-func createSecurerSignature(securer interface{}) reflect.Value {
+func createSecurerSignature(handler reflect.Type, securer interface{}) reflect.Value {
 	t := reflect.TypeOf(securer)
+
 	if reflect.Func != t.Kind() {
 		panic(NewSecurerError("kind was %v, not Func", t.Kind()))
 	}
 
-	if t.NumIn() != 3 {
+	if t.NumIn() != 2 && t.NumIn() != 3 {
 		panic(NewSecurerError(
-			"input arity was %v, not 3", t.NumIn(),
+			"input arity was %v, not 2 or 3", t.NumIn(),
 		))
 	}
 
-	if "*models.Context" != t.In(2).String() {
+	// last param should be "*models.Context"
+	if "*models.Context" != t.In(t.NumIn()-1).String() {
 		panic(NewSecurerError(
 			"type of first argument was %v, not *models.Context",
-			t.In(2),
+			t.In(t.NumIn()-1),
+		))
+	}
+
+	if t.NumIn() == 3 && handler.In(2).String() != t.In(1).String() {
+		panic(NewSecurerError(
+			"type of second argument was %v, not %v",
+			t.In(2), handler.In(2),
 		))
 	}
 
@@ -203,11 +212,22 @@ func (m *Securer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		permissionReq = rq
 	}
 
-	secureRes := m.securer.Call([]reflect.Value{
-		reflect.ValueOf(m.permissionName),
-		permissionReq,
-		contextValue,
-	})
+	var secureRes []reflect.Value
+
+	switch m.securer.Type().NumIn() {
+	case 2:
+		secureRes = m.securer.Call([]reflect.Value{
+			reflect.ValueOf(m.permissionName),
+			contextValue,
+		})
+
+	case 3:
+		secureRes = m.securer.Call([]reflect.Value{
+			reflect.ValueOf(m.permissionName),
+			permissionReq,
+			contextValue,
+		})
+	}
 
 	if !secureRes[0].IsNil() {
 		err := secureRes[0].Interface().(error)
