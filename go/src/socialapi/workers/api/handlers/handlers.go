@@ -26,6 +26,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
+			Securer:        models.MessageSecurer,
 		})
 
 	m.AddHandler(
@@ -35,6 +36,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.DeleteRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
+			Securer:        models.MessageSecurer,
 		})
 
 	// exempt contents are filtered
@@ -212,6 +214,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/message",
 			CollectMetrics: true,
+			Securer:        models.MessageSecurer,
 		})
 
 	// exempt contents are filtered
