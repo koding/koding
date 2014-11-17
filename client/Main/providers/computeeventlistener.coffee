@@ -111,7 +111,7 @@ class ComputeEventListener extends KDObject
            res.event.status isnt Machine.State.Unknown
           uniqueAdd activeListeners, type, eventId
 
-        log "#{res.event.eventId}", res.event
+        info "#{res.event.eventId}", res.event
 
         if res.event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, machineId: eventId
