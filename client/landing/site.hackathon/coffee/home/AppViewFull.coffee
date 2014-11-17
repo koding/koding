@@ -433,6 +433,12 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
+              <img src='http://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Intuit_Logo.svg/1000px-Intuit_Logo.svg.png' alt='Intuit logo'/>
+              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of their API.</figcaption>
+            </figure>
+          </li>          
+          <li>
+            <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
               <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money for teams that use their web server as part of their final project  .</figcaption>
             </figure>
@@ -563,6 +569,7 @@ module.exports = class HomeViewFull extends KDView
         <br />
         <a href="http://developer.factual.com/">Factual</a>
         <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>
+        <a href="https://developer.intuit.com/">Intuit</a>
         <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>
         <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding</a>
         <a href="https://developers.google.com/books/">Google Books</a>
