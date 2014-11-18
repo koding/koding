@@ -262,7 +262,7 @@ module.exports =
     helpers.beginTest(browser)
 
     timestamp = Date.now()
-    code      = "console.log(#{timestamp})"
+    code      = "console.log('#{timestamp}')"
     post      = '```' + code + '```'
     selector  = '[testpath=ActivityListItemView]:first-child .has-markdown code'
 
@@ -291,7 +291,7 @@ module.exports =
     selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
 
     browser
-      .waitForElementVisible selector, image # Assertion
+      .waitForElementVisible selector, 20000# Assertion
       .end()
 
 
