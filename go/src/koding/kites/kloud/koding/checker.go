@@ -298,14 +298,34 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 
 func (p *PlanChecker) userInstances() ([]ec2.Instance, error) {
 	filter := ec2.NewFilter()
-	// instances in Amazon have a `koding-user` tag with the username as the
-	// value. We can easily find them acording to this tag
-	filter.Add("tag:koding-user", p.Username)
-	filter.Add("tag:koding-env", p.Kite.Config.Environment)
+	filter.Add("tag-value", p.Username)
 
 	// Anything except "terminated" and "shutting-down"
 	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
 
-	return p.Api.InstancesByFilter(filter)
+	instances, err := p.Api.InstancesByFilter(filter)
+	if err != nil {
+		return nil, err
+	}
 
+	filtered := []ec2.Instance{}
+
+	for _, instance := range instances {
+		for _, tag := range instance.Tags {
+			if tag.Key == "koding-user" && tag.Value == p.Username {
+				for _, tag := range instance.Tags {
+					if tag.Key == "koding-env" && tag.Value == p.Kite.Config.Environment {
+
+						// now we have the instance that matches both the correct username
+						// and environment
+						filtered = append(filtered, instance)
+					}
+				}
+			}
+		}
+	}
+
+	// garbage collect it
+	instances = nil
+	return filtered, nil
 }
