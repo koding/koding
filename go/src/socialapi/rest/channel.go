@@ -82,11 +82,23 @@ func DeleteChannel(creatorId, channelId int64) error {
 }
 
 func CreateChannel(creatorId int64) (*models.Channel, error) {
+	return CreateChannelWithType(creatorId, models.Channel_TYPE_DEFAULT)
+}
+
+func CreateChannelWithType(creatorId int64, typeConstant string) (*models.Channel, error) {
+	c := buildChannelWithRandomGroup(creatorId)
+	c.TypeConstant = typeConstant
+
+	return CreateChannelByGroupNameAndType(creatorId, c.GroupName, typeConstant)
+}
+
+// buildChannelWithRandomGroup creates a channel with group name "koding[randonnumber]"
+func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
 	c := models.NewChannel()
 	rand.Seed(time.Now().UnixNano())
-	groupName := c.GroupName + strconv.Itoa(rand.Intn(100000000))
+	c.GroupName = c.GroupName + strconv.Itoa(rand.Intn(100000000))
 
-	return CreateChannelByGroupNameAndType(creatorId, groupName, c.TypeConstant)
+	return c
 }
 
 func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant string) (*models.Channel, error) {
