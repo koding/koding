@@ -955,18 +955,19 @@ class IDEAppController extends AppController
     {context} = change
     return unless context
 
-    if context.paneType is 'terminal'
-      @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
+    switch context.paneType
+      when 'terminal'
+        @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
 
-    if context.paneType is 'editor'
-      {path}  = context.file
-      file    = FSHelper.createFileInstance path
-      content = @rtm.getFromModel(path).getText()
+      when 'editor'
+        {path}  = context.file
+        file    = FSHelper.createFileInstance path
+        content = @rtm.getFromModel(path).getText()
 
-      @openFile file, content, noop, no
+        @openFile file, content, noop, no
 
-    if context.paneType is 'drawing'
-      @createNewDrawing context.paneHash
+      when 'drawing'
+        @createNewDrawing context.paneHash
 
 
   handleParticipantAction: (actionType, changeData) ->
