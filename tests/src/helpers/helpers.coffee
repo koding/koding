@@ -118,7 +118,7 @@ module.exports =
 
     comment = @getFakeText()
 
-    @doPostComment(browser, comment)
+    @doPostComment(browser, comment, shouldAssert)
 
     return comment
 

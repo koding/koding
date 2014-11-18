@@ -132,7 +132,7 @@ module.exports =
       .waitForElementPresent     fileSelector, 20000
       .click                     fileSelector
       .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.duplicate', 20000
+      .waitForElementPresent     'li.duplicate', 20000
       .click                     'li.duplicate'
       .pause                     2000
       .waitForElementPresent     newFile, 20000 # Assertion

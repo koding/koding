@@ -47,8 +47,8 @@ module.exports =
     browser
       .waitForElementVisible    selector, 10000
       .click                    selector
-      .waitForElementVisible    selector, 10000
-      .click                    selector
+      .waitForElementVisible    selector + '.liked', 10000
+      .click                    selector + '.liked'
       .waitForElementNotVisible likeElement, 10000
       .end()
 
@@ -60,13 +60,13 @@ module.exports =
     post = helpers.getFakeText()
 
     browser
-      .waitForElementVisible      activitySelector + ' .settings-menu-wrapper', 10000
-      .click                      activitySelector + ' .settings-menu-wrapper'
-      .click                      '.kdcontextmenu .edit-post'
-      .clearValue                 activitySelector + ' .edit-widget [testpath=ActivityInputView]'
-      .setValue                   activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
-      .pause                      3000
-      .assert.containsText activitySelector, post # Assertion
+      .waitForElementVisible activitySelector + ' .settings-menu-wrapper', 10000
+      .click                 activitySelector + ' .settings-menu-wrapper'
+      .click                 '.kdcontextmenu .edit-post'
+      .clearValue            activitySelector + ' .edit-widget [testpath=ActivityInputView]'
+      .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
+      .pause                 3000
+      .assert.containsText   activitySelector, post # Assertion
       .end()
 
 
@@ -176,11 +176,12 @@ module.exports =
 
     post     = helpers.postActivity(browser)
     selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+    word     = post.split(' ')[0]
 
     browser
-      .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
-      .pause                    5000
-      .assert.containsText      selector , post # Assertion
+      .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
+      .waitForElementVisible    '.kdtabpaneview.search', 15000
+      .assert.containsText      selector , word # Assertion
       .end()
 
 
