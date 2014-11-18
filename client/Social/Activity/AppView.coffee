@@ -22,6 +22,8 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
+    @pathPaneMap = {}
+
     @tabs = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
@@ -137,6 +139,12 @@ class ActivityAppView extends KDView
         else ActivityPane
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
+
+    path = KD.singletons.router.getCurrentPath()
+
+    path = helper.sanitizePath path
+
+    @pathPaneMap[path] = pane
 
     pane.on 'LeftChannel', => @tabs.removePane pane
 
