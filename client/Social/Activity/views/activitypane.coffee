@@ -54,6 +54,19 @@ class ActivityPane extends MessagePane
       when '/Activity/Public/Recent' then @mostRecent
 
 
+  refreshContentPane: (contentPane) ->
+
+    { listController } = contentPane
+
+    listController.removeAllItems()
+    listController.showLazyLoader()
+
+    options = {}
+
+    options[@lastSelected] = yes
+
+    @fetch options, @createContentSetter(@lastSelected)
+
 
   bindLazyLoader: ->
 
