@@ -182,6 +182,7 @@ module.exports =
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
       .click                  '.channel-title'
