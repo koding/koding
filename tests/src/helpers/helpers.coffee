@@ -274,8 +274,6 @@ module.exports =
 
   createWorkspace: (browser) ->
 
-    @beginTest(browser)
-
     paragraph     = @getFakeText()
     workspaceName = paragraph.split(' ')[0]
 
@@ -304,8 +302,6 @@ module.exports =
 
 
   splitPanesUndo: (browser) ->
-
-    @beginTest(browser)
 
     browser
       .waitForElementVisible '.panel-1', 20000
