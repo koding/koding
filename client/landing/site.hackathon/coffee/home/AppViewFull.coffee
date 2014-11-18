@@ -346,7 +346,7 @@ module.exports = class HomeViewFull extends KDView
       <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
       <h3>Let's hack together, wherever we are!</h3>
-      <h4>Apply today with your Koding account to get a chance <strong>to win up to <b>$#{prize.toLocaleString()}</b> in cash prizes.</strong></h4>
+      <h4>More than <b>$#{prize.toLocaleString()}</b> in cash prizes.</strong></h4>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
@@ -434,7 +434,7 @@ module.exports = class HomeViewFull extends KDView
           <li>
             <figure>
               <img src='http://i.imgur.com/H9vYUd8.png' alt='Intuit logo'/>
-              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of their API.</figcaption>
+              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of the QuickBooks API.</figcaption>
             </figure>
           </li>          
           <li>
@@ -470,6 +470,11 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
+              <figcaption><a href='https://www.3scale.net/'>3Scale</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on thier site.</figcaption>
+            </figure>
+          </li>          
+          <li>
+            <figure>
               <figcaption><a href='http://www.datadoghq.com' target='_blank'>DATADOG</a> is adding <strong>$2,500</strong> in grand prize money and an additional <strong>$1,000</strong> for the team that makes the best use of their service and their API.</figcaption>
             </figure>
           </li>
@@ -485,7 +490,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
             <li>
             <figure>
-              <figcaption><a href='https://www.apitools.com/'>3Scale APITools</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on thier site and also uses APItools in the creation of thier project. </figcaption>
+              <figcaption><a href='https://www.apitools.com/'>APITools</a> will offer an additional <strong>$1,500</strong> to the team that uses APItools in the creation of thier project. </figcaption>
             </figure>
           </li>        
         </ul>
