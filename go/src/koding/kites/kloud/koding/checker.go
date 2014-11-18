@@ -303,9 +303,20 @@ func (p *PlanChecker) userInstances() ([]ec2.Instance, error) {
 	filter.Add("tag:koding-user", p.Username)
 	filter.Add("tag:koding-env", p.Kite.Config.Environment)
 
+	instances, err :=  p.Api.InstancesByFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+
 	// Anything except "terminated" and "shutting-down"
-	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
+	filtered := []ec2.Instance{}
+	for _, instance := range instances {
+		if instance.State.Name == "terminated" || instance.State.Name == "shutting-down" {
+			continue
+		}
+		filtered = append(filtered, instance)
+	}
 
-	return p.Api.InstancesByFilter(filter)
-
+	instances = nil
+	return filtered, nil
 }
