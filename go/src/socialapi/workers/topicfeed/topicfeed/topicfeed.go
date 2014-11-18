@@ -82,6 +82,11 @@ func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMe
 			}
 		}
 
+		// message list relationship is already created in Message.Create
+		if tc.Id == data.InitialChannelId {
+			continue
+		}
+
 		_, err = tc.EnsureMessage(data.Id, true)
 		// safely skip
 		if err == models.ErrMessageAlreadyInTheChannel {
