@@ -137,83 +137,55 @@ class IDE.EditorPane extends IDE.Pane
     return data
 
 
-  # setLineWidget: (rowNumber, username) ->
-  #   oldWidget    = @lineWidgets[username]
-  #   lineHeight   = @getEditor().renderer.lineHeight + 2
-  #   color        = KD.utils.getColorFromString username
-  #   style        = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight}px;"
-  #   cssClass     = 'ace-line-widget'
-  #   manager      = @getAce().lineWidgetManager
+  setLineWidget: (rowNumber, username) ->
+    oldWidget  = @lineWidgets[username]
+    lineHeight = @getEditor().renderer.lineHeight + 2
+    color      = KD.utils.getColorFromString username
+    style      = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight}px;"
+    cssClass   = 'ace-line-widget'
+    lwManager  = @getAce().lineWidgetManager
 
-  #   if oldWidget
-  #     manager.removeLineWidget oldWidget
+    if oldWidget
+      lwManager.removeLineWidget oldWidget
 
-  #   options      =
-  #     row        : rowNumber
-  #     rowCount   : 0
-  #     fixedWidth : yes
-  #     editor     : @getEditor()
-  #     html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
+    options      =
+      row        : rowNumber
+      rowCount   : 0
+      fixedWidth : yes
+      editor     : @getEditor()
+      html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
 
-  #   KD.utils.defer =>
-  #     manager.addLineWidget options
-  #     @lineWidgets[username] = options
+    KD.utils.defer =>
+      lwManager.addLineWidget options
+      @lineWidgets[username] = options
 
 
-  # setParticipantCursor: (row, column, username) ->
-  #   oldCursor = @cursors[username]
-  #   session   = @getEditorSession()
-  #   AceRange  = @getAce().Range
-  #   color     = KD.utils.getColorFromString username
-  #   cssClass  = "ace-participant-cursor ace-cursor-#{username}"
+  setParticipantCursor: (row, column, username) ->
+    oldCursor = @cursors[username]
+    session   = @getEditorSession()
+    AceRange  = @getAce().Range
+    color     = KD.utils.getColorFromString username
+    cssClass  = "ace-participant-cursor ace-cursor-#{username}"
 
-  #   return unless AceRange
+    return unless AceRange
 
-  #   if oldCursor
-  #     session.removeMarker oldCursor.id
+    if oldCursor
+      session.removeMarker oldCursor.id
 
-  #   range = new AceRange row, column, row, column + 1
-  #   id    = session.addMarker range, cssClass, 'text'
+    range = new AceRange row, column, row, column + 1
 
-  #   @cursors[username] = { id, row, column }
+    KD.utils.defer =>
+      id = session.addMarker range, cssClass, 'text'
+      @cursors[username] = { id, row, column }
 
 
   handleChange: (change, rtm, realTimeDoc) ->
     {context, type, origin} = change
 
-    # if type is 'ContentChange'
-    #   oldContent = @getValue()
-    #   string     = rtm.getFromModel context.file.path
-    #   newContent = string.getText()
-    #   cursor     = @getCursor()
-
-    #   @setContent newContent, no
-
-    #   row = @getNewCursorPosition oldContent, newContent, cursor.row
-    #   col = cursor.column
-
-    #   KD.utils.defer =>
-    #     @setCursor { row, column: col }
-
-    # if type is 'CursorActivity'
-    #   {row, column} = context.cursor
-    #   @setLineWidget row, origin
-    #   @setParticipantCursor row, column, origin
-
-
-  # getNewCursorPosition: (oldContent, newContent, oldRowNumber) ->
-  #   return if not oldContent or not newContent
-
-  #   oldContentLines = oldContent.split '\n'
-  #   newContentLines = newContent.split '\n'
-  #   oldLinesAbove   = oldContentLines.slice 0, oldRowNumber
-  #   newLinesAbove   = newContentLines.slice 0, oldRowNumber
-  #   oldLinesBelow   = oldContentLines.slice oldRowNumber, oldContentLines.length
-
-  #   unless oldLinesAbove is newLinesAbove
-  #     newCursorPosition = newContentLines.length - oldLinesBelow.length
-
-  #   return newCursorPosition ? 0
+    if type is 'CursorActivity'
+      {row, column} = context.cursor
+      @setLineWidget row, origin
+      @setParticipantCursor row, column, origin
 
 
   listenCollaborativeStringChanges: ->
