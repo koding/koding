@@ -31,6 +31,16 @@ class ActivityAppView extends KDView
       if type = pane.getData()?.typeConstant
         @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
 
+    { router, appManager } = KD.singletons
+
+    router.on 'AlreadyHere', (path, options) =>
+
+      [slug] = options.frags
+
+      return  if slug isnt 'Activity'
+
+      router.handleRoute path, { replaceState: yes }
+
 
   viewAppended: ->
 
