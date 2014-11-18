@@ -56,6 +56,7 @@ func findTopics() {
 			log.Error("Could not fetch id: %s", err)
 			continue
 		}
+
 		cml := models.NewChannelMessageList()
 		query := &bongo.Query{
 			Selector: map[string]interface{}{
@@ -67,6 +68,8 @@ func findTopics() {
 			log.Error("Could not fetch channel message list: %s", err)
 			continue
 		}
+
+		// create public channel message relationship
 		newCml := models.NewChannelMessageList()
 		*newCml = *cml
 		newCml.Id = 0
@@ -74,9 +77,20 @@ func findTopics() {
 
 		if err := newCml.CreateRaw(); err != nil {
 			log.Error("Could not create channel message list for message %d: %s", cml.MessageId, err)
+			continue
 		}
+
+		if err := updateInitialChannelId(id, c.Id); err != nil {
+			log.Error("Could not update initial channel id for message %d: %s", c.Id, err)
+		}
+
 	}
 
+}
+
+func updateInitialChannelId(messageId, publicChannelId int64) error {
+
+	return bongo.B.DB.Table(models.NewChannelMessage().BongoName()).Unscoped().Update("initial_channel_id", publicChannelId).Error
 }
 
 func fetchPublicChannel() (*models.Channel, error) {
