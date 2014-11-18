@@ -999,3 +999,11 @@ class IDEAppController extends AppController
           participants = @participants.asArray()
           for participant, index in participants when participant.nickname is targetUser
             @participants.remove index
+
+
+  setRealTimeManager: (object) =>
+    callback = =>
+      object.rtm = @rtm
+      object.emit 'RealTimeManagerSet'
+
+    if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
