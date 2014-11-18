@@ -24,7 +24,9 @@ module.exports = class JReferralCampaign extends jraphical.Module
       name                   : 'unique'
 
     schema                   :
-      name                   : String
+      name                   :
+        type                 : String
+        required             : yes
       slug                   : String
       isActive               : Boolean
       campaignType           :
@@ -34,6 +36,8 @@ module.exports = class JReferralCampaign extends jraphical.Module
         type                 : String
         default              : "MB"
       campaignInitialAmount  :
+        type                 : Number
+      campaignMaxAmount      :
         type                 : Number
       campaignPerEventAmount :
         type                 : Number
@@ -76,8 +80,9 @@ module.exports = class JReferralCampaign extends jraphical.Module
 
       campaign = new JReferralCampaign data
       campaign.save (err)->
-        return callback err  if err
-        callback null, campaign
+
+        if err then callback err
+        else callback null, campaign
 
 
   update$: permit 'manage campaign',
@@ -107,7 +112,7 @@ module.exports = class JReferralCampaign extends jraphical.Module
       callback null, campaign
 
 
-  @isCampaignValid = isCampaignValid = (campaignName, callback)->
+  isCampaignValid = (campaignName, callback)->
 
     unless callback
       [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
@@ -117,8 +122,10 @@ module.exports = class JReferralCampaign extends jraphical.Module
       return callback err  if err
       return callback null, isValid: no  unless campaign
 
-      { campaignGivenAmount,
-        campaignInitialAmount
+      { campaignMaxAmount,
+        campaignGivenAmount,
+        campaignInitialAmount,
+        campaignPerEventAmount,
         endDate, startDate } = campaign
 
       if Date.now() < startDate.getTime()
@@ -135,18 +142,22 @@ module.exports = class JReferralCampaign extends jraphical.Module
       if campaignInitialAmount is 0
         return callback null, { isValid: yes, campaign }
 
-      # if campaign has more disk space
-      if campaignGivenAmount > campaignInitialAmount
+      # if campaign hit the limits
+      if campaignGivenAmount + campaignPerEventAmount > campaignMaxAmount
+        console.info "hit the max amount for #{campaignName} campaign"
         return callback null, isValid: no
 
       return callback null, { isValid: yes, campaign }
+
+
+  @isCampaignValid = (campaignName, callback)->
+    isCampaignValid campaignName, callback
+
 
 
   increaseGivenAmountSpace:(size, callback)->
 
     unless callback
       [size, callback] = [@campaignPerEventAmount, size]
-
-    size = size * 4
 
     @update $inc: campaignGivenAmount: size , callback
