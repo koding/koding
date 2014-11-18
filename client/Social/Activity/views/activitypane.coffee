@@ -161,6 +161,13 @@ class ActivityPane extends MessagePane
 
   open: (name, query) ->
 
+    pane = @tabView.getPaneByName name
+    lastSelectedPane = this[@lastSelected]
+
+    return @refreshContentPane pane  if pane is lastSelectedPane
+
+    @setLastSelected name
+
     @tabView.showPane @tabView.getPaneByName name
 
     if name is 'Search' and not query
