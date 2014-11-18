@@ -72,6 +72,19 @@ module.exports =
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
 
+  deleteFile: (browser, fileSelector) ->
+
+    browser
+      .waitForElementPresent     fileSelector, 20000
+      .click                     fileSelector
+      .click                     fileSelector + ' + .chevron'
+      .waitForElementVisible     'li.delete', 20000
+      .click                     'li.delete'
+      .waitForElementVisible     '.delete-container', 20000
+      .click                     '.delete-container button.clean-red'
+      .waitForElementNotPresent  fileSelector, 2000
+
+
   attemptEnterEmailAndUsernameOnRegister: (browser, user) ->
     browser
       .url                    @getUrl()

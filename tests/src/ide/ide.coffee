@@ -44,16 +44,8 @@ module.exports =
     webPath      = '/home/' + user.username + '/Web'
     fileSelector = "span[title='" + webPath + '/' + filename + "']"
 
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  fileSelector, 20000
-      .end()
+    helpers.deleteFile(browser, fileSelector)
+    browser.end()
 
 
   rename: (browser) ->
