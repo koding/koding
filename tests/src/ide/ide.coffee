@@ -10,6 +10,7 @@ module.exports =
   openFile: (browser) ->
 
     user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     helpers.openFolderContextMenu(browser, user, 'Web')
 
@@ -33,13 +34,17 @@ module.exports =
   createNewFile: (browser) ->
 
     user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
     helpers.createFile(browser, user)
     browser.end()
 
 
   deleteFile: (browser) ->
 
-    user         = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
     filename     = helpers.createFile(browser, user)
     webPath      = '/home/' + user.username + '/Web'
     fileSelector = "span[title='" + webPath + '/' + filename + "']"
@@ -50,7 +55,10 @@ module.exports =
 
   rename: (browser) ->
 
-    user         = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
     filename     = helpers.createFile(browser, user)
     webPath      = '/home/' + user.username + '/Web'
     fileSelector = "span[title='" + webPath + '/' + filename + "']"
@@ -72,12 +80,12 @@ module.exports =
       .end()
 
 
+  duplicate: (browser) ->
 
     user = helpers.beginTest(browser)
 
-  duplicate: (browser) ->
+    helpers.waitForVMRunning(browser)
 
-    user          = helpers.beginTest(browser)
     filename      = helpers.createFile(browser, user)
     newFileName   = filename.split('.txt').join('_1.txt')
     webPath       = '/home/' + user.username + '/Web'
@@ -101,7 +109,10 @@ module.exports =
 
   collapse: (browser) ->
 
-    user        = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
     webPath     = '/home/' + user.username + '/Web'
     webSelector = "span[title='" + webPath + "']"
     file        = "span[title='" + webPath + '/' + 'index.html' + "']"
@@ -122,7 +133,10 @@ module.exports =
 
   makeTopFolder: (browser) ->
 
-    user           = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
     webPath        = '/home/' + user.username + '/Web'
     filename       = helpers.createFile(browser, user)
     webSelector    = "span[title='" + webPath + "']"
@@ -151,11 +165,16 @@ module.exports =
 
   createWorkspaceFromVmList: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
     helpers.createWorkspace(browser)
     browser.end()
 
 
   deleteWorkspace: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     workspaceName = helpers.createWorkspace(browser)
 
@@ -178,6 +197,7 @@ module.exports =
   runCommandOnTerminal: (browser) ->
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     time = Date.now()
 
@@ -193,6 +213,7 @@ module.exports =
   openEditorSettings: (browser) ->
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     browser
       .waitForElementVisible    '.kdtabhandle-tabs .settings', 20000
@@ -203,7 +224,10 @@ module.exports =
 
   createNewFileFromMachineHeader: (browser) ->
 
-    user          = helpers.beginTest(browser)
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
     filePath      = '/home/' + user.username
     paragraph     = helpers.getFakeText()
     fileName      = paragraph.split(' ')[0] + '.txt'
@@ -225,6 +249,7 @@ module.exports =
   splitPanesVertically: (browser) ->
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     browser
       .waitForElementVisible '.panel-1', 20000
@@ -245,6 +270,7 @@ module.exports =
   splitPanesHorizontally: (browser) ->
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     browser
       .waitForElementVisible '.panel-1', 20000
@@ -265,12 +291,17 @@ module.exports =
 
   splitPanesUndo: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
     helpers.splitPanesUndo(browser)
     browser.end()
 
 
   undoSplitPanesNotShowOnList: (browser) ->
 
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
     helpers.splitPanesUndo(browser)
 
     browser
@@ -283,13 +314,12 @@ module.exports =
   enterFullScreen: (browser) ->
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
     browser
       .waitForElementVisible     '.application-tab-handle-holder', 20000
       .click                     '.application-tab-handle-holder .plus'
       .waitForElementVisible     '.context-list-wrapper', 20000
       .click                     '.context-list-wrapper li.enter-fullscreen'
-      .waitForElementNotPresent  '.terminal-pane span.inverse', 20000 # Assertion
+      .waitForElementVisible     '.ws-tabview.fullscren', 20000 # Assertion
       .end()
-
-
