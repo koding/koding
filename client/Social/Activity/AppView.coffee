@@ -41,6 +41,16 @@ class ActivityAppView extends KDView
 
       router.handleRoute path, { replaceState: yes }
 
+    appManager.on 'AppIsBeingShown', (controller, view, options, prevController) =>
+
+      nextIsActivity = controller instanceof ActivityAppController
+      prevIsActivity = prevController instanceof ActivityAppController
+
+      return  unless prevIsActivity
+
+      activePane = @tabs.getActivePane()
+      activePane.emit 'PaneWillDetach'  unless nextIsActivity
+
 
   viewAppended: ->
 
