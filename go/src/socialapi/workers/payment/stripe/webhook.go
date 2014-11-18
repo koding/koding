@@ -45,8 +45,8 @@ type InvoiceCreatedWebhookRequest struct {
 		Data []struct {
 			SubscriptionId string `json:"id"`
 			Period         struct {
-				Start int64 `json:"start"`
-				End   int64 `json:"end"`
+				Start float64 `json:"start"`
+				End   float64 `json:"end"`
 			} `json:"period"`
 			Plan struct {
 				PlanId string `json:"id"`
@@ -92,11 +92,12 @@ func InvoiceCreatedWebhook(raw []byte) error {
 
 	Log.Info(
 		"'invoice.created': Updating subscription: %v to planId: %v, starting: %v",
-		subscription.Id, plan.Id, time.Unix(item.Period.Start, 0),
+		subscription.Id, plan.Id, time.Unix(int64(item.Period.Start), 0),
 	)
 
 	err = subscription.UpdateInvoiceCreated(
-		plan.AmountInCents, plan.Id, item.Period.Start, item.Period.End,
+		plan.AmountInCents, plan.Id,
+		int64(item.Period.Start), int64(item.Period.End),
 	)
 
 	return err

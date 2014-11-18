@@ -103,11 +103,11 @@ class AccountEditUsername extends JView
 
     @uploadAvatarBtn.showLoader()
 
-    file          = @uploadAvatarInput.getElement().files[0]
-    mimeType      = file.type
+    file = @uploadAvatarInput.getElement().files[0]
 
     return @uploadAvatarBtn.hideLoader()  unless file
 
+    mimeType      = file.type
     reader        = new FileReader
     reader.onload = (event) =>
       dataURL     = event.target.result
