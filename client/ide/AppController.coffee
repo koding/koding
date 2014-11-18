@@ -767,6 +767,7 @@ class IDEAppController extends AppController
       @registerSessionId()
       @listenChangeEvents()
       @rtm.isReady = yes
+      @emit 'RTMIsReady'
 
       KD.utils.repeat 60 * 55, => @rtm.reauth()
       @rtm.on 'ReauthSucceed', (token) =>
