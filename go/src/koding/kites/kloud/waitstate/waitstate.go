@@ -61,8 +61,8 @@ func (w *WaitState) Wait() error {
 	defer pollTicker.Stop()
 
 	var err error
-	var state machinestate.State
 	metaState := MetaState[w.Action]
+	currentState := metaState.OnGoing
 
 	for {
 		select {
@@ -73,16 +73,16 @@ func (w *WaitState) Wait() error {
 			}
 
 			if w.PushFunc != nil {
-				w.PushFunc(fmt.Sprintf("%s called. Desired state: %s. Current state: %s", w.Action, metaState.Desired, state),
-					w.Start, metaState.OnGoing)
+				w.PushFunc(fmt.Sprintf("%s called. Desired state: %s. Current state: %s", w.Action, metaState.Desired, currentState),
+					w.Start, currentState)
 			}
 
-			if state == metaState.Desired {
+			if currentState == metaState.Desired {
 				return nil
 			}
 		// Poll less, push more.
 		case <-pollTicker.C:
-			state, err = w.StateFunc(w.Start)
+			currentState, err = w.StateFunc(w.Start)
 			if err != nil {
 				return err
 			}
