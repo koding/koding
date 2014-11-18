@@ -56,41 +56,41 @@ class ActivityAppView extends KDView
       pane.setScrollTops()
 
 
+  openTab: (data, type, slug) ->
+
+    name = if slug then "#{type}-#{slug}" else type
+    pane = @tabs.getPaneByName name
+
+    return @createTab name, data  unless pane
+
+    unless @sidebar.selectedItem
+      @sidebar.selectItemByRouteOptions type, slug
+
+    @tabs.showPane pane
+
+
   # type: [topic|post|message|chat|null]
   # slug: [slug|id|name]
   open: (type, slug) ->
 
-    {socialapi, router, notificationController} = KD.singletons
-
-    # if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
-
-    kallback = (data) =>
-      name = if slug then "#{type}-#{slug}" else type
-      pane = @tabs.getPaneByName name
-
-      unless @sidebar.selectedItem
-        @sidebar.selectItemByRouteOptions type, slug
-
-      if pane
-      then @tabs.showPane pane
-      else @createTab name, data
+    {socialapi, router} = KD.singletons
 
     @sidebar.selectItemByRouteOptions type, slug
     item = @sidebar.selectedItem
 
-    if not item
-      type_ = switch type
-        when 'message' then 'privatemessage'
-        when 'post'    then 'activity'
-        else type
-      socialapi.cacheable type_, slug, (err, data) =>
-        if err then router.handleNotFound router.getCurrentPath()
-        else
-          # put after #koding #changelog
-          @sidebar.addItem data, 2
-          kallback data
-    else
-      kallback item.getData()
+    return @openTab item.getData(), type, slug  if item
+
+    type_ = switch type
+      when 'message' then 'privatemessage'
+      when 'post'    then 'activity'
+      else type
+
+    socialapi.cacheable type_, slug, (err, data) =>
+
+      return router.handleNotFound router.getCurrentPath()  if err
+
+      @sidebar.addItem data, 2
+      @openTab data, type, slug
 
 
   openNext: ->
