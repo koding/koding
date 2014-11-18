@@ -1028,27 +1028,9 @@ Team Koding
         res.forbidden = if username in @bannedUserList then yes else no
         callback null, res
 
-  confirmEmail:(callback)->
-    @update {$set:email:'confirmed'}, callback
-
-  fetchContextualAccount:(context, rest..., callback)->
-    # Relationship.one {
-    #   as          : 'owner'
-    #   sourceId    : @getId()
-    #   targetName  : 'JAccount'
-    #   'data.context': context
-    # }, (err, account)=>
-    #   if err
-    #     callback err
-    #   else if account?
-    #     callback null, account
-    #   else
-    #     @fetchOwnAccount rest..., callback
 
   fetchAccount:(context, rest...)->
     @fetchOwnAccount rest...
-    # if context is 'koding' then @fetchOwnAccount rest...
-    # else @fetchContextualAccount context, rest...
 
   setPassword:(password, callback)->
     salt = createSalt()
