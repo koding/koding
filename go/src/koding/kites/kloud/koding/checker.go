@@ -310,6 +310,9 @@ func (p *PlanChecker) userInstances() ([]ec2.Instance, error) {
 
 	filtered := []ec2.Instance{}
 
+	// we don't use filters because they are timing out for us due to high
+	// instances count we have. However it seems the filter `tag-value` has an
+	// index internally inside AWS so somewhot that one is not timing out.
 	for _, instance := range instances {
 		for _, tag := range instance.Tags {
 			if tag.Key == "koding-user" && tag.Value == p.Username {
