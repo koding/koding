@@ -41,6 +41,12 @@ class ActivityPane extends MessagePane
 
     @fakeMessageMap = {}
 
+    @on 'PaneWillDetach', @bound 'paneWillDetach'
+
+
+  paneWillDetach: -> @lastSelected = null
+
+
   getActiveContentPane: ->
 
     switch KD.singletons.router.getCurrentPath()
