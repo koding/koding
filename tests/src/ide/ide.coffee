@@ -128,7 +128,11 @@ module.exports =
       .click                     'li.duplicate'
       .pause                     2000
       .waitForElementPresent     newFile, 20000 # Assertion
-      .end()
+
+    helpers.deleteFile(browser, fileSelector)
+    helpers.deleteFile(browser, newFile)
+
+    browser.end()
 
 
   collapse: (browser) ->
