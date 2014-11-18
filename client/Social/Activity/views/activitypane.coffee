@@ -132,6 +132,14 @@ class ActivityPane extends MessagePane
     @tabView.tabHandleContainer.setClass 'filters'
 
 
+  setLastSelected: (lastSelected) ->
+
+    @lastSelected = switch lastSelected
+      when 'Most Recent' then 'mostRecent'
+      when 'Most Liked'  then 'mostLiked'
+      when 'Search'      then 'search'
+
+
   open: (name, query) ->
 
     @tabView.showPane @tabView.getPaneByName name
