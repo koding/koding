@@ -41,6 +41,13 @@ class ActivityPane extends MessagePane
 
     @fakeMessageMap = {}
 
+  getActiveContentPane: ->
+
+    switch KD.singletons.router.getCurrentPath()
+      when '/Activity/Public/Liked'  then @mostLiked
+      when '/Activity/Public/Recent' then @mostRecent
+
+
 
   bindLazyLoader: ->
 
