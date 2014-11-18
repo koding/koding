@@ -137,46 +137,47 @@ class IDE.EditorPane extends IDE.Pane
     return data
 
 
-  setLineWidget: (rowNumber, username) ->
-    oldWidget  = @lineWidgets[username]
-    lineHeight = @getEditor().renderer.lineHeight + 2
-    color      = KD.utils.getColorFromString username
-    style      = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight}px;"
-    cssClass   = 'ace-line-widget'
-    lwManager  = @getAce().lineWidgetManager
+  setLineWidgets: (row, col, username) ->
+    oldWidget      = @lineWidgets[username]
+    oldCursor      = @cursors[username]
+    {renderer}     = @getEditor()
+    widgetManager  = @getAce().lineWidgetManager
+    lineHeight     = renderer.lineHeight
+    charWidth      = renderer.characterWidth
+    color          = KD.utils.getColorFromString username
+    widgetStyle    = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight + 2}px;"
+    cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-top:-#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    lineCssClass   = 'ace-line-widget'
+    cursorCssClass = "ace-participant-cursor ace-cursor-#{KD.nick()}"
+    lineWidgetHTML = "<div class='#{lineCssClass}' style='#{widgetStyle}'>#{username}</div>"
+    cursorHTML     = "<div class='#{cursorCssClass}' style='#{cursorStyle}'></div>"
 
     if oldWidget
-      lwManager.removeLineWidget oldWidget
+      widgetManager.removeLineWidget oldWidget
 
-    options      =
-      row        : rowNumber
+    if oldCursor
+      widgetManager.removeLineWidget oldCursor
+
+    lineWidgetOptions =
+      row        : row
       rowCount   : 0
       fixedWidth : yes
       editor     : @getEditor()
-      html       : "<div class='#{cssClass}' style='#{style}'>#{username}</div>"
+      html       : lineWidgetHTML
+
+    cursorOptions =
+      row        : row
+      rowCount   : 0
+      fixedWidth : yes
+      editor     : @getEditor()
+      html       : cursorHTML
 
     KD.utils.defer =>
-      lwManager.addLineWidget options
-      @lineWidgets[username] = options
+      widgetManager.addLineWidget lineWidgetOptions
+      @lineWidgets[username] = lineWidgetOptions
 
-
-  setParticipantCursor: (row, column, username) ->
-    oldCursor = @cursors[username]
-    session   = @getEditorSession()
-    AceRange  = @getAce().Range
-    color     = KD.utils.getColorFromString username
-    cssClass  = "ace-participant-cursor ace-cursor-#{username}"
-
-    return unless AceRange
-
-    if oldCursor
-      session.removeMarker oldCursor.id
-
-    range = new AceRange row, column, row, column + 1
-
-    KD.utils.defer =>
-      id = session.addMarker range, cssClass, 'text'
-      @cursors[username] = { id, row, column }
+      widgetManager.addLineWidget cursorOptions
+      @cursors[username] = cursorOptions
 
 
   handleChange: (change, rtm, realTimeDoc) ->
@@ -184,8 +185,7 @@ class IDE.EditorPane extends IDE.Pane
 
     if type is 'CursorActivity'
       {row, column} = context.cursor
-      @setLineWidget row, origin
-      @setParticipantCursor row, column, origin
+      @setLineWidgets row, column, origin
 
 
   listenCollaborativeStringChanges: ->
