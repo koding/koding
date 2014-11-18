@@ -203,3 +203,13 @@ class ActivityAppView extends KDView
       top = window.innerHeight - 220
 
     return {top, left}
+
+
+  helper =
+
+    sanitizePath: (path) ->
+
+      if /\/Activity\/Public/.test path
+      then '/Activity/Public'
+      else path
+
