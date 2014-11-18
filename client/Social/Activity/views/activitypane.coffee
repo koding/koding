@@ -41,6 +41,32 @@ class ActivityPane extends MessagePane
 
     @fakeMessageMap = {}
 
+    @on 'PaneWillDetach', @bound 'paneWillDetach'
+
+
+  paneWillDetach: -> @lastSelected = null
+
+
+  getActiveContentPane: ->
+
+    switch KD.singletons.router.getCurrentPath()
+      when '/Activity/Public/Liked'  then @mostLiked
+      when '/Activity/Public/Recent' then @mostRecent
+
+
+  refreshContentPane: (contentPane) ->
+
+    { listController } = contentPane
+
+    listController.removeAllItems()
+    listController.showLazyLoader()
+
+    options = {}
+
+    options[@lastSelected] = yes
+
+    @fetch options, @createContentSetter(@lastSelected)
+
 
   bindLazyLoader: ->
 
@@ -125,7 +151,22 @@ class ActivityPane extends MessagePane
     @tabView.tabHandleContainer.setClass 'filters'
 
 
+  setLastSelected: (lastSelected) ->
+
+    @lastSelected = switch lastSelected
+      when 'Most Recent' then 'mostRecent'
+      when 'Most Liked'  then 'mostLiked'
+      when 'Search'      then 'search'
+
+
   open: (name, query) ->
+
+    pane = @tabView.getPaneByName name
+    lastSelectedPane = this[@lastSelected]
+
+    return @refreshContentPane pane  if pane is lastSelectedPane
+
+    @setLastSelected name
 
     @tabView.showPane @tabView.getPaneByName name
 

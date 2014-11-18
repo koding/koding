@@ -56,6 +56,15 @@ class MessagePane extends KDTabPaneView
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
 
+    @on 'RefreshRequested', @bound 'refreshContent'
+
+
+  refreshContent: ->
+
+    @listController.removeAllItems()
+    @listController.showLazyLoader()
+    @populate()
+
 
   createScrollView: ->
 

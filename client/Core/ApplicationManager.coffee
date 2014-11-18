@@ -181,25 +181,31 @@ class ApplicationManager extends KDObject
 
     appOptions  = KD.getAppOptions name
     appInstance = @get name
-
     appView     = appInstance.getView?()
+
     return unless appView
 
-    @emit 'AppIsBeingShown', appInstance, appView, appOptions
+    prevInstance = @getFrontApp()
+
+    @emit 'AppIsBeingShown', appInstance, appView, appOptions, prevInstance
     appInstance.appIsShown? appParams
 
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
 
-  showInstance:(appInstance, callback)->
+
+  showInstance: (appInstance, callback) ->
 
     appView    = appInstance.getView?() or null
     appOptions = KD.getAppOptions appInstance.getOption "name"
 
     return if appOptions.background
 
-    @emit 'AppIsBeingShown', appInstance, appView, appOptions
+    prevInstance = @getFrontApp()
+
+    @emit 'AppIsBeingShown', appInstance, appView, appOptions, prevInstance
     appInstance.appIsShown?()
+
     @setLastActiveIndex appInstance
     @utils.defer -> callback? appInstance
 
