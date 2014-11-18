@@ -483,6 +483,11 @@ module.exports = class HomeViewFull extends KDView
               <figcaption><a href='https://sprint.ly/landing/koding'>Sprintly</a> will offer an additional <strong>$1,000</strong> to the team that 1) has a Sprintly account, 2) uses their API.</figcaption>
             </figure>
           </li>
+            <li>
+            <figure>
+              <figcaption><a href='https://www.apitools.com/'>3Scale APITools</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on thier site and also uses APItools in the creation of thier project. </figcaption>
+            </figure>
+          </li>        
         </ul>
       </article>
       <article>
