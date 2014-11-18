@@ -11,7 +11,7 @@ module.exports = class JReferral extends jraphical.Message
 
   {Relationship} = jraphical
 
-  {race, secure, daisy, dash, signature} = require 'bongo'
+  {race, secure, daisy, dash, signature, ObjectId} = require 'bongo'
 
   @share()
 
@@ -43,6 +43,11 @@ module.exports = class JReferral extends jraphical.Message
       createdAt       :
         type          : Date
         default       : -> new Date
+      referredBy      :
+        type          : ObjectId
+      originId        :
+        type          : ObjectId
+        required      : yes
 
 
   @fetchReferredAccounts$ = secure (client, query, options, callback)->
