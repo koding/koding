@@ -22,6 +22,8 @@ module.exports = class JReferral extends jraphical.Message
       static          :
         addExtraReferral:
           (signature Object, Function)
+        fetchClaimedAmount:
+          (signature Object, Function)
         fetchReferredAccounts:
           (signature Object, Object, Function)
 
@@ -58,7 +60,7 @@ module.exports = class JReferral extends jraphical.Message
     JAccount.some { referrerUsername : username }, options, callback
 
 
-  @addExtraReferral: secure (client, options, callback)->
+  @addExtraReferral = secure (client, options, callback)->
 
     {delegate} = client.connection
     unless delegate.can 'administer accounts'
@@ -83,6 +85,86 @@ module.exports = class JReferral extends jraphical.Message
           return callback null, referral
 
 
+  useDefault = (options)->
+
+    options.unit ?= "MB"
+    options.type ?= "disk"
+
+    return options
+
+
+  fetchClaimedReferral = (options, callback)->
+
+    { originId, unit, type } = useDefault options
+
+    JClaimedReferral = require './claimedreferral'
+    JClaimedReferral.one { originId, unit, type }, callback
+
+
+  @updateClaimedAmount = (options, callback)->
+
+    { originId, unit, type, amount } = useDefault options
+
+    JClaimedReferral = require './claimedreferral'
+    JClaimedReferral.update { originId, unit, type }
+    ,
+      $set: { amount }
+    ,
+      upsert: yes
+    ,
+      (err)-> callback err
+
+
+  aggregateAmount = (options, callback)->
+
+    { originId, unit, type } = useDefault options
+
+    JReferral.aggregate
+      $match     : { unit, type, originId }
+    ,
+      $group     :
+        _id      : "$originId"
+        total    :
+          $sum   : "$amount"
+
+    , (err, res)->
+
+      return callback err      if err?
+      return callback null, 0  unless res?
+
+      callback null, res[0]?.total ? 0
+
+
+  @calculateAndUpdateClaimedAmount = (options, callback)->
+
+    options = useDefault options
+
+    aggregateAmount options, (err, amount)->
+
+      return callback err  if err?
+
+      options.amount = amount
+
+      JReferral.updateClaimedAmount options, (err)->
+        return callback err  if err?
+
+        callback null, amount
+
+
+  @fetchClaimedAmount = secure (client, options, callback)->
+
+    options = useDefault options
+    options.originId = originId = client.connection.delegate.getId()
+
+    fetchClaimedReferral options, (err, claimedReferral)->
+      return callback err  if err?
+
+      if claimedReferral?
+        return callback null, claimedReferral.amount
+
+      JReferral.calculateAndUpdateClaimedAmount options, callback
+
+
   do ->
 
     JAccount.on 'AccountRegistered', (me, referrerCode)->
@@ -103,35 +185,43 @@ module.exports = class JReferral extends jraphical.Message
     persistReferrals = (campaign, source, target, callback)->
 
       referral = null
+
+      type     = campaign.campaignType
+      unit     = campaign.campaignUnit
+      originId = target.getId()
+
       queue = [
+
         ->
-          referral = new JReferral
-            amount        : campaign.campaignPerEventAmount or 256
-            type          : campaign.campaignType
-            unit          : campaign.campaignUnit
-            sourceCampaign: campaign.name
+
+          referral = new JReferral {
+            amount         : campaign.campaignPerEventAmount or 256
+            sourceCampaign : campaign.name
+            referredBy     : source.getId()
+            originId, type, unit
+          }
 
           referral.save (err) ->
             return callback err  if err
             queue.next()
+
         ->
-          source.addReferrer referral, (err)->
-            if err
-              referral.remove()
-              return callback err
+
+          options = { originId, type, unit }
+
+          JReferral.calculateAndUpdateClaimedAmount options, (err)->
+
+            return callback err  if err
             queue.next()
+
         ->
-          target.addReferred referral, (err)->
-            if err
-              referral.remove()
-              return callback err
-            console.info "referal saved for #{target.profile.nickname} from #{source.profile.nickname}"
-            queue.next()
-        ->
+
           campaign.increaseGivenAmountSpace (err)->
             console.error "Couldnt decrease the left space", err  if err?
             callback null
+
       ]
+
       daisy queue
 
 
@@ -150,6 +240,7 @@ module.exports = class JReferral extends jraphical.Message
         ->
 
           JReferralCampaign.isCampaignValid (err, res)->
+
             return console.error err  if err
             return  unless res.isValid
 
@@ -162,6 +253,7 @@ module.exports = class JReferral extends jraphical.Message
             return console.error err  if err
             # if account not fonud then do nothing and return
             return console.error "Account couldn't found" unless myAccount
+
             me = myAccount
             queue.next()
 
@@ -174,16 +266,17 @@ module.exports = class JReferral extends jraphical.Message
             return console.info "User already get the referrer"
 
           # get referrer
-          JAccount.one {'profile.nickname': referrerUsername }, (err, referrer)->
+          JAccount.one 'profile.nickname': referrerUsername, (err, _referrer)->
 
             if err
               # if error occurred than do nothing and return
               return console.error "Error while fetching referrer", err
 
-            unless referrer
+            unless _referrer
               # if referrer not fonud then do nothing and return
               return console.error "Referrer couldnt found"
 
+            referrer = _referrer
             queue.next()
 
         ->
