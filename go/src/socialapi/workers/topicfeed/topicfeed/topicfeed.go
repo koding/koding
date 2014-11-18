@@ -161,7 +161,7 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 		return nil
 	}
 
-	f.log.Debug("udpate message %s", data.Id)
+	f.log.Debug("update message %s", data.Id)
 	// fetch message's current topics from the db
 	channels, err := fetchMessageChannels(data.Id)
 	if err != nil {
@@ -237,7 +237,7 @@ func getTopicDiff(channels []models.Channel, topics []string, excludedChannelId 
 	// aggregate all channel names into map
 	channelNames := map[string]struct{}{}
 	for _, channel := range channels {
-		if excludedChannelId != channel.GetId() {
+		if excludedChannelId != channel.GetId() && channel.TypeConstant != models.Channel_TYPE_GROUP {
 			channelNames[channel.Name] = struct{}{}
 		}
 	}
