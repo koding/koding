@@ -92,6 +92,21 @@ func CreateChannelWithType(creatorId int64, typeConstant string) (*models.Channe
 	return CreateChannelByGroupNameAndType(creatorId, c.GroupName, typeConstant)
 }
 
+func CreatePublicChannel(creatorId int64, groupName string) (*models.Channel, error) {
+	c := models.NewChannel()
+	c.GroupName = groupName
+	c.CreatorId = creatorId
+	c.TypeConstant = models.Channel_TYPE_GROUP
+	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+	c.Name = "public"
+	cm, err := sendModel("POST", "/channel", c)
+	if err != nil {
+		return nil, err
+	}
+
+	return cm.(*models.Channel), nil
+}
+
 // buildChannelWithRandomGroup creates a channel with group name "koding[randonnumber]"
 func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
 	c := models.NewChannel()
