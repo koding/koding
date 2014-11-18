@@ -434,7 +434,7 @@ module.exports = class HomeViewFull extends KDView
           <li>
             <figure>
               <img src='http://i.imgur.com/H9vYUd8.png' alt='Intuit logo'/>
-              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of their API.</figcaption>
+              <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of the QuickBooks API.</figcaption>
             </figure>
           </li>          
           <li>
