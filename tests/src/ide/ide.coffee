@@ -72,44 +72,8 @@ module.exports =
       .end()
 
 
-  checkMachine: (browser) ->
 
     user = helpers.beginTest(browser)
-
-    ideModalSelector   = '.ide-modal.ide-machine-state'
-    turnOnButton       = '.turn-on.state-button'
-    progressBar        = '.progressbar-container'
-    stateLabelSelector = ideModalSelector + ' .state-label'
-
-    browser
-      .pause 3000 # wait to see ide modal
-      .element 'css selector', ideModalSelector, (result) =>
-
-        if result.status is 0 # ide modal found
-          browser
-            .waitForElementNotPresent ideModalSelector + '.checking', 30000
-            .getText stateLabelSelector, (result) =>
-              label = result.value
-
-              if label.indexOf('turned off') > -1
-                console.log 'machine turned off, turning on'
-
-                browser
-                  .waitForElementVisible      turnOnButton, 30000
-                  .click                      turnOnButton
-                  .waitForElementVisible      progressBar, 20000
-                  .waitForElementNotVisible   ideModalSelector, 120000 # Assertion
-                  .end()
-
-              else if label.indexOf('building') is -1 or label.indexOf('starting') is -1
-                console.log 'machine is building/starting, waiting up to 2.5 min for assertion'
-
-                browser.waitForElementNotVisible ideModalSelector, 120000 # Assertion
-                browser.end()
-
-        else # machine is already turned on
-          console.log 'machine is already running'
-
 
   duplicate: (browser) ->
 
