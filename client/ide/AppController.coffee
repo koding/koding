@@ -962,7 +962,10 @@ class IDEAppController extends AppController
       when 'editor'
         {path}  = context.file
         file    = FSHelper.createFileInstance path
-        content = @rtm.getFromModel(path).getText()
+
+        content = if path.indexOf('localfile:/') is -1
+        then @rtm.getFromModel(path).getText()
+        else ''
 
         @openFile file, content, noop, no
 
