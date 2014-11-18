@@ -71,12 +71,17 @@ class ActivityAppView extends KDView
     name = if slug then "#{type}-#{slug}" else type
     pane = @tabs.getPaneByName name
 
+    activePane = @tabs.getActivePane()
+    activePane?.emit 'PaneWillDetach'  unless pane is activePane
+
     return @createTab name, data  unless pane
 
     unless @sidebar.selectedItem
       @sidebar.selectItemByRouteOptions type, slug
 
     @tabs.showPane pane
+
+    pane.emit 'RefreshRequested', data, type, slug  if pane is activePane
 
 
   # type: [topic|post|message|chat|null]
