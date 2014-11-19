@@ -22,7 +22,7 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
-    @pathPaneMap = {}
+    @panePathMap = {}
 
     @tabs = new KDTabView
       tagName             : 'main'
@@ -42,7 +42,7 @@ class ActivityAppView extends KDView
       return  if slug isnt 'Activity'
 
       path = helper.sanitizePath path
-      pane = @pathPaneMap[path]
+      pane = @panePathMap[path]
 
       pane?.refreshContent? path
 
@@ -157,7 +157,7 @@ class ActivityAppView extends KDView
 
     path = helper.sanitizePath path
 
-    @pathPaneMap[path] = pane
+    @panePathMap[path] = pane
 
     pane.on 'LeftChannel', => @tabs.removePane pane
 
