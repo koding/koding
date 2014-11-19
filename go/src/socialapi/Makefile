@@ -152,6 +152,13 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
+
+testpermission:
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
+
 testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
@@ -177,6 +184,11 @@ testapi:
 	@`which go` test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
+
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
 	@`which go` test -c workers/topicfeed/topicfeed/*.go
