@@ -20,10 +20,12 @@ module.exports = class JReferral extends jraphical.Message
     sharedMethods     :
 
       static          :
-        addExtraReferral:
+        addCustomReferral:
           (signature Object, Function)
         fetchClaimedAmount:
           (signature Object, Function)
+        fetchReferrals:
+          (signature Object, Object, Function)
         fetchReferredAccounts:
           (signature Object, Object, Function)
 
@@ -52,45 +54,62 @@ module.exports = class JReferral extends jraphical.Message
         required      : yes
 
 
-  @fetchReferredAccounts$ = secure (client, query, options, callback)->
-    @fetchReferredAccounts client, query, options, callback
-
-  @fetchReferredAccounts = (client, query, options, callback)->
-    username = client.connection.delegate.profile.nickname
-    JAccount.some { referrerUsername : username }, options, callback
-
-
-  @addExtraReferral = secure (client, options, callback)->
-
-    {delegate} = client.connection
-    unless delegate.can 'administer accounts'
-      return callback {message: "You can not add extra referral to users"}
-
-    {username} = options
-    return callback {message: "Please set username"}  unless username
-
-    referral = new JReferral
-      amount         : options.amount         or 256
-      type           : options.type           or "disk"
-      unit           : options.unit           or "MB"
-      sourceCampaign : options.sourceCampaign or "register"
-
-    referral.save (err) ->
-      return callback err if err
-      JAccount.one {'profile.nickname': username}, (err, account)->
-        return callback err if err
-        return callback {message:"Account not found"} unless account
-        account.addReferrer referral, (err)->
-          return callback err if err
-          return callback null, referral
-
-
   useDefault = (options)->
 
     options.unit ?= "MB"
     options.type ?= "disk"
 
     return options
+
+
+  @addCustomReferral = secure (client, options, callback)->
+
+    {delegate} = client.connection
+    unless delegate.can 'administer accounts'
+      return callback new KodingError "You can not add extra referral to users"
+
+    { username, type, unit } = useDefault options
+
+    unless username
+      return callback new KodingError "Please set username"
+
+    referredBy = client.connection.delegate.getId()
+
+    JAccount.one 'profile.nickname': username, (err, account)->
+
+      return callback err if err
+
+      unless account
+        return callback new KodingError "Account not found"
+
+      originId = account.getId()
+
+      referral = new JReferral {
+        amount         : options.amount         or 512
+        sourceCampaign : options.sourceCampaign or "register"
+        referredBy, originId, type, unit
+      }
+
+      referral.save (err) ->
+
+        return callback err if err
+
+        options = { unit, type, originId }
+
+        JReferral.calculateAndUpdateClaimedAmount options, (err)->
+
+          return callback err if err
+          callback null, referral
+
+
+  @fetchReferredAccounts = secure (client, query, options, callback)->
+    username = client.connection.delegate.profile.nickname
+    JAccount.some { referrerUsername : username }, options, callback
+
+
+  @fetchReferrals = secure (client, query, options, callback)->
+    query.originId = client.connection.delegate.getId()
+    JReferral.some query, options, callback
 
 
   fetchClaimedReferral = (options, callback)->
@@ -154,7 +173,7 @@ module.exports = class JReferral extends jraphical.Message
   @fetchClaimedAmount = secure (client, options, callback)->
 
     options = useDefault options
-    options.originId = originId = client.connection.delegate.getId()
+    options.originId = client.connection.delegate.getId()
 
     fetchClaimedReferral options, (err, claimedReferral)->
       return callback err  if err?
@@ -162,7 +181,10 @@ module.exports = class JReferral extends jraphical.Message
       if claimedReferral?
         return callback null, claimedReferral.amount
 
-      JReferral.calculateAndUpdateClaimedAmount options, callback
+      callback null, 0
+
+      # We can manually call this if we need.
+      # JReferral.calculateAndUpdateClaimedAmount options, callback
 
 
   do ->
