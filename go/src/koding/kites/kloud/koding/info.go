@@ -15,13 +15,12 @@ import (
 
 // Info checks the machine state based on the klient and AWS states.
 func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
-
 	dbState := m.State
 	resultState := dbState
 	klientState := machinestate.Unknown
 
 	// Check if klient is running first.
-	klientRef, err := klient.Connect(p.Kite, m.QueryString)
+	klientRef, err := klient.NewWithTimeout(p.Kite, m.QueryString, time.Second*10)
 	switch err {
 	case nil:
 		if err = klientRef.Ping(); err != nil {
@@ -35,7 +34,8 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 		// XXX: AWS call reduction workaround.
 		if dbState == machinestate.Stopped {
-			p.Log.Debug("[%s] Info result: Returning db state '%s' because the klient is not registered. Username: %s", m.Id, dbState, m.Username)
+			p.Log.Debug("[%s] Info result: Returning db state '%s' because the klient is not registered. Username: %s",
+				m.Id, dbState, m.Username)
 			return &protocol.InfoArtifact{
 				State: machinestate.Stopped,
 			}, nil
@@ -46,7 +46,8 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 		// XXX: AWS call reduction workaround.
 		if dbState == machinestate.Stopped {
-			p.Log.Debug("[%s] Info result: Returning db state '%s' because dialing klient failed. Username: %s", m.Id, dbState, m.Username)
+			p.Log.Debug("[%s] Info result: Returning db state '%s' because dialing klient failed. Username: %s",
+				m.Id, dbState, m.Username)
 			return &protocol.InfoArtifact{
 				State: machinestate.Stopped,
 			}, nil
@@ -55,10 +56,12 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 		// Any other error will fallback to here. So assume that kontrol
 		// failed or some other catastrophic failure occured. So, do not
 		// stop or destroy the machine because of our failure.
-		p.Log.Critical("[%s] couldn't get klient information to check machine status. Probably couldn't connect to Kontrol. Err: %s ", m.Id, err)
+		p.Log.Critical("[%s] couldn't get klient information to check machine status. Probably couldn't connect to Kontrol. Err: %s ",
+			m.Id, err)
 
 		// XXX: AWS call reduction workaround.
-		p.Log.Debug("[%s] Info result: Returning db state '%s' because kontrol is unreachable. Username: %s", m.Id, dbState, m.Username)
+		p.Log.Debug("[%s] Info result: Returning db state '%s' because kontrol is unreachable. Username: %s",
+			m.Id, dbState, m.Username)
 		return &protocol.InfoArtifact{
 			State: dbState,
 		}, nil
@@ -110,7 +113,9 @@ func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err
 
 	// Update db state if the up-to-date state is different than the db.
 	if resultState != dbState {
-		p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s", m.Id, resultState, reason)
+		p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
+			m.Id, resultState, reason)
+
 		err = p.CheckAndUpdateState(m.Id, resultState)
 		if err != nil {
 			p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
