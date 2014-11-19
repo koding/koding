@@ -37,6 +37,10 @@ func (p *Permission) BeforeUpdate() {
 	p.UpdatedAt = time.Now()
 }
 
+func (p *Permission) Create() error {
+	return bongo.B.Create(p)
+}
+
 func (p *Permission) Update() error {
 	return bongo.B.Update(p)
 }
