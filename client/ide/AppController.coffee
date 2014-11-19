@@ -850,6 +850,8 @@ class IDEAppController extends AppController
 
       changes.push change
 
+    return  unless map
+
     switch change.type
 
       when 'NewPaneCreated'
