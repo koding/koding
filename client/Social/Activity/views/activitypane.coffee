@@ -55,6 +55,8 @@ class ActivityPane extends MessagePane
 
   refreshContent: ->
 
+    return  if @fetching
+
     options = @getActiveContentOptions()
 
     @refreshContentPane options
@@ -189,11 +191,15 @@ class ActivityPane extends MessagePane
     router.handleRoute '/Activity/Public/Recent'
     @mostRecent.listController.addItem message, index
 
+
   contentMethod = (method) -> (contentName) -> (err, content) =>
+
     return KD.showError err  if err?
 
     @activeContent = @[contentName]
     @activeContent[method] content
+    @fetching = no
+
 
   createContentSetter: contentMethod 'setContent'
 

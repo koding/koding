@@ -11,6 +11,8 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    @fetching = no
+
     @lastScrollTops =
       window        : 0
       parent        : 0
@@ -58,6 +60,8 @@ class MessagePane extends KDTabPaneView
 
 
   refreshContent: ->
+
+    return  if @fetching
 
     @listController.showLazyLoader()
     @populate()
@@ -209,6 +213,7 @@ class MessagePane extends KDTabPaneView
       default: filters[0]
 
     @filterLinks.on 'FilterSelected', (filter) =>
+
       @listController.removeAllItems()
       @listController.showLazyLoader()
       @setFilter filter
@@ -338,6 +343,7 @@ class MessagePane extends KDTabPaneView
       @addItems items
 
       callback()
+      @fetching = no
 
 
   addMessageDeferred: (item, i, total) ->
@@ -369,6 +375,8 @@ class MessagePane extends KDTabPaneView
     options.name      = name
     options.type      = type
     options.channelId = channelId
+
+    @fetching = yes
 
     @whenSubmitted().then ->
       # if it is a post it means we already have the data
