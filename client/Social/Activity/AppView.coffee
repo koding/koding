@@ -153,9 +153,7 @@ class ActivityAppView extends KDView
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
-    path = KD.singletons.router.getCurrentPath()
-
-    path = helper.sanitizePath path
+    path = helper.sanitizePath KD.singletons.router.getCurrentPath()
 
     @panePathMap[path] = pane
 
