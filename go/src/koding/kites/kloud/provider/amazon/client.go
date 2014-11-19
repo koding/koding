@@ -25,13 +25,8 @@ type AmazonClient struct {
 }
 
 func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
-	infoLog := func(format string, args ...interface{}) {
-		a.Log.Info(format, args...)
-	}
-
-	// Check wether a new infoLog was passed, and use it
-	if a.InfoLog != nil {
-		infoLog = a.InfoLog
+	debugLog := func(format string, args ...interface{}) {
+		a.Log.Debug(format, args...)
 	}
 
 	// Don't build anything without this, otherwise ec2 complains about it as a
@@ -41,7 +36,7 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	}
 
 	// Make sure AMI exists
-	infoLog("Checking if image '%s' exists", a.Builder.SourceAmi)
+	debugLog("Checking if image '%s' exists", a.Builder.SourceAmi)
 	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
 		if err != nil {
 			return nil, err
@@ -51,7 +46,7 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	// Get the necessary keynames that we are going to provide with Amazon. If
 	// it doesn't exist a new one will be created.  check if the key exist, if
 	// yes return the keyname
-	infoLog("Checking if keypair '%s' does exist", a.Builder.KeyPair)
+	debugLog("Checking if keypair '%s' does exist", a.Builder.KeyPair)
 	keyName, err := a.DeployKey()
 	if err != nil {
 		return nil, err
@@ -60,7 +55,7 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	// Create instance with this keypair
 	a.Builder.KeyPair = keyName
 
-	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
+	debugLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
 
 	return a.Build(true, start, finish)
