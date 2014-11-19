@@ -43,11 +43,11 @@ username   : %s
 domain     : %s
 ip address : %s
 instance   : %s
-kite query : %s
-`
+kite query : %s`
+
 		resultInfo := fmt.Sprintf(resultStub, artifact.Username, artifact.DomainName,
 			artifact.IpAddress, artifact.InstanceName, artifact.KiteQuery)
-		k.Log.Info("[%s] building machine was successfull. Artifact data: %s",
+		k.Log.Info("[%s] ========== BUILD results ========== %s",
 			m.Id, resultInfo)
 
 		return k.Storage.Update(m.Id, &StorageData{

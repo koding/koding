@@ -28,6 +28,16 @@ func GetPost(id int64, accountId int64, groupName string) (*models.ChannelMessag
 	return cmI.(*models.ChannelMessage), nil
 }
 
+func GetPostBySlug(slug string, accountId int64) (*models.ChannelMessageContainer, error) {
+	url := fmt.Sprintf("/message/slug/%s?accountId=%d", slug, accountId)
+	cmc := models.NewChannelMessageContainer()
+	cmI, err := sendModel("GET", url, cmc)
+	if err != nil {
+		return nil, err
+	}
+	return cmI.(*models.ChannelMessageContainer), nil
+}
+
 func DeletePost(id int64, accountId int64, groupName string) error {
 	url := fmt.Sprintf("/message/%d?accountId=%d&groupName=%s", id, accountId, groupName)
 	_, err := sendRequest("DELETE", url, nil)

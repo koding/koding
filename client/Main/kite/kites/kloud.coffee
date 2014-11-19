@@ -22,6 +22,8 @@ class KodingKite_KloudKite extends KodingKite
     @requestingInfo = KD.utils.dict()
     @needsRequest   = KD.utils.dict()
 
+    @_reconnectedOnce = no
+
   # first info request sends message to kite requesting info
   # subsequent info requests while the first request is pending
   # will be queued up and resolved by the pending request
@@ -89,6 +91,8 @@ class KodingKite_KloudKite extends KodingKite
 
   askInfoFromKloud: (machineId, currentState) ->
 
+    {kontrol} = KD.singletons
+
     KD.remote.api.DataDog.increment "KloudInfo", noop
 
     @tell 'info', { machineId }
@@ -100,6 +104,11 @@ class KodingKite_KloudKite extends KodingKite
       .timeout ComputeController.timeout
 
       .catch (err) =>
+
+        if err.name is "TimeoutError" and not @_reconnectedOnce
+          warn "First time timeout, reconnecting to kloud..."
+          kontrol.kites.kloud.singleton.reconnect()
+          @_reconnectedOnce = yes
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
         @resolveRequestingInfos machineId, State: currentState

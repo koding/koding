@@ -209,8 +209,10 @@ For applying all changes under migrations folder to your development database yo
 
 ### Applying changes to external databases
 
-For applying changes to external databases you should call the migrate command with full path:
+For applying changes to external databases (sandbox, prod) you should call the migrate command with full path:
 
 ```
 migrate -url "postgres://[hostname]:[port]/[dbname]?user=[user]&password=[password]" -path "[projectRoot]/go/src/socialapi/db/sql/migrations" up
 ```
+
+We did not automize this process, because it would cause some problems if we apply them automatically. For instance if we apply changes to latest it would broke some other stuff on production. 

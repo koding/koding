@@ -81,7 +81,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("[%s] %s (username: %s)", m.Id, msg, m.Username)
+			p.Log.Debug("[%s] %s (username: %s)", m.Id, msg, m.Username)
 
 			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -227,7 +227,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			return nil, err
 		}
 
-		a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+		a.Log.Debug("[%s] Updating user domain tag '%s' of instance '%s'",
 			m.Id, m.Domain.Name, artifact.InstanceId)
 		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
 			return nil, err
@@ -255,7 +255,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Info("[%s] klient is ready.", m.Id)
+		p.Log.Debug("[%s] klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
@@ -482,13 +482,9 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		if infoResp.State == machinestate.Running {
 			err := klient.Exists(p.Kite, m.QueryString)
 			if err == nil {
-				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
+				p.Log.Info("[%s] stop timer aborting. Klient is already running (username: %s)",
 					m.Id, m.Username)
 				return errors.New("we have a klient connection")
-			}
-
-			if err != kite.ErrNoKitesAvailable {
-				return err
 			}
 		}
 
