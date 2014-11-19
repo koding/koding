@@ -23,7 +23,7 @@ func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:        message.Update,
-			Name:           "message-update",
+			Name:           models.REQUEST_NAME_MESSAGE_UPDATE,
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
@@ -34,7 +34,7 @@ func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:        message.Delete,
-			Name:           "message-delete",
+			Name:           models.REQUEST_NAME_MESSAGE_DELETE,
 			Type:           handler.DeleteRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
@@ -47,7 +47,7 @@ func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  message.Get,
-			Name:     "message-get",
+			Name:     models.REQUEST_NAME_MESSAGE_GET,
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}",
 			Securer:  models.MessageReadSecurer,
