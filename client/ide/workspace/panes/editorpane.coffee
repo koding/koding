@@ -145,18 +145,19 @@ class IDE.EditorPane extends IDE.Pane
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
     color          = KD.utils.getColorFromString username
-    widgetStyle    = "border-bottom:2px dotted #{color};margin-top:-#{lineHeight + 2}px;"
-    cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-top:-#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight + 2}px;"
     lineCssClass   = 'ace-line-widget'
     cursorCssClass = "ace-participant-cursor ace-cursor-#{KD.nick()}"
-    lineWidgetHTML = "<div class='#{lineCssClass}' style='#{widgetStyle}'>#{username}</div>"
-    cursorHTML     = "<div class='#{cursorCssClass}' style='#{cursorStyle}'></div>"
+    cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    lineWidgetHTML = """
+      <div class='#{lineCssClass}' style='#{widgetStyle}'>
+        <span class="username">#{username}</span>
+        <span class="#{cursorCssClass}" style="#{cursorStyle}"></span>
+      </div>
+    """
 
     if oldWidget
       widgetManager.removeLineWidget oldWidget
-
-    if oldCursor
-      widgetManager.removeLineWidget oldCursor
 
     lineWidgetOptions =
       row        : row
@@ -165,19 +166,9 @@ class IDE.EditorPane extends IDE.Pane
       editor     : @getEditor()
       html       : lineWidgetHTML
 
-    cursorOptions =
-      row        : row
-      rowCount   : 0
-      fixedWidth : yes
-      editor     : @getEditor()
-      html       : cursorHTML
-
     KD.utils.defer =>
       widgetManager.addLineWidget lineWidgetOptions
       @lineWidgets[username] = lineWidgetOptions
-
-      widgetManager.addLineWidget cursorOptions
-      @cursors[username] = cursorOptions
 
 
   handleChange: (change, rtm, realTimeDoc) ->
