@@ -86,6 +86,8 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
 
+    correlationName ?= "singleton"
+
     # If queryString provided try to split it first
     # and if successful, use it as query
     if queryString? and queryObject = KD.utils.splitKiteQuery queryString
