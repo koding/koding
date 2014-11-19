@@ -6,7 +6,7 @@ import (
 	"github.com/koding/bongo"
 )
 
-var (
+const (
 	Permission_ROLE_SUPERADMIN = "superadmin"
 	Permission_ROLE_ADMIN      = "admin"
 	Permission_ROLE_MODERATOR  = "moderator"
@@ -14,7 +14,7 @@ var (
 	Permission_ROLE_GUEST      = "guest"
 )
 
-var (
+const (
 	Permission_STATUS_ALLOWED    = "allowed"
 	Permission_STATUS_DISALLOWED = "disallowed"
 )
