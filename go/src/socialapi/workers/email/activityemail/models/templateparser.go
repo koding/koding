@@ -3,13 +3,9 @@ package models
 import (
 	"socialapi/config"
 	"socialapi/workers/email/emailmodels"
-	"time"
 )
 
-const (
-	DATEFORMAT = "Jan 02"
-	TIMEFORMAT = "3:04 PM"
-)
+const TIMEFORMAT = "3:04 PM"
 
 type TemplateParser struct {
 	UserContact *emailmodels.UserContact
@@ -41,7 +37,7 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 		bc.AddMessageGroup(mg)
 	}
 
-	bc.Title = "Here what's happened in Koding today!"
+	bc.Title = "Here what's happened on Koding today!"
 
 	return bc.Render(), nil
 }
@@ -76,14 +72,6 @@ func prepareTitle(mc *MailerContainer) string {
 	ac.Slug = mc.Slug
 
 	return ac.Render()
-}
-
-func getMonthAndDay(t time.Time) string {
-	return t.Format(DATEFORMAT)
-}
-
-func prepareDate(mc *MailerContainer) string {
-	return mc.Activity.CreatedAt.Format(DATEFORMAT)
 }
 
 func prepareTime(mc *MailerContainer) string {
