@@ -184,7 +184,6 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
-	start := time.Now()
 	machine, err := k.PrepareMachine(r)
 	if err != nil {
 		return nil, err
@@ -217,9 +216,6 @@ func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
 	if err != nil {
 		return nil, err
 	}
-
-	infoDuration := time.Since(start)
-	k.Log.Info("[%s] infoDuration %+v, response %v\n", machine.Id, infoDuration, response)
 
 	if response.State == machinestate.Unknown {
 		response.State = machine.State
