@@ -65,6 +65,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	errLog := p.GetCustomLogger(m.Id, "error")
+	debugLog := p.GetCustomLogger(m.Id, "debug")
 
 	// Check for total amachine allowance
 	checker, err := p.PlanChecker(m)
@@ -82,7 +83,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
-	a.Log.Debug("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
+	debugLog("build is using region: '%s'", m.Id, a.Builder.Region)
 
 	a.Push("Initializing data", normalize(10), machinestate.Building)
 
@@ -109,6 +110,11 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Builder.SubnetId = subnet.SubnetId
 	a.Builder.Zone = subnet.AvailabilityZone
 
+	debugLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+
+	debugLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+
 	if a.Builder.InstanceType == "" {
 		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
 		a.Builder.InstanceType = T2Micro.String()
@@ -122,6 +128,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
+	debugLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		errLog("Checking ami tag failed err: %v", err)
@@ -259,6 +266,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			currentZone := subnet.AvailabilityZone
 
+			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
 				if zone == currentZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
@@ -370,6 +378,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	instanceName := m.Builder["instanceName"].(string)
 	if instanceName == "terminated-instance" {
 		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		debugLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
 	buildArtifact.InstanceName = instanceName
@@ -409,6 +418,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		{Key: "koding-domain", Value: m.Domain.Name},
 	}
 
+	debugLog("Adding user tags %v", tags)
 	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		errLog("Adding tags failed: %v", err)
 		return nil, errors.New("machine initialization requirements failed [3]")
@@ -420,8 +430,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	buildArtifact.KiteQuery = query.String()
 
 	a.Push("Checking connectivity", normalize(75), machinestate.Building)
+
+	debugLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
-		p.Log.Debug("[%s] klient is ready.", m.Id)
+		debugLog("klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
