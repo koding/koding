@@ -99,9 +99,13 @@ func (p *PlanChecker) AlwaysOn() error {
 
 	// the user has still not reached the limit
 	if alwaysOnMachines <= alwaysOnLimit {
+		p.Log.Debug("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
 		return nil // allow user, it didn't reach the limit
 	}
 
+	p.Log.Debug("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
 }
@@ -191,6 +195,8 @@ func (p *PlanChecker) Total() error {
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
+		p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 		return nil
 	}
 
@@ -202,9 +208,14 @@ func (p *PlanChecker) Total() error {
 	go p.checkGhostMachines(instances)
 
 	if len(instances) >= allowedMachines {
+		p.Log.Debug("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: ",
 			len(instances), allowedMachines)
 	}
+
+	p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+		p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 
 	return nil
 }
@@ -269,10 +280,16 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		}
 	}
 
+	p.Log.Debug("[%s] Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		p.Machine.Id, currentStorage, wantStorage, totalStorage, plan)
+
 	if currentStorage+wantStorage > totalStorage {
 		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB (plan: %s)",
 			totalStorage-currentStorage, totalStorage, plan)
 	}
+
+	p.Log.Debug("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		p.Machine.Id, p.Username, currentStorage, wantStorage, totalStorage, plan)
 
 	// allow to create storage
 	return nil

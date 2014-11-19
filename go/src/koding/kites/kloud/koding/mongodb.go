@@ -79,6 +79,7 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 }
 
 func (p *Provider) Delete(id string) error {
+	p.Log.Debug("[%s] Deleting machine document", id)
 	if !bson.IsObjectIdHex(id) {
 		return fmt.Errorf("Invalid machine id: %q", id)
 	}
