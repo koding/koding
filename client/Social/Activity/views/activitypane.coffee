@@ -42,6 +42,17 @@ class ActivityPane extends MessagePane
     @fakeMessageMap = {}
 
 
+  getActiveContentOptions: ->
+
+    panes =
+      '/Activity/Public/Liked'  : { name: 'mostLiked',  pane: @mostLiked }
+      '/Activity/Public/Recent' : { name: 'mostRecent', pane: @mostRecent }
+
+    path = KD.singletons.router.getCurrentPath()
+
+    return panes[path]
+
+
   bindLazyLoader: ->
 
     @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
