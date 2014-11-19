@@ -1010,3 +1010,33 @@ class IDEAppController extends AppController
       object.emit 'RealTimeManagerSet'
 
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
+
+
+
+  createChatPane: ->
+
+    @startSession (err, [channel]) =>
+
+      return KD.showError err  if err
+
+      @getView().addSubView @chat = new IDE.ChatView {}, channel
+      @chat.show()
+
+
+  showChat: ->
+
+    return @createChatPane()  unless @chat
+
+    @chat.show()
+
+
+  startSession: (callback) ->
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.initPrivateMessage
+      body       : "@#{nick} initiated an IDE session."
+      recipients : [ nick ]
+    , callback
+
