@@ -215,8 +215,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
-      unless @suppressChangeHandlers
-        @emitChange pane, context: {}, 'TabChanged'
+    unless @suppressChangeHandlers
+      @emitChange pane, context: {}, 'TabChanged'
 
   goToLine: ->
     @getActivePaneView().aceView.ace.showGotoLine()
