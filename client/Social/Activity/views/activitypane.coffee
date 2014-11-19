@@ -53,6 +53,27 @@ class ActivityPane extends MessagePane
     return panes[path]
 
 
+  refreshContent: ->
+
+    options = @getActiveContentOptions()
+
+    @refreshContentPane options
+
+
+  refreshContentPane: (options) ->
+
+    { pane, name } = options
+    { listController } = pane
+
+    listController.removeAllItems()
+    listController.showLazyLoader()
+
+    fetchOptions = {}
+    fetchOptions[name] = yes
+
+    @fetch fetchOptions, @createContentSetter name
+
+
   bindLazyLoader: ->
 
     @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
