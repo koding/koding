@@ -21,7 +21,7 @@ var DefaultPermissions = map[string]map[string]Permission{
 	Channel_TYPE_GROUP: GroupChannelPermissions,
 }
 
-var (
+const (
 	REQUEST_NAME_MESSAGE_UPDATE = "message-update"
 	REQUEST_NAME_MESSAGE_DELETE = "message-delete"
 	REQUEST_NAME_MESSAGE_GET    = "message-get"
