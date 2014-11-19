@@ -1,8 +1,8 @@
 do ->
 
-  loadWorkspace = (machineLabel, workspaceSlug, username) ->
+  loadWorkspace = (machineLabel, workspaceSlug, username = KD.nick()) ->
     workspace = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
-    machine   = getMachineByLabel machineLabel
+    machine   = getMachine machineLabel, username
 
     if workspace
       loadIDE { machine, workspace, username }
@@ -19,9 +19,17 @@ do ->
     mainView.activitySidebar.selectWorkspace data
 
 
-  getMachineByLabel = (label) ->
-    machine = m  for m in KD.userMachines when (m.label is label) or (m.slug is label)
-    return machine or null
+  getMachine = (label, username) ->
+    machine = null
+
+    for m in KD.userMachines
+      hasSameLabel = (m.label is label) or (m.slug is label)
+      hasSameUser  = m.data.credential is username
+
+      if hasSameLabel and hasSameUser
+        machine = m
+
+    return machine
 
 
   loadIDE = (data) ->
