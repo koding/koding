@@ -64,6 +64,10 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label         : "Specs"
           itemClass     : KDView
           partial       : "1GB Ram, 1Core, #{storage}GB Disk"
+        sharedWith      :
+          label         : 'Shared With'
+          itemClass     : KDView
+          partial       : 'Fetching users...'
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -139,12 +143,13 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     {windowController, computeController} = KD.singletons
 
-    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
+    {statusToggle, statusLoader, sharedWith} = @modalTabs.forms.Settings.inputs
 
     statusToggle.hide()
 
-    machineId = @machine._id
+    machineId    = @machine._id
     currentState = @machine.status.state
+    baseKite     = @machine.getBaseKite()
 
     computeController
       .kloud.info { machineId, currentState }
@@ -163,6 +168,24 @@ class MachineSettingsPopup extends KDModalViewWithForms
         statusLoader.hide()
         statusToggle.setOff no
         statusToggle.show()
+
+
+    baseKite.klientShared().then (users) =>
+      if users
+        sharedWith.updatePartial users
+      else
+        sharedWith.updatePartial 'Nobody'
+
+      sharedWith.addSubView new KDCustomHTMLView
+        tagName  : 'span'
+        cssClass : 'domain-toggle'
+        click    : => @shareInput.show()
+
+      sharedWith.addSubView @shareInput = new KDHitEnterInputView
+        type     : 'text'
+        cssClass : 'hidden'
+        callback : =>
+          @shareMachineWithUser @shareInput.getValue()
 
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
@@ -262,3 +285,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
           @resizeButton.show()
+
+
+  shareMachineWithUser: (username) ->
+    @machine.jMachine.shareWith target: username
+    @machine.getBaseKite().klientShare { username }
