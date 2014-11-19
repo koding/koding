@@ -52,7 +52,7 @@ func CreatePermission(p *models.Permission, token string) (*models.Permission, e
 
 func DeletePermission(permissionId int64, token string) error {
 	url := fmt.Sprintf("/permission/%d", permissionId)
-	res, err := sendRequestWithAuth("DELETE", url, nil, token)
+	_, err := sendRequestWithAuth("DELETE", url, nil, token)
 	if err != nil {
 		return err
 	}
