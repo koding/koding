@@ -46,7 +46,7 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-var eligibleToNotify = func(accountId int64) (bool, error) {
+var isEligibleToNotify = func(accountId int64) (bool, error) {
 	uc, err := emailmodels.FetchUserContact(accountId)
 	if err != nil {
 		return false, err
@@ -146,12 +146,12 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 	a := models.NewAccount()
 	a.Id = accountId
 
-	notify, err := eligibleToNotify(accountId)
+	eligible, err := isEligibleToNotify(accountId)
 	if err != nil {
 		return err
 	}
 
-	if !notify {
+	if !eligible {
 		return nil
 	}
 

@@ -27,7 +27,7 @@ func TestNewMessageCreation(t *testing.T) {
 	Convey("while adding a new message to queue", t, func() {
 		channel, accounts := models.CreateChannelWithParticipants()
 		// test
-		eligibleToNotify = func(accountId int64) (bool, error) {
+		isEligibleToNotify = func(accountId int64) (bool, error) {
 			return true, nil
 		}
 
@@ -43,7 +43,7 @@ func TestNewMessageCreation(t *testing.T) {
 		})
 
 		Convey("do not send any notification email if user has disabled email notifications for private messages", func() {
-			eligibleToNotify = func(accountId int64) (bool, error) {
+			isEligibleToNotify = func(accountId int64) (bool, error) {
 				return false, nil
 			}
 
