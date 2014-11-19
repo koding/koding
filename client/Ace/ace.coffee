@@ -29,7 +29,7 @@ class Ace extends KDView
 
           @editor.on 'change', =>
             @emit 'FileContentChanged'  unless @suppressListeners
-            @emit 'FileContentSynced'  if @isCurrentContentChanged()
+            @emit 'FileContentRestored'  if @isCurrentContentChanged()
 
           @editor.gotoLine 0
           @focus()
@@ -94,7 +94,7 @@ class Ace extends KDView
     unless err
       @notify 'Successfully saved!', 'success'
       @lastSavedContents = @lastContentsSentForSave
-      @emit 'FileContentSynced'
+      @emit 'FileContentRestored'
       # unless @askedForSave
         # log "this file has changed, put a modal and block editing @fatihacet!"
         # fatihacet - this case works buggy.
@@ -103,7 +103,7 @@ class Ace extends KDView
       @notify "You don't have enough permission to save!", 'error'
 
   saveAsFinished:->
-    @emit 'FileContentSynced'
+    @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
   setEditorListeners:->
@@ -425,7 +425,7 @@ class Ace extends KDView
 
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
-      aceView.ace.once 'FileContentSynced', -> @removeModifiedFromTab aceView
+      aceView.ace.once 'FileContentRestored', -> @removeModifiedFromTab aceView
 
   removeModifiedFromTab:(aceView)->
     {name} = aceView.ace.data
