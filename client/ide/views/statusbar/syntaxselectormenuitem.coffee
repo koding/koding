@@ -11,5 +11,6 @@ class IDE.SyntaxSelectorMenuItem extends KDView
       partial           : 'Syntax'
 
     @addSubView @select = new KDSelectBox
+      cssClass          : 'dark'
       selectOptions     : IDE.settings.editor.getSyntaxOptions()
       callback          : (value) => @emit 'SelectionMade', value
