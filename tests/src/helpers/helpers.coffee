@@ -181,7 +181,7 @@ module.exports =
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
