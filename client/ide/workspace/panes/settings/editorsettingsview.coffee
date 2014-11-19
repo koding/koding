@@ -38,22 +38,27 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       callback           : (state) => @emit 'SettingsChanged', 'openRecentFiles', state
 
     @keyboardHandler     = new KDSelectBox
+      cssClass           : 'dark'
       selectOptions      : IDE.settings.editor.keyboardHandlers
       callback           : (state) => @emit 'SettingsChanged', 'keyboardHandler', state
 
     @syntax              = new KDSelectBox
+      cssClass           : 'dark'
       selectOptions      : IDE.settings.editor.getSyntaxOptions()
       callback           : (state) => @emit 'SettingsChanged', 'syntax', state
 
     @fontSize            = new KDSelectBox
+      cssClass           : 'dark'
       selectOptions      : IDE.settings.editor.fontSizes
       callback           : (state) => @emit 'SettingsChanged', 'fontSize', state
 
     @theme               = new KDSelectBox
+      cssClass           : 'dark'
       selectOptions      : IDE.settings.editor.themes
       callback           : (state) => @emit 'SettingsChanged', 'theme', state
 
     @tabSize             = new KDSelectBox
+      cssClass           : 'dark'
       selectOptions      : IDE.settings.editor.tabSizes
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
