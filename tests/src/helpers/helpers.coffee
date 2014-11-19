@@ -125,9 +125,10 @@ module.exports =
 
   attemptEnterPasswordOnRegister: (browser, user) ->
     browser
-      .setValue  '[testpath=password-input]', user.password
-      .setValue  '[testpath=confirm-password-input]', user.password
-      .click     '[testpath=register-submit-button]'
+      .waitForElementVisible  '[testpath=password-input]', 10000
+      .setValue               '[testpath=password-input]', user.password
+      .setValue               '[testpath=confirm-password-input]', user.password
+      .click                  '[testpath=register-submit-button]'
 
   doRegister: (browser, user) ->
 
@@ -183,6 +184,7 @@ module.exports =
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
+
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
       .click                  '.channel-title'
