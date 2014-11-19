@@ -202,7 +202,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	infoLog("connecting to remote Klient instance")
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Info("[%s] klient is ready.", m.Id)
+		p.Log.Debug("[%s] klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}

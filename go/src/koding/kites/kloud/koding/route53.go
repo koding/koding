@@ -79,7 +79,7 @@ func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 		},
 	}
 
-	d.Log.Info("updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
+	d.Log.Debug("updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
@@ -115,7 +115,7 @@ func (d *DNS) Update(domain, oldIP, newIP string) error {
 		},
 	}
 
-	d.Log.Info("updating domain %s IP from %v to %v", domain, oldIP, newIP)
+	d.Log.Debug("updating domain %s IP from %v to %v", domain, oldIP, newIP)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
@@ -143,7 +143,7 @@ func (d *DNS) Delete(domain string, oldIp string) error {
 		},
 	}
 
-	d.Log.Info("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
+	d.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
@@ -171,7 +171,7 @@ func (d *DNS) Create(domain string, newIp string) error {
 		},
 	}
 
-	d.Log.Info("creating domain name: %s to be associated with following ip: %v", domain, newIp)
+	d.Log.Debug("creating domain name: %s to be associated with following ip: %v", domain, newIp)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
@@ -187,7 +187,7 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 		Name: domain,
 	}
 
-	d.Log.Info("fetching domain record for name: %s", domain)
+	d.Log.Debug("fetching domain record for name: %s", domain)
 
 	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
 	if err != nil {

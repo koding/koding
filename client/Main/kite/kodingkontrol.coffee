@@ -86,6 +86,10 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
 
+    # If no `correlationName` is defined assume this kite instance 
+    # is a singleton kite instance and keep track of it with this keyword
+    correlationName ?= "singleton"
+
     # If queryString provided try to split it first
     # and if successful, use it as query
     if queryString? and queryObject = KD.utils.splitKiteQuery queryString

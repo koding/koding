@@ -22,6 +22,8 @@ func (p *Provider) GetCustomLogger(prefix, mode string) infoFunc {
 			p.Log.Info(format, args...)
 		case "error":
 			p.Log.Error(format, args...)
+		case "debug":
+			p.Log.Debug(format, args...)
 		default:
 			p.Log.Info(format, args...)
 		}

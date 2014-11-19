@@ -3,6 +3,7 @@ package kloud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -282,6 +283,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		k.idlock.Get(machine.Id).Lock()
 		defer k.idlock.Get(machine.Id).Unlock()
 
+		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
+			machine.Id, strings.ToUpper(r.Method), r.Username)
+
+		start := time.Now()
+
 		status := s.final
 		finishReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.final, r.Method)
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
@@ -297,13 +303,16 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
 				r.Method, machine.State)
+
+			k.Log.Info("[%s] ========== %s failed (user: %s) ==========",
+				machine.Id, strings.ToUpper(r.Method), r.Username)
 		} else {
-			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), status)
+			totalDuration := time.Since(start)
+			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
+				machine.Id, strings.ToUpper(r.Method), r.Username, totalDuration)
 		}
 
 		// update final status in storage
-
 		k.Storage.UpdateState(machine.Id, finishReason, status)
 
 		// update final status in storage
@@ -349,9 +358,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	// method call is finished (unlocking is done inside the responsible
 	// method calls).
 	if r.Method != "info" {
-		k.Log.Info("[%s] ========== %s called by user: %s ==========",
-			args.MachineId, strings.ToUpper(r.Method), r.Username)
-
 		if err := k.Locker.Lock(args.MachineId); err != nil {
 			return nil, err
 		}
