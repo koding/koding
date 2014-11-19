@@ -19,6 +19,11 @@ const (
 	Permission_STATUS_DISALLOWED = "disallowed"
 )
 
+type PermissionResponse struct {
+	Defaults []*Permission
+	Context  []*Permission
+}
+
 type Permission struct {
 	// unique identifier of the channel
 	Id int64 `json:"id,string"`
