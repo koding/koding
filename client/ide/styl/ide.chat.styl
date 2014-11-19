@@ -1,0 +1,118 @@
+@import "../../Framework/src/themes/default/kdfn"
+@import "../../Core/styl/appfn"
+
+@css {
+/*
+IDE Chat stylesheet
+ide.chat.styl
+*/
+}
+
+pmTitleColor  = #6A6A6A
+pmBorderColor = #E0E0E0
+pmLinkColor   = #B6B6B6
+
+.chat-view
+  abs                       0 13px 40px 0
+  size                      325px 567px
+  max-height                calc(100vh \- 53px)
+  z-index                   20
+  bg                        color white
+  rounded                   3px 3px 0 0
+
+  .custom-link-view.close
+    abs                     20px 16px 0 0
+    size                    20px 20px
+    z-index                 1
+    .icon
+      margin                6px
+      r-sprite              ide 'tab-close'
+      display               block
+
+
+  h3.workspace-name
+    font-family             adelleFamily
+    color                   pmTitleColor
+    font-size               13px
+    height                  20px
+    line-height             20px
+    display                 inline-block
+    padding-left            16px
+    rel()
+    &:before
+      content               ''
+      r-sprite              ide lock
+      display               inline-block
+      abs                   2px 0 0 0px
+
+  .pm-title-chevron
+    display                 inline-block
+    size                    20px 20px
+    margin-left             11px
+    &:before
+      content               ''
+      margin                12px auto 0
+      r-sprite              ide title-chevron
+      display               block
+
+
+  > .kdtabpaneview
+    padding                 16px
+    borderBox()
+
+    header
+      border-bottom         1px solid pmBorderColor
+
+      .session-link
+        font-size           11px
+        font-family         adelleFamily
+        line-height         18px
+        color               pmLinkColor
+        display             block
+        noTextDeco()
+
+      div.buttons
+        padding             12px 0
+
+      .kdbutton
+        size                135px 34px
+        &:first-child
+          margin            0 17px 0 0
+        &[disabled]
+          bg                color #D0D0D0
+
+        span.button-title
+          font-size         12px
+          line-height       18px
+
+
+  .kdselectbox
+    height                  24px
+    span.title
+      font-size             11px
+      line-height           24px
+      padding               0 29px 0 11px
+    span.arrows
+      r-sprite              ide 'selectbox-arrow'
+      right                 9px
+
+
+  ul.settings
+    line-height             24px
+    padding                 12px 0
+    &.default
+      border-bottom         1px solid pmBorderColor
+      label
+        color               #7B7B7B
+        font-size           13px
+        fl()
+
+    li
+      color                 #5E5E5E
+      font-size             12px
+      cf()
+      label
+        fl()
+      .kdselectbox
+        fr()
+
