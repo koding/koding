@@ -40,4 +40,8 @@ var (
 	ErrChannelOrMessageIdIsNotSet = errors.New("channelId/messageId is not set")
 
 	ErrNotLoggedIn = errors.New("not logged in")
+
+	ErrAccessDenied = errors.New("access denied")
+
+	ErrRoleNotSet = errors.New("role not set")
 )

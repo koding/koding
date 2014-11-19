@@ -138,6 +138,20 @@ func sendModel(reqType, url string, model interface{}) (interface{}, error) {
 	return model, nil
 }
 
+func sendModelWithAuth(reqType, url string, model interface{}, token string) (interface{}, error) {
+	res, err := marshallAndSendRequestWithAuth(reqType, url, model, token)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(res, model)
+	if err != nil {
+		return nil, err
+	}
+
+	return model, nil
+}
+
 func marshallAndSendRequest(reqType, url string, model interface{}) ([]byte, error) {
 	data, err := json.Marshal(model)
 	if err != nil {
@@ -145,6 +159,15 @@ func marshallAndSendRequest(reqType, url string, model interface{}) ([]byte, err
 	}
 
 	return sendRequest(reqType, url, data)
+}
+
+func marshallAndSendRequestWithAuth(reqType, url string, model interface{}, token string) ([]byte, error) {
+	data, err := json.Marshal(model)
+	if err != nil {
+		return nil, err
+	}
+
+	return sendRequestWithAuth(reqType, url, data, token)
 }
 
 func sendRequest(reqType, url string, data []byte) ([]byte, error) {

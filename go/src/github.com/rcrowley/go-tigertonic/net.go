@@ -10,13 +10,13 @@ import (
 type Conn struct {
 	net.Conn
 	once      sync.Once
-	waitGroup *sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
 // Close closes the connection and notifies the listener that accepted it.
 func (c *Conn) Close() (err error) {
 	err = c.Conn.Close()
-	c.once.Do(c.waitGroup.Done)
+	c.once.Do(c.wg.Done)
 	return
 }
 
@@ -24,7 +24,7 @@ func (c *Conn) Close() (err error) {
 // so it can be stopped gracefully.
 type Listener struct {
 	net.Listener
-	waitGroup *sync.WaitGroup
+	wg *sync.WaitGroup
 }
 
 // Accept waits for, accounts for, and returns the next connection to the
@@ -34,10 +34,10 @@ func (l *Listener) Accept() (c net.Conn, err error) {
 	if nil != err {
 		return
 	}
-	l.waitGroup.Add(1)
+	l.wg.Add(1)
 	c = &Conn{
 		Conn:      c,
-		waitGroup: l.waitGroup,
+		wg: l.wg,
 	}
 	return
 }

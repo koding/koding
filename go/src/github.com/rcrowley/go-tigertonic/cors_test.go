@@ -162,3 +162,85 @@ func TestCORSHeader(t *testing.T) {
 		t.Fatal(w.Header().Get(CORSAllowOrigin))
 	}
 }
+
+func TestCORSCredentials(t *testing.T) {
+	mux := NewTrieServeMux()
+	mux.Handle("GET", "/baz", NewCORSBuilder().AddAllowedOrigins("http://example.com").AddAllowCredentials(true).Build(Marshaled(get)))
+	mux.Handle("GET", "/foo", NewCORSBuilder().AddAllowedOrigins("*").AddAllowCredentials(true).Build(Marshaled(get)))
+	mux.Handle("GET", "/oof", NewCORSBuilder().AddAllowCredentials(true).AddAllowedOrigins("*", "http://example.com").Build(Marshaled(get)))
+	mux.Handle("GET", "/quux", NewCORSBuilder().AddAllowedOrigins("http://example.com").AddAllowCredentials(false).Build(Marshaled(get)))
+
+	// specific allowed origin, correct request origin - should set true
+	w := &testResponseWriter{}
+	r, _ := http.NewRequest("GET", "http://example.com/baz", nil)
+	r.Header.Set("Accept", "application/json")
+	r.Header.Set(CORSRequestOrigin, "http://example.com")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "null" == w.Header().Get(CORSRequestOrigin) {
+		t.Fatal(w.Header().Get(CORSRequestOrigin))
+	}
+	if "true" != w.Header().Get(CORSAllowCredentials) {
+		t.Fatal(w.Header().Get(CORSAllowCredentials))
+	}
+
+	// specific allowed origin, wrong request origin
+	w = &testResponseWriter{}
+	r, _ = http.NewRequest("GET", "http://example.com/baz", nil)
+	r.Header.Set("Accept", "application/json")
+	r.Header.Set(CORSRequestOrigin, "http://notallowed.com")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "null" == w.Header().Get(CORSRequestOrigin) {
+		t.Fatal(w.Header().Get(CORSRequestOrigin))
+	}
+	if "" != w.Header().Get(CORSAllowCredentials) {
+		t.Fatal(w.Header().Get(CORSAllowCredentials))
+	}
+
+	// origin *, allow credentials - should never allow credentials
+	// as origin too vague
+	w = &testResponseWriter{}
+	r, _ = http.NewRequest("GET", "http://example.com/foo", nil)
+	r.Header.Set("Accept", "application/json")
+	r.Header.Set(CORSRequestOrigin, "http://nocreds.com")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "" != w.Header().Get(CORSAllowCredentials) {
+		t.Fatal(w.Header().Get(CORSAllowCredentials))
+	}
+
+	// allow credentials, origins: *, http://nocreds.com
+	// should not set credentials as multiple origin with *
+	// results in only * being set as allowed origin
+	w = &testResponseWriter{}
+	r, _ = http.NewRequest("GET", "http://example.com/oof", nil)
+	r.Header.Set(CORSRequestOrigin, "http://example.com")
+	r.Header.Set("Accept", "application/json")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "" != w.Header().Get(CORSAllowCredentials) {
+		t.Fatal(w.Header().Get(CORSAllowCredentials))
+	}
+
+	// not allowed
+	w = &testResponseWriter{}
+	r, _ = http.NewRequest("GET", "http://example.com/quux", nil)
+	r.Header.Set(CORSRequestOrigin, "http://example.com")
+	r.Header.Set("Accept", "application/json")
+	mux.ServeHTTP(w, r)
+	if http.StatusOK != w.StatusCode {
+		t.Fatal(w.StatusCode)
+	}
+	if "" != w.Header().Get(CORSAllowCredentials) {
+		t.Fatal(w.Header().Get(CORSAllowCredentials))
+	}
+}

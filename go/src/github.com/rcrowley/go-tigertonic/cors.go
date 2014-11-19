@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-// TODO: add support for Allow-Credentials
-
 const (
 	CORSRequestOrigin  string = "Origin"
 	CORSRequestMethod  string = "Access-Control-Request-Method"
@@ -15,10 +13,11 @@ const (
 )
 
 const (
-	CORSAllowOrigin   string = "Access-Control-Allow-Origin"
-	CORSAllowMethods  string = "Access-Control-Allow-Methods"
-	CORSAllowHeaders  string = "Access-Control-Allow-Headers"
-	CORSExposeHeaders string = "Access-Control-Expose-Headers"
+	CORSAllowOrigin      string = "Access-Control-Allow-Origin"
+	CORSAllowMethods     string = "Access-Control-Allow-Methods"
+	CORSAllowHeaders     string = "Access-Control-Allow-Headers"
+	CORSExposeHeaders    string = "Access-Control-Expose-Headers"
+	CORSAllowCredentials string = "Access-Control-Allow-Credentials"
 )
 
 // CORSHandler wraps an http.Handler while correctly handling CORS related
@@ -28,6 +27,7 @@ type CORSHandler struct {
 	http.Handler
 	origins                     map[string]bool
 	allowHeaders, exposeHeaders string
+	allowCredentials            bool
 }
 
 func (self *CORSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +39,23 @@ func (self *CORSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // matching response headers for both OPTIONS and regular requests
 func (self *CORSHandler) HandleCORS(w http.ResponseWriter, r *http.Request) {
 	if requestOrigin := r.Header.Get(CORSRequestOrigin); requestOrigin != "" {
-		w.Header().Set(CORSAllowOrigin, self.allowedOrigin(requestOrigin))
+		allowedOrigin := self.allowedOrigin(requestOrigin)
+		if self.allowCredentials && allowedOrigin == requestOrigin {
+			w.Header().Set(CORSAllowCredentials, self.allowsCredentials())
+		}
+		w.Header().Set(CORSAllowOrigin, allowedOrigin)
 	}
 	if requestHeaders := r.Header.Get(CORSRequestHeaders); requestHeaders != "" {
 		w.Header().Set(CORSAllowHeaders, self.allowedHeaders())
 	}
 	w.Header().Set(CORSExposeHeaders, self.exposedHeaders())
+}
+
+func (self *CORSHandler) allowsCredentials() string {
+	if self.allowCredentials {
+		return "true"
+	}
+	return ""
 }
 
 // allowedOrigin checks if the requested origin is allowed by the configuration
@@ -76,10 +87,11 @@ func (self *CORSHandler) exposedHeaders() string {
 type CORSBuilder struct {
 	origins                     map[string]bool
 	allowHeaders, exposeHeaders []string
+	allowCredentials            bool
 }
 
 func NewCORSBuilder() *CORSBuilder {
-	return &CORSBuilder{map[string]bool{}, []string{}, []string{}}
+	return &CORSBuilder{map[string]bool{}, []string{}, []string{}, false}
 }
 
 // AddAllowedOrigins sets the list of  domain for which cross-origin
@@ -103,11 +115,16 @@ func (self *CORSBuilder) AddAllowedHeaders(headers ...string) *CORSBuilder {
 	return self
 }
 
+func (self *CORSBuilder) AddAllowCredentials(allowed bool) *CORSBuilder {
+	self.allowCredentials = allowed
+	return self
+}
+
 func (self *CORSBuilder) AddExposedHeaders(headers ...string) *CORSBuilder {
 	self.exposeHeaders = append(self.exposeHeaders, headers...)
 	return self
 }
 
 func (self *CORSBuilder) Build(handler http.Handler) *CORSHandler {
-	return &CORSHandler{handler, self.origins, strings.Join(self.allowHeaders, ", "), strings.Join(self.exposeHeaders, ", ")}
+	return &CORSHandler{handler, self.origins, strings.Join(self.allowHeaders, ", "), strings.Join(self.exposeHeaders, ", "), self.allowCredentials}
 }

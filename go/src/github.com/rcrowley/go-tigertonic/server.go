@@ -7,32 +7,59 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 )
 
-// Server is an http.Server with better defaults.
+// Server is an http.Server with better defaults and built-in graceful stop.
 type Server struct {
 	http.Server
 	ch        chan<- struct{}
-	listener  net.Listener
-	waitGroup sync.WaitGroup
+	conns     map[string]net.Conn
+	listeners []net.Listener
+	mu        sync.Mutex // guards conns and listeners
+	wg        sync.WaitGroup
 }
 
-// NewServer returns an http.Server with better defaults.
+// NewServer returns an http.Server with better defaults and built-in graceful
+// stop.
 func NewServer(addr string, handler http.Handler) *Server {
 	ch := make(chan struct{})
-	return &Server{
+	s := &Server{
 		Server: http.Server{
 			Addr: addr,
 			Handler: &serverHandler{
 				Handler: handler,
-				ch:      ch,
 			},
 			MaxHeaderBytes: 4096,
 			ReadTimeout:    60e9, // These are absolute times which must be
 			WriteTimeout:   60e9, // longer than the longest {up,down}load.
 		},
-		ch: ch,
+		ch:    ch,
+		conns: make(map[string]net.Conn),
 	}
+	s.ConnState = func(conn net.Conn, state http.ConnState) {
+		switch state {
+		case http.StateNew:
+			s.wg.Add(1)
+		case http.StateActive:
+			s.mu.Lock()
+			delete(s.conns, conn.LocalAddr().String())
+			s.mu.Unlock()
+		case http.StateIdle:
+			select {
+			case <-ch:
+				//conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond)) // Doesn't work but seems like the right idea.
+				conn.Close()
+			default:
+				s.mu.Lock()
+				s.conns[conn.LocalAddr().String()] = conn
+				s.mu.Unlock()
+			}
+		case http.StateHijacked, http.StateClosed:
+			s.wg.Done()
+		}
+	}
+	return s
 }
 
 // NewTLSServer returns an http.Server with better defaults configured to use
@@ -45,7 +72,7 @@ func NewTLSServer(
 	return s, s.TLS(cert, key)
 }
 
-// CA overrides the certificate authority on the server's TLSConfig field.
+// CA overrides the certificate authority on the Server's TLSConfig field.
 func (s *Server) CA(ca string) error {
 	certPool := x509.NewCertPool()
 	buf, err := ioutil.ReadFile(ca)
@@ -72,15 +99,28 @@ func (s *Server) ClientCA(ca string) error {
 	return nil
 }
 
-// Close closes the listener the server is using and signals open connections
-// to close at their earliest convenience.  Then it waits for all open
-// connections to become closed.
+// Close closes all the net.Listeners passed to Serve (even via ListenAndServe)
+// and signals open connections to close at their earliest convenience.  That
+// is either after responding to the current request or after a short grace
+// period for idle keepalive connections.  Close blocks until all connections
+// have been closed.
 func (s *Server) Close() error {
 	close(s.ch)
-	if err := s.listener.Close(); nil != err {
-		return err
+	s.SetKeepAlivesEnabled(false)
+	s.mu.Lock()
+	for _, l := range s.listeners {
+		if err := l.Close(); nil != err {
+			return err
+		}
 	}
-	s.waitGroup.Wait()
+	s.listeners = nil
+	t := time.Now().Add(500 * time.Millisecond)
+	for _, c := range s.conns {
+		c.SetReadDeadline(t)
+	}
+	s.conns = make(map[string]net.Conn)
+	s.mu.Unlock()
+	s.wg.Wait()
 	return nil
 }
 
@@ -112,16 +152,15 @@ func (s *Server) ListenAndServeTLS(cert, key string) error {
 }
 
 // Serve behaves like http.Server.Serve with the added option to stop the
-// server gracefully with the s.Close method.
+// Server gracefully with the s.Close method.
 func (s *Server) Serve(l net.Listener) error {
-	s.listener = &Listener{
-		Listener:  l,
-		waitGroup: &s.waitGroup,
-	}
-	return s.Server.Serve(s.listener)
+	s.mu.Lock()
+	s.listeners = append(s.listeners, l)
+	s.mu.Unlock()
+	return s.Server.Serve(l)
 }
 
-// TLS configures this server to be a TLS server using the given certificate
+// TLS configures this Server to be a TLS server using the given certificate
 // and private key files.
 func (s *Server) TLS(cert, key string) error {
 	c, err := tls.LoadX509KeyPair(cert, key)
@@ -141,30 +180,8 @@ func (s *Server) tlsConfig() {
 	}
 }
 
-type closingResponseWriter struct {
-	http.Flusher
-	http.ResponseWriter
-	ch <-chan struct{}
-}
-
-func (w closingResponseWriter) Flush() {
-	if f, ok := w.ResponseWriter.(http.Flusher); ok {
-		f.Flush()
-	}
-}
-
-func (w closingResponseWriter) WriteHeader(code int) {
-	select {
-	case <-w.ch:
-		w.Header().Set("Connection", "close")
-	default:
-	}
-	w.ResponseWriter.WriteHeader(code)
-}
-
 type serverHandler struct {
 	http.Handler
-	ch <-chan struct{}
 }
 
 func (h *serverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -175,8 +192,5 @@ func (h *serverHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		r.URL.Scheme = "http"
 	}
-	h.Handler.ServeHTTP(closingResponseWriter{
-		ResponseWriter: w,
-		ch:             h.ch,
-	}, r)
+	h.Handler.ServeHTTP(w, r)
 }

@@ -34,6 +34,7 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+	Securer        interface{}
 }
 
 // todo add prooper logging
@@ -71,8 +72,13 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
-	// count the statuses of the requests
-	hHandler = buildHandlerWithStatusCount(handler, r)
+	if r.Securer != nil {
+		hHandler = Secure(handler, r.Securer, r.Name)
+	} else {
+		hHandler = tigertonic.Marshaled(handler)
+	}
+
+	hHandler = buildHandlerWithStatusCount(hHandler, r)
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
@@ -81,10 +87,8 @@ func Wrapper(r Request) http.Handler {
 }
 
 // count the statuses of the requests
-func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
-	return CountedByStatus(
-		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
-	)
+func buildHandlerWithStatusCount(handler http.Handler, r Request) http.Handler {
+	return CountedByStatus(handler, r.Name, r.CollectMetrics)
 }
 
 // add request time tracking
