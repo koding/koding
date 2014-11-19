@@ -64,9 +64,6 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 
 	allowedInstances := plan.Limits().AllowedInstances
 
-	p.Log.Info("[%s] checking instance type. want: %s (plan: %s)",
-		p.Machine.Id, wantInstance, plan)
-
 	if _, ok := allowedInstances[wantInstance]; ok {
 		return nil
 	}
@@ -97,18 +94,16 @@ func (p *PlanChecker) AlwaysOn() error {
 		return err
 	}
 
-	p.Log.Info("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+	p.Log.Debug("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
 		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, plan)
+
 	// the user has still not reached the limit
 	if alwaysOnMachines <= alwaysOnLimit {
-		p.Log.Info("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
-		return nil
+		return nil // allow user, it didn't reach the limit
 	}
 
-	p.Log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
-	return fmt.Errorf("total alwaysOn limit has been reached")
+	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
+		alwaysOnMachines, alwaysOnLimit)
 }
 
 func (p *PlanChecker) Timeout() error {
@@ -196,8 +191,6 @@ func (p *PlanChecker) Total() error {
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
-		p.Log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 		return nil
 	}
 
@@ -209,14 +202,9 @@ func (p *PlanChecker) Total() error {
 	go p.checkGhostMachines(instances)
 
 	if len(instances) >= allowedMachines {
-		p.Log.Info("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
-
-		return fmt.Errorf("total limit of %d machines has been reached", allowedMachines)
+		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: ",
+			len(instances), allowedMachines)
 	}
-
-	p.Log.Info("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
 
 	return nil
 }
@@ -281,16 +269,10 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		}
 	}
 
-	p.Log.Info("[%s] Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, currentStorage, wantStorage, totalStorage, plan)
-
 	if currentStorage+wantStorage > totalStorage {
 		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB (plan: %s)",
 			totalStorage-currentStorage, totalStorage, plan)
 	}
-
-	p.Log.Info("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, p.Username, currentStorage, wantStorage, totalStorage, plan)
 
 	// allow to create storage
 	return nil

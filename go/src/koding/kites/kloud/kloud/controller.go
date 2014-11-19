@@ -3,6 +3,7 @@ package kloud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -183,6 +184,7 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
+	start := time.Now()
 	machine, err := k.PrepareMachine(r)
 	if err != nil {
 		return nil, err
@@ -215,6 +217,9 @@ func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
 	if err != nil {
 		return nil, err
 	}
+
+	infoDuration := time.Since(start)
+	k.Log.Info("[%s] infoDuration %+v, response %v\n", machine.Id, infoDuration, response)
 
 	if response.State == machinestate.Unknown {
 		response.State = machine.State
@@ -282,6 +287,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		k.idlock.Get(machine.Id).Lock()
 		defer k.idlock.Get(machine.Id).Unlock()
 
+		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
+			machine.Id, strings.ToUpper(r.Method), r.Username)
+
+		start := time.Now()
+
 		status := s.final
 		finishReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.final, r.Method)
 		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
@@ -297,10 +307,12 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
 				r.Method, machine.State)
-		} else {
-			k.Log.Info("[%s] ========== %s finished (status: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), status)
 		}
+
+		totalDuration := time.Since(start)
+
+		k.Log.Info("[%s] ========== %s finished (user: %s, duration: %s) ==========",
+			machine.Id, strings.ToUpper(r.Method), r.Username, totalDuration)
 
 		// update final status in storage
 
@@ -349,9 +361,6 @@ func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr 
 	// method call is finished (unlocking is done inside the responsible
 	// method calls).
 	if r.Method != "info" {
-		k.Log.Info("[%s] ========== %s called by user: %s ==========",
-			args.MachineId, strings.ToUpper(r.Method), r.Username)
-
 		if err := k.Locker.Lock(args.MachineId); err != nil {
 			return nil, err
 		}

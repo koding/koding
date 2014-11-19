@@ -79,14 +79,19 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 }
 
 func (p *Provider) Delete(id string) error {
-	p.Log.Info("[%s] Deleting machine document", id)
 	if !bson.IsObjectIdHex(id) {
 		return fmt.Errorf("Invalid machine id: %q", id)
 	}
 
-	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.RemoveId(bson.ObjectIdHex(id))
 	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't delete document with id: %s err: %s", id, err)
+	}
+
+	return nil
 }
 
 func (p *Provider) GetCredential(publicKey string) *Credential {
@@ -136,8 +141,8 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 }
 
 func (p *Provider) UpdateState(id, reason string, state machinestate.State) error {
-	p.Log.Info("[%s] updating state to '%v'", id, state)
-	return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+	p.Log.Debug("[%s] Updating state to '%v'", id, state)
+	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Update(
 			bson.M{
 				"_id": bson.ObjectIdHex(id),
@@ -151,4 +156,11 @@ func (p *Provider) UpdateState(id, reason string, state machinestate.State) erro
 			},
 		)
 	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
+			state, id, err)
+	}
+
+	return nil
 }
