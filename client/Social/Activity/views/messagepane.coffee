@@ -59,7 +59,6 @@ class MessagePane extends KDTabPaneView
 
   refreshContent: ->
 
-    @listController.removeAllItems()
     @listController.showLazyLoader()
     @populate()
 
@@ -335,6 +334,7 @@ class MessagePane extends KDTabPaneView
 
       return  if @currentFilter isnt filter
 
+      @listController.removeAllItems()  if @listController.getItemCount()
       @addItems items
 
       callback()

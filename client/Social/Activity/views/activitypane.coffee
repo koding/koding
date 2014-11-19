@@ -65,8 +65,7 @@ class ActivityPane extends MessagePane
     { pane, name } = options
     { listController } = pane
 
-    listController.removeAllItems()
-    listController.showLazyLoader()
+    listController.showLazyLoader no
 
     fetchOptions = {}
     fetchOptions[name] = yes
