@@ -183,6 +183,8 @@ class IDE.EditorPane extends IDE.Pane
 
     string = @rtm.getFromModel @getFile().path
 
+    return unless string
+
     @rtm.bindRealtimeListeners string, 'string'
 
     @rtm.on 'TextInsertedIntoString', (changedString, change) =>
