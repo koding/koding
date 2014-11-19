@@ -28,6 +28,15 @@ class IDE.StatusBar extends KDView
       cssClass : 'icon participants'
       click    : => @emit 'ParticipantsModalRequired'
 
+    @addSubView new CustomLinkView
+      href     : "#{KD.singletons.router.getCurrentPath()}/share"
+      title    : 'Share'
+      cssClass : 'share fr'
+      click    : (event) ->
+        KD.utils.stopDOMEvent event
+        {appManager} = KD.singletons
+        appManager.tell 'IDE', 'showChat'
+        # @hide()
 
 
   showInformation: ->
