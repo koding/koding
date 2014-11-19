@@ -187,8 +187,13 @@ class ActivityPane extends MessagePane
       @fetch options, @createContentSetter contentName
 
   putMessage: (message, index = 0) ->
-    {router} = KD.singletons
-    router.handleRoute '/Activity/Public/Recent'
+
+    {router}       = KD.singletons
+    currentPath    = router.getCurrentPath()
+    mostRecentPath = '/Activity/Public/Recent'
+
+    router.handleRoute mostRecent  unless currentPath is mostRecentPath
+
     @mostRecent.listController.addItem message, index
 
 
