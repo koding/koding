@@ -391,14 +391,15 @@ body.ide.dark
           kalc          height, 100% \- 34px
 
   .status-bar
-    abs()
     bottom              0
     width               100%
-    height              34px
-    line-height         34px
+    height              40px
+    line-height         40px
     color               dark-tab-color
     background          dark-tab-header-bg
     font-size           13px
+    abs()
+
     .status
       margin-left       12px
       fl()
@@ -408,23 +409,23 @@ body.ide.dark
           width         50px
 
     .icon
-      abs()
+      size              32px 100%
       pointer()
-      display           inline-block
-      &.participants
+      fr()
+
+      cite
+        display         block
+        margin          0 auto
+
+      &.participants cite
         r-sprite        'ide', 'participants'
-        right           96px
         top             9px
-        margin-right    2px
-      &.shortcuts
+      &.shortcuts cite
         r-sprite        'ide', 'keyboard'
-        right           68px
-      &.github
+      &.github cite
         r-sprite        'ide', 'github'
-        right           40px
-      &.help
+      &.help cite
         r-sprite        'ide', 'help'
-        right           14px
 
 
   .status-bar-menu
