@@ -1039,6 +1039,8 @@ class IDEAppController extends AppController
       body       : "@#{nick} initiated the IDE session."
       purpose    : "IDE #{dateFormat 'HH:MM'}"
       recipients : [ nick ]
+      payload    :
+        'system-message' : 'initiate'
     , (err, channels) =>
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
@@ -1060,6 +1062,8 @@ class IDEAppController extends AppController
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
       channelId  : @socialChannel.id
+      payload    :
+        'system-message' : 'start'
     , callback
 
 
@@ -1073,4 +1077,6 @@ class IDEAppController extends AppController
     message.sendPrivateMessage
       body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
       channelId  : @socialChannel.id
+      payload    :
+        'system-message' : 'stop'
     , callback
