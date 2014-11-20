@@ -12,14 +12,15 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 	}
 
 	params := map[string]string{
-		"PROFILESTARTDATE": time.Now().String(),
-		"SUBSCRIBERNAME":   customer.OldId,
-		"BILLINGPERIOD":    getInterval(plan.Interval),
-		"AMT":              normalizeAmount(plan.AmountInCents),
-		"BILLINGFREQUENCY": "1",
-		"CURRENCYCODE":     CurrencyCode,
-		"DESC":             goodName(plan),
-		"AUTOBILLOUTAMT":   "AddToNextBilling",
+		"PROFILESTARTDATE":  time.Now().String(),
+		"SUBSCRIBERNAME":    customer.OldId,
+		"BILLINGPERIOD":     getInterval(plan.Interval),
+		"AMT":               normalizeAmount(plan.AmountInCents),
+		"BILLINGFREQUENCY":  "1",
+		"CURRENCYCODE":      CurrencyCode,
+		"DESC":              goodName(plan),
+		"AUTOBILLOUTAMT":    "AddToNextBilling",
+		"MAXFAILEDPAYMENTS": "3",
 	}
 
 	response, err := client.CreateRecurringPaymentsProfile(token, params)
