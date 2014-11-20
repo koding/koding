@@ -159,7 +159,8 @@ class IDE.EditorPane extends IDE.Pane
     if oldWidget
       widgetManager.removeLineWidget oldWidget
 
-    $(".ace-line-widget-#{KD.nick()}").remove()
+    elements = document.getElementsByClassName "ace-line-widget-#{KD.nick()}"
+    elements[0].parentNode.removeChild elements[0]  if elements.length
 
     lineWidgetOptions =
       row        : row
