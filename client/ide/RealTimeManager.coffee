@@ -22,6 +22,7 @@ class RealTimeManager extends KDObject
       url: '/-/google-api',
       dataType: 'JSON'
       success: (authToken) =>
+        # TODO: Error handling please
         gapi.load 'client', =>
           gapi.client.load 'drive', 'v2', =>
             gapi.load 'auth:client,drive-realtime,drive-share', =>
