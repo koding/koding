@@ -72,18 +72,18 @@ module.exports =
       .end()
 
 
-  likeComment: (browser) ->
+  # likeComment: (browser) ->
 
-    helpers.postComment(browser)
+  #   helpers.postComment(browser)
 
-    comment         = helpers.getFakeText()
-    commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
+  #   comment         = helpers.getFakeText()
+  #   commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
-    browser
-      .waitForElementVisible    commentSelector, 3000
-      .click                    commentSelector + ' [testpath=activity-like-link]'
-      .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible    commentSelector, 3000
+  #     .click                    commentSelector + ' [testpath=activity-like-link]'
+  #     .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
+  #     .end()
 
 
   editComment: (browser) ->
@@ -141,16 +141,16 @@ module.exports =
       .end()
 
 
-  searchActivity: (browser) ->
+  # searchActivity: (browser) ->
 
-    post     = helpers.postActivity(browser)
-    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+  #   post     = helpers.postActivity(browser)
+  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
 
-    browser
-      .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
-      .pause                    5000
-      .assert.containsText      selector , post # Assertion
-      .end()
+  #   browser
+  #     .setValue                 '.kdtabhandlecontainer .search-input', post + '\n'
+  #     .pause                    5000
+  #     .assert.containsText      selector , post # Assertion
+  #     .end()
 
 
   showMoreCommentLink: (browser) ->
@@ -172,14 +172,14 @@ module.exports =
     browser.end()
 
 
-  topicFollow: (browser) ->
+  # topicFollow: (browser) ->
 
-    hashtag = helpers.sendHashtagActivity(browser)
-    selector = activitySelector + ' .has-markdown p a:first-child'
+  #   hashtag = helpers.sendHashtagActivity(browser)
+  #   selector = activitySelector + ' .has-markdown p a:first-child'
 
-    browser
-      .waitForElementVisible   selector, 5000
-      .click                   selector
-      .pause                   3000 # really required
-      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible   selector, 5000
+  #     .click                   selector
+  #     .pause                   3000 # really required
+  #     .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
+  #     .end()

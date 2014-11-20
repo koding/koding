@@ -10,7 +10,6 @@ class PrivateMessagePane extends MessagePane
 
     super options, data
 
-
     # To keep track of who are the shown participants
     # This way we are preventing to be duplicates
     # on page even if events from backend come more than
@@ -34,22 +33,26 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
 
-    @input.input.on 'InputHeightChanged', => @_windowDidResize null, yes
+    @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
 
     @input.input.on 'blur', => @setCss 'height', 'none'
 
     @listenWindowResize()
 
 
-  _windowDidResize: (event, scrollDown)->
+  handleAutoGrow: ->
 
     headerHeight = @participantsView.getHeight()
     inputHeight  = @input.getHeight()
     windowHeight = window.innerHeight
-
     @scrollView.setHeight windowHeight - inputHeight - headerHeight
-    @scrollView.verticalTrack.thumb.handleMutation()
-    @scrollDown()  if scrollDown
+    @scrollDown()
+    @_windowDidResize()
+
+
+  _windowDidResize: (event) ->
+
+    KD.utils.defer => @scrollView.wrapper.emit 'MutationHappened'
 
 
   #
@@ -98,8 +101,10 @@ class PrivateMessagePane extends MessagePane
 
 
   replaceFakeItemView: (message) ->
+
     index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
     item  = @putMessage message, index
+
     @removeFakeMessage message.clientRequestId
     @scrollDown item
 
@@ -134,7 +139,6 @@ class PrivateMessagePane extends MessagePane
     if data.clientRequestId and not data.isFake
       fakeItem = @fakeMessageMap[data.clientRequestId]
       applyConsequency fakeItem.hasClass('consequent'), item
-
       return
 
     @applyDayMark item, index
@@ -274,8 +278,7 @@ class PrivateMessagePane extends MessagePane
   createInputWidget: ->
 
     channel = @getData()
-
-    @input = new ReplyInputWidget {channel, cssClass : 'private'}
+    @input  = new ReplyInputWidget {channel, cssClass : 'private'}
 
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
@@ -297,6 +300,7 @@ class PrivateMessagePane extends MessagePane
 
 
   removeParticipant: (participant) ->
+
     return  unless participant
     return  unless @participantMap[participant._id]?
 
@@ -355,7 +359,6 @@ class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-
     @autoComplete = new KDAutoCompleteController
       name                : 'userController'
       placeholder         : 'Type a username...'
@@ -384,7 +387,6 @@ class PrivateMessagePane extends MessagePane
 
   viewAppended: ->
 
-
     @addSubView @participantsView
     @addSubView @autoCompleteForm
 
@@ -396,8 +398,6 @@ class PrivateMessagePane extends MessagePane
     @addSubView @input  if @input
     @populate()
     @setScrollTops()
-
-
 
 
   #
@@ -446,6 +446,8 @@ class PrivateMessagePane extends MessagePane
   show: ->
 
     super
+
+    @_windowDidResize()
 
     KD.utils.defer @bound 'focus'
 
@@ -497,7 +499,4 @@ class PrivateMessagePane extends MessagePane
           datetime : date.toUTCString()
 
     parse : (args...) -> args.map (item) -> parseInt item
-
-
-
 

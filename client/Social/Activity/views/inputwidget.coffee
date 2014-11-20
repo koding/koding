@@ -97,6 +97,11 @@ class ActivityInputWidget extends KDView
     {channel}    = @getOptions()
     {body}       = options
 
+    # when somebody posts on a topic channel, for creating it both in public and topic channels
+    # channelId must be set to current group's socialApiChannelId
+    if channel.typeConstant is 'topic'
+      options.channelId = KD.currentGroup.socialApiChannelId
+
     if channel.typeConstant is 'topic' and not body.match ///\##{channel.name}///
       body += " ##{channel.name} "
 

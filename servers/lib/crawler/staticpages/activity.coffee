@@ -31,8 +31,6 @@ prepareComments = (activityContent)->
     {replier, message}                 = comment
     {createdAt}                        = message
     {hash, avatar, nickname, fullName} = replier
-    date                               = new Date createdAt
-    createdAt                          = "#{date.getDate()}. #{date.getMonth()}. #{date.getFullYear()} - #{date.getHours()}:#{date.getMinutes()}"
     createdAt                          = createCreationDate createdAt
     avatarImage                        = createAvatarImage hash, avatar, 30
 
@@ -57,7 +55,7 @@ prepareComments = (activityContent)->
 
 
 getActivityContent = (activityContent)->
-  slugWithDomain = "#{uri.address}/Activity/Public/#{activityContent.slug}"
+  slugWithDomain = "#{uri.address}/Activity/Post/#{activityContent.slug}"
   {body, nickname, fullName, hash, avatar, createdAt, commentCount, likeCount} = activityContent
   avatarImage   = createAvatarImage hash, avatar
   createdAt     = createCreationDate createdAt, activityContent.slug
@@ -81,7 +79,7 @@ getActivityContent = (activityContent)->
         </a>
         <div class="meta">
           <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
-          #{createdAt}
+          <a href="#{slugWithDomain}">#{createdAt}</a>
         </div>
         <article class="has-markdown">
           #{body}
@@ -93,11 +91,6 @@ getActivityContent = (activityContent)->
             </a>
             <a class="custom-link-view #{if commentCount then 'count'}" href="/Register">
               <span>#{displayCommentCount}</span>
-            </a>
-          </span>
-          <span class="optional action-container">
-            <a class="custom-link-view" href="#">
-              <span class="title">Share</span>
             </a>
           </span>
         </div>

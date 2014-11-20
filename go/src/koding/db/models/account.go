@@ -12,16 +12,16 @@ type Account struct {
 	GlobalFlags []string      `bson:"globalFlags" json:"globalFlags"`
 	SocialApiId string        `bson:"socialApiId" json:"socialApiId"`
 	Profile     struct {
-		Nickname  string `bson:"nickname"`
-		FirstName string `bson:"firstName"`
-		LastName  string `bson:"lastName"`
-		Hash      string `bson:"hash"`
-	} `bson:"profile"`
+		Nickname  string `bson:"nickname" json:"nickname"`
+		FirstName string `bson:"firstName" json:"firstName"`
+		LastName  string `bson:"lastName" json:"lastName"`
+		Hash      string `bson:"hash" json:"hash"`
+	} `bson:"profile" json:"profile"`
 	Type       string `bson:"type" json:"type"`
 	Status     string `bson:"status" json:"status"`
 	SystemInfo struct {
 		DefaultToLastUsedEnvironment bool `json:"defaultToLastUsedEnvironment" bson:"defaultToLastUsedEnvironment"`
-	}
+	} `json:"systemInfo"`
 	OnlineStatus bool `bson:"onlineStatus" json:"onlineStatus"`
 	Meta         struct {
 		ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`

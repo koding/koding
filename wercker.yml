@@ -10,20 +10,20 @@ build:
     - script:
         name: build started
         code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build started" "building" 10
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
         name: npm install
         code: |
           npm cache clean
           npm set registry https://registry.npmjs.org/
-          npm install || :
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "npm install finished" "building" 25
+          npm install
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install finished" "building" 50
     - script:
-        name: build submodules
+        name: npm install (submodules)
         code: |
           cd client/Framework && npm install && cd ../../
           cd client/landing && npm install && cd ../../
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build submodules finished" "building" 30
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install (submodules) finished" "building" 30
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot /opt/koding
@@ -32,7 +32,7 @@ build:
         code: |
           sudo chown -R $USER ~/.npm
           ./run
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build client finished" "building" 35
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
@@ -46,11 +46,11 @@ build:
     - script:
         name: build backend finished
         code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build backend finished" "building" 40
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
         name: testing backend started
         code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend started" "testing" 41
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
     - script:
         name: create postgresql tables
         cwd: go
@@ -69,45 +69,58 @@ build:
     - script:
         name: testing backend finished
         code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend finished" "testing" 45
-    - script:
-        name: testing client started
-        code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client started" "testing" 46
+          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    # - script:
+    #     name: testing client started
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     # - add-ssh-key:
     #     keyname: DEPLOYMENT_KEY
+    # - script:
+    #     name: set up koding deployment key
+    #     code: |
+    #       chmod 600 $KODING_DEPLOYMENT_KEY
     # - script:
     #     name: fetch pull requests
     #     code: |
     #       git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
     #       git fetch --quiet origin
     # - mktemp:
-    #     envvar: INSTANCE_DATA
+    #     envvar: GIT_REF
     # - script:
-    #     name: launch test instance
+    #     name: get git ref
     #     code: |
     #       REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
     #       echo $REMOTE_BRANCH
-    #       GIT_REF=$(scripts/wercker/get-gitref $REMOTE_BRANCH)
-    #       echo $GIT_REF
-    #       scripts/wercker/launch-test-instance --gitref "$GIT_REF" | tail -n1 > $INSTANCE_DATA
+    #       scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
+    # - mktemp:
+    #     envvar: INSTANCE_DATA
+    # - mktemp:
+    #     envvar: INSTANCE_IP
+    # - script:
+    #     name: launch test instance
+    #     code: |
+    #       scripts/wercker/launch-test-instance --gitref "$(cat $GIT_REF)" | tail -n1 > $INSTANCE_DATA
     #       cat $INSTANCE_DATA
-    #       INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
-    #       if [ -z $INSTANCE_IP ]; then exit 1; fi
-    #       scripts/wercker/check-connectivity $INSTANCE_IP 8090 1m 3
-    #       scripts/wercker/check-connectivity $INSTANCE_IP 4444 1m 2
+    #       HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+    #       echo $HOST > $INSTANCE_IP
+    #       if [ -z "$HOST)" ]; then exit 1; fi
+    #       scripts/wercker/check-connectivity $HOST 8090 1m 3
+    #       scripts/wercker/check-connectivity $HOST 4444 1m 2
     #       sleep 120
     #       scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     # - script:
-    #     name: run test suite
+    #     name: run login test suite
     #     code: |
-    #       INSTANCE_IP=$(cat $INSTANCE_DATA | awk '{print $2}')
-    #       chmod 600 $KODING_DEPLOYMENT_KEY
-    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $INSTANCE_IP 'sudo /opt/koding/tests/test'
-    - script:
-        name: testing client finished
-        code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test backend finished" "testing" 85
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
+    # - script:
+    #     name: run activity test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
+    # - script:
+    #     name: testing client finished
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     # - script:
     #     name: terminate test instance
@@ -123,9 +136,13 @@ build:
     - script:
         name: build finished
         code: |
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "build finished" "build" 100
+          scripts/notify-cebeci.sh "BUILD_FINISHED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
 deploy:
   steps:
+    - script:
+        name: deploy started
+        code: |
+          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "<$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH started" "deploying" 5
     - create-file:
         name: write version file
         filename: $WERCKER_ROOT/VERSION
@@ -143,18 +160,31 @@ deploy:
           rm -rf go/bin go/pkg
           rm -rf website/a/js/*.map
           zip -q --symlinks -r $ARCHIVE .
+
+          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
+
     - koding/s3put@0.0.3:
-          key-id: $S3_KEY_ID
-          key-secret: $S3_KEY_SECRET
-          file: $ARCHIVE
-          url: s3://$S3_EB_DEPLOY
+        key-id: $S3_KEY_ID
+        key-secret: $S3_KEY_SECRET
+        file: $ARCHIVE
+        url: s3://$S3_EB_DEPLOY
+    - script:
+        name: notify-cebeci with s3 upload
+        code: |
+          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "deployed the files to s3 s3://$S3_EB_DEPLOY/$ARCHIVE" "deploying" 75
+
     - koding/eb-deploy@0.0.5:
-          access-key: $S3_KEY_ID
-          secret-key: $S3_KEY_SECRET
-          app-name: koding
-          env-name: $EB_ENV_NAME
-          app-location: $S3_EB_DEPLOY/$ARCHIVE
-          version-label: $ARCHIVE
+        access-key: $S3_KEY_ID
+        secret-key: $S3_KEY_SECRET
+        app-name: koding
+        env-name: $EB_ENV_NAME
+        app-location: $S3_EB_DEPLOY/$ARCHIVE
+        version-label: $ARCHIVE
+    - script:
+        name: notify-cebeci with eb trigger
+        code: |
+          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "triggered $EB_ENV_NAME EB" "deploying" 95
+
   after-steps:
     - jessefulton/slack-notify:
         subdomain: koding
@@ -162,3 +192,7 @@ deploy:
         channel: announce
         username: wercker
         icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
+    - script:
+        name: notify-cebeci with result
+        code: |
+          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "wercker is done with the <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH" $WERCKER_RESULT 100

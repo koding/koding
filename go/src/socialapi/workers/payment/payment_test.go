@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
+	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"testing"
 	"time"
@@ -16,21 +17,16 @@ import (
 	stripeToken "github.com/stripe/stripe-go/token"
 )
 
-var (
-	FreePlan = "free"
-)
-
 func init() {
 	r := runner.New("paymenttest")
 	if err := r.Init(); err != nil {
 		panic(err)
 	}
 
-	// init stripe client
-	stripe.InitializeClientKey(config.MustGet().Stripe.SecretToken)
-
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+
+	Initialize(config.MustGet())
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }
@@ -47,11 +43,68 @@ func TestSubscriptionsRequest(t *testing.T) {
 	})
 
 	Convey("Given user subscribed to a plan", t, func() {
-		err := stripe.CreateDefaultPlans()
+		token, accId, email := generateFakeUserInfo()
+		err := stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
 		So(err, ShouldBeNil)
 
+		customer, err := stripe.FindCustomerByOldId(accId)
+		So(err, ShouldBeNil)
+
+		Convey("When subscription is expired", func() {
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+
+			err = subscription.UpdateState(paymentmodels.SubscriptionStateExpired)
+			So(err, ShouldBeNil)
+
+			Convey("Then it should return the expired subscription", func() {
+				req := AccountRequest{AccountId: customer.OldId}
+				resp, err := req.Subscriptions()
+				So(err, ShouldBeNil)
+
+				So(resp.State, ShouldEqual, "expired")
+
+				So(resp.PlanTitle, ShouldEqual, StartingPlan)
+				So(resp.PlanInterval, ShouldEqual, StartingInterval)
+			})
+		})
+	})
+
+	Convey("Given user subscribed to a plan", t, func() {
 		token, accId, email := generateFakeUserInfo()
-		err = stripe.Subscribe(
+		err := stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
+
+		customer, err := stripe.FindCustomerByOldId(accId)
+		So(err, ShouldBeNil)
+
+		Convey("When subscription is canceled", func() {
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+
+			err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
+			So(err, ShouldBeNil)
+
+			Convey("Then it should return the free subscription", func() {
+				req := AccountRequest{AccountId: customer.OldId}
+				resp, err := req.Subscriptions()
+				So(err, ShouldBeNil)
+
+				So(resp.State, ShouldEqual, "active")
+
+				So(resp.PlanTitle, ShouldEqual, FreePlan)
+				So(resp.PlanInterval, ShouldEqual, FreeInterval)
+			})
+		})
+	})
+
+	Convey("Given user subscribed to a plan", t, func() {
+		token, accId, email := generateFakeUserInfo()
+		err := stripe.Subscribe(
 			token, accId, email, StartingPlan, StartingInterval,
 		)
 		So(err, ShouldBeNil)
@@ -63,7 +116,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		resp, err := req.Subscriptions()
 		So(err, ShouldBeNil)
 
-		Convey("Then it should return the plan", func() {
+		Convey("Then it should return the active subscription", func() {
 			So(resp.CurrentPeriodStart.IsZero(), ShouldEqual, false)
 			So(resp.CurrentPeriodEnd.IsZero(), ShouldEqual, false)
 			So(resp.State, ShouldEqual, "active")
@@ -78,6 +131,13 @@ func TestSubscriptionsRequest(t *testing.T) {
 // Helpers
 // TODO: move this to common place that stripe can use as well
 //----------------------------------------------------------
+
+var (
+	FreePlan         = "free"
+	FreeInterval     = "month"
+	StartingPlan     = "developer"
+	StartingInterval = "month"
+)
 
 func generateFakeUserInfo() (string, string, string) {
 	token, accId := createToken(), bson.NewObjectId().Hex()
@@ -102,8 +162,3 @@ func createToken() string {
 
 	return token.Id
 }
-
-var (
-	StartingPlan     = "developer"
-	StartingInterval = "month"
-)

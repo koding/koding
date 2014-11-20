@@ -88,7 +88,7 @@ func (p *Provider) CleanDeletedVMs() error {
 			return p.Delete(id)
 		}
 
-		p.Log.Info("[%s] terminating user deleted machine. User %s",
+		p.Log.Info("[%s] cleaner: terminating user deleted machine. User %s",
 			id, m.Username)
 
 		p.Destroy(m)

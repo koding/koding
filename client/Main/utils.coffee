@@ -871,9 +871,12 @@ utils.extend utils,
 
       return  if (queue.push callback) > 1
 
-      $.getJSON '//freegeoip.net/json/?callback=?', (data, status)->
-
-        if status is "success"
+      $.ajax
+        url      : '//freegeoip.net/json/?callback=?'
+        error    : fail
+        timeout  : 1500
+        dataType : 'json'
+        success  : (data)->
 
           { ip, country_code, region_code } = data
 
@@ -885,23 +888,20 @@ utils.extend utils,
 
           queue = []
 
-        else do fail
-
-      .fail -> do fail
-
 
   s3upload: (options, callback = noop)->
 
-    {name, content} = options
+    {name, content, mimeType, timeout} = options
 
-    name   ?= uuid.v4()
+    name      ?= uuid.v4()
+    mimeType  ?= 'plain/text'
+    timeout   ?= 5000
 
     unless content
       warn "Content required."
       return
 
     name    = Encoder.htmlDecode name
-    content = Encoder.htmlDecode content
 
     KD.remote.api.S3.generatePolicy (err, policy)->
 
@@ -918,7 +918,7 @@ utils.extend utils,
       data.append 'signature', policy.signature
 
       # Update this later for feature requirements
-      data.append 'Content-Type', "plain/text"
+      data.append 'Content-Type', mimeType
 
       data.append 'file', content
 
@@ -930,7 +930,7 @@ utils.extend utils,
         processData : no
         crossDomain : yes
         data        : data
-        timeout     : 5000
+        timeout     : timeout
         error       : ->
           callback message: "Failed to upload"
         success     : ->

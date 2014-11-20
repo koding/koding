@@ -31,10 +31,12 @@ body.activity
       padding-right       0
 
     .kdview.kdscrolltrack
+      vendor              transition, opacity .3s .3s ease\, background-color .177s ease
       bg                  color transparent
       overflow            visible
-      &.out
-        opacity           1
+
+      &:hover
+        bg                color rgba(0,0,0,.05)
 
       .kdscrollthumb
         bg                color rgba(0,0,0,.15)
@@ -283,6 +285,8 @@ body.activity
   .lazy-loader
     text-align        center
     margin            22px 0
+    &.do-not-show
+      hidden()
 
   .kdmodal-inner
     margin            22px 15px 22px 30px
@@ -300,6 +304,7 @@ body.activity
 
   .kdmodal-content
     margin            0 !important
+    overflow          visible
 
   .search-input
     height            35px
@@ -807,11 +812,13 @@ body.group.activity
 nav.crawler-pagination
   size                    100%, auto
   margin                  25px 0 50px
+  font-size               12px
 
   a
-    margin                0 5px 5px
+    margin                0 5px 5px 0
     padding               3px 5px
     border                1px solid #cdcdcd
+    border-radius         2px
     background            #fafafa
     color                 #b1b1b1
     noTextDeco()

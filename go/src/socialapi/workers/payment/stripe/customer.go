@@ -47,6 +47,7 @@ func CreateCustomer(token, accId, email string) (*paymentmodels.Customer, error)
 		OldId:              accId,
 		ProviderCustomerId: externalCustomer.Id,
 		Provider:           ProviderName,
+		Username:           account.Profile.Nickname,
 	}
 
 	err = customerModel.Create()

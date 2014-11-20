@@ -22,6 +22,11 @@ class PaymentWorkflow extends KDController
     DEVELOPER    : 'developer'
     PROFESSIONAL : 'professional'
 
+  @provider =
+    STRIPE : 'stripe'
+    PAYPAL : 'paypal'
+    KODING : 'koding'
+
   FAILED_ATTEMPT_LIMIT = 3
 
   @isUpgrade = (current, selected) ->
@@ -54,6 +59,8 @@ class PaymentWorkflow extends KDController
 
     isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
+    @state.isUpgrade = isUpgrade
+
     if isUpgrade
     then @startRegularFlow()
     else @startDowngradeFlow()
@@ -65,6 +72,9 @@ class PaymentWorkflow extends KDController
     @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
     @modal.on 'PaymentSubmitted',                 @bound 'handlePaymentSubmit'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
+
+    @modal.on 'PaypalButtonClicked', =>
+      @state.provider = PaymentWorkflow.provider.PAYPAL
 
 
   startDowngradeFlow: ->
@@ -106,6 +116,10 @@ class PaymentWorkflow extends KDController
         planTitle, planAmount, binNumber, lastFour, cardName
       }, noop
 
+    { KODING, STRIPE } = PaymentWorkflow.provider
+
+    @state.provider = STRIPE  if @state.provider is KODING
+
     if currentPlan is PaymentWorkflow.planTitle.FREE
 
       Stripe.card.createToken {
@@ -135,6 +149,7 @@ class PaymentWorkflow extends KDController
 
 
   subscribeToPlan: (planTitle, planInterval, token, options) ->
+
     { paymentController } = KD.singletons
 
     me = KD.whoami()
@@ -143,6 +158,8 @@ class PaymentWorkflow extends KDController
       return KD.showError err  if err
 
       options.email = email
+      options.provider = @state.provider
+
 
       paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
         @modal.form.submitButton.hideLoader()

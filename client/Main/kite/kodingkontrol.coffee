@@ -9,7 +9,8 @@ class KodingKontrol extends (require 'kontrol')
     @kites   = {}
     @regions = {}
 
-    @reauthenticate()
+    # authenticate with the current session token
+    @authenticate @getAuthOptions()
 
   getAuthOptions: ->
     autoConnect     : no
@@ -22,7 +23,7 @@ class KodingKontrol extends (require 'kontrol')
       heartbeatTimeout: 30 * 1000 # 30 seconds
 
 
-  reauthenticate: ->
+  reauthenticate: do -> KD.utils.debounce 2500, ->
     # disconnect the old kontrol kite
     @kite?.disconnect()
     # reauthenticate with the current session token
@@ -85,6 +86,10 @@ class KodingKontrol extends (require 'kontrol')
     # Get options
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
+
+    # If no `correlationName` is defined assume this kite instance
+    # is a singleton kite instance and keep track of it with this keyword
+    correlationName ?= "singleton"
 
     # If queryString provided try to split it first
     # and if successful, use it as query

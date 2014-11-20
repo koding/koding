@@ -64,36 +64,33 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return int(normalized)
 	}
 
+	errLog := p.GetCustomLogger(m.Id, "error")
+	debugLog := p.GetCustomLogger(m.Id, "debug")
+
 	// Check for total amachine allowance
 	checker, err := p.PlanChecker(m)
 	if err != nil {
 		return nil, err
 	}
 
-	p.Log.Info("[%s] checking machine limit for user '%s'", m.Id, m.Username)
 	if err := checker.Total(); err != nil {
+		errLog("Checking total machine err: %s", err)
 		return nil, err
 	}
 
-	p.Log.Info("[%s] checking alwaysOn limit for user '%s'", m.Id, m.Username)
 	if err := checker.AlwaysOn(); err != nil {
+		errLog("Checking always on limit err: %s", err)
 		return nil, err
 	}
 
-	a.Log.Info("[%s] build is using region: '%s'", m.Id, a.Builder.Region)
+	debugLog("build is using region: '%s'", m.Id, a.Builder.Region)
 
 	a.Push("Initializing data", normalize(10), machinestate.Building)
-
-	infoLog := p.GetCustomLogger(m.Id, "info")
-	errLog := p.GetCustomLogger(m.Id, "error")
-
-	a.InfoLog = infoLog
 
 	a.Push("Checking network requirements", normalize(20), machinestate.Building)
 
 	// get all subnets belonging to Kloud
 	kloudKeyName := "Kloud"
-	infoLog("Searching for subnets with tag-key %s", kloudKeyName)
 	subnets, err := a.SubnetsWithTag(kloudKeyName)
 	if err != nil {
 		errLog("Searching subnet err: %v", err)
@@ -103,7 +100,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	// sort and get the lowest
 	subnet := subnets.WithMostIps()
 
-	infoLog("Checking if security group for VPC id %s exists.", subnet.VpcId)
 	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
 	if err != nil {
 		errLog("Checking security group err: %v", err)
@@ -114,10 +110,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Builder.SubnetId = subnet.SubnetId
 	a.Builder.Zone = subnet.AvailabilityZone
 
-	infoLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+	debugLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
-	infoLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+	debugLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
 
 	if a.Builder.InstanceType == "" {
 		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
@@ -132,7 +128,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 	a.Push("Checking base build image", normalize(30), machinestate.Building)
 
-	infoLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+	debugLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
 	image, err := a.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		errLog("Checking ami tag failed err: %v", err)
@@ -147,9 +143,9 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		storageSize = a.Builder.StorageSize
 	}
 
-	infoLog("Check if user is allowed to create machine with '%dGB' storage", storageSize)
 	// check if the user is egligible to create a vm with this size
 	if err := checker.Storage(storageSize); err != nil {
+		errLog("Checking storage size failed err: %v", err)
 		return nil, err
 	}
 
@@ -194,7 +190,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		LatestKlientURL: latestKlientUrl,
 		ApachePort:      DefaultApachePort,
 		KitePort:        DefaultKitePort,
-		Test:            p.Test,
 	}
 
 	// check if the user has some keys
@@ -213,8 +208,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			}
 		}
 	}
-
-	cloudInitConfig.setupMigrateScript()
 
 	var userdata bytes.Buffer
 	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
@@ -273,7 +266,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			currentZone := subnet.AvailabilityZone
 
-			infoLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
+			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
 				if zone == currentZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
@@ -385,7 +378,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	instanceName := m.Builder["instanceName"].(string)
 	if instanceName == "terminated-instance" {
 		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		infoLog("Instance name is an artifact (terminated), changing to %s", instanceName)
+		debugLog("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
 	buildArtifact.InstanceName = instanceName
@@ -425,7 +418,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		{Key: "koding-domain", Value: m.Domain.Name},
 	}
 
-	infoLog("Adding user tags %v", tags)
+	debugLog("Adding user tags %v", tags)
 	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		errLog("Adding tags failed: %v", err)
 		return nil, errors.New("machine initialization requirements failed [3]")
@@ -437,9 +430,10 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	buildArtifact.KiteQuery = query.String()
 
 	a.Push("Checking connectivity", normalize(75), machinestate.Building)
-	infoLog("Connecting to remote Klient instance")
+
+	debugLog("Connecting to remote Klient instance")
 	if p.IsKlientReady(query.String()) {
-		p.Log.Info("[%s] klient is ready.", m.Id)
+		debugLog("klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}

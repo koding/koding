@@ -75,7 +75,10 @@ prepareComments = (models, activity, callback) ->
         console.error "Could not fetch replier information #{reply.accountOldId}"
         return queue.next()
 
-      reply.replier = getProfile account
+      reply.replier   = getProfile account
+      {formatBody} = require './staticpages/bodyrenderer'
+      reply.message.body = formatBody reply.message.body
+      reply.message.createdAt = renderCreatedAt reply
       queue.next()
 
   queue.push ->

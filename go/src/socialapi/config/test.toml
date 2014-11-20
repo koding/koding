@@ -57,3 +57,10 @@ Debug             = false
 
 [stripe]
 SecretToken = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"
+
+[paypal]
+Username  = "senthil+1_api1.koding.com"
+Password  = "JFH6LXW97QN588RC"
+Signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
+ReturnUrl = "/-/payments/paypal/return"
+CancelUrl = "/-/payments/paypal/cancel"

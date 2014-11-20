@@ -1,11 +1,30 @@
 package payment
 
 import (
+	"fmt"
+	"socialapi/config"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paypal"
+	"socialapi/workers/payment/stripe"
 	"time"
 
 	"github.com/koding/bongo"
 )
+
+func Initialize(conf *config.Config) {
+	stripe.InitializeClientKey(conf.Stripe.SecretToken)
+	paypal.InitializeClientKey(conf.Paypal)
+
+	go func() {
+		err := stripe.CreateDefaultPlans()
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+	}()
+
+	go InitCheckers()
+}
 
 func InitCheckers() error {
 	err := CheckForLeakedSubscriptions()

@@ -4,23 +4,22 @@ if KD.config.logToExternal then do ->
   KD.getSingleton('mainController').on "AccountChanged", (account) ->
     return  unless KD.isLoggedIn() and account and analytics
 
-    account.fetchEmail (err, email)->
-      console.log err  if err
+    {type, meta, profile} = account
 
-      {type, meta, profile} = account
-      {createdAt} = meta
-      {firstName, lastName, nickname} = profile
+    return  unless profile
 
-      # register user to mixpanel
-      analytics.identify nickname, {
-        "$username"     : nickname
-        "$first_name"   : firstName
-        "$last_name"    : lastName
-        "$email"        : email
-        "$created"      : createdAt
-        "Status"        : type
-        "Randomizer"    : KD.utils.getRandomNumber 4
-      }
+    {createdAt} = meta
+    {firstName, lastName, nickname} = profile
+
+    # register user to mixpanel
+    analytics.identify nickname, {
+      "$username"     : nickname
+      "$first_name"   : firstName
+      "$last_name"    : lastName
+      "$created"      : createdAt
+      "Status"        : type
+      "Randomizer"    : KD.utils.getRandomNumber 4
+    }
 
 # Access control wrapper around mixpanel object.
 KD.mixpanel = (args...)->
@@ -29,17 +28,13 @@ KD.mixpanel = (args...)->
     args.push {}
 
   me = KD.whoami()
-  return  unless me
+  return  unless me.profile
 
   KD.gaEvent args[0]
 
-  me.fetchEmail (err, email)->
-    console.log err  if err
+  args[1]["username"] = me.profile.nickname
 
-    args[1]["username"] = me.profile.nickname
-    args[1]["email"] = email
-
-    analytics.track args...
+  analytics.track args...
 
 KD.mixpanel.alias = (args...)->
   return  unless analytics and KD.config.logToExternal
