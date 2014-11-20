@@ -41,4 +41,5 @@ var (
 
 	ErrNotLoggedIn     = errors.New("not logged in")
 	ErrAccountNotFound = errors.New("account not found")
+	ErrChannelNotFound = errors.New("channel not found")
 )
