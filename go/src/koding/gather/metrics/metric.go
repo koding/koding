@@ -2,7 +2,7 @@ package metrics
 
 import "sync"
 
-type Metrics struct {
+type Registry struct {
 	Items []*Metric
 	Mutex *sync.Mutex
 }
@@ -12,8 +12,8 @@ type Metric struct {
 	Collector Collector
 }
 
-func RegisterMetric(metrics *Metrics, metric *Metric) {
-	metrics.Mutex.Lock()
-	metrics.Items = append(metrics.Items, metric)
-	metrics.Mutex.Unlock()
+func RegisterMetric(registry *Registry, metric *Metric) {
+	registry.Mutex.Lock()
+	registry.Items = append(registry.Items, metric)
+	registry.Mutex.Unlock()
 }
