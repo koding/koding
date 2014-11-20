@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/utils"
 	"strconv"
 
 	"github.com/koding/redis"
@@ -52,7 +51,7 @@ func GetNextMailPeriod() string {
 }
 
 func GetCurrentMailPeriod() int {
-	ts := utils.NewTimeSegmentor(MailPeriod)
+	ts := models.NewTimeSegmentor(MailPeriod)
 
 	nextPeriod, _ := strconv.Atoi(ts.GetNextSegment())
 
