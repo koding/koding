@@ -5,7 +5,7 @@ import (
 	"github.com/koding/bongo"
 )
 
-func RemoveTrollContent(i bongo.Modellable, disabled bool) func(d *gorm.DB) *gorm.DB {
+func RemoveTrollContent(i bongo.Modellable, disabled bool) bongo.Scope {
 	return func(d *gorm.DB) *gorm.DB {
 		if disabled {
 			return d
@@ -19,7 +19,7 @@ func RemoveTrollContent(i bongo.Modellable, disabled bool) func(d *gorm.DB) *gor
 	}
 }
 
-func Paginated(limit, skip int) func(d *gorm.DB) *gorm.DB {
+func Paginated(limit, skip int) bongo.Scope {
 	return func(d *gorm.DB) *gorm.DB {
 		// add skip
 		if skip > 0 {
