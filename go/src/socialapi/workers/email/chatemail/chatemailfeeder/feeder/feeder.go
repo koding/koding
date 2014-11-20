@@ -204,21 +204,20 @@ func (c *Controller) getOrCreateMailingPeriod(a *models.Account) (string, error)
 }
 
 func (c *Controller) getMailingPeriod(a *models.Account) (string, error) {
-	values, err := c.redis.GetHashMultipleSet(common.AccountNextPeriodHashSetKey(), a.Id)
-	if err != nil {
-		return "", err
-	}
-
-	if len(values) == 0 || values[0] == nil {
+	period, err := c.redis.GetHashSetField(common.AccountNextPeriodHashSetKey(), strconv.FormatInt(a.Id, 10))
+	if err == redis.ErrNil {
 		return "", ErrPeriodNotFound
 	}
 
-	nextPeriod, err := c.redis.String(values[0])
 	if err != nil {
 		return "", err
 	}
 
-	return nextPeriod, nil
+	if period == "" {
+		return "", ErrPeriodNotFound
+	}
+
+	return period, nil
 }
 
 func (c *Controller) addAccountToNotifieeQueue(period string, accountId int64) error {
