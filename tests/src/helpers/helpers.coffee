@@ -240,7 +240,7 @@ module.exports =
       .click                   '.vm-header .buttons'
       .waitForElementPresent   '.context-list-wrapper', 50000
       .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 10000
+      .waitForElementVisible   webSelector, 50000
       .click                   webSelector
       .click                   webSelector + ' + .chevron'
 
@@ -256,11 +256,11 @@ module.exports =
     browser
       .waitForElementVisible    'li.new-file', 50000
       .click                    'li.new-file'
-      .waitForElementVisible    'li.selected .rename-container .hitenterview', 5000
+      .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
-      .pause                    2000 # required
-      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 5000 # Assertion
+      .pause                    3000 # required
+      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 50000 # Assertion
 
     return filename
 
@@ -281,24 +281,21 @@ module.exports =
 
     browser
       .waitForElementVisible   '.kdscrollview li a.more-link', 20000
-      .pause                   1000
       .click                   '.kdscrollview li a.more-link'
       .waitForElementVisible   '.kdmodal-inner', 20000
       .click                   '.kdmodal-inner button'
-      .pause                   2000 # required
+      .pause                   3000 # required
       .waitForElementVisible   '.add-workspace-view', 20000
       .setValue                '.add-workspace-view input.kdinput.text', workspaceName + '\n'
       .waitForElementVisible   '.vm-info', 20000
-      .pause                   2000, =>
+      .url (data) =>
+        url    = data.value
+        vmName = url.split('/IDE/')[1].split('/')[0]
 
-        browser.url (data) =>
-          url    = data.value
-          vmName = url.split('/IDE/')[1].split('/')[0]
-
-          browser
-            .assert.urlContains      workspaceName # Assertion
-            .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
-            .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 20000 # Assertion
+        browser
+          .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 40000 # Assertion
+          .assert.urlContains      workspaceName # Assertion
+          .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
 
     return workspaceName
 
