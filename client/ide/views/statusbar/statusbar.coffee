@@ -6,6 +6,8 @@ class IDE.StatusBar extends KDView
 
     super options, data
 
+    {appManager} = KD.singletons
+
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
     @addSubView new KDCustomHTMLView
@@ -28,13 +30,20 @@ class IDE.StatusBar extends KDView
       cssClass : 'icon participants'
       click    : => @emit 'ParticipantsModalRequired'
 
-    @addSubView new CustomLinkView
+    @addSubView @share = new CustomLinkView
       href     : "#{KD.singletons.router.getCurrentPath()}/share"
       title    : 'Share'
-      cssClass : 'share fr'
+      cssClass : 'share fr hidden'
       click    : (event) ->
         KD.utils.stopDOMEvent event
-        {appManager} = KD.singletons
+        appManager.tell 'IDE', 'showChat'
+        # @hide()
+
+    @addSubView @avatars = new KDCustomHTMLView
+      partial  : 'kafalar'
+      cssClass : 'avatars fr hidden'
+      click    : (event) ->
+        KD.utils.stopDOMEvent event
         appManager.tell 'IDE', 'showChat'
         # @hide()
 
