@@ -1,49 +1,31 @@
 package koding
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strconv"
-	"strings"
 	"time"
 
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
 
-	"code.google.com/p/go.crypto/ssh"
-	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
 	"github.com/mitchellh/goamz/ec2"
-	"github.com/nu7hatch/gouuid"
-	"gopkg.in/yaml.v2"
 )
 
-var (
-	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
-
-	// Starting from cheapest, list is according to us-east and coming from:
-	// http://www.ec2instances.info/. t2.micro is not included because it's
-	// already the default type which we start to build. Only supported types
-	// are here.
-	InstancesList = []string{
-		"t2.small",
-		"t2.medium",
-		"m3.medium",
-		"c3.large",
-		"m3.large",
-		"c3.xlarge",
-	}
-)
-
-const (
-	DefaultKloudKeyName = "Kloud"
-	DefaultApachePort   = 80
-	DefaultKitePort     = 3000
-)
+// Starting from cheapest, list is according to us-east and coming from:
+// http://www.ec2instances.info/. t2.micro is not included because it's
+// already the default type which we start to build. Only supported types
+// are here.
+var InstancesList = []string{
+	"t2.small",
+	"t2.medium",
+	"m3.medium",
+	"c3.large",
+	"m3.large",
+	"c3.xlarge",
+}
 
 func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err error) {
 	a, err := p.NewClient(m)
@@ -71,7 +53,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Push("Checking initial data", normalize(10), machinestate.Building)
 
 	a.Push("Generating and fetching build data", normalize(20), machinestate.Building)
-	buildData, err := p.getBuildData(a)
+	buildData, err := p.getBuildData(a, m)
 	if err != nil {
 		errLog("Get build data err: %v", err)
 		return nil, err
@@ -80,22 +62,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	if err := p.checkFunc(m, buildData); err != nil {
 		return nil, err
 	}
-
-	a.Push("Generating user data", normalize(40), machinestate.Building)
-	kiteUUID, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
-
-	kiteId := kiteUUID.String()
-
-	userdata, err := p.userDeployFunc(m, kiteId)
-	if err != nil {
-		return nil, err
-	}
-
-	// user data is now ready!
-	buildData.UserData = userdata
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
@@ -125,7 +91,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
-				if zone == buildData.AvailZone {
+				if zone == buildData.EC2Data.AvailZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
 					continue
 				}
@@ -271,7 +237,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	checkKiteFunc := func() error {
-		query := kiteprotocol.Kite{ID: kiteId}
+		query := kiteprotocol.Kite{ID: buildData.KiteId}
 		buildArtifact.KiteQuery = query.String()
 
 		a.Push("Checking connectivity", normalize(75), machinestate.Building)
@@ -302,68 +268,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	return buildArtifact, nil
 }
 
-func (p *Provider) getBuildData(a *amazon.AmazonClient) (*ec2.RunInstances, error) {
-	// get all subnets belonging to Kloud
-	subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
-
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
-
-	group, err := a.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
-
-	image, err := a.ImageByTag(DefaultCustomAMITag)
-	if err != nil {
-		return nil, err
-	}
-
-	device := image.BlockDevices[0]
-
-	storageSize := 3 // default AMI 3GB size
-	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
-		storageSize = a.Builder.StorageSize
-	}
-
-	// Increase storage if it's passed to us, otherwise the default 3GB is
-	// created already with the default AMI
-	blockDeviceMapping := ec2.BlockDeviceMapping{
-		DeviceName:          device.DeviceName,
-		VirtualName:         device.VirtualName,
-		SnapshotId:          device.SnapshotId,
-		VolumeType:          "standard", // Use magnetic storage because it is cheaper
-		VolumeSize:          int64(storageSize),
-		DeleteOnTermination: true,
-		Encrypted:           false,
-	}
-
-	p.Log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
-
-	if a.Builder.InstanceType == "" {
-		p.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro")
-		a.Builder.InstanceType = T2Micro.String()
-	}
-
-	return &ec2.RunInstances{
-		ImageId:                  image.Id,
-		MinCount:                 1,
-		MaxCount:                 1,
-		KeyName:                  p.KeyName,
-		InstanceType:             a.Builder.InstanceType,
-		AssociatePublicIpAddress: true,
-		SubnetId:                 subnet.SubnetId,
-		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
-		AvailZone:                subnet.AvailabilityZone,
-		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
-	}, nil
-}
-
-func (p *Provider) checkFunc(m *protocol.Machine, buildData *ec2.RunInstances) error {
+func (p *Provider) checkFunc(m *protocol.Machine, buildData *BuildData) error {
 	errLog := p.GetCustomLogger(m.Id, "error")
 
 	// Check for total machine allowance
@@ -383,123 +288,20 @@ func (p *Provider) checkFunc(m *protocol.Machine, buildData *ec2.RunInstances) e
 	}
 
 	p.Log.Debug("[%s] Check if user is allowed to create instance type %s",
-		m.Id, buildData.InstanceType)
+		m.Id, buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := checker.AllowedInstances(instances[buildData.InstanceType]); err != nil {
+	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
 		p.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
-			m.Id, buildData.InstanceType)
-		buildData.InstanceType = T2Micro.String()
+			m.Id, buildData.EC2Data.InstanceType)
+		buildData.EC2Data.InstanceType = T2Micro.String()
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(int(buildData.BlockDevices[0].VolumeSize)); err != nil {
+	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
 		errLog("Checking storage size failed err: %v", err)
 		return err
 	}
 
 	return nil
-}
-
-func (p *Provider) userDeployFunc(m *protocol.Machine, kiteId string) ([]byte, error) {
-	errLog := p.GetCustomLogger(m.Id, "error")
-
-	kiteKey, err := p.createKey(m.Username, kiteId)
-	if err != nil {
-		return nil, err
-	}
-
-	latestKlientPath, err := p.Bucket.LatestDeb()
-	if err != nil {
-		errLog("Checking klient S3 path failed: %v", err)
-		return nil, errors.New("machine initialization requirements failed [1]")
-	}
-
-	latestKlientUrl := p.Bucket.URL(latestKlientPath)
-
-	// Use cloud-init for initial configuration of the VM
-	cloudInitConfig := &CloudInitConfig{
-		Username:        m.Username,
-		UserDomain:      m.Domain.Name,
-		Hostname:        m.Username, // no typo here. hostname = username
-		KiteKey:         kiteKey,
-		LatestKlientURL: latestKlientUrl,
-		ApachePort:      DefaultApachePort,
-		KitePort:        DefaultKitePort,
-	}
-
-	// check if the user has some keys
-	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
-		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
-			for _, key := range keys {
-				// validate the public keys
-				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
-				if err != nil {
-					errLog(`User (%s) has an invalid public SSH key.
-							Not adding it to the authorized keys.
-							Key: %s. Err: %v`, m.Username, key, err)
-					continue
-				}
-				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
-			}
-		}
-	}
-
-	var userdata bytes.Buffer
-	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
-	if err != nil {
-		errLog("Template execution failed: %v", err)
-		return nil, errors.New("machine initialization requirements failed [2]")
-	}
-
-	// validate the userdata first before sending
-	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
-		// write to temporary file so we can see the yaml file that is not
-		// formatted in a good way.
-		f, err := ioutil.TempFile("", "kloud-cloudinit")
-		if err == nil {
-			if _, err := f.WriteString(userdata.String()); err != nil {
-				errLog("Cloudinit temporary field couldn't be written %v", err)
-			}
-		}
-
-		errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
-			f.Name())
-		return nil, errors.New("Cloudinit template is not a valid YAML file.")
-	}
-
-	return userdata.Bytes(), nil
-
-}
-
-// CreateKey signs a new key and returns the token back
-func (p *Provider) createKey(username, kiteId string) (string, error) {
-	if username == "" {
-		return "", kloud.NewError(kloud.ErrSignUsernameEmpty)
-	}
-
-	if p.KontrolURL == "" {
-		return "", kloud.NewError(kloud.ErrSignKontrolURLEmpty)
-	}
-
-	if p.KontrolPrivateKey == "" {
-		return "", kloud.NewError(kloud.ErrSignPrivateKeyEmpty)
-	}
-
-	if p.KontrolPublicKey == "" {
-		return "", kloud.NewError(kloud.ErrSignPublicKeyEmpty)
-	}
-
-	token := jwt.New(jwt.GetSigningMethod("RS256"))
-
-	token.Claims = map[string]interface{}{
-		"iss":        "koding",                              // Issuer, should be the same username as kontrol
-		"sub":        username,                              // Subject
-		"iat":        time.Now().UTC().Unix(),               // Issued At
-		"jti":        kiteId,                                // JWT ID
-		"kontrolURL": p.KontrolURL,                          // Kontrol URL
-		"kontrolKey": strings.TrimSpace(p.KontrolPublicKey), // Public key of kontrol
-	}
-
-	return token.SignedString([]byte(p.KontrolPrivateKey))
 }
