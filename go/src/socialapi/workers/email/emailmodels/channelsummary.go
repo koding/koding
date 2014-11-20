@@ -88,20 +88,21 @@ func getTitle(messageCount int) string {
 }
 
 func fetchLastMessages(a *models.Account, ch *models.Channel, awaySince time.Time) ([]models.ChannelMessage, error) {
+	q := request.NewQuery()
+	q.From = awaySince
+	q.ExcludeField("AccountId", a.Id)
 	cm := models.NewChannelMessage()
-	cm.InitialChannelId = ch.Id
-	cm.AccountId = a.Id
-	cm.CreatedAt = awaySince
 
-	return cm.FetchLatestChannelMessages(MessageLimit)
+	return cm.FetchMessagesByChannelId(ch.Id, q)
 }
 
 func fetchChannelMessageCount(a *models.Account, ch *models.Channel, awaySince time.Time) (int, error) {
+	q := request.NewQuery()
+	q.From = awaySince
+	q.ExcludeField("AccountId", a.Id)
 	cm := models.NewChannelMessage()
-	cm.InitialChannelId = ch.Id
-	cm.AccountId = a.Id
 
-	return cm.FetchChannelMessageCountSince(awaySince)
+	return cm.FetchTotalMessageCount(q)
 }
 
 func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSummary, error) {
