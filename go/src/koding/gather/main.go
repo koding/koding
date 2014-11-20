@@ -3,46 +3,30 @@ package main
 import (
 	"fmt"
 	"koding/gather/metrics"
+	"koding/gather/scripts"
 	"log"
 	"strings"
 	"sync"
 )
 
 var (
-	metricsRegistry = &metrics.Metrics{
+	metricsRegistry = &metrics.Registry{
 		Items: make([]*metrics.Metric, 0),
 		Mutex: &sync.Mutex{},
 	}
 )
 
+func registerMetric(metric *metrics.Metric) {
+	metrics.RegisterMetric(metricsRegistry, metric)
+}
+
 func main() {
-	dfCollector := func(location int) *metrics.MultipleCmd {
-		return metrics.NewMultipleCmd(
-			metrics.NewSingleCmd("df", "-lh"),
-			metrics.NewSingleCmd("grep", "/dev"),
-			metrics.NewSingleCmd("awk", fmt.Sprintf(`{print $%d}`, location)),
-		)
-	}
-
-	totalDisk := &metrics.Metric{
-		Name:      "total_disk",
-		Collector: dfCollector(2),
-	}
-
-	// usedDisk := &Metric{
-	//   Name:      "used_disk",
-	//   Collector: dfCollector(3),
-	// }
-
-	// freeDisk := &Metric{
-	//   Name:      "free_disk",
-	//   Collector: dfCollector(4),
-	// }
-
-	// percentUsedDisk := &Metric{
-	//   Name:      "percent_used_disk",
-	//   Collector: dfCollector(5),
-	// }
+	registerMetric(scripts.TotalDisk)
+	registerMetric(scripts.UsedDisk)
+	registerMetric(scripts.FreeDisk)
+	registerMetric(scripts.PerUsedDisk)
+	// registerMetric(scripts.NumUsers)
+	// registerMetric(scripts.HomeDirFiles)
 
 	// usersFromPasswd := NewSingleCmd("cut", "-d", ":", "-f", "1", "/etc/passwd")
 	// grepDefaultUsers := NewSingleCmd("egrep", "-v",
@@ -81,13 +65,6 @@ func main() {
 	//   ),
 	// }
 
-	// metrics.RegisterMetric(metricsRegistry, numberOfUsers)
-	// metrics.RegisterMetric(metricsRegistry, typeOfFiles)
-	metrics.RegisterMetric(metricsRegistry, totalDisk)
-	// metrics.RegisterMetric(metricsRegistry, usedDisk)
-	// metrics.RegisterMetric(metricsRegistry, freeDisk)
-	// metrics.RegisterMetric(metricsRegistry, percentUsedDisk)
-
 	for _, metric := range metricsRegistry.Items {
 		metricsRegistry.Mutex.Lock()
 
@@ -100,7 +77,5 @@ func main() {
 		fmt.Println(metric.Name, strings.TrimSpace(string(out)))
 
 		metricsRegistry.Mutex.Unlock()
-
-		break
 	}
 }
