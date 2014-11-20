@@ -39,6 +39,10 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
+	if count == 0 {
+		return &ChannelSummary{}, nil
+	}
+
 	mss, err := buildMessageSummaries(cms)
 	if err != nil {
 		return nil, err
