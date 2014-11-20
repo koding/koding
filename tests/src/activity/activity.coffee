@@ -181,7 +181,8 @@ module.exports =
     browser
       .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
       .waitForElementVisible    '.kdtabpaneview.search', 15000
-      .assert.containsText      selector , word # Assertion
+      .waitForElementVisible    selector, 15000
+      .assert.containsText      selector, word # Assertion
       .end()
 
 
