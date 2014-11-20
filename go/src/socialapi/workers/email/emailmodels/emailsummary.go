@@ -42,11 +42,15 @@ func (es *EmailSummary) BuildTitle() string {
 	return fmt.Sprintf("You have %d new message%s%s", es.MessageCount, messagePlural, channelInfo)
 }
 
-func (es *EmailSummary) Render() string {
+func (es *EmailSummary) Render() (string, error) {
 	body := ""
 	for _, cs := range es.Channels {
-		body += cs.Render()
+		content, err := cs.Render()
+		if err != nil {
+			return "", err
+		}
+		body += content
 	}
 
-	return body
+	return body, nil
 }

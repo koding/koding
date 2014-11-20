@@ -28,22 +28,28 @@ func NewMessageGroupSummary() *MessageGroupSummary {
 	}
 }
 
-func (ms *MessageGroupSummary) Render() string {
+func (ms *MessageGroupSummary) Render() (string, error) {
 	mt := template.Must(template.New("messagegroup").Parse(templates.MessageGroup))
 	gt := template.Must(template.New("gravatar").Parse(templates.Gravatar))
 	mt.AddParseTree("gravatar", gt.Tree)
 
 	summary := ""
 	for _, ms := range ms.Messages {
-		summary += ms.Render()
+		content, err := ms.Render()
+		if err != nil {
+			return "", err
+		}
+		summary += content
 	}
 	ms.Summary = summary
 	ms.Hostname = config.MustGet().Hostname
 
 	buf := bytes.NewBuffer([]byte{})
-	mt.ExecuteTemplate(buf, "messagegroup", ms)
+	if err := mt.ExecuteTemplate(buf, "messagegroup", ms); err != nil {
+		return "", err
+	}
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 func (mgs *MessageGroupSummary) AddMessage(ms *MessageSummary) {
@@ -56,11 +62,13 @@ type MessageSummary struct {
 	Time string
 }
 
-func (ms *MessageSummary) Render() string {
+func (ms *MessageSummary) Render() (string, error) {
 	mt := template.Must(template.New("message").Parse(templates.Message))
 	buf := bytes.NewBuffer([]byte{})
 
-	mt.ExecuteTemplate(buf, "message", ms)
+	if err := mt.ExecuteTemplate(buf, "message", ms); err != nil {
+		return "", err
+	}
 
-	return buf.String()
+	return buf.String(), nil
 }

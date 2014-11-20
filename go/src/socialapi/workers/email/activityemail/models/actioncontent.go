@@ -13,12 +13,15 @@ type ActionContent struct {
 	Slug       string
 }
 
-func (ac *ActionContent) Render() string {
+func (ac *ActionContent) Render() (string, error) {
 	ct := template.Must(template.New("contentlink").Parse(templates.ContentLink))
 
 	buf := bytes.NewBuffer([]byte{})
 
-	ct.ExecuteTemplate(buf, "contentlink", ac)
+	err := ct.ExecuteTemplate(buf, "contentlink", ac)
+	if err != nil {
+		return "", nil
+	}
 
 	return buf.String()
 }

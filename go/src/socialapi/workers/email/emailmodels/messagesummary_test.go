@@ -16,7 +16,8 @@ func TestRenderMessage(t *testing.T) {
 		mgs.Nickname = "canthefason"
 
 		mgs.AddMessage(m)
-		body := mgs.Render()
+		body, err := mgs.Render()
+		So(err, ShouldBeNil)
 		So(body, ShouldContainSubstring, "canthefason")
 		So(body, ShouldContainSubstring, "123123")
 		So(body, ShouldContainSubstring, "2:40 PM")

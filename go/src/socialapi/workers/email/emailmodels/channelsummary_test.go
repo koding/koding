@@ -154,7 +154,8 @@ func TestRenderChannel(t *testing.T) {
 		mgs2.AddMessage(ms2)
 		cs.MessageGroups = append(messages, mgs1, mgs2)
 
-		body := cs.Render()
+		body, err := cs.Render()
+		So(err, ShouldBeNil)
 		So(body, ShouldContainSubstring, "hehe")
 		So(body, ShouldContainSubstring, "123123")
 		So(body, ShouldContainSubstring, "canthefason")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/email/templates"
 	"text/template"
 	"time"
@@ -54,10 +55,14 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 	return cs, nil
 }
 
-func (cs *ChannelSummary) Render() string {
+func (cs *ChannelSummary) Render() (string, error) {
 	body := ""
 	for _, message := range cs.MessageGroups {
-		body += message.Render()
+		content, err := message.Render()
+		if err != nil {
+			return "", err
+		}
+		body += content
 	}
 
 	ct := template.Must(template.New("channel").Parse(templates.Channel))
@@ -66,9 +71,11 @@ func (cs *ChannelSummary) Render() string {
 	cs.Title = getTitle(cs.UnreadCount)
 
 	buf := bytes.NewBuffer([]byte{})
-	ct.ExecuteTemplate(buf, "channel", cs)
+	if err := ct.ExecuteTemplate(buf, "channel", cs); err != nil {
+		return "", err
+	}
 
-	return buf.String()
+	return buf.String(), nil
 }
 
 func getTitle(messageCount int) string {

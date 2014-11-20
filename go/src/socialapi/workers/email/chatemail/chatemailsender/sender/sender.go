@@ -102,7 +102,10 @@ func (c *Controller) Run() {
 		es := emailmodels.NewEmailSummary(channels)
 
 		// Render body
-		body := es.Render()
+		body, err := es.Render()
+		if err != nil {
+			c.log.Error("Could not render body for account %d: %s", account.Id, err)
+		}
 
 		// Send
 		subject := fmt.Sprintf(Subject, time.Now().Format(DateLayout))

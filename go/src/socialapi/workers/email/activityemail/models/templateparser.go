@@ -24,7 +24,7 @@ func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, er
 
 	bc.AddMessageGroup(mg)
 
-	return bc.Render(), nil
+	return bc.Render()
 }
 
 func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (string, error) {
@@ -39,12 +39,16 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 
 	bc.Title = "Here what's happened on Koding today!"
 
-	return bc.Render(), nil
+	return bc.Render()
 }
 
 func buildMessageContent(mc *MailerContainer) (*emailmodels.MessageGroupSummary, error) {
 	mg := emailmodels.NewMessageGroupSummary()
-	mg.Title = prepareTitle(mc)
+	title, err := prepareTitle(mc)
+	if err != nil {
+		return nil, err
+	}
+	mg.Title = title
 
 	// message
 	ms := new(emailmodels.MessageSummary)
@@ -64,7 +68,7 @@ func buildMessageContent(mc *MailerContainer) (*emailmodels.MessageGroupSummary,
 	return mg, nil
 }
 
-func prepareTitle(mc *MailerContainer) string {
+func prepareTitle(mc *MailerContainer) (string, error) {
 	ac := new(ActionContent)
 	ac.Action = mc.ActivityMessage
 	ac.Hostname = config.MustGet().Hostname

@@ -25,10 +25,14 @@ func (bc *BodyContent) AddMessageGroup(mg *MessageGroupSummary) {
 	bc.MessageGroups = append(bc.MessageGroups, mg)
 }
 
-func (bc *BodyContent) Render() string {
+func (bc *BodyContent) Render() (string, error) {
 	body := ""
 	for _, mg := range bc.MessageGroups {
-		body += mg.Render()
+		content, err := mg.Render()
+		if err != nil {
+			return "", err
+		}
+		body += content
 	}
 
 	bt := template.Must(template.New("body").Parse(templates.Channel))
@@ -36,7 +40,9 @@ func (bc *BodyContent) Render() string {
 	bc.Summary = body
 
 	buf := bytes.NewBuffer([]byte{})
-	bt.ExecuteTemplate(buf, "body", bc)
+	if err := bt.ExecuteTemplate(buf, "body", bc); err != nil {
+		return "", err
+	}
 
-	return buf.String()
+	return buf.String(), nil
 }
