@@ -40,8 +40,9 @@ var (
 )
 
 const (
-	DefaultApachePort = 80
-	DefaultKitePort   = 3000
+	DefaultKloudKeyName = "Kloud"
+	DefaultApachePort   = 80
+	DefaultKitePort     = 3000
 )
 
 func (p *Provider) Build(m *protocol.Machine) (resArt *protocol.Artifact, err error) {
@@ -68,116 +69,22 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	debugLog := p.GetCustomLogger(m.Id, "debug")
 
 	a.Push("Checking initial data", normalize(10), machinestate.Building)
-	checkFunc := func() error {
-		// Check for total machine allowance
-		checker, err := p.PlanChecker(m)
-		if err != nil {
-			return err
-		}
 
-		if err := checker.Total(); err != nil {
-			errLog("Checking total machine err: %s", err)
-			return err
-		}
-
-		if err := checker.AlwaysOn(); err != nil {
-			errLog("Checking always on limit err: %s", err)
-			return err
-		}
-
-		debugLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
-
-		if a.Builder.InstanceType == "" {
-			a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
-			a.Builder.InstanceType = T2Micro.String()
-		}
-
-		// check if the user is egligible to create a vm with this instance type
-		if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-			a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
-				m.Id, a.Builder.InstanceType)
-			a.Builder.InstanceType = T2Micro.String()
-		}
-
-		storageSize := 3 // default AMI 3GB size
-		if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
-			storageSize = a.Builder.StorageSize
-		}
-
-		// check if the user is egligible to create a vm with this size
-		if err := checker.Storage(storageSize); err != nil {
-			errLog("Checking storage size failed err: %v", err)
-			return err
-		}
-
-		return nil
+	a.Push("Generating and fetching build data", normalize(20), machinestate.Building)
+	buildData, err := p.getBuildData(a)
+	if err != nil {
+		errLog("Get build data err: %v", err)
+		return nil, err
 	}
 
-	a.Push("Generating and assigning data", normalize(20), machinestate.Building)
-	var currentZone string
-	var subnets amazon.Subnets
-	kloudKeyName := "Kloud"
-	validateFunc := func() error {
-		// get all subnets belonging to Kloud
-		var err error
-		subnets, err = a.SubnetsWithTag(kloudKeyName)
-		if err != nil {
-			errLog("Searching subnet err: %v", err)
-			return errors.New("searching network configuration failed")
-		}
-
-		// sort and get the lowest
-		subnet := subnets.WithMostIps()
-
-		group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
-		if err != nil {
-			errLog("Checking security group err: %v", err)
-			return errors.New("checking security requirements failed")
-		}
-
-		a.Push("Checking base build image", normalize(30), machinestate.Building)
-		debugLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
-		image, err := a.ImageByTag(DefaultCustomAMITag)
-		if err != nil {
-			errLog("Checking ami tag failed err: %v", err)
-			return errors.New("checking base image failed")
-		}
-
-		// Use this ami id, which is going to be a stable one
-		a.Builder.SourceAmi = image.Id
-
-		device := image.BlockDevices[0]
-
-		// Increase storage if it's passed to us, otherwise the default 3GB is
-		// created already with the default AMI
-		a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-			DeviceName:          device.DeviceName,
-			VirtualName:         device.VirtualName,
-			SnapshotId:          device.SnapshotId,
-			VolumeType:          "standard", // Use magnetic storage because it is cheaper
-			VolumeSize:          int64(a.Builder.StorageSize),
-			DeleteOnTermination: true,
-			Encrypted:           false,
-		}
-
-		debugLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-			subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
-		a.Builder.SecurityGroupId = group.Id
-		a.Builder.SubnetId = subnet.SubnetId
-		a.Builder.Zone = subnet.AvailabilityZone
-
-		currentZone = subnet.AvailabilityZone
-
-		// add our Koding keypair
-		a.Builder.KeyPair = p.KeyName
-
-		return nil
+	if err := p.checkFunc(m, buildData); err != nil {
+		return nil, err
 	}
 
 	a.Push("Generating user data", normalize(40), machinestate.Building)
 	kiteUUID, err := uuid.NewV4()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	kiteId := kiteUUID.String()
@@ -188,7 +95,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	// user data is now ready!
-	a.Builder.UserData = userdata
+	buildData.UserData = userdata
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
@@ -218,9 +125,15 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
-				if zone == currentZone {
+				if zone == buildData.AvailZone {
 					// skip it because that's one is causing problems and doesn't have any capacity
 					continue
+				}
+
+				subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
+				if err != nil {
+					errLog("Searching subnet err: %v", err)
+					return errors.New("searching network configuration failed")
 				}
 
 				subnet, err := subnets.AvailabilityZone(zone)
@@ -228,7 +141,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 					continue // shouldn't be happen, but let be safe
 				}
 
-				group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
+				group, err := a.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
 				if err != nil {
 					errLog("Checking security group err: %v", err)
 					return errors.New("checking security requirements failed")
@@ -373,14 +286,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil
 	}
 
-	type StepFunc struct {
-		Fn  func() error
-		Msg string
-	}
-
 	steps := []func() error{
-		checkFunc,
-		validateFunc,
 		buildFunc,
 		afterBuildFunc,
 		checkKiteFunc,
@@ -394,6 +300,105 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	return buildArtifact, nil
+}
+
+func (p *Provider) getBuildData(a *amazon.AmazonClient) (*ec2.RunInstances, error) {
+	// get all subnets belonging to Kloud
+	subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	subnet := subnets.WithMostIps()
+
+	group, err := a.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	image, err := a.ImageByTag(DefaultCustomAMITag)
+	if err != nil {
+		return nil, err
+	}
+
+	device := image.BlockDevices[0]
+
+	storageSize := 3 // default AMI 3GB size
+	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
+		storageSize = a.Builder.StorageSize
+	}
+
+	// Increase storage if it's passed to us, otherwise the default 3GB is
+	// created already with the default AMI
+	blockDeviceMapping := ec2.BlockDeviceMapping{
+		DeviceName:          device.DeviceName,
+		VirtualName:         device.VirtualName,
+		SnapshotId:          device.SnapshotId,
+		VolumeType:          "standard", // Use magnetic storage because it is cheaper
+		VolumeSize:          int64(storageSize),
+		DeleteOnTermination: true,
+		Encrypted:           false,
+	}
+
+	p.Log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+
+	if a.Builder.InstanceType == "" {
+		p.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro")
+		a.Builder.InstanceType = T2Micro.String()
+	}
+
+	return &ec2.RunInstances{
+		ImageId:                  image.Id,
+		MinCount:                 1,
+		MaxCount:                 1,
+		KeyName:                  p.KeyName,
+		InstanceType:             a.Builder.InstanceType,
+		AssociatePublicIpAddress: true,
+		SubnetId:                 subnet.SubnetId,
+		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
+		AvailZone:                subnet.AvailabilityZone,
+		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
+	}, nil
+}
+
+func (p *Provider) checkFunc(m *protocol.Machine, buildData *ec2.RunInstances) error {
+	errLog := p.GetCustomLogger(m.Id, "error")
+
+	// Check for total machine allowance
+	checker, err := p.PlanChecker(m)
+	if err != nil {
+		return err
+	}
+
+	if err := checker.Total(); err != nil {
+		errLog("Checking total machine err: %s", err)
+		return err
+	}
+
+	if err := checker.AlwaysOn(); err != nil {
+		errLog("Checking always on limit err: %s", err)
+		return err
+	}
+
+	p.Log.Debug("[%s] Check if user is allowed to create instance type %s",
+		m.Id, buildData.InstanceType)
+
+	// check if the user is egligible to create a vm with this instance type
+	if err := checker.AllowedInstances(instances[buildData.InstanceType]); err != nil {
+		p.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
+			m.Id, buildData.InstanceType)
+		buildData.InstanceType = T2Micro.String()
+	}
+
+	// check if the user is egligible to create a vm with this size
+	if err := checker.Storage(int(buildData.BlockDevices[0].VolumeSize)); err != nil {
+		errLog("Checking storage size failed err: %v", err)
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) userDeployFunc(m *protocol.Machine, kiteId string) ([]byte, error) {
