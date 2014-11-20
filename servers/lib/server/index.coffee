@@ -305,6 +305,9 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
+      unless info
+        return res.status(500).send 'An error occurred'
+
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
@@ -364,7 +367,11 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.status(403).send err.message  if err?
+    if err
+      return res.status(403).send err.message
+    else if not info
+      return res.status(500).send 'An error occurred'
+
     res.cookie 'clientId', info.replacementToken, path : '/'
     res.status(200).end()
 
