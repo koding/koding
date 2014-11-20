@@ -81,6 +81,19 @@ class KodingKontrol extends (require 'kontrol')
     return kite
 
 
+  createKite: (options)->
+
+    {kite} = options
+
+    # If its trying to create a klient kite instance
+    # allow to use websockets by emptying the protocols_whitelist
+    if kite.name is 'klient'
+      options.transportOptions =
+        protocols_whitelist : []
+
+    super options
+
+
   getKite: (options = {}) ->
 
     @reauthenticate()  unless @kite?
@@ -89,7 +102,7 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
 
-    # If no `correlationName` is defined assume this kite instance 
+    # If no `correlationName` is defined assume this kite instance
     # is a singleton kite instance and keep track of it with this keyword
     correlationName ?= "singleton"
 
