@@ -1015,7 +1015,7 @@ class IDEAppController extends AppController
 
   createChatPane: ->
 
-    @startSession (err, [channel]) =>
+    @startChatSession (err, channel) =>
 
       return KD.showError err  if err
 
