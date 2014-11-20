@@ -1,13 +1,6 @@
-package main
+package metrics
 
 import "sync"
-
-var (
-	metrics = &Metrics{
-		Items: make([]*Metric, 0),
-		Mutex: &sync.Mutex{},
-	}
-)
 
 type Metrics struct {
 	Items []*Metric
@@ -19,7 +12,7 @@ type Metric struct {
 	Collector Collector
 }
 
-func registerMetric(metric *Metric) {
+func RegisterMetric(metrics *Metrics, metric *Metric) {
 	metrics.Mutex.Lock()
 	metrics.Items = append(metrics.Items, metric)
 	metrics.Mutex.Unlock()
