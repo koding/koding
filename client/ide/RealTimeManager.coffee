@@ -6,6 +6,8 @@ class RealTimeManager extends KDObject
 
     @isAuthenticated = no
 
+    @auth()
+
 
   setRealtimeDoc: (realtimeDoc) ->
     @realtimeDoc = realtimeDoc
@@ -29,6 +31,7 @@ class RealTimeManager extends KDObject
               gapi.auth.setToken authToken
 
               @emit 'ClientAuthenticated'
+              @emit 'ready'
               @isAuthenticated = yes
 
   reauth: ->
