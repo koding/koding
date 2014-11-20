@@ -27,6 +27,13 @@ class ActivityListController extends KDListViewController
       cssClass : 'no-item-found hidden'
       partial  : 'There is no activity.'
 
+    options.lazyLoaderOptions =
+      spinnerOptions  :
+        size          : width: 18, height: 18
+        loaderOptions :
+          shape       : 'spiral'
+          color       : '#9d9d9d'
+
     super options, data
 
     @hiddenItems = []
