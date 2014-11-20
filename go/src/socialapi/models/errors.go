@@ -39,5 +39,6 @@ var (
 
 	ErrChannelOrMessageIdIsNotSet = errors.New("channelId/messageId is not set")
 
-	ErrNotLoggedIn = errors.New("not logged in")
+	ErrNotLoggedIn     = errors.New("not logged in")
+	ErrAccountNotFound = errors.New("account not found")
 )

@@ -1,7 +1,6 @@
 package sender
 
 import (
-	"errors"
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/email/chatemail/common"
@@ -15,10 +14,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var (
-	ErrAccountNotFound = errors.New("account not found")
-	cronJob            *cron.Cron
-)
+var cronJob *cron.Cron
 
 const (
 	Schedule     = "0 * * * * *"
@@ -75,7 +71,7 @@ func (c *Controller) Run() {
 		// Fetch Account
 		account, err := c.NextAccount(strconv.Itoa(currentPeriod))
 		// no more pending notifications
-		if err == ErrAccountNotFound {
+		if err == models.ErrAccountNotFound {
 			c.log.Info("All accounts are notified")
 			return
 		}
