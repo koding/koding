@@ -65,3 +65,10 @@ class KodingKite extends KDObject
     @isDisconnected = yes
     @transport?.disconnect()
     @transport = null
+
+  reconnect:  ->
+    @transport?.disconnect()
+
+    KD.utils.wait 1000, =>
+      @transport?.connect()
+

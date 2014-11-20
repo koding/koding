@@ -42,6 +42,39 @@ class ActivityPane extends MessagePane
     @fakeMessageMap = {}
 
 
+  getActiveContentOptions: ->
+
+    panes =
+      '/Activity/Public/Liked'  : { name: 'mostLiked',  pane: @mostLiked }
+      '/Activity/Public/Recent' : { name: 'mostRecent', pane: @mostRecent }
+
+    path = KD.singletons.router.getCurrentPath()
+
+    return panes[path]
+
+
+  refreshContent: ->
+
+    return  if @fetching
+
+    options = @getActiveContentOptions()
+
+    @refreshContentPane options
+
+
+  refreshContentPane: (options) ->
+
+    { pane, name } = options
+    { listController } = pane
+
+    listController.showLazyLoader no
+
+    fetchOptions = {}
+    fetchOptions[name] = yes
+
+    @fetch fetchOptions, @createContentSetter name
+
+
   bindLazyLoader: ->
 
     @scrollView.wrapper.on 'LazyLoadThresholdReached', =>
@@ -154,15 +187,24 @@ class ActivityPane extends MessagePane
       @fetch options, @createContentSetter contentName
 
   putMessage: (message, index = 0) ->
-    {router} = KD.singletons
-    router.handleRoute '/Activity/Public/Recent'
+
+    {router}       = KD.singletons
+    currentPath    = router.getCurrentPath()
+    mostRecentPath = '/Activity/Public/Recent'
+
+    router.handleRoute mostRecent  unless currentPath is mostRecentPath
+
     @mostRecent.listController.addItem message, index
 
+
   contentMethod = (method) -> (contentName) -> (err, content) =>
+
     return KD.showError err  if err?
 
     @activeContent = @[contentName]
     @activeContent[method] content
+    @fetching = no
+
 
   createContentSetter: contentMethod 'setContent'
 

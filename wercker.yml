@@ -70,63 +70,63 @@ build:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
-    - script:
-        name: testing client started
-        code: |
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
-    - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
-    - script:
-        name: set up koding deployment key
-        code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
-    - script:
-        name: fetch pull requests
-        code: |
-          git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
-          git fetch --quiet origin
-    - mktemp:
-        envvar: GIT_REF
-    - script:
-        name: get git ref
-        code: |
-          REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
-          echo $REMOTE_BRANCH
-          scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
-    - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
-        envvar: INSTANCE_IP
-    - script:
-        name: launch test instance
-        code: |
-          scripts/wercker/launch-test-instance --gitref "$(cat $GIT_REF)" | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
-          echo $HOST > $INSTANCE_IP
-          if [ -z "$HOST)" ]; then exit 1; fi
-          scripts/wercker/check-connectivity $HOST 8090 1m 3
-          scripts/wercker/check-connectivity $HOST 4444 1m 2
-          sleep 120
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
-    - script:
-        name: run login test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
-    - script:
-        name: run activity test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
-    - script:
-        name: testing client finished
-        code: |
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
+    # - script:
+    #     name: testing client started
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
+    # - add-ssh-key:
+    #     keyname: DEPLOYMENT_KEY
+    # - script:
+    #     name: set up koding deployment key
+    #     code: |
+    #       chmod 600 $KODING_DEPLOYMENT_KEY
+    # - script:
+    #     name: fetch pull requests
+    #     code: |
+    #       git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
+    #       git fetch --quiet origin
+    # - mktemp:
+    #     envvar: GIT_REF
+    # - script:
+    #     name: get git ref
+    #     code: |
+    #       REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
+    #       echo $REMOTE_BRANCH
+    #       scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
+    # - mktemp:
+    #     envvar: INSTANCE_DATA
+    # - mktemp:
+    #     envvar: INSTANCE_IP
+    # - script:
+    #     name: launch test instance
+    #     code: |
+    #       scripts/wercker/launch-test-instance --gitref "$(cat $GIT_REF)" | tail -n1 > $INSTANCE_DATA
+    #       cat $INSTANCE_DATA
+    #       HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+    #       echo $HOST > $INSTANCE_IP
+    #       if [ -z "$HOST)" ]; then exit 1; fi
+    #       scripts/wercker/check-connectivity $HOST 8090 1m 3
+    #       scripts/wercker/check-connectivity $HOST 4444 1m 2
+    #       sleep 120
+    #       scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
+    # - script:
+    #     name: run login test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
+    # - script:
+    #     name: run activity test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
+    # - script:
+    #     name: testing client finished
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
-    - script:
-        name: terminate test instance
-        code: |
-          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          scripts/wercker/terminate-test-instance $INSTANCE_ID
+    # - script:
+    #     name: terminate test instance
+    #     code: |
+    #       INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
+    #       scripts/wercker/terminate-test-instance $INSTANCE_ID
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN

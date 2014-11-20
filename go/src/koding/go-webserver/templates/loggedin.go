@@ -36,8 +36,6 @@ var LoggedInHome = `
       })(document);
     </script>
 
-    {{template "analytics" }}
-
     <script>KD.socialApiData={{.User.GetWithDefault "SocialApiData" "null"}};</script>
 
     <script src='/a/js/kd.libs.js?{{.Version}}'></script>
