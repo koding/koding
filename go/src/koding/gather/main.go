@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 	"sync"
-
-	"github.com/codeskyblue/go-sh"
 )
 
 var (
@@ -24,48 +22,6 @@ type Metrics struct {
 type Metric struct {
 	Name      string
 	Collector Collector
-}
-
-type Collector interface {
-	Run() ([]byte, error)
-}
-
-type SingleCmd struct {
-	Cmd  string
-	Args []interface{}
-}
-
-func (s *SingleCmd) Run() ([]byte, error) {
-	return sh.Command(s.Cmd, s.Args...).Output()
-}
-
-type MultipleCmd struct {
-	Cmds []*SingleCmd
-}
-
-func (m *MultipleCmd) Run() ([]byte, error) {
-	firstCmd := m.Cmds[0]
-	cmdBucket := sh.Command(firstCmd.Cmd, firstCmd.Args...)
-
-	for _, cmd := range m.Cmds[1:] {
-		cmdBucket.Command(cmd.Cmd, cmd.Args...)
-	}
-
-	return cmdBucket.Output()
-}
-
-func NewSingleCmd(cmd string, args ...interface{}) *SingleCmd {
-	return &SingleCmd{Cmd: cmd, Args: args}
-}
-
-func NewMultipleCmd(cmds ...*SingleCmd) *MultipleCmd {
-	multipleCmds := &MultipleCmd{}
-
-	for _, cmd := range cmds {
-		multipleCmds.Cmds = append(multipleCmds.Cmds, cmd)
-	}
-
-	return multipleCmds
 }
 
 func registerMetric(metric *Metric) {
