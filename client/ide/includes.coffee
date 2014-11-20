@@ -74,5 +74,8 @@ module.exports = [
   "RealTimeManager.coffee"
   "views/modals/participantview.coffee"
   "views/modals/participantsmodal.coffee"
+  "views/chat/chatview.coffee"
+  "views/chat/messagepane.coffee"
+  "views/chat/settingspane.coffee"
 
 ]
