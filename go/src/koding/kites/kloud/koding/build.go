@@ -112,8 +112,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil
 	}
 
-	checkFunc()
-
 	a.Push("Generating and assigning data", normalize(20), machinestate.Building)
 	var currentZone string
 	var subnets amazon.Subnets
@@ -174,8 +172,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		return nil
 	}
-
-	validateFunc()
 
 	a.Push("Generating user data", normalize(40), machinestate.Building)
 	var kiteId string
@@ -256,8 +252,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		return nil
 	}
-
-	userdeployFunc()
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
@@ -367,11 +361,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return errors.New("build reached the end. all fallback mechanism steps failed.")
 	}
 
-	// kabalaba booom!
-	if err := buildFunc(); err != nil {
-		return nil, err
-	}
-
 	// cleanup build if something goes wrong here
 	defer func() {
 		if err != nil {
@@ -431,18 +420,36 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil
 	}
 
-	afterBuildFunc()
+	checkKiteFunc := func() error {
+		query := kiteprotocol.Kite{ID: kiteId}
+		buildArtifact.KiteQuery = query.String()
 
-	query := kiteprotocol.Kite{ID: kiteId}
-	buildArtifact.KiteQuery = query.String()
+		a.Push("Checking connectivity", normalize(75), machinestate.Building)
 
-	a.Push("Checking connectivity", normalize(75), machinestate.Building)
+		debugLog("Connecting to remote Klient instance")
+		if p.IsKlientReady(query.String()) {
+			debugLog("klient is ready.", m.Id)
+		} else {
+			p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
+		}
 
-	debugLog("Connecting to remote Klient instance")
-	if p.IsKlientReady(query.String()) {
-		debugLog("klient is ready.", m.Id)
-	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
+		return nil
+	}
+
+	steps := []func() error{
+		checkFunc,
+		validateFunc,
+		userdeployFunc,
+		buildFunc,
+		afterBuildFunc,
+		checkKiteFunc,
+	}
+
+	for i, fn := range steps {
+		fmt.Println("Building step %d", i)
+		if err := fn(); err != nil {
+			return nil, err
+		}
 	}
 
 	return buildArtifact, nil
