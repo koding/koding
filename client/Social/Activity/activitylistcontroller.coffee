@@ -29,7 +29,7 @@ class ActivityListController extends KDListViewController
 
     options.lazyLoaderOptions =
       spinnerOptions  :
-        size          : width: 18, height: 18
+        size          : width: 14, height: 14
         loaderOptions :
           shape       : 'spiral'
           color       : '#9d9d9d'
