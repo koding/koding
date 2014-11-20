@@ -12,14 +12,17 @@ class KodingKontrol extends (require 'kontrol')
     @reauthenticate()
 
   getAuthOptions: ->
-    autoConnect     : no
-    url             : @_kontrolUrl ? KD.config.newkontrol.url
-    auth            :
-      type          : 'sessionID'
-      key           : Cookies.get 'clientId'
-    transportClass  : SockJS
-    transportOptions:
-      heartbeatTimeout: 30 * 1000 # 30 seconds
+
+    autoConnect           : no
+    url                   : @_kontrolUrl ? KD.config.newkontrol.url
+    auth                  :
+      type                : 'sessionID'
+      key                 : Cookies.get 'clientId'
+    transportClass        : SockJS
+    transportOptions      :
+      heartbeatTimeout    : 30 * 1000 # 30 seconds
+      # Force XHR for all kind of kite connection
+      protocols_whitelist : ['xhr-polling', 'xhr-streaming']
 
 
   reauthenticate: ->
