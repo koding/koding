@@ -6,10 +6,16 @@ do ->
 
     if workspace
       loadIDE { machine, workspace, username }
+
     else
       if workspaceSlug is 'my-workspace'
-        workspace = isDefault: yes, slug: 'my-workspace', machineLabel: machine?.slug or machine?.label
+        workspace =
+          isDefault    : yes
+          slug         : 'my-workspace'
+          machineLabel : machine?.slug or machine?.label
+
         loadIDE { machine, workspace, username }
+
       else
         routeToLatestWorkspace()
 
@@ -33,6 +39,7 @@ do ->
 
 
   loadIDE = (data) ->
+
     { machine, workspace, username } = data
 
     appManager = KD.getSingleton 'appManager'
