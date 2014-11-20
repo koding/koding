@@ -145,9 +145,9 @@ class IDE.EditorPane extends IDE.Pane
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
     color          = KD.utils.getColorFromString username
-    widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight + 2}px;"
-    lineCssClass   = 'ace-line-widget'
-    cursorCssClass = "ace-participant-cursor ace-cursor-#{KD.nick()}"
+    widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;"
+    lineCssClass   = "ace-line-widget ace-line-widget-#{KD.nick()}"
+    cursorCssClass = 'ace-participant-cursor'
     cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
@@ -158,6 +158,8 @@ class IDE.EditorPane extends IDE.Pane
 
     if oldWidget
       widgetManager.removeLineWidget oldWidget
+
+    $(".ace-line-widget-#{KD.nick()}").remove()
 
     lineWidgetOptions =
       row        : row
