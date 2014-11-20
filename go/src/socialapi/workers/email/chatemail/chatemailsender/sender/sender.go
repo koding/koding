@@ -124,7 +124,7 @@ func (c *Controller) NextAccount(period string) (*models.Account, error) {
 	key := common.PeriodAccountSetKey(period)
 	val, err := c.redisConn.PopSetMember(key)
 	if err == redis.ErrNil {
-		return nil, ErrAccountNotFound
+		return nil, models.ErrAccountNotFound
 	}
 
 	if err != nil {
@@ -139,7 +139,7 @@ func (c *Controller) NextAccount(period string) (*models.Account, error) {
 	a.Id = accountId
 
 	// directyle delete it from AccountNextPeriod hash set for sending further e-mails
-	if err := common.DeleteAccountNextPeriod(c.redisConn, a); err != nil {
+	if err := common.ResetMailingPeriodForAccount(c.redisConn, a); err != nil {
 		return nil, err
 	}
 

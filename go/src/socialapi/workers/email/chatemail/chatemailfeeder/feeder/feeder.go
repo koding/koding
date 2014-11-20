@@ -4,9 +4,9 @@
 // This periods are circular, which leads when the time is 16:56 next mailing period is going to be 6
 
 // Three different redis key is needed here
-// 1- AccountNextPeriod hashset: It stores next notification mailing period for each account
-// 2- PeriodAccountId set: It stores notified accounts for each given time period
-// 3- AccountId: stores account ChannelId:CreatedAt information for each message
+// 1- AccountNextPeriod hashset (AccountMailingPeriod): It stores notification mailing period for each account
+// 2- PeriodAccountId set (Notifiee Queue): It stores notified accounts for each given time period
+// 3- AccountId (AccountChannelNotifications): stores account ChannelId:CreatedAt information for each message
 package feeder
 
 import (
@@ -93,7 +93,7 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 
 	ch := models.NewChannel()
 	ch.Id = cp.ChannelId
-	nextPeriod, err := c.getAccountNextNotificationPeriod(a)
+	nextPeriod, err := c.getMailingPeriod(a)
 	// no awaiting notifications
 	if err == ErrPeriodNotFound {
 		return nil
@@ -103,36 +103,48 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 		return err
 	}
 
-	// TODO this can be taken into a MULTI execution
-	count, err := c.deletePendingNotification(a, ch, nextPeriod)
+	hasPendingNotification, err := c.deletePendingNotifications(a, ch, nextPeriod)
 	if err != nil {
 		return err
 	}
 
 	// there is not any pending notification mail for the channel
-	if count == 0 {
+	if !hasPendingNotification {
 		return nil
 	}
 
-	pending, err := c.getPendingNotificationCount(a, nextPeriod)
+	hasUnglancedChannels, err := c.hasUnglancedChannels(a, nextPeriod)
 	if err != nil {
 		return err
 	}
 
-	if pending != 0 {
+	if hasUnglancedChannels {
 		return nil
 	}
 
-	// when there is not any pending notifications, just delete the account next period value
-	return common.DeleteAccountNextPeriod(c.redis, a)
+	// when there is not any pending notifications (unglanced active channels),
+	// just reset the account mailing period value
+	return common.ResetMailingPeriodForAccount(c.redis, a)
 }
 
-func (c *Controller) deletePendingNotification(a *models.Account, ch *models.Channel, nextPeriod string) (int, error) {
-	return c.redis.DeleteHashSetField(common.AccountChannelHashSetKey(a.Id, nextPeriod), strconv.FormatInt(ch.Id, 10))
+// deletePendingNotification deletes notification information for given account, and channel. It returns
+// true when there are pending notifications, false otherwise
+func (c *Controller) deletePendingNotifications(a *models.Account, ch *models.Channel, nextPeriod string) (bool, error) {
+	count, err := c.redis.DeleteHashSetField(common.AccountChannelHashSetKey(a.Id, nextPeriod), strconv.FormatInt(ch.Id, 10))
+	if err != nil {
+		return false, err
+	}
+
+	return count == 1, nil
 }
 
-func (c *Controller) getPendingNotificationCount(a *models.Account, nextPeriod string) (int, error) {
-	return c.redis.GetHashLength(common.AccountChannelHashSetKey(a.Id, nextPeriod))
+func (c *Controller) hasUnglancedChannels(a *models.Account, nextPeriod string) (bool, error) {
+	count, err := c.redis.GetHashLength(common.AccountChannelHashSetKey(a.Id, nextPeriod))
+	if err != nil {
+		return false, err
+	}
+
+	return count == 1, nil
 }
 
 func (c *Controller) fetchParticipantIds(cm *models.ChannelMessage) ([]int64, error) {
@@ -155,24 +167,24 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 		return nil
 	}
 
-	nextPeriod, err := c.updateAccountNextPeriodSet(a)
+	nextPeriod, err := c.getOrCreateMailingPeriod(a)
 	if err != nil {
 		return err
 	}
 
-	if err := c.updateNextPeriodSet(nextPeriod, accountId); err != nil {
+	if err := c.addAccountToNotifieeQueue(nextPeriod, accountId); err != nil {
 		return err
 	}
 
-	return c.updateAccountChannelHashSet(nextPeriod, accountId, cm)
+	return c.addMessageToAccountChannelNotifications(nextPeriod, accountId, cm)
 }
 
-// updateAccountNextPeriodSet updates the Account-Segment hash set and returns
+// getOrCreateMailingPeriod updates the Account-Segment hash set and returns
 // the next mailing period of the account
-func (c *Controller) updateAccountNextPeriodSet(a *models.Account) (string, error) {
+func (c *Controller) getOrCreateMailingPeriod(a *models.Account) (string, error) {
 	field := strconv.FormatInt(a.Id, 10)
 
-	nextPeriod, err := c.getAccountNextNotificationPeriod(a)
+	nextPeriod, err := c.getMailingPeriod(a)
 	// if not exist get new mailing period for the account
 	if err == ErrPeriodNotFound {
 		nextPeriod = common.GetNextMailPeriod()
@@ -191,7 +203,7 @@ func (c *Controller) updateAccountNextPeriodSet(a *models.Account) (string, erro
 	return nextPeriod, nil
 }
 
-func (c *Controller) getAccountNextNotificationPeriod(a *models.Account) (string, error) {
+func (c *Controller) getMailingPeriod(a *models.Account) (string, error) {
 	values, err := c.redis.GetHashMultipleSet(common.AccountNextPeriodHashSetKey(), a.Id)
 	if err != nil {
 		return "", err
@@ -209,7 +221,7 @@ func (c *Controller) getAccountNextNotificationPeriod(a *models.Account) (string
 	return nextPeriod, nil
 }
 
-func (c *Controller) updateNextPeriodSet(period string, accountId int64) error {
+func (c *Controller) addAccountToNotifieeQueue(period string, accountId int64) error {
 	_, err := c.redis.AddSetMembers(common.PeriodAccountSetKey(period), strconv.FormatInt(accountId, 10))
 	if err != nil {
 		return err
@@ -218,7 +230,7 @@ func (c *Controller) updateNextPeriodSet(period string, accountId int64) error {
 	return nil
 }
 
-func (c *Controller) updateAccountChannelHashSet(period string, accountId int64, cm *models.ChannelMessage) error {
+func (c *Controller) addMessageToAccountChannelNotifications(period string, accountId int64, cm *models.ChannelMessage) error {
 	key := common.AccountChannelHashSetKey(accountId, period)
 	channelId := strconv.FormatInt(cm.InitialChannelId, 10)
 	awaySince := strconv.FormatInt(cm.CreatedAt.UnixNano(), 10)

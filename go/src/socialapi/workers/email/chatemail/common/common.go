@@ -58,7 +58,7 @@ func GetCurrentMailPeriod() int {
 	return nextPeriod
 }
 
-func DeleteAccountNextPeriod(redisConn *redis.RedisSession, a *models.Account) error {
+func ResetMailingPeriodForAccount(redisConn *redis.RedisSession, a *models.Account) error {
 	_, err := redisConn.DeleteHashSetField(AccountNextPeriodHashSetKey(), strconv.FormatInt(a.Id, 10))
 
 	return err
