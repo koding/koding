@@ -279,6 +279,7 @@ module.exports =
     helpers.beginTest(browser)
 
     image = 'http://placehold.it/200x100'
+    selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
 
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
@@ -286,13 +287,10 @@ module.exports =
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', image
+      .click                  '.channel-title'
+      .waitForElementVisible  '.activity-input-widget .embed-image-view', 20000
       .click                  '[testpath=post-activity-button]'
-      .pause                  6000 # required
-
-    selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
-
-    browser
-      .waitForElementVisible selector, 20000# Assertion
+      .waitForElementVisible   selector, 20000# Assertion
       .end()
 
 
