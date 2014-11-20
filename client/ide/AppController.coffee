@@ -1030,13 +1030,47 @@ class IDEAppController extends AppController
     @chat.show()
 
 
-  startSession: (callback) ->
+  startChatSession: (callback) ->
 
     {message} = KD.singletons.socialapi
     nick      = KD.nick()
 
     message.initPrivateMessage
-      body       : "@#{nick} initiated an IDE session."
+      body       : "@#{nick} initiated the IDE session."
+      purpose    : "IDE #{dateFormat 'HH:MM'}"
       recipients : [ nick ]
+    , (err, channels) =>
+
+      return callback err  if err or (not Array.isArray(channels) and not channels[0])
+
+
+      [channel]      = channels
+      @socialChannel = channel
+
+      return callback null, channel
+
+
+  startCollaborationSession: (callback) ->
+
+    return callback msg : 'no social channel'  unless @socialChannel
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.sendPrivateMessage
+      body       : "@#{nick} activated collaboration."
+      channelId  : @socialChannel.id
     , callback
 
+
+  stopCollaborationSession: (callback) ->
+
+    return callback msg : 'no social channel'  unless @socialChannel
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.sendPrivateMessage
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      channelId  : @socialChannel.id
+    , callback
