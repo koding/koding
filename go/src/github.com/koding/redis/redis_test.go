@@ -313,6 +313,15 @@ func TestHashMultipleSet(t *testing.T) {
 		t.Errorf("Wrong hashset value of the element: %s", response)
 	}
 
+	value, err := session.GetHashSetField("mayhem", "zoot")
+	if err != nil {
+		t.Errorf("Could not get hash set field value: %s", err)
+	}
+
+	if value != "sax" {
+		t.Errorf("Wrong hashset field value: %s", err)
+	}
+
 	result, err := session.HashSetIfNotExists("mayhem", "janice", "ukulele")
 	if err != nil {
 		t.Errorf("Could not set hash field: %s", err)

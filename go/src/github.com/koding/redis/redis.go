@@ -310,6 +310,11 @@ func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]in
 	return redis.Values(r.Do("HMGET", prefixedReq...))
 }
 
+// GetHashSetField returns value of the given field of the hash set
+func (r *RedisSession) GetHashSetField(key string, field string) (string, error) {
+	return redis.String(r.Do("HGET", r.AddPrefix(key), field))
+}
+
 // HashGetAll returns all of the fields of a hash value
 // Usage: HashGetAll(key)
 func (r *RedisSession) HashGetAll(key string) ([]interface{}, error) {
