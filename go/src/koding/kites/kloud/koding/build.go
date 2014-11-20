@@ -94,7 +94,8 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// check if the user is egligible to create a vm with this instance type
 		if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-			a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
+			a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
+				m.Id, a.Builder.InstanceType)
 			a.Builder.InstanceType = T2Micro.String()
 		}
 
@@ -174,84 +175,20 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	a.Push("Generating user data", normalize(40), machinestate.Building)
-	var kiteId string
-	userdeployFunc := func() error {
-		kiteUUID, err := uuid.NewV4()
-		if err != nil {
-			panic(err)
-		}
-
-		kiteId = kiteUUID.String()
-
-		kiteKey, err := p.createKey(m.Username, kiteId)
-		if err != nil {
-			return err
-		}
-
-		latestKlientPath, err := p.Bucket.LatestDeb()
-		if err != nil {
-			errLog("Checking klient S3 path failed: %v", err)
-			return errors.New("machine initialization requirements failed [1]")
-		}
-
-		latestKlientUrl := p.Bucket.URL(latestKlientPath)
-
-		// Use cloud-init for initial configuration of the VM
-		cloudInitConfig := &CloudInitConfig{
-			Username:        m.Username,
-			UserDomain:      m.Domain.Name,
-			Hostname:        m.Username, // no typo here. hostname = username
-			KiteKey:         kiteKey,
-			LatestKlientURL: latestKlientUrl,
-			ApachePort:      DefaultApachePort,
-			KitePort:        DefaultKitePort,
-		}
-
-		// check if the user has some keys
-		if keyData, ok := m.Builder["user_ssh_keys"]; ok {
-			if keys, ok := keyData.([]string); ok && len(keys) > 0 {
-				for _, key := range keys {
-					// validate the public keys
-					_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
-					if err != nil {
-						errLog(`User (%s) has an invalid public SSH key.
-							Not adding it to the authorized keys.
-							Key: %s. Err: %v`, m.Username, key, err)
-						continue
-					}
-					cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
-				}
-			}
-		}
-
-		var userdata bytes.Buffer
-		err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
-		if err != nil {
-			errLog("Template execution failed: %v", err)
-			return errors.New("machine initialization requirements failed [2]")
-		}
-
-		// validate the userdata first before sending
-		if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
-			// write to temporary file so we can see the yaml file that is not
-			// formatted in a good way.
-			f, err := ioutil.TempFile("", "kloud-cloudinit")
-			if err == nil {
-				if _, err := f.WriteString(userdata.String()); err != nil {
-					errLog("Cloudinit temporary field couldn't be written %v", err)
-				}
-			}
-
-			errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
-				f.Name())
-			return errors.New("Cloudinit template is not a valid YAML file.")
-		}
-
-		// user data is now ready!
-		a.Builder.UserData = userdata.Bytes()
-
-		return nil
+	kiteUUID, err := uuid.NewV4()
+	if err != nil {
+		panic(err)
 	}
+
+	kiteId := kiteUUID.String()
+
+	userdata, err := p.userDeployFunc(m, kiteId)
+	if err != nil {
+		return nil, err
+	}
+
+	// user data is now ready!
+	a.Builder.UserData = userdata
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
@@ -436,23 +373,98 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil
 	}
 
+	type StepFunc struct {
+		Fn  func() error
+		Msg string
+	}
+
 	steps := []func() error{
 		checkFunc,
 		validateFunc,
-		userdeployFunc,
 		buildFunc,
 		afterBuildFunc,
 		checkKiteFunc,
 	}
 
 	for i, fn := range steps {
-		fmt.Println("Building step %d", i)
+		fmt.Printf("Building step %d \n", i)
 		if err := fn(); err != nil {
 			return nil, err
 		}
 	}
 
 	return buildArtifact, nil
+}
+
+func (p *Provider) userDeployFunc(m *protocol.Machine, kiteId string) ([]byte, error) {
+	errLog := p.GetCustomLogger(m.Id, "error")
+
+	kiteKey, err := p.createKey(m.Username, kiteId)
+	if err != nil {
+		return nil, err
+	}
+
+	latestKlientPath, err := p.Bucket.LatestDeb()
+	if err != nil {
+		errLog("Checking klient S3 path failed: %v", err)
+		return nil, errors.New("machine initialization requirements failed [1]")
+	}
+
+	latestKlientUrl := p.Bucket.URL(latestKlientPath)
+
+	// Use cloud-init for initial configuration of the VM
+	cloudInitConfig := &CloudInitConfig{
+		Username:        m.Username,
+		UserDomain:      m.Domain.Name,
+		Hostname:        m.Username, // no typo here. hostname = username
+		KiteKey:         kiteKey,
+		LatestKlientURL: latestKlientUrl,
+		ApachePort:      DefaultApachePort,
+		KitePort:        DefaultKitePort,
+	}
+
+	// check if the user has some keys
+	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
+		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
+			for _, key := range keys {
+				// validate the public keys
+				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+				if err != nil {
+					errLog(`User (%s) has an invalid public SSH key.
+							Not adding it to the authorized keys.
+							Key: %s. Err: %v`, m.Username, key, err)
+					continue
+				}
+				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
+			}
+		}
+	}
+
+	var userdata bytes.Buffer
+	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
+	if err != nil {
+		errLog("Template execution failed: %v", err)
+		return nil, errors.New("machine initialization requirements failed [2]")
+	}
+
+	// validate the userdata first before sending
+	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
+		// write to temporary file so we can see the yaml file that is not
+		// formatted in a good way.
+		f, err := ioutil.TempFile("", "kloud-cloudinit")
+		if err == nil {
+			if _, err := f.WriteString(userdata.String()); err != nil {
+				errLog("Cloudinit temporary field couldn't be written %v", err)
+			}
+		}
+
+		errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
+			f.Name())
+		return nil, errors.New("Cloudinit template is not a valid YAML file.")
+	}
+
+	return userdata.Bytes(), nil
+
 }
 
 // CreateKey signs a new key and returns the token back
