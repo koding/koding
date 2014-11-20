@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/request"
 	"socialapi/workers/common/runner"
 	"testing"
 	"time"
@@ -449,26 +450,23 @@ func TestChannelMessageFetchLatestMessages(t *testing.T) {
 		cm3 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 		cm4 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 
-		Convey("it should have channel id", func() {
-			c := NewChannelMessage()
-			_, err := c.FetchLatestChannelMessages(3)
-			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-		})
+		query := request.NewQuery()
+		query.Limit = 3
+		query.AddSortField("CreatedAt", request.ORDER_DESC)
+		query.Type = ChannelMessage_TYPE_PRIVATE_MESSAGE
 
 		Convey("first user should see last three messages when no parameters are set", func() {
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			cms, err := c.FetchLatestChannelMessages(3)
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
 			So(err, ShouldBeNil)
 			So(len(cms), ShouldEqual, 3)
 			So(cms[2].Id, ShouldEqual, cm2.Id)
 		})
 
 		Convey("first user should see one message when their account id is excluded", func() {
+			query.ExcludeField("AccountId", cm1.AccountId)
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			c.AccountId = cm1.AccountId
-			cms, err := c.FetchLatestChannelMessages(3)
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
 			So(err, ShouldBeNil)
 			So(len(cms), ShouldEqual, 1)
 			So(cms[0].Id, ShouldEqual, cm2.Id)
@@ -476,10 +474,10 @@ func TestChannelMessageFetchLatestMessages(t *testing.T) {
 
 		Convey("second user should see two messages starting with their own message", func() {
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			c.AccountId = cm2.AccountId
-			c.CreatedAt = cm2.CreatedAt
-			cms, err := c.FetchLatestChannelMessages(3)
+			query.ExcludeField("AccountId", cm2.AccountId)
+			query.From = cm2.CreatedAt
+
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
 			So(err, ShouldBeNil)
 			So(len(cms), ShouldEqual, 2)
 			So(cms[0].Id, ShouldEqual, cm4.Id)
@@ -488,11 +486,10 @@ func TestChannelMessageFetchLatestMessages(t *testing.T) {
 
 		Convey("third user should see three messages when all parameters are set", func() {
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			c.AccountId = accounts[2].Id
-			c.CreatedAt = cm1.CreatedAt
+			query.ExcludeField("AccountId", accounts[2].Id)
+			query.From = cm1.CreatedAt
 
-			cms, err := c.FetchLatestChannelMessages(3)
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
 			So(err, ShouldBeNil)
 			So(len(cms), ShouldEqual, 3)
 			So(cms[0].Id, ShouldEqual, cm4.Id)
@@ -516,25 +513,22 @@ func TestChannelMessageFetchMessageCount(t *testing.T) {
 		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
 
-		Convey("it should have channel id", func() {
-			c := NewChannelMessage()
-			_, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
-			So(err, ShouldEqual, ErrChannelIdIsNotSet)
-		})
+		query := request.NewQuery()
+		query.Type = ChannelMessage_TYPE_PRIVATE_MESSAGE
+		query.GroupChannelId = channel.Id
+		query.From = cm1.CreatedAt
 
 		Convey("first user should see 4 messages when their account is not excluded", func() {
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			count, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
+			count, err := c.FetchTotalMessageCount(query)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 4)
 		})
 
 		Convey("second user should see 3 messages then their account is excluded", func() {
 			c := NewChannelMessage()
-			c.InitialChannelId = channel.Id
-			c.AccountId = accounts[1].Id
-			count, err := c.FetchChannelMessageCountSince(cm1.CreatedAt)
+			query.ExcludeField("AccountId", accounts[1].Id)
+			count, err := c.FetchTotalMessageCount(query)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 3)
 		})
