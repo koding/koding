@@ -109,8 +109,12 @@ func fetchChannelMessageCount(a *models.Account, ch *models.Channel, awaySince t
 	return cm.FetchTotalMessageCount(q)
 }
 
+// buildMessageSummarries iterates over messages and decorates MessageGroupSummary
+// It also groups messages, so if there are two consecutive messages belongs to the same user
+// it is grouped under MessageGroupSummary.
 func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSummary, error) {
 	mss := make([]*MessageGroupSummary, 0)
+	// each consequent user will have another MessageGroup
 	currentGroup := NewMessageGroupSummary()
 	if len(messages) == 0 {
 		return mss, nil
@@ -122,19 +126,22 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 		ms.Body = message.Body
 		ms.Time = message.CreatedAt.Format(TimeLayout)
 
-		// if message has the same creator with the previous one
+		// add message to message group since their sender accounts are same
 		if message.AccountId == currentGroup.AccountId {
 			currentGroup.AddMessage(ms)
 			continue
 		}
+		// Different message sender so create a new group
 		mg := NewMessageGroupSummary()
-		// if current group has valid data
+		// when currentGroup is not empty and add it to result array
 		if currentGroup.AccountId != 0 {
 			*mg = *currentGroup
 			mss = append(mss, mg)
 		}
 
+		// and create a new group
 		currentGroup = NewMessageGroupSummary()
+
 		a, err := models.FetchAccountById(message.AccountId)
 		if err != nil {
 			return mss, err
@@ -146,9 +153,11 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 		}
 		currentGroup.Hash = ma.Profile.Hash
 		currentGroup.AccountId = message.AccountId
+		// push the latest message to the new message group
 		currentGroup.AddMessage(ms)
 	}
 
+	// when last message has different owner append its message group to array
 	if len(mss) == 0 || currentGroup.AccountId != mss[len(mss)-1].AccountId {
 		mss = append(mss, currentGroup)
 	}
