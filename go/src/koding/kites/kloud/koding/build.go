@@ -67,176 +67,197 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	errLog := p.GetCustomLogger(m.Id, "error")
 	debugLog := p.GetCustomLogger(m.Id, "debug")
 
-	// Check for total amachine allowance
-	checker, err := p.PlanChecker(m)
-	if err != nil {
-		return nil, err
+	a.Push("Checking initial data", normalize(10), machinestate.Building)
+	checkFunc := func() error {
+		// Check for total machine allowance
+		checker, err := p.PlanChecker(m)
+		if err != nil {
+			return err
+		}
+
+		if err := checker.Total(); err != nil {
+			errLog("Checking total machine err: %s", err)
+			return err
+		}
+
+		if err := checker.AlwaysOn(); err != nil {
+			errLog("Checking always on limit err: %s", err)
+			return err
+		}
+
+		debugLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+
+		if a.Builder.InstanceType == "" {
+			a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
+			a.Builder.InstanceType = T2Micro.String()
+		}
+
+		// check if the user is egligible to create a vm with this instance type
+		if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
+			a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
+			a.Builder.InstanceType = T2Micro.String()
+		}
+
+		storageSize := 3 // default AMI 3GB size
+		if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
+			storageSize = a.Builder.StorageSize
+		}
+
+		// check if the user is egligible to create a vm with this size
+		if err := checker.Storage(storageSize); err != nil {
+			errLog("Checking storage size failed err: %v", err)
+			return err
+		}
+
+		return nil
 	}
 
-	if err := checker.Total(); err != nil {
-		errLog("Checking total machine err: %s", err)
-		return nil, err
-	}
+	checkFunc()
 
-	if err := checker.AlwaysOn(); err != nil {
-		errLog("Checking always on limit err: %s", err)
-		return nil, err
-	}
-
-	debugLog("build is using region: '%s'", m.Id, a.Builder.Region)
-
-	a.Push("Initializing data", normalize(10), machinestate.Building)
-
-	a.Push("Checking network requirements", normalize(20), machinestate.Building)
-
-	// get all subnets belonging to Kloud
+	a.Push("Generating and assigning data", normalize(20), machinestate.Building)
+	var currentZone string
+	var subnets amazon.Subnets
 	kloudKeyName := "Kloud"
-	subnets, err := a.SubnetsWithTag(kloudKeyName)
-	if err != nil {
-		errLog("Searching subnet err: %v", err)
-		return nil, errors.New("searching network configuration failed")
+	validateFunc := func() error {
+		// get all subnets belonging to Kloud
+		var err error
+		subnets, err = a.SubnetsWithTag(kloudKeyName)
+		if err != nil {
+			errLog("Searching subnet err: %v", err)
+			return errors.New("searching network configuration failed")
+		}
+
+		// sort and get the lowest
+		subnet := subnets.WithMostIps()
+
+		group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
+		if err != nil {
+			errLog("Checking security group err: %v", err)
+			return errors.New("checking security requirements failed")
+		}
+
+		a.Push("Checking base build image", normalize(30), machinestate.Building)
+		debugLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
+		image, err := a.ImageByTag(DefaultCustomAMITag)
+		if err != nil {
+			errLog("Checking ami tag failed err: %v", err)
+			return errors.New("checking base image failed")
+		}
+
+		// Use this ami id, which is going to be a stable one
+		a.Builder.SourceAmi = image.Id
+
+		device := image.BlockDevices[0]
+
+		// Increase storage if it's passed to us, otherwise the default 3GB is
+		// created already with the default AMI
+		a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
+			DeviceName:          device.DeviceName,
+			VirtualName:         device.VirtualName,
+			SnapshotId:          device.SnapshotId,
+			VolumeType:          "standard", // Use magnetic storage because it is cheaper
+			VolumeSize:          int64(a.Builder.StorageSize),
+			DeleteOnTermination: true,
+			Encrypted:           false,
+		}
+
+		debugLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+			subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+		a.Builder.SecurityGroupId = group.Id
+		a.Builder.SubnetId = subnet.SubnetId
+		a.Builder.Zone = subnet.AvailabilityZone
+
+		currentZone = subnet.AvailabilityZone
+
+		// add our Koding keypair
+		a.Builder.KeyPair = p.KeyName
+
+		return nil
 	}
 
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
+	validateFunc()
 
-	group, err := a.SecurityGroupFromVPC(subnet.VpcId, kloudKeyName)
-	if err != nil {
-		errLog("Checking security group err: %v", err)
-		return nil, errors.New("checking security requirements failed")
-	}
+	a.Push("Generating user data", normalize(40), machinestate.Building)
+	var kiteId string
+	userdeployFunc := func() error {
+		kiteUUID, err := uuid.NewV4()
+		if err != nil {
+			panic(err)
+		}
 
-	a.Builder.SecurityGroupId = group.Id
-	a.Builder.SubnetId = subnet.SubnetId
-	a.Builder.Zone = subnet.AvailabilityZone
+		kiteId = kiteUUID.String()
 
-	debugLog("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+		kiteKey, err := p.createKey(m.Username, kiteId)
+		if err != nil {
+			return err
+		}
 
-	debugLog("Check if user is allowed to create instance type %s", a.Builder.InstanceType)
+		latestKlientPath, err := p.Bucket.LatestDeb()
+		if err != nil {
+			errLog("Checking klient S3 path failed: %v", err)
+			return errors.New("machine initialization requirements failed [1]")
+		}
 
-	if a.Builder.InstanceType == "" {
-		a.Log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro", m.Id)
-		a.Builder.InstanceType = T2Micro.String()
-	}
+		latestKlientUrl := p.Bucket.URL(latestKlientPath)
 
-	// check if the user is egligible to create a vm
-	if err := checker.AllowedInstances(instances[a.Builder.InstanceType]); err != nil {
-		a.Log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro", m.Id, a.Builder.InstanceType)
-		a.Builder.InstanceType = T2Micro.String()
-	}
+		// Use cloud-init for initial configuration of the VM
+		cloudInitConfig := &CloudInitConfig{
+			Username:        m.Username,
+			UserDomain:      m.Domain.Name,
+			Hostname:        m.Username, // no typo here. hostname = username
+			KiteKey:         kiteKey,
+			LatestKlientURL: latestKlientUrl,
+			ApachePort:      DefaultApachePort,
+			KitePort:        DefaultKitePort,
+		}
 
-	a.Push("Checking base build image", normalize(30), machinestate.Building)
-
-	debugLog("Checking if AMI with tag '%s' exists", DefaultCustomAMITag)
-	image, err := a.ImageByTag(DefaultCustomAMITag)
-	if err != nil {
-		errLog("Checking ami tag failed err: %v", err)
-		return nil, errors.New("checking base image failed")
-	}
-
-	// Use this ami id, which is going to be a stable one
-	a.Builder.SourceAmi = image.Id
-
-	storageSize := 3 // default AMI 3GB size
-	if a.Builder.StorageSize != 0 && a.Builder.StorageSize > 3 {
-		storageSize = a.Builder.StorageSize
-	}
-
-	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(storageSize); err != nil {
-		errLog("Checking storage size failed err: %v", err)
-		return nil, err
-	}
-
-	device := image.BlockDevices[0]
-
-	// Increase storage if it's passed to us, otherwise the default 3GB is
-	// created already with the default AMI
-	a.Builder.BlockDeviceMapping = &ec2.BlockDeviceMapping{
-		DeviceName:          device.DeviceName,
-		VirtualName:         device.VirtualName,
-		SnapshotId:          device.SnapshotId,
-		VolumeType:          "standard", // Use magnetic storage because it is cheaper
-		VolumeSize:          int64(a.Builder.StorageSize),
-		DeleteOnTermination: true,
-		Encrypted:           false,
-	}
-
-	kiteId, err := uuid.NewV4()
-	if err != nil {
-		panic(err)
-	}
-
-	kiteKey, err := p.createKey(m.Username, kiteId.String())
-	if err != nil {
-		return nil, err
-	}
-
-	latestKlientPath, err := p.Bucket.LatestDeb()
-	if err != nil {
-		errLog("Checking klient S3 path failed: %v", err)
-		return nil, errors.New("machine initialization requirements failed [1]")
-	}
-
-	latestKlientUrl := p.Bucket.URL(latestKlientPath)
-
-	// Use cloud-init for initial configuration of the VM
-	cloudInitConfig := &CloudInitConfig{
-		Username:        m.Username,
-		UserDomain:      m.Domain.Name,
-		Hostname:        m.Username, // no typo here. hostname = username
-		KiteKey:         kiteKey,
-		LatestKlientURL: latestKlientUrl,
-		ApachePort:      DefaultApachePort,
-		KitePort:        DefaultKitePort,
-	}
-
-	// check if the user has some keys
-	if keyData, ok := m.Builder["user_ssh_keys"]; ok {
-		if keys, ok := keyData.([]string); ok && len(keys) > 0 {
-			for _, key := range keys {
-				// validate the public keys
-				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
-				if err != nil {
-					errLog(`User (%s) has an invalid public SSH key.
+		// check if the user has some keys
+		if keyData, ok := m.Builder["user_ssh_keys"]; ok {
+			if keys, ok := keyData.([]string); ok && len(keys) > 0 {
+				for _, key := range keys {
+					// validate the public keys
+					_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+					if err != nil {
+						errLog(`User (%s) has an invalid public SSH key.
 							Not adding it to the authorized keys.
 							Key: %s. Err: %v`, m.Username, key, err)
-					continue
+						continue
+					}
+					cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
 				}
-				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
-			}
-		}
-	}
-
-	var userdata bytes.Buffer
-	err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
-	if err != nil {
-		errLog("Template execution failed: %v", err)
-		return nil, errors.New("machine initialization requirements failed [2]")
-	}
-
-	// validate the userdata first before sending
-	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
-		// write to temporary file so we can see the yaml file that is not
-		// formatted in a good way.
-		f, err := ioutil.TempFile("", "kloud-cloudinit")
-		if err == nil {
-			if _, err := f.WriteString(userdata.String()); err != nil {
-				errLog("Cloudinit temporary field couldn't be written %v", err)
 			}
 		}
 
-		errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
-			f.Name())
-		return nil, errors.New("Cloudinit template is not a valid YAML file.")
+		var userdata bytes.Buffer
+		err = cloudInitTemplate.Funcs(funcMap).Execute(&userdata, *cloudInitConfig)
+		if err != nil {
+			errLog("Template execution failed: %v", err)
+			return errors.New("machine initialization requirements failed [2]")
+		}
+
+		// validate the userdata first before sending
+		if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
+			// write to temporary file so we can see the yaml file that is not
+			// formatted in a good way.
+			f, err := ioutil.TempFile("", "kloud-cloudinit")
+			if err == nil {
+				if _, err := f.WriteString(userdata.String()); err != nil {
+					errLog("Cloudinit temporary field couldn't be written %v", err)
+				}
+			}
+
+			errLog("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
+				f.Name())
+			return errors.New("Cloudinit template is not a valid YAML file.")
+		}
+
+		// user data is now ready!
+		a.Builder.UserData = userdata.Bytes()
+
+		return nil
 	}
 
-	// user data is now ready!
-	a.Builder.UserData = userdata.Bytes()
-
-	// add our Koding keypair
-	a.Builder.KeyPair = p.KeyName
+	userdeployFunc()
 
 	var buildArtifact *protocol.Artifact
 	buildFunc := func() error {
@@ -263,8 +284,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 				return fmt.Errorf("couldn't fetch availability zones: %s", err)
 
 			}
-
-			currentZone := subnet.AvailabilityZone
 
 			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
 			for _, zone := range zones {
@@ -310,12 +329,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 			return errors.New("no other zones are available")
 		}
 
-		// 2. Try to build it on another region
-		regionFunc := func() error {
-			return &ec2.Error{Code: "InsufficientInstanceCapacity", Message: "not implemented yet"}
-		}
-
-		// 3. Try to use another instance
+		// 2. Try to use another instance
 		// TODO: do not choose an instance lower than the current user
 		// instance. Currently all we give is t2.micro, however it if the user
 		// has a t2.medium, we'll give them a t2.small if there is no capacity,
@@ -341,7 +355,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 
 		// We are going to to try each step and for each step if we get
 		// "InsufficentInstanceCapacity" error we move to the next one.
-		for _, fn := range []func() error{zoneFunc, regionFunc, instanceFunc} {
+		for _, fn := range []func() error{zoneFunc, instanceFunc} {
 			if err := fn(); err != nil {
 				p.Log.Error("Build failed. Moving to next fallback step: %s", err)
 				continue // pick up the next function
@@ -370,63 +384,56 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		}
 	}()
 
-	buildArtifact.MachineId = m.Id
+	afterBuildFunc := func() error {
+		// this can happen when an Info method is called on a terminated instance.
+		// This updates the DB records with the name that EC2 gives us, which is a
+		// "terminated-instance"
+		instanceName := m.Builder["instanceName"].(string)
+		if instanceName == "terminated-instance" {
+			instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+			debugLog("Instance name is an artifact (terminated), changing to %s", instanceName)
+		}
 
-	// this can happen when an Info method is called on a terminated instance.
-	// This updates the DB records with the name that EC2 gives us, which is a
-	// "terminated-instance"
-	instanceName := m.Builder["instanceName"].(string)
-	if instanceName == "terminated-instance" {
-		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		debugLog("Instance name is an artifact (terminated), changing to %s", instanceName)
-	}
+		a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
+		if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
+			return err
+		}
 
-	buildArtifact.InstanceName = instanceName
-
-	a.Push("Updating/Creating domain", normalize(70), machinestate.Building)
-	if err := p.UpdateDomain(buildArtifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		return nil, err
-	}
-
-	defer func() {
+		a.Push("Updating domain aliases", normalize(72), machinestate.Building)
+		domains, err := p.DomainStorage.GetByMachine(m.Id)
 		if err != nil {
-			p.Log.Warning("[%s] Cleaning up domain record. Deleting domain record: %s",
-				m.Id, m.Domain.Name)
-			if err := p.DNS.Delete(m.Domain.Name, buildArtifact.IpAddress); err != nil {
-				p.Log.Warning("[%s] Cleaning up domain failed: %v", m.Id, err)
+			p.Log.Error("[%s] fetching domains for setting err: %s", m.Id, err.Error())
+		}
+
+		for _, domain := range domains {
+			if err := p.UpdateDomain(buildArtifact.IpAddress, domain.Name, m.Username); err != nil {
+				p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
 			}
 		}
-	}()
 
-	a.Push("Updating domain aliases", normalize(72), machinestate.Building)
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
-	if err != nil {
-		p.Log.Error("[%s] fetching domains for setting err: %s", m.Id, err.Error())
-	}
+		buildArtifact.InstanceName = instanceName
+		buildArtifact.MachineId = m.Id
+		buildArtifact.DomainName = m.Domain.Name
 
-	for _, domain := range domains {
-		if err := p.UpdateDomain(buildArtifact.IpAddress, domain.Name, m.Username); err != nil {
-			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
+		tags := []ec2.Tag{
+			{Key: "Name", Value: buildArtifact.InstanceName},
+			{Key: "koding-user", Value: m.Username},
+			{Key: "koding-env", Value: p.Kite.Config.Environment},
+			{Key: "koding-machineId", Value: m.Id},
+			{Key: "koding-domain", Value: m.Domain.Name},
 		}
+
+		debugLog("Adding user tags %v", tags)
+		if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
+			errLog("Adding tags failed: %v", err)
+		}
+
+		return nil
 	}
 
-	tags := []ec2.Tag{
-		{Key: "Name", Value: buildArtifact.InstanceName},
-		{Key: "koding-user", Value: m.Username},
-		{Key: "koding-env", Value: p.Kite.Config.Environment},
-		{Key: "koding-machineId", Value: m.Id},
-		{Key: "koding-domain", Value: m.Domain.Name},
-	}
+	afterBuildFunc()
 
-	debugLog("Adding user tags %v", tags)
-	if err := a.AddTags(buildArtifact.InstanceId, tags); err != nil {
-		errLog("Adding tags failed: %v", err)
-		return nil, errors.New("machine initialization requirements failed [3]")
-	}
-
-	buildArtifact.DomainName = m.Domain.Name
-
-	query := kiteprotocol.Kite{ID: kiteId.String()}
+	query := kiteprotocol.Kite{ID: kiteId}
 	buildArtifact.KiteQuery = query.String()
 
 	a.Push("Checking connectivity", normalize(75), machinestate.Building)
