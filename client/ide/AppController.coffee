@@ -1040,6 +1040,23 @@ class IDEAppController extends AppController
     @rtm.ready => @statusBar.share.show()
 
 
+  createWorkspace: (options = {}) ->
+
+    name         = options.name or 'My Workspace'
+    rootPath     = "/home/#{KD.nick()}/"
+    {label, uid} = @mountedMachine
+
+    return KD.remote.api.JWorkspace.create
+      name         : name
+      label        : options.label        or label
+      machineUId   : options.machineUId   or uid
+      machineLabel : options.machineLabel or label
+      rootPath     : options.rootPath     or rootPath
+      isDefault    : name is 'My Workspace'
+      layout       : {} # don't know what this is for - SY
+
+
+  updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
   startChatSession: (callback) ->
 
     {message} = KD.singletons.socialapi
