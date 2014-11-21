@@ -131,11 +131,16 @@ func (c *Controller) StartWorker(currentPeriod int) {
 
 		// Decorate channel data
 		es := emailmodels.NewEmailSummary(channels)
+		if es.MessageCount == 0 {
+			c.log.Error("Private message notification email for account %d does not have any messages", account.Id)
+			continue
+		}
 
 		// Render body
 		body, err := es.Render()
 		if err != nil {
 			c.log.Error("Could not render body for account %d: %s", account.Id, err)
+			continue
 		}
 
 		// Send
