@@ -17,6 +17,10 @@ module.exports = class JWorkspace extends Module
     schema         :
       name         : String
       slug         : String
+      isDefault    :
+        type       : Boolean
+        default    : no
+      channelId    : String
       machineUId   : String
       machineLabel : String
       rootPath     : String
