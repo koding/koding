@@ -242,23 +242,27 @@ func (c *Controller) addAccountToNotifieeQueue(period string, accountId int64) e
 }
 
 func (c *Controller) addMessageToAccountChannelNotifications(period string, accountId int64, cm *models.ChannelMessage) error {
-	cml := models.NewChannelMessageList()
-	ids, err := cml.FetchMessageChannelIds(cm.Id)
-	if err != nil {
-		return err
-	}
+	// TODO instead of using cm.InitialChannelId i have tried fetching related channel
+	// from channel message list, but this relationships is created after the reception
+	// of ChannelMessageCreated event.
+	//
+	// cml := models.NewChannelMessageList()
+	// ids, err := cml.FetchMessageChannelIds(cm.Id)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if len(ids) == 0 {
-		return models.ErrChannelNotFound
-	}
+	// if len(ids) == 0 {
+	// 	return models.ErrChannelNotFound
+	// }
 
 	key := common.AccountChannelHashSetKey(accountId, period)
 	// TODO in the future when we notify accounts for public channels, instead of ids[0] parameter,
 	// we will need some logic
-	channelId := strconv.FormatInt(ids[0], 10)
+	channelId := strconv.FormatInt(cm.InitialChannelId, 10)
 	awaySince := strconv.FormatInt(cm.CreatedAt.UnixNano(), 10)
 	// add the first received message for channel
-	_, err = c.redis.HashSetIfNotExists(key, channelId, awaySince)
+	_, err := c.redis.HashSetIfNotExists(key, channelId, awaySince)
 	if err != nil {
 		return err
 	}
