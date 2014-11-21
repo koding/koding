@@ -328,7 +328,7 @@ class IDEAppController extends AppController
                 @machineStateModal.once 'MachineTurnOnStarted', =>
                   KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-          @prepareCollaboration()
+          @prepareCollaboration___()
 
           actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
           computeController.on "public-#{machineId}", (event) =>
@@ -1028,6 +1028,16 @@ class IDEAppController extends AppController
     return @createChatPane()  unless @chat
 
     @chat.show()
+
+
+  prepareCollaboration___: ->
+
+    @rtm          = new RealTimeManager
+    { channelId } = @workspaceData
+
+    # return @rtm.ready => @statusBar.share.show()  unless channelId
+
+    @rtm.ready => @statusBar.share.show()
 
 
   startChatSession: (callback) ->
