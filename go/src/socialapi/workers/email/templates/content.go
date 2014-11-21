@@ -30,7 +30,8 @@ const Gravatar = `
 `
 
 const Channel = `
-{{.Title}}
+</br>
+<b><a href="{{.Hostname}}/Activity/Message/{{.Name}}" style="text-decoration: none; color:#222"> {{.Title}}</a></b>
 <table width="100%" style="margin: 12px 0; font-size: 14px; color: #353535;" cellpadding="0" cellspacing="0">
   {{.Summary}}
 </table>
