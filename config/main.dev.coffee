@@ -459,7 +459,7 @@ Configuration = (options={}) ->
       function kill_all () {
         #{killlist()}
 
-        echo "killing hanged processes"
+        echo "killing hung processes"
         # there is race condition, that killlist() can not kill all process
         sleep 3
 
