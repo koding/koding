@@ -439,6 +439,12 @@ module.exports = class HomeViewFull extends KDView
           </li>          
           <li>
             <figure>
+              <img src='http://i.imgur.com/bLUIGvk.png' alt='Count.ly logo'/>
+              <figcaption><a href='http://count.ly?utm_source=koding' target='_blank'>Count.ly</a> will award an extra <strong>$1,000</strong> to the winning team if they have a Countly account.</figcaption>
+            </figure>
+          </li>          
+          <li>
+            <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
               <figcaption><a href='http://nginx.com' target=_blank>nginx</a> is adding an additional <strong>$2,000</strong> to the overall prize money for teams that use their web server as part of their final project  .</figcaption>
             </figure>
