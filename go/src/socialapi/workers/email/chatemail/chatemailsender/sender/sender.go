@@ -6,6 +6,7 @@ import (
 	"socialapi/workers/email/chatemail/common"
 	"socialapi/workers/email/emailmodels"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/koding/logging"
@@ -22,6 +23,7 @@ const (
 	MessageLimit = 3
 	Subject      = "[Koding] Chat notifications for %s"
 	DateLayout   = "Jan 2, 2006"
+	MAXROUTINES  = 4
 )
 
 type Controller struct {
@@ -87,6 +89,19 @@ func (c *Controller) SendEmails() {
 	currentPeriod := common.GetCurrentMailPeriod()
 	defer func() { c.ready <- struct{}{} }()
 
+	var wg sync.WaitGroup
+	for i := 0; i < MAXROUTINES; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			c.StartWorker(currentPeriod)
+		}()
+	}
+
+}
+
+func (c *Controller) StartWorker(currentPeriod int) {
 	for {
 		// Fetch Account
 		account, err := c.NextAccount(strconv.Itoa(currentPeriod))
