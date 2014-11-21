@@ -17,6 +17,10 @@ module.exports = class JWorkspace extends Module
     schema         :
       name         : String
       slug         : String
+      isDefault    :
+        type       : Boolean
+        default    : no
+      channelId    : String
       machineUId   : String
       machineLabel : String
       rootPath     : String
@@ -28,6 +32,7 @@ module.exports = class JWorkspace extends Module
         create     : signature Object, Function
         deleteById : signature String, Function
         deleteByUid: signature String, Function
+        update     : signature String, Object, Function
       instance     :
         delete     : signature Function
     sharedEvents   :
@@ -55,10 +60,10 @@ module.exports = class JWorkspace extends Module
 
       { slug, name } = res
 
-      data.name     = name
-      data.slug     = slug
-      data.rootPath = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
-      workspace     = new JWorkspace data
+      data.name      = name
+      data.slug      = slug
+      data.rootPath  = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
+      workspace      = new JWorkspace data
 
       workspace.save (err) ->
         return callback err  if err
@@ -67,7 +72,6 @@ module.exports = class JWorkspace extends Module
 
   generateUniqueName = ({originId, name, index}, callback)->
 
-    name = "#{name} 1"  if name is 'My Workspace'
     slug = if index? then "#{name}-#{index}" else name
     slug = slugify slug
 
@@ -103,8 +107,8 @@ module.exports = class JWorkspace extends Module
 
     JWorkspace.one selector, (err, ws)->
       return callback err  if err?
-      unless ws?
-        callback new KodingError "Workspace not found."
+      unless ws
+        callback new KodingError 'Workspace not found.'
       else
         ws.remove (err)-> callback err
 
@@ -127,3 +131,16 @@ module.exports = class JWorkspace extends Module
       return callback new KodingError 'Access denied'
 
     @remove callback
+
+
+  @update: secure (client, id, options, callback)->
+
+    selector   =
+      originId : client.connection.delegate._id
+      _id      : ObjectId id
+
+    JWorkspace.one selector, (err, ws) ->
+      return callback err  if err
+      return callback new KodingError 'Workspace not found.'  unless ws
+
+      ws.update options, callback
