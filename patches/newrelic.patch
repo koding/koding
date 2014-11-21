@@ -1,0 +1,11 @@
+--- a/node_modules/newrelic/lib/instrumentation/mongodb.js	2014-04-01 12:03:37.000000000 -0700
++++ b/node_modules/newrelic/lib/instrumentation/mongodb.js      2014-04-01 12:03:29.000000000 -0700
+@@ -48,7 +48,7 @@
+ 
+       if (typeof callback === 'function') {
+         args[last] = tracer.callbackProxy(function (err, object) {
+-          var collection = cursor.collection.collectionName || 'unknown'
++          var collection = cursor.collection && cursor.collection.collectionName || 'unknown'
+             , remaining  = cursor.items.length
+             , total      = cursor.totalNumberOfRecords
+             , limit      = cursor.limitValue === -1 ? 1 : cursor.limitValue
