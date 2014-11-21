@@ -10,6 +10,7 @@ do ->
     else
       if workspaceSlug is 'my-workspace'
         workspace =
+          isDummy      : yes
           isDefault    : yes
           slug         : 'my-workspace'
           machineLabel : machine?.slug or machine?.label
