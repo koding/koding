@@ -12,7 +12,6 @@ import (
 const (
 	CachePrefix = "chatnotifier"
 	MailPeriod  = 1 // minute
-	MailDelay   = 1 // minute
 )
 
 func AccountNextPeriodHashSetKey() string {
@@ -43,9 +42,9 @@ func AccountChannelHashSetKey(accountId int64, period string) string {
 }
 
 // getNextMailPeriod returns the next mailing period
-func GetNextMailPeriod() string {
+func GetNextMailPeriod(delayInMinutes int) string {
 	nextPeriod := GetCurrentMailPeriod()
-	segment := (nextPeriod + MailDelay) % (60 / MailPeriod)
+	segment := (nextPeriod + delayInMinutes) % (60 / MailPeriod)
 
 	return strconv.Itoa(segment)
 }
