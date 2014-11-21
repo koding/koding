@@ -19,6 +19,7 @@ class RealTimeManager extends KDObject
 
     return @realtimeDoc
 
+
   auth: ->
     $.ajax
       url: '/-/google-api',
@@ -33,6 +34,7 @@ class RealTimeManager extends KDObject
               @emit 'ClientAuthenticated'
               @emit 'ready'
               @isAuthenticated = yes
+
 
   reauth: ->
     $.ajax
@@ -56,6 +58,18 @@ class RealTimeManager extends KDObject
       @emit 'FileCreated', file
 
 
+  deleteFile: (title) ->
+    @once 'FileQueryFinished', (response) =>
+      [file] = response.result.items
+
+      return unless file
+
+      gapi.client.drive.files.delete({ fileId: file.id }).execute (file) =>
+        @emit 'FileDeleted'
+
+    @fetchFileByTitle title
+
+
   getFile: (fileId) ->
 
     return throw new Error 'fileId is required'  unless fileId
@@ -64,6 +78,11 @@ class RealTimeManager extends KDObject
       @emit 'FileFetched', file
 
       @loadFile file.id
+
+
+  fetchFileByTitle: (title) ->
+    gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
+      @emit 'FileQueryFinished', file
 
 
   loadFile: (fileId) ->
@@ -102,6 +121,7 @@ class RealTimeManager extends KDObject
     data = doc.getModel().getRoot().get key
 
     return data
+
 
   create: (type, key, initialValue) ->
 
@@ -163,11 +183,6 @@ class RealTimeManager extends KDObject
 
     list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (v) =>
       @emit 'ListValuesSet', list, v
-
-
-  fetchFileByTitle: (title) ->
-    gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
-      @emit 'FileQueryFinished', file
 
 
   getCollaborators: ->
