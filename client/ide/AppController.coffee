@@ -1084,6 +1084,20 @@ class IDEAppController extends AppController
 
     log 'continuePrivateMessage'
     @statusBar.avatars.show()
+
+
+  isRealtimeSessionActive: (id, callback) ->
+
+    hostName = if @amIHost then KD.nick() else @collaborationHost
+    title    = "#{hostName}.#{id}"
+
+    @rtm.once 'FileQueryFinished', (file) =>
+
+      if file.result.items.length > 0
+      then callback yes
+      else callback no
+
+    @rtm.fetchFileByTitle title
     {message} = KD.singletons.socialapi
     nick      = KD.nick()
 
