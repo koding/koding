@@ -24,7 +24,7 @@ type AmazonClient struct {
 	Metrics *metrics.DogStatsD
 }
 
-func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
+func (a *AmazonClient) BuildWithCheck(buildData *ec2.RunInstances, start, finish int) (*protocol.Artifact, error) {
 	debugLog := func(format string, args ...interface{}) {
 		a.Log.Debug(format, args...)
 	}
@@ -58,11 +58,11 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	debugLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
 
-	return a.Build(true, start, finish)
+	return a.Build(buildData, start, finish)
 }
 
-func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
-	resp, err := a.CreateInstance()
+func (a *AmazonClient) Build(buildData *ec2.RunInstances, start, finish int) (pa *protocol.Artifact, errResp error) {
+	resp, err := a.Client.RunInstances(buildData)
 	if err != nil {
 		return nil, err
 	}

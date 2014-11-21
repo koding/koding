@@ -77,7 +77,35 @@ func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	return a.Build(true, 10, 90)
+	if a.Builder.SourceAmi == "" {
+		return nil, errors.New("source ami is empty")
+	}
+
+	if a.Builder.InstanceType == "" {
+		return nil, errors.New("instance type is empty")
+	}
+
+	securityGroups := []ec2.SecurityGroup{{Id: a.Builder.SecurityGroupId}}
+
+	runOpts := &ec2.RunInstances{
+		ImageId:                  a.Builder.SourceAmi,
+		MinCount:                 1,
+		MaxCount:                 1,
+		KeyName:                  a.Builder.KeyPair,
+		InstanceType:             a.Builder.InstanceType,
+		AssociatePublicIpAddress: true,
+		SubnetId:                 a.Builder.SubnetId,
+		UserData:                 a.Builder.UserData,
+		SecurityGroups:           securityGroups,
+		AvailZone:                a.Builder.Zone,
+	}
+
+	// only add blockdevice if it's being added to prevent errors on aws
+	if a.Builder.BlockDeviceMapping != nil {
+		runOpts.BlockDevices = []ec2.BlockDeviceMapping{*a.Builder.BlockDeviceMapping}
+	}
+
+	return a.Build(runOpts, 10, 90)
 }
 
 func (p *Provider) Cancel(m *protocol.Machine) error {

@@ -63,118 +63,9 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 		return nil, err
 	}
 
-	var buildArtifact *protocol.Artifact
-	buildFunc := func() error {
-		// build our instance in a normal way
-		buildArtifact, err = a.BuildWithCheck(normalize(45), normalize(60))
-		if err == nil {
-			return nil
-		}
-
-		// check if the error is a 'InsufficientInstanceCapacity" error or
-		// "InstanceLimitExceeded, if not return back because it's not a
-		// resource or capacity problem.
-		if !isCapacityError(err) {
-			return err
-		}
-
-		p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
-
-		// now lets to some fallback mechanisms to avoid the capacity errors.
-		// 1. Try to use a different zone
-		zoneFunc := func() error {
-			zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
-			if err != nil {
-				return fmt.Errorf("couldn't fetch availability zones: %s", err)
-
-			}
-
-			debugLog("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
-			for _, zone := range zones {
-				if zone == buildData.EC2Data.AvailZone {
-					// skip it because that's one is causing problems and doesn't have any capacity
-					continue
-				}
-
-				subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
-				if err != nil {
-					errLog("Searching subnet err: %v", err)
-					return errors.New("searching network configuration failed")
-				}
-
-				subnet, err := subnets.AvailabilityZone(zone)
-				if err != nil {
-					continue // shouldn't be happen, but let be safe
-				}
-
-				group, err := a.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-				if err != nil {
-					errLog("Checking security group err: %v", err)
-					return errors.New("checking security requirements failed")
-				}
-
-				// add now our security group
-				a.Builder.SecurityGroupId = group.Id
-				a.Builder.Zone = zone
-				a.Builder.SubnetId = subnet.SubnetId
-
-				p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s.",
-					m.Id, zone, a.Builder.SubnetId)
-
-				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
-				if err == nil {
-					return nil
-				}
-
-				if isCapacityError(err) {
-					// if there is no capacity we are going to use the next one
-					p.Log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
-						m.Id, zone)
-					continue
-				}
-
-				return err
-			}
-
-			return errors.New("no other zones are available")
-		}
-
-		// 2. Try to use another instance
-		// TODO: do not choose an instance lower than the current user
-		// instance. Currently all we give is t2.micro, however it if the user
-		// has a t2.medium, we'll give them a t2.small if there is no capacity,
-		// which needs to be fixed in the near future.
-		instanceFunc := func() error {
-			for _, instanceType := range InstancesList {
-				a.Builder.InstanceType = instanceType
-
-				p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
-					m.Id, instanceType, a.Builder.InstanceType)
-
-				buildArtifact, err = a.Build(true, normalize(60), normalize(70))
-				if err == nil {
-					return nil // we are finished!
-				}
-
-				p.Log.Warning("[%s] Fallback: couldn't build instance with type: '%s'. err: %s ",
-					m.Id, instanceType, err)
-			}
-
-			return errors.New("no other instances are available")
-		}
-
-		// We are going to to try each step and for each step if we get
-		// "InsufficentInstanceCapacity" error we move to the next one.
-		for _, fn := range []func() error{zoneFunc, instanceFunc} {
-			if err := fn(); err != nil {
-				p.Log.Error("Build failed. Moving to next fallback step: %s", err)
-				continue // pick up the next function
-			}
-
-			return nil
-		}
-
-		return errors.New("build reached the end. all fallback mechanism steps failed.")
+	buildArtifact, err := p.buildFunc(a, m, buildData)
+	if err != nil {
+		return nil, err
 	}
 
 	// cleanup build if something goes wrong here
@@ -253,7 +144,6 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	steps := []func() error{
-		buildFunc,
 		afterBuildFunc,
 		checkKiteFunc,
 	}
@@ -266,6 +156,118 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	}
 
 	return buildArtifact, nil
+}
+
+func (p *Provider) buildFunc(a *amazon.AmazonClient, m *protocol.Machine, buildData *BuildData) (*protocol.Artifact, error) {
+	// build our instance in a normal way
+	buildArtifact, err := a.Build(buildData.EC2Data, normalize(45), normalize(60))
+	if err == nil {
+		return buildArtifact, nil
+	}
+
+	// check if the error is a 'InsufficientInstanceCapacity" error or
+	// "InstanceLimitExceeded, if not return back because it's not a
+	// resource or capacity problem.
+	if !isCapacityError(err) {
+		return nil, err
+	}
+
+	p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+
+	// now lets to some fallback mechanisms to avoid the capacity errors.
+	// 1. Try to use a different zone
+	zoneFunc := func() (*protocol.Artifact, error) {
+		zones, err := p.EC2Clients.Zones(a.Client.Region.Name)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't fetch availability zones: %s", err)
+
+		}
+
+		p.Log.Debug("[%s] Fallback: Searching for a zone that has capacity amongst zones: %v", m.Id, zones)
+		for _, zone := range zones {
+			if zone == buildData.EC2Data.AvailZone {
+				// skip it because that's one is causing problems and doesn't have any capacity
+				continue
+			}
+
+			subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
+			if err != nil {
+				return nil, err
+			}
+
+			subnet, err := subnets.AvailabilityZone(zone)
+			if err != nil {
+				continue // shouldn't be happen, but let be safe
+			}
+
+			group, err := a.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+			if err != nil {
+				return nil, err
+			}
+
+			// add now our security group
+			buildData.EC2Data.SecurityGroups = []ec2.SecurityGroup{{Id: group.Id}}
+			buildData.EC2Data.AvailZone = zone
+			buildData.EC2Data.SubnetId = subnet.SubnetId
+
+			p.Log.Warning("[%s] Building again by using availability zone: %s and subnet %s.",
+				m.Id, zone, subnet.SubnetId)
+
+			buildArtifact, err := a.Build(buildData.EC2Data, normalize(60), normalize(70))
+			if err == nil {
+				return buildArtifact, nil
+			}
+
+			if isCapacityError(err) {
+				// if there is no capacity we are going to use the next one
+				p.Log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
+					m.Id, zone)
+				continue
+			}
+
+			return nil, err
+		}
+
+		return nil, errors.New("no other zones are available")
+	}
+
+	// 2. Try to use another instance
+	// TODO: do not choose an instance lower than the current user
+	// instance. Currently all we give is t2.micro, however it if the user
+	// has a t2.medium, we'll give them a t2.small if there is no capacity,
+	// which needs to be fixed in the near future.
+	instanceFunc := func() (*protocol.Artifact, error) {
+		for _, instanceType := range InstancesList {
+			p.Log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
+				m.Id, instanceType, buildData.EC2Data.InstanceType)
+
+			buildData.EC2Data.InstanceType = instanceType
+
+			buildArtifact, err := a.Build(buildData.EC2Data, normalize(60), normalize(70))
+			if err == nil {
+				return buildArtifact, nil // we are finished!
+			}
+
+			p.Log.Warning("[%s] Fallback: couldn't build instance with type: '%s'. err: %s ",
+				m.Id, instanceType, err)
+		}
+
+		return nil, errors.New("no other instances are available")
+	}
+
+	// We are going to to try each step and for each step if we get
+	// "InsufficentInstanceCapacity" error we move to the next one.
+	for _, fn := range []func() (*protocol.Artifact, error){zoneFunc, instanceFunc} {
+		buildArtifact, err := fn()
+		if err != nil {
+			p.Log.Error("Build failed. Moving to next fallback step: %s", err)
+			continue // pick up the next function
+		}
+
+		return buildArtifact, nil
+	}
+
+	return nil, errors.New("build reached the end. all fallback mechanism steps failed.")
 }
 
 func (p *Provider) checkFunc(m *protocol.Machine, buildData *BuildData) error {

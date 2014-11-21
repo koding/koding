@@ -32,6 +32,7 @@ type BuildData struct {
 	KiteId  string
 }
 
+// buildData returns all necessary data that is needed to build a machine.
 func (p *Provider) buildData(a *amazon.AmazonClient, m *protocol.Machine) (*BuildData, error) {
 	// get all subnets belonging to Kloud
 	subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
