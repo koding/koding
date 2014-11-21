@@ -1012,6 +1012,11 @@ class IDEAppController extends AppController
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
 
 
+  createChatPaneView: (channel) ->
+
+    @getView().addSubView @chat = new IDE.ChatView {}, channel
+    @chat.show()
+
 
   createChatPane: ->
 
@@ -1019,8 +1024,7 @@ class IDEAppController extends AppController
 
       return KD.showError err  if err
 
-      @getView().addSubView @chat = new IDE.ChatView {}, channel
-      @chat.show()
+      @createChatPaneView channel
 
 
   showChat: ->
