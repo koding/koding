@@ -26,7 +26,7 @@ body.ide.dark
         vendor          filter, blur(2px)
         vendor          transform, rotate3d(0,0,0)
 
-  #kdmaincontainer .kdtabview
+  #kdmaincontainer .kdsplitcomboview .kdtabview
     bg                  color, dark-panel-bg
 
     .koding-sidebar-handle
@@ -139,7 +139,7 @@ body.ide.dark
 // common app styling
 .ide
   .kdsplitview-resizer
-    z-index             1000 // yes!
+    z-index             10 // ace occupies
     &.vertical
       width             2px
     &.horizontal
@@ -170,7 +170,7 @@ body.ide.dark
       >.pane
         overflow        visible
 
-  .kdselectbox
+  .kdselectbox.dark
     bg                  color, transparent
     border              1px solid #555555
     rounded             3px
@@ -391,14 +391,15 @@ body.ide.dark
           kalc          height, 100% \- 34px
 
   .status-bar
-    abs()
     bottom              0
     width               100%
-    height              34px
-    line-height         34px
+    height              40px
+    line-height         40px
     color               dark-tab-color
     background          dark-tab-header-bg
     font-size           13px
+    abs()
+
     .status
       margin-left       12px
       fl()
@@ -407,24 +408,39 @@ body.ide.dark
         &.line
           width         50px
 
+    .share
+      bg                color #24B444
+      color             white
+      padding           3px 12px
+      height            24px
+      text-transform    uppercase
+      margin-top        8px
+      rounded           3px
+      font-size         12px
+      line-height       18px
+      borderBox()
+      noTextDeco()
+      &:hover
+        bg              color #656565
+
     .icon
-      abs()
+      size              32px 100%
       pointer()
-      display           inline-block
-      &.participants
+      fr()
+
+      cite
+        display         block
+        margin          0 auto
+
+      &.participants cite
         r-sprite        'ide', 'participants'
-        right           96px
         top             9px
-        margin-right    2px
-      &.shortcuts
+      &.shortcuts cite
         r-sprite        'ide', 'keyboard'
-        right           68px
-      &.github
+      &.github cite
         r-sprite        'ide', 'github'
-        right           40px
-      &.help
+      &.help cite
         r-sprite        'ide', 'help'
-        right           14px
 
 
   .status-bar-menu

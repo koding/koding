@@ -328,7 +328,7 @@ class IDEAppController extends AppController
                 @machineStateModal.once 'MachineTurnOnStarted', =>
                   KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-          @prepareCollaboration()
+          @prepareCollaboration___()
 
           actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
           computeController.on "public-#{machineId}", (event) =>
@@ -1010,3 +1010,151 @@ class IDEAppController extends AppController
       object.emit 'RealTimeManagerSet'
 
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
+
+
+
+  createChatPane: ->
+
+    @startChatSession (err, channel) =>
+
+      return KD.showError err  if err
+
+      @getView().addSubView @chat = new IDE.ChatView {}, channel
+      @chat.show()
+
+
+  showChat: ->
+
+    return @createChatPane()  unless @chat
+
+    @chat.show()
+
+
+  prepareCollaboration___: ->
+
+    @rtm          = new RealTimeManager
+    { channelId } = @workspaceData
+
+    # return @rtm.ready => @statusBar.share.show()  unless channelId
+
+    @rtm.ready => @statusBar.share.show()
+
+
+
+
+
+  createWorkspace: (options = {}) ->
+
+    name         = options.name or 'My Workspace'
+    rootPath     = "/home/#{KD.nick()}/"
+    {label, uid} = @mountedMachine
+
+    return KD.remote.api.JWorkspace.create
+      name         : name
+      label        : options.label        or label
+      machineUId   : options.machineUId   or uid
+      machineLabel : options.machineLabel or label
+      rootPath     : options.rootPath     or rootPath
+      isDefault    : name is 'My Workspace'
+      layout       : {} # don't know what this is for - SY
+
+
+  updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
+
+
+  startChatSession: (callback) ->
+
+    return if @workspaceData.isDummy
+      @createWorkspace()
+        .then (workspace) =>
+          @workspaceData = workspace
+          @initPrivateMessage callback
+        .error callback
+
+    { channelId } = @workspaceData
+
+    if channelId
+      @isRealtimeSessionActive channelId, (isActive) =>
+
+        return @continuePrivateMessage callback  if isActive
+
+        @statusBar.share.show()
+        log 'start collaboration'
+
+    else
+      @initPrivateMessage callback
+
+
+  continuePrivateMessage: (callback) ->
+
+    log 'continuePrivateMessage'
+    @statusBar.avatars.show()
+
+
+  isRealtimeSessionActive: (id, callback) ->
+
+    hostName = if @amIHost then KD.nick() else @collaborationHost
+    title    = "#{hostName}.#{id}"
+
+    @rtm.once 'FileQueryFinished', (file) =>
+
+      if file.result.items.length > 0
+      then callback yes
+      else callback no
+
+    @rtm.fetchFileByTitle title
+
+
+  initPrivateMessage: (callback) ->
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.initPrivateMessage
+      body       : "@#{nick} initiated the IDE session."
+      purpose    : "IDE #{dateFormat 'HH:MM'}"
+      recipients : [ nick ]
+      payload    : 'system-message' : 'initiate'
+    , (err, channels) =>
+
+      return callback err  if err or (not Array.isArray(channels) and not channels[0])
+
+      [channel]      = channels
+      @socialChannel = channel
+
+      @updateWorkspace { channelId : channel.id }
+        .then =>
+          @workspaceData.channelId = channel.id
+          callback null, channel
+        .error callback
+
+
+
+  startCollaborationSession: (callback) ->
+
+    return callback msg : 'no social channel'  unless @socialChannel
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.sendPrivateMessage
+      body       : "@#{nick} activated collaboration."
+      channelId  : @socialChannel.id
+      payload    :
+        'system-message' : 'start'
+    , callback
+
+
+  stopCollaborationSession: (callback) ->
+
+    return callback msg : 'no social channel'  unless @socialChannel
+
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
+
+    message.sendPrivateMessage
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      channelId  : @socialChannel.id
+      payload    :
+        'system-message' : 'stop'
+    , callback

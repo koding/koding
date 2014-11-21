@@ -2,18 +2,22 @@ class IDE.TerminalSettingsView extends IDE.IDESettingsView
 
   createElements: ->
     @font           = new KDSelectBox
+      cssClass      : 'dark'
       selectOptions : IDE.settings.terminal.fonts
       callback      : (state) => @emit 'SettingsChanged', 'font', state
 
     @fontSize       = new KDSelectBox
+      cssClass      : 'dark'
       selectOptions : IDE.settings.terminal.fontSizes
       callback      : (state) => @emit 'SettingsChanged', 'fontSize', state
 
     @theme          = new KDSelectBox
+      cssClass      : 'dark'
       selectOptions : IDE.settings.terminal.themes
       callback      : (state) => @emit 'SettingsChanged', 'theme', state
 
     @scrollback     = new KDSelectBox
+      cssClass      : 'dark'
       selectOptions : IDE.settings.terminal.scrollback
       callback      : (state) => @emit 'SettingsChanged', 'scrollback', state
 
