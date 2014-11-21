@@ -28,6 +28,7 @@ module.exports = class JWorkspace extends Module
         create     : signature Object, Function
         deleteById : signature String, Function
         deleteByUid: signature String, Function
+        update     : signature String, Object, Function
       instance     :
         delete     : signature Function
     sharedEvents   :
@@ -127,3 +128,16 @@ module.exports = class JWorkspace extends Module
       return callback new KodingError 'Access denied'
 
     @remove callback
+
+
+  @update: secure (client, id, options, callback)->
+
+    selector   =
+      originId : client.connection.delegate._id
+      _id      : ObjectId id
+
+    JWorkspace.one selector, (err, ws) ->
+      return callback err  if err
+      return callback new KodingError 'Workspace not found.'  unless ws
+
+      ws.update options, callback
