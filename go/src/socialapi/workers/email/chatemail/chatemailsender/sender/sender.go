@@ -27,6 +27,8 @@ type Controller struct {
 	log       logging.Logger
 	redisConn *redis.RedisSession
 	settings  *emailmodels.EmailSettings
+
+	ready chan struct{}
 }
 
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -41,6 +43,7 @@ func New(redisConn *redis.RedisSession, log logging.Logger, es *emailmodels.Emai
 		log:       log,
 		redisConn: redisConn,
 		settings:  es,
+		ready:     make(chan struct{}, 1),
 	}
 
 	return c, c.initCron()
@@ -55,6 +58,8 @@ func (c *Controller) initCron() error {
 
 	cronJob.Start()
 
+	c.ready <- struct{}{}
+
 	return nil
 }
 
@@ -65,7 +70,19 @@ func (c *Controller) Shutdown() {
 
 // Run send account emails in current time period
 func (c *Controller) Run() {
+	select {
+	case <-c.ready:
+		c.log.Debug("Starting next mailing period")
+		c.SendEmails()
+	case <-time.After(10 * time.Second):
+		c.log.Critical("Need some more private message email sender workers")
+		return
+	}
+}
+
+func (c *Controller) SendEmails() {
 	currentPeriod := common.GetCurrentMailPeriod()
+	defer func() { c.ready <- struct{}{} }()
 
 	for {
 		// Fetch Account
@@ -115,7 +132,6 @@ func (c *Controller) Run() {
 			c.log.Error("Could not send email for account: %d: %s", account.Id, err)
 		}
 	}
-
 }
 
 // NextAccount pops a random account element from set, deletes its next period
