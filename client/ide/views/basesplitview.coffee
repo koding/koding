@@ -1,4 +1,4 @@
-class IDE.SplitView extends KDSplitView
+class IDE.BaseSplitView extends KDSplitView
 
   viewAppended: ->
 

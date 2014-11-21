@@ -20,7 +20,7 @@ class IDE.WorkspaceLayoutBuilder extends KDSplitComboView
         wrapper.once 'viewAppended', =>
           wrapper.addSubView @getDelegate().createPane config
 
-    SplitViewClass = options.splitViewClass or IDE.SplitView
+    SplitViewClass = options.splitViewClass or IDE.BaseSplitView
     options.views  = views
     splitView      = new SplitViewClass options
 
