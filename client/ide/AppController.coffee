@@ -1059,6 +1059,31 @@ class IDEAppController extends AppController
   updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
   startChatSession: (callback) ->
 
+    return if @workspaceData.isDummy
+      @createWorkspace()
+        .then (workspace) =>
+          @workspaceData = workspace
+          @initPrivateMessage callback
+        .error callback
+
+    { channelId } = @workspaceData
+
+    if channelId
+      @isRealtimeSessionActive channelId, (isActive) =>
+
+        return @continuePrivateMessage callback  if isActive
+
+        @statusBar.share.show()
+        log 'start collaboration'
+
+    else
+      @initPrivateMessage callback
+
+
+  continuePrivateMessage: (callback) ->
+
+    log 'continuePrivateMessage'
+    @statusBar.avatars.show()
     {message} = KD.singletons.socialapi
     nick      = KD.nick()
 
