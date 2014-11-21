@@ -75,6 +75,20 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
       @startSession.enable()
       @endSession.disable()
+  toggleButtons: (state) ->
+    startButton = @startSession
+    endButton   = @endSession
+
+    if state is 'started'
+      endButton.show()
+      endButton.enable()
+      startButton.hide()
+      startButton.disable()
+    else
+      startButton.show()
+      startButton.enable()
+      endButton.hide()
+      endButton.disable()
 
 
   viewAppended: JView::viewAppended
