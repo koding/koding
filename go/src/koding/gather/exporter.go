@@ -1,9 +1,13 @@
 package main
 
-import elastigo "github.com/mattbaird/elastigo/lib"
+import (
+	"time"
+
+	elastigo "github.com/mattbaird/elastigo/lib"
+)
 
 type Exporter interface {
-	Create(string, []byte) error
+	Create(string, map[string]interface{}) error
 }
 
 type EsExporter struct {
@@ -24,7 +28,9 @@ func NewEsExporter(domain, port string) *EsExporter {
 	return es
 }
 
-func (es *EsExporter) Create(docType string, data []byte) error {
+func (es *EsExporter) Create(docType string, data map[string]interface{}) error {
+	data["@timestamp"] = time.Now().Format(time.RubyDate)
+
 	_, err := es.Client.Index(es.Index, docType, "", nil, data)
 	return err
 }

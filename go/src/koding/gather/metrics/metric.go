@@ -10,10 +10,10 @@ type Registry struct {
 type Metric struct {
 	Name      string
 	Collector Collector
-	Output    func([]byte) ([]byte, error)
+	Output    func([]byte) (map[string]interface{}, error)
 }
 
-func (m *Metric) Run() ([]byte, error) {
+func (m *Metric) Run() (map[string]interface{}, error) {
 	output, err := m.Collector.Run()
 	if err != nil {
 		return nil, err

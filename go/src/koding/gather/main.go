@@ -28,20 +28,18 @@ func main() {
 	exporter = NewEsExporter("fcd741dd72ad8998000.qbox.io", "443")
 
 	for _, metric := range metricsRegistry.Items {
-		out, err := metric.Run()
+		result, err := metric.Run()
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		var result = string(out)
+		fmt.Println(metric.Name, result)
 
-		fmt.Println(result)
-
-		// err = exporter.Create(metric.Name, []byte(fmt.Sprintf(`{"data":"%s"}`, result)))
-		// if err != nil {
-		//   log.Fatal(err)
-		// }
+		err = exporter.Create(metric.Name, result)
+		if err != nil {
+			log.Fatal(metric.Name, err)
+		}
 	}
 }
 

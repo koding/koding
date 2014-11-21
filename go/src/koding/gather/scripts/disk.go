@@ -3,6 +3,7 @@ package scripts
 import (
 	"fmt"
 	"koding/gather/metrics"
+	"strconv"
 	"strings"
 )
 
@@ -40,13 +41,18 @@ func df(location int) *metrics.MultipleCmd {
 	)
 }
 
-func dfo() func([]byte) ([]byte, error) {
-	return func(raw []byte) ([]byte, error) {
+func dfo() func([]byte) (map[string]interface{}, error) {
+	return func(raw []byte) (map[string]interface{}, error) {
 		input := strings.TrimSpace(fmt.Sprintf("%s", raw))
 		input = strings.Trim(input, "%")
 
-		jso := fmt.Sprintf(`{"data": %s}`, input)
+		num, err := strconv.Atoi(input)
+		if err != nil {
+			fmt.Println(">>>>>>>>>>", err)
+		}
 
-		return []byte(jso), nil
+		values := map[string]interface{}{"data": num}
+
+		return values, nil
 	}
 }
