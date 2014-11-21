@@ -86,7 +86,7 @@ func (p *Provider) getBuildData(a *amazon.AmazonClient, m *protocol.Machine) (*B
 
 	kiteId := kiteUUID.String()
 
-	userdata, err := p.userDeployFunc(m, kiteId)
+	userData, err := p.userData(m, kiteId)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (p *Provider) getBuildData(a *amazon.AmazonClient, m *protocol.Machine) (*B
 		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
 		AvailZone:                subnet.AvailabilityZone,
 		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
-		UserData:                 userdata,
+		UserData:                 userData,
 	}
 
 	return &BuildData{
@@ -111,7 +111,7 @@ func (p *Provider) getBuildData(a *amazon.AmazonClient, m *protocol.Machine) (*B
 	}, nil
 }
 
-func (p *Provider) userDeployFunc(m *protocol.Machine, kiteId string) ([]byte, error) {
+func (p *Provider) userData(m *protocol.Machine, kiteId string) ([]byte, error) {
 	errLog := p.GetCustomLogger(m.Id, "error")
 
 	kiteKey, err := p.createKey(m.Username, kiteId)
