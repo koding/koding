@@ -38,7 +38,7 @@ func FetchUserContactWithToken(accountId int64) (*UserContact, error) {
 		return nil, err
 	}
 
-	token, err := NewTokenGenerator().GenerateToken()
+	token, err := NewTokenGenerator().Generate()
 	if err != nil {
 		return nil, err
 	}

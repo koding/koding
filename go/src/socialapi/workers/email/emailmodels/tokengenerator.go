@@ -44,7 +44,7 @@ func (tg *TokenGenerator) validateToken() error {
 	return nil
 }
 
-func (tg *TokenGenerator) GenerateToken() (string, error) {
+func (tg *TokenGenerator) Generate() (string, error) {
 	uuid1, err := uuid.NewV4()
 	if err != nil {
 		return "", err
