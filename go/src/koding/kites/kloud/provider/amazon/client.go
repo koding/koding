@@ -76,7 +76,7 @@ func (a *AmazonClient) Build(buildData *ec2.RunInstances, start, finish int) (pa
 	defer func() {
 		if errResp != nil {
 			a.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
-				instance.InstanceId, err)
+				instance.InstanceId, errResp)
 
 			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
 				a.Log.Warning("Cleaning up instance '%s' failed: %v", instance.InstanceId, err)
