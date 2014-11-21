@@ -7,7 +7,7 @@ utils.extend utils,
     href     = if slug is 'koding' then href else "#{slug}/#{href}"
     href     = "#{origin}/#{href}"  if withOrigin
 
-    return href
+    return href.replace '//', '/'
 
 
   getPaymentMethodTitle: (billing)->
