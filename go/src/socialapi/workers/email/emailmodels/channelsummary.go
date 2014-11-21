@@ -142,11 +142,12 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 		// and create a new group
 		currentGroup = NewMessageGroupSummary()
 
-		a, err := models.FetchAccountById(message.AccountId)
+		a, err := models.Cache.Account.ById(message.AccountId)
 		if err != nil {
 			return mss, err
 		}
 		currentGroup.Nickname = a.Nick
+		// TODO this can be fetched from cache but its invalidation needs to be handled as well.
 		ma, err := modelhelper.GetAccountById(a.OldId)
 		if err != nil {
 			return mss, err
