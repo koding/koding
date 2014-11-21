@@ -22,6 +22,9 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// delay in minutes
+const DefaultMailDelay = 5
+
 var (
 	ErrInvalidPeriod  = errors.New("invalid period")
 	ErrPeriodNotFound = errors.New("period not found")
@@ -46,17 +49,22 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-var isEligibleToNotify = func(accountId int64) (bool, error) {
+var isEligibleToNotify = func(accountId int64) (bool, int, error) {
 	uc, err := emailmodels.FetchUserContact(accountId)
 	if err != nil {
-		return false, err
+		return false, 0, err
 	}
 
 	if !uc.EmailSettings.Global {
-		return false, nil
+		return false, 0, nil
 	}
 
-	return uc.EmailSettings.PrivateMessage, nil
+	delay, err := strconv.Atoi(uc.EmailSettings.NotificationDelay)
+	if err != nil {
+		delay = DefaultMailDelay
+	}
+
+	return uc.EmailSettings.PrivateMessage, delay, nil
 }
 
 // AddMessageToQueue adds a new arrival message into participants notification queues
@@ -158,7 +166,7 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 	a := models.NewAccount()
 	a.Id = accountId
 
-	eligible, err := isEligibleToNotify(accountId)
+	eligible, delay, err := isEligibleToNotify(accountId)
 	if err != nil {
 		return err
 	}
@@ -167,7 +175,11 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 		return nil
 	}
 
-	nextPeriod, err := c.getOrCreateMailingPeriod(a)
+	if delay == 0 {
+		delay = DefaultMailDelay
+	}
+
+	nextPeriod, err := c.getOrCreateMailingPeriod(a, delay)
 	if err != nil {
 		return err
 	}
@@ -180,14 +192,14 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 }
 
 // getOrCreateMailingPeriod updates the Account-Segment hash set and returns
-// the next mailing period of the account
-func (c *Controller) getOrCreateMailingPeriod(a *models.Account) (string, error) {
+// the next mailing period of the account depending on given delayInMonutes
+func (c *Controller) getOrCreateMailingPeriod(a *models.Account, delayInMinutes int) (string, error) {
 	field := strconv.FormatInt(a.Id, 10)
 
 	nextPeriod, err := c.getMailingPeriod(a)
 	// if not exist get new mailing period for the account
 	if err == ErrPeriodNotFound {
-		nextPeriod = common.GetNextMailPeriod()
+		nextPeriod = common.GetNextMailPeriod(delayInMinutes)
 		err := c.redis.HashMultipleSet(common.AccountNextPeriodHashSetKey(), map[string]interface{}{field: nextPeriod})
 		if err != nil {
 			return "", err

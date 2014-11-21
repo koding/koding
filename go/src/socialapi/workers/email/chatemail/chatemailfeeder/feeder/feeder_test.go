@@ -27,8 +27,8 @@ func TestNewMessageCreation(t *testing.T) {
 	Convey("while adding a new message to queue", t, func() {
 		channel, accounts := models.CreateChannelWithParticipants()
 		// test
-		isEligibleToNotify = func(accountId int64) (bool, error) {
-			return true, nil
+		isEligibleToNotify = func(accountId int64) (bool, int, error) {
+			return true, 5, nil
 		}
 
 		Convey("do not add any future notifier if message type is not private message", func() {
