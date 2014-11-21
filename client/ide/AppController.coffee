@@ -1005,6 +1005,7 @@ class IDEAppController extends AppController
 
 
   setRealTimeManager: (object) =>
+
     callback = =>
       object.rtm = @rtm
       object.emit 'RealTimeManagerSet'
@@ -1044,9 +1045,6 @@ class IDEAppController extends AppController
     @rtm.ready => @statusBar.share.show()
 
 
-
-
-
   createWorkspace: (options = {}) ->
 
     name         = options.name or 'My Workspace'
@@ -1060,10 +1058,11 @@ class IDEAppController extends AppController
       machineLabel : options.machineLabel or label
       rootPath     : options.rootPath     or rootPath
       isDefault    : name is 'My Workspace'
-      layout       : {} # don't know what this is for - SY
 
 
-  updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
+  updateWorkspace: (options = {}) ->
+
+    KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
 
   startChatSession: (callback) ->
@@ -1143,9 +1142,8 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
+      payload    : 'system-message' : 'start'
       channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'start'
     , callback
 
 
@@ -1158,7 +1156,6 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      payload    : 'system-message' : 'stop'
       channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'stop'
     , callback
