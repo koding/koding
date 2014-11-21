@@ -23,5 +23,5 @@ func (ac *ActionContent) Render() (string, error) {
 		return "", nil
 	}
 
-	return buf.String()
+	return buf.String(), nil
 }
