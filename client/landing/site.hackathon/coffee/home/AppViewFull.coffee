@@ -418,7 +418,7 @@ module.exports = class HomeViewFull extends KDView
           site has them. Devise a creative/interactive solution.</li>
           <li>HTML5 games that are educational and learning oriented. (multiplayer preferred)</li>
           <li>Challenges associated with real time communication and translation (Star
-          Trek universal translation anyone?)</li>
+          Trek universal translator anyone?)</li>
         </ol>
         <p>Your task is to use publicly available resources (APIs, data sets, graphics, etc.) and
         your imagination to create a project that addresses one of the themes of the event.
