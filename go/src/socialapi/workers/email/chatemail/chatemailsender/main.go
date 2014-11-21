@@ -26,7 +26,7 @@ func main() {
 	es := emailmodels.NewEmailSettings(r.Conf)
 
 	handler, err := sender.New(
-		redisConn, r.Log, es,
+		redisConn, r.Log, es, r.Metrics,
 	)
 	if err != nil {
 		r.Log.Error("Could not create chat email sender: %s", err)

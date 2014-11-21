@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/redis"
 	"github.com/robfig/cron"
 	"github.com/streadway/amqp"
@@ -27,6 +28,7 @@ type Controller struct {
 	log       logging.Logger
 	redisConn *redis.RedisSession
 	settings  *emailmodels.EmailSettings
+	metrics   *metrics.Metrics
 
 	ready chan struct{}
 }
@@ -38,12 +40,13 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(redisConn *redis.RedisSession, log logging.Logger, es *emailmodels.EmailSettings) (*Controller, error) {
+func New(redisConn *redis.RedisSession, log logging.Logger, es *emailmodels.EmailSettings, metrics *metrics.Metrics) (*Controller, error) {
 	c := &Controller{
 		log:       log,
 		redisConn: redisConn,
 		settings:  es,
 		ready:     make(chan struct{}, 1),
+		metrics:   metrics,
 	}
 
 	return c, c.initCron()
@@ -98,7 +101,7 @@ func (c *Controller) SendEmails() {
 			return
 		}
 
-		// Fetch hannel data
+		// Fetch channel summary data
 		channels, err := c.FetchChannelSummaries(account, strconv.Itoa(currentPeriod))
 		if err != nil {
 			c.log.Error("Could not fetch messages for rendering: %s", err)

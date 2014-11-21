@@ -22,7 +22,7 @@ func TestChatEmailSender(t *testing.T) {
 	redisConn := helper.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
-	controller, _ := New(redisConn, r.Log, &emailmodels.EmailSettings{})
+	controller, _ := New(redisConn, r.Log, &emailmodels.EmailSettings{}, r.Metrics)
 
 	Convey("while fetching a message from pending notification queue", t, func() {
 		testPeriod := "1"
