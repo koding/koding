@@ -1098,6 +1098,8 @@ class IDEAppController extends AppController
       else callback no
 
     @rtm.fetchFileByTitle title
+  initPrivateMessage: (callback) ->
+
     {message} = KD.singletons.socialapi
     nick      = KD.nick()
 
@@ -1111,11 +1113,15 @@ class IDEAppController extends AppController
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
-
       [channel]      = channels
       @socialChannel = channel
 
-      return callback null, channel
+      @updateWorkspace { channelId : channel.id }
+        .then =>
+          @workspaceData.channelId = channel.id
+          callback null, channel
+        .error callback
+
 
 
   startCollaborationSession: (callback) ->
