@@ -9,6 +9,10 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     super options, data
 
     @createElements()
+
+    @on 'CollaborationStarted', => @toggleButtons 'started'
+    @on 'CollaborationEnded',   => @toggleButtons 'ended'
+
   createElements: ->
     channel = @getData()
 
@@ -60,8 +64,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
       return @startSession.enable()  if err
 
-      @endSession.enable()
-      @startSession.disable()
+      @toggleButtons 'started'
 
 
   stopSession: ->
@@ -73,8 +76,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
       return @endSession.enable()  if err
 
-      @startSession.enable()
-      @endSession.disable()
+      @toggleButtons 'ended'
+
+
   toggleButtons: (state) ->
     startButton = @startSession
     endButton   = @endSession
