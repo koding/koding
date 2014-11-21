@@ -39,8 +39,8 @@ func (bc *BodyContent) Render() (string, error) {
 
 	bc.Summary = body
 
-	buf := bytes.NewBuffer([]byte{})
-	if err := bt.ExecuteTemplate(buf, "body", bc); err != nil {
+	var buf bytes.Buffer
+	if err := bt.ExecuteTemplate(&buf, "body", bc); err != nil {
 		return "", err
 	}
 

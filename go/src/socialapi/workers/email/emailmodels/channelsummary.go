@@ -74,8 +74,8 @@ func (cs *ChannelSummary) Render() (string, error) {
 	cs.Summary = body
 	cs.Title = getTitle(cs.UnreadCount)
 
-	buf := bytes.NewBuffer([]byte{})
-	if err := ct.ExecuteTemplate(buf, "channel", cs); err != nil {
+	var buf bytes.Buffer
+	if err := ct.ExecuteTemplate(&buf, "channel", cs); err != nil {
 		return "", err
 	}
 

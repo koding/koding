@@ -64,9 +64,9 @@ type MessageSummary struct {
 
 func (ms *MessageSummary) Render() (string, error) {
 	mt := template.Must(template.New("message").Parse(templates.Message))
-	buf := bytes.NewBuffer([]byte{})
+	var buf bytes.Buffer
 
-	if err := mt.ExecuteTemplate(buf, "message", ms); err != nil {
+	if err := mt.ExecuteTemplate(&buf, "message", ms); err != nil {
 		return "", err
 	}
 
