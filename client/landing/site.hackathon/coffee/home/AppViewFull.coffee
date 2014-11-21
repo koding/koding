@@ -580,6 +580,7 @@ module.exports = class HomeViewFull extends KDView
         <a href="http://developer.factual.com/">Factual</a>
         <a href="http://dev.iron.io/worker/reference/api/">Iron.io</a>
         <a href="https://developer.intuit.com/">Intuit</a>
+        <a href="https://developer.spotify.com/web-api/">Spotify</a>
         <a href="http://code.google.com/apis/maps/documentation/places/">Google Places</a>
         <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding</a>
         <a href="https://developers.google.com/books/">Google Books</a>
