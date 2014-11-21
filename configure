@@ -80,6 +80,7 @@ git.long (str) ->
     rest()
   else if os.type() is "Darwin"
     options.hostname = "lvh.me"
+    options.ngrok = yes
     rest()
   else
     log "lemme find your IP"
