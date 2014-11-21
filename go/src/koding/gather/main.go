@@ -17,6 +17,11 @@ var (
 	exporter Exporter
 )
 
+const (
+	ES_DOMAIN = "fcd741dd72ad8998000.qbox.io"
+	ES_PORT   = "443"
+)
+
 func main() {
 	registerMetric(scripts.TotalDisk)
 	registerMetric(scripts.UsedDisk)
@@ -25,7 +30,7 @@ func main() {
 	registerMetric(scripts.NumUsers)
 	// registerMetric(scripts.FileTypes)
 
-	exporter = NewEsExporter("fcd741dd72ad8998000.qbox.io", "443")
+	exporter = NewEsExporter(ES_DOMAIN, ES_PORT)
 
 	for _, metric := range metricsRegistry.Items {
 		result, err := metric.Run()
