@@ -3,7 +3,6 @@ package koding
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -34,10 +33,9 @@ var (
 	DefaultCustomAMITag = "koding-stable" // Only use AMI's that have this tag
 
 	// Starting from cheapest, list is according to us-east and coming from:
-	// http://www.ec2instances.info/. t2.micro is not included because it's
-	// already the default type which we start to build. Only supported types
-	// are here.
+	// http://www.ec2instances.info/. Only supported types are here.
 	InstancesList = []string{
+		"t2.micro",
 		"t2.small",
 		"t2.medium",
 		"m3.medium",
@@ -97,21 +95,24 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	b.amazon.Push("Checking limits and quota", b.normalize(30), machinestate.Building)
 	if err := b.checkLimits(buildData); err != nil {
 		return nil, err
 	}
 
+	b.amazon.Push("Starting build process", b.normalize(50), machinestate.Building)
 	buildArtifact, err := b.create(buildData)
 	if err != nil {
 		return nil, err
 	}
-
 	buildArtifact.KiteQuery = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
+	b.amazon.Push("Adding domains and tags", b.normalize(70), machinestate.Building)
 	if err := b.addDomainAndTags(buildArtifact); err != nil {
 		return nil, err
 	}
 
+	b.amazon.Push("Checking kite connection", b.normalize(90), machinestate.Building)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
 	}
@@ -301,8 +302,8 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 }
 
 func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
-	// build our instance in a normal way
-	buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(45), b.normalize(60))
+	// build our instance in a normal way, if it's succeed just return
+	buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(50), b.normalize(60))
 	if err == nil {
 		return buildArtifact, nil
 	}
@@ -316,29 +317,31 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 
 	b.log.Error("[%s] IMPORTANT: %s", b.machine.Id, err)
 
-	// now lets to some fallback mechanisms to avoid the capacity errors.
-	// 1. Try to use a different zone
-	zoneFunc := func() (*protocol.Artifact, error) {
-		zones, err := b.provider.EC2Clients.Zones(b.amazon.Client.Region.Name)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't fetch availability zones: %s", err)
+	zones, err := b.provider.EC2Clients.Zones(b.amazon.Client.Region.Name)
+	if err != nil {
+		return nil, err
+	}
 
-		}
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
 
+	currentZone := buildData.EC2Data.AvailZone
+
+	// tryAllZones will try to build the given instance type with in all zones
+	// until it's succeed.
+	tryAllZones := func(instanceType string) (*protocol.Artifact, error) {
 		b.log.Debug("[%s] Fallback: Searching for a zone that has capacity amongst zones: %v", b.machine.Id, zones)
 		for _, zone := range zones {
-			if zone == buildData.EC2Data.AvailZone {
+			if zone == currentZone {
 				// skip it because that's one is causing problems and doesn't have any capacity
 				continue
 			}
 
-			subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
-			if err != nil {
-				return nil, err
-			}
-
 			subnet, err := subnets.AvailabilityZone(zone)
 			if err != nil {
+				b.log.Critical("[%s] Fallback zone failed to get subnet zone '%s' ", err, b.machine.Id, zone)
 				continue // shouldn't be happen, but let be safe
 			}
 
@@ -351,63 +354,35 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 			buildData.EC2Data.SecurityGroups = []ec2.SecurityGroup{{Id: group.Id}}
 			buildData.EC2Data.AvailZone = zone
 			buildData.EC2Data.SubnetId = subnet.SubnetId
+			buildData.EC2Data.InstanceType = instanceType
 
-			b.log.Warning("[%s] Building again by using availability zone: %s and subnet %s.",
-				b.machine.Id, zone, subnet.SubnetId)
+			b.log.Warning("[%s] Fallback build by using availability zone: %s, subnet %s and instance type: %s",
+				b.machine.Id, zone, subnet.SubnetId, instanceType)
 
 			buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(60), b.normalize(70))
-			if err == nil {
-				return buildArtifact, nil
-			}
-
-			if isCapacityError(err) {
+			if err != nil {
 				// if there is no capacity we are going to use the next one
 				b.log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
 					b.machine.Id, zone)
 				continue
 			}
 
-			return nil, err
+			return buildArtifact, nil // we got something that works!
 		}
 
-		return nil, errors.New("no other zones are available")
+		return nil, errors.New("tried all zones without any success.")
 	}
 
-	// 2. Try to use another instance
-	// TODO: do not choose an instance lower than the current user
-	// instance. Currently all we give is t2.micro, however it if the user
-	// has a t2.medium, we'll give them a t2.small if there is no capacity,
-	// which needs to be fixed in the near future.
-	instanceFunc := func() (*protocol.Artifact, error) {
-		for _, instanceType := range InstancesList {
-			b.log.Warning("[%s] Fallback: building again with using instance: %s instead of %s.",
-				b.machine.Id, instanceType, buildData.EC2Data.InstanceType)
-
-			buildData.EC2Data.InstanceType = instanceType
-
-			buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(60), b.normalize(70))
-			if err == nil {
-				return buildArtifact, nil // we are finished!
-			}
-
-			if isCapacityError(err) {
-				continue // pick up the next one
-			}
-
-			b.log.Critical("[%s] Fallback didn't work for instances: %s", b.machine.Id, err)
-			break // break if it's something else
-		}
-
-		return nil, errors.New("no other instances are available")
-	}
-
-	// We are going to to try each step and for each step if we get
-	// "InsufficentInstanceCapacity" error we move to the next one.
-	for _, fn := range []func() (*protocol.Artifact, error){zoneFunc, instanceFunc} {
-		buildArtifact, err := fn()
+	// Try to build the instance in another zone. We try to build one instance
+	// type for all zones until all zones capacity is drained. In that case we
+	// move on to the next instance type and start to use with all available
+	// zones. This assures us that to fully use all zones with all instance
+	// types and ensure a safe build.
+	for _, instanceType := range InstancesList {
+		buildArtifact, err := tryAllZones(instanceType)
 		if err != nil {
-			b.log.Error("Build failed. Moving to next fallback step: %s", err)
-			continue // pick up the next function
+			b.log.Critical("[%s] Fallback didn't work for instances: %s", b.machine.Id, err)
+			continue // pick up the next instance type
 		}
 
 		return buildArtifact, nil
@@ -464,8 +439,6 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 }
 
 func (b *Build) checkKite(query string) error {
-	b.amazon.Push("Checking connectivity", b.normalize(75), machinestate.Building)
-
 	b.log.Debug("[%s] Connecting to remote Klient instance", b.machine.Id)
 	if b.provider.IsKlientReady(query) {
 		b.log.Debug("[%s] klient is ready.", b.machine.Id)
