@@ -118,51 +118,8 @@ func (b *Build) run() (resArt *protocol.Artifact, err error) {
 		}
 	}()
 
-	afterBuildFunc := func() error {
-		// this can happen when an Info method is called on a terminated instance.
-		// This updates the DB records with the name that EC2 gives us, which is a
-		// "terminated-instance"
-		instanceName := b.machine.Builder["instanceName"].(string)
-		if instanceName == "terminated-instance" {
-			instanceName = "user-" + b.machine.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-			b.log.Debug("[%s] Instance name is an artifact (terminated), changing to %s", b.machine.Id, instanceName)
-		}
-
-		b.amazon.Push("Updating/Creating domain", b.normalize(70), machinestate.Building)
-		if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
-			return err
-		}
-
-		b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
-		domains, err := b.provider.DomainStorage.GetByMachine(b.machine.Id)
-		if err != nil {
-			b.log.Error("[%s] fetching domains for setting err: %s", b.machine.Id, err.Error())
-		}
-
-		for _, domain := range domains {
-			if err := b.provider.UpdateDomain(buildArtifact.IpAddress, domain.Name, b.machine.Username); err != nil {
-				b.log.Error("[%s] couldn't update machine domain: %s", b.machine.Id, err.Error())
-			}
-		}
-
-		buildArtifact.InstanceName = instanceName
-		buildArtifact.MachineId = b.machine.Id
-		buildArtifact.DomainName = b.machine.Domain.Name
-
-		tags := []ec2.Tag{
-			{Key: "Name", Value: buildArtifact.InstanceName},
-			{Key: "koding-user", Value: b.machine.Username},
-			{Key: "koding-env", Value: b.provider.Kite.Config.Environment},
-			{Key: "koding-machineId", Value: b.machine.Id},
-			{Key: "koding-domain", Value: b.machine.Domain.Name},
-		}
-
-		b.log.Debug("[%s] Adding user tags %v", b.machine.Id, tags)
-		if err := b.amazon.AddTags(buildArtifact.InstanceId, tags); err != nil {
-			b.log.Error("[%s] Adding tags failed: %v", b.machine.Id, err)
-		}
-
-		return nil
+	if err := b.addDomainAndTags(buildArtifact); err != nil {
+		return nil, err
 	}
 
 	checkKiteFunc := func() error {
@@ -182,7 +139,6 @@ func (b *Build) run() (resArt *protocol.Artifact, err error) {
 	}
 
 	steps := []func() error{
-		afterBuildFunc,
 		checkKiteFunc,
 	}
 
@@ -194,6 +150,87 @@ func (b *Build) run() (resArt *protocol.Artifact, err error) {
 	}
 
 	return buildArtifact, nil
+}
+
+func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
+	// this can happen when an Info method is called on a terminated instance.
+	// This updates the DB records with the name that EC2 gives us, which is a
+	// "terminated-instance"
+	instanceName := b.machine.Builder["instanceName"].(string)
+	if instanceName == "terminated-instance" {
+		instanceName = "user-" + b.machine.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		b.log.Debug("[%s] Instance name is an artifact (terminated), changing to %s", b.machine.Id, instanceName)
+	}
+
+	b.amazon.Push("Updating/Creating domain", b.normalize(70), machinestate.Building)
+	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
+		return err
+	}
+
+	b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
+	domains, err := b.provider.DomainStorage.GetByMachine(b.machine.Id)
+	if err != nil {
+		b.log.Error("[%s] fetching domains for setting err: %s", b.machine.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := b.provider.UpdateDomain(buildArtifact.IpAddress, domain.Name, b.machine.Username); err != nil {
+			b.log.Error("[%s] couldn't update machine domain: %s", b.machine.Id, err.Error())
+		}
+	}
+
+	buildArtifact.InstanceName = instanceName
+	buildArtifact.MachineId = b.machine.Id
+	buildArtifact.DomainName = b.machine.Domain.Name
+
+	tags := []ec2.Tag{
+		{Key: "Name", Value: buildArtifact.InstanceName},
+		{Key: "koding-user", Value: b.machine.Username},
+		{Key: "koding-env", Value: b.provider.Kite.Config.Environment},
+		{Key: "koding-machineId", Value: b.machine.Id},
+		{Key: "koding-domain", Value: b.machine.Domain.Name},
+	}
+
+	b.log.Debug("[%s] Adding user tags %v", b.machine.Id, tags)
+	if err := b.amazon.AddTags(buildArtifact.InstanceId, tags); err != nil {
+		b.log.Error("[%s] Adding tags failed: %v", b.machine.Id, err)
+	}
+
+	return nil
+}
+
+// checkLimits checks whether the given buildData is valid to be used to create a new instance
+func (b *Build) checkLimits(buildData *BuildData) error {
+	// Check for total machine allowance
+	checker, err := b.provider.PlanChecker(b.machine)
+	if err != nil {
+		return err
+	}
+
+	if err := checker.Total(); err != nil {
+		return err
+	}
+
+	if err := checker.AlwaysOn(); err != nil {
+		return err
+	}
+
+	b.log.Debug("[%s] Check if user is allowed to create instance type %s",
+		b.machine.Id, buildData.EC2Data.InstanceType)
+
+	// check if the user is egligible to create a vm with this instance type
+	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
+		b.log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
+			b.machine.Id, buildData.EC2Data.InstanceType)
+		buildData.EC2Data.InstanceType = T2Micro.String()
+	}
+
+	// check if the user is egligible to create a vm with this size
+	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
@@ -310,40 +347,6 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 	}
 
 	return nil, errors.New("build reached the end. all fallback mechanism steps failed.")
-}
-
-// checkLimits checks whether the given buildData is valid to be used to create a new instance
-func (b *Build) checkLimits(buildData *BuildData) error {
-	// Check for total machine allowance
-	checker, err := b.provider.PlanChecker(b.machine)
-	if err != nil {
-		return err
-	}
-
-	if err := checker.Total(); err != nil {
-		return err
-	}
-
-	if err := checker.AlwaysOn(); err != nil {
-		return err
-	}
-
-	b.log.Debug("[%s] Check if user is allowed to create instance type %s",
-		b.machine.Id, buildData.EC2Data.InstanceType)
-
-	// check if the user is egligible to create a vm with this instance type
-	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
-		b.log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
-			b.machine.Id, buildData.EC2Data.InstanceType)
-		buildData.EC2Data.InstanceType = T2Micro.String()
-	}
-
-	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // buildData returns all necessary data that is needed to build a machine.
