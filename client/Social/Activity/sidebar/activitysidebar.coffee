@@ -410,20 +410,20 @@ class ActivitySidebar extends KDCustomHTMLView
         machineUId   : machine.uid
         machineLabel : machine.slug or machine.label
 
-      ideRoute       = "/IDE/#{machine.slug or machine.label}/my-workspace"
-      machineOwner   = machine.credential
-      isMyMachine    = machineOwner is KD.nick()
+      ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
+      machineOwner = machine.credential
+      isMyMachine  = machineOwner is KD.nick()
+      ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
+      hasWorkspace = (KD.userWorkspaces.filter ({name}) -> return name is 'My Workspace').length > 0
 
-      unless isMyMachine
-        ideRoute = "#{ideRoute}/#{machineOwner}"
-
-      treeData.push
-        title        : 'My Workspace'
-        type         : 'workspace'
-        href         : ideRoute
-        id           : "#{machine.slug or machine.label}-workspace"
-        parentId     : id
-        machineLabel : machine.slug or machine.label
+      unless hasWorkspace
+        treeData.push
+          title        : 'My Workspace'
+          type         : 'workspace'
+          href         : ideRoute
+          id           : "#{machine.slug or machine.label}-workspace"
+          parentId     : id
+          machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
