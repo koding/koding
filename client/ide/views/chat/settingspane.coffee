@@ -8,6 +8,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     super options, data
 
+    @createElements()
+  createElements: ->
     channel = @getData()
 
     @title = new KDCustomHTMLView
