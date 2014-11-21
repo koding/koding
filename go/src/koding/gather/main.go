@@ -5,7 +5,6 @@ import (
 	"koding/gather/metrics"
 	"koding/gather/scripts"
 	"log"
-	"strings"
 	"sync"
 )
 
@@ -23,26 +22,26 @@ func main() {
 	registerMetric(scripts.UsedDisk)
 	registerMetric(scripts.FreeDisk)
 	registerMetric(scripts.PerUsedDisk)
-	// registerMetric(scripts.NumUsers)
+	registerMetric(scripts.NumUsers)
 	// registerMetric(scripts.FileTypes)
 
 	exporter = NewEsExporter("fcd741dd72ad8998000.qbox.io", "443")
 
 	for _, metric := range metricsRegistry.Items {
-		out, err := metric.Collector.Run()
+		out, err := metric.Run()
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		var result = strings.TrimSpace(string(out))
+		var result = string(out)
 
-		fmt.Println(metric.Name, result)
+		fmt.Println(result)
 
-		err = exporter.Create(metric.Name, []byte(fmt.Sprintf(`{"data":"%s"}`, result)))
-		if err != nil {
-			log.Fatal(err)
-		}
+		// err = exporter.Create(metric.Name, []byte(fmt.Sprintf(`{"data":"%s"}`, result)))
+		// if err != nil {
+		//   log.Fatal(err)
+		// }
 	}
 }
 

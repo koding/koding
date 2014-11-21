@@ -10,6 +10,16 @@ type Registry struct {
 type Metric struct {
 	Name      string
 	Collector Collector
+	Output    func([]byte) ([]byte, error)
+}
+
+func (m *Metric) Run() ([]byte, error) {
+	output, err := m.Collector.Run()
+	if err != nil {
+		return nil, err
+	}
+
+	return m.Output(output)
 }
 
 func RegisterMetric(registry *Registry, metric *Metric) {

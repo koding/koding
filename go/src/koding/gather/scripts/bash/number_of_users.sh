@@ -1,1 +1,1 @@
-cut -d: -f 1 /etc/passwd | egrep -v "(#|root|daemon|bin|sys|sync|games|man|lp|mail|news|uucp|proxy|www-data|backup|list|irc|gnats|nobody|libuuid|syslog|messagebus|landscape|pollinate|ubuntu|sshd|colord)" | uniq -c
+cut -d: -f 1 /etc/passwd | egrep -v "(#|root|daemon|bin|sys|sync|games|man|lp|mail|news|uucp|proxy|www-data|backup|list|irc|gnats|nobody|libuuid|syslog|messagebus|landscape|pollinate|ubuntu|sshd|colord)" | wc -l | tr -d ' '
