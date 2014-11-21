@@ -378,6 +378,8 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 	// move on to the next instance type and start to use with all available
 	// zones. This assures us that to fully use all zones with all instance
 	// types and ensure a safe build.
+	// TODO: filter out instances that are lower than the current user's
+	// instance type (so don't pick up t2.small if the user hasa t2.medium)
 	for _, instanceType := range InstancesList {
 		buildArtifact, err := tryAllZones(instanceType)
 		if err != nil {
