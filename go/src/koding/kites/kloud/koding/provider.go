@@ -322,7 +322,16 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	b := &Build{
+		amazon:   a,
+		machine:  m,
+		provider: p,
+		start:    40,
+		finish:   90,
+		log:      p.Log,
+	}
+
+	artifact, err := b.run()
 	if err != nil {
 		return nil, err
 	}
