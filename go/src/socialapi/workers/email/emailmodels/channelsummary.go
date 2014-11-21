@@ -2,8 +2,8 @@ package emailmodels
 
 import (
 	"bytes"
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/email/templates"
@@ -23,7 +23,11 @@ type ChannelSummary struct {
 	// Unread count stores unread message count in the idle time
 	UnreadCount int
 	// AwaySince returns the oldest message in notification queue
-	AwaySince time.Time
+	AwaySince    time.Time
+	Participants []models.ChannelParticipant
+	Purpose      string
+	Name         string
+	Hostname     string
 
 	BodyContent
 }
@@ -43,15 +47,24 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return &ChannelSummary{}, nil
 	}
 
+	participants, err := fetchParticipants(a, ch)
+	if err != nil {
+		return nil, err
+	}
+
 	mss, err := buildMessageSummaries(cms)
 	if err != nil {
 		return nil, err
 	}
 
 	cs := &ChannelSummary{
-		Id:          ch.Id,
-		AwaySince:   awaySince,
-		UnreadCount: count,
+		Id:           ch.Id,
+		AwaySince:    awaySince,
+		UnreadCount:  count,
+		Participants: participants,
+		Purpose:      ch.Purpose,
+		Name:         ch.Name,
+		Hostname:     config.MustGet().Hostname,
 	}
 
 	cs.MessageGroups = mss
@@ -72,7 +85,11 @@ func (cs *ChannelSummary) Render() (string, error) {
 	ct := template.Must(template.New("channel").Parse(templates.Channel))
 
 	cs.Summary = body
-	cs.Title = getTitle(cs.UnreadCount)
+	title, err := cs.getTitle()
+	if err != nil {
+		return "", err
+	}
+	cs.Title = title
 
 	var buf bytes.Buffer
 	if err := ct.ExecuteTemplate(&buf, "channel", cs); err != nil {
@@ -82,13 +99,42 @@ func (cs *ChannelSummary) Render() (string, error) {
 	return buf.String(), nil
 }
 
-func getTitle(messageCount int) string {
-	messagePlural := ""
-	if messageCount > 1 {
-		messagePlural = "s"
+func (cs *ChannelSummary) getTitle() (string, error) {
+	if len(cs.Participants) == 1 {
+		return "", nil
 	}
 
-	return fmt.Sprintf("You have %d new message%s:", messageCount, messagePlural)
+	if cs.Purpose != "" {
+		return cs.Purpose, nil
+	}
+
+	return cs.prepareTitle()
+}
+
+func (cs *ChannelSummary) prepareTitle() (string, error) {
+
+	account, err := models.Cache.Account.ById(cs.Participants[0].AccountId)
+	if err != nil {
+		return "", err
+	}
+
+	title := account.Nick
+	for i := 1; i < len(cs.Participants)-1; i++ {
+		account, err := models.Cache.Account.ById(cs.Participants[i].AccountId)
+		if err != nil {
+			return "", err
+		}
+		title += ", " + account.Nick
+	}
+
+	account, err = models.Cache.Account.ById(cs.Participants[len(cs.Participants)-1].AccountId)
+	if err != nil {
+		return "", err
+	}
+
+	title += " & " + account.Nick
+
+	return title, nil
 }
 
 func fetchLastMessages(a *models.Account, ch *models.Channel, awaySince time.Time) ([]models.ChannelMessage, error) {
@@ -166,4 +212,30 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 	}
 
 	return mss, nil
+}
+
+func fetchParticipants(a *models.Account, ch *models.Channel) ([]models.ChannelParticipant, error) {
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = ch.Id
+	query := request.NewQuery()
+	query.ShowExempt = false
+	participants, err := cp.List(query)
+	if err != nil {
+		return participants, err
+	}
+
+	if len(participants) < 2 {
+		return participants, models.ErrParticipantNotFound
+	}
+
+	flattenedParticipants := make([]models.ChannelParticipant, 0)
+	for _, participant := range participants {
+		if participant.AccountId == a.Id {
+			continue
+		}
+
+		flattenedParticipants = append(flattenedParticipants, participant)
+	}
+
+	return flattenedParticipants, nil
 }

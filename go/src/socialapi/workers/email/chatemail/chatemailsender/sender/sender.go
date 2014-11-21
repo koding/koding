@@ -132,10 +132,6 @@ func (c *Controller) StartWorker(currentPeriod int) {
 
 		// Decorate channel data
 		es := emailmodels.NewEmailSummary(channels)
-		if es.MessageCount == 0 {
-			// maybe they are already glanced messages
-			continue
-		}
 
 		// Render body
 		body, err := es.Render()
@@ -238,8 +234,10 @@ func (c *Controller) parseValues(field, value interface{}) (*models.Channel, tim
 		return nil, time.Time{}, err
 	}
 
-	ch := models.NewChannel()
-	ch.Id = id
+	ch, err := models.ChannelById(id)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
 
 	awaySince, err := c.redisConn.String(value)
 	if err != nil {
