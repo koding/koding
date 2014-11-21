@@ -26,7 +26,7 @@ class AccountEmailNotifications extends KDView
       cssClass : 'title'
 
     @notificationDelay =  new KDSelectBox
-      defaultValue  : pmNotificationDelay or 5
+      defaultValue  : 5
       selectOptions : [
         { title : '1 minute',     value : 1   }
         { title : '5 minutes',    value : 5   }
@@ -42,7 +42,7 @@ class AccountEmailNotifications extends KDView
 
     subSettings.addSubView @notificationDelay
 
-  pmNotificationDelayFieldAdded: (value) -> @notificationDelay.setValue value
+  pmNotificationDelayFieldAdded: (value) -> @notificationDelay.setValue value or 5
 
 
   handleGlobalState: (state) ->
