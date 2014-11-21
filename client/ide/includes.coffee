@@ -56,6 +56,9 @@ module.exports = [
   "views/statusbar/statusbarmenu.coffee"
   "views/statusbar/statusbar.coffee"
 
+  # misc views
+  "views/basesplitview.coffee"
+
   "AppController.coffee"
 
   # stylus
