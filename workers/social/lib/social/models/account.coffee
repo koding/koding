@@ -687,7 +687,6 @@ module.exports = class JAccount extends jraphical.Module
     current = user.getAt('emailFrequency') or {}
     Object.keys(prefs).forEach (granularity)->
       state = prefs[granularity]
-      state = false if state not in [true, false]
       current[granularity] = state# then 'instant' else 'never'
 
     updateUserPref =->

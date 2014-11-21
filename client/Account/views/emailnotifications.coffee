@@ -25,17 +25,24 @@ class AccountEmailNotifications extends KDView
       partial  : 'Send me an email after'
       cssClass : 'title'
 
-    subSettings.addSubView new KDSelectBox
-      defaultValue  : 1 # pass the actual value here - SY to CtF
+    @notificationDelay =  new KDSelectBox
+      defaultValue  : pmNotificationDelay or 5
       selectOptions : [
         { title : '1 minute',     value : 1   }
         { title : '5 minutes',    value : 5   }
         { title : '10 minutes',   value : 10  }
         { title : 'half an hour', value : 30  }
         { title : '1 hour',       value : 60  }
-        { title : '3 hours',      value : 180 }
       ]
-      callback      : (value) -> log 'your turn @canthefason' # persist it - SY
+      callback      : (value) ->
+      	prefs = {pmNotificationDelay: value}
+
+      	KD.whoami().setEmailPreferences prefs, (err) ->
+          warn "Could not update notification delay", err if err
+
+    subSettings.addSubView @notificationDelay
+
+  pmNotificationDelayFieldAdded: (value) -> @notificationDelay.setValue value
 
 
   handleGlobalState: (state) ->
@@ -75,6 +82,8 @@ class AccountEmailNotifications extends KDView
         title          : 'When someone mentions me'
       marketing        :
         title          : 'When Koding has member updates (like privacy updates, inactive account notices, new offers and campaigns)'
+      pmNotificationDelay:
+        title          : 'Send me an email after'
 
     view = this
 
@@ -101,7 +110,6 @@ class AccountEmailNotifications extends KDView
       field.formView.addSubView title
       field.formView.addSubView fieldSwitch
       fields[flag].formView.addSubView fields[flag].loader
-
       @["#{flag}FieldAdded"]? frequency[flag]
 
 
