@@ -14,6 +14,8 @@ var (
 		Items: make([]*metrics.Metric, 0),
 		Mutex: &sync.Mutex{},
 	}
+
+	exporter Exporter
 )
 
 func main() {
@@ -21,8 +23,10 @@ func main() {
 	registerMetric(scripts.UsedDisk)
 	registerMetric(scripts.FreeDisk)
 	registerMetric(scripts.PerUsedDisk)
-	registerMetric(scripts.NumUsers)
-	registerMetric(scripts.FileTypes)
+	// registerMetric(scripts.NumUsers)
+	// registerMetric(scripts.FileTypes)
+
+	exporter = NewEsExporter("fcd741dd72ad8998000.qbox.io", "443")
 
 	for _, metric := range metricsRegistry.Items {
 		out, err := metric.Collector.Run()
@@ -31,7 +35,14 @@ func main() {
 			continue
 		}
 
-		fmt.Println(metric.Name, strings.TrimSpace(string(out)))
+		var result = strings.TrimSpace(string(out))
+
+		fmt.Println(metric.Name, result)
+
+		err = exporter.Create(metric.Name, []byte(fmt.Sprintf(`{"data":"%s"}`, result)))
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
