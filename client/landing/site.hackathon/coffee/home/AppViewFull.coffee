@@ -372,8 +372,8 @@ module.exports = class HomeViewFull extends KDView
         <h4>How does it work? </h4>
 
         <p>First, sign up using the simple form above. Every day (up until we stop accepting
-        applications on Dec 3rd, 2014 12 noon PST) between 4-5pm PST, we will send all new 
-        applicants a short questionnaire that will help us learn a little bit more about 
+        applications on Dec 3rd, 2014 12 noon PST) between 4-5pm PST, we will send all new
+        applicants a short questionnaire that will help us learn a little bit more about
         you and your team’s background. We promise to keep it short and sweet.
         </p>
 
@@ -390,10 +390,11 @@ module.exports = class HomeViewFull extends KDView
         developer looking for a backend database team member.</i> Once you get a response, jump into
         private chats on Koding itself to discuss your ideas and start recruiting!
         </p>
-        
+
         <p>
         Prizes (described below) are in three different categories so it does not matter if you
         are an expert, a student or a beginner at programming. Everyone can compete and win!
+        </p>
       </article>
       <article>
         <h4>How do I get accepted? </h4>
@@ -410,52 +411,52 @@ module.exports = class HomeViewFull extends KDView
         <p>
         The following themes have been selected:
         <ol>
-        	<li>Problems facing our planet, explained using interactive data visualization. 
-        	(e.g. climate change, earthquakes, food/water waste, etc.)</li>
-        	<li>Introducing software development to a beginner (games!)</li>
-        	<li>No one reads the fine print (ie TOS, EULA, legal documents) anymore yet every 
-        	site has them. Devise a creative/interactive solution.</li>
-        	<li>HTML5 games that are educational and learning oriented. (multiplayer preferred)</li>
-        	<li>Challenges associated with real time communication and translation (Star 
-        	Trek universal translation anyone?)</li>
+          <li>Problems facing our planet, explained using interactive data visualization.
+          (e.g. climate change, earthquakes, food/water waste, etc.)</li>
+          <li>Introducing software development to a beginner (games!)</li>
+          <li>No one reads the fine print (ie TOS, EULA, legal documents) anymore yet every
+          site has them. Devise a creative/interactive solution.</li>
+          <li>HTML5 games that are educational and learning oriented. (multiplayer preferred)</li>
+          <li>Challenges associated with real time communication and translation (Star
+          Trek universal translator anyone?)</li>
         </ol>
-        Your task is to use publicly available resources (APIs, data sets, graphics, etc.) and 
+        <p>Your task is to use publicly available resources (APIs, data sets, graphics, etc.) and
         your imagination to create a project that addresses one of the themes of the event.
         </p>
       </article>
       <article>
         <h4>What are the prizes?</h4>
         <p>Total prizes over <strong>$#{prize.toLocaleString()}</strong>! Here are the details.</p>
-		<p>Prizes will be awarded in three categories:</p>
-		<strong>Top Hacker:</strong>
-		<ol>
-			<li>First prize:  <s>$5,000</s> $8,000</li>
-			<li>Second prize: <s>#3,000</s> $4,000</li>
-			<li>Third prize:  <s>$2,000</s> $2,000</li>
-		</ol>
-		<strong>Student Hacker:</strong>
-		<ol>
-			<li>First prize: $1,500</li>
-			<li>Second prize: $1,000</li>
-			<li>Third prize: $500</li>
-		</ol>
-		<strong>Apprentice Hacker:</strong>
-		<ol>
-			<li>First prize: $1,200</li>
-			<li>Second prize: $800</li>
-			<li>Third prize: $500</li>
-		</ol>
-      </article>		
+    <p>Prizes will be awarded in three categories:</p>
+    <h6>Top Hacker:</h6>
+    <ol>
+      <li>First prize:  <s>$5,000</s> $8,000</li>
+      <li>Second prize: <s>$3,000</s> $4,000</li>
+      <li>Third prize: $2,000</li>
+    </ol>
+    <h6>Student Hacker (High school or less):</h6>
+    <ol>
+      <li>First prize: $1,500</li>
+      <li>Second prize: $1,000</li>
+      <li>Third prize: $500</li>
+    </ol>
+    <h6>Apprentice Hacker:</h6>
+    <ol>
+      <li>First prize: $1,200</li>
+      <li>Second prize: $800</li>
+      <li>Third prize: $500</li>
+    </ol>
+      </article>
       <article class='additional-prizes'>
         <h4>Additional Prizes</h4>
-        <p>These will be presented to the #1 winning team in the "Top Hacker" prize category</p>
+        <p>These will be presented to the #1 winning team in the "Top Hacker" prize category.</p>
         <ul>
           <li>
             <figure>
               <img src='http://i.imgur.com/bLUIGvk.png' alt='Count.ly logo'/>
               <figcaption><a href='http://count.ly?utm_source=koding' target='_blank'>Count.ly</a> will award an extra <strong>$1,000</strong> to the winning team if they have a Countly account so register today!</figcaption>
             </figure>
-          </li>          
+          </li>
           <li>
             <figure>
               <img src='http://nginx.com/wp-content/themes/nginx-theme/images/logos/main_logo.png' alt='nginx logo'/>
@@ -466,7 +467,7 @@ module.exports = class HomeViewFull extends KDView
             <figure>
               <img src='./a/site.hackathon/images/partners/elance-odesk.jpg' alt='Elance-oDesk logo'/>
               <figcaption>If the winning team has an <a href='http://www.odesk.com' target='_blank'>oDesk.com</a> or <a href='http://www.elance.com' target='_blank'>Elance.com</a> account, they will receive an extra <strong>$2,500</strong>. Register today if you don't have an account with them.
-			  </figcaption>
+        </figcaption>
             </figure>
           </li>
           <li>
@@ -475,24 +476,25 @@ module.exports = class HomeViewFull extends KDView
               <figcaption>The top winning team will receive <strong>$5,000</strong> in account credit from <a href='http://www.digitalocean.com' target='_blank'>Digital Ocean</a>. and a <strong>one year service</strong> account credit from Tutum.</figcaption>
             </figure>
           </li>
-         </ul> 
-		</article>
-		<article class='additional-prizes'>
-		<h4>These prizes can be won by any team, even if you don't win the top 3 spots in the "Top Hacker" prize
-		category.</h4>
-		 <ul>
+         </ul>
+    </article>
+    <article class='additional-prizes'>
+    <h4>These prizes can be won by any team</h4>
+    <p><strong>Even if you don't win the top 3 spots in the "Top Hacker" prize
+    category, you can still apply to win these prizes.</strong></p>
+     <ul>
           <li>
             <figure>
               <img src='http://i.imgur.com/H9vYUd8.png' alt='Intuit logo'/>
               <figcaption><a href='https://developer.intuit.com/' target='_blank'>Intuit</a> will award an extra <strong>$2,500</strong> to the team that presents the best use of the QuickBooks API.</figcaption>
             </figure>
-          </li>          
+          </li>
           <li>
             <figure>
               <img src='http://i.imgur.com/bLUIGvk.png' alt='Count.ly logo'/>
               <figcaption><a href='http://count.ly?utm_source=koding' target='_blank'>Count.ly</a> will award an extra <strong>$1,000</strong> to the winning team if they have a Countly account.</figcaption>
             </figure>
-          </li>                    
+          </li>
           <li>
             <figure>
               <img src='http://www.pubnub.com/static/images/structure/pubnub.png' alt='PubNub logo'/>
@@ -503,7 +505,7 @@ module.exports = class HomeViewFull extends KDView
             <figure>
               <figcaption><a href='https://www.3scale.net/'>3Scale</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on thier site.</figcaption>
             </figure>
-          </li>          
+          </li>
           <li>
             <figure>
               <figcaption><a href='http://www.datadoghq.com' target='_blank'>DATADOG</a> will award <strong>$1,000</strong> to the team that makes the best use of their service and their API.</figcaption>
@@ -523,14 +525,14 @@ module.exports = class HomeViewFull extends KDView
             <figure>
               <figcaption><a href='https://www.apitools.com/'>APITools</a> will offer <strong>$1,500</strong> to the team that uses APItools in the creation of thier project.</figcaption>
             </figure>
-          </li>        
+          </li>
         </ul>
       </article>
       <article>
         <h4>What is the schedule?</h4>
         <ul>
           <li>Now - Registration open.</li>
-          <li>#{closeDay}, 1200 PST - Applications are closed. Final notifications are sent to teams/individuals 
+          <li>#{closeDay}, 1200 PST - Applications are closed. Final notifications are sent to teams/individuals
           who are accepted</li>
           <li>#{firstDay} - Day 1 Let the hacking begin!</li>
           <li>#{secondDay} - Day 2 of the Hackathon
@@ -569,16 +571,16 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article>
         <h4> What are the rules?</h4>
-        <ul>
-        	<li>You (or someone from your team) must be approved by Koding and should have our acceptance email.</li>
-			<li>Go to <a href="https://github.com/koding/global.hackathon/" target=_blank>this repo on GitHub</a> and
-			follow the instructions presented there.</li> 
-			<li>All team members must have a Koding account.</li>
-			<li>All project developed must be directly aligned with one of the themes of the event.</li>
-			<li>Your project MUST BE a web app that is viewable on your Koding VMs web URL. Mobile
-			apps are not allowed. (Don't worry if you don't have an always-on Koding VM, we will take
-			care of that for you when we review your work.)</li>
-		</ul>
+        <ol>
+          <li>You (or someone from your team) must be approved by Koding and should have our acceptance email.</li>
+          <li>Go to <a href="https://github.com/koding/global.hackathon/" target=_blank>this repo on GitHub</a> and
+          follow the instructions presented there.</li>
+          <li>All team members must have a Koding account.</li>
+          <li>All project developed must be directly aligned with one of the themes of the event.</li>
+          <li>Your project MUST BE a web app that is viewable on your Koding VMs web URL. Mobile
+          apps are not allowed. (Don't worry if you don't have an always-on Koding VM, we will take
+          care of that for you when we review your work.)</li>
+        </ol>
         <p>Our goal is to ensure that all teams have a level playing field; therefore it is
         imperative that all code, design, assets, etc… must be created during the duration
         of the event. No exceptions. You can brainstorm ideas prior to the event, however
