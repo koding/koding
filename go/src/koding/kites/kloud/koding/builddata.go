@@ -27,6 +27,7 @@ const (
 )
 
 type BuildData struct {
+	// This is passed directly to goamz to create the final instance
 	EC2Data *ec2.RunInstances
 	KiteId  string
 }
