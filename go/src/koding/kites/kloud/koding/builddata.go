@@ -32,7 +32,7 @@ type BuildData struct {
 	KiteId  string
 }
 
-func (p *Provider) getBuildData(a *amazon.AmazonClient, m *protocol.Machine) (*BuildData, error) {
+func (p *Provider) buildData(a *amazon.AmazonClient, m *protocol.Machine) (*BuildData, error) {
 	// get all subnets belonging to Kloud
 	subnets, err := a.SubnetsWithTag(DefaultKloudKeyName)
 	if err != nil {

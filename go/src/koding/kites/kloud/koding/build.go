@@ -53,7 +53,7 @@ func (p *Provider) build(a *amazon.AmazonClient, m *protocol.Machine, v *pushVal
 	a.Push("Checking initial data", normalize(10), machinestate.Building)
 
 	a.Push("Generating and fetching build data", normalize(20), machinestate.Building)
-	buildData, err := p.getBuildData(a, m)
+	buildData, err := p.buildData(a, m)
 	if err != nil {
 		errLog("Get build data err: %v", err)
 		return nil, err
