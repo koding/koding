@@ -6,6 +6,7 @@ type Workspace struct {
 	ObjectId   bson.ObjectId `bson:"_id" json:"_id"`
 	Name       string        `bson:"name" json:"name"`
 	Slug       string        `bson:"slug" json:"slug"`
+	ChannelId  string        `bson:"channelId" json:"channelId"`
 	MachineUID string        `bson:"machineUId" json:"machineUId"`
 	Owner      string        `bson:"owner" json:"owner"`
 	RootPath   string        `bson:"rootPath" json:"rootPath"`
