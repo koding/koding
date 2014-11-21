@@ -36,7 +36,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @endSession = new KDButtonView
       title    : 'END SESSION'
       disabled : yes
-      cssClass : 'solid red'
+      cssClass : 'solid red hidden'
       callback : @bound 'stopSession'
 
     @defaultSetting = new KDSelectBox
