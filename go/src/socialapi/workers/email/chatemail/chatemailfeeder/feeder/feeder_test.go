@@ -43,8 +43,8 @@ func TestNewMessageCreation(t *testing.T) {
 		})
 
 		Convey("do not send any notification email if user has disabled email notifications for private messages", func() {
-			isEligibleToNotify = func(accountId int64) (bool, error) {
-				return false, nil
+			isEligibleToNotify = func(accountId int64) (bool, int, error) {
+				return false, 0, nil
 			}
 
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
@@ -72,7 +72,7 @@ func TestNewMessageCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(length, ShouldEqual, 2)
 
-			period := common.GetNextMailPeriod()
+			period := common.GetNextMailPeriod(5)
 
 			// for next period two accounts must be inserted to the queue
 			length, err = redisConn.Scard(common.PeriodAccountSetKey(period))
