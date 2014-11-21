@@ -1040,6 +1040,9 @@ class IDEAppController extends AppController
     @rtm.ready => @statusBar.share.show()
 
 
+
+
+
   createWorkspace: (options = {}) ->
 
     name         = options.name or 'My Workspace'
@@ -1057,6 +1060,8 @@ class IDEAppController extends AppController
 
 
   updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
+
+
   startChatSession: (callback) ->
 
     return if @workspaceData.isDummy
@@ -1098,6 +1103,8 @@ class IDEAppController extends AppController
       else callback no
 
     @rtm.fetchFileByTitle title
+
+
   initPrivateMessage: (callback) ->
 
     {message} = KD.singletons.socialapi
@@ -1107,8 +1114,7 @@ class IDEAppController extends AppController
       body       : "@#{nick} initiated the IDE session."
       purpose    : "IDE #{dateFormat 'HH:MM'}"
       recipients : [ nick ]
-      payload    :
-        'system-message' : 'initiate'
+      payload    : 'system-message' : 'initiate'
     , (err, channels) =>
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
