@@ -60,10 +60,10 @@ module.exports = class JWorkspace extends Module
 
       { slug, name } = res
 
-      data.name     = name
-      data.slug     = slug
-      data.rootPath = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
-      workspace     = new JWorkspace data
+      data.name      = name
+      data.slug      = slug
+      data.rootPath  = "/home/#{nickname}/Workspaces/#{slug}"  unless data.rootPath
+      workspace      = new JWorkspace data
 
       workspace.save (err) ->
         return callback err  if err
@@ -108,8 +108,8 @@ module.exports = class JWorkspace extends Module
 
     JWorkspace.one selector, (err, ws)->
       return callback err  if err?
-      unless ws?
-        callback new KodingError "Workspace not found."
+      unless ws
+        callback new KodingError 'Workspace not found.'
       else
         ws.remove (err)-> callback err
 
