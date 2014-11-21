@@ -99,6 +99,8 @@ func (c *Controller) SendEmails() {
 		}()
 	}
 
+	c.log.Info("All accounts are notified")
+
 }
 
 func (c *Controller) StartWorker(currentPeriod int) {
@@ -107,7 +109,6 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		account, err := c.NextAccount(strconv.Itoa(currentPeriod))
 		// no more pending notifications
 		if err == models.ErrAccountNotFound {
-			c.log.Info("All accounts are notified")
 			return
 		}
 
@@ -132,7 +133,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		// Decorate channel data
 		es := emailmodels.NewEmailSummary(channels)
 		if es.MessageCount == 0 {
-			c.log.Error("Private message notification email for account %d does not have any messages", account.Id)
+			// maybe they are already glanced messages
 			continue
 		}
 
