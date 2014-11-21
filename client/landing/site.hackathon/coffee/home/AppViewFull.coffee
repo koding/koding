@@ -575,6 +575,9 @@ module.exports = class HomeViewFull extends KDView
 			follow the instructions presented there.</li> 
 			<li>All team members must have a Koding account.</li>
 			<li>All project developed must be directly aligned with one of the themes of the event.</li>
+			<li>Your project MUST BE a web app that is viewable on your Koding VMs web URL. Mobile
+			apps are not allowed. (Don't worry if you don't have an always-on Koding VM, we will take
+			care of that for you when we review your work.)</li>
 		</ul>
         <p>Our goal is to ensure that all teams have a level playing field; therefore it is
         imperative that all code, design, assets, etc… must be created during the duration
