@@ -1114,6 +1114,7 @@ class IDEAppController extends AppController
       if file.result.items.length > 0
         log 'file found'
         callback yes
+        @loadCollaborationFile file.result.items[0].id
       else
         log 'file not found'
         callback no
