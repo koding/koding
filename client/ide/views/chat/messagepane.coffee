@@ -1,4 +1,4 @@
-class IDE.ChatMessagePane extends KDTabPaneView
+class IDE.ChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
