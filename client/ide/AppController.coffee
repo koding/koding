@@ -1135,7 +1135,9 @@ class IDEAppController extends AppController
       body       : "@#{nick} initiated the IDE session."
       purpose    : "IDE #{dateFormat 'HH:MM'}"
       recipients : [ nick ]
-      payload    : 'system-message' : 'initiate'
+      payload    :
+        'system-message' : 'initiate'
+        collaboration    : yes
     , (err, channels) =>
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
@@ -1171,8 +1173,10 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
-      payload    : 'system-message' : 'start'
       channelId  : @socialChannel.id
+      payload    :
+        'system-message' : 'start'
+        collaboration    : yes
     , callback
 
     @rtm.once 'FileCreated', (file) =>
@@ -1191,8 +1195,10 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
-      payload    : 'system-message' : 'stop'
       channelId  : @socialChannel.id
+      payload    :
+         'system-message' : 'stop'
+         collaboration    : yes
     , callback
 
     @rtm.deleteFile @getRealTimeFileName()
