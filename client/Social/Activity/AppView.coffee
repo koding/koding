@@ -54,9 +54,7 @@ class ActivityAppView extends KDView
 
       return  unless pane = @tabs.getActivePane()
 
-      KD.utils.defer ->
-        pane.applyScrollTops()
-
+      KD.utils.defer -> pane.applyScrollTops()
       KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
