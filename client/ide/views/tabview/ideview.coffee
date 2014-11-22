@@ -111,7 +111,10 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       machine = m for m in machines when m.uid is machineId
 
     unless path
-      if ideApp.workspaceData?.rootPath
+      {workspaceData} = ideApp
+      {rootPath, isDefault} = workspaceData?
+
+      if rootPath and not isDefault
         path = ideApp.workspaceData.rootPath
 
     terminalPane = new IDE.TerminalPane { machine, path, joinUser, session }

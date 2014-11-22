@@ -450,8 +450,10 @@ class IDEAppController extends AppController
     machine = null  unless machine instanceof Machine
 
     if @workspaceData
-      {rootPath} = @workspaceData
-      path = rootPath  if rootPath
+      {rootPath, isDefault} = @workspaceData
+
+      if rootPath and not isDefault
+        path = rootPath
 
     @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser
 
