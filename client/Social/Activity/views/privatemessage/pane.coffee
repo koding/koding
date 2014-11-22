@@ -44,8 +44,8 @@ class PrivateMessagePane extends MessagePane
 
     headerHeight = @participantsView.getHeight()
     inputHeight  = @input.getHeight()
-    windowHeight = window.innerHeight
-    @scrollView.setHeight windowHeight - inputHeight - headerHeight
+    paneHeight   = @getHeight()
+    @scrollView.setHeight paneHeight - inputHeight - headerHeight
     @scrollDown()
     @_windowDidResize()
 

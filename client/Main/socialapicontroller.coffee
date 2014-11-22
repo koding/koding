@@ -486,16 +486,6 @@ class SocialApiController extends KDController
       validateOptionsWith: ['body', 'channelId']
       mapperFn           : mapPrivateMessages
 
-    initPrivateMessageFromBot : messageRequesterFn
-      fnName                  : 'initPrivateMessageFromBot'
-      validateOptionsWith     : ['body']
-      mapperFn                : mapPrivateMessages
-
-    sendPrivateMessageFromBot : messageRequesterFn
-      fnName                  : 'sendPrivateMessageFromBot'
-      validateOptionsWith     : ['body', 'channelId']
-      mapperFn                : mapPrivateMessages
-
     search               : messageRequesterFn
       fnName             : 'search'
       validateOptionsWith: ['name']

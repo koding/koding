@@ -40,11 +40,7 @@ module.exports = class SocialMessage extends Base
           (signature Object, Function)
         initPrivateMessage:
           (signature Object, Function)
-        initPrivateMessageFromBot:
-          (signature Object, Function)
         sendPrivateMessage:
-          (signature Object, Function)
-        sendPrivateMessageFromBot:
           (signature Object, Function)
         fetchPrivateMessages:
           (signature Object, Function)
@@ -174,34 +170,11 @@ module.exports = class SocialMessage extends Base
 
     doRequest 'sendPrivateMessage', client, data, callback
 
-  fetchBotAccount = (callback) ->
-    JAccount = require '../account'
-    JAccount.one {'profile.nickname': 'kodingbot'}, (err, account)->
-      return callback err if err
-      # todo
-      # create a bot account unless there is an account - SY
-      return callback { message: 'account not found' }  unless account
-      callback err, account
-
-
   @initPrivateMessage = permit 'send private message',
     success: initPrivateMessageHelper
 
   @sendPrivateMessage = permit 'send private message',
     success: sendPrivateMessageHelper
-
-  @initPrivateMessageFromBot = permit 'send private message',
-    success: (client, data, callback)->
-      fetchBotAccount (err, account) ->
-        data.recipients = [client.connection.delegate.profile.nickname]
-        client.connection.delegate = account
-        initPrivateMessageHelper client, data, callback
-
-  @sendPrivateMessageFromBot = permit 'send private message',
-    success: (client, data, callback)->
-      fetchBotAccount (err, account) ->
-        client.connection.delegate = account
-        sendPrivateMessageHelper client, data, callback
 
   # searchChats - browse chats depending on purpose/username fields
   @search  = secureRequest fnName: 'searchChats'
