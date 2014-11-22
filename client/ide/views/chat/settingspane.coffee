@@ -8,6 +8,12 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     super options, data
 
+    @createElements()
+
+    @on 'CollaborationStarted', => @toggleButtons 'started'
+    @on 'CollaborationEnded',   => @toggleButtons 'ended'
+
+  createElements: ->
     channel = @getData()
 
     @title = new KDCustomHTMLView
@@ -34,7 +40,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @endSession = new KDButtonView
       title    : 'END SESSION'
       disabled : yes
-      cssClass : 'solid red'
+      cssClass : 'solid red hidden'
       callback : @bound 'stopSession'
 
     @defaultSetting = new KDSelectBox
@@ -58,8 +64,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
       return @startSession.enable()  if err
 
-      @endSession.enable()
-      @startSession.disable()
+      @toggleButtons 'started'
 
 
   stopSession: ->
@@ -71,8 +76,23 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
       return @endSession.enable()  if err
 
-      @startSession.enable()
-      @endSession.disable()
+      @toggleButtons 'ended'
+
+
+  toggleButtons: (state) ->
+    startButton = @startSession
+    endButton   = @endSession
+
+    if state is 'started'
+      endButton.show()
+      endButton.enable()
+      startButton.hide()
+      startButton.disable()
+    else
+      startButton.show()
+      startButton.enable()
+      endButton.hide()
+      endButton.disable()
 
 
   viewAppended: JView::viewAppended

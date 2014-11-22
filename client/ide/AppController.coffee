@@ -1005,12 +1005,18 @@ class IDEAppController extends AppController
 
 
   setRealTimeManager: (object) =>
+
     callback = =>
       object.rtm = @rtm
       object.emit 'RealTimeManagerSet'
 
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
 
+
+  createChatPaneView: (channel) ->
+
+    @getView().addSubView @chat = new IDE.ChatView {}, channel
+    @chat.show()
 
 
   createChatPane: ->
@@ -1019,8 +1025,7 @@ class IDEAppController extends AppController
 
       return KD.showError err  if err
 
-      @getView().addSubView @chat = new IDE.ChatView {}, channel
-      @chat.show()
+      @createChatPaneView channel
 
 
   showChat: ->
@@ -1040,9 +1045,6 @@ class IDEAppController extends AppController
     @rtm.ready => @statusBar.share.show()
 
 
-
-
-
   createWorkspace: (options = {}) ->
 
     name         = options.name or 'My Workspace'
@@ -1056,10 +1058,11 @@ class IDEAppController extends AppController
       machineLabel : options.machineLabel or label
       rootPath     : options.rootPath     or rootPath
       isDefault    : name is 'My Workspace'
-      layout       : {} # don't know what this is for - SY
 
 
-  updateWorkspace: (options = {}) -> KD.remote.api.JWorkspace.update @workspaceData._id, {$set : options}
+  updateWorkspace: (options = {}) ->
+
+    KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
 
   startChatSession: (callback) ->
@@ -1074,35 +1077,51 @@ class IDEAppController extends AppController
     { channelId } = @workspaceData
 
     if channelId
-      @isRealtimeSessionActive channelId, (isActive) =>
 
-        return @continuePrivateMessage callback  if isActive
+      @fetchSocialChannel (channel) =>
 
-        @statusBar.share.show()
-        log 'start collaboration'
+        @createChatPaneView channel
+
+        @isRealtimeSessionActive channelId, (isActive) =>
+
+          return @continuePrivateMessage callback  if isActive
+
+          @statusBar.share.show()
+          log 'start collaboration'
 
     else
       @initPrivateMessage callback
+
+  getRealTimeFileName: (id) ->
+    unless id
+      if @socialChannel
+        id = @socialChannel.id
+      else
+        return KD.showError 'social channel id is not provided'
+
+    hostName = if @amIHost then KD.nick() else @collaborationHost
+    return "#{hostName}.#{id}"
 
 
   continuePrivateMessage: (callback) ->
 
     log 'continuePrivateMessage'
     @statusBar.avatars.show()
+    @chat.emit 'CollaborationStarted'
 
 
   isRealtimeSessionActive: (id, callback) ->
 
-    hostName = if @amIHost then KD.nick() else @collaborationHost
-    title    = "#{hostName}.#{id}"
-
     @rtm.once 'FileQueryFinished', (file) =>
 
       if file.result.items.length > 0
-      then callback yes
-      else callback no
+        log 'file found'
+        callback yes
+      else
+        log 'file not found'
+        callback no
 
-    @rtm.fetchFileByTitle title
+    @rtm.fetchFileByTitle @getRealTimeFileName id
 
 
   initPrivateMessage: (callback) ->
@@ -1129,6 +1148,17 @@ class IDEAppController extends AppController
         .error callback
 
 
+  fetchSocialChannel: (callback) ->
+
+    return callback @socialChannel  if @socialChannel
+
+    query = id: @workspaceData.channelId
+
+    KD.singletons.socialapi.channel.byId query, (err, channel) =>
+      return KD.showError err  if err
+
+      @socialChannel = channel
+
 
   startCollaborationSession: (callback) ->
 
@@ -1139,10 +1169,15 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
+      payload    : 'system-message' : 'start'
       channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'start'
     , callback
+
+    @rtm.once 'FileCreated', (file) =>
+      log 'file created', file
+      @chat.emit 'CollaborationStarted'
+
+    @rtm.createFile @getRealTimeFileName()
 
 
   stopCollaborationSession: (callback) ->
@@ -1154,7 +1189,11 @@ class IDEAppController extends AppController
 
     message.sendPrivateMessage
       body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      payload    : 'system-message' : 'stop'
       channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'stop'
     , callback
+
+    @rtm.deleteFile @getRealTimeFileName()
+
+    @rtm.once 'FileDeleted', =>
+      log 'file deleted'
