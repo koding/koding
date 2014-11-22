@@ -1050,7 +1050,7 @@ class IDEAppController extends AppController
   createWorkspace: (options = {}) ->
 
     name         = options.name or 'My Workspace'
-    rootPath     = "/home/#{KD.nick()}/"
+    rootPath     = "/home/#{KD.nick()}"
     {label, uid} = @mountedMachine
 
     return KD.remote.api.JWorkspace.create
