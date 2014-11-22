@@ -43,6 +43,11 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       cssClass : 'solid red hidden'
       callback : @bound 'stopSession'
 
+    @back = new KDButtonView
+      title    : 'back to chat'
+      cssClass : 'solid green mini'
+      callback : => @getDelegate().showChatPane()
+
     @defaultSetting = new KDSelectBox
       defaultValue  : 'edit'
       selectOptions : [
@@ -114,6 +119,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
     </ul>
     {{> @everyone}}
+    {{> @back}}
     """
 
 
