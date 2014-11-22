@@ -113,6 +113,17 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       endButton.disable()
 
 
+  createParticipantsList: ->
+
+    @everyone.unsetClass 'loading'
+    @everyone.destroySubViews()
+
+    participants = @rtm.getFromModel('participants').asArray()
+
+    for participant in participants
+      @everyone.addSubView new IDE.ChatParticipantView {}, participant
+
+
   viewAppended: JView::viewAppended
 
   setTemplate: JView::setTemplate
@@ -134,5 +145,3 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     {{> @everyone}}
     {{> @back}}
     """
-
-
