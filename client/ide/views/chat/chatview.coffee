@@ -25,6 +25,12 @@ class IDE.ChatView extends KDTabView
     @on 'CollaborationStarted', => @settingsPane.emit 'CollaborationStarted'
     @on 'CollaborationEnded',   => @settingsPane.emit 'CollaborationEnded'
 
+
+  showChatPane: -> @showPane @chatPane
+
+  showSettingsPane: -> @showPane @settingsPane
+
+
   show: ->
 
     {windowController} = KD.singletons
