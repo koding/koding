@@ -1132,6 +1132,17 @@ class IDEAppController extends AppController
         .error callback
 
 
+  fetchSocialChannel: (callback) ->
+
+    return callback @socialChannel  if @socialChannel
+
+    query = id: @workspaceData.channelId
+
+    KD.singletons.socialapi.channel.byId query, (err, channel) =>
+      return KD.showError err  if err
+
+      @socialChannel = channel
+
 
   startCollaborationSession: (callback) ->
 
