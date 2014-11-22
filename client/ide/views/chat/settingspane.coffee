@@ -8,12 +8,16 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     super options, data
 
+    @rtm = options.rtm
+
     @createElements()
 
     @on 'CollaborationStarted', => @toggleButtons 'started'
     @on 'CollaborationEnded',   => @toggleButtons 'ended'
 
+
   createElements: ->
+
     channel = @getData()
 
     @title = new KDCustomHTMLView

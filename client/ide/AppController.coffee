@@ -1013,7 +1013,7 @@ class IDEAppController extends AppController
 
   createChatPaneView: (channel) ->
 
-    @getView().addSubView @chat = new IDE.ChatView {}, channel
+    @getView().addSubView @chat = new IDE.ChatView { @rtm }, channel
     @chat.show()
 
 
