@@ -19,6 +19,7 @@ pmLinkColor   = #B6B6B6
   z-index                   20
   bg                        color white
   rounded                   3px 3px 0 0
+  overflow                  hidden
 
   .custom-link-view.close
     abs                     20px 16px 0 0
@@ -59,6 +60,7 @@ pmLinkColor   = #B6B6B6
   > .kdtabpaneview
     padding                 16px
     borderBox()
+
 
     header
       border-bottom         1px solid pmBorderColor
@@ -113,4 +115,8 @@ pmLinkColor   = #B6B6B6
         fl()
       .kdselectbox
         fr()
+
+.chat-view .kdtabpaneview.privatemessage
+  padding                   0
+  min-height                100%
 
