@@ -1016,6 +1016,8 @@ class IDEAppController extends AppController
     @getView().addSubView @chat = new IDE.ChatView { @rtm }, channel
     @chat.show()
 
+    @once 'RTMIsReady', => @chat.settingsPane.createParticipantsList()
+
 
   createChatPane: ->
 
