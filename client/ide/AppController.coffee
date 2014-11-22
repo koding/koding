@@ -739,22 +739,22 @@ class IDEAppController extends AppController
       @participants = @rtm.getFromModel 'participants'
       @changes      = @rtm.getFromModel 'changes'
 
+      unless @participants
+        @participants = @rtm.create 'list', 'participants', []
+
       unless @changes
         @changes = @rtm.create 'list', 'changes', []
 
-      if not @participants
-        @addParticipant yes  if @amIHost
+      isInList = no
+
+      @participants.asArray().forEach (participant) =>
+        isInList = yes  if participant.nickname is nickname
+
+      if not isInList
+        log 'acetz: I am not in the participants list, adding myself'
+        @addParticipant()
       else
-        isInList = no
-
-        @participants.asArray().forEach (participant) =>
-          isInList = yes  if participant.nickname is nickname
-
-        if not isInList
-          log 'acetz: I am not in the participants list, adding myself'
-          @addParticipant()
-        else
-          log 'acetz: I am alread in participants lists'
+        log 'acetz: I am already in participants lists'
 
       log 'acetz: participants:', @participants.asArray()
 
@@ -785,18 +785,14 @@ class IDEAppController extends AppController
         @participants.insert index, user
 
 
-  addParticipant: (initalizeList = no) ->
+  addParticipant: ->
     {hash, nickname} = KD.whoami().profile
 
-    if initalizeList
-      @rtm.create 'list', 'participants', []
-
-    @participants = @rtm.getFromModel 'participants'
     @participants.push { nickname, hash }
 
     @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
 
-    log 'acetz: participant added:', @participants.asArray()
+    log 'acetz: participant added:', nickname
 
 
   createWorkspaceSnapshot: ->
