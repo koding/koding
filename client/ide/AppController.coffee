@@ -1035,10 +1035,8 @@ class IDEAppController extends AppController
 
   prepareCollaboration___: ->
 
-    @rtm          = new RealTimeManager
-    { channelId } = @workspaceData
-
-    # return @rtm.ready => @statusBar.share.show()  unless channelId
+    @rtm        = new RealTimeManager
+    {channelId} = @workspaceData
 
     @rtm.ready => @statusBar.share.show()
 
