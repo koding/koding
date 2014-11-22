@@ -2,7 +2,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
-    options.cssClass = 'messages'
+    options.cssClass = 'privatemessage'
 
     super options, data
 
