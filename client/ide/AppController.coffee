@@ -765,15 +765,15 @@ class IDEAppController extends AppController
       @rtm.on 'CollaboratorLeft', (doc, participant) =>
         @handleParticipantAction 'left', participant
 
-
-      @registerSessionId()
+      @registerParticipantSessionId()
       @listenChangeEvents()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
-  registerSessionId: ->
+
+  registerParticipantSessionId: ->
     collaborators = @rtm.getCollaborators()
 
     for collaborator in collaborators when collaborator.isMe
