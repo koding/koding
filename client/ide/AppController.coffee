@@ -1070,7 +1070,7 @@ class IDEAppController extends AppController
           @initPrivateMessage callback
         .error callback
 
-    { channelId } = @workspaceData
+    channelId = @privateMessageId or @workspaceData.channelId
 
     if channelId
 
@@ -1089,9 +1089,10 @@ class IDEAppController extends AppController
       @initPrivateMessage callback
 
   getRealTimeFileName: (id) ->
+
     unless id
-      if @socialChannel
-        id = @socialChannel.id
+      if @privateMessageId   then id = @privateMessageId
+      else if @socialChannel then id = @socialChannel.id
       else
         return KD.showError 'social channel id is not provided'
 
@@ -1150,7 +1151,7 @@ class IDEAppController extends AppController
 
     return callback @socialChannel  if @socialChannel
 
-    query = id: @workspaceData.channelId
+    query = id: @privateMessageId or @workspaceData.channelId
 
     KD.singletons.socialapi.channel.byId query, (err, channel) =>
       return KD.showError err  if err
