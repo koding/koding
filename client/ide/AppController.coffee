@@ -1087,6 +1087,16 @@ class IDEAppController extends AppController
     else
       @initPrivateMessage callback
 
+  getRealTimeFileName: (id) ->
+    unless id
+      if @socialChannel
+        id = @socialChannel.id
+      else
+        return KD.showError 'social channel id is not provided'
+
+    hostName = if @amIHost then KD.nick() else @collaborationHost
+    return "#{hostName}.#{id}"
+
 
   continuePrivateMessage: (callback) ->
 
