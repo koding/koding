@@ -1077,12 +1077,17 @@ class IDEAppController extends AppController
     { channelId } = @workspaceData
 
     if channelId
-      @isRealtimeSessionActive channelId, (isActive) =>
 
-        return @continuePrivateMessage callback  if isActive
+      @fetchSocialChannel (channel) =>
 
-        @statusBar.share.show()
-        log 'start collaboration'
+        @createChatPaneView channel
+
+        @isRealtimeSessionActive channelId, (isActive) =>
+
+          return @continuePrivateMessage callback  if isActive
+
+          @statusBar.share.show()
+          log 'start collaboration'
 
     else
       @initPrivateMessage callback
@@ -1102,20 +1107,21 @@ class IDEAppController extends AppController
 
     log 'continuePrivateMessage'
     @statusBar.avatars.show()
+    @chat.emit 'CollaborationStarted'
 
 
   isRealtimeSessionActive: (id, callback) ->
 
-    hostName = if @amIHost then KD.nick() else @collaborationHost
-    title    = "#{hostName}.#{id}"
-
     @rtm.once 'FileQueryFinished', (file) =>
 
       if file.result.items.length > 0
-      then callback yes
-      else callback no
+        log 'file found'
+        callback yes
+      else
+        log 'file not found'
+        callback no
 
-    @rtm.fetchFileByTitle title
+    @rtm.fetchFileByTitle @getRealTimeFileName id
 
 
   initPrivateMessage: (callback) ->
@@ -1167,6 +1173,12 @@ class IDEAppController extends AppController
       channelId  : @socialChannel.id
     , callback
 
+    @rtm.once 'FileCreated', (file) =>
+      log 'file created', file
+      @chat.emit 'CollaborationStarted'
+
+    @rtm.createFile @getRealTimeFileName()
+
 
   stopCollaborationSession: (callback) ->
 
@@ -1180,3 +1192,8 @@ class IDEAppController extends AppController
       payload    : 'system-message' : 'stop'
       channelId  : @socialChannel.id
     , callback
+
+    @rtm.deleteFile @getRealTimeFileName()
+
+    @rtm.once 'FileDeleted', =>
+      log 'file deleted'
