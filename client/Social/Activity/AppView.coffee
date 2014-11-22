@@ -17,12 +17,10 @@ class ActivityAppView extends KDView
       appStorageController
       windowController
       mainView
-    }             = KD.singletons
-    {entryPoint}  = KD.config
-
+    }            = KD.singletons
+    {entryPoint} = KD.config
     @sidebar     = mainView.activitySidebar
     @appStorage  = appStorageController.storage 'Activity', '2.0'
-
     @panePathMap = {}
 
     @tabs = new KDTabView
@@ -50,8 +48,6 @@ class ActivityAppView extends KDView
 
   viewAppended: ->
 
-    # @addSubView @groupHeader  unless isKoding()
-    # @addSubView @sidebar
     @addSubView @tabs
 
     @parent.on 'KDTabPaneActive', =>
