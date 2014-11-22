@@ -19,6 +19,12 @@ class ActivityAppView extends KDView
       mainView
     }            = KD.singletons
     {entryPoint} = KD.config
+    # this is also assigned in viewAppended
+    # when you land on a privateMessage directly
+    # sidebar here becomes undefined
+    # and once view is appended we make sure
+    # that the sidebar property is set.
+    # a terrible hack, should be addressed later. - SY
     @sidebar     = mainView.activitySidebar
     @appStorage  = appStorageController.storage 'Activity', '2.0'
     @panePathMap = {}
@@ -48,6 +54,8 @@ class ActivityAppView extends KDView
 
   viewAppended: ->
 
+    # see above for the terrible hack note - SY
+    @sidebar ?= KD.singletons.mainView.activitySidebar
     @addSubView @tabs
 
     @parent.on 'KDTabPaneActive', =>
