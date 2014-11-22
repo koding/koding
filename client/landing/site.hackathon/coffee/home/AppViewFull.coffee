@@ -513,7 +513,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <figcaption><a href='https://www.mashape.com/?utm_source=koding&utm_medium=referral&utm_campaign=kodinghackathon' target='_blank'>Mashape</a> will reward an additional <strong>$1,000</strong> to the team that makes the best use of their API.</figcaption>
+              <figcaption><a href='https://www.mashape.com/?utm_source=koding&utm_medium=referral&utm_campaign=kodinghackathon' target='_blank'>Mashape</a> will reward an additional <strong>$1,000</strong> to the team that uses any API on Mashape.</figcaption>
             </figure>
           </li>
           <li>
