@@ -61,7 +61,16 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @everyone = new KDCustomHTMLView
       tagName  : 'ul'
-      cssClass : 'settings everyone'
+      cssClass : 'settings everyone loading'
+
+    @everyone.addSubView new KDLoaderView
+      showLoader : yes
+      size       :
+        width    : 24
+
+    @everyone.addSubView new KDCustomHTMLView
+      cssClass : 'label'
+      partial  : 'Fetching participants...'
 
 
   initiateSession: ->
