@@ -503,7 +503,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <figcaption><a href='https://www.3scale.net/'>3Scale</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on thier site.</figcaption>
+              <figcaption><a href='https://www.3scale.net/'>3Scale</a> will offer an additional <strong>$1,500</strong> to the team that makes the best usage of any API on their site.</figcaption>
             </figure>
           </li>
           <li>
@@ -523,7 +523,7 @@ module.exports = class HomeViewFull extends KDView
           </li>
             <li>
             <figure>
-              <figcaption><a href='https://www.apitools.com/'>APITools</a> will offer <strong>$1,500</strong> to the team that uses APItools in the creation of thier project.</figcaption>
+              <figcaption><a href='https://www.apitools.com/'>APITools</a> will offer <strong>$1,500</strong> to the team that uses APItools in the creation of their project.</figcaption>
             </figure>
           </li>
         </ul>
