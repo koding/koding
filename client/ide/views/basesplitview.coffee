@@ -4,7 +4,7 @@ class IDE.BaseSplitView extends KDSplitView
 
     super
 
-    @lastKnownFileTreeSize = @getOption('sizes').first
+    @lastKnownFileTreeSize = @getOption('sizes').first or 250
 
     @on 'PanelDidResize', KD.utils.debounce 10, =>
 
