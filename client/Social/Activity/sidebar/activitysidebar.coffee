@@ -428,12 +428,16 @@ class ActivitySidebar extends KDCustomHTMLView
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
           ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+          title    = "#{workspace.name}"
 
           unless isMyMachine
             ideRoute = "#{ideRoute}/#{machineOwner}"
 
+          unless workspace.isDefault
+            title += "<span class='ws-settings-icon'></span>"
+
           treeData.push
-            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            title        : title
             type         : 'workspace'
             href         : ideRoute
             machineLabel : machine.slug or machine.label
