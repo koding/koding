@@ -1,6 +1,5 @@
 class MainView extends KDView
 
-
   constructor: (options = {}, data)->
 
     options.domId    = 'kdmaincontainer'
@@ -13,20 +12,15 @@ class MainView extends KDView
 
   viewAppended: ->
 
-    {mainController} = KD.singletons
-
     @bindPulsingRemove()
     @bindTransitionEnd()
     @createHeader()
-
-    if KD.isLoggedInOnLoad then @createSidebar()
-
+    @createSidebar()
     @createPanelWrapper()
     @createMainTabView()
 
-    mainController.ready =>
-      if KD.isLoggedInOnLoad then @createAccountArea()
-
+    KD.singletons.mainController.ready =>
+      @createAccountArea()
       @setStickyNotification()
       @emit 'ready'
 
