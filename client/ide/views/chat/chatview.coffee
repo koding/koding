@@ -7,7 +7,7 @@ class IDE.ChatView extends KDTabView
 
     super options, data
 
-    channel = @getData()
+    @unsetClass 'kdscrollview'
 
     @addSubView new CustomLinkView
       title    : ''
@@ -17,7 +17,17 @@ class IDE.ChatView extends KDTabView
         KD.utils.stopDOMEvent event
         @hide()
 
-    @addPane @chatPane     = new IDE.ChatMessagePane {}, channel
+    KD.singletons.appManager.require 'Activity', @bound 'createPanes'
+
+
+  createPanes: ->
+
+    channel   = @getData()
+    type      = channel.typeConstant
+    channelId = channel.id
+    name      = 'collaboration'
+
+    @addPane @chatPane     = new IDE.ChatMessagePane {name, type, channelId}, channel
     @addPane @settingsPane = new IDE.ChatSettingsPane {}, channel
 
     @on 'ReceivedClickElseWhere', @bound 'hide'
