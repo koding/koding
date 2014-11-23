@@ -391,6 +391,7 @@ class ActivitySidebar extends KDCustomHTMLView
   listMachines: (machines) ->
 
     treeData = []
+    nickname = KD.nick()
 
     for machine in machines
 
@@ -398,7 +399,9 @@ class ActivitySidebar extends KDCustomHTMLView
         machine = machine.getData()
 
       treeData.push item = new Machine {machine}
+
       id = item.getId()
+
       treeData.push
         title        : 'Workspaces'
         type         : 'title'
@@ -407,20 +410,36 @@ class ActivitySidebar extends KDCustomHTMLView
         machineUId   : machine.uid
         machineLabel : machine.slug or machine.label
 
-      treeData.push
-        title        : 'My Workspace'
-        type         : 'workspace'
-        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
-        id           : "#{machine.slug or machine.label}-workspace"
-        parentId     : id
-        machineLabel : machine.slug or machine.label
+      ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
+      machineOwner = machine.credential
+      isMyMachine  = machineOwner is KD.nick()
+      ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
+      hasWorkspace = (KD.userWorkspaces.filter ({name}) -> return name is 'My Workspace').length > 0
+
+      unless hasWorkspace
+        treeData.push
+          title        : 'My Workspace'
+          type         : 'workspace'
+          href         : ideRoute
+          id           : "#{machine.slug or machine.label}-workspace"
+          parentId     : id
+          machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
         if workspace.machineUId is machine.uid
+          ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+          title    = "#{workspace.name}"
+
+          unless isMyMachine
+            ideRoute = "#{ideRoute}/#{machineOwner}"
+
+          unless workspace.isDefault
+            title += "<span class='ws-settings-icon'></span>"
+
           treeData.push
-            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            title        : title
             type         : 'workspace'
-            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            href         : ideRoute
             machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
