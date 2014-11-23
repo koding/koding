@@ -987,8 +987,10 @@ class IDEAppController extends AppController
 
       if actionType is 'join'
         @chat.emit 'ParticipantJoined', targetUser
+        @statusBar.emit 'ParticipantJoined', targetUser
       else
         @chat.emit 'ParticipantLeft', targetUser
+        @statusBar.emit 'ParticipantLeft', targetUser
 
         # check the user is still at same index, so we won't remove someone else.
         user = @participants.get targetIndex
