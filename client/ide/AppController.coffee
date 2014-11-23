@@ -1104,8 +1104,9 @@ class IDEAppController extends AppController
   continuePrivateMessage: (callback) ->
 
     log 'continuePrivateMessage'
-    @statusBar.avatars.show()
     @chat.emit 'CollaborationStarted'
+    @once 'RTMIsReady', =>
+      @statusBar.emit 'ShowAvatars', @participants.asArray()
 
 
   isRealtimeSessionActive: (id, callback) ->
