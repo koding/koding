@@ -34,7 +34,10 @@ class IDE.ChatView extends KDTabView
 
     @on 'ReceivedClickElseWhere', @bound 'hide'
 
-    @settingsPane.forwardEvents this, ['CollaborationStarted', 'CollaborationEnded']
+    @settingsPane.forwardEvents this, [
+      'CollaborationStarted', 'CollaborationEnded'
+      'ParticipantJoined', 'ParticipantLeft'
+    ]
 
 
   showChatPane: -> @showPane @chatPane
