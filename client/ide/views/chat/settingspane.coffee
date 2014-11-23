@@ -118,10 +118,18 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @everyone.unsetClass 'loading'
     @everyone.destroySubViews()
 
-    participants = @rtm.getFromModel('participants').asArray()
+    participants      = @rtm.getFromModel('participants').asArray()
+    @participantViews = {}
 
     for participant in participants
-      @everyone.addSubView new IDE.ChatParticipantView {}, participant
+      @createParticipantView participant
+
+
+  createParticipantView: (data) =>
+
+    view = new IDE.ChatParticipantView {}, data
+    @participantViews[data.nickname] = view
+    @everyone.addSubView view
 
 
   viewAppended: JView::viewAppended
