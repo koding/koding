@@ -1,12 +1,12 @@
 do ->
 
-  loadWorkspace = (machineLabel, workspaceSlug, username, privateMessageId) ->
+  loadWorkspace = (machineLabel, workspaceSlug, username, channelId) ->
     username or= KD.nick()
     workspace  = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
     machine    = getMachine machineLabel, username
 
     if workspace
-      loadIDE { machine, workspace, username, privateMessageId }
+      loadIDE { machine, workspace, username, channelId }
 
     else
       if workspaceSlug is 'my-workspace'
@@ -16,7 +16,7 @@ do ->
           slug         : 'my-workspace'
           machineLabel : machine?.slug or machine?.label
 
-        loadIDE { machine, workspace, username, privateMessageId }
+        loadIDE { machine, workspace, username, channelId }
 
       else
         routeToLatestWorkspace()
@@ -42,7 +42,7 @@ do ->
 
   loadIDE = (data) ->
 
-    { machine, workspace, username, privateMessageId } = data
+    { machine, workspace, username, channelId } = data
 
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
@@ -56,7 +56,7 @@ do ->
           app.isCollaborative   = yes
           app.amIHost           = no
           app.collaborationHost = username
-          app.privateMessageId  = privateMessageId
+          app.channelId         = channelId
         else
           app.amIHost           = yes
 
@@ -96,7 +96,10 @@ do ->
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
-  routeToLatestWorkspace = ->
+  routeToLatestWorkspace = ({ params : { machineLabel } }) ->
+
+    # we assume that if machineLabel is all numbers it is the channelId - SY
+    return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
 
     machine = KD.userMachines.first
     return putVMInWorkspace machine  if machine
@@ -110,11 +113,29 @@ do ->
       putVMInWorkspace machines.first
 
 
+  loadCollaborativeIDE = (id) ->
+
+    KD.singletons.socialapi.channel.byId { id }, (err, channel) ->
+
+      return routeToLatestWorkspace() if err
+
+      try
+        for workspace in KD.userWorkspaces when workspace.channelId is channel.id
+          machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+          username  = if workspace.owner then workspace.owner else KD.nick()
+          channelId = channel.id
+          return loadIDE { machine, workspace, username, channelId }
+
+      catch e
+        return routeToLatestWorkspace()
+
+
+
   KD.registerRoutes 'IDE',
 
-    '/:name?/IDE': -> routeToLatestWorkspace()
+    '/:name?/IDE': routeToLatestWorkspace
 
-    '/:name?/IDE/:machineLabel': -> routeToLatestWorkspace()
+    '/:name?/IDE/:machineLabel': routeToLatestWorkspace
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (data) ->
 
@@ -122,8 +143,8 @@ do ->
 
       loadWorkspace machineLabel, workspaceSlug
 
-    '/:name?/IDE/:machineLabel/:workspaceSlug/:username/:privateMessageId': (data) ->
+    '/:name?/IDE/:machineLabel/:workspaceSlug/:username/:channelId': (data) ->
 
-      { machineLabel, workspaceSlug, username, privateMessageId } = data.params
+      { machineLabel, workspaceSlug, username, channelId } = data.params
 
-      loadWorkspace machineLabel, workspaceSlug, username, privateMessageId
+      loadWorkspace machineLabel, workspaceSlug, username, channelId
