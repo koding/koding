@@ -982,14 +982,13 @@ class IDEAppController extends AppController
         targetUser  = participant.nickname
         targetIndex = index
 
-
       unless targetUser
         return warn 'Unknown user in collaboration, we should handle this case...'
 
       if actionType is 'join'
-        log targetUser, 'joined'
+        @chat.emit 'ParticipantJoined', targetUser
       else
-        log targetUser, 'left'
+        @chat.emit 'ParticipantLeft', targetUser
 
         # check the user is still at same index, so we won't remove someone else.
         user = @participants.get targetIndex
