@@ -15,6 +15,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @on 'CollaborationStarted', => @toggleButtons 'started'
     @on 'CollaborationEnded',   => @toggleButtons 'ended'
 
+    @on 'ParticipantJoined', @bound 'addParticipant'
+    @on 'ParticipantLeft',   @bound 'removeParticipant'
+
 
   createElements: ->
 
@@ -130,6 +133,19 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     view = new IDE.ChatParticipantView {}, data
     @participantViews[data.nickname] = view
     @everyone.addSubView view
+
+
+  removeParticipant: (username) ->
+
+    @participantViews[username]?.destroy()
+    delete @participantViews[username]
+
+
+  addParticipant: (nickname) ->
+
+    return  if @participantViews[nickname]
+
+    @createParticipantView { nickname }
 
 
   viewAppended: JView::viewAppended
