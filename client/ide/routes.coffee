@@ -115,7 +115,7 @@ do ->
 
   loadCollaborativeIDE = (id) ->
 
-    KD.singletons.socialapi.channel.byId { id }, (err, channel) ->
+    KD.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
 
       return routeToLatestWorkspace() if err
 
