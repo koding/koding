@@ -1156,9 +1156,9 @@ class IDEAppController extends AppController
 
     return callback @socialChannel  if @socialChannel
 
-    query = id: @channelId or @workspaceData.channelId
+    id = @channelId or @workspaceData.channelId
 
-    KD.singletons.socialapi.channel.byId query, (err, channel) =>
+    KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return KD.showError err  if err
 
       @socialChannel = channel
