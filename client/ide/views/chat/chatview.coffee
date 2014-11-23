@@ -7,6 +7,8 @@ class IDE.ChatView extends KDTabView
 
     super options, data
 
+    @rtm = options.rtm
+
     @unsetClass 'kdscrollview'
 
     @addSubView new CustomLinkView
@@ -28,11 +30,14 @@ class IDE.ChatView extends KDTabView
     name      = 'collaboration'
 
     @addPane @chatPane     = new IDE.ChatMessagePane {name, type, channelId}, channel
-    @addPane @settingsPane = new IDE.ChatSettingsPane {}, channel
+    @addPane @settingsPane = new IDE.ChatSettingsPane { @rtm }, channel
 
     @on 'ReceivedClickElseWhere', @bound 'hide'
 
-    @settingsPane.forwardEvents this, ['CollaborationStarted', 'CollaborationEnded']
+    @settingsPane.forwardEvents this, [
+      'CollaborationStarted', 'CollaborationEnded'
+      'ParticipantJoined', 'ParticipantLeft'
+    ]
 
 
   showChatPane: -> @showPane @chatPane

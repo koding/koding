@@ -8,12 +8,19 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     super options, data
 
+    @rtm = options.rtm
+
     @createElements()
 
     @on 'CollaborationStarted', => @toggleButtons 'started'
     @on 'CollaborationEnded',   => @toggleButtons 'ended'
 
+    @on 'ParticipantJoined', @bound 'addParticipant'
+    @on 'ParticipantLeft',   @bound 'removeParticipant'
+
+
   createElements: ->
+
     channel = @getData()
 
     @title = new KDCustomHTMLView
@@ -57,7 +64,16 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @everyone = new KDCustomHTMLView
       tagName  : 'ul'
-      cssClass : 'settings everyone'
+      cssClass : 'settings everyone loading'
+
+    @everyone.addSubView new KDLoaderView
+      showLoader : yes
+      size       :
+        width    : 24
+
+    @everyone.addSubView new KDCustomHTMLView
+      cssClass : 'label'
+      partial  : 'Fetching participants...'
 
 
   initiateSession: ->
@@ -100,6 +116,38 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       endButton.disable()
 
 
+  createParticipantsList: ->
+
+    @everyone.unsetClass 'loading'
+    @everyone.destroySubViews()
+
+    participants      = @rtm.getFromModel('participants').asArray()
+    @participantViews = {}
+
+    for participant in participants
+      @createParticipantView participant
+
+
+  createParticipantView: (data) =>
+
+    view = new IDE.ChatParticipantView {}, data
+    @participantViews[data.nickname] = view
+    @everyone.addSubView view
+
+
+  removeParticipant: (username) ->
+
+    @participantViews[username]?.destroy()
+    delete @participantViews[username]
+
+
+  addParticipant: (nickname) ->
+
+    return  if @participantViews[nickname]
+
+    @createParticipantView { nickname }
+
+
   viewAppended: JView::viewAppended
 
   setTemplate: JView::setTemplate
@@ -121,5 +169,3 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     {{> @everyone}}
     {{> @back}}
     """
-
-

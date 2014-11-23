@@ -8,6 +8,13 @@ class IDE.StatusBar extends KDView
 
     {appManager} = KD.singletons
 
+    @participantAvatars = {}
+
+    @on 'ShowAvatars',       @bound 'showAvatars'
+    @on 'ParticipantLeft',   @bound 'removeParticipantAvatar'
+    @on 'ParticipantJoined', @bound 'addParticipantAvatar'
+
+
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
     @addSubView new KDCustomHTMLView
@@ -40,7 +47,6 @@ class IDE.StatusBar extends KDView
         # @hide()
 
     @addSubView @avatars = new KDCustomHTMLView
-      partial  : 'kafalar'
       cssClass : 'avatars fr hidden'
       click    : (event) ->
         KD.utils.stopDOMEvent event
@@ -49,4 +55,39 @@ class IDE.StatusBar extends KDView
 
 
   showInformation: ->
+
     @status.updatePartial 'Click the plus button above to create a new panel'
+
+
+  createParticipantAvatar: (nickname) ->
+
+    view       = new AvatarView
+      origin   : nickname
+      tooltip  : title: nickname
+      size     : width: 24, height: 24
+
+    @participantAvatars[nickname] = view
+    @avatars.addSubView view
+    view.getElement().removeAttribute 'href'
+
+
+  showAvatars: (participants) ->
+
+    @avatars.show()
+
+    for participant in participants
+      {nickname} = participant
+      @createParticipantAvatar nickname
+
+
+  removeParticipantAvatar: (nickname) ->
+
+    @participantAvatars[nickname]?.destroy()
+    delete @participantAvatars[nickname]
+
+
+  addParticipantAvatar: (nickname) ->
+
+    return if @participantAvatars[nickname]
+
+    @createParticipantAvatar nickname

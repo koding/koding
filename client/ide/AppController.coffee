@@ -739,22 +739,22 @@ class IDEAppController extends AppController
       @participants = @rtm.getFromModel 'participants'
       @changes      = @rtm.getFromModel 'changes'
 
+      unless @participants
+        @participants = @rtm.create 'list', 'participants', []
+
       unless @changes
         @changes = @rtm.create 'list', 'changes', []
 
-      if not @participants
-        @addParticipant yes  if @amIHost
+      isInList = no
+
+      @participants.asArray().forEach (participant) =>
+        isInList = yes  if participant.nickname is nickname
+
+      if not isInList
+        log 'acetz: I am not in the participants list, adding myself'
+        @addParticipant()
       else
-        isInList = no
-
-        @participants.asArray().forEach (participant) =>
-          isInList = yes  if participant.nickname is nickname
-
-        if not isInList
-          log 'acetz: I am not in the participants list, adding myself'
-          @addParticipant()
-        else
-          log 'acetz: I am alread in participants lists'
+        log 'acetz: I am already in participants lists'
 
       log 'acetz: participants:', @participants.asArray()
 
@@ -765,15 +765,15 @@ class IDEAppController extends AppController
       @rtm.on 'CollaboratorLeft', (doc, participant) =>
         @handleParticipantAction 'left', participant
 
-
-      @registerSessionId()
+      @registerParticipantSessionId()
       @listenChangeEvents()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
-  registerSessionId: ->
+
+  registerParticipantSessionId: ->
     collaborators = @rtm.getCollaborators()
 
     for collaborator in collaborators when collaborator.isMe
@@ -785,18 +785,14 @@ class IDEAppController extends AppController
         @participants.insert index, user
 
 
-  addParticipant: (initalizeList = no) ->
+  addParticipant: ->
     {hash, nickname} = KD.whoami().profile
 
-    if initalizeList
-      @rtm.create 'list', 'participants', []
-
-    @participants = @rtm.getFromModel 'participants'
     @participants.push { nickname, hash }
 
     @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
 
-    log 'acetz: participant added:', @participants.asArray()
+    log 'acetz: participant added:', nickname
 
 
   createWorkspaceSnapshot: ->
@@ -986,14 +982,15 @@ class IDEAppController extends AppController
         targetUser  = participant.nickname
         targetIndex = index
 
-
       unless targetUser
         return warn 'Unknown user in collaboration, we should handle this case...'
 
       if actionType is 'join'
-        log targetUser, 'joined'
+        @chat.emit 'ParticipantJoined', targetUser
+        @statusBar.emit 'ParticipantJoined', targetUser
       else
-        log targetUser, 'left'
+        @chat.emit 'ParticipantLeft', targetUser
+        @statusBar.emit 'ParticipantLeft', targetUser
 
         # check the user is still at same index, so we won't remove someone else.
         user = @participants.get targetIndex
@@ -1017,8 +1014,10 @@ class IDEAppController extends AppController
 
   createChatPaneView: (channel) ->
 
-    @getView().addSubView @chat = new IDE.ChatView {}, channel
+    @getView().addSubView @chat = new IDE.ChatView { @rtm }, channel
     @chat.show()
+
+    @once 'RTMIsReady', => @chat.settingsPane.createParticipantsList()
 
 
   createChatPane: ->
@@ -1039,10 +1038,8 @@ class IDEAppController extends AppController
 
   prepareCollaboration___: ->
 
-    @rtm          = new RealTimeManager
-    { channelId } = @workspaceData
-
-    # return @rtm.ready => @statusBar.share.show()  unless channelId
+    @rtm        = new RealTimeManager
+    {channelId} = @workspaceData
 
     @rtm.ready => @statusBar.share.show()
 
@@ -1076,7 +1073,7 @@ class IDEAppController extends AppController
           @initPrivateMessage callback
         .error callback
 
-    { channelId } = @workspaceData
+    channelId = @privateMessageId or @workspaceData.channelId
 
     if channelId
 
@@ -1095,9 +1092,10 @@ class IDEAppController extends AppController
       @initPrivateMessage callback
 
   getRealTimeFileName: (id) ->
+
     unless id
-      if @socialChannel
-        id = @socialChannel.id
+      if @privateMessageId   then id = @privateMessageId
+      else if @socialChannel then id = @socialChannel.id
       else
         return KD.showError 'social channel id is not provided'
 
@@ -1108,8 +1106,9 @@ class IDEAppController extends AppController
   continuePrivateMessage: (callback) ->
 
     log 'continuePrivateMessage'
-    @statusBar.avatars.show()
     @chat.emit 'CollaborationStarted'
+    @once 'RTMIsReady', =>
+      @statusBar.emit 'ShowAvatars', @participants.asArray()
 
 
   isRealtimeSessionActive: (id, callback) ->
@@ -1119,6 +1118,7 @@ class IDEAppController extends AppController
       if file.result.items.length > 0
         log 'file found'
         callback yes
+        @loadCollaborationFile file.result.items[0].id
       else
         log 'file not found'
         callback no
@@ -1156,7 +1156,7 @@ class IDEAppController extends AppController
 
     return callback @socialChannel  if @socialChannel
 
-    query = id: @workspaceData.channelId
+    query = id: @privateMessageId or @workspaceData.channelId
 
     KD.singletons.socialapi.channel.byId query, (err, channel) =>
       return KD.showError err  if err

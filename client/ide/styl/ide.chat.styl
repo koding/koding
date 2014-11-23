@@ -116,7 +116,63 @@ pmLinkColor   = #B6B6B6
       .kdselectbox
         fr()
 
-.chat-view .kdtabpaneview.privatemessage
-  padding                   0
-  min-height                100%
+.chat-view
 
+  .kdtabpaneview.privatemessage
+    padding                 0
+    min-height              100%
+
+  .participant-view
+    margin-bottom           5px
+
+    .avatarview
+      display               inline-block
+      margin-right          8px
+      size                  32px, 32px
+
+    .name
+      display               inline-block
+      font-size             13px
+      line-height           32px
+      height                32px
+
+    .settings
+      abs()
+      right                 0
+      top                   5px
+
+    .watch-button
+      size                  26px, 26px
+      background            #35AFC3
+      border                none
+      rounded               6px
+      margin-top            1px
+      &.watching
+        background          #24B444
+
+      .icon
+        r-sprite            'ide', 'collab-eye'
+        abs()
+        top                 7px
+        left                5px
+
+  .everyone
+
+    &.loading
+      text-align            center
+      padding               30px 0
+
+      &.kdloader
+        margin-bottom       5px
+
+      .label
+        color               #6a6a6a
+        font-size           13px
+
+
+.ide
+  .avatars
+    margin-right            5px
+    .avatarview
+      display               inline-block
+      margin                7px 3px 0
