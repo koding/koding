@@ -112,9 +112,9 @@ do ->
 
   KD.registerRoutes 'IDE',
 
-    '/:name?/IDE': -> routeToLatestWorkspace()
+    '/:name?/IDE': routeToLatestWorkspace
 
-    '/:name?/IDE/:machineLabel': -> routeToLatestWorkspace()
+    '/:name?/IDE/:machineLabel': routeToLatestWorkspace
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (data) ->
 
