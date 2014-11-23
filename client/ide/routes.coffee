@@ -1,12 +1,12 @@
 do ->
 
-  loadWorkspace = (machineLabel, workspaceSlug, username, privateMessageId) ->
+  loadWorkspace = (machineLabel, workspaceSlug, username, channelId) ->
     username or= KD.nick()
     workspace  = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
     machine    = getMachine machineLabel, username
 
     if workspace
-      loadIDE { machine, workspace, username, privateMessageId }
+      loadIDE { machine, workspace, username, channelId }
 
     else
       if workspaceSlug is 'my-workspace'
@@ -16,7 +16,7 @@ do ->
           slug         : 'my-workspace'
           machineLabel : machine?.slug or machine?.label
 
-        loadIDE { machine, workspace, username, privateMessageId }
+        loadIDE { machine, workspace, username, channelId }
 
       else
         routeToLatestWorkspace()
@@ -42,7 +42,7 @@ do ->
 
   loadIDE = (data) ->
 
-    { machine, workspace, username, privateMessageId } = data
+    { machine, workspace, username, channelId } = data
 
     appManager = KD.getSingleton 'appManager'
     ideApps    = appManager.appControllers.IDE
@@ -56,7 +56,7 @@ do ->
           app.isCollaborative   = yes
           app.amIHost           = no
           app.collaborationHost = username
-          app.privateMessageId  = privateMessageId
+          app.channelId         = channelId
         else
           app.amIHost           = yes
 
@@ -122,8 +122,8 @@ do ->
 
       loadWorkspace machineLabel, workspaceSlug
 
-    '/:name?/IDE/:machineLabel/:workspaceSlug/:username/:privateMessageId': (data) ->
+    '/:name?/IDE/:machineLabel/:workspaceSlug/:username/:channelId': (data) ->
 
-      { machineLabel, workspaceSlug, username, privateMessageId } = data.params
+      { machineLabel, workspaceSlug, username, channelId } = data.params
 
-      loadWorkspace machineLabel, workspaceSlug, username, privateMessageId
+      loadWorkspace machineLabel, workspaceSlug, username, channelId
