@@ -96,7 +96,10 @@ do ->
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
-  routeToLatestWorkspace = ({ params : { machineLabel } }) ->
+  routeToLatestWorkspace = (options = {}) ->
+
+    {params}       = options
+    {machineLabel} = params  if params
 
     # we assume that if machineLabel is all numbers it is the channelId - SY
     return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
