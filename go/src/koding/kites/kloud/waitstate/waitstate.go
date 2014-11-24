@@ -18,8 +18,13 @@ var MetaState = map[string]struct{ Desired, OnGoing machinestate.State }{
 	// anymore.
 	"destroy": {machinestate.Terminating, machinestate.Terminating},
 
-	"start":           {machinestate.Running, machinestate.Starting},
-	"stop":            {machinestate.Stopped, machinestate.Stopping},
+	"start": {machinestate.Running, machinestate.Starting},
+
+	// we don't need to wait until it's bein stoped. So once we see
+	// "stopping" we are actually done because there is no going back
+	// anymore.
+	"stop": {machinestate.Stopping, machinestate.Stopping},
+
 	"restart":         {machinestate.Running, machinestate.Rebooting},
 	"create-snapshot": {machinestate.Stopped, machinestate.Pending},
 	"create-volume":   {machinestate.Stopped, machinestate.Pending},
