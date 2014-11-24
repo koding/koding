@@ -11,13 +11,11 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
-    {typeConstant} = @getData()
     @decorate()
 
+    {typeConstant, createdAt} = @getData()
 
-    {createdAt, deletedAt, updatedAt} = data
-
-    @likeView = new ReplyLikeView {}, data
+    @likeView = new ReplyLikeView {}, @getData()
     @timeView = new CommentTimeView timeFormat : 'h:MM TT', createdAt
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
