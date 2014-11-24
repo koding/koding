@@ -992,7 +992,7 @@ class IDEAppController extends AppController
     @getView().addSubView @chat = new IDE.ChatView { @rtm }, channel
     @chat.show()
 
-    @once 'RTMIsReady', => @chat.settingsPane.createParticipantsList()
+    @on 'RTMIsReady', => @chat.settingsPane.createParticipantsList()
 
 
   createChatPane: ->
@@ -1105,7 +1105,7 @@ class IDEAppController extends AppController
 
     log 'continuePrivateMessage'
 
-    @once 'RTMIsReady', =>
+    @on 'RTMIsReady', =>
       @chat.emit 'CollaborationStarted'
       @statusBar.emit 'ShowAvatars', @participants.asArray()
 
