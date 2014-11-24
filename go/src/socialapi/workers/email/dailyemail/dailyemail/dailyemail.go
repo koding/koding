@@ -138,7 +138,17 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		UserContact:   uc,
 	}
 
-	subject := fmt.Sprintf(Subject, time.Now().Format(DATEFORMAT))
+	var loc *time.Location
+	if uc.LastLoginTimezone != "" {
+		loc, _ = time.LoadLocation(uc.LastLoginTimezone)
+	}
+
+	today := time.Now()
+	if loc != nil {
+		today = today.In(loc)
+	}
+
+	subject := fmt.Sprintf(Subject, today.Format(DATEFORMAT))
 
 	return mailer.SendMail("daily", body, subject)
 }
