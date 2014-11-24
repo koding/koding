@@ -1188,10 +1188,6 @@ class IDEAppController extends AppController
     @rtm.once 'FileCreated', (file) =>
       log 'file created', file
 
-      @rtm.once 'RTMIsReady', =>
-        @chat.emit 'CollaborationStarted'
-        @statusBar.emit 'CollaborationStarted'
-
       @loadCollaborationFile file.id
 
     @rtm.createFile @getRealTimeFileName()
