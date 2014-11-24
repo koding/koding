@@ -424,22 +424,23 @@ body.ide.dark
         bg              color #656565
 
     .icon
-      size              32px 100%
+      size              auto 100%
+      padding           0 5px
       pointer()
       fr()
 
       cite
         display         block
-        margin          0 auto
 
       &.participants cite
         r-sprite        'ide', 'participants'
-        top             9px
+        margin-top      9px
       &.shortcuts cite
         r-sprite        'ide', 'keyboard'
       &.github cite
         r-sprite        'ide', 'github'
       &.help cite
+        margin-top      -1px
         r-sprite        'ide', 'help'
 
 
