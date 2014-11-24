@@ -37,6 +37,10 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       cssClass   : 'session-link'
       partial    : link = KD.utils.groupifyLink "IDE/#{channel.id}", yes
       attributes : href : link
+      # click      : (event) ->
+      #   KD.utils.stopDOMEvent event
+      #   # errs saying 'Discontiguous selection is not supported.' needs research - SY
+      #   KD.utils.selectText @getElement()
 
     @startSession = new KDButtonView
       title    : 'START SESSION'
