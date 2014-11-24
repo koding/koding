@@ -252,8 +252,9 @@ func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
 //----------------------------------------------------------
 
 type PaypalWebhook struct {
-	Status  string `json:"payment_status"`
-	PayerId string `json:"payer_id"`
+	TransactionType string `json:"txn_type"`
+	Status          string `json:"payment_status"`
+	PayerId         string `json:"payer_id"`
 }
 
 var PaypalActionCancel = "cancel"
@@ -266,10 +267,18 @@ var PaypalStatusActionMap = map[string]string{
 	"Voided":   PaypalActionCancel,
 }
 
+var PaypalTransactionActionMap = map[string]string{
+	"subscr_cancel": PaypalActionCancel,
+	"subscr_eot":    PaypalActionCancel,
+}
+
 func (p *PaypalWebhook) Do() (interface{}, error) {
 	action, ok := PaypalStatusActionMap[p.Status]
 	if !ok {
-		return nil, nil
+		action, ok = PaypalTransactionActionMap[p.TransactionType]
+		if !ok {
+			return nil, nil
+		}
 	}
 
 	var err error

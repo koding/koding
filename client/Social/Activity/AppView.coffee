@@ -22,6 +22,8 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
+    @panePathMap = {}
+
     @tabs = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
@@ -30,6 +32,19 @@ class ActivityAppView extends KDView
     @tabs.on 'PaneDidShow', (pane) =>
       if type = pane.getData()?.typeConstant
         @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
+
+    { router } = KD.singletons
+
+    router.on 'AlreadyHere', (path, options) =>
+
+      [slug] = options.frags
+
+      return  if slug isnt 'Activity'
+
+      path = helper.sanitizePath path
+      pane = @panePathMap[path]
+
+      pane?.refreshContent? path
 
 
   viewAppended: ->
@@ -138,6 +153,10 @@ class ActivityAppView extends KDView
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
 
+    path = helper.sanitizePath KD.singletons.router.getCurrentPath()
+
+    @panePathMap[path] = pane
+
     pane.on 'LeftChannel', => @tabs.removePane pane
 
     return pane
@@ -203,3 +222,13 @@ class ActivityAppView extends KDView
       top = window.innerHeight - 220
 
     return {top, left}
+
+
+  helper =
+
+    sanitizePath: (path) ->
+
+      if /\/Activity\/Public/.test path
+      then '/Activity/Public'
+      else path
+
