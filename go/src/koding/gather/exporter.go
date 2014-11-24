@@ -29,7 +29,7 @@ func NewEsExporter(domain, port string) *EsExporter {
 }
 
 func (es *EsExporter) Send(docType string, data map[string]interface{}) error {
-	data["@timestamp"] = time.Now().Format(time.RubyDate)
+	data["@timestamp"] = time.Now().Format(time.RFC3339)
 
 	_, err := es.Client.Index(es.Index, docType, "", nil, data)
 	return err
