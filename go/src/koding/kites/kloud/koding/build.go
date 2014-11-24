@@ -96,19 +96,28 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	b.amazon.Push("Checking limits and quota", b.normalize(30), machinestate.Building)
+	b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
 	b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
 	if err := b.checkLimits(buildData); err != nil {
 		return nil, err
 	}
 
-	b.amazon.Push("Starting build process", b.normalize(50), machinestate.Building)
-	b.log.Info("[%s] Starting creating process of instance", b.machine.Id)
-	buildArtifact, err := b.create(buildData)
+	b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
+	b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
+	instanceId, err := b.create(buildData)
+	if err != nil {
+		return nil, err
+	}
+
+	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
+	b.log.Info("[%s] Checking build process", b.machine.Id)
+	buildArtifact, err := b.checkBuild(instanceId)
 	if err != nil {
 		return nil, err
 	}
 	buildArtifact.KiteQuery = kiteprotocol.Kite{ID: buildData.KiteId}.String()
+
+	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
 	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
@@ -314,37 +323,37 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 	return nil
 }
 
-func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
+func (b *Build) create(buildData *BuildData) (string, error) {
 	// build our instance in a normal way, if it's succeed just return
-	buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(50), b.normalize(60))
+	instanceId, err := b.amazon.Build(buildData.EC2Data)
 	if err == nil {
-		return buildArtifact, nil
+		return instanceId, nil
 	}
 
 	// check if the error is a 'InsufficientInstanceCapacity" error or
 	// "InstanceLimitExceeded, if not return back because it's not a
 	// resource or capacity problem.
 	if !isCapacityError(err) {
-		return nil, err
+		return "", err
 	}
 
 	b.log.Error("[%s] IMPORTANT: %s", b.machine.Id, err)
 
 	zones, err := b.provider.EC2Clients.Zones(b.amazon.Client.Region.Name)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	currentZone := buildData.EC2Data.AvailZone
 
 	// tryAllZones will try to build the given instance type with in all zones
 	// until it's succeed.
-	tryAllZones := func(instanceType string) (*protocol.Artifact, error) {
+	tryAllZones := func(instanceType string) (string, error) {
 		b.log.Debug("[%s] Fallback: Searching for a zone that has capacity amongst zones: %v", b.machine.Id, zones)
 		for _, zone := range zones {
 			if zone == currentZone {
@@ -360,7 +369,7 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 
 			group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 
 			// add now our security group
@@ -372,7 +381,7 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 			b.log.Warning("[%s] Fallback build by using availability zone: %s, subnet %s and instance type: %s",
 				b.machine.Id, zone, subnet.SubnetId, instanceType)
 
-			buildArtifact, err := b.amazon.Build(buildData.EC2Data, b.normalize(60), b.normalize(70))
+			buildArtifact, err := b.amazon.Build(buildData.EC2Data)
 			if err != nil {
 				// if there is no capacity we are going to use the next one
 				b.log.Warning("[%s] Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
@@ -383,7 +392,7 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 			return buildArtifact, nil // we got something that works!
 		}
 
-		return nil, errors.New("tried all zones without any success.")
+		return "", errors.New("tried all zones without any success.")
 	}
 
 	// Try to build the instance in another zone. We try to build one instance
@@ -403,7 +412,21 @@ func (b *Build) create(buildData *BuildData) (*protocol.Artifact, error) {
 		return buildArtifact, nil
 	}
 
-	return nil, errors.New("build reached the end. all fallback mechanism steps failed.")
+	return "", errors.New("build reached the end. all fallback mechanism steps failed.")
+}
+
+func (b *Build) checkBuild(instanceId string) (*protocol.Artifact, error) {
+	instance, err := b.amazon.CheckBuild(instanceId, b.normalize(50), b.normalize(70))
+	if err != nil {
+		return nil, err
+	}
+
+	return &protocol.Artifact{
+		IpAddress:    instance.PublicIpAddress,
+		InstanceId:   instance.InstanceId,
+		InstanceType: instance.InstanceType,
+	}, nil
+
 }
 
 func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
@@ -417,6 +440,8 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 	}
 
 	b.amazon.Push("Updating/Creating domain", b.normalize(70), machinestate.Building)
+	b.log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
+
 	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
 		return err
 	}

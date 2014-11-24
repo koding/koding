@@ -105,7 +105,21 @@ func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
 		runOpts.BlockDevices = []ec2.BlockDeviceMapping{*a.Builder.BlockDeviceMapping}
 	}
 
-	return a.Build(runOpts, 10, 90)
+	instanceId, err := a.Build(runOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	instance, err := a.CheckBuild(instanceId, 10, 90)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protocol.Artifact{
+		IpAddress:    instance.PublicIpAddress,
+		InstanceId:   instance.InstanceId,
+		InstanceType: a.Builder.InstanceType,
+	}, nil
 }
 
 func (p *Provider) Cancel(m *protocol.Machine) error {
