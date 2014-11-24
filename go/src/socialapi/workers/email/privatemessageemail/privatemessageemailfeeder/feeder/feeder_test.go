@@ -3,8 +3,8 @@ package feeder
 import (
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/email/chatemail/common"
-	"socialapi/workers/email/chatemail/testhelper"
+	"socialapi/workers/email/privatemessageemail/common"
+	"socialapi/workers/email/privatemessageemail/testhelper"
 	"socialapi/workers/helper"
 	"testing"
 

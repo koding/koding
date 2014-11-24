@@ -5,11 +5,11 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/email/chatemail/chatemailfeeder/feeder"
+	"socialapi/workers/email/privatemessageemail/privatemessageemailfeeder/feeder"
 	"socialapi/workers/helper"
 )
 
-var Name = "ChatEmailFeeder"
+var Name = "PrivateMessageEmailFeeder"
 
 func main() {
 	r := runner.New(Name)

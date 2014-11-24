@@ -13,8 +13,8 @@ import (
 	"errors"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/email/chatemail/common"
 	"socialapi/workers/email/emailmodels"
+	"socialapi/workers/email/privatemessageemail/common"
 	"strconv"
 
 	"github.com/koding/logging"

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/email/chatemail/chatemailsender/sender"
 	"socialapi/workers/email/emailmodels"
+	"socialapi/workers/email/privatemessageemail/privatemessageemailsender/sender"
 	"socialapi/workers/helper"
 )
 
-const Name = "ChatEmailSender"
+const Name = "PrivateMessageEmailSender"
 
 func main() {
 	r := runner.New(Name)

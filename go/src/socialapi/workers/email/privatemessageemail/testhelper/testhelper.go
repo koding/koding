@@ -3,7 +3,7 @@ package testhelper
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/email/chatemail/common"
+	"socialapi/workers/email/privatemessageemail/common"
 
 	"github.com/koding/redis"
 )

@@ -3,8 +3,8 @@ package sender
 import (
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/email/chatemail/common"
 	"socialapi/workers/email/emailmodels"
+	"socialapi/workers/email/privatemessageemail/common"
 	"strconv"
 	"sync"
 	"time"

@@ -53,8 +53,8 @@ services=(
   socialapi/workers/sitemap/sitemapgenerator
   socialapi/workers/sitemap/sitemapinitializer
   socialapi/workers/algoliaconnector
-  socialapi/workers/email/chatemail/chatemailfeeder
-  socialapi/workers/email/chatemail/chatemailsender
+  socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
+  socialapi/workers/email/privatemessageemail/privatemessageemailsender
 )
 
 
