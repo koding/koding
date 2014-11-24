@@ -1011,7 +1011,7 @@ class IDEAppController extends AppController
     @chat.show()
 
 
-  prepareCollaboratio_: ->
+  prepareCollaboration: ->
 
     @rtm        = new RealTimeManager
     {channelId} = @workspaceData
