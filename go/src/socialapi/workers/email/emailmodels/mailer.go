@@ -15,7 +15,7 @@ type Mailer struct {
 	EmailSettings *EmailSettings
 }
 
-func NewMailer(a *models.Account, body, subject string, es *EmailSettings) (*Mailer, error) {
+func NewMailer(a *models.Account, es *EmailSettings) (*Mailer, error) {
 	// Fetch user contact
 	uc, err := FetchUserContactWithToken(a.Id)
 	if err != nil {
@@ -24,13 +24,14 @@ func NewMailer(a *models.Account, body, subject string, es *EmailSettings) (*Mai
 
 	return &Mailer{
 		UserContact:   uc,
-		Body:          body,
-		Subject:       subject,
 		EmailSettings: es,
 	}, nil
 }
 
-func (m *Mailer) SendMail(contentType string) error {
+func (m *Mailer) SendMail(contentType, body, subject string) error {
+	m.Body = body
+	m.Subject = subject
+
 	if err := m.validateMailer(); err != nil {
 		return err
 	}

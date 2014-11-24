@@ -136,11 +136,11 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	mailer := emailmodels.Mailer{
 		EmailSettings: n.settings,
 		UserContact:   uc,
-		Body:          body,
-		Subject:       fmt.Sprintf(Subject, time.Now().Format(DATEFORMAT)),
 	}
 
-	return mailer.SendMail("daily")
+	subject := fmt.Sprintf(Subject, time.Now().Format(DATEFORMAT))
+
+	return mailer.SendMail("daily", body, subject)
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {

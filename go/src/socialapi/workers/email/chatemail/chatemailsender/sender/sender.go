@@ -142,13 +142,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 
 		// Send
 		subject := fmt.Sprintf(Subject, time.Now().Format(DateLayout))
-		mailer, err := emailmodels.NewMailer(account, body, subject, c.settings)
-		if err != nil {
-			c.log.Error("Could not create mailer for account %d: %s", account.Id, err)
-			continue
-		}
-
-		if err := mailer.SendMail("chat"); err != nil {
+		if err := mailer.SendMail("chat", body, subject); err != nil {
 			c.log.Error("Could not send email for account: %d: %s", account.Id, err)
 		}
 	}

@@ -110,12 +110,10 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 
 	mailer := &emailmodels.Mailer{
 		UserContact:   uc,
-		Body:          body,
-		Subject:       prepareSubject(mc),
 		EmailSettings: n.settings,
 	}
 
-	return mailer.SendMail(nc.TypeConstant)
+	return mailer.SendMail(nc.TypeConstant, body, prepareSubject(mc))
 }
 
 func prepareSubject(mc *models.MailerContainer) string {
