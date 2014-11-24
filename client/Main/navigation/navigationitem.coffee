@@ -19,6 +19,7 @@ class NavigationItem extends JTreeItemView
 
 
   createMachineItem: (data) ->
+
     @type  = 'machine'
     @setClass 'machine'
     @child = new NavigationMachineItem {}, data
@@ -58,6 +59,7 @@ class NavigationItem extends JTreeItemView
 
 
   createNewWorkspaceView: ->
+
     @setClass 'workspace'
     { machineUId, machineLabel } = @getData()
 
@@ -65,6 +67,7 @@ class NavigationItem extends JTreeItemView
 
 
   createAppItem: ->
+
     @setClass 'app'
     @child    = new KDCustomHTMLView
       partial : """
@@ -77,3 +80,4 @@ class NavigationItem extends JTreeItemView
     """
       {{> @child}}
     """
+
