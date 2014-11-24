@@ -214,6 +214,12 @@ func newKite(conf *Config) *kite.Kite {
 			return nil, err
 		}
 
+		// check current plan
+		plan, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
+		if err != nil {
+			return nil, err
+		}
+
 		return &koding.PlanChecker{
 			Api:      a,
 			Provider: kodingProvider,
@@ -222,11 +228,8 @@ func newKite(conf *Config) *kite.Kite {
 			Log:      kodingProvider.Log,
 			Username: m.Username,
 			Machine:  m,
+			Plan:     plan,
 		}, nil
-	}
-
-	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
-		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

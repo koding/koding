@@ -72,7 +72,6 @@ type Provider struct {
 	InactiveMachinesMu sync.Mutex
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
-	PlanFetcher func(*protocol.Machine) (Plan, error)
 
 	Stats *metrics.DogStatsD
 }
