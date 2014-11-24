@@ -17,36 +17,25 @@ class IDE.ChatParticipantView extends JView
       cssClass : 'name'
       partial  : participantName
 
+    @watchButton = new KDButtonView
+      iconOnly : 'yes'
+      cssClass : 'watch-button'
+      callback : =>
+        @watchButton.toggleClass 'watching'
+        log 'watch/unwatch user'
 
-    if participantName is KD.nick()
-      @watchButton = new KDCustomHTMLView cssClass: 'hidden'
-      @settings    = new KDCustomHTMLView cssClass: 'hidden'
-      @thisIsYou   = new KDCustomHTMLView
-        tagName    : 'span'
-        partial    : 'This is you'
-        cssClass   : 'you'
-    else
-      @thisIsYou   = new KDCustomHTMLView cssClass: 'hidden'
-      @watchButton = new KDButtonView
-        iconOnly : 'yes'
-        cssClass : 'watch-button'
-        callback : =>
-          @watchButton.toggleClass 'watching'
-          log 'watch/unwatch user'
-
-      @settings       = new KDSelectBox
-        defaultValue  : 'edit'
-        selectOptions : [
-          { title : 'CAN READ', value : 'read'}
-          { title : 'CAN EDIT', value : 'edit'}
-        ]
+    @settings       = new KDSelectBox
+      defaultValue  : 'edit'
+      selectOptions : [
+        { title : 'CAN READ', value : 'read'}
+        { title : 'CAN EDIT', value : 'edit'}
+      ]
 
 
   pistachio: ->
     return """
       {{> @avatar}}
       {{> @name}}
-      {{> @thisIsYou}}
       <div class="settings">
         {{> @watchButton}}
         {{> @settings}}
