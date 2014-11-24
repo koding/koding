@@ -1213,3 +1213,4 @@ class IDEAppController extends AppController
     @rtm.once 'FileDeleted', =>
       log 'file deleted'
       @statusBar.emit 'CollaborationEnded'
+      @chat.emit 'CollaborationEnded'
