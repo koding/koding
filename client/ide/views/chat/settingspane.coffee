@@ -82,7 +82,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @everyone.addSubView new KDCustomHTMLView
       cssClass : 'label'
-      partial  : 'Fetching participants...'
+      partial  : 'Fetching participants'
 
 
   initiateSession: ->

@@ -38,7 +38,7 @@ class IDE.ChatView extends KDTabView
 
     @loaderView.addSubView new KDCustomHTMLView
       cssClass : 'label'
-      partial  : 'Preparing collaboration...'
+      partial  : 'Preparing collaboration'
 
     @addSubView @loaderView
 
