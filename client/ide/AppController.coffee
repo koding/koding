@@ -1172,6 +1172,19 @@ class IDEAppController extends AppController
       callback @socialChannel
 
 
+  listChatParticipants: (callback) ->
+
+    channelId = @socialChannel.getId()
+
+    {socialapi} = KD.singletons
+    socialapi.channel.listParticipants {channelId}, (err, participants) ->
+
+      socialApiIds = participants.map (participant) -> participant.accountId
+
+      KD.remote.api.JAccount.some {socialApiId: socialApiIds}
+        .then callback
+
+
   startCollaborationSession: (callback) ->
 
     return callback msg : 'no social channel'  unless @socialChannel
