@@ -5,7 +5,7 @@ Koding's new IDE has been overhauled. Much more to come but in the meanwhile, yo
 
 ### Try the live version [**here**](https://koding.com/IDE).
 
-![IDE](https://koding.com/a/site.landing/images/slideshow/ss-ide-collapsed.png)
+![IDE](https://koding-cdn.s3.amazonaws.com/ide/ide-github-screenshot.png)
 
 ### Features
 
