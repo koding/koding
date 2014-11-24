@@ -10,9 +10,11 @@ class IDE.StatusBar extends KDView
 
     @participantAvatars = {}
 
-    @on 'ShowAvatars',       @bound 'showAvatars'
-    @on 'ParticipantLeft',   @bound 'removeParticipantAvatar'
-    @on 'ParticipantJoined', @bound 'addParticipantAvatar'
+    @on 'ShowAvatars',          @bound 'showAvatars'
+    @on 'ParticipantLeft',      @bound 'removeParticipantAvatar'
+    @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
+    @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
+    @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
 
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
@@ -91,3 +93,11 @@ class IDE.StatusBar extends KDView
     return if @participantAvatars[nickname]
 
     @createParticipantAvatar nickname
+
+
+  handleCollaborationEnded: ->
+    @share.updatePartial 'Share'
+    @avatars.destroySubViews()
+
+  handleCollaborationStarted: ->
+    @share.updatePartial 'Chat'
