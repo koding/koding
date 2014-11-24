@@ -130,10 +130,11 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @everyone.unsetClass 'loading'
     @everyone.destroySubViews()
 
+    nickname          = KD.nick()
     participants      = @rtm.getFromModel('participants').asArray()
     @participantViews = {}
 
-    for participant in participants
+    for participant in participants when participant.nickname isnt nickname
       @createParticipantView participant
 
 
