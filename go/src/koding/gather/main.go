@@ -41,7 +41,7 @@ func main() {
 
 		fmt.Println(metric.Name, result)
 
-		err = exporter.Create(metric.Name, result)
+		err = exporter.Send(metric.Name, result)
 		if err != nil {
 			log.Fatal(metric.Name, err)
 		}
