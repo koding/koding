@@ -149,6 +149,15 @@ class MainController extends KDController
       KD.config.roles       = res.roles
       KD.config.permissions = res.permissions
 
+      KD.utils.getLocationInfo (err, result) ->
+        return warn err  if err
+        {timezone} = result
+
+        account.setTimezone lastLoginTimezone: timezone, (err) ->
+
+          warn err  if err
+
+
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
       @emit 'ready'
