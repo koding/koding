@@ -99,6 +99,8 @@ func (c *Controller) SendEmails() {
 		}()
 	}
 
+	wg.Wait()
+
 	c.log.Info("All accounts are notified")
 
 }
