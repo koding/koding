@@ -301,7 +301,7 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 
 	// check if the user is egligible to create a vm with this instance type
 	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
-		b.log.Critical("[%s] Instance type (%s) is not allowed. This shouldn't happen. Fallback to t2.micro",
+		b.log.Critical("[%s] Instance type (%s) is not allowed. Fallback to t2.micro",
 			b.machine.Id, buildData.EC2Data.InstanceType)
 		buildData.EC2Data.InstanceType = T2Micro.String()
 	}

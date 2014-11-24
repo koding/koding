@@ -76,7 +76,7 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 }
 
 func (k *Kloud) GetEvent(eventId string) (*eventer.Event, error) {
-	k.Log.Debug("[event] searching eventer for id: %s", eventId)
+	// k.Log.Debug("[event] searching eventer for id: %s", eventId)
 	ev, ok := k.Eventers[eventId]
 	if !ok {
 		k.Log.Debug("[event] couldn't find eventer for id: %s", eventId)
