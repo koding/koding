@@ -269,6 +269,10 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	err = a.Stop(true)
 	if err != nil {
 		return err
@@ -295,10 +299,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
 		}
 	}
-
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
 
 	return nil
 }
