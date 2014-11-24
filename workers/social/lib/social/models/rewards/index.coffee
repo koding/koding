@@ -223,8 +223,8 @@ module.exports = class JReward extends jraphical.Message
 
       reward = null
 
-      type     = campaign.campaignType
-      unit     = campaign.campaignUnit
+      type     = campaign.type
+      unit     = campaign.unit
       originId = target.getId()
 
       queue = [
@@ -276,7 +276,7 @@ module.exports = class JReward extends jraphical.Message
       queue = [
         ->
 
-          JRewardCampaign.isCampaignValid "register", (err, res)->
+          JRewardCampaign.isValid "register", (err, res)->
 
             return console.error err  if err
             return  unless res.isValid

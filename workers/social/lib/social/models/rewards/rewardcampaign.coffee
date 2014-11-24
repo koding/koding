@@ -3,6 +3,25 @@ jraphical = require 'jraphical'
 
 module.exports = class JRewardCampaign extends jraphical.Module
 
+  # An example to create in client side by an administrator
+  #
+  #
+  # KD.remote.api.JRewardCampaign.create(
+  #   {
+  #     name           : "register",
+  #     isActive       : true,
+  #     type           : "disk",
+  #     unit           : "MB",
+  #     initialAmount  : 1000,
+  #     maxAmount      : 1000000,
+  #     perEventAmount : 500,
+  #     startDate      : new Date(),
+  #     endDate        : new Date("01/18/2015")
+  #   }, function(err, campaign) {
+  #     console.log(err, campaign);
+  #   }
+  # );
+
   {signature, secure} = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
