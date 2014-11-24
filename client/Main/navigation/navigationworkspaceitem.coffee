@@ -11,9 +11,10 @@ class NavigationWorkspaceItem extends KDCustomHTMLView
 
     data = @getData()
 
-    @updatePartial """
+    @setPartial """
       <figure></figure>
       <a href='#{KD.utils.groupifyLink data.href}'>#{data.title}</a>
+      <cite class='count hidden'>0</cite>
     """
 
 
