@@ -90,29 +90,34 @@ func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
 
 func (b *Build) run() (*protocol.Artifact, error) {
 	b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
+	b.log.Info("[%s] Generating  and fetching build data", b.machine.Id)
 	buildData, err := b.buildData()
 	if err != nil {
 		return nil, err
 	}
 
 	b.amazon.Push("Checking limits and quota", b.normalize(30), machinestate.Building)
+	b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
 	if err := b.checkLimits(buildData); err != nil {
 		return nil, err
 	}
 
 	b.amazon.Push("Starting build process", b.normalize(50), machinestate.Building)
+	b.log.Info("[%s] Starting creating process of instance", b.machine.Id)
 	buildArtifact, err := b.create(buildData)
 	if err != nil {
 		return nil, err
 	}
 	buildArtifact.KiteQuery = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
-	b.amazon.Push("Adding domains and tags", b.normalize(70), machinestate.Building)
+	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
+	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
 	if err := b.addDomainAndTags(buildArtifact); err != nil {
 		return nil, err
 	}
 
-	b.amazon.Push("Checking kite connection", b.normalize(90), machinestate.Building)
+	b.amazon.Push("Checking klient connection", b.normalize(90), machinestate.Building)
+	b.log.Info("[%s] All finished, testing for klient connection", b.machine.Id)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
 	}
@@ -123,6 +128,8 @@ func (b *Build) run() (*protocol.Artifact, error) {
 // buildData returns all necessary data that is needed to build a machine.
 func (b *Build) buildData() (*BuildData, error) {
 	// get all subnets belonging to Kloud
+	b.log.Debug("[%s] Searching for subnet that are tagged with '%s'",
+		b.machine.Id, DefaultKloudKeyName)
 	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
 	if err != nil {
 		return nil, err
@@ -131,11 +138,13 @@ func (b *Build) buildData() (*BuildData, error) {
 	// sort and get the lowest
 	subnet := subnets.WithMostIps()
 
+	b.log.Debug("[%s] Searching for security group for vpc id '%s'", b.machine.Id, subnet.VpcId)
 	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
 	if err != nil {
 		return nil, err
 	}
 
+	b.log.Debug("[%s] Fetching image which is tagged with '%s'", b.machine.Id, DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		return nil, err
@@ -159,12 +168,15 @@ func (b *Build) buildData() (*BuildData, error) {
 		DeleteOnTermination: true,
 		Encrypted:           false,
 	}
+	b.log.Debug("[%s] Using block device settings %v", b.machine.Id, blockDeviceMapping)
 
-	b.log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
+	b.log.Debug("[%s] Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
+		b.machine.Id, subnet.SubnetId, subnet.AvailabilityZone,
+		group.Id, subnet.AvailableIpAddressCount)
 
 	if b.amazon.Builder.InstanceType == "" {
-		b.log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro")
+		b.log.Critical("[%s] Instance type is empty. This shouldn't happen. Fallback to t2.micro",
+			b.machine.Id)
 		b.amazon.Builder.InstanceType = T2Micro.String()
 	}
 
@@ -175,6 +187,7 @@ func (b *Build) buildData() (*BuildData, error) {
 
 	kiteId := kiteUUID.String()
 
+	b.log.Debug("[%s] Creating user data", b.machine.Id)
 	userData, err := b.userData(kiteId)
 	if err != nil {
 		return nil, err
