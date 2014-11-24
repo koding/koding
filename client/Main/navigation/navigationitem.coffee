@@ -54,7 +54,7 @@ class NavigationItem extends JTreeItemView
             top    : Math.max bounds.y - 38, 0
             left   : bounds.x + bounds.w + 16
 
-          new WorkspaceSettingsPopup {position}, this
+          new WorkspaceSettingsPopup {position, delegate: this}
 
 
   createNewWorkspaceView: ->
