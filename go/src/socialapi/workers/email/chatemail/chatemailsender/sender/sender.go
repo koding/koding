@@ -117,8 +117,14 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			return
 		}
 
+		mailer, err := emailmodels.NewMailer(account, c.settings)
+		if err != nil {
+			c.log.Error("Could not create mailer for account %d: %s", account.Id, err)
+			continue
+		}
+
 		// Fetch channel summary data
-		channels, err := c.FetchChannelSummaries(account, strconv.Itoa(currentPeriod))
+		channels, err := c.FetchChannelSummaries(account, strconv.Itoa(currentPeriod), mailer.UserContact.LastLoginTimezone)
 		if err != nil {
 			c.log.Error("Could not fetch messages for rendering: %s", err)
 			continue
@@ -176,7 +182,7 @@ func (c *Controller) NextAccount(period string) (*models.Account, error) {
 	return a, nil
 }
 
-func (c *Controller) FetchChannelSummaries(a *models.Account, period string) ([]*emailmodels.ChannelSummary, error) {
+func (c *Controller) FetchChannelSummaries(a *models.Account, period, timezone string) ([]*emailmodels.ChannelSummary, error) {
 	// fetch value from redis
 	key := common.AccountChannelHashSetKey(a.Id, period)
 	defer func() {
@@ -203,7 +209,7 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, period string) ([]
 			continue
 		}
 
-		cs, err := emailmodels.NewChannelSummary(a, ch, awayTime)
+		cs, err := emailmodels.NewChannelSummary(a, ch, awayTime, timezone)
 		if err != nil {
 			c.log.Error("Could not decorate channel summary: %s", err)
 			continue

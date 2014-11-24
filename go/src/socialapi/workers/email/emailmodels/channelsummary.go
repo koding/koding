@@ -32,7 +32,8 @@ type ChannelSummary struct {
 	BodyContent
 }
 
-func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time) (*ChannelSummary, error) {
+func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezone string) (*ChannelSummary, error) {
+
 	cms, err := fetchLastMessages(a, ch, awaySince)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
-	mss, err := buildMessageSummaries(cms)
+	mss, err := buildMessageSummaries(cms, timezone)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func fetchChannelMessageCount(a *models.Account, ch *models.Channel, awaySince t
 // buildMessageSummarries iterates over messages and decorates MessageGroupSummary
 // It also groups messages, so if there are two consecutive messages belongs to the same user
 // it is grouped under MessageGroupSummary.
-func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSummary, error) {
+func buildMessageSummaries(messages []models.ChannelMessage, timezone string) ([]*MessageGroupSummary, error) {
 	mss := make([]*MessageGroupSummary, 0)
 	// each consequent user will have another MessageGroup
 	currentGroup := NewMessageGroupSummary()
@@ -172,11 +173,10 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 		// create new message summary
 		ms := new(MessageSummary)
 		ms.Body = message.Body
-		ms.Time = message.CreatedAt.Format(TimeLayout)
 
 		// add message to message group since their sender accounts are same
 		if message.AccountId == currentGroup.AccountId {
-			currentGroup.AddMessage(ms)
+			currentGroup.AddMessage(ms, message.CreatedAt)
 			continue
 		}
 		// Different message sender so create a new group
@@ -201,9 +201,10 @@ func buildMessageSummaries(messages []models.ChannelMessage) ([]*MessageGroupSum
 			return mss, err
 		}
 		currentGroup.Hash = ma.Profile.Hash
+		currentGroup.Timezone = timezone
 		currentGroup.AccountId = message.AccountId
 		// push the latest message to the new message group
-		currentGroup.AddMessage(ms)
+		currentGroup.AddMessage(ms, message.CreatedAt)
 	}
 
 	// when last message has different owner append its message group to array

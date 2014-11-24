@@ -53,8 +53,7 @@ func buildMessageContent(mc *MailerContainer) (*emailmodels.MessageGroupSummary,
 	// message
 	ms := new(emailmodels.MessageSummary)
 	ms.Body = mc.Message
-	ms.Time = prepareTime(mc)
-	mg.AddMessage(ms)
+	mg.AddMessage(ms, mc.Activity.CreatedAt)
 
 	actor, err := emailmodels.FetchUserContact(mc.Activity.ActorId)
 	if err != nil {
@@ -76,8 +75,4 @@ func prepareTitle(mc *MailerContainer) (string, error) {
 	ac.Slug = mc.Slug
 
 	return ac.Render()
-}
-
-func prepareTime(mc *MailerContainer) string {
-	return mc.Activity.CreatedAt.Format(TIMEFORMAT)
 }

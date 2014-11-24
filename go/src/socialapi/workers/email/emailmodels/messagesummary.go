@@ -5,6 +5,7 @@ import (
 	"socialapi/config"
 	"socialapi/workers/email/templates"
 	"text/template"
+	"time"
 )
 
 // MessageSummary used for storing message data
@@ -20,6 +21,7 @@ type MessageGroupSummary struct {
 	Title string
 	// used for profile page urls
 	Hostname string
+	Timezone string
 }
 
 func NewMessageGroupSummary() *MessageGroupSummary {
@@ -52,7 +54,16 @@ func (ms *MessageGroupSummary) Render() (string, error) {
 	return buf.String(), nil
 }
 
-func (mgs *MessageGroupSummary) AddMessage(ms *MessageSummary) {
+func (mgs *MessageGroupSummary) AddMessage(ms *MessageSummary, createdAt time.Time) {
+	var loc *time.Location
+	if mgs.Timezone != "" {
+		loc, _ = time.LoadLocation(mgs.Timezone)
+	}
+	createDate := createdAt
+	if loc != nil {
+		createDate = createDate.In(loc)
+	}
+	ms.Time = createDate.Format(TimeLayout)
 	mgs.Messages = append(mgs.Messages, ms)
 }
 
