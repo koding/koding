@@ -1041,7 +1041,18 @@ class IDEAppController extends AppController
     @rtm        = new RealTimeManager
     {channelId} = @workspaceData
 
-    @rtm.ready => @statusBar.share.show()
+    @rtm.ready =>
+      unless @workspaceData.channelId
+        return @statusBar.share.show()
+
+      @fetchSocialChannel (channel) =>
+        @isRealtimeSessionActive channelId, (isActive) =>
+          if isActive
+            @startChatSession noop
+            @chat.hide()
+            @statusBar.share.updatePartial 'Chat'
+
+          @statusBar.share.show()
 
 
   createWorkspace: (options = {}) ->
@@ -1058,10 +1069,14 @@ class IDEAppController extends AppController
       rootPath     : options.rootPath     or rootPath
       isDefault    : name is 'My Workspace'
 
+    log 'fake workspace converted'
+
 
   updateWorkspace: (options = {}) ->
 
     KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+
+    log 'workspace data updated with real one'
 
 
   startChatSession: (callback) ->
@@ -1069,6 +1084,7 @@ class IDEAppController extends AppController
     return if @workspaceData.isDummy
       @createWorkspace()
         .then (workspace) =>
+          log 'ws created'
           @workspaceData = workspace
           @initPrivateMessage callback
         .error callback
@@ -1081,15 +1097,19 @@ class IDEAppController extends AppController
 
         @createChatPaneView channel
 
-        @isRealtimeSessionActive channelId, (isActive) =>
+        @isRealtimeSessionActive channelId, (isActive, file) =>
 
-          return @continuePrivateMessage callback  if isActive
+          if isActive
+            @loadCollaborationFile file.result.items[0].id
+            return @continuePrivateMessage callback
 
           @statusBar.share.show()
           log 'start collaboration'
+          @chat.emit 'CollaborationNotInitialized'
 
     else
       @initPrivateMessage callback
+
 
   getRealTimeFileName: (id) ->
 
@@ -1111,6 +1131,8 @@ class IDEAppController extends AppController
       @chat.emit 'CollaborationStarted'
       @statusBar.emit 'ShowAvatars', @participants.asArray()
 
+      callback()
+
 
   isRealtimeSessionActive: (id, callback) ->
 
@@ -1118,11 +1140,12 @@ class IDEAppController extends AppController
 
       if file.result.items.length > 0
         log 'file found'
-        callback yes
-        @loadCollaborationFile file.result.items[0].id
+        callback yes, file
       else
         log 'file not found'
         callback no
+
+    log 'trying to fetch file', @getRealTimeFileName id
 
     @rtm.fetchFileByTitle @getRealTimeFileName id
 
@@ -1140,6 +1163,8 @@ class IDEAppController extends AppController
         'system-message' : 'initiate'
         collaboration    : yes
     , (err, channels) =>
+
+      log 'private message initialized'
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
@@ -1184,7 +1209,9 @@ class IDEAppController extends AppController
 
     @rtm.once 'FileCreated', (file) =>
       log 'file created', file
-      @chat.emit 'CollaborationStarted'
+      @rtm.once 'FileCreated', =>
+        @chat.emit 'CollaborationStarted'
+        @statusBar.emit 'CollaborationStarted'
 
     @rtm.createFile @getRealTimeFileName()
 
@@ -1208,3 +1235,4 @@ class IDEAppController extends AppController
 
     @rtm.once 'FileDeleted', =>
       log 'file deleted'
+      @statusBar.emit 'CollaborationEnded'
