@@ -1,32 +1,18 @@
 {Model}   = require 'bongo'
 jraphical = require 'jraphical'
-
 module.exports = class JReferralCampaign extends jraphical.Module
 
   {signature, secure} = require 'bongo'
-
-  @trait __dirname, '../../traits/protected'
-
-  {permit} = require '../group/permissionset'
-
   @share()
 
   @set
-
-    permissions              :
-      'manage campaign'      : []
-
     sharedEvents             :
       static                 : []
       instance               : []
-
     indexes                  :
       name                   : 'unique'
-
     schema                   :
-      name                   :
-        type                 : String
-        required             : yes
+      name                   : String
       slug                   : String
       isActive               : Boolean
       campaignType           :
@@ -36,8 +22,6 @@ module.exports = class JReferralCampaign extends jraphical.Module
         type                 : String
         default              : "MB"
       campaignInitialAmount  :
-        type                 : Number
-      campaignMaxAmount      :
         type                 : Number
       campaignPerEventAmount :
         type                 : Number
@@ -74,67 +58,54 @@ module.exports = class JReferralCampaign extends jraphical.Module
           (signature Object, Function)
         ]
 
-  @create = permit 'manage campaign',
-
-    success: (client, data, callback) ->
-
+  @create = secure (client, data, callback) ->
+    checkPermission client, (err, res)=>
+      return callback err if err
       campaign = new JReferralCampaign data
       campaign.save (err)->
+        return callback err if err
+        return callback null, campaign
 
-        if err then callback err
-        else callback null, campaign
+  checkPermission: checkPermission = (client, callback)->
+    {context:{group}} = client
+    JGroup = require "../group"
+    JGroup.one {slug:group}, (err, group)=>
+      return callback err if err
+      return callback new Error "group not found" unless group
+      group.canEditGroup client, (err, hasPermission)=>
+        return callback err if err
+        return callback new Error "Can not edit group" unless hasPermission
+        return callback null, yes
 
+  update$: secure (client, data, callback)->
+    @checkPermission client, (err, res)=>
+      return callback err if err
+      @update {$set:data}, callback
 
-  update$: permit 'manage campaign',
-
-    success: (client, data, callback)->
-
-      @update $set: data, callback
-
-
-  remove$: permit 'manage campaign',
-
-    success: (client, data, callback)->
-
+  remove$: secure (client, callback)->
+    @checkPermission client, (err, res)=>
+      return callback err if err
       @remove callback
 
-
-  DEFAULT_CAMPAIGN = "register"
-
-
-  @fetchCampaign = fetchCampaign = (campaignName, callback)->
-
-    unless callback
-      [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
-
-    JReferralCampaign.one name: campaignName, (err, campaign) ->
-      return callback err  if err
-      callback null, campaign
-
+  REGISTER_CAMPAIGN = "register"
 
   isCampaignValid = (campaignName, callback)->
-
-    unless callback
-      [campaignName, callback] = [DEFAULT_CAMPAIGN, campaignName]
-
+    [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
     fetchCampaign campaignName, (err, campaign)->
-
       return callback err  if err
       return callback null, isValid: no  unless campaign
 
-      { campaignMaxAmount,
-        campaignGivenAmount,
-        campaignInitialAmount,
-        campaignPerEventAmount,
+      { campaignGivenAmount,
+        campaignInitialAmount
         endDate, startDate } = campaign
 
       if Date.now() < startDate.getTime()
-        console.info "campaign #{campaignName} is not started yet"
+        console.info "campaign is not started yet"
         return callback null, isValid: no
 
       # if date is valid
       if Date.now() > endDate.getTime()
-        console.info "date is not valid for campaign #{campaignName}"
+        console.info "date is not valid for campaign"
         return callback null, isValid: no
 
       # if campaign initial amount is 0
@@ -142,22 +113,27 @@ module.exports = class JReferralCampaign extends jraphical.Module
       if campaignInitialAmount is 0
         return callback null, { isValid: yes, campaign }
 
-      # if campaign hit the limits
-      if campaignGivenAmount + campaignPerEventAmount > campaignMaxAmount
-        console.info "hit the max amount for #{campaignName} campaign"
+      # if campaign has more disk space
+      if campaignGivenAmount > campaignInitialAmount
         return callback null, isValid: no
 
       return callback null, { isValid: yes, campaign }
 
+  @isCampaignValid = isCampaignValid
 
-  @isCampaignValid = (campaignName, callback)->
-    isCampaignValid campaignName, callback
+  @fetchCampaignDiskSize = (callback)->
+    @isCampaignValid (err, { isValid, campaign })->
+      return callback err if err
+      return callback null, campaign?.campaignPerEventAmount or 256
 
+  @fetchCampaign = fetchCampaign = (campaignName, callback)->
+    [campaignName, callback] = [REGISTER_CAMPAIGN, campaignName] unless callback
+    JReferralCampaign.one {name: campaignName}, (err, campaign) ->
+      return callback err if err
+      return callback null, no  unless campaign
+      return callback null, campaign
 
-
-  increaseGivenAmountSpace:(size, callback)->
-
-    unless callback
-      [size, callback] = [@campaignPerEventAmount, size]
-
-    @update $inc: campaignGivenAmount: size , callback
+   increaseGivenAmountSpace:(size, callback)->
+    [size, callback] = [@campaignPerEventAmount, size] unless callback
+    size = size * 4
+    @update $inc : campaignGivenAmount: size , callback
