@@ -23,9 +23,8 @@ class IDE.ChatView extends KDTabView
 
     KD.singletons.appManager.require 'Activity', @bound 'createPanes'
 
-    @once 'CollaborationStarted', =>
-      @loaderView.destroy()
-      @unsetClass 'loading'
+    @once 'CollaborationStarted',        @bound 'removeLoader'
+    @once 'CollaborationNotInitialized', @bound 'removeLoader'
 
 
   createLoader: ->
@@ -44,6 +43,12 @@ class IDE.ChatView extends KDTabView
     @addSubView @loaderView
 
 
+  removeLoader: ->
+
+    @loaderView.destroy()
+    @unsetClass 'loading'
+
+
   createPanes: ->
 
     channel   = @getData()
@@ -57,7 +62,7 @@ class IDE.ChatView extends KDTabView
     @on 'ReceivedClickElseWhere', @bound 'hide'
 
     @settingsPane.forwardEvents this, [
-      'CollaborationStarted', 'CollaborationEnded'
+      'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
       'ParticipantJoined', 'ParticipantLeft'
     ]
 
