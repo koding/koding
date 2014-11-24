@@ -35,9 +35,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @link = new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'session-link'
-      partial    : link = KD.utils.groupifyLink "/IDE/#{channel.id}", yes
-      attributes :
-        href     : '#share'
+      partial    : link = KD.utils.groupifyLink "IDE/#{channel.id}", yes
+      attributes : href : link
 
     @startSession = new KDButtonView
       title    : 'START SESSION'
