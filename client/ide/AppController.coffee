@@ -1104,7 +1104,7 @@ class IDEAppController extends AppController
             return @continuePrivateMessage callback
 
           @statusBar.share.show()
-          log 'start collaboration'
+          log 'collaboration is not initialized'
           @chat.emit 'CollaborationNotInitialized'
 
     else
@@ -1120,6 +1120,9 @@ class IDEAppController extends AppController
         return KD.showError 'social channel id is not provided'
 
     hostName = if @amIHost then KD.nick() else @collaborationHost
+
+    log 'filename is', "#{hostName}.#{id}"
+
     return "#{hostName}.#{id}"
 
 
@@ -1209,9 +1212,12 @@ class IDEAppController extends AppController
 
     @rtm.once 'FileCreated', (file) =>
       log 'file created', file
-      @rtm.once 'FileCreated', =>
+
+      @rtm.once 'RTMIsReady', =>
         @chat.emit 'CollaborationStarted'
         @statusBar.emit 'CollaborationStarted'
+
+      @loadCollaborationFile file.id
 
     @rtm.createFile @getRealTimeFileName()
 
