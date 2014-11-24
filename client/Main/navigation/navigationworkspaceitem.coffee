@@ -1,4 +1,4 @@
-class NavigationWorkspaceItem extends KDCustomHTMLView
+class NavigationWorkspaceItem extends JView
 
   constructor: (options = {}, data) ->
 
@@ -9,13 +9,16 @@ class NavigationWorkspaceItem extends KDCustomHTMLView
 
   init: ->
 
-    data = @getData()
+    @unsetClass 'kdview'
 
-    @setPartial """
-      <figure></figure>
-      <a href='#{KD.utils.groupifyLink data.href}'>#{data.title}</a>
-      <cite class='count hidden'>0</cite>
-    """
+    { href, title } = @getData()
+    href = KD.utils.groupifyLink href
+
+    @title = new CustomLinkView { href, title }
+
+    @unreadCount = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'count hidden'
 
 
   click: (event) ->
@@ -47,4 +50,12 @@ class NavigationWorkspaceItem extends KDCustomHTMLView
     position = { top, left }
 
     new WorkspaceSettingsPopup { position, delegate: navItem }
+
+
+  pistachio: ->
+    """
+    <figure></figure>
+    {{> @title}}
+    {{> @unreadCount}}
+    """
 
