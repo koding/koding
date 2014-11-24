@@ -20,6 +20,7 @@ userData =
 
   runcmd:
     - echo 127.0.0.1 `hostname` >> /etc/hosts
+    - echo 127.0.0.1 freegeoip.net >> /etc/hosts
     - echo #{keys.config}          | base64 --decode > /root/.ssh/config
     - echo #{keys.authorized_keys} | base64 --decode > /root/.ssh/authorized_keys
     - echo #{keys.id_rsa}          | base64 --decode > /root/.ssh/id_rsa
