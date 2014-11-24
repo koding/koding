@@ -76,10 +76,11 @@ class IDE.StatusBar extends KDView
   showAvatars: (participants) ->
 
     @avatars.show()
+    myNickname = KD.nick()
 
     for participant in participants
       {nickname} = participant
-      @createParticipantAvatar nickname
+      @createParticipantAvatar nickname  unless nickname is myNickname
 
 
   removeParticipantAvatar: (nickname) ->
