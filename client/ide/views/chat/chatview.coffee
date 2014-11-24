@@ -2,7 +2,7 @@ class IDE.ChatView extends KDTabView
 
   constructor: (options = {}, data)->
 
-    options.cssClass            = 'chat-view hidden'
+    options.cssClass            = 'chat-view loading'
     options.hideHandleContainer = yes
 
     super options, data
@@ -19,7 +19,29 @@ class IDE.ChatView extends KDTabView
         KD.utils.stopDOMEvent event
         @hide()
 
+    @createLoader()
+
     KD.singletons.appManager.require 'Activity', @bound 'createPanes'
+
+    @once 'CollaborationStarted', =>
+      @loaderView.destroy()
+      @unsetClass 'loading'
+
+
+  createLoader: ->
+
+    @loaderView = new KDView cssClass: 'loader-view'
+
+    @loaderView.addSubView new KDLoaderView
+      showLoader : yes
+      size       :
+        width    : 24
+
+    @loaderView.addSubView new KDCustomHTMLView
+      cssClass : 'label'
+      partial  : 'Preparing collaboration...'
+
+    @addSubView @loaderView
 
 
   createPanes: ->
