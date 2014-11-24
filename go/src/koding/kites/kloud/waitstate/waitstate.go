@@ -3,6 +3,7 @@ package waitstate
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"koding/kites/kloud/machinestate"
@@ -56,7 +57,7 @@ func (w *WaitState) Wait() error {
 	}
 
 	if w.PollerInterval == 0 {
-		w.PollerInterval = 20 * time.Second
+		w.PollerInterval = 30 * time.Second
 	}
 
 	if w.Timeout == 0 {
@@ -90,11 +91,14 @@ func (w *WaitState) Wait() error {
 			if pollState == metaState.Desired {
 				return nil
 			}
-		// Poll less, push more.
 		case <-pollTicker.C:
+			// we don't return immediately once get an error. The poll duration
+			// is already very high, so if we get a timeout or an InternalError
+			// we just try again after Poll Interval. The timeout below will
+			// care out that we are not stuck here infinitely.
 			pollState, err = w.StateFunc(w.Start)
 			if err != nil {
-				return err
+				log.Printf("waitstate: statefunc failed, trying again: %s", err)
 			}
 		case <-time.After(time.Second * 40):
 			// cancel the current ongoing process if it takes too long
