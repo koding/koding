@@ -1163,6 +1163,8 @@ class IDEAppController extends AppController
 
       @socialChannel = channel
 
+      callback @socialChannel
+
 
   startCollaborationSession: (callback) ->
 
