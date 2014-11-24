@@ -328,7 +328,7 @@ class IDEAppController extends AppController
                 @machineStateModal.once 'MachineTurnOnStarted', =>
                   KD.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-          @prepareCollaboration___()
+          @prepareCollaboration()
 
           actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
           computeController.on "public-#{machineId}", (event) =>
@@ -703,31 +703,6 @@ class IDEAppController extends AppController
     new KDNotificationView { title, cssClass, type, duration }
 
 
-  prepareCollaboration: ->
-    machine         = @mountedMachine
-    {workspaceData} = this
-    @rtm = rtm      = new RealTimeManager
-
-    rtm.auth()
-
-    rtm.once 'ClientAuthenticated', =>
-      hostName = if @amIHost then KD.nick() else @collaborationHost
-      title    = "#{hostName}.#{machine.slug}.#{workspaceData.slug}"
-
-      rtm.fetchFileByTitle title
-
-      rtm.once 'FileQueryFinished', (file) =>
-        {result} = file
-        return if result.selfLink.indexOf(title) is -1
-
-        if result.items.length > 0
-          @loadCollaborationFile file.result.items.first.id
-        else if @amIHost
-          rtm.createFile title
-          rtm.once 'FileCreated', (file) =>
-            @loadCollaborationFile file.result.id
-
-
   loadCollaborationFile: (fileId) ->
     return unless fileId
 
@@ -1036,7 +1011,7 @@ class IDEAppController extends AppController
     @chat.show()
 
 
-  prepareCollaboration___: ->
+  prepareCollaboratio_: ->
 
     @rtm        = new RealTimeManager
     {channelId} = @workspaceData
