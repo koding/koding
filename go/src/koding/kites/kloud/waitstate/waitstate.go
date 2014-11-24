@@ -11,8 +11,13 @@ import (
 var ErrWaitTimeout = errors.New("timeout while waiting for state")
 
 var MetaState = map[string]struct{ Desired, OnGoing machinestate.State }{
-	"build":           {machinestate.Running, machinestate.Building},
-	"destroy":         {machinestate.Terminated, machinestate.Terminating},
+	"build": {machinestate.Running, machinestate.Building},
+
+	// we don't need to wait until it's terminated. So once we see
+	// "terminating" we are actually done because there is no going back
+	// anymore.
+	"destroy": {machinestate.Terminating, machinestate.Terminating},
+
 	"start":           {machinestate.Running, machinestate.Starting},
 	"stop":            {machinestate.Stopped, machinestate.Stopping},
 	"restart":         {machinestate.Running, machinestate.Rebooting},
@@ -46,7 +51,7 @@ func (w *WaitState) Wait() error {
 	}
 
 	if w.PollerInterval == 0 {
-		w.PollerInterval = 30 * time.Second
+		w.PollerInterval = 20 * time.Second
 	}
 
 	if w.Timeout == 0 {
@@ -62,7 +67,7 @@ func (w *WaitState) Wait() error {
 
 	var err error
 	metaState := MetaState[w.Action]
-	currentState := metaState.OnGoing
+	pollState := machinestate.Unknown
 
 	for {
 		select {
@@ -73,16 +78,16 @@ func (w *WaitState) Wait() error {
 			}
 
 			if w.PushFunc != nil {
-				w.PushFunc(fmt.Sprintf("%s called. Desired state: %s. Current state: %s", w.Action, metaState.Desired, currentState),
-					w.Start, currentState)
+				w.PushFunc(fmt.Sprintf("%s called. Desired state: %s. Current state: %s",
+					w.Action, metaState.Desired, metaState.OnGoing), w.Start, metaState.OnGoing)
 			}
 
-			if currentState == metaState.Desired {
+			if pollState == metaState.Desired {
 				return nil
 			}
 		// Poll less, push more.
 		case <-pollTicker.C:
-			currentState, err = w.StateFunc(w.Start)
+			pollState, err = w.StateFunc(w.Start)
 			if err != nil {
 				return err
 			}
