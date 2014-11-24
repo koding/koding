@@ -18,7 +18,7 @@ class IDE.ParticipantsModal extends KDModalView
 
   createParticipantsList: ->
 
-    @participants.asArray().forEach (participant) =>
+    @participants?.asArray().forEach (participant) =>
       view = new IDE.ParticipantView { participant, @rtm, @host }
 
       @participantViews.push view
