@@ -29,8 +29,6 @@ func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrEventArgsEmpty)
 	}
 
-	k.Log.Debug("[event] received argument: %v", args)
-
 	events := make([]EventResponse, len(args))
 
 	for i, event := range args {
@@ -59,7 +57,6 @@ func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 		events[i] = EventResponse{EventId: event.EventId, Event: ev}
 	}
 
-	k.Log.Debug("[event] returning %+v to user: %s", events, r.Username)
 	return events, nil
 }
 
