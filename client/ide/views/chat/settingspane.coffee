@@ -155,7 +155,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     return  if @participantViews[nickname]
 
-    @createParticipantView { nickname }
+    KD.getSingleton('appManager').tell 'IDE', 'addParticipant', nickname, =>
+
+      @createParticipantView { nickname }
 
 
   viewAppended: JView::viewAppended
