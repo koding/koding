@@ -3,8 +3,6 @@ package scripts
 import (
 	"fmt"
 	"koding/gather/metrics"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -39,20 +37,4 @@ func df(location int) *metrics.MultipleCmd {
 		metrics.NewSingleCmd("grep", "/dev"),
 		metrics.NewSingleCmd("awk", fmt.Sprintf(`{print $%d}`, location)),
 	)
-}
-
-func singleNumber() func([]byte) (map[string]interface{}, error) {
-	return func(raw []byte) (map[string]interface{}, error) {
-		input := strings.TrimSpace(fmt.Sprintf("%s", raw))
-		input = strings.Trim(input, "%")
-
-		num, err := strconv.Atoi(input)
-		if err != nil {
-			fmt.Println(">>>>>>>>>>", err)
-		}
-
-		values := map[string]interface{}{"data": num}
-
-		return values, nil
-	}
 }
