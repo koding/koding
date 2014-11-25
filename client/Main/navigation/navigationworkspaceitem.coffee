@@ -23,6 +23,8 @@ class NavigationWorkspaceItem extends JView
 
   click: (event) ->
 
+    # TODO: at least a KDView - DOM element check would
+    # be more appropriate, fix later. ~Umut
     isSettingsIconView = event.target.classList.contains 'ws-settings-icon'
     navItem            = @getDelegate()
 
