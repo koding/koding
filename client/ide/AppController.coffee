@@ -986,7 +986,9 @@ class IDEAppController extends AppController
     @chat.show()
 
     @on 'RTMIsReady', =>
-      @chat.settingsPane.createParticipantsList()
+      @listChatParticipants (accounts) =>
+        @chat.settingsPane.createParticipantsList accounts
+
       @statusBar.emit 'CollaborationStarted'
 
 
@@ -1167,6 +1169,8 @@ class IDEAppController extends AppController
       callback @socialChannel
 
 
+  # FIXME: This method is called more than once. It should cache the result and
+  # return if result set exists.
   listChatParticipants: (callback) ->
 
     channelId = @socialChannel.getId()
