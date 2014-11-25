@@ -193,7 +193,6 @@ func (b *Build) buildData() (*BuildData, error) {
 	blockDeviceMapping := ec2.BlockDeviceMapping{
 		DeviceName:          device.DeviceName,
 		VirtualName:         device.VirtualName,
-		SnapshotId:          device.SnapshotId,
 		VolumeType:          "standard", // Use magnetic storage because it is cheaper
 		VolumeSize:          int64(storageSize),
 		DeleteOnTermination: true,
