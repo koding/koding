@@ -569,6 +569,10 @@ class SocialApiController extends KDController
       fnName             : 'removeParticipants'
       validateOptionsWith: ['channelId']
 
+    listParticipants     : channelRequesterFn
+      fnName             : 'listParticipants'
+      validateOptionsWith: ['channelIds']
+
     addParticipants      : channelRequesterFn
       fnName             : 'addParticipants'
       validateOptionsWith: ['channelId', "accountIds"]

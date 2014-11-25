@@ -1,5 +1,7 @@
 {Module} = require 'jraphical'
 
+JMachine = require './computeproviders/machine'
+
 module.exports = class JWorkspace extends Module
 
   KodingError  = require '../error'
@@ -33,6 +35,7 @@ module.exports = class JWorkspace extends Module
         deleteById : signature String, Function
         deleteByUid: signature String, Function
         update     : signature String, Object, Function
+        fetchByMachines: signature Function
       instance     :
         delete     : signature Function
     sharedEvents   :
@@ -97,6 +100,19 @@ module.exports = class JWorkspace extends Module
     query.originId = client.connection.delegate._id
 
     JWorkspace.some query, limit: 30, callback
+
+
+  @fetchByMachines$ = secure (client, callback) ->
+
+    client.connection.delegate.fetchUser (err, user) ->
+      query = 'users.id': user.getId()
+
+      JMachine.some query, {}, (err, machines) ->
+        return callback err  if err
+
+        machineUIds = machines.map (machine) -> machine.uid
+        JWorkspace.some machineUId: $in: machineUIds, {}, (err, workspaces) ->
+          callback err, workspaces
 
 
   @deleteById = secure (client, id, callback)->
