@@ -66,14 +66,18 @@ func main() {
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
 
-	// override current kontrolURL so it talks to port 3000, this is needed
-	// because ELB can forward requests based on ports. The port 80 and 443 are
-	// HTTP/HTTPS only so our kite can't connect it (we use websocket). However
-	// We have a TCP proxy at 3000 which allows us to connect via WebSocket.
-	u, _ := url.Parse(k.Config.KontrolURL)
-	host, _, _ := net.SplitHostPort(u.Host)
-	u.Host = AddPort(host, "3000")
-	k.Config.KontrolURL = u.String()
+	// FIXME: It's ugly I know. It's a fix for Koding local development and is
+	// needed
+	if !strings.Contains(k.Config.KontrolURL, "ngrok") {
+		// override current kontrolURL so it talks to port 3000, this is needed
+		// because ELB can forward requests based on ports. The port 80 and 443 are
+		// HTTP/HTTPS only so our kite can't connect it (we use websocket). However
+		// We have a TCP proxy at 3000 which allows us to connect via WebSocket.
+		u, _ := url.Parse(k.Config.KontrolURL)
+		host, _, _ := net.SplitHostPort(u.Host)
+		u.Host = AddPort(host, "3000")
+		k.Config.KontrolURL = u.String()
+	}
 
 	klog = k.Log
 
