@@ -20,11 +20,6 @@ var (
 	version = flag.Int("version", 0, "version number to be stored")
 )
 
-const (
-	ES_DOMAIN = "fcd741dd72ad8998000.qbox.io"
-	ES_PORT   = "443"
-)
-
 func main() {
 	flag.Parse()
 

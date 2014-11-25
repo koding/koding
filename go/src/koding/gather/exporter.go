@@ -15,6 +15,8 @@ type Exporter interface {
 //----------------------------------------------------------
 
 const (
+	ES_DOMAIN        = "fcd741dd72ad8998000.qbox.io"
+	ES_PORT          = "443"
 	ES_TIME_FORMAT   = time.RFC3339
 	ES_TIMESTAMP_KEY = "@timestamp"
 	ES_INDEX_NAME    = "gather_metrics"
