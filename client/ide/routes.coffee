@@ -52,7 +52,7 @@ do ->
         app.mountedMachineUId   = machineUId
         app.workspaceData       = workspace
 
-        if username
+        if username and username isnt KD.nick()
           app.isInSession       = yes
           app.amIHost           = no
           app.collaborationHost = username
