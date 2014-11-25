@@ -253,8 +253,8 @@ body.home
   // screenshots Section
 
   section.screenshots
-    abs                   415px 0 0
-    size                  100% 462px
+    abs                   335px 0 0
+    size                  100% 542px
     padding-top           50px
     overflow              hidden
     z-index               2
@@ -265,19 +265,26 @@ body.home
       display             block
       left                50%
       z-index             100
+      vendor              transform, scale(.8)
+      -webkit-transition  -webkit-transform .2s ease
+      -moz-transition     -moz-transform .2s ease
+      transition          transform .2s ease
       abs()
+
+      &:hover
+        vendor            transform, scale(1)
 
       .icon
         display           block
 
       &.next
-        margin-left       500px
+        margin-left       502px
 
         .icon
           r-sprite        home 'slideshow-next'
 
       &.prev
-        margin-left       -585px
+        margin-left       -554px
 
         .icon
           r-sprite        home 'slideshow-prev'
@@ -285,18 +292,16 @@ body.home
     > div
       position            absolute !important
       height              417px
-      max-height          575px
-      width               683px
+      width               970px
       margin              initial !important
       padding             0 !important
-      left                calc(50vw \- 341px)
+      left                calc(50vw \- 487px)
       vendor              transform-style, preserve-3d
       vendor              perspective, 700
 
     figure
       top                 0
       opacity             0
-      height              653px
       background          none !important
       vendor              transform, translateX(0) translateY(0) translateZ(0)
       -webkit-transition  -webkit-transform .7s cubic-bezier(0.68, -0.55, 0.265, 1.55) \, opacity .7s cubic-bezier(0.68, -0.55, 0.265, 1.55)
@@ -323,7 +328,7 @@ body.home
       img
         shadow            0 5px 21px rgba(0, 0, 0, .75)
         width             100%
-        height            384px
+        height            571px
         bg                color #3A3E41
         margin-top        2px
 
@@ -381,10 +386,10 @@ body.home
         abs()
 
       &.prev
-        vendor            transform, translateX(-150px) translateY(50px) translateZ(-20px) rotateY(-3deg) rotateZ(-1deg)
+        vendor            transform, translateX(-70px) translateY(50px) translateZ(-20px) rotateZ(-2deg)
 
       &.next
-        vendor            transform, translateX(150px) translateY(50px) translateZ(-20px) rotateY(3deg) rotateZ(1deg)
+        vendor            transform, translateX(70px) translateY(50px) translateZ(-20px) rotateZ(2deg)
 
 
 
@@ -684,6 +689,16 @@ body.home
             margin-top    -2px
             margin-right  6px
 
+      section.screenshots
+        top               479px
+        height            258px
+
+        > div
+          left            auto
+
+          figure
+            padding       0 34px
+
       section.used-at
         > div:after
           display         none
@@ -727,6 +742,9 @@ body.home
       section.screenshots
         height            384px
         top               493px
+
+        > div
+          left            auto
 
         > div figure
           width           100%
