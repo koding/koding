@@ -14,7 +14,12 @@ type Exporter interface {
 // EsExporter
 //----------------------------------------------------------
 
-const ES_TIME_FORMAT = time.RFC3339
+const (
+	ES_TIME_FORMAT   = time.RFC3339
+	ES_TIMESTAMP_KEY = "@timestamp"
+	ES_INDEX_NAME    = "gather_metrics"
+	ES_PROTOCOL      = "https"
+)
 
 // EsExporter exports data to ElasticSearch.
 type EsExporter struct {
@@ -23,12 +28,12 @@ type EsExporter struct {
 }
 
 func NewEsExporter(domain, port string) *EsExporter {
-	es := &EsExporter{Index: "gather_metrics"}
+	es := &EsExporter{Index: ES_INDEX_NAME}
 
 	client := elastigo.NewConn()
 	client.Domain = domain
 	client.Port = port
-	client.Protocol = "https"
+	client.Protocol = ES_PROTOCOL
 
 	es.Client = client
 
@@ -36,7 +41,7 @@ func NewEsExporter(domain, port string) *EsExporter {
 }
 
 func (es *EsExporter) Send(docType string, data map[string]interface{}) error {
-	data["@timestamp"] = time.Now().Format(ES_TIME_FORMAT)
+	data[ES_TIMESTAMP_KEY] = time.Now().Format(ES_TIME_FORMAT)
 
 	_, err := es.Client.Index(es.Index, docType, "", nil, data)
 	return err
