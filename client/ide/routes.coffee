@@ -53,7 +53,7 @@ do ->
         app.workspaceData       = workspace
 
         if username
-          app.isCollaborative   = yes
+          app.isInSession       = yes
           app.amIHost           = no
           app.collaborationHost = username
           app.channelId         = channelId
