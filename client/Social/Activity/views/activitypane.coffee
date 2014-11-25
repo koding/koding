@@ -192,7 +192,7 @@ class ActivityPane extends MessagePane
     currentPath    = router.getCurrentPath()
     mostRecentPath = '/Activity/Public/Recent'
 
-    router.handleRoute mostRecent  unless currentPath is mostRecentPath
+    router.handleRoute mostRecentPath  unless currentPath is mostRecentPath
 
     @mostRecent.listController.addItem message, index
 

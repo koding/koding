@@ -72,7 +72,6 @@ type Provider struct {
 	InactiveMachinesMu sync.Mutex
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
-	PlanFetcher func(*protocol.Machine) (Plan, error)
 
 	Stats *metrics.DogStatsD
 }
@@ -269,6 +268,10 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	err = a.Stop(true)
 	if err != nil {
 		return err
@@ -296,10 +299,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		}
 	}
 
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
-
 	return nil
 }
 
@@ -322,7 +321,16 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := p.build(a, m, &pushValues{Start: 40, Finish: 90})
+	b := &Build{
+		amazon:   a,
+		machine:  m,
+		provider: p,
+		start:    40,
+		finish:   90,
+		log:      p.Log,
+	}
+
+	artifact, err := b.run()
 	if err != nil {
 		return nil, err
 	}
