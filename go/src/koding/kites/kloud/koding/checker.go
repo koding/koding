@@ -54,15 +54,11 @@ type PlanChecker struct {
 	Kite     *kite.Kite
 	Username string
 	Log      logging.Logger
+	Plan     Plan
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
-	plan, err := p.Provider.PlanFetcher(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	allowedInstances := plan.Limits().AllowedInstances
+	allowedInstances := p.Plan.Limits().AllowedInstances
 
 	if _, ok := allowedInstances[wantInstance]; ok {
 		return nil
@@ -72,12 +68,7 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 }
 
 func (p *PlanChecker) AlwaysOn() error {
-	plan, err := p.Provider.PlanFetcher(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	alwaysOnLimit := plan.Limits().AlwaysOn
+	alwaysOnLimit := p.Plan.Limits().AlwaysOn
 
 	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
@@ -95,17 +86,17 @@ func (p *PlanChecker) AlwaysOn() error {
 	}
 
 	p.Log.Debug("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, plan)
+		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, p.Plan)
 
 	// the user has still not reached the limit
 	if alwaysOnMachines <= alwaysOnLimit {
 		p.Log.Debug("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
+			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
 		return nil // allow user, it didn't reach the limit
 	}
 
 	p.Log.Debug("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, plan)
+		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
 }
@@ -139,20 +130,15 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	plan, err := p.Provider.PlanFetcher(p.Machine)
-	if err != nil {
-		return err
-	}
-
 	// replace with the real and authenticated username
 	p.Machine.Builder["username"] = klientRef.Username
 	p.Username = klientRef.Username
 
 	// get the timeout from the plan in which the user belongs to
-	planTimeout := plan.Limits().Timeout
+	planTimeout := p.Plan.Limits().Timeout
 
 	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, plan)
+		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, p.Plan)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
@@ -160,43 +146,37 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, plan)
+		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, p.Plan)
 
 	// lock so it doesn't interfere with others.
 	p.Provider.Lock(p.Machine.Id)
-	defer p.Provider.Unlock(p.Machine.Id)
 
 	// mark our state as stopping so others know what we are doing
 	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
 		planTimeout.Minutes())
-
 	p.Provider.UpdateState(p.Machine.Id, stoppingReason, machinestate.Stopping)
 
-	// Hasta la vista, baby!
-	err = p.Provider.Stop(p.Machine)
-	if err != nil {
-		return err
-	}
+	defer func() {
+		// call it in defer, so even if "Stop" fails it should reset the state
+		stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes", planTimeout.Minutes())
+		p.Provider.UpdateState(p.Machine.Id, stopReason, machinestate.Stopped)
 
-	// update to final state too
-	stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes", planTimeout.Minutes())
-	return p.Provider.UpdateState(p.Machine.Id, stopReason, machinestate.Stopped)
+		p.Provider.Unlock(p.Machine.Id)
+	}()
+
+	// Hasta la vista, baby!
+	return p.Provider.Stop(p.Machine)
 }
 
 func (p *PlanChecker) Total() error {
-	plan, err := p.Provider.PlanFetcher(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	allowedMachines := plan.Limits().Total
+	allowedMachines := p.Plan.Limits().Total
 
 	instances, err := p.userInstances()
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
 		p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
+			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
 		return nil
 	}
 
@@ -209,13 +189,13 @@ func (p *PlanChecker) Total() error {
 
 	if len(instances) >= allowedMachines {
 		p.Log.Debug("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
+			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
 		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: ",
 			len(instances), allowedMachines)
 	}
 
 	p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, len(instances), allowedMachines, plan)
+		p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
 
 	return nil
 }
@@ -249,12 +229,7 @@ func (p *PlanChecker) checkGhostMachines(instances []ec2.Instance) {
 }
 
 func (p *PlanChecker) Storage(wantStorage int) error {
-	plan, err := p.Provider.PlanFetcher(p.Machine)
-	if err != nil {
-		return err
-	}
-
-	totalStorage := plan.Limits().Storage
+	totalStorage := p.Plan.Limits().Storage
 
 	// no need for errors because instances will be empty in case of an error
 	instances, _ := p.userInstances()
@@ -281,15 +256,15 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 	}
 
 	p.Log.Debug("[%s] Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, currentStorage, wantStorage, totalStorage, plan)
+		p.Machine.Id, currentStorage, wantStorage, totalStorage, p.Plan)
 
 	if currentStorage+wantStorage > totalStorage {
 		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB (plan: %s)",
-			totalStorage-currentStorage, totalStorage, plan)
+			totalStorage-currentStorage, totalStorage, p.Plan)
 	}
 
 	p.Log.Debug("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, p.Username, currentStorage, wantStorage, totalStorage, plan)
+		p.Machine.Id, p.Username, currentStorage, wantStorage, totalStorage, p.Plan)
 
 	// allow to create storage
 	return nil
