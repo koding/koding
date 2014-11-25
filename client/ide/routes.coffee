@@ -126,6 +126,8 @@ do ->
 
         .then (workspaces) ->
 
+          KD.userWorkspaces = workspaces
+
           try
             workspaces.forEach (workspace) =>
 
