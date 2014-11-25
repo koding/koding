@@ -2,6 +2,7 @@ package emailmodels
 
 import (
 	"bytes"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
@@ -102,17 +103,21 @@ func (cs *ChannelSummary) Render() (string, error) {
 
 func (cs *ChannelSummary) getTitle() (string, error) {
 	if len(cs.Participants) == 1 {
-		return "", nil
+		return cs.prepareDirectMessageTitle(), nil
 	}
 
+	return cs.prepareChannelTitle()
+}
+
+func (cs *ChannelSummary) prepareDirectMessageTitle() string {
+	return fmt.Sprintf("sent you %d direct message%s:", cs.UnreadCount, getPluralSuffix(cs.UnreadCount))
+}
+
+func (cs *ChannelSummary) prepareChannelTitle() (string, error) {
 	if cs.Purpose != "" {
 		return cs.Purpose, nil
 	}
 
-	return cs.prepareTitle()
-}
-
-func (cs *ChannelSummary) prepareTitle() (string, error) {
 	if len(cs.Participants) == 0 {
 		return "", nil
 	}

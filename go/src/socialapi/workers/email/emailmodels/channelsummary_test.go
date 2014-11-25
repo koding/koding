@@ -172,12 +172,13 @@ func TestRenderChannel(t *testing.T) {
 		mgs1.Nickname = account1.Nick
 		cs.MessageGroups = append(messages, mgs1)
 
-		Convey("Channel title must be empty when it is direct message", func() {
+		Convey("Direct message text must be shown when it is direct message", func() {
 			body, err := cs.Render()
 			So(err, ShouldBeNil)
 			So(body, ShouldContainSubstring, "hehe")
 			So(body, ShouldContainSubstring, "123123")
 			So(body, ShouldContainSubstring, account1.Nick)
+			So(body, ShouldContainSubstring, "sent you 2 direct messages")
 		})
 
 		Convey("Channel title should be rendered correctly when there are multiple recipients", func() {
