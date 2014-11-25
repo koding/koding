@@ -34,11 +34,6 @@ class IDE.StatusBar extends KDView
       cssClass : 'icon shortcuts'
       click    : -> KD.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
-    @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
-      cssClass : 'icon participants'
-      click    : => @emit 'ParticipantsModalRequired'
-
     @addSubView @share = new CustomLinkView
       href     : "#{KD.singletons.router.getCurrentPath()}/share"
       title    : 'Share'

@@ -633,7 +633,6 @@ class IDEAppController extends AppController
 
   createStatusBar: (splitViewPanel) ->
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar
-    @statusBar.on 'ParticipantsModalRequired', @bound 'showParticipantsModal'
 
   createFindAndReplaceView: (splitViewPanel) ->
     splitViewPanel.addSubView @findAndReplaceView = new AceFindAndReplaceView
@@ -850,14 +849,6 @@ class IDEAppController extends AppController
     else
       map = @rtm.create 'map', mapName
       map.set target, target
-
-
-  showParticipantsModal: ->
-    host  = @collaborationHost or KD.nick()
-    modal = new IDE.ParticipantsModal { @participants, @rtm, host }
-
-    modal.on 'ParticipantWatchRequested', (participant) =>
-      @watchParticipant participant
 
 
   listenChangeEvents: ->
