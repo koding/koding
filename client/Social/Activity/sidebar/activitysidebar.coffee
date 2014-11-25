@@ -575,19 +575,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView @machineTree.getView()
 
     @machineTree.on 'NodeWasAdded', (machineItem) =>
-
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-      @listMachines KD.userMachines
-      @updateMachineTree()
-    else
-      @fetchMachines @bound 'listMachines'
+    then @listMachines KD.userMachines
+    else @fetchMachines @bound 'listMachines'
 
-    # section.addSubView more = new MoreVMsModal {}, null
-    # section.addSubView more = new SidebarMoreLink
-    #   tagName  : 'a'
-    #   click    : @bound 'handleMoreVMsClick'
 
   handleMachineItemClick: (machineItem, event) ->
 
