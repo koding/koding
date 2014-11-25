@@ -56,26 +56,31 @@ class IDE.StatusBar extends KDView
     @status.updatePartial 'Click the plus button above to create a new panel'
 
 
-  createParticipantAvatar: (nickname) ->
+  createParticipantAvatar: (nickname, isOnline) ->
 
     view       = new AvatarView
       origin   : nickname
       tooltip  : title: nickname
       size     : width: 24, height: 24
+      cssClass : if isOnline then 'online' else 'offline'
 
     @participantAvatars[nickname] = view
     @avatars.addSubView view
     view.getElement().removeAttribute 'href'
 
 
-  showAvatars: (participants) ->
+  showAvatars: (accounts, currentlyOnline) ->
 
     @avatars.show()
-    myNickname = KD.nick()
+    myNickname  = KD.nick()
+    onlineUsers = (user.nickname for user in currentlyOnline)
 
-    for participant in participants
-      {nickname} = participant
-      @createParticipantAvatar nickname  unless nickname is myNickname
+    for account in accounts
+      {nickname} = account.profile
+      isOnline   = onlineUsers.indexOf(nickname) > -1
+
+      unless nickname is myNickname
+        @createParticipantAvatar nickname, isOnline
 
 
   removeParticipantAvatar: (nickname) ->
@@ -92,8 +97,11 @@ class IDE.StatusBar extends KDView
 
 
   handleCollaborationEnded: ->
+
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
+
   handleCollaborationStarted: ->
+
     @share.updatePartial 'Chat'
