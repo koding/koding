@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./shell_config_lines.sh .vimrc
+./scripts/bash/shell_config_lines.sh .vimrc

@@ -30,6 +30,10 @@ func main() {
 	registerMetric(scripts.FreeDisk)
 	registerMetric(scripts.PerUsedDisk)
 	registerMetric(scripts.NumUsers)
+	registerMetric(scripts.NumBashConfigLines)
+	registerMetric(scripts.NumZshConfigLines)
+	registerMetric(scripts.NumFishConfigLines)
+
 	// registerMetric(scripts.FileTypes)
 
 	exporter = NewEsExporter(ES_DOMAIN, ES_PORT)
