@@ -194,8 +194,8 @@ getSidebar = ->
         <div class="activity-sidebar">
           <section class="followed topics">
             <h3 class="sidebar-title">Channels</h3>
-            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag">#public</span></a>
-            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/changelog"><span class="ttag">#changelog</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Public"><span class="ttag">public</span></a>
+            <a class="kdlistitemview-sidebar-item clearfix" href="/Activity/Announcement/changelog"><span class="ttag">changelog</span></a>
           </section>
           <section class='sidebar-join'>
             Join our growing community of developers from all over the world who
@@ -209,8 +209,8 @@ getSidebar = ->
             <a href="/Login" class='login-link'>Login</a>
           </section>
           <section class='sidebar-bottom-links'>
-            <a href='http://koding.com'>Features</a>
-            <a href='http://koding.com/About'>About Koding</a>
+            <a href='http://koding.com/Features'>Features</a>
+            <a href='http://learn.koding.com/'>Koding University</a>
           </section>
         </div>
       </main>
@@ -244,6 +244,9 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
           <div id="content-page-activity" class="kdview content-page activity activity-pane clearfix">
             <main class="kdview kdscrollview kdtabview app-content">
               #{content}
+              <nav class="crawler-pagination clearfix">
+                #{pagination}
+              </nav>
             </main>
           </div>
         </div>

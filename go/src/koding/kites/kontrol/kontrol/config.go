@@ -29,9 +29,6 @@ type Config struct {
 	TLSCertFile string
 	TLSKeyFile  string
 
-	// Artifacts endpoint port
-	ArtifactPort int
-
 	// Define storage type, such as "etcd", "postgres" etc..
 	Storage string
 

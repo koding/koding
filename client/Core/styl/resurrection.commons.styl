@@ -162,7 +162,7 @@ aside.app-sidebar
 .content-page .app-sidebar ~ .kdtabview
   kalc                  width, 100% \- 292px
   margin-left           292px
-  padding-left          0
+  padding               34px 34px 0 0
   borderBox()
 
 .application-page
@@ -1955,10 +1955,32 @@ footer.main-footer
   a.social
     display             inline-block
     margin-right        8px
+    size                32px, 32px
+    background          #cacaca
+    rounded             50%
+    text-align          center
+    padding             8px 0 0 0
+    borderBox()
+
+    &:after
+      content           ''
+      display           inline-block
+      width             16px
+      height            16px
+
     &.tw
-      r-sprite          app 'social-tw'
+      &:hover
+        background      #55acee
+
+      &:after
+        r-sprite        app 'social-tw'
+
     &.fb
-      r-sprite          app 'social-fb'
+      &:hover
+        background      #3b5998
+
+      &:after
+        r-sprite        app 'social-fb'
 
 
 // new private message and topics modal common styles

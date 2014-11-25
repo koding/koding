@@ -423,7 +423,10 @@ class ComputeController extends KDController
       status      : machine.status.state
       percentage  : 0
 
-    call = @kloud.info { machineId: machine._id }
+    machineId = machine._id
+    currentState = machine.status.state
+
+    call = @kloud.info { machineId, currentState }
 
     .then (response)=>
 
@@ -512,53 +515,55 @@ class ComputeController extends KDController
     return  if @_inprogress
     @_inprogress = yes
 
-    @fetchUserPlan (plan)=>
+    @fetchPlanCombo "koding", (err, info)=>
 
-      @fetchPlans (plans)=>
+      if KD.showError err
+        return @_inprogress = no
 
-        @fetchUsage provider: "koding", (err, usage)=>
+      { plan, plans, usage } = info
 
-          if KD.showError err
-            return @_inprogress = no
+      limits  = plans[plan]
+      options = { plan, limits, usage }
 
-          limits  = plans[plan]
-          options = { plan, limits, usage }
+      if limits.total > 1
 
-          if limits.total > 1
+        new ComputePlansModal.Paid options
+        @_inprogress = no
 
-            new ComputePlansModal.Paid options
-            @_inprogress = no
+        callback()
+        return
 
-            callback()
+      @fetchMachines (err, machines)=>
 
-          else
+        warn err  if err?
 
-            @fetchMachines (err, machines)=>
+        if err? or machines.length > 0
+          new ComputePlansModal.Free options
+          @_inprogress = no
 
-              warn err  if err?
+          callback()
 
-              if err? or machines.length > 0
-                new ComputePlansModal.Free options
-                @_inprogress = no
+        else if machines.length is 0
 
-                callback()
+          stack   = @stacks.first._id
+          storage = plans[plan]?.storage or 3
 
-              else if machines.length is 0
+          KD.utils.getLocationInfo (err, location)=>
 
-                stack   = @stacks.first._id
-                storage = plans[plan]?.storage or 3
+            if not err? and location
+              regionIp = location.ip
 
-                @create {
-                  provider : "koding",
-                  stack, storage
-                }, (err, machine)=>
+            @create {
+              provider : "koding"
+              regionIp, stack, storage
+            }, (err, machine)=>
 
-                  @_inprogress = no
+              @_inprogress = no
 
-                  callback()
+              callback()
 
-                  unless KD.showError err
-                    KD.userMachines.push machine
+              unless KD.showError err
+                KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->
@@ -706,3 +711,19 @@ class ComputeController extends KDController
 
     @kloud.setDomain { machineId: machine._id, newDomain }
     .nodeify callback
+
+
+  fetchPlanCombo:(provider, callback)->
+
+    [callback, provider] = [provider, callback]  unless callback?
+    provider ?= "koding"
+
+    @fetchUserPlan (plan)=> @fetchPlans (plans)=>
+      @fetchUsage { provider }, (err, usage)->
+        callback err, { plan, plans, usage }
+
+
+  findUidFromMachineId: (machineId)->
+
+    for machine in @machines
+      return machine.uid  if machine._id is machineId

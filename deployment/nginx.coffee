@@ -272,8 +272,9 @@ module.exports.create = (KONFIG, environment)->
       }
 
       location = / {
-        if ($args ~ \"_escaped_fragment_\") {
-          proxy_pass http://webserver;
+        if ($args ~ "_escaped_fragment_=/(.*)") {
+          set $fragment $1;
+          rewrite ^/(.*)$ /$fragment? permanent;
         }
 
         proxy_pass            http://gowebserver;
@@ -288,6 +289,10 @@ module.exports.create = (KONFIG, environment)->
       #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
+      #{createUserMachineLocation("prodproxy")}
+      #{createUserMachineLocation("sandboxproxy")}
+      #{createUserMachineLocation("latestproxy")}
+      #{createUserMachineLocation("devproxy")}
     # close server
     }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 	"time"
 
@@ -27,25 +28,27 @@ type SubscribeRequest struct {
 }
 
 func (s *SubscribeRequest) Do() (interface{}, error) {
+	var err error
+
 	switch s.Provider {
 	case "stripe":
-		err := stripe.Subscribe(
+		err = stripe.Subscribe(
 			s.Token, s.AccountId, s.Email, s.PlanTitle, s.PlanInterval,
 		)
-
-		if err != nil {
-			Log.Error(
-				"Subscribing account: %s to plan: %s failed. %s",
-				s.AccountId, s.PlanTitle, err,
-			)
-		}
-
-		return nil, err
 	case "paypal":
-		return nil, ProviderNotImplemented
+		err = paypal.SubscribeWithPlan(s.Token, s.AccountId, s.PlanTitle, s.PlanInterval)
 	default:
-		return nil, ProviderNotFound
+		err = ProviderNotFound
 	}
+
+	if err != nil {
+		Log.Error(
+			"Subscribing account: %s to plan: %s failed. %s",
+			s.AccountId, s.PlanTitle, err,
+		)
+	}
+
+	return nil, err
 }
 
 //----------------------------------------------------------
@@ -61,6 +64,7 @@ type SubscriptionsResponse struct {
 	PlanTitle          string    `json:"planTitle"`
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
+	Provider           string    `json:"provider"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
@@ -78,6 +82,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		PlanTitle:    "free",
 		PlanInterval: "month",
 		State:        "active",
+		Provider:     "koding",
 	}
 
 	customer, err := stripe.FindCustomerByOldId(a.AccountId)
@@ -85,7 +90,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		return defaultResp, nil
 	}
 
-	subscriptions, err := stripe.FindCustomerActiveSubscriptions(customer)
+	subscriptions, err := stripe.FindCustomerSubscriptions(customer)
 	if err != nil {
 		return defaultResp, nil
 	}
@@ -95,6 +100,12 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 	}
 
 	currentSubscription := subscriptions[0]
+
+	// cancel implies user took the action after satisfying provider limits,
+	// therefore we return `free` plan for them
+	if currentSubscription.State == paymentmodels.SubscriptionStateCanceled {
+		return defaultResp, nil
+	}
 
 	plan := &paymentmodels.Plan{}
 	err = plan.ById(currentSubscription.PlanId)
@@ -109,6 +120,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		CurrentPeriodStart: currentSubscription.CurrentPeriodStart,
 		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
 		State:              currentSubscription.State,
+		Provider:           currentSubscription.Provider,
 	}
 
 	return resp, nil
@@ -116,7 +128,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 
 func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
 	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
-	if err != nil {
+	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		Log.Error("Fetching invoices for account: %s failed. %s", a.AccountId, err)
 	}
 
@@ -125,7 +137,7 @@ func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
 
 func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
 	resp, err := stripe.GetCreditCard(a.AccountId)
-	if err != nil {
+	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		Log.Error("Fetching cc for account: %s failed. %s", a.AccountId, err)
 	}
 
@@ -198,10 +210,81 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 		err = stripe.SubscriptionDeletedWebhook(raw)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
+	case "customer.deleted":
+		err = stripe.CustomerDeletedWebhook(raw)
 	}
 
 	if err != nil {
 		Log.Error("Error handling Stripe webhook '%v' : %v", s, err)
+	}
+
+	return nil, err
+}
+
+//----------------------------------------------------------
+// Paypal
+//----------------------------------------------------------
+
+type PaypalRequest struct {
+	Token     string `json:"token"`
+	AccountId string `json:"accountId"`
+}
+
+func (p *PaypalRequest) Success() (interface{}, error) {
+	return nil, paypal.Subscribe(p.Token, p.AccountId)
+}
+
+func (p *PaypalRequest) Cancel() (interface{}, error) {
+	return nil, nil
+}
+
+type PaypalGetTokenRequest struct {
+	PlanTitle    string `json:"planTitle"`
+	PlanInterval string `json:"planInterval"`
+}
+
+func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
+	return paypal.GetToken(p.PlanTitle, p.PlanInterval)
+}
+
+//----------------------------------------------------------
+// Webhook
+//----------------------------------------------------------
+
+type PaypalWebhook struct {
+	TransactionType string `json:"txn_type"`
+	Status          string `json:"payment_status"`
+	PayerId         string `json:"payer_id"`
+}
+
+var PaypalActionCancel = "cancel"
+
+var PaypalStatusActionMap = map[string]string{
+	"Denied":   PaypalActionCancel,
+	"Expired":  PaypalActionCancel,
+	"Failed":   PaypalActionCancel,
+	"Reversed": PaypalActionCancel,
+	"Voided":   PaypalActionCancel,
+}
+
+var PaypalTransactionActionMap = map[string]string{
+	"recurring_payment_profile_cancel": PaypalActionCancel,
+}
+
+func (p *PaypalWebhook) Do() (interface{}, error) {
+	action, ok := PaypalStatusActionMap[p.Status]
+	if !ok {
+		action, ok = PaypalTransactionActionMap[p.TransactionType]
+		if !ok {
+			return nil, nil
+		}
+	}
+
+	var err error
+
+	switch action {
+	case PaypalActionCancel:
+		err = paypal.CancelSubscription(p.PayerId)
 	}
 
 	return nil, err

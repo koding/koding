@@ -14,13 +14,13 @@ func TestChannelContainerNewChanelContainer(t *testing.T) {
 	})
 }
 
-func TestChannelContainerTableName(t *testing.T) {
+func TestChannelContainerBongoName(t *testing.T) {
 	Convey("while testing table name", t, func() {
 		Convey("it should return api.channel ", func() {
 			c := NewChannelContainer()
 
-			So(c.TableName(), ShouldNotBeNil)
-			So(c.TableName(), ShouldEqual, "api.channel")
+			So(c.BongoName(), ShouldNotBeNil)
+			So(c.BongoName(), ShouldEqual, "api.channel")
 		})
 	})
 }

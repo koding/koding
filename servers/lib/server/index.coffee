@@ -106,12 +106,16 @@ process.on 'uncaughtException', (err) ->
 app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
+
   # fetchClient will validate the clientId.
   # if it is in our db it will return the session it
   # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, { session })->
-    return next() if err or not session
-    updateCookie req, res, session
+  JSession.fetchSession clientId, (err, result)->
+
+    return next()  if err
+    return next()  unless result?.session
+
+    updateCookie req, res, result.session
 
     next()
 
@@ -301,6 +305,7 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
+
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
@@ -312,6 +317,9 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
           else res.status(400).send 'Email is taken!'
 
         return
+
+      unless info
+        return res.status(500).send 'An error occurred'
 
       res.cookie 'clientId', info.replacementToken, path : '/'
       return res.status(200).send 'User is logged in!'
@@ -360,7 +368,11 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.status(403).send err.message  if err?
+    if err
+      return res.status(403).send err.message
+    else if not info
+      return res.status(500).send 'An error occurred'
+
     res.cookie 'clientId', info.replacementToken, path : '/'
     res.status(200).end()
 
@@ -530,7 +542,11 @@ app.get  "/-/oauth/twitter/callback"  , require  "./twitter_callback"
 app.post "/:name?/OAuth"              , require  "./oauth"
 app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 
-app.get  '/-/subscriptions'  , require "./subscriptions"
+# Handlers for Payment
+app.get  '/-/subscriptions'          , require "./subscriptions"
+app.get  '/-/payments/paypal/return' , require "./paypal_return"
+app.get  '/-/payments/paypal/cancel' , require "./paypal_cancel"
+app.post '/-/payments/paypal/webhook' , require "./paypal_webhook"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->

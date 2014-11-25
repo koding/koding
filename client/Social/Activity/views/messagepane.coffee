@@ -11,6 +11,8 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    @fetching = no
+
     @lastScrollTops =
       window        : 0
       parent        : 0
@@ -55,6 +57,14 @@ class MessagePane extends KDTabPaneView
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
+
+
+  refreshContent: ->
+
+    return  if @fetching
+
+    @listController.showLazyLoader()
+    @populate()
 
 
   createScrollView: ->
@@ -203,6 +213,7 @@ class MessagePane extends KDTabPaneView
       default: filters[0]
 
     @filterLinks.on 'FilterSelected', (filter) =>
+
       @listController.removeAllItems()
       @listController.showLazyLoader()
       @setFilter filter
@@ -254,9 +265,9 @@ class MessagePane extends KDTabPaneView
     if item?
       item.once 'HideAnimationFinished', =>
         @listController.removeItem item
-        @listController.showNoItemWidget() if @listController.getListItems().length is 0
+        @listController.showNoItemWidget()  if @listController.getListItems().length is 0
 
-      item.hide()
+      item.delete()
 
 
   setScrollTops: ->
@@ -284,8 +295,7 @@ class MessagePane extends KDTabPaneView
     super
 
     KD.utils.wait 1000, @bound 'glance'
-    KD.utils.wait 50, =>
-      @scrollView.verticalTrack.thumb.handleMutation()
+    KD.utils.wait 50, => @scrollView.wrapper.emit 'MutationHappened'
 
 
 
@@ -298,6 +308,10 @@ class MessagePane extends KDTabPaneView
     item = app.getView().sidebar.selectedItem
 
     return  unless item?.count
+
+    # do not wait for response to set it as 0
+    item.setUnreadCount 0
+
     # no need to send updatelastSeenTime or glance when checking publicfeeds
     return  if name in ['public', 'announcement']
 
@@ -325,13 +339,11 @@ class MessagePane extends KDTabPaneView
 
       return  if @currentFilter isnt filter
 
-      @listController.hideLazyLoader()
-      items.forEach (item, i) =>
-        @addMessageDeferred item, i, items.length
-
-      KD.utils.defer @bound 'focus'
+      @listController.removeAllItems()  if @listController.getItemCount()
+      @addItems items
 
       callback()
+      @fetching = no
 
 
   addMessageDeferred: (item, i, total) ->
@@ -341,6 +353,13 @@ class MessagePane extends KDTabPaneView
       if i is total - 1
         KD.utils.wait 50, => @emit 'ListPopulated'
 
+
+  addItems: (items) ->
+    @listController.hideLazyLoader()
+    items.forEach (item, i) =>
+      @addMessageDeferred item, i, items.length
+
+    KD.utils.defer @bound 'focus'
 
 
   fetch: (options = {}, callback) ->
@@ -356,6 +375,8 @@ class MessagePane extends KDTabPaneView
     options.name      = name
     options.type      = type
     options.channelId = channelId
+
+    @fetching = yes
 
     @whenSubmitted().then ->
       # if it is a post it means we already have the data

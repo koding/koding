@@ -6,6 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/request"
 	"strconv"
+	"sync"
 	"time"
 
 	ve "github.com/VerbalExpressions/GoVerbalExpressions"
@@ -142,7 +143,7 @@ func bodyLenCheck(body string) error {
 // and updatedAt values
 func (c *ChannelMessage) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("body","slug","type_constant","account_id","initial_channel_id",` +
 		`"created_at","updated_at","deleted_at","payload") ` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
@@ -155,26 +156,55 @@ func (c *ChannelMessage) CreateRaw() error {
 // UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
 // timestamps
 func (c *ChannelMessage) UpdateBodyRaw() error {
-	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.TableName())
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.BongoName())
 
 	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
 }
 
+type messageResponseStruct struct {
+	Index   int
+	Message *ChannelMessageContainer
+}
+
 // TODO - remove this function
 func (c *ChannelMessage) BuildMessages(query *request.Query, messages []ChannelMessage) ([]*ChannelMessageContainer, error) {
+	var wg sync.WaitGroup
+
 	containers := make([]*ChannelMessageContainer, len(messages))
 	if len(containers) == 0 {
 		return containers, nil
 	}
 
+	var onMessage = make(chan *messageResponseStruct, len(messages))
+	var onError = make(chan error, 1)
+
 	for i, message := range messages {
-		d := NewChannelMessage()
-		*d = message
-		data, err := d.BuildMessage(query)
-		if err != nil {
+		wg.Add(1)
+
+		go func(i int, message ChannelMessage) {
+			defer wg.Done()
+
+			d := NewChannelMessage()
+			*d = message
+			data, err := d.BuildMessage(query)
+			if err != nil {
+				onError <- err
+				return
+			}
+
+			onMessage <- &messageResponseStruct{Index: i, Message: data}
+		}(i, message)
+	}
+
+	wg.Wait()
+
+	for i := 1; i <= len(messages); i++ {
+		select {
+		case messageResp := <-onMessage:
+			containers[messageResp.Index] = messageResp.Message
+		case err := <-onError:
 			return containers, err
 		}
-		containers[i] = data
 	}
 
 	return containers, nil
@@ -368,35 +398,53 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 		return err
 	}
 
-	// fetch channel by group name
-	query.Name = query.GroupName
-	if query.GroupName == "koding" {
-		query.Name = "public"
-	}
 	query.Type = Channel_TYPE_GROUP
-	ch := NewChannel()
-	channel, err := ch.ByName(query)
+	res, err := c.isInChannel(query, "public")
 	if err != nil {
 		return err
 	}
 
-	if channel.Id == 0 {
-		return ErrChannelIsNotSet
+	if res {
+		return nil
 	}
 
-	// check if message is in the channel
-	cml := NewChannelMessageList()
-	res, err := cml.IsInChannel(c.Id, channel.Id)
+	query.Type = Channel_TYPE_ANNOUNCEMENT
+	res, err = c.isInChannel(query, "changelog")
 	if err != nil {
 		return err
 	}
 
-	// if message is not in the channel
 	if !res {
 		return bongo.RecordNotFound
 	}
 
 	return nil
+}
+
+func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (bool, error) {
+	if c.Id == 0 {
+		return false, ErrChannelMessageIdIsNotSet
+	}
+	// fetch channel by group name
+	query.Name = query.GroupName
+	if query.GroupName == "koding" {
+		query.Name = channelName
+	}
+
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return false, err
+	}
+
+	if channel.Id == 0 {
+		return false, ErrChannelIsNotSet
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+
+	return cml.IsInChannel(c.Id, channel.Id)
 }
 
 // DeleteMessageDependencies deletes all records from the database that are

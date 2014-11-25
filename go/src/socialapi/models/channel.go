@@ -154,7 +154,7 @@ func (c *Channel) Create() error {
 
 func (c *Channel) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		c.TableName() +
+		c.BongoName() +
 		` ("name","creator_id","group_name","purpose","type_constant",` +
 		`"privacy_constant", "created_at", "updated_at", "deleted_at")` +
 		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
@@ -460,7 +460,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	query := bongo.B.BuildQuery(c, bongoQuery)
-	query = query.Where("name like ?", "%"+q.Name+"%")
+
+	// use 'ilike' for case-insensitive search
+	query = query.Where("name ilike ?", "%"+q.Name+"%")
 
 	if err := bongo.CheckErr(
 		query.Find(&channels),

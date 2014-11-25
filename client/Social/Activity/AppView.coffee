@@ -22,6 +22,8 @@ class ActivityAppView extends KDView
 
     @appStorage  = appStorageController.storage 'Activity', '2.0'
 
+    @panePathMap = {}
+
     @tabs = new KDTabView
       tagName             : 'main'
       hideHandleContainer : yes
@@ -30,6 +32,19 @@ class ActivityAppView extends KDView
     @tabs.on 'PaneDidShow', (pane) =>
       if type = pane.getData()?.typeConstant
         @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
+
+    { router } = KD.singletons
+
+    router.on 'AlreadyHere', (path, options) =>
+
+      [slug] = options.frags
+
+      return  if slug isnt 'Activity'
+
+      path = helper.sanitizePath path
+      pane = @panePathMap[path]
+
+      pane?.refreshContent? path
 
 
   viewAppended: ->
@@ -47,21 +62,13 @@ class ActivityAppView extends KDView
       KD.utils.defer ->
         pane.applyScrollTops()
 
-      KD.utils.wait 50, ->
-        pane.scrollView.verticalTrack.thumb.handleMutation()
+      KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
 
       return  unless pane = @tabs.getActivePane()
 
       pane.setScrollTops()
-
-
-  scroll: ->
-
-    if window.scrollY > 316
-    then @setClass 'fixed'
-    else @unsetClass 'fixed'
 
 
   # type: [topic|post|message|chat|null]
@@ -94,7 +101,8 @@ class ActivityAppView extends KDView
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          @sidebar.addItem data
+          # put after #koding #changelog
+          @sidebar.addItem data, 2
           kallback data
     else
       kallback item.getData()
@@ -144,6 +152,10 @@ class ActivityAppView extends KDView
         else ActivityPane
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
+
+    path = helper.sanitizePath KD.singletons.router.getCurrentPath()
+
+    @panePathMap[path] = pane
 
     pane.on 'LeftChannel', => @tabs.removePane pane
 
@@ -210,3 +222,13 @@ class ActivityAppView extends KDView
       top = window.innerHeight - 220
 
     return {top, left}
+
+
+  helper =
+
+    sanitizePath: (path) ->
+
+      if /\/Activity\/Public/.test path
+      then '/Activity/Public'
+      else path
+

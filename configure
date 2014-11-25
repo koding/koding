@@ -29,6 +29,7 @@ options = o =
   onlyconfigure    : argv.onlyconfigure  or no
   supervisor       : argv.supervisor     or no
   deploy           : argv.deploy         or no
+  host             : argv.host
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
@@ -79,6 +80,7 @@ git.long (str) ->
     rest()
   else if os.type() is "Darwin"
     options.hostname = "lvh.me"
+    options.ngrok = yes
     rest()
   else
     log "lemme find your IP"

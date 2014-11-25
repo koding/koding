@@ -1,9 +1,12 @@
 package main
 
 import (
+	_ "expvar"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"time"
@@ -17,6 +20,8 @@ import (
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
 	kloudprotocol "koding/kites/kloud/protocol"
+
+	"github.com/koding/metrics"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -75,9 +80,6 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
-
-	// Artifacts endpoint port
-	ArtifactPort int
 }
 
 func main() {
@@ -128,9 +130,11 @@ func main() {
 		}
 	}
 
-	// TODO use kite's http server instead of creating another one here
-	// this is used for application lifecycle management
-	go artifact.StartDefaultServer(Name, conf.ArtifactPort)
+	go func() {
+		// TODO ~ parameterize this
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		k.Log.Error(err.Error())
+	}()
 
 	k.Run()
 }
@@ -173,6 +177,11 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "6Oswp4QJvJ8EgoHtVWsdVrtnnmwxGA/kvBB3R81D",
 	}
 
+	stats, err := metrics.NewDogStatsD("kloud.aws")
+	if err != nil {
+		panic(err)
+	}
+
 	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
@@ -193,6 +202,7 @@ func newKite(conf *Config) *kite.Kite {
 		PrivateKey:        keys.DeployPrivateKey,
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
+		Stats:             stats,
 	}
 
 	// be sure it satisfies the provider interface
@@ -200,6 +210,12 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
 		a, err := kodingProvider.NewClient(m)
+		if err != nil {
+			return nil, err
+		}
+
+		// check current plan
+		plan, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
 		if err != nil {
 			return nil, err
 		}
@@ -212,11 +228,8 @@ func newKite(conf *Config) *kite.Kite {
 			Log:      kodingProvider.Log,
 			Username: m.Username,
 			Machine:  m,
+			Plan:     plan,
 		}, nil
-	}
-
-	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
-		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
@@ -229,7 +242,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -278,6 +291,9 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("domain.unset", kld.DomainUnset)
 	k.HandleFunc("domain.add", kld.DomainAdd)
 	k.HandleFunc("domain.remove", kld.DomainRemove)
+
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
 
 	return k
 }

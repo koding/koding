@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
@@ -26,10 +26,20 @@ Configuration = (options={}) ->
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
-  customDomain        = { public:   "http://koding-#{process.env.USER}.ngrok.com" , public_:            "koding-#{process.env.USER}.ngrok.com"  , local:              "http://lvh.me"             , local_:          "lvh.me"                             , port:     8090                        , host: "http://lvh.me"}
+
+  if options.ngrok
+    scheme = 'https'
+    host   = "koding-#{process.env.USER}.ngrok.com"
+  else
+    scheme = 'http'
+    _port  = if publicPort is '80' then '' else publicPort
+    host   = options.host or "#{options.hostname}:#{_port}"
+
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
-  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"   , artifactPort:    9510        }
+  kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               4000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
@@ -55,7 +65,7 @@ Configuration = (options={}) ->
     mongo             : mongo
     environment       : environment
     region            : region
-    hostname          : hostname
+    hostname          : host
     protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
@@ -66,6 +76,7 @@ Configuration = (options={}) ->
     disableCaching    : no
     debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -76,7 +87,7 @@ Configuration = (options={}) ->
     environment                    : environment
     regions                        : regions
     region                         : region
-    hostname                       : hostname
+    hostname                       : host
     protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
@@ -107,8 +118,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
-
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite" , artifactPort : 9520 }
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -140,6 +150,9 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'a41deacd57929378'
 
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
+
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
     client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
@@ -160,7 +173,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "http://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -183,7 +196,7 @@ Configuration = (options={}) ->
       github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
-
+    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
@@ -191,6 +204,7 @@ Configuration = (options={}) ->
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
   GOBIN = "#{projectRoot}/go/bin"
+  GOPATH= "#{projectRoot}/go"
 
 
   # THESE COMMANDS WILL EXECUTE IN PARALLEL.
@@ -201,7 +215,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/go-webserver -r koding/go-webserver -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : ["~^/IDE/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -212,24 +226,24 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{kontrol.port}"
       supervisord       :
-        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -artifactport #{kontrol.artifactPort} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
+        command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kontrol/.*"]
-      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.artifactPort}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.kontrol.artifactPort}/version"
+      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
     kloud               :
       group             : "environment"
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"} -artifactport #{KONFIG.kloud.artifactPort}"
+        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
-      healthCheckURL    : "http://localhost:#{KONFIG.kloud.artifactPort}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.kloud.artifactPort}/version"
+      healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
     ngrokProxy          :
       group             : "environment"
@@ -241,7 +255,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/broker -r koding/broker -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : ["/websocket", "~^/subscribe/.*"]
@@ -251,7 +265,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/fresh -w koding/rerouting -r koding/rerouting -a \"-c #{configName}\""
+        command         : "#{GOBIN}/goldorf -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -320,7 +334,7 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
-        locations       : ["= /payments/stripe/webhook"]
+        locations       : [ "= /payments/stripe/webhook" ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -336,7 +350,6 @@ Configuration = (options={}) ->
     killlist = ->
       str = "kill -KILL "
       str += "$#{key}pid " for key,val of KONFIG.workers
-      str += " $$" #kill self
 
       return str
 
@@ -447,13 +460,16 @@ Configuration = (options={}) ->
       }
 
       function kill_all () {
-
-        nginxstop
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
-
-        # do not change the order.
-        # killist comes last - it kills itself thus nothing can run after.
         #{killlist()}
+
+        echo "killing hanged processes"
+        # there is race condition, that killlist() can not kill all process
+        sleep 3
+
+
+        # both of them are  required
+        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        pkill -9 koding-
       }
 
       function nginxstop () {
@@ -573,7 +589,7 @@ Configuration = (options={}) ->
         make configure
         cd #{projectRoot}
 
-        nginxrun
+        migrate up
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
@@ -604,7 +620,50 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run help                  : to show this list"
+        echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
         echo ""
+
+      }
+
+      function migrate () {
+        params=(create up down version reset redo to goto)
+        param=$1
+
+        case "${params[@]}" in  *"$param"*)
+          ;;
+        *)
+          echo "Error: Command not found: $param"
+          echo "Usage: run migrate COMMAND [arg]"
+          echo ""
+          echo "Commands:  "
+          echo "  create [filename] : create new migration file in path"
+          echo "  up                : apply all available migrations"
+          echo "  down              : roll back all migrations"
+          echo "  redo              : roll back the most recently applied migration, then run it again"
+          echo "  reset             : run down and then up command"
+          echo "  version           : show the current migration version"
+          echo "  to   [n]          : (+n) apply the next n / (-n) roll back the previous n migrations"
+          echo "  goto [n]          : go to specific migration"
+
+          echo ""
+          exit 1
+        ;;
+        esac
+
+        if [ "$param" == "to" ]; then
+          param="migrate"
+        elif [ "$param" == "create" ] && [ -z "$2" ]; then
+          echo "Please choose a migration file name. (ex. add_created_at_column_account)"
+          echo "Usage: run migrate create [filename]"
+          echo ""
+          exit 1
+        fi
+
+        #{GOBIN}/migrate -url "postgres://#{postgres.host}:#{postgres.port}/#{postgres.dbname}?user=social_superuser&password=social_superuser" -path "#{projectRoot}/go/src/socialapi/db/sql/migrations" $param $2
+
+        if [ "$param" == "create" ]; then
+          echo "Please edit created script files and add them to your repository."
+        fi
 
       }
 
@@ -638,6 +697,10 @@ Configuration = (options={}) ->
 
       }
 
+      function check_psql () {
+        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+      }
+
       function check_service_dependencies () {
         echo "checking required services: nginx, docker, mongo, graphicsmagick..."
         command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
@@ -649,7 +712,7 @@ Configuration = (options={}) ->
         command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
         # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
         command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
-        command -v psql          >/dev/null 2>&1 || { echo >&2 "I require psql but it's not installed. (brew install postgresql)  Aborting."; exit 1; }
+        check_psql
 
         if [[ `uname` == 'Darwin' ]]; then
           brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
@@ -891,6 +954,19 @@ Configuration = (options={}) ->
 
         go run scripts/supervisor_status.go $SUPERVISOR_ENV
         open supervisor.html
+
+      elif [ "$1" == "migrate" ]; then
+        check_psql
+
+        if [ -z "$2" ]; then
+          echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
+          echo ""
+        else
+          cd "#{GOPATH}/src/socialapi"
+          make install-migrate
+          migrate $2 $3
+        fi
+
 
       elif [ "$#" == "0" ]; then
 

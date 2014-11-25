@@ -3,6 +3,7 @@ crypto = require 'crypto'
 
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+KodingError = require '../error'
 
 module.exports = class S3 extends Base
 

@@ -50,7 +50,7 @@ func (m *MessageReply) MarkIfExempt() error {
 
 func (m *MessageReply) CreateRaw() error {
 	insertSql := "INSERT INTO " +
-		m.TableName() +
+		m.BongoName() +
 		` ("message_id","reply_id","created_at") VALUES ($1,$2,$3) ` +
 		"RETURNING ID"
 	return bongo.B.DB.CommonDB().
@@ -78,7 +78,7 @@ func (m *MessageReply) Delete() error {
 
 func (m *MessageReply) DeleteByOrQuery(messageId int64) error {
 	var messageReplies []MessageReply
-	query := bongo.B.DB.Table(m.TableName())
+	query := bongo.B.DB.Table(m.BongoName())
 	query = query.Where("message_id = ? or reply_id = ?", messageId, messageId)
 
 	if err := query.Find(&messageReplies).Error; err != bongo.RecordNotFound && err != nil {

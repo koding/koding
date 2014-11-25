@@ -1,44 +1,57 @@
 class PaymentController extends KDController
 
-  DEFAULT_PROVIDER = "stripe"
+  DEFAULT_PROVIDER = 'stripe'
 
-  subscribe: (token, planTitle, planInterval, options, callback)->
+  api: -> KD.remote.api.Payment
+
+
+  subscribe: (token, planTitle, planInterval, options, callback) ->
+
     {planAmount, binNumber, lastFour, cardName} = options
 
     params = {
-      token,
-      planTitle, planInterval, planAmount,
+      token, planTitle, planInterval, planAmount
       binNumber, lastFour, cardName
     }
 
-    params.email      = options.email     if options.email
-    params.provider   = options.provider  or DEFAULT_PROVIDER
+    params.email    = options.email    if options.email
+    params.provider = options.provider or DEFAULT_PROVIDER
 
-    @api().subscribe params, (err, result)=>
-      @emit "UserPlanUpdated"  unless err?
+    @api().subscribe params, (err, result) =>
+      @emit 'UserPlanUpdated'  unless err?
       callback err, result
 
 
-  subscriptions: (callback)-> @api().subscriptions {}, callback
+  subscriptions : (callback) -> @api().subscriptions {}, callback
+  invoices      : (callback) -> @api().invoices {}, callback
+  creditCard    : (callback) -> @api().creditCard {}, callback
 
-  invoices: (callback)-> @api().invoices {}, callback
 
-  creditCard: (callback)-> @api().creditCard {}, callback
+  updateCreditCard: (token, callback) ->
 
-  updateCreditCard: (token, callback)->
     params          = {token}
     params.provider = DEFAULT_PROVIDER
 
     @api().updateCreditCard params, callback
 
-  canChangePlan: (planTitle, callback)->
+
+  canChangePlan: (planTitle, callback) ->
+
     @api().canChangePlan {planTitle}, callback
 
-  logOrder: (params, callback)->
+
+  getPaypalToken: (planTitle, planInterval, callback) ->
+
+    @api().getToken {planTitle, planInterval}, callback
+
+
+  logOrder: (params, callback) ->
+
     @api().logOrder params, callback
 
-  api:-> KD.remote.api.Payment
 
+  paypalReturn: (err) -> @emit 'PaypalRequestFinished', err
+  paypalCancel: ->
 
   ##########################################################
 

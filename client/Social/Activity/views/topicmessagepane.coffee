@@ -2,7 +2,7 @@ class TopicMessagePane extends MessagePane
 
   constructor: (options = {}, data) ->
 
-    options.cssClass    = KD.utils.curry 'activity-pane', options.cssClass
+    options.cssClass    = KD.utils.curry 'topic-pane activity-pane', options.cssClass
     options.wrapper    ?= no
     options.scrollView ?= no
 
@@ -13,6 +13,15 @@ class TopicMessagePane extends MessagePane
       .on 'MessageRemoved', @bound 'removeMessage'
 
     @filterLinks = null
+
+    @on 'NeedsMoreContent', =>
+      @listController.showLazyLoader()
+
+      @lazyLoad null, (err, items) =>
+
+        return err  if err
+
+        @addItems items
 
 
   addMessage: (message) ->

@@ -1,9 +1,5 @@
 package models
 
-import (
-	"encoding/xml"
-)
-
 // used for setting ChangeFrequency value
 const (
 	Definition_FREQ_ALWAYS  = "always"
@@ -17,8 +13,6 @@ const (
 
 // ItemDefiniton corresponds to url element
 type ItemDefinition struct {
-	// set element name
-	XMLName xml.Name `xml:"url"`
 	// location of url
 	Location string `xml:"loc"`
 	// used for updated elements

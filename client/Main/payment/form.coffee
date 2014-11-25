@@ -10,10 +10,11 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  getInitialState: -> {
-    planInterval   : PaymentWorkflow.planInterval.MONTH
-    planTitle      : PaymentWorkflow.planTitle.HOBBYIST
-  }
+  getInitialState: ->
+    planInterval : PaymentWorkflow.planInterval.MONTH
+    planTitle    : PaymentWorkflow.planTitle.HOBBYIST
+    provider     : PaymentWorkflow.provider.KODING
+
 
   constructor: (options = {}, data) ->
 
@@ -33,16 +34,12 @@ class PaymentForm extends JView
 
     {
       planTitle, planInterval, reducedMonth
-      currentPlan, yearPrice
+      currentPlan, yearPrice, isUpgrade
     } = @state
-
-    planIntervalPartial = if planInterval is 'month'
-    then 'Monthly'
-    else 'Yearly'
 
     @plan = new KDCustomHTMLView
       cssClass: 'plan-name'
-      partial : "#{planTitle.capitalize()} Plan (#{planIntervalPartial})"
+      partial : "#{planTitle.capitalize()} Plan"
 
     pricePartial = @getPricePartial planInterval
     @price = new KDCustomHTMLView
@@ -54,14 +51,12 @@ class PaymentForm extends JView
     @existingCreditCardMessage = new KDCustomHTMLView
       cssClass : 'existing-cc-msg'
       partial  : '
-        We will use the credit card saved on your account for this purchase.
+        We will use the payment method saved on your account for this purchase.
       '
 
     @successMessage = new KDCustomHTMLView
       cssClass : 'success-msg hidden'
       partial  : ''
-
-    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
     buttonPartial = if isUpgrade
     then 'UPGRADE YOUR PLAN'
@@ -72,18 +67,20 @@ class PaymentForm extends JView
       title     : buttonPartial
       loader    : yes
       cssClass  : 'submit-btn'
-      callback  : => @emit "PaymentSubmitted", @form.getFormData()
+      callback  : => @emit 'PaymentSubmitted', @form.getFormData()
+
+    @paypalForm = @initPaypalForm()
 
     @yearPriceMessage = new KDCustomHTMLView
       cssClass  : 'year-price-msg'
-      partial   : "(You will be billed $#{yearPrice} for 12 months)"
+      partial   : "You will be billed $#{yearPrice} for 12 months"
 
     @securityNote = new KDCustomHTMLView
       cssClass  : 'security-note'
-      partial   : "
+      partial   : '
         <span>Secure credit card payments</span>
         Koding.com uses 128 Bit SSL Encrypted Transactions
-      "
+      '
 
     # for some cases, we need to show/hide
     # some of the subviews.
@@ -92,15 +89,16 @@ class PaymentForm extends JView
 
   filterViews: ->
 
-    { FREE }  = PaymentWorkflow.planTitle
-    { MONTH } = PaymentWorkflow.planInterval
-    { currentPlan, planTitle, planInterval } = @state
+    { FREE }   = PaymentWorkflow.planTitle
+    { MONTH }  = PaymentWorkflow.planInterval
+    { KODING } = PaymentWorkflow.provider
+    { currentPlan, planTitle, planInterval, provider } = @state
 
     @yearPriceMessage.hide()  if planInterval is MONTH
 
     # no need to show those views when they are
     # downgrading to free account.
-    if selectedPlan = planTitle is FREE
+    if planTitle is FREE
       @securityNote.hide()
       @existingCreditCardMessage.hide()
       @yearPriceMessage.hide()
@@ -112,6 +110,8 @@ class PaymentForm extends JView
     if currentPlan is FREE
       @form.show()
       @existingCreditCardMessage.hide()
+
+    @paypalForm.destroy()  unless provider is KODING
 
 
   initForm: ->
@@ -125,6 +125,26 @@ class PaymentForm extends JView
       callback : @lazyBound 'emit', 'PaymentSubmitted'
 
 
+  initPaypalForm: ->
+
+    new PaypalFormView
+      state        : @state
+      buttons      :
+        paypal     :
+          type     : 'submit'
+          domId    : 'paypal-submit'
+          style    : 'solid medium green submit-btn paypal'
+          title    : 'CHECKOUT USING <figure></figure>'
+          callback : => @emit 'PaypalButtonClicked'
+
+
+  initPaypalClient: ->
+
+    new PAYPAL.apps.DGFlow
+      expType : 'popup'
+      trigger : 'paypal-submit'
+
+
   initEvents: ->
 
     { cardNumber } = @form.inputs
@@ -132,10 +152,35 @@ class PaymentForm extends JView
     cardNumber.on "CreditCardTypeIdentified", (type) ->
       cardNumber.setClass type.toLowerCase()
 
+    @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
+
 
   showValidationErrorsOnInputs: (error) ->
 
     @form.showValidationErrorsOnInputs error
+
+
+  showPaypalNotAllowedStage: ->
+
+    [
+      @form
+      @securityNote
+      @yearPriceMessage
+      @paypalForm
+      @submitButton
+    ].forEach (view) -> view.destroy()
+
+    [
+      @$('.divider')
+      @$('.summary')
+    ].forEach (view) -> view.detach()
+
+    {isUpgrade} = @state
+
+    @existingCreditCardMessage.updatePartial "
+      We are sorry #{if isUpgrade then 'upgrades' else 'downgrades'} are disabled for Paypal.
+      Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
+    "
 
 
   showSuccess: (isUpgrade) ->
@@ -145,13 +190,19 @@ class PaymentForm extends JView
       @existingCreditCardMessage
       @securityNote
       @yearPriceMessage
+      @paypalForm
     ].forEach (view) -> view.destroy()
+
+    @$('.divider').detach()
 
     if isUpgrade
       @successMessage.updatePartial "
         Depending on the plan upgraded to, you now have access to more computing
         and storage resources.
-        <a href='http://learn.koding.com/upgrade'>Learn more</a>
+        <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
+           target='_blank'>
+         Learn more
+        </a>
         about how to use your new resources.
       "
       @successMessage.show()
@@ -163,6 +214,7 @@ class PaymentForm extends JView
 
 
   showMaximumAttemptFailed: ->
+
     [
       @form
       @existingCreditCardMessage
@@ -172,9 +224,9 @@ class PaymentForm extends JView
     ].forEach (view) -> view.destroy()
 
     [
-      @$('h3')
+      @$('.divider')
       @$('.summary')
-    ].forEach (element) -> element.hide()
+    ].forEach (element) -> element.detach()
 
     @successMessage.updatePartial "
       We are sorry that you are having trouble upgrading.
@@ -189,6 +241,7 @@ class PaymentForm extends JView
 
 
   getPricePartial: (planInterval) ->
+
     { monthPrice, reducedMonth } = @state
 
     map =
@@ -200,7 +253,6 @@ class PaymentForm extends JView
 
   pistachio: ->
     """
-    <h3>You have selected</h3>
     <div class='summary clearfix'>
       {{> @plan}}{{> @price}}
     </div>
@@ -209,6 +261,12 @@ class PaymentForm extends JView
     {{> @successMessage}}
     {{> @yearPriceMessage}}
     {{> @submitButton}}
+    #{
+      if @state.provider is PaymentWorkflow.provider.KODING
+      then '<div class="divider">OR</div>'
+      else ''
+    }
+    {{> @paypalForm}}
     {{> @securityNote}}
     """
 

@@ -1,6 +1,7 @@
 package paymentmodels
 
 import (
+	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -43,6 +44,16 @@ type Subscription struct {
 	CurrentPeriodEnd   time.Time `json:"current_period_end"`
 }
 
+var (
+	SubscriptionStateActive = "active"
+
+	// this is when user manually cancels
+	SubscriptionStateCanceled = "canceled"
+
+	// this is when user fails to pay
+	SubscriptionStateExpired = "expired"
+)
+
 func (s *Subscription) UpdateInvoiceCreated(amountInCents uint64, planId, periodStart, periodEnd int64) error {
 	if s.PlanId == planId {
 		return ErrUpdatingToSamePlan
@@ -81,6 +92,33 @@ func (s *Subscription) UpdateState(state string) error {
 	return err
 }
 
+func (s *Subscription) Cancel() error {
+	err := s.Delete()
+	if err != nil {
+		return err
+	}
+
+	customer := NewCustomer()
+	err = customer.ById(s.CustomerId)
+	if err != nil {
+		return err
+	}
+
+	subscriptions, err := customer.FindSubscriptions()
+	if err != nil {
+		return err
+	}
+
+	for _, subscription := range subscriptions {
+		err := subscription.Delete()
+		if err != nil {
+			fmt.Println("Deleting user: %s subscription: %s failed: %v", customer.Username, subscription.Id, err)
+		}
+	}
+
+	return customer.Delete()
+}
+
 func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 	s.CanceledAt = t
 	err := bongo.B.Update(s)
@@ -116,7 +154,7 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 	subscriptions := []Subscription{}
 
 	err := bongo.B.DB.
-		Table(s.TableName()).
+		Table(s.BongoName()).
 		Where(
 		"canceled_at > ?", t,
 	).Find(&subscriptions).Error

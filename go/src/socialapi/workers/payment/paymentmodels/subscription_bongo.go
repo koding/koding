@@ -10,7 +10,7 @@ func (s Subscription) GetId() int64 {
 	return s.Id
 }
 
-func (Subscription) TableName() string {
+func (Subscription) BongoName() string {
 	return "payment.subscription"
 }
 
@@ -49,4 +49,8 @@ func (s *Subscription) ById(id int64) error {
 func (s *Subscription) Find(selector map[string]interface{}) error {
 	err := s.One(bongo.NewQS(selector))
 	return err
+}
+
+func (s *Subscription) Delete() error {
+	return bongo.B.Delete(s)
 }

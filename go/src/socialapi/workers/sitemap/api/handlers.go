@@ -5,11 +5,11 @@ import (
 	"errors"
 	"net/http"
 	"socialapi/config"
+	"socialapi/workers/common/handler"
+	"socialapi/workers/common/mux"
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/models"
 	"strings"
-
-	"github.com/rcrowley/go-tigertonic"
 
 	"github.com/koding/bongo"
 )
@@ -23,12 +23,20 @@ type ErrorResponse struct {
 	Error   string   `xml:"error"`
 }
 
-func InitHandlers(mux *tigertonic.TrieServeMux) *tigertonic.TrieServeMux {
-	mux.HandleFunc("GET", "/sitemap.xml", Generate)
+func AddHandlers(m *mux.Mux) {
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  Generate,
+			Type:     handler.GetRequest,
+			Endpoint: "/sitemap.xml",
+		})
 
-	mux.HandleFunc("GET", "/sitemap/{name}", Fetch)
-
-	return mux
+	m.AddUnscopedHandler(
+		handler.Request{
+			Handler:  Fetch,
+			Type:     handler.GetRequest,
+			Endpoint: "/sitemap/{name}",
+		})
 }
 
 func NewDefaultError(err error) []byte {

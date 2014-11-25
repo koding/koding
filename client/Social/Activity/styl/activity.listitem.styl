@@ -30,7 +30,7 @@ activity.listitem.styl
     rel()
 
     .show-more
-      abs                   0 25px 17px 0
+      abs                   489px 25px 0 0
       padding               0
       color                 #adaeb1
       font-weight           300
@@ -84,6 +84,8 @@ activity.listitem.styl
         //   content         ""
         //   display         block
 
+      a
+        noTextDeco()
       time
         color             #999999
         font-size         12px
@@ -447,10 +449,11 @@ activity.listitem.styl
           display       inline
           a
             color         inherit
+            noTextDeco()
+            font-weight   600
 
             &.profile-link
               color       #1aaf5d
-              noTextDeco()
 
           .emoji
             size              16px, 16px

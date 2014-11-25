@@ -88,7 +88,7 @@ func getUserChannelsQuery(q *request.Query) *gorm.DB {
 
 	return bongo.B.DB.
 		Model(c).
-		Table(c.TableName()).
+		Table(c.BongoName()).
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
 		Where("api.channel_participant.account_id = ? and "+
@@ -113,7 +113,8 @@ func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
 	query := getUserChannelsQuery(q)
 
 	if q.Name != "" {
-		query = query.Where("api.channel.purpose like ?", "%"+q.Name+"%")
+		// use 'ilike' for case-insensitive search
+		query = query.Where("api.channel.purpose ilike ?", "%"+q.Name+"%")
 	}
 
 	// add exempt clause if needed

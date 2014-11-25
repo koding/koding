@@ -26,8 +26,6 @@ func (p *Provider) RunChecker(interval time.Duration) {
 					p.Log.Warning("FetchOne err: %v", err)
 				}
 
-				p.Log.Debug("checker no machines available to check: %s", err.Error())
-
 				// move one with the next one
 				return
 			}

@@ -11,7 +11,7 @@ import (
 )
 
 // Resizes increases the current machines underling volume to a larger volume
-// without affecting the or destroying the users data.
+// without affecting or destroying the users data.
 func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
 	// Please read the steps before you dig into the code and try to change or
 	// fix something. Intented lines are cleanup or self healing procedures
@@ -202,7 +202,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	infoLog("connecting to remote Klient instance")
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Info("[%s] klient is ready.", m.Id)
+		p.Log.Debug("[%s] klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
