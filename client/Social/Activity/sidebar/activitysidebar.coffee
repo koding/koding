@@ -700,8 +700,17 @@ class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
+    @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
+
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  handleWorkspaceUnreadCounts: (chatData) ->
+
+    chatData
+      .filter  (data) => @workspaceItemChannelMap[data._id]
+      .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
   addNewWorkspace: (machineData) ->
