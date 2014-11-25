@@ -143,9 +143,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
 	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
-	if err := b.addDomainAndTags(buildArtifact); err != nil {
-		return nil, err
-	}
+	b.addDomainAndTags(buildArtifact)
 
 	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
@@ -453,7 +451,7 @@ func (b *Build) checkBuild(instanceId string) (*protocol.Artifact, error) {
 
 }
 
-func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
+func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) {
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
@@ -467,7 +465,7 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 	b.log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
 
 	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
-		return err
+		b.log.Error("[%s] updating domains for setting err: %s", b.machine.Id, err.Error())
 	}
 
 	b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
@@ -498,8 +496,6 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 	if err := b.amazon.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		b.log.Error("[%s] Adding tags failed: %v", b.machine.Id, err)
 	}
-
-	return nil
 }
 
 func (b *Build) checkKite(query string) error {
