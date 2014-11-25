@@ -11,25 +11,25 @@ var (
 	TotalDisk = &metrics.Metric{
 		Name:      "total_disk",
 		Collector: df(2),
-		Output:    dfo(),
+		Output:    singleNumber(),
 	}
 
 	UsedDisk = &metrics.Metric{
 		Name:      "used_disk",
 		Collector: df(3),
-		Output:    dfo(),
+		Output:    singleNumber(),
 	}
 
 	FreeDisk = &metrics.Metric{
 		Name:      "free_disk",
 		Collector: df(4),
-		Output:    dfo(),
+		Output:    singleNumber(),
 	}
 
 	PerUsedDisk = &metrics.Metric{
 		Name:      "per_used_disk",
 		Collector: df(5),
-		Output:    dfo(),
+		Output:    singleNumber(),
 	}
 )
 
@@ -41,7 +41,7 @@ func df(location int) *metrics.MultipleCmd {
 	)
 }
 
-func dfo() func([]byte) (map[string]interface{}, error) {
+func singleNumber() func([]byte) (map[string]interface{}, error) {
 	return func(raw []byte) (map[string]interface{}, error) {
 		input := strings.TrimSpace(fmt.Sprintf("%s", raw))
 		input = strings.Trim(input, "%")
