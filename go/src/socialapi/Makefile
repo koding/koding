@@ -93,15 +93,15 @@ dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
 
-chatemaildev: chatemailfeederdev chatemailsenderdev
+privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
 
-chatemailfeederdev:
-	@echo "$(OK_COLOR)==> Running Chat Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/chatemail/chatemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+privatemessageemailfeederdev:
+	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
 
-chatemailsenderdev:
-	@echo "$(OK_COLOR)==> Running Chat Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/chatemail/chatemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+privatemessageemailsenderdev:
+	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
@@ -226,11 +226,11 @@ testapi:
 	@rm ./main.test
 
 	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/chatemail/chatemailfeeder/feeder/*.go
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
 	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./feeder.test
 
-	@`which go` test -c workers/email/chatemail/chatemailsender/sender/*.go
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/sender/*.go
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./sender.test
 
