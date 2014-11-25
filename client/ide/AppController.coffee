@@ -1026,7 +1026,7 @@ class IDEAppController extends AppController
 
       @fetchSocialChannel (channel) =>
         @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive
+          if isActive or @isInSession
             @startChatSession => @chat.showChatPane()
             @chat.hide()
             @statusBar.share.updatePartial 'Chat'
