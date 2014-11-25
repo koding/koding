@@ -23,13 +23,17 @@ const (
 )
 
 func main() {
+	registerMetric(scripts.NumUsers)
 	registerMetric(scripts.UsersShell)
+
+	registerMetric(scripts.NumGitRepos)
 	registerMetric(scripts.GitRemotes)
+
 	registerMetric(scripts.TotalDisk)
 	registerMetric(scripts.UsedDisk)
 	registerMetric(scripts.FreeDisk)
 	registerMetric(scripts.PerUsedDisk)
-	registerMetric(scripts.NumUsers)
+
 	registerMetric(scripts.NumBashConfigLines)
 	registerMetric(scripts.NumZshConfigLines)
 	registerMetric(scripts.NumFishConfigLines)
