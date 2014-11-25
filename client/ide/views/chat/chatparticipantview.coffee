@@ -8,6 +8,7 @@ class IDE.ChatParticipantView extends JView
 
     participantData = @getData()
     participantName = participantData.nickname
+    @setClass 'me'  if isMe
 
     @avatar    = new AvatarView
       origin   : participantData.nickname
@@ -15,21 +16,25 @@ class IDE.ChatParticipantView extends JView
 
     @name = new KDCustomHTMLView
       cssClass : 'name'
-      partial  : participantName
+      partial  : nickname
 
-    @watchButton = new KDButtonView
-      iconOnly : 'yes'
-      cssClass : 'watch-button'
-      callback : =>
-        @watchButton.toggleClass 'watching'
-        log 'watch/unwatch user'
+    if isMe
+      @watchButton = new KDCustomHTMLView cssClass: 'hidden'
+      @settings    = new KDCustomHTMLView cssClass: 'hidden'
+    else
+      @watchButton = new KDButtonView
+        iconOnly : 'yes'
+        cssClass : 'watch-button'
+        callback : =>
+          @watchButton.toggleClass 'watching'
+          log 'watch/unwatch user'
 
-    @settings       = new KDSelectBox
-      defaultValue  : 'edit'
-      selectOptions : [
-        { title : 'CAN READ', value : 'read'}
-        { title : 'CAN EDIT', value : 'edit'}
-      ]
+      @settings       = new KDSelectBox
+        defaultValue  : 'edit'
+        selectOptions : [
+          { title : 'CAN READ', value : 'read'}
+          { title : 'CAN EDIT', value : 'edit'}
+        ]
 
 
   pistachio: ->
