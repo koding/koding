@@ -137,6 +137,19 @@ sidebarTextShadow()
   padding             1px 20px
   borderBox()
 
+  cite.count
+    size            20px 20px
+    line-height     20px
+    color           #fff
+    abs             3px 7px 0 0
+    font-size       10px
+    font-weight     700
+    background      sidebarCountBg
+    rounded         3px
+    text-align      center
+    vendor          transition, all .354s .177s ease
+    fr()
+
   .more-link
     font-size         12px
     color             sidebarSectionHeaderColor
@@ -241,7 +254,6 @@ sidebarTextShadow()
       border-radius   3px
       abs()
       hidden()
-
 
     &.selected a
       color             sidebarActive
@@ -441,20 +453,6 @@ sidebarTextShadow()
     &.out
       margin-top      -28px
       vendor          transform, translateX(-300px)
-
-    cite.count
-      size            20px 20px
-      line-height     20px
-      color           #fff
-      abs             3px 0px 0 0
-      font-size       10px
-      font-weight     700
-      background      sidebarCountBg
-      rounded         3px
-      text-align      center
-      vendor          transition, all .354s .177s ease
-
-      fr()
 
     .ttag
       display        block
