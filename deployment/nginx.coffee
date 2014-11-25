@@ -56,12 +56,6 @@ createWebsocketLocation = (name, location) ->
 
         # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
-
-        # Default is 60 seconds, means nginx will close it after 60 seconds
-        # inactivity which is a bad thing for long standing connections
-        # like websocket. Make it 6 hours.
-        proxy_read_timeout 21600s;
-        proxy_send_timeout 21600s;
       }
   \n"""
 
@@ -225,7 +219,11 @@ module.exports.create = (KONFIG, environment)->
 
     # start server
     server {
-
+      
+      # close alive connections after 20 seconds
+      # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout
+      keepalive_timeout 20s;
+      
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
       # root /usr/share/nginx/html;
