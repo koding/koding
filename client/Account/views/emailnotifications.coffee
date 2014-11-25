@@ -83,13 +83,15 @@ class AccountEmailNotifications extends KDView
       marketing        :
         title          : 'When Koding has member updates (like privacy updates, inactive account notices, new offers and campaigns)'
       pmNotificationDelay:
-        title          : 'Send me an email after'
+        title          : ''
 
     view = this
 
     @addSubView @list = new KDCustomHTMLView tagName : 'ul'
 
     for own flag, field of fields
+
+      return @["#{flag}FieldAdded"]? frequency[flag]  if field.title is null or field.title is ""
 
       @list.addSubView field.formView = new KDCustomHTMLView tagName : 'li'
 
@@ -110,6 +112,7 @@ class AccountEmailNotifications extends KDView
       field.formView.addSubView title
       field.formView.addSubView fieldSwitch
       fields[flag].formView.addSubView fields[flag].loader
+
       @["#{flag}FieldAdded"]? frequency[flag]
 
 
