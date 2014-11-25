@@ -125,7 +125,7 @@ do ->
       try
         for workspace in KD.userWorkspaces when workspace.channelId is channel.id
           machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-          username  = if workspace.owner then workspace.owner else KD.nick()
+          username  = KD.nick()
           channelId = channel.id
           return loadIDE { machine, workspace, username, channelId }
 
