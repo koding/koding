@@ -759,10 +759,8 @@ class IDEAppController extends AppController
         @participants.insert index, user
 
 
-  addParticipant: (account, share = yes) ->
+  addParticipant: (account) ->
     {hash, nickname} = account.profile
-
-    @setMachineUser nickname, yes  if share
 
     @participants.push { nickname, hash }
 
@@ -1238,13 +1236,15 @@ class IDEAppController extends AppController
   setMachineSharingStatus: (status) ->
 
     @listChatParticipants (accounts) =>
-
-      usernames = accounts.map ({profile: {nickname}}) -> nickname
-      for username in usernames
-        @setMachineUser {username, share: status}
+      for account in accounts
+        @setMachineUser account, status
 
 
-  setMachineUser: ({username, share}, callback = noop) ->
+  setMachineUser: (account, share = yes, callback = noop) ->
+
+    return  unless @mountedMachine.jMachine.credential is KD.nick()
+
+    username = account.profile.nickname
 
     return  if username is KD.nick()
 

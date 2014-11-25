@@ -17,6 +17,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       right    : '16px'
       'z-index': 12
 
+    @on 'AddedParticipant', @bound 'participantAdded'
+
 
   createInputWidget: ->
 
@@ -25,3 +27,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
+
+  participantAdded: (participant) ->
+
+    appManager = KD.getSingleton 'appManager'
+    appManager.tell 'IDE', 'setMachineUser', participant
