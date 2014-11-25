@@ -71,7 +71,13 @@ class IDE.ChatSettingsPane extends KDTabPaneView
         { title : 'CAN EDIT', value : 'edit'}
       ]
 
-    @everyone = new KDCustomHTMLView
+    @myself    = new IDE.ChatParticipantView
+      isOnline : yes
+      isMe     : yes
+      cssClass : 'myself'
+    , KD.whoami()
+
+    @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
 
@@ -178,6 +184,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     <ul class='settings default'>
       <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
     </ul>
+    {{> @myself}}
     {{> @everyone}}
     {{> @back}}
     """
