@@ -12,14 +12,17 @@ class KodingKontrol extends (require 'kontrol')
     @reauthenticate()
 
   getAuthOptions: ->
-    autoConnect     : no
-    url             : @_kontrolUrl ? KD.config.newkontrol.url
-    auth            :
-      type          : 'sessionID'
-      key           : Cookies.get 'clientId'
-    transportClass  : SockJS
-    transportOptions:
-      heartbeatTimeout: 30 * 1000 # 30 seconds
+
+    autoConnect           : no
+    url                   : @_kontrolUrl ? KD.config.newkontrol.url
+    auth                  :
+      type                : 'sessionID'
+      key                 : Cookies.get 'clientId'
+    transportClass        : SockJS
+    transportOptions      :
+      heartbeatTimeout    : 30 * 1000 # 30 seconds
+      # Force XHR for all kind of kite connection
+      protocols_whitelist : ['xhr-polling', 'xhr-streaming']
 
 
   reauthenticate: ->
@@ -78,6 +81,19 @@ class KodingKontrol extends (require 'kontrol')
     return kite
 
 
+  createKite: (options)->
+
+    {kite} = options
+
+    # If its trying to create a klient kite instance
+    # allow to use websockets by emptying the protocols_whitelist
+    if kite.name is 'klient'
+      options.transportOptions =
+        protocols_whitelist : []
+
+    super options
+
+
   getKite: (options = {}) ->
 
     @reauthenticate()  unless @kite?
@@ -86,7 +102,7 @@ class KodingKontrol extends (require 'kontrol')
     { name, correlationName, region, transportOptions,
       username, environment, queryString } = options
 
-    # If no `correlationName` is defined assume this kite instance 
+    # If no `correlationName` is defined assume this kite instance
     # is a singleton kite instance and keep track of it with this keyword
     correlationName ?= "singleton"
 
