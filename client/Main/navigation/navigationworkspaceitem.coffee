@@ -52,6 +52,19 @@ class NavigationWorkspaceItem extends JView
     new WorkspaceSettingsPopup { position, delegate: navItem }
 
 
+  setUnreadCount: (unreadCount = 0) ->
+
+    @count = unreadCount
+
+    if unreadCount is 0
+      @unreadCount.hide()
+      @unsetClass 'unread'
+    else
+      @unreadCount.updatePartial unreadCount
+      @unreadCount.show()
+      @setClass 'unread'
+
+
   pistachio: ->
     """
     <figure></figure>
