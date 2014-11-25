@@ -37,10 +37,10 @@ func (es *EmailSummary) BuildTitle() string {
 	}
 
 	if groupChannelCount > 0 {
-		title = fmt.Sprintf("%s %d new message%s in %d group conversation%s.", title, groupMessageCount, getPluralSuffix(groupMessageCount), groupChannelCount, getPluralSuffix(groupChannelCount))
+		title = fmt.Sprintf("%s %d new message%s in %d group conversation%s", title, groupMessageCount, getPluralSuffix(groupMessageCount), groupChannelCount, getPluralSuffix(groupChannelCount))
 	}
 
-	return title
+	return title + "."
 }
 
 func getPluralSuffix(count int) string {

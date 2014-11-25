@@ -1,6 +1,7 @@
 package emailmodels
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
@@ -40,8 +41,9 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 		message.Body = "message1"
 		message.AccountId = account1.Id
 		messages = append(messages, message)
+		timezone := ""
 		Convey("it must contain single message group when there is only one message", func() {
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 1)
 			So(mgs[0].AccountId, ShouldEqual, account1.Id)
@@ -53,7 +55,7 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 			message2.Body = "message2"
 			message2.AccountId = account2.Id
 			messages = append(messages, message2)
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 2)
 			So(len(mgs[1].Messages), ShouldEqual, 1)
@@ -67,7 +69,7 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 			message2.Body = "message2"
 			message2.AccountId = account1.Id
 			messages = append(messages, message2)
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 1)
 			So(len(mgs[0].Messages), ShouldEqual, 2)
@@ -82,7 +84,7 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 			message3.Body = "message3"
 			message3.AccountId = account2.Id
 			messages = append(messages, message2, message3)
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 2)
 			So(len(mgs[0].Messages), ShouldEqual, 1)
@@ -99,7 +101,7 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 			message3.Body = "message3"
 			message3.AccountId = account1.Id
 			messages = append(messages, message2, message3)
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 3)
 			So(len(mgs[0].Messages), ShouldEqual, 1)
@@ -118,7 +120,7 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 			message3.Body = "message3"
 			message3.AccountId = account3.Id
 			messages = append(messages, message2, message3)
-			mgs, err := buildMessageSummaries(messages)
+			mgs, err := buildMessageSummaries(messages, timezone)
 			So(err, ShouldBeNil)
 			So(len(mgs), ShouldEqual, 3)
 			So(len(mgs[0].Messages), ShouldEqual, 1)
@@ -133,39 +135,97 @@ func TestMessageGroupSummaryBuilder(t *testing.T) {
 }
 
 func TestRenderChannel(t *testing.T) {
-	SkipConvey("Channel should be able to rendered", t, func() {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldn't start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
+
+	rand.Seed(time.Now().UnixNano())
+	account1, err := models.CreateAccountInBothDbs()
+	if err != nil {
+		t.Fatalf("error occurred: %s", err)
+	}
+	account2, err := models.CreateAccountInBothDbs()
+	if err != nil {
+		t.Fatalf("error occurred: %s", err)
+	}
+
+	Convey("Channel should be able to rendered", t, func() {
 		cs := &ChannelSummary{}
+
 		cs.UnreadCount = 2
+		// cs.Participants := []models.ChannelParticipant{}
+		cp1 := models.NewChannelParticipant()
+		cp1.Id = 1
+		cp1.AccountId = account1.Id
+
+		cs.Participants = []models.ChannelParticipant{*cp1}
 		messages := make([]*MessageGroupSummary, 0)
 		mgs1 := NewMessageGroupSummary()
 		ms1 := &MessageSummary{}
 		ms1.Body = "hehe"
-		ms1.Time = "2:40 PM"
-		mgs1.AddMessage(ms1)
+		mgs1.AddMessage(ms1, time.Now())
 		mgs1.Hash = "123123"
-		mgs1.Nickname = "canthefason"
+		mgs1.Nickname = account1.Nick
+		cs.MessageGroups = append(messages, mgs1)
 
-		mgs2 := NewMessageGroupSummary()
-		ms2 := &MessageSummary{}
-		ms2.Body = "hoho"
-		ms2.Time = "2:38 PM"
-		mgs2.Nickname = "kodingcan"
-		mgs2.Hash = "456456"
-		mgs2.AddMessage(ms2)
-		cs.MessageGroups = append(messages, mgs1, mgs2)
+		Convey("Channel title must be empty when it is direct message", func() {
+			body, err := cs.Render()
+			So(err, ShouldBeNil)
+			So(body, ShouldContainSubstring, "hehe")
+			So(body, ShouldContainSubstring, "123123")
+			So(body, ShouldContainSubstring, account1.Nick)
+		})
 
-		body, err := cs.Render()
-		So(err, ShouldBeNil)
-		So(body, ShouldContainSubstring, "hehe")
-		So(body, ShouldContainSubstring, "123123")
-		So(body, ShouldContainSubstring, "canthefason")
-		So(body, ShouldContainSubstring, "2:40 PM")
+		Convey("Channel title should be rendered correctly when there are multiple recipients", func() {
+			cp2 := models.NewChannelParticipant()
+			cp2.Id = 1
+			cp2.AccountId = account2.Id
 
-		So(body, ShouldContainSubstring, "hoho")
-		So(body, ShouldContainSubstring, "456456")
-		So(body, ShouldContainSubstring, "kodingcan")
-		So(body, ShouldContainSubstring, "2:38 PM")
-		So(body, ShouldContainSubstring, "You have 2 new messages:")
+			cs.Participants = append(cs.Participants, *cp2)
+
+			mgs2 := NewMessageGroupSummary()
+			ms2 := &MessageSummary{}
+			ms2.Body = "hoho"
+			mgs2.Nickname = account2.Nick
+			mgs2.Hash = "456456"
+			mgs2.AddMessage(ms2, time.Now())
+			cs.MessageGroups = append(cs.MessageGroups, mgs2)
+			Convey("when purpose is not set, account nicknames must be shown as title", func() {
+				body, err := cs.Render()
+				So(err, ShouldBeNil)
+				So(body, ShouldContainSubstring, "hehe")
+				So(body, ShouldContainSubstring, "123123")
+				So(body, ShouldContainSubstring, account1.Nick)
+
+				So(body, ShouldContainSubstring, "hoho")
+				So(body, ShouldContainSubstring, "456456")
+				So(body, ShouldContainSubstring, account2.Nick)
+
+				title := fmt.Sprintf("%s & %s", account1.Nick, account2.Nick)
+				So(body, ShouldContainSubstring, title)
+			})
+
+			Convey("when purpose is set it must be shown as title ", func() {
+				cs.Purpose = "testing it"
+				body, err := cs.Render()
+				So(err, ShouldBeNil)
+				So(body, ShouldContainSubstring, "hehe")
+				So(body, ShouldContainSubstring, "123123")
+				So(body, ShouldContainSubstring, account1.Nick)
+
+				So(body, ShouldContainSubstring, "hoho")
+				So(body, ShouldContainSubstring, "456456")
+				So(body, ShouldContainSubstring, account2.Nick)
+
+				So(body, ShouldContainSubstring, "testing it")
+
+			})
+		})
+
 	})
 }
 
