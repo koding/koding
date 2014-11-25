@@ -108,8 +108,16 @@ class ActivitySidebar extends KDCustomHTMLView
       else
         pane.putNewMessageIndicator()
 
-
     item.setUnreadCount? unreadCount
+
+    @setUnreadCountForWorkspace data, unreadCount  if @workspaceItemChannelMap[data._id]
+
+
+  setUnreadCountForWorkspace: (data, unreadCount) ->
+
+    workspaceItem = @workspaceItemChannelMap[data._id]
+
+    workspaceItem.child.setUnreadCount unreadCount
 
 
 
