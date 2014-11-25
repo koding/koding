@@ -6,12 +6,15 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
-    participantData = @getData()
-    participantName = participantData.nickname
+    account          = @getData()
+    {nickname}       = account.profile
+    {isOnline, isMe} = @getOptions()
+
+    if isOnline then @setClass 'online' else @setClass 'offline'
     @setClass 'me'  if isMe
 
     @avatar    = new AvatarView
-      origin   : participantData.nickname
+      origin   : nickname
       size     : width: 32, height: 32
 
     @name = new KDCustomHTMLView

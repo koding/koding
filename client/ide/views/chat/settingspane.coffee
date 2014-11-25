@@ -9,6 +9,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     super options, data
 
     @rtm = options.rtm
+    @participantViews = {}
 
     @createElements()
 
@@ -22,7 +23,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @on 'CollaborationStarted', =>
       @toggleButtons 'started'
-      @createParticipantsList()
+      # @createParticipantsList()
 
 
   createElements: ->
@@ -131,24 +132,28 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       endButton.disable()
 
 
-  createParticipantsList: ->
+  createParticipantsList: (accounts) ->
 
     @everyone.unsetClass 'loading'
     @everyone.destroySubViews()
 
-    nickname          = KD.nick()
-    participants      = @rtm.getFromModel('participants').asArray()
-    @participantViews = {}
+    myNickname        = KD.nick()
+    onlineUsers       = @rtm.getFromModel('participants').asArray()
+    onlineNicknames   = (user.nickname for user in onlineUsers)
 
-    for participant in participants when participant.nickname isnt nickname
-      @createParticipantView participant
+    for account in accounts
+      {nickname} = account.profile
+      isOnline   = onlineNicknames.indexOf(nickname) > -1
+
+      if nickname isnt myNickname
+        @createParticipantView account, isOnline
 
 
-  createParticipantView: (data) =>
+  createParticipantView: (account, isOnline) =>
 
-    view = new IDE.ChatParticipantView {}, data
-    @participantViews[data.nickname] = view
-    @everyone.addSubView view
+    view = new IDE.ChatParticipantView { isOnline }, account
+    @participantViews[account.profile.nickname] = view
+    @everyone.addSubView view, null, isOnline
 
 
   removeParticipant: (username) ->

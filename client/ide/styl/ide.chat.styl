@@ -125,6 +125,14 @@ pmLinkColor   = #B6B6B6
   .participant-view
     margin-bottom           5px
 
+    &.offline
+      .avatarview
+        opacity             .5
+
+    &.me
+      height                auto
+      margin-top            12px
+
     .avatarview
       display               inline-block
       margin-right          8px
@@ -166,6 +174,8 @@ pmLinkColor   = #B6B6B6
     line-height             34px
 
   .everyone
+
+    padding-top             0
 
     &.loading
       text-align            center
