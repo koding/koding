@@ -23,6 +23,8 @@ const (
 )
 
 func main() {
+	registerMetric(scripts.UsersShell)
+	registerMetric(scripts.GitRemotes)
 	registerMetric(scripts.TotalDisk)
 	registerMetric(scripts.UsedDisk)
 	registerMetric(scripts.FreeDisk)

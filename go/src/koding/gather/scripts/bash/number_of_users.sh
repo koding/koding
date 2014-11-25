@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./users.sh | wc -l | tr -d ' '
+./scripts/bash/users.sh | wc -l | tr -d ' '
