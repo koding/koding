@@ -127,11 +127,19 @@ do ->
         .then (workspaces) ->
 
           try
-            for workspace in workspaces when workspace.channelId is channel.id
-              machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-              username  = KD.nick()
-              channelId = channel.id
-              return loadIDE { machine, workspace, username, channelId }
+            workspaces.forEach (workspace) =>
+
+              return  unless workspace.channelId is channel.id
+
+              machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+
+              query  = socialApiId: channel.creatorId
+              KD.remote.api.JAccount.some query, {}, (err, account) =>
+                return throw new Error err  if err
+
+                username  = account.first.profile.nickname
+                channelId = channel.id
+                return loadIDE { machine, workspace, username, channelId }
 
           catch e
             return routeToLatestWorkspace()
