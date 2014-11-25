@@ -28,6 +28,7 @@ class ActivitySidebar extends KDCustomHTMLView
   constructor: (options = {}) ->
 
     options.cssClass  = 'activity-sidebar'
+    options.maxListeners = 20
 
     super options
 
@@ -43,6 +44,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @itemsBySlug  = {}
     @itemsByName  = {}
     @selectedItem = null
+
+    @workspaceItemChannelMap = {}
 
     # @appsList = new DockController
 
@@ -106,8 +109,16 @@ class ActivitySidebar extends KDCustomHTMLView
       else
         pane.putNewMessageIndicator()
 
-
     item.setUnreadCount? unreadCount
+
+    @setWorkspaceUnreadCount data, unreadCount  if @workspaceItemChannelMap[data._id]
+
+
+  setWorkspaceUnreadCount: (data, unreadCount) ->
+
+    workspaceItem = @workspaceItemChannelMap[data._id]
+
+    workspaceItem.child.setUnreadCount unreadCount
 
 
 
@@ -426,6 +437,7 @@ class ActivitySidebar extends KDCustomHTMLView
           machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
+
         if workspace.machineUId is machine.uid
           ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           title    = "#{workspace.name}"
@@ -445,7 +457,20 @@ class ActivitySidebar extends KDCustomHTMLView
             id           : workspace._id
             parentId     : id
 
-    @machineTree.addNode data for data in treeData
+    for data in treeData
+
+      node = @machineTree.addNode data
+
+      @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
+
+
+  mapWorkspaceWithChannel: (data, node) ->
+
+    return  unless data.data?.channelId?
+
+    { channelId } = data.data
+
+    @workspaceItemChannelMap[channelId] = node
 
 
   selectWorkspace: (data) ->
@@ -550,19 +575,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView @machineTree.getView()
 
     @machineTree.on 'NodeWasAdded', (machineItem) =>
-
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-      @listMachines KD.userMachines
-      @updateMachineTree()
-    else
-      @fetchMachines @bound 'listMachines'
+    then @listMachines KD.userMachines
+    else @fetchMachines @bound 'listMachines'
 
-    # section.addSubView more = new MoreVMsModal {}, null
-    # section.addSubView more = new SidebarMoreLink
-    #   tagName  : 'a'
-    #   click    : @bound 'handleMoreVMsClick'
 
   handleMachineItemClick: (machineItem, event) ->
 
@@ -675,8 +693,17 @@ class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
+    @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
+
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  handleWorkspaceUnreadCounts: (chatData) ->
+
+    chatData
+      .filter  (data) => @workspaceItemChannelMap[data._id]
+      .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
   addNewWorkspace: (machineData) ->
