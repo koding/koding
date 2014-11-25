@@ -24,7 +24,7 @@ type AmazonClient struct {
 	Metrics *metrics.DogStatsD
 }
 
-func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
+func (a *AmazonClient) BuildWithCheck(buildData *ec2.RunInstances, start, finish int) (*protocol.Artifact, error) {
 	debugLog := func(format string, args ...interface{}) {
 		a.Log.Debug(format, args...)
 	}
@@ -58,13 +58,27 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	debugLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
 
-	return a.Build(true, start, finish)
-}
-
-func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
-	resp, err := a.CreateInstance()
+	instanceId, err := a.Build(buildData)
 	if err != nil {
 		return nil, err
+	}
+
+	instance, err := a.CheckBuild(instanceId, start, finish)
+	if err != nil {
+		return nil, err
+	}
+
+	return &protocol.Artifact{
+		IpAddress:    instance.PublicIpAddress,
+		InstanceId:   instance.InstanceId,
+		InstanceType: a.Builder.InstanceType,
+	}, nil
+}
+
+func (a *AmazonClient) Build(buildData *ec2.RunInstances) (string, error) {
+	resp, err := a.Client.RunInstances(buildData)
+	if err != nil {
+		return "", err
 	}
 
 	// we do not check intentionally, because CreateInstance() is designed to
@@ -72,23 +86,20 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 	// by panicing
 	instance := resp.Instances[0]
 
-	// cleanup build if something goes wrong here
-	defer func() {
-		if errResp != nil {
-			a.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
-				instance.InstanceId, err)
+	a.Log.Debug("EC2 Build instance response: %#v", instance)
 
-			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
-				a.Log.Warning("Cleaning up instance '%s' failed: %v", instance.InstanceId, err)
-			}
-		}
-	}()
+	return instance.InstanceId, nil
+}
 
+func (a *AmazonClient) CheckBuild(instanceId string, start, finish int) (ec2.Instance, error) {
+	var instance ec2.Instance
+	var err error
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		a.track(instance.InstanceId, "Build")
+		a.track(instanceId, "Build")
 
-		instance, err = a.Instance(instance.InstanceId)
+		instance, err = a.Instance(instanceId)
 		if err != nil {
+			a.Log.Warning("getting build creating status failed, trying again. Err: '%s'", err)
 			return 0, err
 		}
 
@@ -102,15 +113,12 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 		Start:     start,
 		Finish:    finish,
 	}
+
 	if err := ws.Wait(); err != nil {
-		return nil, err
+		return ec2.Instance{}, err
 	}
 
-	return &protocol.Artifact{
-		IpAddress:    instance.PublicIpAddress,
-		InstanceId:   instance.InstanceId,
-		InstanceType: a.Builder.InstanceType,
-	}, nil
+	return instance, nil
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
