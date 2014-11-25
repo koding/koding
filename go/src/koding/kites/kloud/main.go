@@ -173,8 +173,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
 	}
 
 	stats, err := metrics.NewDogStatsD("kloud.aws")
