@@ -1,0 +1,25 @@
+--- a/node_modules/kite.js/static/browser/kontrol-promises-bundle.js  2014-11-20 13:23:36.000000000 +0200
++++ b/node_modules/kite.js/static/browser/kontrol-promises-bundle.js  2014-11-20 14:24:47.000000000 +0200
+@@ -226,8 +226,11 @@
+   };
+
+   Kontrol.prototype.createKite = function(_arg) {
+-    var kite, kiteDescriptor, token, url;
+-    kiteDescriptor = _arg.kite, token = _arg.token, url = _arg.url;
++    var kite, kiteDescriptor, token, transportOptions, url;
++    kiteDescriptor = _arg.kite, token = _arg.token, url = _arg.url, transportOptions = _arg.transportOptions;
++    if (transportOptions == null) {
++      transportOptions = this.options.transportOptions;
++    }
+     kite = new this.constructor.Kite({
+       username: kiteDescriptor.username,
+       environment: kiteDescriptor.environment,
+@@ -242,7 +245,7 @@
+         key: token
+       },
+       transportClass: this.options.transportClass,
+-      transportOptions: this.options.transportOptions
++      transportOptions: transportOptions
+     }).on('tokenExpired', (function(_this) {
+       return function() {
+         return _this.renewToken(kite, kiteDescriptor);

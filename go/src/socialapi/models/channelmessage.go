@@ -398,35 +398,53 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 		return err
 	}
 
-	// fetch channel by group name
-	query.Name = query.GroupName
-	if query.GroupName == "koding" {
-		query.Name = "public"
-	}
 	query.Type = Channel_TYPE_GROUP
-	ch := NewChannel()
-	channel, err := ch.ByName(query)
+	res, err := c.isInChannel(query, "public")
 	if err != nil {
 		return err
 	}
 
-	if channel.Id == 0 {
-		return ErrChannelIsNotSet
+	if res {
+		return nil
 	}
 
-	// check if message is in the channel
-	cml := NewChannelMessageList()
-	res, err := cml.IsInChannel(c.Id, channel.Id)
+	query.Type = Channel_TYPE_ANNOUNCEMENT
+	res, err = c.isInChannel(query, "changelog")
 	if err != nil {
 		return err
 	}
 
-	// if message is not in the channel
 	if !res {
 		return bongo.RecordNotFound
 	}
 
 	return nil
+}
+
+func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (bool, error) {
+	if c.Id == 0 {
+		return false, ErrChannelMessageIdIsNotSet
+	}
+	// fetch channel by group name
+	query.Name = query.GroupName
+	if query.GroupName == "koding" {
+		query.Name = channelName
+	}
+
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return false, err
+	}
+
+	if channel.Id == 0 {
+		return false, ErrChannelIsNotSet
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+
+	return cml.IsInChannel(c.Id, channel.Id)
 }
 
 // DeleteMessageDependencies deletes all records from the database that are

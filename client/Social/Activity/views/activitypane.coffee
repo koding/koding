@@ -55,6 +55,8 @@ class ActivityPane extends MessagePane
 
   refreshContent: ->
 
+    return  if @fetching
+
     options = @getActiveContentOptions()
 
     @refreshContentPane options
@@ -65,8 +67,7 @@ class ActivityPane extends MessagePane
     { pane, name } = options
     { listController } = pane
 
-    listController.removeAllItems()
-    listController.showLazyLoader()
+    listController.showLazyLoader no
 
     fetchOptions = {}
     fetchOptions[name] = yes
@@ -186,15 +187,24 @@ class ActivityPane extends MessagePane
       @fetch options, @createContentSetter contentName
 
   putMessage: (message, index = 0) ->
-    {router} = KD.singletons
-    router.handleRoute '/Activity/Public/Recent'
+
+    {router}       = KD.singletons
+    currentPath    = router.getCurrentPath()
+    mostRecentPath = '/Activity/Public/Recent'
+
+    router.handleRoute mostRecentPath  unless currentPath is mostRecentPath
+
     @mostRecent.listController.addItem message, index
 
+
   contentMethod = (method) -> (contentName) -> (err, content) =>
+
     return KD.showError err  if err?
 
     @activeContent = @[contentName]
     @activeContent[method] content
+    @fetching = no
+
 
   createContentSetter: contentMethod 'setContent'
 

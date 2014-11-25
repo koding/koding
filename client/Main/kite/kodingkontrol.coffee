@@ -13,14 +13,17 @@ class KodingKontrol extends (require 'kontrol')
     @authenticate @getAuthOptions()
 
   getAuthOptions: ->
-    autoConnect     : no
-    url             : @_kontrolUrl ? KD.config.newkontrol.url
-    auth            :
-      type          : 'sessionID'
-      key           : Cookies.get 'clientId'
-    transportClass  : SockJS
-    transportOptions:
-      heartbeatTimeout: 30 * 1000 # 30 seconds
+
+    autoConnect           : no
+    url                   : @_kontrolUrl ? KD.config.newkontrol.url
+    auth                  :
+      type                : 'sessionID'
+      key                 : Cookies.get 'clientId'
+    transportClass        : SockJS
+    transportOptions      :
+      heartbeatTimeout    : 30 * 1000 # 30 seconds
+      # Force XHR for all kind of kite connection
+      protocols_whitelist : ['xhr-polling', 'xhr-streaming']
 
 
   reauthenticate: do -> KD.utils.debounce 2500, ->
@@ -77,6 +80,19 @@ class KodingKontrol extends (require 'kontrol')
     @setCachedKite name, correlationName, kite
 
     return kite
+
+
+  createKite: (options)->
+
+    {kite} = options
+
+    # If its trying to create a klient kite instance
+    # allow to use websockets by emptying the protocols_whitelist
+    if kite.name is 'klient'
+      options.transportOptions =
+        protocols_whitelist : []
+
+    super options
 
 
   getKite: (options = {}) ->
