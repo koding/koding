@@ -28,6 +28,7 @@ class ActivitySidebar extends KDCustomHTMLView
   constructor: (options = {}) ->
 
     options.cssClass  = 'activity-sidebar'
+    options.maxListeners = 20
 
     super options
 
