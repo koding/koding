@@ -73,6 +73,11 @@ func (c *Controller) AddMessageToQueue(cm *models.ChannelMessage) error {
 		return nil
 	}
 
+	// return when user is troll
+	if cm.MetaBits.Is(models.Troll) {
+		return nil
+	}
+
 	// TODO later on fetch this from cache.
 	participantIds, err := c.fetchParticipantIds(cm)
 	if err != nil {

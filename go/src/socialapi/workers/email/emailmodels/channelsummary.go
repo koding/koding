@@ -113,6 +113,9 @@ func (cs *ChannelSummary) getTitle() (string, error) {
 }
 
 func (cs *ChannelSummary) prepareTitle() (string, error) {
+	if len(cs.Participants) == 0 {
+		return "", nil
+	}
 
 	account, err := models.Cache.Account.ById(cs.Participants[0].AccountId)
 	if err != nil {

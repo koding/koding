@@ -42,12 +42,21 @@ func TestNewMessageCreation(t *testing.T) {
 			So(length, ShouldEqual, 0)
 		})
 
+		Convey("do not send any notification email if message sender is a troll user", func() {
+			cm := models.CreateTrollMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
+			err := controller.AddMessageToQueue(cm)
+			So(err, ShouldBeNil)
+			length, err := redisConn.GetHashLength(common.AccountNextPeriodHashSetKey())
+			So(err, ShouldBeNil)
+			So(length, ShouldEqual, 0)
+		})
+
 		Convey("do not send any notification email if user has disabled email notifications for private messages", func() {
 			isEligibleToNotify = func(accountId int64) (bool, int, error) {
 				return false, 0, nil
 			}
 
-			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
+			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
 			cm.TypeConstant = models.ChannelMessage_TYPE_PRIVATE_MESSAGE
 			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)

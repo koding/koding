@@ -50,6 +50,23 @@ func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMess
 	return cm
 }
 
+func CreateTrollMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
+	cm := NewChannelMessage()
+
+	cm.AccountId = accountId
+	// set channel id
+	cm.InitialChannelId = channelId
+	cm.TypeConstant = typeConstant
+	// set body
+	cm.Body = "testing message"
+	cm.MetaBits = Troll
+
+	err := cm.Create()
+	So(err, ShouldBeNil)
+
+	return cm
+}
+
 func AddParticipants(channelId int64, accountIds ...int64) {
 
 	for _, accountId := range accountIds {
