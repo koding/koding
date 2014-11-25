@@ -1218,7 +1218,7 @@ class IDEAppController extends AppController
     nick      = KD.nick()
 
     message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
       channelId  : @socialChannel.id
       payload    :
          'system-message' : 'stop'
