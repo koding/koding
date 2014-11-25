@@ -96,7 +96,10 @@ do ->
     KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
-  routeToLatestWorkspace = ({ params : { machineLabel } }) ->
+  routeToLatestWorkspace = (options = {}) ->
+
+    {params}       = options
+    {machineLabel} = params  if params
 
     # we assume that if machineLabel is all numbers it is the channelId - SY
     return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
@@ -119,16 +122,24 @@ do ->
 
       return routeToLatestWorkspace() if err
 
-      try
-        for workspace in KD.userWorkspaces when workspace.channelId is channel.id
-          machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-          username  = if workspace.owner then workspace.owner else KD.nick()
-          channelId = channel.id
-          return loadIDE { machine, workspace, username, channelId }
+      KD.remote.api.JWorkspace.fetchByMachines()
 
-      catch e
-        return routeToLatestWorkspace()
+        .then (workspaces) ->
 
+          try
+            for workspace in workspaces when workspace.channelId is channel.id
+              machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+              username  = KD.nick()
+              channelId = channel.id
+              return loadIDE { machine, workspace, username, channelId }
+
+          catch e
+            return routeToLatestWorkspace()
+
+        .error (err) ->
+
+          console.error err
+          routeToLatestWorkspace()
 
 
   KD.registerRoutes 'IDE',

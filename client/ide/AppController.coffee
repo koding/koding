@@ -727,7 +727,7 @@ class IDEAppController extends AppController
 
       if not isInList
         log 'acetz: I am not in the participants list, adding myself'
-        @addParticipant()
+        @addParticipant KD.whoami(), no
       else
         log 'acetz: I am already in participants lists'
 
@@ -760,8 +760,10 @@ class IDEAppController extends AppController
         @participants.insert index, user
 
 
-  addParticipant: ->
-    {hash, nickname} = KD.whoami().profile
+  addParticipant: (account, share = yes) ->
+    {hash, nickname} = account.profile
+
+    @setMachineUser nickname, yes  if share
 
     @participants.push { nickname, hash }
 
@@ -1172,6 +1174,20 @@ class IDEAppController extends AppController
       callback @socialChannel
 
 
+  listChatParticipants: (callback) ->
+
+    channelId = @socialChannel.getId()
+
+    {socialapi} = KD.singletons
+    socialapi.channel.listParticipants {channelId}, (err, participants) ->
+
+      idList = participants.map ({accountId}) -> accountId
+      query  = socialApiId: $in: idList
+
+      KD.remote.api.JAccount.some query, {}
+        .then callback
+
+
   startCollaborationSession: (callback) ->
 
     return callback msg : 'no social channel'  unless @socialChannel
@@ -1193,6 +1209,8 @@ class IDEAppController extends AppController
       @loadCollaborationFile file.id
 
     @rtm.createFile @getRealTimeFileName()
+
+    @setMachineSharingStatus on
 
 
   stopCollaborationSession: (callback) ->
@@ -1216,3 +1234,31 @@ class IDEAppController extends AppController
       log 'file deleted'
       @statusBar.emit 'CollaborationEnded'
       @chat.emit 'CollaborationEnded'
+
+    @setMachineSharingStatus off
+
+
+  setMachineSharingStatus: (status) ->
+
+    @listChatParticipants (accounts) =>
+
+      usernames = accounts.map ({profile: {nickname}}) -> nickname
+      for username in usernames
+        @setMachineUser {username, share: status}
+
+
+  setMachineUser: ({username, share}, callback = noop) ->
+
+    return  if username is KD.nick()
+
+    options  = target: username, user: share
+    jMachine = @mountedMachine.getData()
+    jMachine.shareWith options, (err, shared) =>
+
+      return KD.showError err  if err
+
+      kite = @mountedMachine.getBaseKite()
+
+      if share
+      then kite.klientShare {username}, callback
+      else kite.klientUnshare {username}, callback
