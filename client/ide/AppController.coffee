@@ -1102,7 +1102,9 @@ class IDEAppController extends AppController
 
     @on 'RTMIsReady', =>
       @chat.emit 'CollaborationStarted'
-      @statusBar.emit 'ShowAvatars', @participants.asArray()
+
+      @listChatParticipants (accounts) =>
+        @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
       callback()
 
