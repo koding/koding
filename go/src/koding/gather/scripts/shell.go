@@ -16,7 +16,7 @@ var (
 	}
 
 	NumFishConfigLines = &metrics.Metric{
-		Name:      "number_of_zsh_config_lines",
+		Name:      "number_of_fish_config_lines",
 		Collector: metrics.NewScriptCmd("scripts/bash/fish_config_lines.sh"),
 		Output:    singleNumber(),
 	}
