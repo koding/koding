@@ -146,6 +146,7 @@ func fetchLastMessages(a *models.Account, ch *models.Channel, awaySince time.Tim
 	q.From = awaySince
 	q.ExcludeField("AccountId", a.Id)
 	q.Type = models.Channel_TYPE_PRIVATE_MESSAGE
+	q.Limit = 3
 	cm := models.NewChannelMessage()
 
 	return cm.FetchMessagesByChannelId(ch.Id, q)
