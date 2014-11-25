@@ -219,7 +219,11 @@ module.exports.create = (KONFIG, environment)->
 
     # start server
     server {
-
+      
+      # close alive connections after 20 seconds
+      # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout
+      keepalive_timeout 20s;
+      
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
       # root /usr/share/nginx/html;
