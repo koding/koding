@@ -74,8 +74,14 @@ func main() {
 		// HTTP/HTTPS only so our kite can't connect it (we use websocket). However
 		// We have a TCP proxy at 3000 which allows us to connect via WebSocket.
 		u, _ := url.Parse(k.Config.KontrolURL)
-		host, _, _ := net.SplitHostPort(u.Host)
+
+		host := u.Host
+		if HasPort(u.Host) {
+			host, _, _ = net.SplitHostPort(u.Host)
+		}
+
 		u.Host = AddPort(host, "3000")
+		u.Scheme = "http"
 		k.Config.KontrolURL = u.String()
 	}
 
