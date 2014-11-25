@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./installed.sh mongod
+./scripts/bash/installed.sh mongod

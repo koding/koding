@@ -42,6 +42,11 @@ func main() {
 	registerMetric(scripts.NumZshConfigLines)
 	registerMetric(scripts.NumFishConfigLines)
 
+	registerMetric(scripts.MongoInstalled)
+	registerMetric(scripts.MysqlInstalled)
+	registerMetric(scripts.PsqlInstalled)
+	registerMetric(scripts.SqliteInstalled)
+
 	// registerMetric(scripts.FileTypes)
 
 	exporter = NewEsExporter(ES_DOMAIN, ES_PORT)

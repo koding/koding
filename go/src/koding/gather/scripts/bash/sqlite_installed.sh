@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./installed.sh sqlite
+./scripts/bash/installed.sh sqlite

@@ -60,3 +60,41 @@ func twoColumnMultiple() func([]byte) (map[string]interface{}, error) {
 		return outer, nil
 	}
 }
+
+// Parses single number entry into boolean.
+//	0 is true, 1 is false.
+//
+// Example:
+//   Args: 		0
+//	 Returns: {"value" : true}
+func singleNumberIntoBool() func([]byte) (map[string]interface{}, error) {
+	return func(raw []byte) (map[string]interface{}, error) {
+		singleResult, err := singleNumber()(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		rawValue, ok := singleResult["value"]
+		if !ok {
+			fmt.Printf(">>>> No value in result: %v\n", raw)
+			return nil, nil
+		}
+
+		result := rawValue.(float64)
+
+		var value bool
+
+		switch result {
+		case 0:
+			value = true
+		case 1:
+			value = false
+		default:
+			fmt.Printf(">>>> Unable to parse %v into bool\n", result)
+		}
+
+		values := map[string]interface{}{"value": value}
+
+		return values, nil
+	}
+}

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./installed.sh psql
+./scripts/bash/installed.sh psql
