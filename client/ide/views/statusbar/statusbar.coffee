@@ -11,7 +11,7 @@ class IDE.StatusBar extends KDView
     @participantAvatars = {}
 
     @on 'ShowAvatars',          @bound 'showAvatars'
-    @on 'ParticipantLeft',      @bound 'removeParticipantAvatar'
+    @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
     @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
     @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
     @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
@@ -83,17 +83,24 @@ class IDE.StatusBar extends KDView
         @createParticipantAvatar nickname, isOnline
 
 
-  removeParticipantAvatar: (nickname) ->
+  dimParticipantAvatar: (nickname) ->
 
-    @participantAvatars[nickname]?.destroy()
-    delete @participantAvatars[nickname]
+    avatar = @participantAvatars[nickname]
+
+    if avatar
+      avatar.setClass   'offline'
+      avatar.unsetClass 'online'
 
 
   addParticipantAvatar: (nickname) ->
 
-    return if @participantAvatars[nickname]
+    oldAvatar = @participantAvatars[nickname]
 
-    @createParticipantAvatar nickname
+    if oldAvatar
+      oldAvatar.unsetClass 'offline'
+      oldAvatar.setClass   'online'
+    else
+      @createParticipantAvatar nickname, yes
 
 
   handleCollaborationEnded: ->
