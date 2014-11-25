@@ -44,6 +44,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @itemsByName  = {}
     @selectedItem = null
 
+    @workspaceItemChannelMap = {}
+
     # @appsList = new DockController
 
     router
@@ -426,6 +428,7 @@ class ActivitySidebar extends KDCustomHTMLView
           machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
+
         if workspace.machineUId is machine.uid
           ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           title    = "#{workspace.name}"
@@ -445,7 +448,20 @@ class ActivitySidebar extends KDCustomHTMLView
             id           : workspace._id
             parentId     : id
 
-    @machineTree.addNode data for data in treeData
+    for data in treeData
+
+      node = @machineTree.addNode data
+
+      @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
+
+
+  mapWorkspaceWithChannel: (data, node) ->
+
+    return  unless data.data?.channelId?
+
+    { channelId } = data.data
+
+    @workspaceItemChannelMap[channelId] = node
 
 
   selectWorkspace: (data) ->
