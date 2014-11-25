@@ -105,14 +105,15 @@ module.exports = class JWorkspace extends Module
   @fetchByMachines$ = secure (client, callback) ->
 
     client.connection.delegate.fetchUser (err, user) ->
+      return callback err  if err
+
       query = 'users.id': user.getId()
 
       JMachine.some query, {}, (err, machines) ->
         return callback err  if err
 
         machineUIds = machines.map (machine) -> machine.uid
-        JWorkspace.some machineUId: $in: machineUIds, {}, (err, workspaces) ->
-          callback err, workspaces
+        JWorkspace.some machineUId: $in: machineUIds, {}, callback
 
 
   @deleteById = secure (client, id, callback)->
