@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"koding/gather/metrics"
 	"koding/gather/scripts"
@@ -15,6 +16,8 @@ var (
 	}
 
 	exporter Exporter
+
+	version = flag.Int("version", 0, "version number to be stored")
 )
 
 const (
@@ -23,6 +26,12 @@ const (
 )
 
 func main() {
+	flag.Parse()
+
+	if *version == 0 {
+		log.Fatal("Please pass a version (non 0 value).")
+	}
+
 	registerMetric(scripts.NumUsers)
 	registerMetric(scripts.UsersShell)
 
@@ -50,6 +59,8 @@ func main() {
 		}
 
 		fmt.Println(metric.Name, result)
+
+		result["version"] = *version
 
 		err = exporter.Send(metric.Name, result)
 		if err != nil {

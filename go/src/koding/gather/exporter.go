@@ -10,14 +10,17 @@ type Exporter interface {
 	Send(string, map[string]interface{}) error
 }
 
+//----------------------------------------------------------
+// EsExporter
+//----------------------------------------------------------
+
+const ES_TIME_FORMAT = time.RFC3339
+
+// EsExporter exports data to ElasticSearch.
 type EsExporter struct {
 	Client *elastigo.Conn
 	Index  string
 }
-
-var (
-	ES_TIME_FORMAT = time.RFC3339
-)
 
 func NewEsExporter(domain, port string) *EsExporter {
 	es := &EsExporter{Index: "gather_metrics"}
