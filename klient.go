@@ -81,6 +81,7 @@ func main() {
 		}
 
 		u.Host = AddPort(host, "3000")
+		u.Scheme = "http"
 		k.Config.KontrolURL = u.String()
 	}
 
