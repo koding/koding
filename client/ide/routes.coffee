@@ -122,16 +122,24 @@ do ->
 
       return routeToLatestWorkspace() if err
 
-      try
-        for workspace in KD.userWorkspaces when workspace.channelId is channel.id
-          machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-          username  = KD.nick()
-          channelId = channel.id
-          return loadIDE { machine, workspace, username, channelId }
+      KD.remote.api.JWorkspace.fetchByMachines()
 
-      catch e
-        return routeToLatestWorkspace()
+        .then (workspaces) ->
 
+          try
+            for workspace in workspaces when workspace.channelId is channel.id
+              machine   = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+              username  = KD.nick()
+              channelId = channel.id
+              return loadIDE { machine, workspace, username, channelId }
+
+          catch e
+            return routeToLatestWorkspace()
+
+        .error (err) ->
+
+          console.error err
+          routeToLatestWorkspace()
 
 
   KD.registerRoutes 'IDE',
