@@ -1,10 +1,6 @@
 package scripts
 
-import (
-	"fmt"
-	"koding/gather/metrics"
-	"strings"
-)
+import "koding/gather/metrics"
 
 var (
 	NumUsers = &metrics.Metric{
@@ -19,31 +15,3 @@ var (
 		Output:    twoColumnMultiple(),
 	}
 )
-
-// Parses two column, multi row entries.
-// Example Args:
-//   Args:
-//			root /bin/sh
-//			root /bin/sh
-//			daemon /usr/bin/false
-//	 Return
-//		map[string]inteface{"root":"/bin/sh", "daemon":"/usr/bin/false"}
-func twoColumnMultiple() func([]byte) (map[string]interface{}, error) {
-	return func(raw []byte) (map[string]interface{}, error) {
-		input := strings.TrimSpace(fmt.Sprintf("%s", raw))
-		lines := strings.Split(input, "\n")
-
-		output := map[string]interface{}{}
-
-		for _, line := range lines {
-			split := strings.Split(line, " ")
-			if len(split) != 2 {
-				continue
-			}
-
-			output[split[0]] = split[1]
-		}
-
-		return output, nil
-	}
-}
