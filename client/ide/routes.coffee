@@ -164,9 +164,3 @@ do ->
       { machineLabel, workspaceSlug } = data.params
 
       loadWorkspace machineLabel, workspaceSlug
-
-    '/:name?/IDE/:machineLabel/:workspaceSlug/:username/:channelId': (data) ->
-
-      { machineLabel, workspaceSlug, username, channelId } = data.params
-
-      loadWorkspace machineLabel, workspaceSlug, username, channelId
