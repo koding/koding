@@ -107,7 +107,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   leaveSession: ->
 
-    log 'leave requested'
+    KD.singletons.appManager.tell 'IDE', 'handleParticipantLeaveAction', KD.whoami()
 
 
   stopSession: ->
