@@ -33,6 +33,12 @@ module.exports = class JReward extends jraphical.Message
       static          : []
       instance        : []
 
+    indexes           :
+      type            : 'sparse'
+      unit            : 'sparse'
+      originId        : 'sparse'
+      sourceCampaign  : 'sparse'
+
     schema            :
       # for now we only have disk space
       type            :

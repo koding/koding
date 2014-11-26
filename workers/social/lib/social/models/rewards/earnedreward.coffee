@@ -9,6 +9,13 @@ module.exports = class JEarnedReward extends Module
     indexes           :
       originId        : 'sparse'
 
+    # we need a compound index here
+    # since bongo is not supporting them
+    # we need to manually define following:
+    #
+    #   - originId, type (unique)
+    #
+
     sharedEvents      :
 
       static          : [ ]
