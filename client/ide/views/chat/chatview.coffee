@@ -59,8 +59,6 @@ class IDE.ChatView extends KDTabView
     @addPane @chatPane     = new IDE.ChatMessagePane {name, type, channelId}, channel
     @addPane @settingsPane = new IDE.ChatSettingsPane { @rtm, @isInSession }, channel
 
-    @on 'ReceivedClickElseWhere', @bound 'hide'
-
     @settingsPane.forwardEvents this, [
       'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
       'ParticipantJoined', 'ParticipantLeft'
