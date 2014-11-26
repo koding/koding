@@ -88,7 +88,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				})
 
 				Convey("Second user should be able to leave conversation", func() {
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, secondAccount.Id)
 					So(err, ShouldBeNil)
 
 					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
@@ -105,6 +105,17 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 3)
 					})
+				})
+
+				Convey("Channel owner should be able to kick another conversation participant", func() {
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					So(err, ShouldBeNil)
+				})
+
+				Convey("Second user should not be able to kick another conversation participant", func() {
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, thirdAccount.Id)
+					So(err, ShouldNotBeNil)
+					So(err.Error(), ShouldEqual, "koding.BadRequest-User is not allowed to kick other users")
 				})
 
 			})
