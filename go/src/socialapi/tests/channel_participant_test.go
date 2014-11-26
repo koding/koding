@@ -110,6 +110,11 @@ func TestChannelParticipantOperations(t *testing.T) {
 				Convey("Channel owner should be able to kick another conversation participant", func() {
 					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
 					So(err, ShouldBeNil)
+
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(participants, ShouldNotBeNil)
+					So(len(participants), ShouldEqual, 3)
 				})
 
 				Convey("Second user should not be able to kick another conversation participant", func() {
