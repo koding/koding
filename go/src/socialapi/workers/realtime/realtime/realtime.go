@@ -131,9 +131,6 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 
 // ChannelParticipantRemoved is fired when we remove any info of channel participant
 func (f *Controller) ChannelParticipantRemoved(pe *models.ParticipantEvent) error {
-	// send notification to the user(added user)
-	go f.notifyChannelParticipants(pe)
-
 	return f.sendChannelParticipantEvent(pe, RemovedFromChannelEventName)
 }
 
@@ -146,6 +143,9 @@ func (f *Controller) ChannelParticipantsAdded(pe *models.ParticipantEvent) error
 // information
 // TODO we can send this information with just a single message
 func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, eventName string) error {
+
+	// send notification to the user(added user)
+	go f.notifyChannelParticipants(pe, eventName)
 
 	// channel must be notified with newly added/removed participants
 	for _, participant := range pe.Participants {
@@ -173,7 +173,7 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 // notifyParticipants notifies current private channel participants and
 // removed participants included in ParticipantEvent.Participants about removed users
 // this is used for updating sidebar.
-func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent) {
+func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
 	c, err := models.ChannelById(pe.Id)
 	if err != nil {
 		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
@@ -184,30 +184,41 @@ func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent) {
 		return
 	}
 
-	// fetch current participants
-	participantIds, err := c.FetchParticipantIds(&request.Query{})
-	if err != nil {
-		f.log.Error("Could not fetch participants: %s", err)
-		return
+	var notifiedParticipantIds []int64
+
+	// When a user is removed notify all participants to make them update their sidebar
+	// channel list.
+	// When a user is added just notify that user for pushing them to subscribe for the
+	// further channel messages, and updating the sidebar.
+	switch eventName {
+	case AddedToChannelEventName:
+		notifiedParticipantIds = make([]int64, 0)
+	case RemovedFromChannelEventName:
+		// fetch current participants
+		notifiedParticipantIds, err = c.FetchParticipantIds(&request.Query{})
+		if err != nil {
+			f.log.Error("Could not fetch participants: %s", err)
+			return
+		}
 	}
 
 	// append removed participants
-	for _, removedParticipant := range pe.Participants {
-		participantIds = append(participantIds, removedParticipant.AccountId)
+	for _, participant := range pe.Participants {
+		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
 	}
 
-	for _, participant := range participantIds {
+	for _, participantId := range notifiedParticipantIds {
 		cc := models.NewChannelContainer()
-		err = cc.PopulateWith(*c, participant)
+		err = cc.PopulateWith(*c, participantId)
 		if err != nil {
 			f.log.Error("Could not create channel container for participant %d: %s", pe.Id, err)
 			continue
 		}
 
 		if err = f.sendNotification(
-			participant,
+			participantId,
 			c.GroupName,
-			RemovedFromChannelEventName,
+			eventName,
 			cc,
 		); err != nil {
 			f.log.Error("Ignoring err %s ", err.Error())
@@ -687,7 +698,6 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 
 	for _, secretName := range secretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
-
 		if err := channel.Publish(
 			"broker",   // exchange name
 			routingKey, // routing key
