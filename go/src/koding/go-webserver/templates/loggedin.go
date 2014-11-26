@@ -18,37 +18,29 @@ var LoggedInHome = `
 
     <script>KD.isLoggedInOnLoad=true;</script>
 
-    <script>
-			{{if .User.Exists "Account" }}
-				KD.userAccount={{.User.GetOnlyValue "Account"}}
-			{{else}}
-				KD.userAccount={}
-			{{end}}
-    </script>
+    {{if .User.Exists "Account" }}
+    <script>KD.userAccount={{.User.GetOnlyValue "Account"}};</script>
+    {{else}}
+    <script>KD.userAccount={};</script>
+    {{end}}
 
-    <script>
-			{{if .User.Exists "Machines" }}
-				KD.userMachines={{.User.GetOnlyValue "Machines"}}
-			{{else}}
-				KD.userMachines=[]
-			{{end}}
-    </script>
+    {{if .User.Exists "Machines" }}
+    <script>KD.userMachines={{.User.GetOnlyValue "Machines"}};</script>
+    {{else}}
+    <script>KD.userMachines=[];</script>
+    {{end}}
 
-    <script>
-			{{if .User.Exists "Workspaces" }}
-				KD.userWorkspaces={{.User.GetOnlyValue "Workspaces"}}
-			{{else}}
-				KD.userWorkspaces=[]
-			{{end}}
-    </script>
+    {{if .User.Exists "Workspaces" }}
+    <script>KD.userWorkspaces={{.User.GetOnlyValue "Workspaces"}};</script>
+    {{else}}
+    <script>KD.userWorkspaces=[];</script>
+    {{end}}
 
-    <script>
-			{{if .User.Exists "Group" }}
-				KD.currentGroup={{.User.GetOnlyValue "Group"}};
-			{{else}}
-				KD.currentGroup={}
-			{{end}}
-    </script>
+    {{if .User.Exists "Group" }}
+    <script>KD.currentGroup={{.User.GetOnlyValue "Group"}};</script>
+    {{else}}
+    <script>KD.currentGroup={};</script>
+    {{end}}
 
     <script>
       (function(d) {
@@ -60,7 +52,11 @@ var LoggedInHome = `
       })(document);
     </script>
 
-    <script>KD.socialApiData={{.User.GetWithDefault "SocialApiData" "null"}};</script>
+		{{if .User.Exists "SocialApiData" }}
+    <script>KD.socialApiData={{.User.GetOnlyValue "SocialApiData"}};</script>
+    {{else}}
+    <script>KD.socialApiData=null;</script>
+    {{end}}
 
     <script src='/a/js/kd.libs.js?{{.Version}}'></script>
     <script src='/a/js/kd.js?{{.Version}}'></script>
@@ -76,9 +72,9 @@ var LoggedInHome = `
     {{template "analytics" }}
 
     {{if not .Impersonating }}
-      <script type="text/javascript">
-        var _user_id = '{{.User.GetWithDefault "Username" ""}}'; var _session_id = '{{.User.GetWithDefault "SessionId" ""}}'; var _sift = _sift || []; _sift.push(['_setAccount', 'f270274999']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
-      </script>
+    <script type="text/javascript">
+      var _user_id = '{{.User.GetOnlyValue "Username"}}'; var _session_id = '{{.User.GetOnlyValue "SessionId"}}'; var _sift = _sift || []; _sift.push(['_setAccount', 'f270274999']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
+    </script>
     {{end}}
 </body>
 </html>
