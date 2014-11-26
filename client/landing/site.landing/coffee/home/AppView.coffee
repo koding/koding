@@ -24,7 +24,7 @@ module.exports = class HomeView extends KDView
       },
       {
         position : [55, 6] #percent
-        content  : 'If one IDE tab is not enough, open up more!'
+        content  : 'The IDE supports multi-tab layouts so that you \n can have all your files open and within easy reach.'
       },
       {
         position : [55, 32] #percent
@@ -39,11 +39,11 @@ module.exports = class HomeView extends KDView
     [
       {
         position : [55, 6] #percent
-        content  : 'Terminals can be opened vertically or horizontally. \n You can even split them!'
+        content  : 'Terminal and IDE tabs can be opened vertically or \n horizontally. You can even split them!'
       },
       {
         position : [54, 51] #percent
-        content  : 'Open as many terminals as you like!'
+        content  : 'You can open as many Terminal tabs as you want \n and keep an eye on all those scripts.'
       },
       {
         position : [65, 65] #percent
@@ -66,11 +66,11 @@ module.exports = class HomeView extends KDView
       },
       {
         position : [88, 38] #percent
-        content  : 'Easily see which topics are of interest to the Koding Community.'
+        content  : 'Easily see which top topics are of interest to \n the Koding Community.'
       },
       {
         position : [9, 44] #percent
-        content  : 'If a topic of discussion is for your team only, \n then easily take it to a private message chat.'
+        content  : 'If a topic of discussion is for your team only, \n then easily take it to a private message.'
       }
     ]
     #Settings
@@ -81,15 +81,15 @@ module.exports = class HomeView extends KDView
       },
       {
         position : [40, 24] #percent
-        content  : 'All Koding VMs come with public IPs!'
+        content  : 'All Koding VMs come with public IPs. \n Very useful when using FTP, SSH, etc.'
       },
       {
         position : [42, 41] #percent
-        content  : 'Easy links to helpful guides that show you how \n you can connect to your VM using ssh, ftp and much more!'
+        content  : 'Easy links to helpful guides that show you how \n you can connect to your VM using SSH, FTP and much more!'
       },
       {
         position : [37, 53] #percent
-        content  : 'If you want, you can keep your VM running all the time.'
+        content  : 'If you prefer, you can keep your VM running all the time by upgrading.'
       },
       {
         position : [20, 58] #percent
