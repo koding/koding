@@ -47,31 +47,43 @@ pmLinkColor   = #B6B6B6
       abs                   2px 0 0 0px
 
   .pm-title-chevron
-    display                 inline-block
-    size                    20px 20px
-    margin-left             11px
-    &:before
-      content               ''
-      margin                12px auto 0
-      r-sprite              ide title-chevron
-      display               block
+    size              14px 15px
+    bg                color transparent
+    border            none
+    padding           0
+    padding-right     0 !important
+    cursor            pointer
+    margin-left       11px
 
+    &:focus
+      vendor          box-shadow, none
+
+  .chevron-separator
+    hidden()
+
+  .chevron
+    r-sprite          ide title-chevron
+    top               5px
+    left              0
+    abs()
+
+  .general-header
+    padding               16px 16px 0
+
+    .session-link
+      font-size           11px
+      font-family         adelleFamily
+      line-height         18px
+      color               pmLinkColor
+      display             block
+      noTextDeco()
 
   > .kdtabpaneview
     padding                 16px
     borderBox()
 
-
     header
       border-bottom         1px solid pmBorderColor
-
-      .session-link
-        font-size           11px
-        font-family         adelleFamily
-        line-height         18px
-        color               pmLinkColor
-        display             block
-        noTextDeco()
 
       div.buttons
         padding             12px 0
@@ -120,7 +132,12 @@ pmLinkColor   = #B6B6B6
 
   .kdtabpaneview.privatemessage
     padding                 0
-    min-height              100%
+    height                  calc(100% \- 59px)
+    max-height              calc(100% \- 59px)
+    min-height              calc(100% \- 59px)
+
+    .new-message-form.inline
+      z-index               0
 
   .participant-view
     margin-bottom           5px
