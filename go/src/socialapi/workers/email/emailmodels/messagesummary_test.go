@@ -16,17 +16,11 @@ func TestRenderMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("Message should be able to rendered", t, func() {
-		mgs := NewMessageGroupSummary()
-		m := &MessageSummary{}
-		m.Body = "hehe"
-		mgs.Hash = "123123"
-		mgs.Nickname = "canthefason"
+		ms := NewMessageSummary("canthefason", "", "hehe", time.Now())
 
-		mgs.AddMessage(m, time.Now())
-		body, err := mgs.Render()
+		body, err := ms.Render()
 		So(err, ShouldBeNil)
-		So(body, ShouldContainSubstring, "canthefason")
-		So(body, ShouldContainSubstring, "123123")
+		So(body, ShouldContainSubstring, "canthefason:")
 		So(body, ShouldContainSubstring, "hehe")
 	})
 }

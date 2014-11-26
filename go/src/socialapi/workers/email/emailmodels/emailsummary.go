@@ -8,52 +8,36 @@ type EmailSummary struct {
 }
 
 // NewEmailSummary creates EmailSummary with given channelMap
-func NewEmailSummary(channels []*ChannelSummary) *EmailSummary {
+func NewEmailSummary(css ...*ChannelSummary) *EmailSummary {
 	es := &EmailSummary{
-		Channels: channels,
+		Channels: css,
 	}
-	es.Title = es.BuildTitle()
 
 	return es
 }
 
-func (es *EmailSummary) BuildTitle() string {
-	directMessageCount := 0
-	groupMessageCount := 0
-	groupChannelCount := 0
+func (es *EmailSummary) BuildPrivateMessageTitle() {
+	messagePreviewCount := 0
+	unreadMessageCount := 0
 	for _, channel := range es.Channels {
-		if len(channel.Participants) == 1 {
-			directMessageCount += channel.UnreadCount
-		} else {
-			groupMessageCount += channel.UnreadCount
-			groupChannelCount++
-		}
+		unreadMessageCount += channel.UnreadCount
+		messagePreviewCount += len(channel.MessageSummaries)
 	}
 
-	title := "You have"
+	title := "You have a few unread messages on Koding.com."
 
-	if directMessageCount > 0 {
-		title = fmt.Sprintf("%s %d direct message%s%s", title, directMessageCount, getPluralSuffix(directMessageCount), getConjunction(groupMessageCount))
+	title = fmt.Sprintf("%s Here are the latest %d.", title, messagePreviewCount)
+
+	if unreadMessageCount > messagePreviewCount {
+		title = fmt.Sprintf("%s You also have %d more.", title, unreadMessageCount-messagePreviewCount)
 	}
 
-	if groupChannelCount > 0 {
-		title = fmt.Sprintf("%s %d new message%s in %d group conversation%s", title, groupMessageCount, getPluralSuffix(groupMessageCount), groupChannelCount, getPluralSuffix(groupChannelCount))
-	}
-
-	return title + "."
+	es.Title = title
 }
 
 func getPluralSuffix(count int) string {
 	if count > 1 {
 		return "s"
-	}
-
-	return ""
-}
-
-func getConjunction(count int) string {
-	if count > 1 {
-		return ", and there are"
 	}
 
 	return ""

@@ -5,8 +5,6 @@ import (
 	"socialapi/workers/email/emailmodels"
 )
 
-const TIMEFORMAT = "3:04 PM"
-
 type TemplateParser struct {
 	UserContact *emailmodels.UserContact
 }
@@ -16,63 +14,75 @@ func NewTemplateParser() *TemplateParser {
 }
 
 func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, error) {
-	bc := emailmodels.NewBodyContent()
-	mg, err := buildMessageContent(mc)
+	cs, err := tp.buildChannelSummary(mc)
 	if err != nil {
 		return "", err
 	}
+	es := emailmodels.NewEmailSummary(cs)
 
-	bc.AddMessageGroup(mg)
-
-	return bc.Render()
+	return es.Render()
 }
 
-func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (string, error) {
-	bc := emailmodels.NewBodyContent()
-	for _, mc := range containers {
-		mg, err := buildMessageContent(mc)
-		if err != nil {
-			continue
-		}
-		bc.AddMessageGroup(mg)
-	}
-
-	bc.Title = "Here what's happened on Koding today!"
-
-	return bc.Render()
-}
-
-func buildMessageContent(mc *MailerContainer) (*emailmodels.MessageGroupSummary, error) {
-	mg := emailmodels.NewMessageGroupSummary()
-	title, err := prepareTitle(mc)
-	if err != nil {
-		return nil, err
-	}
-	mg.Title = title
-
-	// message
-	ms := new(emailmodels.MessageSummary)
-	ms.Body = mc.Message
-	mg.AddMessage(ms, mc.Activity.CreatedAt)
-
+func (tp *TemplateParser) buildChannelSummary(mc *MailerContainer) (*emailmodels.ChannelSummary, error) {
 	actor, err := emailmodels.FetchUserContact(mc.Activity.ActorId)
 	if err != nil {
 		return nil, err
 	}
 
-	mg.Nickname = actor.Username
-	mg.AccountId = actor.AccountId
-	mg.Hash = actor.Hash
+	cs := new(emailmodels.ChannelSummary)
 
-	return mg, nil
+	ms := emailmodels.NewMessageSummary("", actor.LastLoginTimezone, mc.Message, mc.CreatedAt)
+
+	summary, err := ms.Render()
+	if err != nil {
+		return nil, err
+	}
+
+	// render title/link
+	title, err := prepareTitle(mc, actor)
+	if err != nil {
+		return nil, err
+	}
+
+	// render image
+	ci := new(emailmodels.ChannelImage)
+	ci.Hash = actor.Hash
+
+	image, err := ci.Render()
+	if err != nil {
+		return nil, err
+	}
+
+	cs.Image = image
+	cs.Link = title
+	cs.Summary = summary
+
+	return cs, nil
 }
 
-func prepareTitle(mc *MailerContainer) (string, error) {
+func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (string, error) {
+	channelSummaries := make([]*emailmodels.ChannelSummary, 0)
+	for _, mc := range containers {
+		cs, err := tp.buildChannelSummary(mc)
+		if err != nil {
+			return "", err
+		}
+		channelSummaries = append(channelSummaries, cs)
+	}
+
+	es := emailmodels.NewEmailSummary(channelSummaries...)
+	es.Title = "Here what's happened on Koding today!"
+
+	return es.Render()
+}
+
+func prepareTitle(mc *MailerContainer, actor *emailmodels.UserContact) (string, error) {
 	ac := new(ActionContent)
 	ac.Action = mc.ActivityMessage
 	ac.Hostname = config.MustGet().Hostname
 	ac.ObjectType = mc.ObjectType
 	ac.Slug = mc.Slug
+	ac.Nickname = actor.Username
 
 	return ac.Render()
 }

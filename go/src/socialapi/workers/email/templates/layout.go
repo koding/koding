@@ -6,15 +6,15 @@ const Layout = `
 	  <meta charset="UTF-8">
 	  <title>[Koding] {{.Title}}</title>
 	</head>
-	<body style="background: #eeeeee; margin: 0; padding: 45px; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
+	<body style="background: #eeeeee; margin: 0; padding:22px; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
 		<style>
 	    .m-footer a {
 	      color: #bababa;
 	    }
   	</style>
-  	<div style="background: #fff; max-width: 600px; margin: 0 auto; border: 1px solid #dcdcdc">
-	    <div style="padding: 8% 20px 6%; background: #fafafa; text-align:center;">
-	      <img src="https://koding.s3.amazonaws.com/images/email-logo.png" alt="Koding" width="142px" />
+  	<div style="background: #fff; max-width: 600px; margin: 0 auto;">
+	    <div style="padding: 0% 20px 1%; background: #eeeeee; text-align:center;">
+	      <img src="https://koding.s3.amazonaws.com/images/email-logo.png" alt="Koding" width="142px" style="opacity: 0.5;"/>
 	    </div>
 
       <div style="border-top: 1px solid #dcdcdc; padding: 22px; font-size: 14px; color: #353535; line-height: 18px;">
@@ -23,7 +23,7 @@ const Layout = `
       </div>
 
       <!-- FOOTER -->
-      <div class="m-footer" style="background: #fafafa; border-top: 1px solid #dcdcdc; padding: 22px; font-size: 12px; color: #a4a4a4; line-height: 18px;">
+      <div class="m-footer" style="background: #fafafa; border-top: 1px solid #dcdcdc; padding: 10px; font-size: 12px; color: #a4a4a4; line-height: 18px;">
       {{if .ShowLink }}
         Unsubscribe from <a href="{{.Hostname}}/Unsubscribe/{{.Token}}/{{.RecipientEmail}}">{{.ContentType}}</a> notifications /
       {{end}}

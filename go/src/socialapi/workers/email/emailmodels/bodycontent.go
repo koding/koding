@@ -1,48 +1,60 @@
 package emailmodels
 
-import (
-	"bytes"
-	"socialapi/workers/email/templates"
-	"text/template"
-)
+import "socialapi/models"
 
 type BodyContent struct {
 	// Stores channel title
 	Title string
-	// Rendered summary of messages
-	Summary string
 	// MessageSummaries are in descending order
-	MessageGroups []*MessageGroupSummary
+	MessageSummaries []*MessageSummary
+
+	Timezone string
+
+	IsNicknameShown bool
 }
 
 func NewBodyContent() *BodyContent {
 	return &BodyContent{
-		MessageGroups: make([]*MessageGroupSummary, 0),
+		MessageSummaries: make([]*MessageSummary, 0),
 	}
 }
 
-func (bc *BodyContent) AddMessageGroup(mg *MessageGroupSummary) {
-	bc.MessageGroups = append(bc.MessageGroups, mg)
+func (bc *BodyContent) AddMessages(messages []models.ChannelMessage) error {
+	for _, message := range messages {
+		nickname, err := bc.FetchMessageOwnerNickname(message.AccountId)
+		if err != nil {
+			return err
+		}
+
+		ms := NewMessageSummary(nickname, bc.Timezone, message.Body, message.CreatedAt)
+		bc.MessageSummaries = append(bc.MessageSummaries, ms)
+	}
+
+	return nil
 }
 
 func (bc *BodyContent) Render() (string, error) {
 	body := ""
-	for _, mg := range bc.MessageGroups {
-		content, err := mg.Render()
+	for _, ms := range bc.MessageSummaries {
+		content, err := ms.Render()
 		if err != nil {
 			return "", err
 		}
 		body += content
 	}
 
-	bt := template.Must(template.New("body").Parse(templates.Channel))
+	return body, nil
+}
 
-	bc.Summary = body
+func (bc *BodyContent) FetchMessageOwnerNickname(accountId int64) (string, error) {
+	if !bc.IsNicknameShown {
+		return "", nil
+	}
 
-	var buf bytes.Buffer
-	if err := bt.ExecuteTemplate(&buf, "body", bc); err != nil {
+	account, err := models.Cache.Account.ById(accountId)
+	if err != nil {
 		return "", err
 	}
 
-	return buf.String(), nil
+	return account.Nick, nil
 }

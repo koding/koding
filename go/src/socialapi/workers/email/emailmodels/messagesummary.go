@@ -2,75 +2,40 @@ package emailmodels
 
 import (
 	"bytes"
-	"socialapi/config"
 	"socialapi/workers/email/templates"
 	"text/template"
 	"time"
 )
 
-// MessageSummary used for storing message data
-type MessageGroupSummary struct {
-	AccountId int64
-	Nickname  string
-	Messages  []*MessageSummary
-	// Hash used for gravatar
-	Hash string
-	// rendered summary
-	Summary string
-	// title appears besides the nickname
-	Title string
-	// used for profile page urls
-	Hostname string
-	Timezone string
+type MessageSummary struct {
+	Nickname string
+	Body     string
+	// Time is in HH:MM format
+	Time            string
+	IsNicknameShown bool
 }
 
-func NewMessageGroupSummary() *MessageGroupSummary {
-	return &MessageGroupSummary{
-		Messages: make([]*MessageSummary, 0),
-	}
-}
-
-func (ms *MessageGroupSummary) Render() (string, error) {
-	mt := template.Must(template.New("messagegroup").Parse(templates.MessageGroup))
-	gt := template.Must(template.New("gravatar").Parse(templates.Gravatar))
-	mt.AddParseTree("gravatar", gt.Tree)
-
-	summary := ""
-	for _, ms := range ms.Messages {
-		content, err := ms.Render()
-		if err != nil {
-			return "", err
-		}
-		summary += content
-	}
-	ms.Summary = summary
-	ms.Hostname = config.MustGet().Hostname
-
-	buf := bytes.NewBuffer([]byte{})
-	if err := mt.ExecuteTemplate(buf, "messagegroup", ms); err != nil {
-		return "", err
+func NewMessageSummary(nickname, timezone, body string, createdAt time.Time) *MessageSummary {
+	isNicknameShown := false
+	if nickname != "" {
+		isNicknameShown = true
 	}
 
-	return buf.String(), nil
-}
-
-func (mgs *MessageGroupSummary) AddMessage(ms *MessageSummary, createdAt time.Time) {
 	var loc *time.Location
-	if mgs.Timezone != "" {
-		loc, _ = time.LoadLocation(mgs.Timezone)
+	if timezone != "" {
+		loc, _ = time.LoadLocation(timezone)
 	}
 	createDate := createdAt
 	if loc != nil {
 		createDate = createDate.In(loc)
 	}
-	ms.Time = createDate.Format(TimeLayout)
-	mgs.Messages = append(mgs.Messages, ms)
-}
 
-type MessageSummary struct {
-	Body string
-	// Time is in HH:MM format
-	Time string
+	return &MessageSummary{
+		Nickname:        nickname,
+		Body:            body,
+		Time:            createDate.Format(TimeLayout),
+		IsNicknameShown: isNicknameShown,
+	}
 }
 
 func (ms *MessageSummary) Render() (string, error) {

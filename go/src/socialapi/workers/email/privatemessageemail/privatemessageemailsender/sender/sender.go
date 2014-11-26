@@ -139,7 +139,8 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		}
 
 		// Decorate channel data
-		es := emailmodels.NewEmailSummary(channels)
+		es := emailmodels.NewEmailSummary(channels...)
+		es.BuildPrivateMessageTitle()
 
 		// Render body
 		body, err := es.Render()
@@ -211,16 +212,39 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, period, timezone s
 			continue
 		}
 
-		cs, err := emailmodels.NewChannelSummary(a, ch, awayTime, timezone)
+		cs, err := c.buildChannelSummary(a, ch, awayTime, timezone)
 		if err != nil {
-			c.log.Error("Could not decorate channel summary: %s", err)
-			continue
+			return channels, err
 		}
 
 		channels = append(channels, cs)
 	}
 
 	return channels, nil
+}
+
+func (c *Controller) buildChannelSummary(a *models.Account, ch *models.Channel, awayTime time.Time, timezone string) (*emailmodels.ChannelSummary, error) {
+	cs, err := emailmodels.NewChannelSummary(a, ch, awayTime, timezone)
+	if err != nil {
+		c.log.Error("Could not decorate channel summary: %s", err)
+		return nil, err
+	}
+
+	summary, err := cs.BodyContent.Render()
+	if err != nil {
+		return nil, err
+	}
+
+	cs.Summary = summary
+
+	image, err := cs.RenderImage()
+	if err != nil {
+		return nil, err
+	}
+
+	cs.Image = image
+
+	return cs, nil
 }
 
 func (c *Controller) parseValues(field, value interface{}) (*models.Channel, time.Time, error) {

@@ -8,6 +8,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/email/templates"
+	"strconv"
 	"text/template"
 	"time"
 )
@@ -24,17 +25,40 @@ type ChannelSummary struct {
 	// Unread count stores unread message count in the idle time
 	UnreadCount int
 	// AwaySince returns the oldest message in notification queue
-	AwaySince    time.Time
-	Participants []models.ChannelParticipant
-	Purpose      string
-	Name         string
-	Hostname     string
+	AwaySince      time.Time
+	Participants   []models.ChannelParticipant
+	Purpose        string
+	ChannelId      string
+	Hostname       string
+	IsGroupChannel bool
+	Link           string
+	Image          string
+	Summary        string
 
 	BodyContent
 }
 
-func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezone string) (*ChannelSummary, error) {
+type ChannelImage struct {
+	Hash string
+}
 
+func (ci *ChannelImage) Render() (string, error) {
+	if ci.Hash == "" {
+		return "", nil
+	}
+
+	lt := template.Must(template.New("image").Parse(templates.Gravatar))
+
+	var buf bytes.Buffer
+	if err := lt.ExecuteTemplate(&buf, "image", ci); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezone string) (*ChannelSummary, error) {
+	fmt.Println("timezone nedir ki", timezone)
 	cms, err := fetchLastMessages(a, ch, awaySince)
 	if err != nil {
 		return nil, err
@@ -54,44 +78,40 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
-	mss, err := buildMessageSummaries(cms, timezone)
-	if err != nil {
-		return nil, err
+	isGroupChannel := false
+	if len(participants) > 1 {
+		isGroupChannel = true
 	}
 
 	cs := &ChannelSummary{
-		Id:           ch.Id,
-		AwaySince:    awaySince,
-		UnreadCount:  count,
-		Participants: participants,
-		Purpose:      ch.Purpose,
-		Name:         ch.Name,
-		Hostname:     config.MustGet().Hostname,
+		Id:             ch.Id,
+		AwaySince:      awaySince,
+		UnreadCount:    count,
+		Participants:   participants,
+		Purpose:        ch.Purpose,
+		ChannelId:      strconv.FormatInt(ch.Id, 10),
+		Hostname:       config.MustGet().Hostname,
+		IsGroupChannel: isGroupChannel,
+	}
+	cs.BodyContent.Timezone = timezone
+
+	if err := cs.BodyContent.AddMessages(cms); err != nil {
+		return nil, err
 	}
 
-	cs.MessageGroups = mss
+	if isGroupChannel {
+		cs.BodyContent.IsNicknameShown = true
+	}
+
+	if err := cs.prepareLink(); err != nil {
+		return nil, err
+	}
 
 	return cs, nil
 }
 
 func (cs *ChannelSummary) Render() (string, error) {
-	body := ""
-	for _, message := range cs.MessageGroups {
-		content, err := message.Render()
-		if err != nil {
-			return "", err
-		}
-		body += content
-	}
-
 	ct := template.Must(template.New("channel").Parse(templates.Channel))
-
-	cs.Summary = body
-	title, err := cs.getTitle()
-	if err != nil {
-		return "", err
-	}
-	cs.Title = title
 
 	var buf bytes.Buffer
 	if err := ct.ExecuteTemplate(&buf, "channel", cs); err != nil {
@@ -101,51 +121,126 @@ func (cs *ChannelSummary) Render() (string, error) {
 	return buf.String(), nil
 }
 
-func (cs *ChannelSummary) getTitle() (string, error) {
-	if len(cs.Participants) == 1 {
-		return cs.prepareDirectMessageTitle(), nil
+func (cs *ChannelSummary) RenderImage() (string, error) {
+	// do not use any images for group conversations
+	if !cs.IsGroupChannel {
+		return cs.renderGravatar()
 	}
 
-	return cs.prepareChannelTitle()
+	return "", nil
 }
 
-func (cs *ChannelSummary) prepareDirectMessageTitle() string {
-	return fmt.Sprintf("sent you %d direct message%s:", cs.UnreadCount, getPluralSuffix(cs.UnreadCount))
-}
-
-func (cs *ChannelSummary) prepareChannelTitle() (string, error) {
-	if cs.Purpose != "" {
-		return cs.Purpose, nil
-	}
-
-	if len(cs.Participants) == 0 {
+func (cs *ChannelSummary) renderGravatar() (string, error) {
+	if len(cs.Participants) < 1 {
 		return "", nil
 	}
 
-	account, err := models.Cache.Account.ById(cs.Participants[0].AccountId)
+	nickname, err := getAccountNickname(cs.Participants[0].AccountId)
 	if err != nil {
 		return "", err
 	}
 
-	title := account.Nick
-	for i := 1; i < len(cs.Participants)-1; i++ {
-		account, err := models.Cache.Account.ById(cs.Participants[i].AccountId)
-		if err != nil {
-			return "", err
-		}
-		title += ", " + account.Nick
-	}
-
-	account, err = models.Cache.Account.ById(cs.Participants[len(cs.Participants)-1].AccountId)
+	account, err := modelhelper.GetAccount(nickname)
 	if err != nil {
 		return "", err
 	}
 
-	title += " & " + account.Nick
+	ci := &ChannelImage{}
+	ci.Hash = account.Profile.Hash
 
-	return title, nil
+	return ci.Render()
 }
 
+func (cs *ChannelSummary) prepareLink() error {
+	if len(cs.Participants) == 1 {
+		return cs.prepareDirectMessageLink()
+	}
+
+	return cs.prepareGroupChannelLink()
+}
+
+func (cs *ChannelSummary) renderTitle() (string, error) {
+	lt := template.Must(template.New("channellink").Parse(templates.ChannelLink))
+
+	var buf bytes.Buffer
+	if err := lt.ExecuteTemplate(&buf, "channellink", cs); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
+}
+
+func getAccountNickname(accountId int64) (string, error) {
+	account, err := models.Cache.Account.ById(accountId)
+	if err != nil {
+		return "", err
+	}
+
+	return account.Nick, nil
+}
+
+func (cs *ChannelSummary) prepareDirectMessageLink() error {
+	nickname, err := getAccountNickname(cs.Participants[0].AccountId)
+	if err != nil {
+		return err
+	}
+
+	cs.Title = nickname
+
+	titleUrl, err := cs.renderTitle()
+	if err != nil {
+		return err
+	}
+
+	cs.Link = fmt.Sprintf("%s sent you %d message%s:", titleUrl, cs.UnreadCount, getPluralSuffix(cs.UnreadCount))
+
+	return nil
+}
+
+// prepareGroupChannelTitle gets purpose as the channel title if it exists, or concatenates
+// latest participant nicknames for composing a title
+func (cs *ChannelSummary) prepareGroupChannelLink() error {
+	if cs.Purpose != "" {
+		cs.Title = cs.Purpose
+	} else {
+		if len(cs.Participants) == 0 {
+			return nil
+		}
+
+		account, err := models.Cache.Account.ById(cs.Participants[0].AccountId)
+		if err != nil {
+			return err
+		}
+
+		title := account.Nick
+		for i := 1; i < len(cs.Participants)-1; i++ {
+			account, err := models.Cache.Account.ById(cs.Participants[i].AccountId)
+			if err != nil {
+				return err
+			}
+			title += ", " + account.Nick
+		}
+
+		account, err = models.Cache.Account.ById(cs.Participants[len(cs.Participants)-1].AccountId)
+		if err != nil {
+			return err
+		}
+
+		title += " & " + account.Nick
+
+		cs.Title = title
+	}
+
+	titleUrl, err := cs.renderTitle()
+	if err != nil {
+		return err
+	}
+	cs.Link = fmt.Sprintf("Latest messages from %s", titleUrl)
+
+	return nil
+}
+
+// fetchLastMessage fetches latest channel messages excluding given user's messages.
 func fetchLastMessages(a *models.Account, ch *models.Channel, awaySince time.Time) ([]models.ChannelMessage, error) {
 	q := request.NewQuery()
 	q.From = awaySince
@@ -165,63 +260,6 @@ func fetchChannelMessageCount(a *models.Account, ch *models.Channel, awaySince t
 	cm := models.NewChannelMessage()
 
 	return cm.FetchTotalMessageCount(q)
-}
-
-// buildMessageSummarries iterates over messages and decorates MessageGroupSummary
-// It also groups messages, so if there are two consecutive messages belongs to the same user
-// it is grouped under MessageGroupSummary.
-func buildMessageSummaries(messages []models.ChannelMessage, timezone string) ([]*MessageGroupSummary, error) {
-	mss := make([]*MessageGroupSummary, 0)
-	// each consequent user will have another MessageGroup
-	currentGroup := NewMessageGroupSummary()
-	if len(messages) == 0 {
-		return mss, nil
-	}
-
-	for _, message := range messages {
-		// create new message summary
-		ms := new(MessageSummary)
-		ms.Body = message.Body
-
-		// add message to message group since their sender accounts are same
-		if message.AccountId == currentGroup.AccountId {
-			currentGroup.AddMessage(ms, message.CreatedAt)
-			continue
-		}
-		// Different message sender so create a new group
-		mg := NewMessageGroupSummary()
-		// when currentGroup is not empty and add it to result array
-		if currentGroup.AccountId != 0 {
-			*mg = *currentGroup
-			mss = append(mss, mg)
-		}
-
-		// and create a new group
-		currentGroup = NewMessageGroupSummary()
-
-		a, err := models.Cache.Account.ById(message.AccountId)
-		if err != nil {
-			return mss, err
-		}
-		currentGroup.Nickname = a.Nick
-		// TODO this can be fetched from cache but its invalidation needs to be handled as well.
-		ma, err := modelhelper.GetAccountById(a.OldId)
-		if err != nil {
-			return mss, err
-		}
-		currentGroup.Hash = ma.Profile.Hash
-		currentGroup.Timezone = timezone
-		currentGroup.AccountId = message.AccountId
-		// push the latest message to the new message group
-		currentGroup.AddMessage(ms, message.CreatedAt)
-	}
-
-	// when last message has different owner append its message group to array
-	if len(mss) == 0 || currentGroup.AccountId != mss[len(mss)-1].AccountId {
-		mss = append(mss, currentGroup)
-	}
-
-	return mss, nil
 }
 
 func fetchParticipants(a *models.Account, ch *models.Channel) ([]models.ChannelParticipant, error) {

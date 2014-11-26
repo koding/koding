@@ -11,6 +11,7 @@ type ActionContent struct {
 	Hostname   string
 	ObjectType string
 	Slug       string
+	Nickname   string
 }
 
 func (ac *ActionContent) Render() (string, error) {
