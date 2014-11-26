@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/koding/kite"
+
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
@@ -31,8 +33,11 @@ func (p *Provider) RunChecker(interval time.Duration) {
 			}
 
 			if err := p.CheckUsage(machine); err != nil {
-				p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
-					machine.Id.Hex(), machine.IpAddress, err)
+				// only log if it's something else
+				if err != kite.ErrNoKitesAvailable {
+					p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
+						machine.Id.Hex(), machine.IpAddress, err)
+				}
 			}
 		}()
 	}

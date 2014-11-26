@@ -145,8 +145,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	// were created because there were no capacity for their specific instance
 	// type.
 	if infoResp.InstanceType != a.Builder.InstanceType {
-		a.Log.Warning("[%s] instance is using '%s'. Changing back to t2.micro.",
-			m.Id, a.Builder.InstanceType)
+		a.Log.Warning("[%s] instance is using '%s'. Changing back to '%s'",
+			m.Id, infoResp.InstanceType, a.Builder.InstanceType)
 
 		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
 
@@ -223,20 +223,20 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 		a.Push("Initializing domain instance", 65, machinestate.Starting)
 		if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-			return nil, err
+			p.Log.Error("[%s] updating domains for starting err: %s", m.Id, err.Error())
 		}
 
 		a.Log.Debug("[%s] Updating user domain tag '%s' of instance '%s'",
 			m.Id, m.Domain.Name, artifact.InstanceId)
 		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-			return nil, err
+			p.Log.Error("[%s] couldn't update tags domains for starting err: %s", m.Id, err.Error())
 		}
 
 		// also get all domain aliases that belongs to this machine and unset
 		a.Push("Updating domain aliases", 80, machinestate.Starting)
 		domains, err := p.DomainStorage.GetByMachine(m.Id)
 		if err != nil {
-			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+			p.Log.Error("[%s] fetching domains for starting err: %s", m.Id, err.Error())
 		}
 
 		for _, domain := range domains {
@@ -284,7 +284,7 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		return err
+		p.Log.Warning("[%s] couldn't delete domain %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
