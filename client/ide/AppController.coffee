@@ -759,10 +759,8 @@ class IDEAppController extends AppController
         @participants.insert index, user
 
 
-  addParticipant: (account, share = yes) ->
+  addParticipant: (account) ->
     {hash, nickname} = account.profile
-
-    @setMachineUser nickname, yes  if share
 
     @participants.push { nickname, hash }
 
@@ -1046,9 +1044,8 @@ class IDEAppController extends AppController
 
   updateWorkspace: (options = {}) ->
 
-    KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+    return KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
-    log 'workspace data updated with real one'
 
 
   startChatSession: (callback) ->
@@ -1218,7 +1215,7 @@ class IDEAppController extends AppController
     nick      = KD.nick()
 
     message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
       channelId  : @socialChannel.id
       payload    :
          'system-message' : 'stop'
@@ -1238,13 +1235,15 @@ class IDEAppController extends AppController
   setMachineSharingStatus: (status) ->
 
     @listChatParticipants (accounts) =>
-
-      usernames = accounts.map ({profile: {nickname}}) -> nickname
-      for username in usernames
-        @setMachineUser {username, share: status}
+      for account in accounts
+        @setMachineUser account, status
 
 
-  setMachineUser: ({username, share}, callback = noop) ->
+  setMachineUser: (account, share = yes, callback = noop) ->
+
+    return  unless @mountedMachine.jMachine.credential is KD.nick()
+
+    username = account.profile.nickname
 
     return  if username is KD.nick()
 
