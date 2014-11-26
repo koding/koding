@@ -471,6 +471,10 @@ module.exports = class JMachine extends Module
       # Only another owner can unassign any other owner
       if user.username in target
         return callback \
+          new KodingError "You are not allowed to change your own state!"
+
+      if @provider is 'koding' and @credential in target
+        return callback \
           new KodingError "It is not allowed to change owner state!"
 
       JMachine::shareWith.call this, options, callback
