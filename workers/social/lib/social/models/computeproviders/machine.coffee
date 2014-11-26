@@ -246,7 +246,11 @@ module.exports = class JMachine extends Module
     for user in usersToAdd
       users = addUser users, user, owner
 
-    @update $set: { users }, callback
+    if users.length > 10
+      callback new KodingError \
+        "Machine sharing is limited up to 10 users."
+    else
+      @update $set: { users }, callback
 
 
   removeUsers: (usersToRemove, callback)->
