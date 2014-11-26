@@ -443,7 +443,10 @@ class ActivitySidebar extends KDCustomHTMLView
           title    = "#{workspace.name}"
 
           unless isMyMachine
-            ideRoute = "#{ideRoute}/#{machineOwner}"
+            if channelId = workspace.channelId
+            then ideRoute = "/IDE/#{channelId}"
+            else
+              return
 
           unless workspace.isDefault
             title += "<span class='ws-settings-icon'></span>"
