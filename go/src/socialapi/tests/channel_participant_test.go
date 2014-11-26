@@ -120,7 +120,6 @@ func TestChannelParticipantOperations(t *testing.T) {
 				Convey("Second user should not be able to kick another conversation participant", func() {
 					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, thirdAccount.Id)
 					So(err, ShouldNotBeNil)
-					So(err.Error(), ShouldEqual, "koding.BadRequest-User is not allowed to kick other users")
 				})
 
 			})
