@@ -1040,13 +1040,10 @@ class IDEAppController extends AppController
       rootPath     : options.rootPath     or rootPath
       isDefault    : name is 'My Workspace'
 
-    log 'fake workspace converted'
-
 
   updateWorkspace: (options = {}) ->
 
     return KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
-
 
 
   startChatSession: (callback) ->
@@ -1150,6 +1147,7 @@ class IDEAppController extends AppController
         .then =>
           @workspaceData.channelId = channel.id
           callback null, channel
+          @chat.ready => @chat.emit 'CollaborationNotInitialized'
         .error callback
 
 
