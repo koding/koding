@@ -1224,7 +1224,7 @@ class IDEAppController extends AppController
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
-    @showConfirmationModal modalOptions, =>
+    @showModal modalOptions, =>
 
       @chat.settingsPane.endSession.disable()
 
@@ -1245,7 +1245,7 @@ class IDEAppController extends AppController
         log 'file deleted'
         @statusBar.emit 'CollaborationEnded'
         @chat.emit 'CollaborationEnded'
-        @confirmationModal.destroy()
+        @modal.destroy()
 
       @rtm.deleteFile @getRealTimeFileName()
 
@@ -1280,8 +1280,8 @@ class IDEAppController extends AppController
       else kite.klientUnshare {username}, callback
 
 
-  showConfirmationModal: (modalOptions = {}, callback = noop) ->
-    return  if @confirmationModal
+  showModal: (modalOptions = {}, callback = noop) ->
+    return  if @modal
 
     modalOptions.overlay = yes
     modalOptions.buttons =
@@ -1293,8 +1293,8 @@ class IDEAppController extends AppController
         callback : => @confirmationModal.destroy()
 
     @confirmationModal = new KDModalView modalOptions
-    @confirmationModal.once 'KDObjectWillBeDestroyed', =>
-      delete @confirmationModal
+    @modal.once 'KDObjectWillBeDestroyed', =>
+      delete @modal
 
 
   handleBroadcastMessage: (data) ->
