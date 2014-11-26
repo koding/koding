@@ -15,6 +15,13 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     super
 
+    channel = @getData()
+
+    isMyChannel = KD.isMyChannel channel
+    isCollaborative = channel.lastMessage.payload.collaboration is 'true'
+
+    @newParticipantButton.destroy()  if isCollaborative and not isMyChannel
+
 
   createHeaderViews: ->
 
