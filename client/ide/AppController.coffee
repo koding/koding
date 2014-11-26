@@ -835,13 +835,7 @@ class IDEAppController extends AppController
         isInList = yes  if participant.nickname is nickname
 
       if not isInList
-        log 'acetz: I am not in the participants list, adding myself'
         @addParticipant KD.whoami(), no
-      else
-        log 'acetz: I am already in participants lists'
-
-      log 'acetz: participants:', @participants.asArray()
-
 
       @rtm.on 'CollaboratorJoined', (doc, participant) =>
         @handleParticipantAction 'join', participant
@@ -877,8 +871,6 @@ class IDEAppController extends AppController
     @participants.push { nickname, hash }
 
     @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
-
-    log 'acetz: participant added:', nickname
 
 
   createWorkspaceSnapshot: ->
@@ -994,8 +986,6 @@ class IDEAppController extends AppController
     return if not context or not origin or origin is KD.nick()
 
     amIWatchingChangeOwner = not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
-
-    log 'change arrived', type
 
     if amIWatchingChangeOwner
       targetPane = @getPaneByChange change
@@ -1179,7 +1169,6 @@ class IDEAppController extends AppController
     return if @workspaceData.isDummy
       @createWorkspace()
         .then (workspace) =>
-          log 'ws created'
           @workspaceData = workspace
           @initPrivateMessage callback
         .error callback
@@ -1199,7 +1188,6 @@ class IDEAppController extends AppController
             return @continuePrivateMessage callback
 
           @statusBar.share.show()
-          log 'collaboration is not initialized'
           @chat.emit 'CollaborationNotInitialized'
 
     else
@@ -1216,14 +1204,10 @@ class IDEAppController extends AppController
 
     hostName = if @amIHost then KD.nick() else @collaborationHost
 
-    log 'filename is', "#{hostName}.#{id}"
-
     return "#{hostName}.#{id}"
 
 
   continuePrivateMessage: (callback) ->
-
-    log 'continuePrivateMessage'
 
     @on 'RTMIsReady', =>
       @chat.emit 'CollaborationStarted'
@@ -1239,13 +1223,9 @@ class IDEAppController extends AppController
     @rtm.once 'FileQueryFinished', (file) =>
 
       if file.result.items.length > 0
-        log 'file found'
         callback yes, file
       else
-        log 'file not found'
         callback no
-
-    log 'trying to fetch file', @getRealTimeFileName id
 
     @rtm.fetchFileByTitle @getRealTimeFileName id
 
@@ -1263,8 +1243,6 @@ class IDEAppController extends AppController
         'system-message' : 'initiate'
         collaboration    : yes
     , (err, channels) =>
-
-      log 'private message initialized'
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
@@ -1325,8 +1303,6 @@ class IDEAppController extends AppController
     , callback
 
     @rtm.once 'FileCreated', (file) =>
-      log 'file created', file
-
       @loadCollaborationFile file.id
 
     @rtm.createFile @getRealTimeFileName()
@@ -1359,7 +1335,6 @@ class IDEAppController extends AppController
       @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
 
       @rtm.once 'FileDeleted', =>
-        log 'file deleted'
         @statusBar.emit 'CollaborationEnded'
         @chat.emit 'CollaborationEnded'
         @modal.destroy()

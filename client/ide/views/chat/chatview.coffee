@@ -69,6 +69,7 @@ class IDE.ChatView extends KDTabView
 
   showChatPane: -> @showPane @chatPane
 
+
   showSettingsPane: -> @showPane @settingsPane
 
 
@@ -78,12 +79,3 @@ class IDE.ChatView extends KDTabView
     windowController.addLayer this
 
     super
-
-  hide: ->
-
-    log 'being hidden'
-
-    super
-
-
-  # click: -> @showPane if @getActivePane() is @settingsPane then @chatPane else @settingsPane
