@@ -1313,9 +1313,17 @@ class IDEAppController extends AppController
 
         @showSessionEndedModal()
 
+      when 'ParticipantWantsToLeave'
+
+        if @amIHost
+          @listChatParticipants (accounts) =>
+            for account in accounts when account.profile.nickname is data.origin
+              target = account
+
+            @setMachineUser target, no  if target
+
 
   showSessionEndedModal: ->
-    {mainView, router} = KD.singletons
 
     options        =
       title        : 'Session Ended'
@@ -1326,8 +1334,25 @@ class IDEAppController extends AppController
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
-            router.handleRoute '/IDE'
-
+            KD.singletons.router.handleRoute '/IDE'
 
     @showModal options
-    mainView.activitySidebar.removeMachineNode @mountedMachine
+    @removeMachineNode()
+
+
+  handleParticipantLeaveAction: ->
+
+    options   =
+      title   : 'Are you sure'
+      content : "If you leave this session you won't be able to return this session."
+
+    @showModal options, =>
+      @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
+      @removeMachineNode()
+      @modal.destroy()
+      KD.singletons.router.handleRoute '/IDE'
+
+
+  removeMachineNode: ->
+
+    KD.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
