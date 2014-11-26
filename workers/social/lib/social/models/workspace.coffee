@@ -16,6 +16,8 @@ module.exports = class JWorkspace extends Module
       originId     : 'sparse'
       slug         : 'sparse'
 
+    # This schema is duplicated in `go/src/koding/db/models/workspace.go`. Please
+    # update it there when changing it here.
     schema         :
       name         : String
       slug         : String

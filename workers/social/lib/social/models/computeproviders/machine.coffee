@@ -53,6 +53,9 @@ module.exports = class JMachine extends Module
       'set domain'      : ['member']
       'set label'       : ['member']
 
+    # This schema is duplicated in `go/src/koding/db/models/machine.go`. Please
+    # update it there when changing it here.
+
     schema              :
 
       uid               :
