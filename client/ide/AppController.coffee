@@ -1046,9 +1046,8 @@ class IDEAppController extends AppController
 
   updateWorkspace: (options = {}) ->
 
-    KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+    return KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
-    log 'workspace data updated with real one'
 
 
   startChatSession: (callback) ->
