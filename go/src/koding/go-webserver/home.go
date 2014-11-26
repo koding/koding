@@ -46,7 +46,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// prefetch items
 	go sendAccount(userInfo.Account, outputter) // this is fetched above
-	go fetchMachines(userInfo.UserId, outputter)
+	go fetchMachinesAndWorkspaces(userInfo.UserId, outputter)
 
 	// return if timeout reached and let client get what it wants
 	timeout := time.NewTimer(TimeoutTime)

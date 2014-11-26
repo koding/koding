@@ -30,7 +30,7 @@ func GetMachineWorkspaces(machineIds []string) ([]*models.Workspace, error) {
 	workspaces := []*models.Workspace{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"machineUID": bson.M{"$in": machineIds}}).All(&workspaces)
+		return c.Find(bson.M{"machineUId": bson.M{"$in": machineIds}}).All(&workspaces)
 	}
 
 	err := Mongo.Run(WorkspaceColl, query)

@@ -18,7 +18,7 @@ func sendAccount(account *models.Account, outputter *Outputter) {
 	outputter.OnItem <- &Item{Name: "Account", Data: account}
 }
 
-func fetchMachines(userId bson.ObjectId, outputter *Outputter) {
+func fetchMachinesAndWorkspaces(userId bson.ObjectId, outputter *Outputter) {
 	machines, err := modelhelper.GetMachines(userId)
 	if err != nil {
 		Log.Error("Couldn't fetch machines: %s", err)
