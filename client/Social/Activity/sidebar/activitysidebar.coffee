@@ -558,6 +558,8 @@ class ActivitySidebar extends KDCustomHTMLView
       treeItemClass       : NavigationItem
       addListsCollapsed   : yes
 
+    @machineTree.getView().unsetClass 'kdscrollview'
+
     # This is temporary, we will create a separate TreeViewController
     # for this and put this logic into there ~ FIXME ~ GG
     @machineTree.dblClick = (nodeView, event)->
