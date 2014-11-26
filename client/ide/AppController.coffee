@@ -709,15 +709,19 @@ class IDEAppController extends AppController
 
     @rtm.once 'FileLoaded', (doc) =>
       @rtm.setRealtimeDoc doc
-      nickname      = KD.nick()
-      @participants = @rtm.getFromModel 'participants'
-      @changes      = @rtm.getFromModel 'changes'
+      nickname           = KD.nick()
+      @participants      = @rtm.getFromModel 'participants'
+      @changes           = @rtm.getFromModel 'changes'
+      @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
 
       unless @participants
         @participants = @rtm.create 'list', 'participants', []
 
       unless @changes
         @changes = @rtm.create 'list', 'changes', []
+
+      unless @broadcastMessages
+        @broadcastMessages = @rtm.create 'list', 'broadcastMessages', []
 
       isInList = no
 
@@ -787,6 +791,7 @@ class IDEAppController extends AppController
 
 
   syncChange: (change) ->
+
     {context} = change
 
     return  if not @rtm or not @rtm.isReady or not context
@@ -850,16 +855,24 @@ class IDEAppController extends AppController
 
 
   listenChangeEvents: ->
-    @changes = @rtm.getFromModel 'changes'
-    @changes?.clear()  if @amIHost
-
     @rtm.bindRealtimeListeners @changes, 'list'
+    @rtm.bindRealtimeListeners @broadcastMessages, 'list'
 
-    @rtm.on 'ValuesAddedToList', (list, value) =>
-      @handleChange value.values[0]  if list is @changes
+    @rtm.on 'ValuesAddedToList', (list, event) =>
 
-    @rtm.on 'ValuesRemovedFromList', (list, value) =>
-      @handleChange value.values[0]  if list is @changes
+      [value] = event.values
+
+      switch list
+
+        when @changes
+          @handleChange value
+
+        when @broadcastMessages
+          @handleBroadcastMessage value
+
+    @rtm.on 'ValuesRemovedFromList', (list, event) =>
+
+      @handleChange event.values[0]  if list is @changes
 
 
   handleChange: (change) ->
@@ -1282,3 +1295,7 @@ class IDEAppController extends AppController
     @confirmationModal = new KDModalView modalOptions
     @confirmationModal.once 'KDObjectWillBeDestroyed', =>
       delete @confirmationModal
+
+
+  handleBroadcastMessage: (data) ->
+    log data
