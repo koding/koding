@@ -435,6 +435,8 @@ module.exports = class HomeViewFull extends KDView
       <li>Third prize: $2,000</li>
     </ol>
     <h6>Student Hacker (High school or less):</h6>
+    (Please note: Student hackers are not precluded from submitting their project for the Top Hacker 
+    category.)
     <ol>
       <li>First prize: $1,500</li>
       <li>Second prize: $1,000</li>
