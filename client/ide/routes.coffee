@@ -127,6 +127,7 @@ do ->
         .then (workspaces) ->
 
           KD.userWorkspaces = workspaces
+          KD.singletons.mainView.activitySidebar.updateMachineTree()
 
           try
             workspaces.forEach (workspace) =>
