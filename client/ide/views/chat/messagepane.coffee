@@ -6,18 +6,59 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     super options, data
 
-    @addSubView @back = new KDButtonView
-      title    : 'settings'
-      cssClass : 'solid green mini'
-      callback : => @getDelegate().showSettingsPane()
-
-    @back.setStyle
-      position : 'absolute'
-      top      : '16px'
-      right    : '16px'
-      'z-index': 12
-
     @on 'AddedParticipant', @bound 'participantAdded'
+
+
+  createParticipantsView: ->
+
+    @createHeaderViews()
+
+    super
+
+
+  createHeaderViews: ->
+
+    channel = @getData()
+
+    header = new KDCustomHTMLView
+      tagName  : 'header'
+      cssClass : 'general-header'
+
+    header.addSubView @title = new KDCustomHTMLView
+      tagName  : 'h3'
+      cssClass : 'workspace-name'
+      partial  : 'My Workspace'
+
+    header.addSubView @chevron = @createMenu()
+
+    header.addSubView @link = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'session-link'
+      partial    : link = KD.utils.groupifyLink "IDE/#{channel.id}", yes
+      attributes : href : link
+
+    @addSubView header
+
+
+  createMenu: ->
+
+    channel = @getData()
+
+    chevron = new KDButtonViewWithMenu
+      title          : ''
+      cssClass       : 'pm-title-chevron'
+      itemChildClass : ActivityItemMenuItem
+      delegate       : this
+      menu           : @bound 'settingsMenu'
+      style          : 'resurrection'
+      callback       : (event) -> @contextMenu event
+
+
+  settingsMenu: ->
+
+    'Search'   : { callback: noop }
+    'Settings' : { callback: @getDelegate().bound 'showSettingsPane' }
+    'Minimize' : { callback: noop }
 
 
   createInputWidget: ->

@@ -21,58 +21,12 @@ class IDE.ChatView extends KDTabView
         KD.utils.stopDOMEvent event
         @hide()
 
-    @createElements()
     @createLoader()
 
     KD.singletons.appManager.require 'Activity', @bound 'createPanes'
 
     @once 'CollaborationStarted',        @bound 'removeLoader'
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
-
-
-  createElements: ->
-
-    channel = @getData()
-
-    header = new KDCustomHTMLView
-      tagName  : 'header'
-      cssClass : 'general-header'
-
-    header.addSubView @title = new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'workspace-name'
-      partial  : 'My Workspace'
-
-    header.addSubView @chevron = @createMenu()
-
-    header.addSubView @link = new KDCustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'session-link'
-      partial    : link = KD.utils.groupifyLink "IDE/#{channel.id}", yes
-      attributes : href : link
-
-    @addSubView header
-
-
-  createMenu: ->
-
-    channel = @getData()
-
-    chevron = new KDButtonViewWithMenu
-      title          : ''
-      cssClass       : 'pm-title-chevron'
-      itemChildClass : ActivityItemMenuItem
-      delegate       : this
-      menu           : @bound 'settingsMenu'
-      style          : 'resurrection'
-      callback       : (event) -> @contextMenu event
-
-
-  settingsMenu: ->
-
-    'Search'   : { callback: noop }
-    'Settings' : { callback: @bound 'showSettingsPane' }
-    'Minimize' : { callback: noop }
 
 
   createLoader: ->
