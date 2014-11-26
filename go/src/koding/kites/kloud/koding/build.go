@@ -3,6 +3,7 @@ package koding
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -89,24 +90,45 @@ func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
 }
 
 func (b *Build) run() (*protocol.Artifact, error) {
-	b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
-	b.log.Info("[%s] Generating  and fetching build data", b.machine.Id)
-	buildData, err := b.buildData()
-	if err != nil {
-		return nil, err
-	}
+	var err error
+	instanceId := b.amazon.Builder.InstanceId
+	queryString := b.machine.QueryString
 
-	b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
-	b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
-	if err := b.checkLimits(buildData); err != nil {
-		return nil, err
-	}
+	// if there is already a machine just check it again
+	if instanceId == "" {
+		b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
+		b.log.Info("[%s] Generating and fetching build data", b.machine.Id)
+		buildData, err := b.buildData()
+		if err != nil {
+			return nil, err
+		}
 
-	b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
-	b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
-	instanceId, err := b.create(buildData)
-	if err != nil {
-		return nil, err
+		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
+
+		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
+		b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
+		if err := b.checkLimits(buildData); err != nil {
+			return nil, err
+		}
+
+		b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
+		b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
+		instanceId, err = b.create(buildData)
+		if err != nil {
+			return nil, err
+		}
+
+		// update the intermediate information
+		b.provider.Update(b.machine.Id, &kloud.StorageData{
+			Type: "building",
+			Data: map[string]interface{}{
+				"instanceId":  instanceId,
+				"queryString": queryString,
+			},
+		})
+	} else {
+		b.log.Info("[%s] Continue build process with leftover data, instanceId: '%s' and queryString: '%s'",
+			b.machine.Id, instanceId, queryString)
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
@@ -115,18 +137,18 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	buildArtifact.KiteQuery = kiteprotocol.Kite{ID: buildData.KiteId}.String()
+	buildArtifact.KiteQuery = queryString
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
 	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
-	if err := b.addDomainAndTags(buildArtifact); err != nil {
-		return nil, err
-	}
+	b.addDomainAndTags(buildArtifact)
 
-	b.amazon.Push("Checking klient connection", b.normalize(90), machinestate.Building)
-	b.log.Info("[%s] All finished, testing for klient connection", b.machine.Id)
+	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
+		b.normalize(90), machinestate.Building)
+	b.log.Info("[%s] All finished, testing for klient connection IP [%s]",
+		b.machine.Id, buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
 	}
@@ -171,7 +193,6 @@ func (b *Build) buildData() (*BuildData, error) {
 	blockDeviceMapping := ec2.BlockDeviceMapping{
 		DeviceName:          device.DeviceName,
 		VirtualName:         device.VirtualName,
-		SnapshotId:          device.SnapshotId,
 		VolumeType:          "standard", // Use magnetic storage because it is cheaper
 		VolumeSize:          int64(storageSize),
 		DeleteOnTermination: true,
@@ -429,7 +450,7 @@ func (b *Build) checkBuild(instanceId string) (*protocol.Artifact, error) {
 
 }
 
-func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
+func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) {
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
@@ -443,7 +464,7 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 	b.log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
 
 	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
-		return err
+		b.log.Error("[%s] updating domains for setting err: %s", b.machine.Id, err.Error())
 	}
 
 	b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
@@ -474,8 +495,6 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) error {
 	if err := b.amazon.AddTags(buildArtifact.InstanceId, tags); err != nil {
 		b.log.Error("[%s] Adding tags failed: %v", b.machine.Id, err)
 	}
-
-	return nil
 }
 
 func (b *Build) checkKite(query string) error {
