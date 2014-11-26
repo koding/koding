@@ -112,7 +112,6 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   stopSession: ->
 
-    @endSession.disable()
     {appManager} = KD.singletons
 
     appManager.tell 'IDE', 'stopCollaborationSession', (err, channel) =>

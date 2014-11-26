@@ -1207,28 +1207,36 @@ class IDEAppController extends AppController
 
 
   stopCollaborationSession: (callback) ->
+    modalOptions =
+      title      : 'Are you sure?'
+      content    : 'This will end your session and all participants will be removed from this session.'
 
-    return callback msg : 'no social channel'  unless @socialChannel
+    @showConfirmationModal modalOptions, =>
 
-    {message} = KD.singletons.socialapi
-    nick      = KD.nick()
+      @chat.settingsPane.endSession.disable()
 
-    message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
-      channelId  : @socialChannel.id
-      payload    :
-         'system-message' : 'stop'
-         collaboration    : yes
-    , callback
+      return callback msg : 'no social channel'  unless @socialChannel
 
-    @rtm.deleteFile @getRealTimeFileName()
+      {message} = KD.singletons.socialapi
+      nick      = KD.nick()
 
-    @rtm.once 'FileDeleted', =>
-      log 'file deleted'
-      @statusBar.emit 'CollaborationEnded'
-      @chat.emit 'CollaborationEnded'
+      message.sendPrivateMessage
+        body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
+        channelId  : @socialChannel.id
+        payload    :
+           'system-message' : 'stop'
+           collaboration    : yes
+      , callback
 
-    @setMachineSharingStatus off
+      @rtm.deleteFile @getRealTimeFileName()
+
+      @rtm.once 'FileDeleted', =>
+        log 'file deleted'
+        @statusBar.emit 'CollaborationEnded'
+        @chat.emit 'CollaborationEnded'
+        @confirmationModal.destroy()
+
+      @setMachineSharingStatus off
 
 
   setMachineSharingStatus: (status) ->
@@ -1257,3 +1265,20 @@ class IDEAppController extends AppController
       if share
       then kite.klientShare {username}, callback
       else kite.klientUnshare {username}, callback
+
+
+  showConfirmationModal: (modalOptions = {}, callback = noop) ->
+    return  if @confirmationModal
+
+    modalOptions.overlay = yes
+    modalOptions.buttons =
+      Yes        :
+        cssClass : 'modal-clean-green'
+        callback : callback
+      No         :
+        cssClass : 'modal-cancel'
+        callback : => @confirmationModal.destroy()
+
+    @confirmationModal = new KDModalView modalOptions
+    @confirmationModal.once 'KDObjectWillBeDestroyed', =>
+      delete @confirmationModal
