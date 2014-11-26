@@ -592,7 +592,7 @@ class SocialApiController extends KDController
       validateOptionsWith : ['channelId']
       successFn           : leaveChannel
 
-    kick                 : channelRequesterFn
+    kickParticipants     : channelRequesterFn
       fnName             : 'leave'
       validateOptionsWith: ['channelId', 'accountIds']
 
