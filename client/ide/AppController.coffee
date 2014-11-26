@@ -1147,7 +1147,7 @@ class IDEAppController extends AppController
         .then =>
           @workspaceData.channelId = channel.id
           callback null, channel
-          @chat.once 'ready', => @chat.emit 'CollaborationNotInitialized'
+          @chat.ready => @chat.emit 'CollaborationNotInitialized'
         .error callback
 
 
