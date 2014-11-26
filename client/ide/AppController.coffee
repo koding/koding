@@ -1241,13 +1241,13 @@ class IDEAppController extends AppController
            collaboration    : yes
       , callback
 
-      @rtm.deleteFile @getRealTimeFileName()
-
       @rtm.once 'FileDeleted', =>
         log 'file deleted'
         @statusBar.emit 'CollaborationEnded'
         @chat.emit 'CollaborationEnded'
         @confirmationModal.destroy()
+
+      @rtm.deleteFile @getRealTimeFileName()
 
       @setMachineSharingStatus off
 
