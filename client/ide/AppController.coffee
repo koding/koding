@@ -1241,6 +1241,8 @@ class IDEAppController extends AppController
            collaboration    : yes
       , callback
 
+      @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
+
       @rtm.once 'FileDeleted', =>
         log 'file deleted'
         @statusBar.emit 'CollaborationEnded'
