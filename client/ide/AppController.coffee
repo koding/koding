@@ -1285,19 +1285,49 @@ class IDEAppController extends AppController
   showModal: (modalOptions = {}, callback = noop) ->
     return  if @modal
 
-    modalOptions.overlay = yes
-    modalOptions.buttons =
+    modalOptions.overlay  ?= yes
+    modalOptions.blocking ?= no
+    modalOptions.buttons or=
       Yes        :
         cssClass : 'modal-clean-green'
         callback : callback
       No         :
         cssClass : 'modal-cancel'
-        callback : => @confirmationModal.destroy()
+        callback : => @modal.destroy()
 
-    @confirmationModal = new KDModalView modalOptions
+    ModalClass = if modalOptions.blocking then KDBlockingModalView else KDModalView
+
+    @modal = new ModalClass modalOptions
     @modal.once 'KDObjectWillBeDestroyed', =>
       delete @modal
 
 
   handleBroadcastMessage: (data) ->
-    log data
+    {origin, type} = data
+
+    return  if origin is KD.nick()
+
+    switch type
+
+      when 'SessionEnded'
+
+        @showSessionEndedModal()
+
+
+  showSessionEndedModal: ->
+    {mainView, router} = KD.singletons
+
+    options        =
+      title        : 'Session Ended'
+      content      : "This session ended by session owner. You won't be able to access it anymore"
+      blocking     : yes
+      buttons      :
+        quit       :
+          title    : 'LEAVE'
+          callback : =>
+            @modal.destroy()
+            router.handleRoute '/IDE'
+
+
+    @showModal options
+    mainView.activitySidebar.removeMachineNode @mountedMachine
