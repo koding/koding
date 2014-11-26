@@ -43,14 +43,9 @@ class KodingKite_KlientKite extends KodingKite
     #           or
     #      http://localhost:8090/-/userproxy/54.164.243.111/kite
 
-    proxy = {
-      dev        : 'devproxy'
-      production : 'prodproxy'
-      sandbox    : 'sandboxproxy'
-    }[KD.config.environment] or 'devproxy'
+    {hostname, protocol, port} = document.location
 
-    {protocol} = document.location
-    changedUrl = "#{protocol}//proxy.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+    changedUrl = "#{protocol}//#{hostname}#{if port then ":#{port}" else ""}/-/userproxy/#{parser.hostname}/kite"
 
     @transport.options.url = changedUrl
 
