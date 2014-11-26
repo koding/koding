@@ -23,7 +23,6 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @on 'CollaborationStarted', =>
       @toggleButtons 'started'
-      # @createParticipantsList()
 
 
   createElements: ->
