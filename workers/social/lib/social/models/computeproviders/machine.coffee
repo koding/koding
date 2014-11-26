@@ -8,7 +8,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JMachine extends Module
 
-  { ObjectId, signature, daisy } = require 'bongo'
+  { ObjectId, signature, daisy, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
 
@@ -45,6 +45,14 @@ module.exports = class JMachine extends Module
           (signature String, Function)
         setLabel        :
           (signature String, Function)
+        share           :
+          (signature Object, Function)
+        unshare         :
+          (signature Object, Function)
+        setAsOwner      :
+          (signature Object, Function)
+        unsetAsOwner    :
+          (signature Object, Function)
 
     permissions         :
       'list machines'   : ['member']
@@ -466,3 +474,20 @@ module.exports = class JMachine extends Module
           new KodingError "It is not allowed to change owner state!"
 
       JMachine::shareWith.call this, options, callback
+
+
+  share: secure (client, users, callback)->
+    options = target: users, user: yes
+    JMachine::shareWith$.call this, client, options, callback
+
+  unshare: secure (client, users, callback)->
+    options = target: users, user: no
+    JMachine::shareWith$.call this, client, options, callback
+
+  setAsOwner: secure (client, users, callback)->
+    options = target: users, user: yes, owner: yes
+    JMachine::shareWith$.call this, client, options, callback
+
+  unsetAsOwner: secure (client, users, callback)->
+    options = target: users, user: yes, owner: no
+    JMachine::shareWith$.call this, client, options, callback
