@@ -384,6 +384,8 @@ class PrivateMessagePane extends MessagePane
           @autoComplete.reset()
           return
 
+        @emit 'AddedParticipant', participant
+
 
   viewAppended: ->
 
