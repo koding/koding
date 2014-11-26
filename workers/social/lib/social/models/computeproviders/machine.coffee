@@ -310,39 +310,6 @@ module.exports = class JMachine extends Module
       daisy queue
 
 
-  setDomain: permit 'set domain',
-
-    success: revive
-
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
-
-    , (client, domain, callback)->
-
-      { r: { user } } = client
-
-      unless isOwner user, this
-        return callback new KodingError 'Access denied'
-
-      { nickname } = client.connection.delegate.profile
-      { userSitesDomain } = KONFIG
-
-      suffix  = "#{nickname}.#{userSitesDomain}"
-      _suffix = suffix.replace ".", "\\."
-
-      unless ///(^|\.)#{_suffix}$///.test domain
-        return callback new KodingError \
-          "Domain is invalid, it needs to be end with #{suffix}", "INVALIDDOMAIN"
-
-      JMachine.count {domain}, (err, count)=>
-
-        if err or count > 0
-          return callback new KodingError \
-            "The domain #{domain} already exists", "DUPLICATEDOMAIN"
-
-        @update $set: { domain }, (err)-> callback err
-
-
   setLabel: permit 'set domain',
 
     success: revive
