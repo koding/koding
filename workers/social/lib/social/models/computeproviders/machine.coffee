@@ -375,26 +375,41 @@ module.exports = class JMachine extends Module
         @update $set: { label }, (err)-> kallback err, slug
 
 
-  addUser: (user, owner, callback)->
+  removeUser = (users, user)->
 
-    userId = user.getId()
-    users  = []
+    userId   = user.getId()
+    newUsers = []
 
-    for u in @users
-      users.push u  unless userId.equals u.id
+    for u in users
+      newUsers.push u  unless userId.equals u.id
 
-    users.push { id: userId, owner }
+    return newUsers
+
+
+  addUser = (users, user, owner)->
+
+    newUsers = removeUser users, user
+    newUsers.push { id: user.getId(), owner }
+
+    return newUsers
+
+
+  addUsers: (usersToAdd, owner, callback)->
+
+    users = @users.splice 0
+
+    for user in usersToAdd
+      users = addUser users, user, owner
 
     @update $set: { users }, callback
 
 
-  removeUser: (user, callback)->
+  removeUsers: (usersToRemove, callback)->
 
-    userId = user.getId()
-    users  = []
+    users = @users.splice 0
 
-    for u in @users
-      users.push u  unless userId.equals u.id
+    for user in usersToRemove
+      users = removeUser users, user
 
     @update $set: { users }, callback
 
@@ -416,13 +431,15 @@ module.exports = class JMachine extends Module
       if err or not result?
         return callback new KodingError "Target not found."
 
-      [ target ] = result.models
+      targets = (target.models[0]  for target in result)
+
+      [ target ] = targets
 
       if target instanceof JUser
 
         if user
-        then @addUser target, owner, callback
-        else @removeUser target, callback
+        then @addUsers targets, owner, callback
+        else @removeUsers targets, callback
 
       else
         callback new KodingError "Target does not support machines."
