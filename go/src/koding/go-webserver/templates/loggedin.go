@@ -18,13 +18,37 @@ var LoggedInHome = `
 
     <script>KD.isLoggedInOnLoad=true;</script>
 
-    <script>KD.userAccount={{.User.GetWithDefault "Account" "null" }};</script>
+    <script>
+			{{if .User.Exists "Account" }}
+				KD.userAccount={{.User.GetOnlyValue "Account"}}
+			{{else}}
+				KD.userAccount={}
+			{{end}}
+    </script>
 
-    <script>KD.userMachines={{.User.GetWithDefault "Machines" "null"}};</script>
+    <script>
+			{{if .User.Exists "Machines" }}
+				KD.userMachines={{.User.GetOnlyValue "Machines"}}
+			{{else}}
+				KD.userMachines=[]
+			{{end}}
+    </script>
 
-    <script>KD.userWorkspaces={{.User.GetWithDefault "Workspaces" "null"}};</script>
+    <script>
+			{{if .User.Exists "Workspaces" }}
+				KD.userWorkspaces={{.User.GetOnlyValue "Workspaces"}}
+			{{else}}
+				KD.userWorkspaces=[]
+			{{end}}
+    </script>
 
-    <script>KD.currentGroup={{.User.GetWithDefault "Group" "null"}};</script>
+    <script>
+			{{if .User.Exists "Group" }}
+				KD.currentGroup={{.User.GetOnlyValue "Group"}};
+			{{else}}
+				KD.currentGroup={}
+			{{end}}
+    </script>
 
     <script>
       (function(d) {

@@ -23,14 +23,14 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	onDone := make(chan struct{}, 1) // signals when done prefetching items
 	onError := make(chan error, 1)   // when there's an error, return right away
 
-	collectItemCount := 3
+	collectItemCount := 2
 	outputter := &Outputter{OnItem: onItem, OnError: onError}
 
 	// on new register, there's a race condition where SocialApiId
 	// isn't sometimes set; in that case don't prefetch socialdata
 	// since it'll return empty
 	if !isSocialIdEmpty(userInfo.SocialApiId) {
-		collectItemCount = 4
+		collectItemCount = 3
 		go fetchSocial(userInfo.SocialApiId, outputter)
 	}
 
@@ -47,7 +47,6 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	// prefetch items
 	go sendAccount(userInfo.Account, outputter) // this is fetched above
 	go fetchMachines(userInfo.UserId, outputter)
-	go fetchWorkspaces(userInfo.AccountId, outputter)
 
 	// return if timeout reached and let client get what it wants
 	timeout := time.NewTimer(TimeoutTime)

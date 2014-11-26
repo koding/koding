@@ -25,3 +25,18 @@ func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
 
 	return workspaces, nil
 }
+
+func GetMachineWorkspaces(machineIds []string) ([]*models.Workspace, error) {
+	workspaces := []*models.Workspace{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"machineUID": bson.M{"$in": machineIds}}).All(&workspaces)
+	}
+
+	err := Mongo.Run(WorkspaceColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}

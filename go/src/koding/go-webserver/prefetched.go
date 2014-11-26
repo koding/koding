@@ -26,10 +26,13 @@ func fetchMachines(userId bson.ObjectId, outputter *Outputter) {
 	}
 
 	outputter.OnItem <- &Item{Name: "Machines", Data: machines}
-}
 
-func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
-	workspaces, err := modelhelper.GetWorkspaces(accountId)
+	machineIds := []string{}
+	for _, machine := range machines {
+		machineIds = append(machineIds, machine.Uid)
+	}
+
+	workspaces, err := modelhelper.GetMachineWorkspaces(machineIds)
 	if err != nil {
 		Log.Error("Couldn't fetch workspaces: %s", err)
 		workspaces = []*models.Workspace{}
