@@ -122,6 +122,64 @@ module.exports = class JMachine extends Module
         assignedAt      : Date
 
 
+  # Helpers
+  # -------
+
+  generateSlugFromLabel = ({user, group, label, index}, callback)->
+
+    slug = if index? then "#{label}-#{index}" else label
+    slug = slugify slug
+
+    JMachine.count {
+      users : $elemMatch: id: user.getId()
+      groups: $elemMatch: id: group.getId()
+      slug
+    }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+        callback null, slug
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromLabel {user, group, label, index}, callback
+
+
+  isOwner  = (user, machine) ->
+
+    userId = user.getId()
+
+    owner  = no
+    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+
+    return owner
+
+
+  removeUser = (users, user)->
+
+    userId   = user.getId()
+    newUsers = []
+
+    for u in users
+      newUsers.push u  unless userId.equals u.id
+
+    return newUsers
+
+
+  addUser = (users, user, owner)->
+
+    newUsers = removeUser users, user
+    newUsers.push { id: user.getId(), owner }
+
+    return newUsers
+
+
+  # Private Methods
+  # ---------------
+
+  # Static Methods
+
   @create = (data, callback)->
 
     # JMachine.uid is a unique id which is generated from:
@@ -179,29 +237,66 @@ module.exports = class JMachine extends Module
           callback null, machine
 
 
-  generateSlugFromLabel = ({user, group, label, index}, callback)->
+  # Instance Methods
 
-    slug = if index? then "#{label}-#{index}" else label
-    slug = slugify slug
+  addUsers: (usersToAdd, owner, callback)->
 
-    JMachine.count {
-      users : $elemMatch: id: user.getId()
-      groups: $elemMatch: id: group.getId()
-      slug
-    }, (err, count)->
+    users = @users.splice 0
 
-      return callback err  if err?
+    for user in usersToAdd
+      users = addUser users, user, owner
 
-      if count is 0
-        callback null, slug
+    @update $set: { users }, callback
+
+
+  removeUsers: (usersToRemove, callback)->
+
+    users = @users.splice 0
+
+    for user in usersToRemove
+      users = removeUser users, user
+
+    @update $set: { users }, callback
+
+
+  shareWith: (options, callback)->
+
+    { target, user, owner } = options
+    user  ?= yes
+    owner ?= no
+
+    unless target?
+      return callback new KodingError "Target required."
+
+    JUser = require '../user'
+    JName = require '../name'
+
+    JName.fetchModels target, (err, result)=>
+
+      if err or not result?
+        return callback new KodingError "Target not found."
+
+      targets = (target.models[0]  for target in result)
+
+      [ target ] = targets
+
+      if target instanceof JUser
+
+        if user
+        then @addUsers targets, owner, callback
+        else @removeUsers targets, callback
+
       else
-        index ?= 0
-        index += 1
-        generateSlugFromLabel {user, group, label, index}, callback
+        callback new KodingError "Target does not support machines."
 
 
 
-  @one$: permit 'list machines',
+  # Shared Methods
+  # --------------
+
+  # Static Methods
+
+  @one$ = permit 'list machines',
 
     success: revive
 
@@ -224,7 +319,7 @@ module.exports = class JMachine extends Module
         callback err, machine
 
 
-  @some$: permit 'list machines',
+  @some$ = permit 'list machines',
 
     success: revive
 
@@ -242,16 +337,7 @@ module.exports = class JMachine extends Module
         callback err, machines
 
 
-
-  isOwner  = (user, machine) ->
-
-    userId = user.getId()
-
-    owner  = no
-    owner |= u.owner and u.id.equals userId  for u, i in machine.users
-
-    return owner
-
+  # Instance Methods
 
   setProvisioner: permit 'set provisioner',
 
@@ -310,7 +396,7 @@ module.exports = class JMachine extends Module
       daisy queue
 
 
-  setLabel: permit 'set domain',
+  setLabel: permit 'set label',
 
     success: revive
 
@@ -340,76 +426,6 @@ module.exports = class JMachine extends Module
           @update $set: { slug, label }, (err)-> kallback err, slug
       else
         @update $set: { label }, (err)-> kallback err, slug
-
-
-  removeUser = (users, user)->
-
-    userId   = user.getId()
-    newUsers = []
-
-    for u in users
-      newUsers.push u  unless userId.equals u.id
-
-    return newUsers
-
-
-  addUser = (users, user, owner)->
-
-    newUsers = removeUser users, user
-    newUsers.push { id: user.getId(), owner }
-
-    return newUsers
-
-
-  addUsers: (usersToAdd, owner, callback)->
-
-    users = @users.splice 0
-
-    for user in usersToAdd
-      users = addUser users, user, owner
-
-    @update $set: { users }, callback
-
-
-  removeUsers: (usersToRemove, callback)->
-
-    users = @users.splice 0
-
-    for user in usersToRemove
-      users = removeUser users, user
-
-    @update $set: { users }, callback
-
-
-  shareWith: (options, callback)->
-
-    { target, user, owner } = options
-    user  ?= yes
-    owner ?= no
-
-    unless target?
-      return callback new KodingError "Target required."
-
-    JUser = require '../user'
-    JName = require '../name'
-
-    JName.fetchModels target, (err, result)=>
-
-      if err or not result?
-        return callback new KodingError "Target not found."
-
-      targets = (target.models[0]  for target in result)
-
-      [ target ] = targets
-
-      if target instanceof JUser
-
-        if user
-        then @addUsers targets, owner, callback
-        else @removeUsers targets, callback
-
-      else
-        callback new KodingError "Target does not support machines."
 
 
   # .share can be used like this:
