@@ -167,6 +167,10 @@ class IDEAppController extends AppController
 
   setActivePaneFocus: (state) ->
     return  unless pane = @getActivePaneView()
+    return  if pane is @activePaneView
+
+    @activePaneView = pane
+
     KD.utils.defer -> pane.setFocus? state
 
   splitTabView: (type = 'vertical', ideViewOptions) ->
