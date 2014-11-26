@@ -110,7 +110,19 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to kick other users"))
+		}
+
 		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
 			return response.NewBadRequest(err)
