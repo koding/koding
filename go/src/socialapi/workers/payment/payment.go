@@ -268,8 +268,7 @@ var PaypalStatusActionMap = map[string]string{
 }
 
 var PaypalTransactionActionMap = map[string]string{
-	"subscr_cancel": PaypalActionCancel,
-	"subscr_eot":    PaypalActionCancel,
+	"recurring_payment_profile_cancel": PaypalActionCancel,
 }
 
 func (p *PaypalWebhook) Do() (interface{}, error) {
