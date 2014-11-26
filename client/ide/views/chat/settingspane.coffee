@@ -8,8 +8,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     super options, data
 
-    @rtm = options.rtm
-    @participantViews = {}
+    @participantViews    = {}
+    {@rtm, @isInSession} = options
 
     @createElements()
 
@@ -53,11 +53,13 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       cssClass : 'solid green'
       callback : @bound 'initiateSession'
 
+    buttonTitle = if @isInSession then 'LEAVE SESSION' else 'END SESSION'
+
     @endSession = new KDButtonView
-      title    : 'END SESSION'
+      title    : buttonTitle
       disabled : yes
       cssClass : 'solid red hidden'
-      callback : @bound 'stopSession'
+      callback : => if @isInSession then @leaveSession() else @stopSession()
 
     @back = new KDButtonView
       title    : 'back to chat'
@@ -101,6 +103,11 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       return @startSession.enable()  if err
 
       @toggleButtons 'started'
+
+
+  leaveSession: ->
+
+    log 'leave requested'
 
 
   stopSession: ->

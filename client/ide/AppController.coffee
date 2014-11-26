@@ -980,7 +980,8 @@ class IDEAppController extends AppController
 
   createChatPaneView: (channel) ->
 
-    @getView().addSubView @chat = new IDE.ChatView { @rtm }, channel
+    options = { @rtm, @isInSession }
+    @getView().addSubView @chat = new IDE.ChatView options, channel
     @chat.show()
 
     @on 'RTMIsReady', =>

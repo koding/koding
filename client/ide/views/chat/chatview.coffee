@@ -7,7 +7,7 @@ class IDE.ChatView extends KDTabView
 
     super options, data
 
-    @rtm = options.rtm
+    {@rtm, @isInSession} = options
 
     @unsetClass 'kdscrollview'
 
@@ -57,7 +57,7 @@ class IDE.ChatView extends KDTabView
     name      = 'collaboration'
 
     @addPane @chatPane     = new IDE.ChatMessagePane {name, type, channelId}, channel
-    @addPane @settingsPane = new IDE.ChatSettingsPane { @rtm }, channel
+    @addPane @settingsPane = new IDE.ChatSettingsPane { @rtm, @isInSession }, channel
 
     @on 'ReceivedClickElseWhere', @bound 'hide'
 
