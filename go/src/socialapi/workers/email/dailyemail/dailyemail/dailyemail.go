@@ -22,7 +22,7 @@ const (
 	DATEFORMAT    = "Jan 02"
 	CACHEPREFIX   = "dailymail"
 	RECIPIENTSKEY = "recipients"
-	SCHEDULE      = "0 * * * * *"
+	SCHEDULE      = "0 0 0 * * *"
 
 	Subject = "[Koding] Your Koding Activity for today: %s"
 )
