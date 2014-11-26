@@ -1046,9 +1046,8 @@ class IDEAppController extends AppController
 
   updateWorkspace: (options = {}) ->
 
-    KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+    return KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
-    log 'workspace data updated with real one'
 
 
   startChatSession: (callback) ->
@@ -1218,7 +1217,7 @@ class IDEAppController extends AppController
     nick      = KD.nick()
 
     message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible."
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
       channelId  : @socialChannel.id
       payload    :
          'system-message' : 'stop'
