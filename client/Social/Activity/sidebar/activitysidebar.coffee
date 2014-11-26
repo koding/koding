@@ -443,7 +443,10 @@ class ActivitySidebar extends KDCustomHTMLView
           title    = "#{workspace.name}"
 
           unless isMyMachine
-            ideRoute = "#{ideRoute}/#{machineOwner}"
+            if channelId = workspace.channelId
+            then ideRoute = "/IDE/#{channelId}"
+            else
+              return
 
           unless workspace.isDefault
             title += "<span class='ws-settings-icon'></span>"
@@ -554,6 +557,8 @@ class ActivitySidebar extends KDCustomHTMLView
       type                : 'main-nav'
       treeItemClass       : NavigationItem
       addListsCollapsed   : yes
+
+    @machineTree.getView().unsetClass 'kdscrollview'
 
     # This is temporary, we will create a separate TreeViewController
     # for this and put this logic into there ~ FIXME ~ GG
