@@ -432,14 +432,16 @@ module.exports = class JMachine extends Module
         @update $set: { label }, (err)-> kallback err, slug
 
 
-  # .share can be used like this:
+  # .shareWith can be used like this:
   #
-  # JMachineInstance.shareWith { user: yes, owner: no, target: "gokmen"}, cb
-  #                                                user slug -> ^^^^^^
+  # JMachineInstance.shareWith {
+  #   user: yes, owner: no, target: ["gokmen", "dicle"]}, cb
+  # }
+  #                    user slugs ->  ^^^^^^ ,  ^^^^^
 
   shareWith$: permit 'populate users',
 
-    success: revive
+    success : revive
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
@@ -453,10 +455,14 @@ module.exports = class JMachine extends Module
 
       { target } = options
 
+      if target.length > 9
+        return callback new KodingError \
+          "It is not allowed to change more than 9 state at once."
+
       # Owners cannot unassign them from a machine
       # Only another owner can unassign any other owner
-      if user.username is target
+      if user.username in target
         return callback \
-          new KodingError "It's not allowed to change owner's state!"
+          new KodingError "It is not allowed to change owner state!"
 
       JMachine::shareWith.call this, options, callback
