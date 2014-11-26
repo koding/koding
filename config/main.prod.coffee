@@ -393,15 +393,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
-    chatemailfeeder     :
+    privatemessageemailfeeder :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/chatemailfeeder -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
 
-    chatemailsender     :
+    privatemessageemailsender :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/chatemailsender -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
