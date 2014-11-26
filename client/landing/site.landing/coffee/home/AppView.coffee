@@ -51,7 +51,7 @@ module.exports = class HomeView extends KDView
       },
       {
         position : [10, 17] #percent
-        content  : 'Each new workspace gets its own set if IDE and Terminal tabs \n so you can easily manage different projects.'
+        content  : 'Each new workspace gets its own set of IDE and Terminal tabs \n so you can easily manage different projects.'
       }
     ]
     #Channels
