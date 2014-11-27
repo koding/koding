@@ -826,3 +826,11 @@ class ActivitySidebar extends KDCustomHTMLView
         ws for ws in KD.userWorkspaces when ws.machineUId isnt machine.uid
 
       @updateMachineTree()
+
+
+  removeMachineNode: (machine) ->
+    {nodes}    = @machineTree
+    {jMachine} = machine
+
+    for nodeId, node of nodes when node.data?.jMachine is jMachine
+      @machineTree.removeNode nodeId
