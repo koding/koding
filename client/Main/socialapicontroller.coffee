@@ -113,7 +113,7 @@ class SocialApiController extends KDController
             try JSON.parse Encoder.htmlDecode payload.link_embed
             catch e then null
 
-      if payload.initialParticipants
+      if payload.initialParticipants and typeof payload.initialParticipants is 'string'
         payload.initialParticipants =
           try JSON.parse Encoder.htmlDecode payload.initialParticipants
           catch e then null
