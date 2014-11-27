@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+Regions   = require 'koding-regions'
 
 Flaggable = require '../../traits/flaggable'
 
@@ -769,11 +770,11 @@ Team Koding
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
-    { connection, sessionToken : clientId } = client
+    { connection, sessionToken : clientId, clientIP } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
-    { username, email, firstName, lastName, locationData
-      agree, inviteCode, referrer, password, passwordConfirm } = userFormData
+    { username, email, firstName, lastName, agree,
+      inviteCode, referrer, password, passwordConfirm } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -788,8 +789,8 @@ Team Koding
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
-    if locationData?
-      try { ip, country, region } = JSON.parse locationData
+    if clientIP
+      { ip, country, region } = Regions.findLocation clientIP
 
     newToken       = null
     invite         = null
