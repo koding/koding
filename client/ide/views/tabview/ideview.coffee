@@ -227,6 +227,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     {appManager} = KD.singletons
 
     machine = appManager.getFrontApp().mountedMachine
+
     terminalSessions =
       "New Session"  :
         callback     : => @createTerminal machine
@@ -240,8 +241,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       delete terminalSessions["Existing Sessions"]
 
     sessions.forEach (session, i) =>
-      terminalSessions["Session #{i+1}"] =
-        callback : => @createTerminal machine, null, session
+      terminalSessions["Session #{session}"] =
+        children :
+          'Open'          :
+            callback      : => @createTerminal machine, null, session
+          'Terminate'     :
+            callback      : => alert session
+          'Rename'        :
+            callback      : => alert "rename", session
 
     items =
       'New File'          : callback : => @createEditor()
