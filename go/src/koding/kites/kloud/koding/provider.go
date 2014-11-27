@@ -153,7 +153,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
 			p.Log.Warning("[%s] couldn't change instance to '%s' again. err: %s",
-				a.Builder.InstanceType, err)
+				m.Id, a.Builder.InstanceType, err)
 		}
 
 		// wait for AWS eventually consistency state, so we wait to get the
