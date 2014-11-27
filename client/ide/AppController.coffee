@@ -923,7 +923,7 @@ class IDEAppController extends AppController
         else if change.type is 'ContentChange'
           {content, path} = context.file
           string = @rtm.getFromModel path
-          string.setText content
+          string.setText content  if string
 
         delete context.file?.content?
 
