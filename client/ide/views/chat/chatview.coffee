@@ -1,7 +1,5 @@
 class IDE.ChatView extends KDTabView
 
-  JView.mixin @prototype
-
   constructor: (options = {}, data)->
 
     options.cssClass            = 'chat-view loading'
