@@ -197,12 +197,9 @@ module.exports = class JReward extends jraphical.Message
 
     fetchEarnedReward options, (err, earnedReward)->
       return callback err  if err?
-
-      if earnedReward?
-        return callback null, earnedReward.amount
-
-      callback null, 0
-
+      
+      callback null, earnedReward?.amount or 0
+      
       # We can manually call this if we need.
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
