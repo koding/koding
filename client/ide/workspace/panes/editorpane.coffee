@@ -53,7 +53,7 @@ class IDE.EditorPane extends IDE.Pane
       KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
 
   save: ->
-    ace.emit 'ace.requests.save', @getContent()
+    @getAce().emit 'ace.requests.save', @getContent()
 
   getAce: ->
     return @aceView.ace
