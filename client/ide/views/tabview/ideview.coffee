@@ -92,7 +92,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createTerminal: (machine, path, session) ->
 
-    machine ?= @getCurrentMachine()
+    {appManager} = KD.singletons
+
+    machine ?= appManager.getFrontApp().mountedMachine
     path    ?= @getCurrentWorkspacePath()
 
     terminalPane = new IDE.TerminalPane { machine, path, session }
@@ -222,8 +224,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   getPlusMenuItems: ->
 
-    machine = @getCurrentMachine()
+    {appManager} = KD.singletons
 
+    machine = appManager.getFrontApp().mountedMachine
     terminalSessions =
       "New Session"  :
         callback     : => @createTerminal machine
@@ -249,16 +252,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         separator         : yes
       'Split Vertically':
         callback          : ->
-          KD.getSingleton('appManager').getFrontApp().splitVertically()
+          appManager.getFrontApp().splitVertically()
       'Split Horizontally':
         callback          : ->
-          KD.getSingleton('appManager').getFrontApp().splitHorizontally()
+          appManager.getFrontApp().splitHorizontally()
 
     if @parent instanceof KDSplitViewPanel
       items['Undo Split'] =
         separator         : yes
         callback          : ->
-          KD.getSingleton('appManager').getFrontApp().mergeSplitView()
+          appManager.getFrontApp().mergeSplitView()
     else
       items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
         type              : 'separator'
@@ -301,12 +304,3 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     if ideApp.workspaceData?.rootPath
       return ideApp.workspaceData.rootPath
-
-
-  getCurrentMachine:->
-
-    {appManager, computeController} = KD.singletons
-    machineId = appManager.getFrontApp().mountedMachineUId
-    machine = m for m in computeController.machines when m.uid is machineId
-
-    return machine
