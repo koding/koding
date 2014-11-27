@@ -60,7 +60,7 @@ class IDEAppController extends AppController
       { command: 'go to tab number',    binding: 'mod+7',      global: yes }
       { command: 'go to tab number',    binding: 'mod+8',      global: yes }
       { command: 'go to tab number',    binding: 'mod+9',      global: yes }
-      { command: 'fullscren ideview',   binding: 'meta+shift+enter', global: yes }
+      { command: 'fullscren ideview',   binding: 'mod+shift+enter', global: yes }
     ]
 
   constructor: (options = {}, data) ->
