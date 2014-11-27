@@ -32,5 +32,9 @@ type Account struct {
 }
 
 func (a *Account) GetSocialApiId() (int64, error) {
+	if a.SocialApiId == "" {
+		return 0, nil
+	}
+
 	return strconv.ParseInt(a.SocialApiId, 10, 64)
 }
