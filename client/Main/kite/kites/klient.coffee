@@ -34,10 +34,11 @@ class KodingKite_KlientKite extends KodingKite
   init: ->
 
     @connect()
-    Promise.resolve()
 
     unless @terminalSessions.length
       @fetchTerminalSessions()
+
+    Promise.resolve()
 
 
   # setTransport is used to override the setTransport method in KodingKite
