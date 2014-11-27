@@ -921,6 +921,7 @@ class IDEAppController extends AppController
             @rtm.create 'string', path, content
 
         else if change.type is 'ContentChange'
+
           {content, path} = context.file
           string = @rtm.getFromModel path
           string.setText content  if string
@@ -1026,9 +1027,11 @@ class IDEAppController extends AppController
     {paneType} = context
 
     @forEachSubViewInIDEViews_ paneType, (pane) =>
+
       if paneType is 'editor'
         if pane.getFile()?.path is context.file?.path
           targetPane = pane
+
       else
         targetPane = pane  if pane.hash is context.paneHash
 

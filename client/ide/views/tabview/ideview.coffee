@@ -10,7 +10,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @openFiles = []
     @bindListeners()
 
+
   bindListeners: ->
+
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
@@ -45,7 +47,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
+
   createPane_: (view, paneOptions, paneData) ->
+
     unless view or paneOptions
       return new Error 'Missing argument for createPane_ helper'
 
@@ -61,7 +65,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     return pane
 
+
   createEditor: (file, content, callback = noop, emitChange = yes) ->
+
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
     editorPane  = new IDE.EditorPane { file, content, delegate: this }
@@ -98,10 +104,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       @emitChange editorPane, change
 
+
   createShortcutsView: ->
+
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
+
   createTerminal: (machine, path, session, joinUser) ->
+
     ideApp = KD.getSingleton('appManager').getFrontApp()
 
     unless machine
@@ -135,6 +145,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
 
   emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
+
     change.context.paneType = pane.options?.paneType or null
     change.context.paneHash = pane.hash or null
 
@@ -148,13 +159,16 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
 
   createDrawingBoard: (paneHash) ->
+
     drawingPane = new IDE.DrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
     unless paneHash
       @emitChange  drawingPane, context: {}
 
+
   createPreview: (url) ->
+
     previewPane = new IDE.PreviewPane { url }
     @createPane_ previewPane, { name: 'Browser' }
 
@@ -163,10 +177,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @emitChange previewPane, context: { url }
 
+
   showView: (view) ->
+
     @createPane_ view, { name: 'Search Result' }
 
+
   updateStatusBar: (paneType, data) ->
+
     appManager = KD.getSingleton 'appManager'
 
     unless paneType
@@ -196,13 +214,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'updateStatusBar', paneType, data
 
-  removeOpenDocument: ->
-    # TODO: This method is legacy, should be reimplemented in ace bundle.
+
+  removeOpenDocument: -> # legacy, should be reimplemented in ace bundle.
+
 
   getActivePaneView: ->
+
     return @tabView.getActivePane().view
 
+
   focusTab: ->
+
     pane = @getActivePaneView()
     return unless pane
 
@@ -221,10 +243,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     unless @suppressChangeHandlers
       @emitChange pane, context: {}, 'TabChanged'
 
+
   goToLine: ->
+
     @getActivePaneView().aceView.ace.showGotoLine()
 
+
   click: ->
+
     super
 
     appManager = KD.getSingleton 'appManager'
@@ -232,7 +258,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
 
+
   openFile: (file, content, callback = noop, emitChange) ->
+
     if @openFiles.indexOf(file) > -1
       editorPane = @switchToEditorTabByFile file
       callback editorPane
@@ -240,43 +268,61 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @createEditor file, content, callback, emitChange
       @openFiles.push file
 
+
   switchToEditorTabByFile: (file) ->
+
     for pane, index in @tabView.panes when file is pane.getData()
       @tabView.showPaneByIndex index
       return editorPane = pane.view
 
+
   toggleFullscreen: ->
+
     @toggleClass 'fullscren'
     KD.getSingleton('windowController').notifyWindowResizeListeners()
     @isFullScreen = !@isFullScreen
 
+
   handlePaneRemoved: (pane) ->
+
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
     @emitChange pane.view, context: {}, 'PaneRemoved'
     @emit 'PaneRemoved', pane
 
+
   getDummyFilePath: ->
+
     return 'localfile:/Untitled.txt'
 
+
   openMachineTerminal: (machine) ->
+
     @createTerminal machine
 
+
   openMachineWebPage: (machine) ->
+
     @createPreview machine.ipAddress
 
+
   closeTabByFile: (file)  ->
+
     for pane in @tabView.panes when pane?.data is file
       pane.getOptions().aceView.ace.contentChanged = no # hook to avoid file close modal
       @tabView.removePane pane
 
+
   closeUntitledFileIfNotChanged: ->
+
     for pane in @tabView.panes when pane
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
         if pane.view.getValue() is ''
           @tabView.removePane pane
 
+
   getPlusMenuItems: ->
+
     ideApp = KD.getSingleton('appManager').getFrontApp()
     items  =
       'New File'          : callback : => @createEditor()
@@ -304,7 +350,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     return items
 
+
   createEditorMenu: (tabHandle, icon) ->
+
     tabHandle.setClass 'menu-visible'
     KD.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
 
@@ -313,7 +361,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         tabHandle.unsetClass 'menu-visible'
         delete @menu
 
+
   createPlusContextMenu: ->
+
     offset      = @holderView.plusHandle.$().offset()
     offsetLeft  = offset.left - 133
     margin      = if offsetLeft >= -1 then -20 else 12

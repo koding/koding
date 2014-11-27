@@ -26,7 +26,9 @@ class IDE.EditorPane extends IDE.Pane
 
     @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
+
   createEditor: ->
+
     {file, content} = @getOptions()
 
     unless file instanceof FSFile
@@ -52,25 +54,39 @@ class IDE.EditorPane extends IDE.Pane
 
       KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
 
+
   save: ->
+
     ace.emit 'ace.requests.save', @getContent()
 
+
   getAce: ->
+
     return @aceView.ace
 
+
   getEditor: ->
+
     return @getAce().editor
 
+
   getEditorSession: ->
+
     return @getEditor().getSession()
 
+
   getValue: ->
+
     return  @getEditorSession().getValue()
 
+
   goToLine: (lineNumber) ->
+
     @getAce().gotoLine lineNumber
 
+
   setFocus: (state) ->
+
     super state
 
     return  unless ace = @getEditor()
@@ -79,22 +95,34 @@ class IDE.EditorPane extends IDE.Pane
     then ace.focus()
     else ace.blur()
 
+
   getContent: ->
+
     return @getAce().getContents()
 
+
   setContent: (content, emitFileContentChangedEvent = yes) ->
+
     @getAce().setContent content, emitFileContentChangedEvent
 
+
   getCursor: ->
+
     return @getEditor().selection.getCursor()
 
+
   setCursor: (positions) ->
+
     @getEditor().selection.moveCursorTo positions.row, positions.column
 
+
   getFile: ->
+
     return @aceView.getData()
 
+
   bindChangeListeners: ->
+
     ace           = @getAce()
     change        =
       origin      : KD.nick()
@@ -120,7 +148,9 @@ class IDE.EditorPane extends IDE.Pane
 
       @emit 'ChangeHappened', change
 
+
   serialize: ->
+
     file       = @getFile()
     {paneType} = @getOptions()
     {machine}  = file
@@ -138,6 +168,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   setLineWidgets: (row, col, username) ->
+
     oldWidget      = @lineWidgets[username]
     oldCursor      = @cursors[username]
     {renderer}     = @getEditor()
@@ -175,33 +206,38 @@ class IDE.EditorPane extends IDE.Pane
 
 
   handleChange: (change, rtm, realTimeDoc) ->
+
     {context, type, origin} = change
 
     if type is 'CursorActivity'
+
       {row, column} = context.cursor
       @setLineWidgets row, column, origin
 
 
   listenCollaborativeStringChanges: ->
+
     filePath = @getFile().path
 
     return if filePath.indexOf('localfile:/') > -1
 
     string = @rtm.getFromModel filePath
 
-    @setContent string.getText(), no
-
     return unless string
+
+    @setContent string.getText(), no
 
     @rtm.bindRealtimeListeners string, 'string'
 
     @rtm.on 'TextInsertedIntoString', (changedString, change) =>
+
       if changedString is string
         return if @isChangedByMe change
 
         @applyChange change
 
     @rtm.on 'TextDeletedFromString', (changedString, change) =>
+
       if changedString is string
         return if @isChangedByMe change
 
@@ -209,6 +245,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   isChangedByMe: (change) ->
+
     for collaborator in @rtm.getCollaborators() when collaborator.isMe
       me = collaborator
 
@@ -216,6 +253,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   getRange: (index, length, str) ->
+
     start   = index
     end     = index + length
     lines   = str.split "\n"
@@ -247,6 +285,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   applyChange: (change) ->
+
     isInserted = change.type is 'text_inserted'
     isDeleted  = change.type is 'text_deleted'
     range      = @getRange change.index, change.text.length, @getContent()

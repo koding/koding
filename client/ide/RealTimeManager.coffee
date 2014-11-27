@@ -10,10 +10,12 @@ class RealTimeManager extends KDObject
 
 
   setRealtimeDoc: (realtimeDoc) ->
+
     @realtimeDoc = realtimeDoc
 
 
   getRealtimeDoc: ->
+
     unless @realtimeDoc
       throw new Error 'RealtimeDoc is not set yet for RealTimeManager'
 
@@ -21,6 +23,7 @@ class RealTimeManager extends KDObject
 
 
   auth: ->
+
     $.ajax
       url: '/-/google-api',
       dataType: 'JSON'
@@ -37,6 +40,7 @@ class RealTimeManager extends KDObject
 
 
   reauth: ->
+
     $.ajax
       url: '/-/google-api'
       dataType: 'JSON'
@@ -59,6 +63,7 @@ class RealTimeManager extends KDObject
 
 
   deleteFile: (title) ->
+
     @once 'FileQueryFinished', (response) =>
       [file] = response.result.items
 
@@ -81,6 +86,7 @@ class RealTimeManager extends KDObject
 
 
   fetchFileByTitle: (title) ->
+
     gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
       @emit 'FileQueryFinished', file
 
@@ -111,6 +117,7 @@ class RealTimeManager extends KDObject
 
 
   getFromModel: (key) ->
+
     doc = @getRealtimeDoc()
 
     return throw new Error 'Missing arguments'  if not doc or not key
