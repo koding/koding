@@ -152,7 +152,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     return  if @participantViews[nickname]
 
-    # @createParticipantView { nickname }
+    KD.remote.cacheable nickname, (err, account) =>
+      @createParticipantView account.first, yes
 
 
   viewAppended: JView::viewAppended
