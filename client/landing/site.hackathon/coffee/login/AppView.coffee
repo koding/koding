@@ -378,11 +378,8 @@ module.exports = class LoginView extends JView
                 formData.passwordConfirm = formData.password
                 formData.redirectTo    or= 'Hackathon'
 
-                KD.utils.getLocationInfo (err, locationData)=>
-                  unless err?
-                    formData.locationData = JSON.stringify locationData
-                  @doRegister formData, @registerForm
-                  modal.destroy()
+                @doRegister formData, @registerForm
+                modal.destroy()
 
             fields                    : fields
             buttons                   :
