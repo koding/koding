@@ -398,6 +398,46 @@ class ActivitySidebar extends KDCustomHTMLView
           publicLink.unreadCount.hide()
 
 
+  fetchWorkspaces: (callback) ->
+
+    activitySidebar = this
+
+    KD.remote.api.JWorkspace.fetchByMachines()
+
+      .then (workspaces) ->
+
+        nick        = KD.nick()
+        {socialapi} = KD.singletons
+
+        otherMachineUIds = []
+        myMachineUIds    = []
+
+        KD.userMachines.forEach (m) ->
+          if m.credential is nick
+          then myMachineUIds.push m.uid
+          else otherMachineUIds.push m.uid
+
+        otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
+        myWorkspaces     = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in myMachineUIds
+
+        myChannels = []
+        queue      = []
+        workspaces.forEach (ws) ->
+          queue.push ->
+            socialapi.channel.byId id : ws.channelId, (err, channel) ->
+              myChannels.push channel.id  if channel
+              queue.fin()
+
+        Bongo.dash queue, ->
+          workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
+          userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
+          KD.userWorkspaces     = userWorkspaces
+          activitySidebar.updateMachineTree()
+          callback null, userWorkspaces
+
+      .error callback
+
+
 
   listMachines: (machines) ->
 
