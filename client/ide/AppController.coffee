@@ -484,7 +484,7 @@ class IDEAppController extends AppController
     newFileSeed = 1
 
     return ->
-      path     = "localfile:/Untitled-#{newFileSeed++}.txt"
+      path     = "localfile:/Untitled-#{newFileSeed++}.txt@#{Date.now()}"
       file     = FSHelper.createFileInstance { path }
       contents = ''
 

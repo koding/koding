@@ -56,6 +56,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     unless view instanceof KDView
       return new Error 'View must be an instance of KDView'
 
+    if view instanceof IDE.EditorPane
+      paneOptions.name = @trimUntitledFileName paneOptions.name
+
     pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
     pane.view = view
@@ -64,6 +67,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     pane.once 'KDObjectWillBeDestroyed', => @handlePaneRemoved pane
 
     return pane
+
+
+  trimUntitledFileName: (name) ->
+
+    untitledNameRegex = /Untitled[0-9\-]*.txt/
+    matchedPattern    = untitledNameRegex.exec name
+
+    return  if matchedPattern then matchedPattern.first else name
 
 
   createEditor: (file, content, callback = noop, emitChange = yes) ->
@@ -196,6 +207,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         {file} = subView.getOptions()
         {ace}  = subView.aceView
         cursor = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
+
+        file.name = @trimUntitledFileName file.name
+
         data   = { file, cursor }
 
       else if paneType is 'terminal'
@@ -293,7 +307,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   getDummyFilePath: ->
 
-    return 'localfile:/Untitled.txt'
+    return "localfile:/Untitled.txt@#{Date.now()}"
 
 
   openMachineTerminal: (machine) ->
