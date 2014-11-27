@@ -13,7 +13,7 @@ module.exports = class JEarnedReward extends Module
     # since bongo is not supporting them
     # we need to manually define following:
     #
-    #   - originId, type (unique)
+    #   - originId, type, unit (unique)
     #
 
     sharedEvents      :
